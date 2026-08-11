@@ -9,6 +9,7 @@ import {
 	tibetanToIso,
 	tibetanWeekday,
 } from "../../src/computation/conversion.js";
+import { meanDate } from "../../src/computation/mean-astronomy.js";
 import { deriveScaling } from "../../src/computation/scaling.js";
 import { PHUGPA, PHUGPA_HENNING } from "../../src/traditions/phugpa.js";
 import { LOSAR_DATES } from "../fixtures/losar.js";
@@ -115,6 +116,25 @@ describe("Janson's Losar table, 1927-2046", () => {
 			const date = isoToTibetan(iso(row.losar));
 			expect(`${date.yearName.element}-${date.yearName.animal}`).toBe(row.name);
 		}
+	});
+});
+
+// Janson's Remark 17: the epoch is the mean new moon beginning the month with true month
+// count 0, and for E806 he states its Tibetan date as 29/1 806. This is an assertion about a
+// computed value rather than an independent observation, but it pins the epoch end to end --
+// mean date, true date, the month count and the day-labelling rule all have to agree to
+// reproduce it.
+describe("the epoch", () => {
+	it("lands on 29/1 806, as Janson states for E806", () => {
+		const epochJulianDay = Math.floor(meanDate(scaled, 0, 0) / scaled.meanDate.den);
+		expect(epochJulianDay).toBe(2_015_501);
+		const date = isoToTibetan(isoFromJulianDay(epochJulianDay));
+		expect({ year: date.yearStartsIn, month: date.month, day: date.day }).toEqual({
+			year: 806,
+			month: 1,
+			day: 29,
+		});
+		expect(date.isLeapMonth).toBe(false);
 	});
 });
 
