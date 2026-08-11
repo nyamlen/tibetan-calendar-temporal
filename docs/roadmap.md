@@ -63,13 +63,29 @@ through this before publishing v1.0.0 — several are one-way doors once publish
 
 - [ ] Publish from **GitHub Actions with npm provenance**, not locally — provenance ties each
       released version to the commit that built it, which reinforces the clean-room record
-- [ ] Create an npm **automation token** for CI, and require 2FA for manual publishes
-- [ ] Transfer npm package ownership from `boffies` to the `nyamlen` org. Unscoped packages
-      carry no org affiliation — the publisher owns them — so `tibetan-calendar-temporal` is
-      currently owned by a personal account while the repo sits under the org. Needed for
-      org-scoped automation tokens, and it removes a single point of failure.
-      **Verify the org grant before removing yourself as maintainer** — there is no
-      self-service recovery from locking yourself out, only npm support
+- [x] Grant the `nyamlen:developers` team read-write on the package — done 2026-08-11, verified
+      with `npm access list packages nyamlen:developers`. Note the listed **owner** remains
+      `boffies`: unscoped packages carry no org affiliation, and npm exposes no self-service
+      ownership transfer to an organisation. Team access is the achievable outcome and is
+      sufficient — it is what lets CI publish under org-controlled permissions. `npm access
+      list collaborators` will not show this; it only lists user-level collaborators
+- [ ] Create a **granular access token** for CI, scoped to this package only, read-write, with
+      an expiry. npm tokens are always issued by a *user*, never by an org — create it as an
+      account with write access. Store it as a GitHub **organisation-level** secret so sibling
+      packages can reuse it
+
+**Release workflow (Phase 4)**
+
+- [ ] `.github/workflows/release.yml` publishing on tag, with `permissions: id-token: write`
+      and `actions/setup-node` given `registry-url: 'https://registry.npmjs.org'` — that line
+      generates the `.npmrc` that reads `NODE_AUTH_TOKEN`; without it the token is ignored and
+      the publish goes out anonymous
+- [ ] Add `"provenance": true` to `publishConfig` rather than passing `--provenance` at the
+      call site
+- [ ] Confirm `repository.url` still matches the building repo. Provenance attestation fails if
+      they disagree — currently correct, but it would have broken had the repo not been
+      transferred to the org before v1
+- [ ] Diarise the token expiry. An expired token breaks releases silently, months later
 
 **Repository**
 
