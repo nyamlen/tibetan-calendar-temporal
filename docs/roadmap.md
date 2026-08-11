@@ -31,8 +31,14 @@ Setup work not yet done. Nothing here blocks starting Phase 1 except the Node up
 - [ ] Install **Node 26** — required for native Temporal before Phase 1 (currently v24.13.1,
       which does not have it enabled)
 - [ ] GitHub org: set display name `Nyamlen`, description, and **require 2FA for all members**
-- [ ] Cloudflare: confirm **auto-renew** on both domains (they expire 2027-08-11), enable
-      **DNSSEC**, add a `nyamlen.com` → `nyamlen.app` redirect rule
+- [ ] Cloudflare: confirm **auto-renew** on both domains and that a valid payment method is on
+      file — they expire 2027-08-11, and auto-renew fails silently without one
+- [x] DNSSEC enabled on both domains — DS records verified live 2026-08-11
+- [x] `nyamlen.com` → `nyamlen.app` 301 redirect, path-preserving, apex and www — verified
+      2026-08-11
+- [ ] **At app launch:** add a proxied `www` CNAME on `nyamlen.app` plus a redirect to the
+      apex. The canonical host is `nyamlen.app` without www, but `www.nyamlen.app` currently
+      does not resolve at all, so anyone typing it dead-ends
 - [ ] Decide whether to register `nyamlen.org` and `nyamlen.dev` (both free as of 2026-08-11)
 - [ ] Record `Melong` as the name of the practice review screen in the app spec
 
