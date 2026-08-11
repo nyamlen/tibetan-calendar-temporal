@@ -5,13 +5,14 @@ status: accepted
 
 # Fixed common denominator, plain `number`, no rational type
 
-**Decision:** every quantity in the Phugpa computation is held as an integer scaled by one fixed
-denominator, `D = 102_317_040`. Plain `number` is exact throughout — no `bigint`, no floats, and
-no general rational type with gcd normalisation.
+**Decision:** every quantity is held as an integer scaled by one common denominator `D`, and `D`
+is **derived from the tradition's own constants**, never hardcoded. Plain `number` is exact
+throughout — no `bigint`, no floats, and no general rational type with gcd normalisation.
 
 ## Why this denominator
 
-Janson's formulas produce rationals whose denominators are fixed and known in advance:
+Janson's formulas produce rationals whose denominators are fixed and known in advance. For
+Phugpa:
 
 ```text
 mean_date     den 11312 = 2^4 · 7 · 101
@@ -25,14 +26,40 @@ D = lcm = 2^4 · 3^3 · 5 · 7 · 67 · 101 = 102_317_040
 `D` makes every addition exact with no normalisation step, which is what "integer arithmetic with
 fixed denominators" in [CLAUDE.md](../../CLAUDE.md) means in practice.
 
+## `D` is tradition-dependent — do not hardcode it
+
+This is the constraint most likely to be violated. `102_317_040` looks like a universal constant
+and is not. Tsurphu (Janson App. A.2) shares Phugpa's mean-motion constants but has different
+epoch values, and theirs carry factors Phugpa's do not: `m₀ = 2353745 + 1795153/7635600` brings a
+second factor of 5, and `s₀ = −5983/108540` brings a fourth factor of 3.
+
+```text
+Phugpa   D = 2^4 · 3^3 · 5   · 7 · 67 · 101 =   102,317,040
+Tsurphu  D = 2^4 · 3^4 · 5^2 · 7 · 67 · 101 = 1,534,755,600
+```
+
+Baking Phugpa's `D` into the arithmetic layer would make Tsurphu's constants inexpressible, and
+`scaleTo` would reject them — or worse, silently truncate if the guard were ever removed. `D` is
+computed per tradition with `lcm` over the config's actual denominators. This is what lets
+[CLAUDE.md](../../CLAUDE.md)'s "Tsurphu must remain addable without touching the algorithm" hold.
+
 ## Why plain `number` is safe
 
-At JD ≈ 2.46 × 10⁶ the scaled numerator is ≈ 2.5 × 10¹⁴, against
-`Number.MAX_SAFE_INTEGER` ≈ 9.0 × 10¹⁵ — a margin of about 36×. Exactness holds to
-**JD ≈ 8.8 × 10⁷**, roughly the year 240,000.
+The largest intermediate is approximately `JD · D`.
 
-Do not switch to `bigint` for safety. It is slower, it spreads through every signature, and the
-bound above is asserted by a test rather than assumed.
+| Tradition | `D` | numerator at JD ≈ 2.46 × 10⁶ | headroom | exact to |
+|---|---|---|---|---|
+| Phugpa | 1.02 × 10⁸ | 2.5 × 10¹⁴ | 35.8× | JD 8.8 × 10⁷ |
+| Tsurphu | 1.53 × 10⁹ | 3.8 × 10¹⁵ | 2.4× | JD 5.9 × 10⁶ |
+
+Against `Number.MAX_SAFE_INTEGER` ≈ 9.0 × 10¹⁵. Tsurphu's margin is thin but sufficient — JD
+5.9 × 10⁶ is roughly the year 11,000 — so `number` remains correct for any date either tradition
+is meaningfully applied to. The bound is asserted by a per-tradition test rather than assumed.
+
+Do not switch to `bigint` for safety. It is slower and it spreads through every signature. If a
+future tradition ever did exceed the bound, the cheaper fix is to split each quantity into whole
+days plus a fractional numerator below `D`, which caps every intermediate near 10¹³ regardless of
+`D` — not to change the numeric type.
 
 ## Consequences a contributor would otherwise trip over
 

@@ -1,0 +1,148 @@
+/**
+ * Integer primitives from Janson §2.
+ *
+ * @remarks
+ * Every quantity in the Phugpa computation is a rational with a denominator known in
+ * advance, so the whole engine runs on exact integer arithmetic. Nothing here uses
+ * floating point, and nothing here may start to.
+ *
+ * Janson warns twice (§2) that implementations break on negative operands. Both traps
+ * are real in JavaScript: `%` is a remainder rather than a modulo, so `-7 % 3` is `-1`
+ * where Janson's `mod` requires `2`; and truncating division is not floor division, so
+ * `(-7 / 2) | 0` is `-3` where {@link floorDiv} gives `-4`. The month count and the
+ * intercalation index both feed negative values through these operations for dates
+ * before the epoch, where a sign error produces a plausible calendar that is wrong.
+ *
+ * @packageDocumentation
+ */
+
+/**
+ * Floor division — the largest integer `q` with `q * divisor <= dividend`.
+ *
+ * @param dividend - May be negative.
+ * @param divisor - Must be non-zero.
+ * @returns `⌊dividend / divisor⌋`, exact for all safe-integer inputs.
+ * @throws RangeError if `divisor` is zero.
+ *
+ * @example
+ * ```ts
+ * floorDiv(-7, 2); // -4, where truncation would give -3
+ * ```
+ */
+export function floorDiv(dividend: number, divisor: number): number {
+	if (divisor === 0) throw new RangeError("floorDiv: divisor must be non-zero");
+	return Math.floor(dividend / divisor);
+}
+
+/**
+ * Ceiling division — the smallest integer `q` with `q * divisor >= dividend`.
+ *
+ * @remarks
+ * Janson's month inversion (§5, eq. 24) is a **ceiling**: `x = ⌈(65n + β)/67⌉`. Text
+ * extracted from the PDF rendered it as a floor, which shifts the month by one at
+ * boundaries without ever throwing. This function exists so that the distinction is
+ * explicit at the call site.
+ *
+ * @param dividend - May be negative.
+ * @param divisor - Must be non-zero.
+ * @throws RangeError if `divisor` is zero.
+ */
+export function ceilDiv(dividend: number, divisor: number): number {
+	if (divisor === 0) throw new RangeError("ceilDiv: divisor must be non-zero");
+	return Math.ceil(dividend / divisor);
+}
+
+/**
+ * Janson's `mod` (§2): the representative of `m` modulo `n` in `[0, n)`.
+ *
+ * @remarks
+ * This is not JavaScript's `%`. For negative `m` the two disagree, and every use in this
+ * package needs the non-negative result.
+ *
+ * @param m - May be of any sign.
+ * @param n - Must be positive; Janson defines the operation only for `n > 0`.
+ * @throws RangeError if `n` is not positive.
+ *
+ * @example
+ * ```ts
+ * -7 % 3;      // -1
+ * mod(-7, 3);  //  2
+ * ```
+ */
+export function mod(m: number, n: number): number {
+	if (n <= 0) throw new RangeError("mod: modulus must be positive");
+	return ((m % n) + n) % n;
+}
+
+/**
+ * Janson's `amod` (§2): the representative of `m` modulo `n` in `(0, n]`.
+ *
+ * @remarks
+ * Identical to {@link mod} except when `n` divides `m`, where `mod` gives `0` and this
+ * gives `n`. That case is not an edge case here — it is month 12 and the 60th year of a
+ * rabjung cycle, both of which occur constantly.
+ *
+ * @param n - Must be positive.
+ * @throws RangeError if `n` is not positive.
+ */
+export function amod(m: number, n: number): number {
+	return 1 + mod(m - 1, n);
+}
+
+/**
+ * Greatest common divisor, by the Euclidean algorithm. Operands are treated as magnitudes.
+ */
+export function gcd(a: number, b: number): number {
+	let x = Math.abs(a);
+	let y = Math.abs(b);
+	while (y !== 0) [x, y] = [y, x % y];
+	return x;
+}
+
+/**
+ * Least common multiple.
+ *
+ * @remarks
+ * Divides before multiplying so that the intermediate stays as small as possible — this
+ * is used to derive scaling denominators in the 10⁹ range, where `a * b` would be near
+ * the safe-integer limit before the reduction.
+ */
+export function lcm(a: number, b: number): number {
+	if (a === 0 || b === 0) return 0;
+	return Math.abs((a / gcd(a, b)) * b);
+}
+
+/**
+ * Re-expresses the rational `num / den` as an integer numerator over `commonDenominator`.
+ *
+ * @remarks
+ * This is the whole of the scaled-integer strategy: rather than a general rational type
+ * with per-operation gcd normalisation, every quantity is lifted onto one denominator
+ * once, after which addition and subtraction are plain integer operations.
+ *
+ * The common denominator is **derived from the tradition's own constants** via
+ * {@link lcm}, never hardcoded. Phugpa's is 102,317,040; Tsurphu's epoch constants carry
+ * an extra factor of 5 and of 3, giving 1,534,755,600. A constant baked in here would
+ * make the second tradition unrepresentable, and would do so silently.
+ *
+ * @param num - Numerator of the source rational; may be negative.
+ * @param den - Denominator of the source rational; must be positive and must divide
+ * `commonDenominator`.
+ * @param commonDenominator - The scaling denominator, typically derived per tradition.
+ * @throws RangeError if `den` does not divide `commonDenominator`, which would make the
+ * result inexact.
+ *
+ * @example
+ * ```ts
+ * scaleTo(1, 2, 12); // 6, i.e. 1/2 expressed as 6/12
+ * ```
+ */
+export function scaleTo(num: number, den: number, commonDenominator: number): number {
+	if (den <= 0) throw new RangeError("scaleTo: denominator must be positive");
+	if (commonDenominator % den !== 0) {
+		throw new RangeError(
+			`scaleTo: ${den} does not divide ${commonDenominator}; the result would be inexact`,
+		);
+	}
+	return num * (commonDenominator / den);
+}

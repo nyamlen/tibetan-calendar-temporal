@@ -178,9 +178,9 @@ interface Rabjung {
 }
 
 interface TibetanYearName {
-  element: string;        // wood, fire, earth, iron, water
-  animal: string;
-  gender: 'male' | 'female';
+  element: TibetanElement;  // 'wood' | 'fire' | 'earth' | 'iron' | 'water'
+  animal: TibetanAnimal;    // 'mouse' | 'ox' | 'tiger' | ... | 'pig'
+  gender: TibetanGender;    // 'male' | 'female'
 }
 
 interface Practice {
