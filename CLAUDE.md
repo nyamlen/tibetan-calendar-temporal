@@ -42,9 +42,13 @@ tied to the paper's sections — do not squash the build into a single large com
 
 ## Environment
 
-Node 26 is required for native Temporal. Node 24 does not have it enabled — use
-`temporal-polyfill` in tests if running on 24. The *published* package needs neither;
-consumers supply Temporal.
+Node 26 required for development — Temporal ships enabled by default from 26.0.0. Verified
+working on v26.7.0. The *published* package needs no particular version; consumers supply
+Temporal.
+
+**Temporal has no user-defined calendars.** `Temporal.Calendar` does not exist and `calendar:`
+accepts only built-in CLDR identifiers, which exclude `tibetan`. Do not attempt a calendar
+adapter — see [docs/decisions/2026-08-11-temporal-custom-calendars.md](docs/decisions/2026-08-11-temporal-custom-calendars.md).
 
 ## Conventions
 
