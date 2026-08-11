@@ -1,0 +1,4 @@
+# Normalise to LF in the working tree on every platform. Biome formats to LF, so a
+# CRLF checkout on Windows would make every file fail `npm run lint` locally while
+# passing in CI.
+* text=auto eol=lf
