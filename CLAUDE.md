@@ -18,6 +18,20 @@ all-rights-reserved. Any code derived from them would poison this project's MIT 
 
 Implement solely from Svante Janson, "Tibetan Calendar Mathematics" (arXiv:1401.6285).
 
+**Read the LaTeX source, never PDF-extracted text.**
+Fetch `https://arxiv.org/e-print/1401.6285` — a gzipped `tibet.tex` — and read it with `gzip -dc`.
+Keep it outside the repository: arXiv's default submission licence grants arXiv distribution
+rights, not third-party redistribution, so vendoring a copy here would raise exactly the licence
+question this project exists to avoid.
+
+`pdftotext` silently drops `⌊⌋`, `⌈⌉`, `≤`, `≥` and Greek constants, and it has already produced
+three wrong formulas in this project: `⌊⌋` where Janson has `⌈⌉` in the month inversion, `≤ 41`
+where he has `≥ 41` in the leap-year rule, and a swallowed `β` in the definition of γ.
+None of these crash — they yield a plausible calendar that is quietly wrong, which is the most
+expensive kind of error here.
+Do not derive any formula from PDF text, and do not accept a mitigation that depends on
+"checking the rendered PDF" unless a renderer is actually installed.
+
 Permitted: running those libraries locally and comparing *computed dates* against ours. Dates
 are facts, not copyrightable expression. Reading their public README for API-design ideas is
 also fine.

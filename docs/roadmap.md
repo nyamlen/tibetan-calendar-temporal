@@ -5,7 +5,7 @@
 | Phase | Scope | Effort |
 |-------|-------|--------|
 | 0 | Scaffold (npm init, tsc, vitest, fast-check, biome, CI) — **done** | 2h |
-| 1 | Core computation: Layers 0-3 (Janson §2-8) | 20h |
+| 1 | Core computation: Layers 0-3 (Janson §2-9) — **done** | 20h |
 | 2 | Validation: FPMT fixtures, cross-check against reference implementations | 12h |
 | 3 | Practice day logic (config-driven rules, Gelug default config) | 8h |
 | 4 | TypeDoc + release workflow + publish v1.0.0 | 6h |
@@ -21,11 +21,40 @@ TypeScript 5.x because it is the first release to ship `lib.esnext.temporal.d.ts
 the package expose `Temporal` in its public types with no dependency. Both recorded in
 [decisions/2026-08-11-build-tooling.md](decisions/2026-08-11-build-tooling.md).
 
-**Decide during Phase 1:** whether anything replaces the dropped Temporal calendar adapter —
-most likely a Temporal-shaped `TibetanDate` class with `add` / `until` / `with`. Deferred
-deliberately, because defining what `add({months: 1})` means across leap months, doubled days
-and skipped days is a domain question best answered once the computation exists. See
+**Decided at the start of Phase 1 — deferred to Phase 3.** The dropped Temporal calendar adapter
+gets no replacement in v1's first cut: Phase 1 ships pure functions over plain objects, not a
+Temporal-shaped `TibetanDate` class. Defining `add({months: 1})` across leap months, doubled days
+and skipped days is a domain question, and Phase 3's practice-day logic is the first consumer
+that can answer it. See
 [decisions/2026-08-11-temporal-custom-calendars.md](decisions/2026-08-11-temporal-custom-calendars.md).
+
+**Also settled before Phase 1 began:** `year` is the royal-era numbering
+([decisions/2026-08-11-year-numbering.md](decisions/2026-08-11-year-numbering.md)); `isSkippedDay`
+is dropped from `TibetanDate` and `isLeapDay` added; the epoch stays E806 so that `n ≥ 0` for all
+dates after 806 CE. All three correct [architecture.md](architecture.md), which had specified
+otherwise.
+
+**Phase 1 outcome.** The engine reproduces all 120 Losar dates in Janson's table for
+1927–2046, and year-length frequencies over 10,000 years land inside his independently computed
+42/21/3/33/1 per cent. Four things were corrected against the plan while building:
+
+- **The scaling denominator is derived per tradition, not hardcoded.** Tsurphu's epoch constants
+  carry factors Phugpa's do not, giving `D = 1,534,755,600` against Phugpa's `102,317,040`. A
+  literal would have made Tsurphu unrepresentable and broken the injection rule.
+- **`rabjung` is separate from `yearName`.** The Indian and Chinese cycles number a year
+  differently — 2026 is Indian 40 but Chinese 43 — so one combined object invited a lookup that
+  is wrong for 57 of every 60 years.
+- **Losar is not always day 1.** Where day 1 is skipped it is numbered day 2, as in 1977. This is
+  why Losar is computed from the previous year's month 12.
+- **2027-01-15 is month 12 day 8**, not month 11 day 27 as the plan and an early draft of the
+  year-numbering record both said.
+
+**Still open from Phase 1:** which `a₂` ships as the default. `PHUGPA` uses the almanac value
+`1/28` and `PHUGPA_HENNING` uses `3781/105840`; both reproduce Janson's entire Losar table, so
+that fixture cannot distinguish them. Settling it needs a published almanac checked against
+Janson's three named divergence dates — **2001-02-10, 2006-05-10, 2025-11-19**. Do this before
+Phase 2 fixture curation, not during it: `docs/testing.md`'s validation sources straddle the
+fork, so a mixed set guarantees failures that look like arithmetic bugs.
 
 ## Release Status
 
@@ -38,7 +67,15 @@ The repository stays private under the `nyamlen` org until v1.0.0, then goes pub
 
 ## Outstanding — near term
 
-Setup work not yet done. Nothing here blocks starting Phase 1 except the Node upgrade.
+- [x] **`TibetanDate` shape confirmed** before writing `src/types.ts` — done 2026-08-11. Date
+      components stay flat, mirroring `Temporal.PlainDate`; naming systems group under a `*Name`
+      field. `rabjung` was split out of `yearName` because the Indian cycle is a numbering and
+      the Chinese cycle is a name, and because the two give a year different positions — 2026 is
+      Indian 40 but Chinese 43, so holding both in one object invited a lookup that is wrong for
+      57 of every 60 years. See
+      [architecture.md](architecture.md#why-rabjung-is-separate-from-yearname).
+
+Setup work not yet done. None of it blocks Phase 2.
 
 - [x] **Node 26** installed — v26.7.0, verified 2026-08-11 by a Vitest smoke test reading
       `Temporal.PlainDate` with no polyfill present
@@ -132,6 +169,12 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
 
 ## Beyond v1
 
+- **The 60 rabjung cycle names**, landing at `rabjung.name` — additive, so not a breaking change.
+  Deferred because it is a sourcing problem rather than a coding one: Janson's ASCII list
+  collides three distinct Sanskrit names onto `pramadi`, the Hindu saṃvatsara list diverges from
+  the Tibetan one in content, and no source has been found giving all 60 in Tibetan script with
+  Lhasa phonetics. See
+  [architecture.md](architecture.md#why-the-60-rabjung-names-are-not-included).
 - **Tsurphu tradition** (Karma Kagyu) via a second `TraditionConfig` — the algorithm already
   supports it; only the constants differ.
 - `@nyamlen/timer` and `@nyamlen/vows` as sibling packages under the org scope.

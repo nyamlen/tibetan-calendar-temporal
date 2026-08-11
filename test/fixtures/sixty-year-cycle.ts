@@ -1,0 +1,85 @@
+/**
+ * Janson's 60-year cycle table (App. B) — the Indian and Chinese cycles side by side, for the cycles
+ * running 1927-1986 and 1987-2046.
+ *
+ * @remarks
+ * A table of correspondences between year numbers and traditional names: facts, not
+ * copyrightable expression, so usable directly as a fixture. Transcribed mechanically from
+ * the paper's LaTeX source rather than by hand.
+ *
+ * The two index columns differ by three, which is the point of the fixture: a year's position
+ * in the Indian cycle does not index its Chinese element-animal name.
+ */
+export interface SixtyYearCycleRow {
+	/** Position in the Indian (rabjung / Prabhava) cycle, 1-60. */
+	indian: number;
+	/** Position in the Chinese cycle, 1-60. Not exposed by the package; here to prove the offset. */
+	chinese: number;
+	element: string;
+	animal: string;
+	/** Gregorian years in the 16th and 17th rabjung cycles carrying this name. */
+	years: [number, number];
+}
+
+export const SIXTY_YEAR_CYCLE: readonly SixtyYearCycleRow[] = [
+	{ indian: 1, chinese: 4, element: "fire", animal: "rabbit", years: [1927, 1987] },
+	{ indian: 2, chinese: 5, element: "earth", animal: "dragon", years: [1928, 1988] },
+	{ indian: 3, chinese: 6, element: "earth", animal: "snake", years: [1929, 1989] },
+	{ indian: 4, chinese: 7, element: "iron", animal: "horse", years: [1930, 1990] },
+	{ indian: 5, chinese: 8, element: "iron", animal: "sheep", years: [1931, 1991] },
+	{ indian: 6, chinese: 9, element: "water", animal: "monkey", years: [1932, 1992] },
+	{ indian: 7, chinese: 10, element: "water", animal: "bird", years: [1933, 1993] },
+	{ indian: 8, chinese: 11, element: "wood", animal: "dog", years: [1934, 1994] },
+	{ indian: 9, chinese: 12, element: "wood", animal: "pig", years: [1935, 1995] },
+	{ indian: 10, chinese: 13, element: "fire", animal: "mouse", years: [1936, 1996] },
+	{ indian: 11, chinese: 14, element: "fire", animal: "ox", years: [1937, 1997] },
+	{ indian: 12, chinese: 15, element: "earth", animal: "tiger", years: [1938, 1998] },
+	{ indian: 13, chinese: 16, element: "earth", animal: "rabbit", years: [1939, 1999] },
+	{ indian: 14, chinese: 17, element: "iron", animal: "dragon", years: [1940, 2000] },
+	{ indian: 15, chinese: 18, element: "iron", animal: "snake", years: [1941, 2001] },
+	{ indian: 16, chinese: 19, element: "water", animal: "horse", years: [1942, 2002] },
+	{ indian: 17, chinese: 20, element: "water", animal: "sheep", years: [1943, 2003] },
+	{ indian: 18, chinese: 21, element: "wood", animal: "monkey", years: [1944, 2004] },
+	{ indian: 19, chinese: 22, element: "wood", animal: "bird", years: [1945, 2005] },
+	{ indian: 20, chinese: 23, element: "fire", animal: "dog", years: [1946, 2006] },
+	{ indian: 21, chinese: 24, element: "fire", animal: "pig", years: [1947, 2007] },
+	{ indian: 22, chinese: 25, element: "earth", animal: "mouse", years: [1948, 2008] },
+	{ indian: 23, chinese: 26, element: "earth", animal: "ox", years: [1949, 2009] },
+	{ indian: 24, chinese: 27, element: "iron", animal: "tiger", years: [1950, 2010] },
+	{ indian: 25, chinese: 28, element: "iron", animal: "rabbit", years: [1951, 2011] },
+	{ indian: 26, chinese: 29, element: "water", animal: "dragon", years: [1952, 2012] },
+	{ indian: 27, chinese: 30, element: "water", animal: "snake", years: [1953, 2013] },
+	{ indian: 28, chinese: 31, element: "wood", animal: "horse", years: [1954, 2014] },
+	{ indian: 29, chinese: 32, element: "wood", animal: "sheep", years: [1955, 2015] },
+	{ indian: 30, chinese: 33, element: "fire", animal: "monkey", years: [1956, 2016] },
+	{ indian: 31, chinese: 34, element: "fire", animal: "bird", years: [1957, 2017] },
+	{ indian: 32, chinese: 35, element: "earth", animal: "dog", years: [1958, 2018] },
+	{ indian: 33, chinese: 36, element: "earth", animal: "pig", years: [1959, 2019] },
+	{ indian: 34, chinese: 37, element: "iron", animal: "mouse", years: [1960, 2020] },
+	{ indian: 35, chinese: 38, element: "iron", animal: "ox", years: [1961, 2021] },
+	{ indian: 36, chinese: 39, element: "water", animal: "tiger", years: [1962, 2022] },
+	{ indian: 37, chinese: 40, element: "water", animal: "rabbit", years: [1963, 2023] },
+	{ indian: 38, chinese: 41, element: "wood", animal: "dragon", years: [1964, 2024] },
+	{ indian: 39, chinese: 42, element: "wood", animal: "snake", years: [1965, 2025] },
+	{ indian: 40, chinese: 43, element: "fire", animal: "horse", years: [1966, 2026] },
+	{ indian: 41, chinese: 44, element: "fire", animal: "sheep", years: [1967, 2027] },
+	{ indian: 42, chinese: 45, element: "earth", animal: "monkey", years: [1968, 2028] },
+	{ indian: 43, chinese: 46, element: "earth", animal: "bird", years: [1969, 2029] },
+	{ indian: 44, chinese: 47, element: "iron", animal: "dog", years: [1970, 2030] },
+	{ indian: 45, chinese: 48, element: "iron", animal: "pig", years: [1971, 2031] },
+	{ indian: 46, chinese: 49, element: "water", animal: "mouse", years: [1972, 2032] },
+	{ indian: 47, chinese: 50, element: "water", animal: "ox", years: [1973, 2033] },
+	{ indian: 48, chinese: 51, element: "wood", animal: "tiger", years: [1974, 2034] },
+	{ indian: 49, chinese: 52, element: "wood", animal: "rabbit", years: [1975, 2035] },
+	{ indian: 50, chinese: 53, element: "fire", animal: "dragon", years: [1976, 2036] },
+	{ indian: 51, chinese: 54, element: "fire", animal: "snake", years: [1977, 2037] },
+	{ indian: 52, chinese: 55, element: "earth", animal: "horse", years: [1978, 2038] },
+	{ indian: 53, chinese: 56, element: "earth", animal: "sheep", years: [1979, 2039] },
+	{ indian: 54, chinese: 57, element: "iron", animal: "monkey", years: [1980, 2040] },
+	{ indian: 55, chinese: 58, element: "iron", animal: "bird", years: [1981, 2041] },
+	{ indian: 56, chinese: 59, element: "water", animal: "dog", years: [1982, 2042] },
+	{ indian: 57, chinese: 60, element: "water", animal: "pig", years: [1983, 2043] },
+	{ indian: 58, chinese: 1, element: "wood", animal: "mouse", years: [1984, 2044] },
+	{ indian: 59, chinese: 2, element: "wood", animal: "ox", years: [1985, 2045] },
+	{ indian: 60, chinese: 3, element: "fire", animal: "tiger", years: [1986, 2046] },
+];

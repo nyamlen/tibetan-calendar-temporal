@@ -6,7 +6,8 @@ status: accepted
 # No Temporal Calendar Protocol adapter
 
 **Decision:** the planned "Level 2" API — registering a `TibetanCalendar` with Temporal's
-calendar protocol — is dropped. It is not implementable. Any replacement is deferred to Phase 1.
+calendar protocol — is dropped. It is not implementable. A replacement was considered at the
+start of Phase 1 and deferred again to Phase 3.
 
 ## What the spec assumed
 
@@ -51,15 +52,17 @@ legacy `Date`-based one. That is still exactly what it is — the engine speaks
 `Temporal.PlainDate` throughout. It simply is not a *registered calendar*, which was never what
 the name claimed.
 
-## Deferred
+## Deferred to Phase 3
 
-Whether anything replaces Level 2 is a Phase 1 decision. The likely candidate is a
-Temporal-shaped `TibetanDate` class exposing `add` / `subtract` / `until` / `with` / `toString`
-— familiar ergonomics without pretending to be a registered calendar.
+Reviewed at the start of Phase 1 and deferred again. Phase 1 ships pure functions over plain
+objects. The likely eventual replacement is still a Temporal-shaped `TibetanDate` class exposing
+`add` / `subtract` / `until` / `with` / `toString` — familiar ergonomics without pretending to be
+a registered calendar.
 
-Deferred deliberately: defining what `add({months: 1})` means across leap months, doubled days
-and skipped days is a domain question, and it should be answered once the core computation
-exists rather than designed against an imagined API.
+The reason for deferring has not changed, only sharpened: defining what `add({months: 1})` means
+across leap months, doubled days and skipped days is a domain question, and Phase 3's
+practice-day logic is the first real consumer that can answer it. Designing it during Phase 1
+would mean designing against an imagined API.
 
 ## Why TC39 removed it
 
