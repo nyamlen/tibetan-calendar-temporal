@@ -64,6 +64,12 @@ through this before publishing v1.0.0 — several are one-way doors once publish
 - [ ] Publish from **GitHub Actions with npm provenance**, not locally — provenance ties each
       released version to the commit that built it, which reinforces the clean-room record
 - [ ] Create an npm **automation token** for CI, and require 2FA for manual publishes
+- [ ] Transfer npm package ownership from `boffies` to the `nyamlen` org. Unscoped packages
+      carry no org affiliation — the publisher owns them — so `tibetan-calendar-temporal` is
+      currently owned by a personal account while the repo sits under the org. Needed for
+      org-scoped automation tokens, and it removes a single point of failure.
+      **Verify the org grant before removing yourself as maintainer** — there is no
+      self-service recovery from locking yourself out, only npm support
 
 **Repository**
 

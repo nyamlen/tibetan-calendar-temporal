@@ -38,8 +38,12 @@ one commit.
 
 ## Development environment
 
-- **Node.js 26** recommended — native Temporal, no polyfill needed in tests
-- Node 22+ works with `temporal-polyfill` if needed
+- **Node.js 26 required for development** — Temporal ships enabled by default from 26.0.0
+  (released May 2026). It is *Current*, not LTS, until roughly October 2026
+- Node 24 can expose Temporal via `node --harmony-temporal`, but that is V8's **in-progress**
+  implementation and may not match the shipped spec. Do not validate calendar output against
+  it — the whole point of this engine is deterministic, reproducible dates
+- Node 22+ works with `temporal-polyfill` if you cannot upgrade
 - The *published* package runs anywhere (compiled ESM output; consumers provide Temporal)
 
 ```sh
