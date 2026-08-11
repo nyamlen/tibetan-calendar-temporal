@@ -24,20 +24,35 @@
  */
 
 /**
- * The five elements of the 60-year cycle, in Janson's Table 3 order.
+ * The five elements of the 60-year cycle, in the order of Janson's ten-year cycle table (§4).
  *
  * @remarks
  * Each element occupies two consecutive years of the ten-year cycle, one male and one female.
+ *
+ * These are **not** simply the Chinese celestial stems renamed. The Chinese cycle names years by
+ * ten stems (*jiǎ*, *yǐ*, *bǐng*, …), each of which merely associates with an element and a
+ * gender; Janson notes that "in the Tibetan calendar, the element and gender are used to name
+ * the year; the Chinese celestial stems are usually not used". The values also differ in
+ * rendering: the Chinese *wǔxíng* 金 is conventionally *metal*, where the Tibetan
+ * (*lcags* ལྕགས) is **iron**. Hence `Tibetan`, not `Chinese`, in the name.
  */
 export type TibetanElement = "wood" | "fire" | "earth" | "iron" | "water";
 
 /**
- * The twelve animals of the 60-year cycle, in Janson's Table 4 order.
+ * The twelve animals of the 60-year cycle, in the order of Janson's twelve-year cycle table (§4).
  *
  * @remarks
- * These are the Phugpa year animals. Note that Phugpa and Tsurphu almanacs disagree about
- * animal names for *months* (Phugpa sets month 11 = Tiger, Tsurphu month 1 = Tiger), but the
- * year cycle here is common to both.
+ * Unlike {@link TibetanElement}, this cycle *is* one-to-one with the Chinese one — same twelve
+ * animals, same order, same phase; Janson calls it "the well-known cycle of animals found in the
+ * Chinese and many other Asian calendars". The prefix is for consistency with the rest of the
+ * package rather than to claim a distinct cycle.
+ *
+ * The English renderings are Janson's, following Henning. Common variants are Mouse/Rat,
+ * Bird/Rooster and Sheep/Goat.
+ *
+ * These are the *year* animals, which Phugpa and Tsurphu share. The traditions disagree about
+ * animal names for **months** — Phugpa sets month 11 = Tiger, Tsurphu month 1 = Tiger — but
+ * month naming is not computed by this package.
  */
 export type TibetanAnimal =
 	| "mouse"
@@ -66,7 +81,7 @@ export type TibetanGender = "male" | "female";
  * Tibetan calendar" and are used only as names.
  *
  * Keeping the two apart is not tidiness. The cycles assign a year **different positions**:
- * 2026 is year 40 of the Indian cycle but year 43 of the Chinese one (Janson Table 12). Held in
+ * 2026 is year 40 of the Indian cycle but year 43 of the Chinese one (Janson App. B, the 60-year cycle table). Held in
  * one object, the number 40 would sit directly beside `fire`/`horse` without indexing it —
  * position 40 indexes *parābhava*. A 60-entry lookup keyed on that number is wrong for 57 of
  * every 60 years, and wrong quietly.

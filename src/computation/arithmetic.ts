@@ -38,7 +38,7 @@ export function floorDiv(dividend: number, divisor: number): number {
  * Ceiling division — the smallest integer `q` with `q * divisor >= dividend`.
  *
  * @remarks
- * Janson's month inversion (§5, eq. 24) is a **ceiling**: `x = ⌈(65n + β)/67⌉`. Text
+ * Janson's month inversion (§5, "The inverse problem") is a **ceiling**: `x = ⌈(65n + β)/67⌉`. Text
  * extracted from the PDF rendered it as a floor, which shifts the month by one at
  * boundaries without ever throwing. This function exists so that the distinction is
  * explicit at the call site.
