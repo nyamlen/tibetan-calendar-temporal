@@ -54,26 +54,32 @@ This paper contains every formula needed. The implementation maps to its section
 └─────────────────────────────────────────────┘
 ```
 
-## Two-Layer API
+## Public API
 
-**Level 1: Standalone functions (framework-agnostic)**
+Standalone pure functions, framework-agnostic:
 
 ```typescript
 import { isoToTibetan, tibetanToIso, getPracticeDays } from 'tibetan-calendar-temporal';
 ```
 
-- Pure functions, works everywhere
-- Accepts/returns Temporal types or plain objects
+- Pure functions, work everywhere
+- Accept and return Temporal types or plain objects
 
-**Level 2: Temporal Calendar Protocol adapter (optional)**
+### No Temporal Calendar Protocol adapter
 
-```typescript
-import { TibetanCalendar } from 'tibetan-calendar-temporal/temporal';
-const date = Temporal.PlainDate.from({ year: 2153, month: 6, day: 15, calendar: new TibetanCalendar() });
-```
+An earlier version of this spec described a second layer registering a `TibetanCalendar` with
+Temporal's calendar protocol. **That is not implementable.** Temporal removed user-defined
+calendars before shipping: `Temporal.Calendar` does not exist, and `calendar:` accepts only
+built-in CLDR identifiers, which do not include `tibetan`.
 
-- Wraps Level 1 in Temporal's Calendar Protocol
-- Optional subpath export — consumers who don't need it don't import it
+See [decisions/2026-08-11-temporal-custom-calendars.md](decisions/2026-08-11-temporal-custom-calendars.md).
+
+Whether anything replaces it — most likely a Temporal-shaped `TibetanDate` class offering
+`add` / `until` / `with` — is deferred to Phase 1, once the core computation exists and the
+ergonomics consumers actually need are visible.
+
+This does not affect the package's Temporal-native claim. The engine speaks
+`Temporal.PlainDate` throughout; it simply is not a registered calendar.
 
 ## Package Structure
 
@@ -81,7 +87,6 @@ const date = Temporal.PlainDate.from({ year: 2153, month: 6, day: 15, calendar: 
 tibetan-calendar-temporal/
 ├── src/
 │   ├── index.ts              # Public API exports
-│   ├── temporal.ts           # Temporal Calendar Protocol adapter
 │   ├── traditions/
 │   │   ├── types.ts          # TraditionConfig type
 │   │   └── phugpa.ts         # Phugpa constants (epoch, tables)
@@ -114,7 +119,6 @@ tibetan-calendar-temporal/
   "type": "module",
   "exports": {
     ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
-    "./temporal": { "types": "./dist/temporal.d.ts", "default": "./dist/temporal.js" },
     "./practice": { "types": "./dist/practice/index.d.ts", "default": "./dist/practice/index.js" }
   },
   "sideEffects": false

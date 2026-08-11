@@ -31,9 +31,6 @@ days, and determines practice days. Open source, MIT licensed, with zero runtime
 import { isoToTibetan, tibetanToIso, getPracticeDays } from 'tibetan-calendar-temporal';
 ```
 
-An optional Temporal Calendar Protocol adapter is exposed at
-`tibetan-calendar-temporal/temporal`.
-
 Full detail: [docs/architecture.md](docs/architecture.md).
 
 ## Requirements

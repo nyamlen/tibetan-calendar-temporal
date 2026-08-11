@@ -8,12 +8,18 @@
 | 1 | Core computation: Layers 0-3 (Janson §2-8) | 20h |
 | 2 | Validation: FPMT fixtures, cross-check against reference implementations | 12h |
 | 3 | Practice day logic (config-driven rules, Gelug default config) | 8h |
-| 4 | Temporal adapter + TypeDoc + publish v1.0.0 | 8h |
+| 4 | TypeDoc + release workflow + publish v1.0.0 | 6h |
 
 **Safe timeline: 3 weeks** (accounts for debugging edge cases in doubled/skipped day logic)
 
 The layers referenced in Phase 1 are defined in [architecture.md](architecture.md); the
 validation sources in Phase 2 are listed in [testing.md](testing.md).
+
+**Decide during Phase 1:** whether anything replaces the dropped Temporal calendar adapter —
+most likely a Temporal-shaped `TibetanDate` class with `add` / `until` / `with`. Deferred
+deliberately, because defining what `add({months: 1})` means across leap months, doubled days
+and skipped days is a domain question best answered once the computation exists. See
+[decisions/2026-08-11-temporal-custom-calendars.md](decisions/2026-08-11-temporal-custom-calendars.md).
 
 ## Release Status
 
