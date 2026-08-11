@@ -19,6 +19,8 @@ says 2026 and reasonably conclude it is a bug. It is not.
 isoToTibetan(Temporal.PlainDate.from('2027-01-15'))
 // year: 2153          royal era — what an almanac prints
 // yearStartsIn: 2026   Janson's Y — for cross-referencing the paper
+// month: 12, day: 8    the Tibetan year beginning 2026-02-18 is 354 days long,
+//                      so mid-January falls in its final month
 ```
 
 Both name the same Tibetan year. The conversion is `royal = Y + 127`, and it happens in exactly
@@ -27,11 +29,12 @@ two places: `isoToTibetan` on the way out, `tibetanToIso` on the way in. Nothing
 
 ## Why not Janson's Y in the public type
 
-**`{ year: 2026, month: 11, day: 27 }` describes no date in any system.** It pairs a
+**`{ year: 2026, month: 12, day: 8 }` describes no date in any system.** It pairs a
 Gregorian-derived index with a Tibetan month and day. Formatted the obvious way it yields
-`"2026-11-27"` — well-formed ISO, pointing at 27 November 2026, when the actual day is 15 January
+`"2026-12-08"` — well-formed ISO, pointing at 8 December 2026, when the actual day is 15 January
 2027. Nothing about that string looks wrong, and it will end up in logs, filenames and
-comparisons. `"2153-11-27"` cannot be misread that way.
+comparisons. `"2153-12-08"` cannot be misread that way, because no ISO date has year 2153 in any
+context this package appears in.
 
 **Temporal numbers every non-ISO calendar by its own year** — Hebrew gives 5786, Islamic 1447,
 not a Gregorian index. This package is Temporal-native; matching that convention is the

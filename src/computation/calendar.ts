@@ -17,6 +17,8 @@
 
 import type { TraditionConfig } from "../traditions/types.js";
 import { amod, ceilDiv, floorDiv, mod } from "./arithmetic.js";
+import { julianDayOfLunarDay } from "./corrections.js";
+import type { ScaledTradition } from "./scaling.js";
 
 /** A month identified the way the calendar names it. */
 export interface TibetanMonth {
@@ -209,4 +211,135 @@ export function leapYearsBetween(
  */
 export function monthsInYear(config: TraditionConfig, year: number): number {
 	return isLeapYear(config, year) ? 13 : 12;
+}
+
+/**
+ * How a lunar day's number appears in the calendar — Janson §6.
+ *
+ * @remarks
+ * Calendar days are 24 hours; lunar days vary between about 21.5 and 25.7 hours. The mismatch
+ * means the numbering is not always one-to-one, and the labelling rule resolves it: **a calendar
+ * day is named by the lunar day current at its start**, equivalently a lunar day names the
+ * calendar day in which it ends.
+ */
+export type DayKind =
+	/** One lunar day ends in this calendar day. The ordinary case. */
+	| "normal"
+	/**
+	 * The lunar day begins and ends inside a single calendar day, so two lunar days end on that
+	 * day and it takes the name of the first. This number reaches no calendar day at all.
+	 */
+	| "skipped"
+	/**
+	 * The lunar day wholly contains a calendar day, so no lunar day ends in that one and it takes
+	 * the name of the day after. Two consecutive calendar days carry this number.
+	 */
+	| "doubled";
+
+/** The calendar-day outcome for one lunar day. */
+export interface DayClassification {
+	kind: DayKind;
+	/**
+	 * The Julian day number carrying this date, or `undefined` when skipped.
+	 *
+	 * @remarks
+	 * For a doubled date this is the **second** of the two days — the ordinary one. The first is
+	 * {@link DayClassification.leapJulianDay}.
+	 */
+	julianDay: number | undefined;
+	/**
+	 * For a doubled date, the Julian day number of the first of the pair — the leap day almanacs
+	 * mark "Extra". `undefined` otherwise.
+	 */
+	leapJulianDay: number | undefined;
+}
+
+/**
+ * Classifies lunar day `d` of true month `n` as normal, skipped or doubled.
+ *
+ * @remarks
+ * Janson §8 notes that `⌊true_date⌋` alone is not enough: for a repeated date it gives the second
+ * day, and for a skipped date it gives the day carrying the *preceding* number. Comparing against
+ * the previous lunar day resolves all three cases, since consecutive lunar days can land on the
+ * same calendar day, the next one, or skip one:
+ *
+ * | `JD(d) − JD(d−1)` | Meaning |
+ * |---|---|
+ * | 0 | two lunar days end together, so this number is **skipped** |
+ * | 1 | **normal** |
+ * | 2 | a calendar day has no lunar day ending in it, so this number is **doubled** |
+ *
+ * The previous lunar day is day 30 of the preceding month when `d` is 1, which is why the
+ * calculation crosses month boundaries rather than resetting.
+ */
+export function classifyDay(
+	scaled: ScaledTradition,
+	day: number,
+	monthCount: number,
+): DayClassification {
+	const julianDay = julianDayOfLunarDay(scaled, day, monthCount);
+	const previous =
+		day === 1
+			? julianDayOfLunarDay(scaled, 30, monthCount - 1)
+			: julianDayOfLunarDay(scaled, day - 1, monthCount);
+
+	if (julianDay === previous) {
+		return { kind: "skipped", julianDay: undefined, leapJulianDay: undefined };
+	}
+	if (julianDay - previous >= 2) {
+		return { kind: "doubled", julianDay, leapJulianDay: julianDay - 1 };
+	}
+	return { kind: "normal", julianDay, leapJulianDay: undefined };
+}
+
+/**
+ * The Julian day number of the last calendar day of true month `n`.
+ *
+ * @remarks
+ * Simply `⌊true_date(30, n)⌋`. Janson §8 notes this is correct even when day 30 is itself
+ * repeated or skipped, which is what makes it a safe basis for month boundaries.
+ */
+export function lastDayOfMonth(scaled: ScaledTradition, monthCount: number): number {
+	return julianDayOfLunarDay(scaled, 30, monthCount);
+}
+
+/**
+ * The Julian day number of the first calendar day of true month `n`.
+ *
+ * @remarks
+ * Computed as one day after the last day of the preceding month, **not** by evaluating day 1.
+ * Janson §8 is explicit about this: lunar day 1 may end during the month's second calendar day
+ * (when day 1 is repeated) or during the last day of the previous month (when it is skipped), so
+ * evaluating it directly gives the wrong answer in both cases. He notes this appears to be the
+ * source of errors in published tables.
+ */
+export function firstDayOfMonth(scaled: ScaledTradition, monthCount: number): number {
+	return lastDayOfMonth(scaled, monthCount - 1) + 1;
+}
+
+/**
+ * The number of calendar days in true month `n` — always 29 or 30.
+ */
+export function daysInMonth(scaled: ScaledTradition, monthCount: number): number {
+	return lastDayOfMonth(scaled, monthCount) - lastDayOfMonth(scaled, monthCount - 1);
+}
+
+/**
+ * The Julian day number of Losar — Tibetan New Year — beginning in Gregorian year `Y`.
+ *
+ * @remarks
+ * One day after the last day of month 12 of the preceding year. Janson §8 recommends exactly
+ * this route because the alternatives break in two real cases: the year may open with a **leap
+ * month 1**, as 2000 did, and its first day may be **day 2** when day 1 is skipped. Working back
+ * from the previous year's month 12 is correct in both.
+ *
+ * Janson's Remark 20 confirms that Losar is the first day of the year even when that day falls
+ * in a leap month, unlike other holidays which are not observed in leap months.
+ */
+export function losarJulianDay(
+	scaled: ScaledTradition,
+	config: TraditionConfig,
+	year: number,
+): number {
+	return lastDayOfMonth(scaled, trueMonthCount(config, year - 1, 12, false)) + 1;
 }
