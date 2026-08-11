@@ -108,9 +108,12 @@ export interface Rabjung {
 	 *
 	 * @remarks
 	 * Computed as `(Y − 1026) amod 60`. This is an index into a list of 60 Tibetan and Sanskrit
-	 * names which this package does **not** currently expose; see the package README and
-	 * `docs/architecture.md` for why. Do not assume it indexes the element–animal name — it
-	 * does not, and the offset is three.
+	 * names which this package does **not** currently expose, because Janson's transliterations
+	 * collide (three distinct names render as `pramadi`) and the Hindu saṃvatsara list diverges
+	 * from the Tibetan one in content rather than only spelling. See "Why the 60 rabjung names
+	 * are not included" in `docs/architecture.md`.
+	 *
+	 * Do not assume this indexes the element–animal name — it does not, and the offset is three.
 	 */
 	year: number;
 }

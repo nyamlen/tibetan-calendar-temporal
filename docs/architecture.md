@@ -101,7 +101,8 @@ tibetan-calendar-temporal/
 │   │   ├── types.ts          # TraditionConfig type
 │   │   └── phugpa.ts         # Phugpa constants (epoch, tables)
 │   ├── computation/
-│   │   ├── arithmetic.ts     # floorDiv, mod, amod, scaled-integer helpers (§2)
+│   │   ├── arithmetic.ts     # floorDiv, ceilDiv, mod, amod, gcd, lcm, scaleTo (§2)
+│   │   ├── scaling.ts        # derives each tradition's exact-integer denominators
 │   │   ├── epoch.ts          # Year numbering, rabjung, element/animal (§4)
 │   │   ├── mean-astronomy.ts # Mean date, mean sun, lunar anomaly (§7)
 │   │   ├── corrections.ts    # moon_tab / sun_tab, true date (§7)
