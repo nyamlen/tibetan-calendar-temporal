@@ -4,7 +4,30 @@
 
 A TypeScript library that computes Tibetan calendar dates according to the Phugpa tradition (Men-Tsee-Khang standard). It converts between Western (ISO) dates and Tibetan dates, handles leap months, skipped/doubled days, and determines practice days.
 
-This is an open-source npm package (`tibetan-calendar-engine`), MIT licensed, designed as a standalone computation library with zero runtime dependencies.
+This is an open-source npm package (`tibetan-calendar-temporal`), MIT licensed, designed as a standalone computation library with zero runtime dependencies.
+
+## Project Identity
+
+| Thing | Name |
+|-------|------|
+| npm package | `tibetan-calendar-temporal` (unscoped) |
+| GitHub/npm org | `nyamlen` |
+| Repository | `github.com/nyamlen/tibetan-calendar-temporal` |
+| App (separate repo) | `Nyamlen` |
+
+**Scoping policy.** The flagship engine stays unscoped — unscoped names rank better in npm search, and discoverability is this package's job. Everything else in the suite ships scoped: `@nyamlen/timer`, `@nyamlen/vows`.
+
+**Capitalisation.** Lowercase for every technical identifier, capitalised for the human-facing brand. npm rejects uppercase in package names, so this is a hard constraint rather than a style preference.
+
+| Slot | Form |
+|------|------|
+| npm package and scope | `nyamlen`, `@nyamlen` |
+| GitHub org URL | `github.com/nyamlen` |
+| Domains | `nyamlen.app`, `nyamlen.com` |
+| GitHub org display name | `Nyamlen` |
+| App name, store listing, README title, PWA `name` | `Nyamlen` |
+
+Naming rationale and rejected alternatives: [brainstorming-naming-session-2026-08-10.md](brainstorming-naming-session-2026-08-10.md).
 
 ## Key Constraints
 
@@ -58,14 +81,14 @@ This paper contains every formula needed. The implementation maps to its section
 
 **Level 1: Standalone functions (framework-agnostic)**
 ```typescript
-import { isoToTibetan, tibetanToIso, getPracticeDays } from 'tibetan-calendar-engine';
+import { isoToTibetan, tibetanToIso, getPracticeDays } from 'tibetan-calendar-temporal';
 ```
 - Pure functions, works everywhere
 - Accepts/returns Temporal types or plain objects
 
 **Level 2: Temporal Calendar Protocol adapter (optional)**
 ```typescript
-import { TibetanCalendar } from 'tibetan-calendar-engine/temporal';
+import { TibetanCalendar } from 'tibetan-calendar-temporal/temporal';
 const date = Temporal.PlainDate.from({ year: 2153, month: 6, day: 15, calendar: new TibetanCalendar() });
 ```
 - Wraps Level 1 in Temporal's Calendar Protocol
@@ -74,7 +97,7 @@ const date = Temporal.PlainDate.from({ year: 2153, month: 6, day: 15, calendar: 
 ### Package Structure
 
 ```
-tibetan-calendar-engine/
+tibetan-calendar-temporal/
 ├── src/
 │   ├── index.ts              # Public API exports
 │   ├── temporal.ts           # Temporal Calendar Protocol adapter
@@ -106,7 +129,7 @@ tibetan-calendar-engine/
 
 ```json
 {
-  "name": "tibetan-calendar-engine",
+  "name": "tibetan-calendar-temporal",
   "type": "module",
   "exports": {
     ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
@@ -240,13 +263,45 @@ Specific edge cases:
 
 ## Context: Why This Exists
 
-This engine is the computation backend for a Tibetan Buddhist practice calendar app (integrated modular PWA). The app has additional modules (Meditation Timer, Vow Tracker) but this library is the foundation — it computes what days are significant and why.
+This engine is the computation backend for **Nyamlen**, a Tibetan Buddhist practice calendar app (integrated modular PWA, separate repo). The app has additional modules (Meditation Timer, Vow Tracker) but this library is the foundation — it computes what days are significant and why.
 
 The engine is separate from the app because:
 - Other projects can use it (FPMT centers, independent developers)
 - It's open-source to build trust (practitioners need to trust the dates are correct)
 - Clean separation enables independent versioning and testing
 - White-label apps can use the same engine with different practice day configs
+
+## Licensing
+
+**MIT**, `Copyright (c) 2026 Andreas Bothner`.
+
+Rationale, so it is not re-litigated:
+
+- Correctness is this engine's trust proposition, and the fastest route to correctness is wide adoption putting eyes on the dates. MIT has the least friction of any option.
+- A calendar engine is not a competitive moat worth defending with copyleft.
+- **GPL/AGPL were rejected outright.** Either would force the Nyamlen app itself to be GPL. The sole-copyright-holder exception that avoids this only holds while 100% of the copyright is owned, which means a CLA for every outside contribution — working directly against the "please fork this" posture.
+- **MPL-2.0 was the considered alternative.** File-level copyleft is the only way to *require* that engine improvements come back. Set aside because contribution here will be driven by community norms rather than licence terms.
+- Relicensing future versions stays possible while copyright is undivided.
+
+**Forking is not a licence feature.** Any public repo can be forked regardless of licence; what drives contributions back is a good CONTRIBUTING guide and responsive maintainership. Don't conflate the two.
+
+**White-labelling depends on this choice.** Shipping the same codebase under a centre's own branding, tradition config and teacher list only works commercially with a permissive engine — copyleft would force every deployment open. MIT and white-labelling point the same way.
+
+The app's licence is a separate decision belonging to the app repo. MIT here creates no obligation to open-source the app.
+
+Copyright is held personally: a GitHub org is a namespace, not a legal person, so `nyamlen` cannot hold copyright unless an entity is later incorporated. Assignable later if one is.
+
+## Repository Contents
+
+What belongs in the public repo:
+
+- `README.md` — install, usage, API overview, supported traditions
+- `CONTRIBUTING.md` — how to add validation data, how to run tests, the clean-room constraint
+- `PROJECT.md` — this file
+- `docs/` — TypeDoc-generated API reference
+- `src/`, `test/`
+
+What stays out: planning artifacts, agent scaffolding (`.kiro/`, `.serena/`), and any document referencing app monetisation or white-label commercials. Contributors care about the library, not how it came to be built.
 
 ## Important: Clean-Room Constraint
 

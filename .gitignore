@@ -6,7 +6,6 @@
 Thumbs.db
 
 # Build and Compilation Outputs
-_bmad/
 dist/
 build/
 out/
@@ -34,3 +33,5 @@ yarn-error.log*
 # TypeScript / Testing caching
 .eslintcache
 .tsbuildinfo
+*.tsbuildinfo
+coverage/

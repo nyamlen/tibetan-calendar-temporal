@@ -1,0 +1,39 @@
+{
+  "name": "tibetan-calendar-temporal",
+  "version": "0.0.1",
+  "description": "Tibetan calendar (Phugpa tradition) computation engine built on Temporal. Pre-release placeholder — implementation in development.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Andreas Bothner <andreas@bothner.net>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nyamlen/tibetan-calendar-temporal.git"
+  },
+  "homepage": "https://github.com/nyamlen/tibetan-calendar-temporal#readme",
+  "bugs": "https://github.com/nyamlen/tibetan-calendar-temporal/issues",
+  "keywords": [
+    "tibetan",
+    "calendar",
+    "temporal",
+    "phugpa",
+    "buddhist",
+    "lunisolar",
+    "tibetan-calendar",
+    "losar"
+  ],
+  "exports": {
+    ".": "./index.js"
+  },
+  "files": [
+    "index.js",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  }
+}

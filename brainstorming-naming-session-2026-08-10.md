@@ -82,10 +82,10 @@ Cultural authenticity therefore outranks mass-market legibility, and a genuine T
 The flagship engine stays **unscoped** for discoverability.
 Everything else in the suite ships **scoped** under the org: `@nyamlen/timer`, `@nyamlen/vows`.
 
-### ⚠ Outstanding Inconsistency
+### ✅ Resolved: Spec Reconciled
 
-`tibetan-calendar-engine-project-spec.md` still names the package `tibetan-calendar-engine` (line 7, and throughout the package-structure and `package.json` examples).
-This contradicts Decision 1 and must be reconciled before scaffolding.
+The engine spec formerly at `tibetan-calendar-engine-project-spec.md` still named the package `tibetan-calendar-engine` in five places.
+Renamed to [PROJECT.md](PROJECT.md) and corrected on 2026-08-11.
 
 ---
 
@@ -256,9 +256,10 @@ npm **org/scope** availability could not be verified programmatically (npmjs.com
 
 ## Open Actions
 
-- [ ] Register GitHub org `nyamlen`
-- [ ] Register npm org / claim `@nyamlen` scope (verify manually — not programmatically confirmable)
-- [ ] Register `nyamlen.app` (primary) and `nyamlen.com` (defensive)
+- [x] Register GitHub org `nyamlen` — done 2026-08-11
+- [x] Register npm org / claim `@nyamlen` scope — done 2026-08-11, 2FA enabled
+- [x] Register `nyamlen.app` (primary) and `nyamlen.com` (defensive) — done 2026-08-11
+- [x] Reconcile the engine spec — renamed to `PROJECT.md` and corrected 2026-08-11
+- [ ] Transfer the repo from `boffies` to the `nyamlen` org (stays private until v1)
 - [ ] Publish placeholder `tibetan-calendar-temporal` v0.0.1 to claim the npm name
-- [ ] Reconcile `tibetan-calendar-engine-project-spec.md` — it still says `tibetan-calendar-engine` throughout
 - [ ] Record `Melong` as the name of the practice review screen in the app spec
