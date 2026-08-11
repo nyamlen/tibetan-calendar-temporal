@@ -112,11 +112,12 @@ tibetan-calendar-temporal/
 │   │   ├── index.ts          # Practice day logic
 │   │   ├── types.ts          # Practice, PracticeDay, CalendarConfig
 │   │   └── default-gelug.ts  # Default Gelug practice day config
-│   └── types.ts              # TibetanDate, TibetanMonth, TibetanYear
+│   ├── format.ts             # formatTibetanDate — the canonical string form
+│   └── types.ts              # TibetanDate, TibetanDateInput, SkippedDayError
 ├── test/
-│   ├── properties/           # Property-based tests (fast-check)
-│   ├── fixtures/             # FPMT validation data (JSON)
-│   └── regression/           # Edge case tests
+│   ├── computation/          # One suite per computation module
+│   ├── fixtures/             # Janson's tables, then FPMT data in Phase 2
+│   └── invariants.test.ts    # Year lengths, safe-integer bound, §13 period
 ├── package.json
 ├── biome.json
 ├── vitest.config.ts
@@ -124,9 +125,13 @@ tibetan-calendar-temporal/
 └── tsconfig.build.json    # emit: src/ -> dist/
 ```
 
-This is the **target** layout. Phase 0 created only `src/index.ts`, `test/smoke.test.ts` and the
-config files; the `computation/`, `traditions/`, `practice/` and test subdirectories arrive in
-the phase that fills them, rather than as empty stubs.
+Phase 1 built everything except `practice/`, which arrives in Phase 3. Directories are created
+in the phase that fills them rather than as empty stubs.
+
+Constants are held as exact `Rational`s and scaled onto a common denominator derived per
+tradition by `scaling.ts` — never hardcoded, because the denominator is not the same for every
+tradition. See
+[decisions/2026-08-11-integer-arithmetic-strategy.md](decisions/2026-08-11-integer-arithmetic-strategy.md).
 
 ## Subpath Exports (package.json)
 
@@ -149,13 +154,25 @@ does not exist yet, and an export pointing at a file the build cannot produce wo
 ## Core Types
 
 ```typescript
+interface Rational { num: number; den: number }
+
+interface MeanMotion {
+  perMonth: Rational;     // Janson's m1 / s1 / a1
+  perDay: Rational;       // m2 / s2 / a2
+  atEpoch: Rational;      // m0 / s0 / a0
+}
+
 interface TraditionConfig {
-  name: string;           // 'phugpa' | 'tsurphu'
-  epoch: number;          // Year 806 for Phugpa
-  meanSunCoefficients: { numerator: number; denominator: number }[];
-  meanMoonCoefficients: { numerator: number; denominator: number }[];
-  sineTable: number[];    // 6 values from Kālacakra tradition
-  // ... additional tradition-specific constants
+  id: string;                          // 'phugpa'
+  name: string;                        // 'Phugpa'
+  epochYear: number;                   // Y0 — 806, in Janson's Y numbering
+  epochMonth: number;                  // M0 — 3 by tradition
+  intercalationIndexAtEpoch: number;   // beta* — 61; beta and gamma* derive from it
+  meanDate: MeanMotion;
+  meanSun: MeanMotion;
+  lunarAnomaly: MeanMotion;
+  moonTab: readonly number[];          // 8 values, extended by symmetry to period 28
+  sunTab: readonly number[];           // 4 values, extended to period 12
 }
 
 interface TibetanDate {

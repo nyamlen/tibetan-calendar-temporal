@@ -5,7 +5,7 @@
 | Phase | Scope | Effort |
 |-------|-------|--------|
 | 0 | Scaffold (npm init, tsc, vitest, fast-check, biome, CI) — **done** | 2h |
-| 1 | Core computation: Layers 0-3 (Janson §2-8) | 20h |
+| 1 | Core computation: Layers 0-3 (Janson §2-9) — **done** | 20h |
 | 2 | Validation: FPMT fixtures, cross-check against reference implementations | 12h |
 | 3 | Practice day logic (config-driven rules, Gelug default config) | 8h |
 | 4 | TypeDoc + release workflow + publish v1.0.0 | 6h |
@@ -34,6 +34,28 @@ is dropped from `TibetanDate` and `isLeapDay` added; the epoch stays E806 so tha
 dates after 806 CE. All three correct [architecture.md](architecture.md), which had specified
 otherwise.
 
+**Phase 1 outcome.** The engine reproduces all 120 Losar dates in Janson's table for
+1927–2046, and year-length frequencies over 10,000 years land inside his independently computed
+42/21/3/33/1 per cent. Four things were corrected against the plan while building:
+
+- **The scaling denominator is derived per tradition, not hardcoded.** Tsurphu's epoch constants
+  carry factors Phugpa's do not, giving `D = 1,534,755,600` against Phugpa's `102,317,040`. A
+  literal would have made Tsurphu unrepresentable and broken the injection rule.
+- **`rabjung` is separate from `yearName`.** The Indian and Chinese cycles number a year
+  differently — 2026 is Indian 40 but Chinese 43 — so one combined object invited a lookup that
+  is wrong for 57 of every 60 years.
+- **Losar is not always day 1.** Where day 1 is skipped it is numbered day 2, as in 1977. This is
+  why Losar is computed from the previous year's month 12.
+- **2027-01-15 is month 12 day 8**, not month 11 day 27 as the plan and an early draft of the
+  year-numbering record both said.
+
+**Still open from Phase 1:** which `a₂` ships as the default. `PHUGPA` uses the almanac value
+`1/28` and `PHUGPA_HENNING` uses `3781/105840`; both reproduce Janson's entire Losar table, so
+that fixture cannot distinguish them. Settling it needs a published almanac checked against
+Janson's three named divergence dates — **2001-02-10, 2006-05-10, 2025-11-19**. Do this before
+Phase 2 fixture curation, not during it: `docs/testing.md`'s validation sources straddle the
+fork, so a mixed set guarantees failures that look like arithmetic bugs.
+
 ## Release Status
 
 | Version | State |
@@ -53,7 +75,7 @@ The repository stays private under the `nyamlen` org until v1.0.0, then goes pub
       57 of every 60 years. See
       [architecture.md](architecture.md#why-rabjung-is-separate-from-yearname).
 
-Setup work not yet done. Nothing here blocks starting Phase 1 except the Node upgrade.
+Setup work not yet done. None of it blocks Phase 2.
 
 - [x] **Node 26** installed — v26.7.0, verified 2026-08-11 by a Vitest smoke test reading
       `Temporal.PlainDate` with no polyfill present
