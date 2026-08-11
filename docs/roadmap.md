@@ -4,7 +4,7 @@
 
 | Phase | Scope | Effort |
 |-------|-------|--------|
-| 0 | Scaffold (npm init, tsup, vitest, fast-check, CI) | 2h |
+| 0 | Scaffold (npm init, tsc, vitest, fast-check, biome, CI) — **done** | 2h |
 | 1 | Core computation: Layers 0-3 (Janson §2-8) | 20h |
 | 2 | Validation: FPMT fixtures, cross-check against reference implementations | 12h |
 | 3 | Practice day logic (config-driven rules, Gelug default config) | 8h |
@@ -15,12 +15,11 @@
 The layers referenced in Phase 1 are defined in [architecture.md](architecture.md); the
 validation sources in Phase 2 are listed in [testing.md](testing.md).
 
-**Before starting Phase 0:** re-read the package structure in
-[architecture.md](architecture.md) rather than scaffolding straight to it. That tree was
-written before we established that the Temporal calendar adapter cannot be built, and
-`src/temporal.ts` has been removed from it. The rest of the structure has not been re-examined
-since that change — check it still describes what you are actually building. Phase 0 looks
-purely mechanical and is the easiest place to bake in a stale assumption.
+**Phase 0 outcome.** Re-reading the package structure before scaffolding was worth it — it
+turned up two stale entries. tsup was dropped for plain `tsc`, and TypeScript 7 replaced
+TypeScript 5.x because it is the first release to ship `lib.esnext.temporal.d.ts`, which lets
+the package expose `Temporal` in its public types with no dependency. Both recorded in
+[decisions/2026-08-11-build-tooling.md](decisions/2026-08-11-build-tooling.md).
 
 **Decide during Phase 1:** whether anything replaces the dropped Temporal calendar adapter —
 most likely a Temporal-shaped `TibetanDate` class with `add` / `until` / `with`. Deferred
@@ -41,8 +40,8 @@ The repository stays private under the `nyamlen` org until v1.0.0, then goes pub
 
 Setup work not yet done. Nothing here blocks starting Phase 1 except the Node upgrade.
 
-- [ ] Install **Node 26** — required for native Temporal before Phase 1 (currently v24.13.1,
-      which does not have it enabled)
+- [x] **Node 26** installed — v26.7.0, verified 2026-08-11 by a Vitest smoke test reading
+      `Temporal.PlainDate` with no polyfill present
 - [ ] GitHub org: set display name `Nyamlen`, description, and **require 2FA for all members**
 - [x] Cloudflare **auto-renew** confirmed on both domains 2026-08-11 (they expire 2027-08-11).
       Unlike every other item here this has no external signal — registrar auto-renew
@@ -63,14 +62,16 @@ through this before publishing v1.0.0 — several are one-way doors once publish
 
 **Package**
 
-- [ ] Remove the `STATUS` export from `index.js` — placeholder only
+- [x] Remove the `STATUS` export from `index.js` — done in Phase 0; `index.js` is gone entirely,
+      replaced by `src/index.ts` compiled to `dist/`
 - [ ] Remove the placeholder banner from `README.md`
 - [ ] Revisit `engines: ">=22"`. Correct for the stub, which needs nothing, but the real engine
       uses Temporal at runtime. Decide whether to require Node 26 or keep it advisory and let
       consumers supply a polyfill
 - [ ] Decide whether to add a `main` field. `exports` supersedes it on modern toolchains;
       it is only insurance for older bundlers
-- [ ] Add `types` to the `exports` map once TypeScript declarations are built
+- [x] Add `types` to the `exports` map once TypeScript declarations are built — done in Phase 0
+- [ ] Add the `./practice` subpath export once `src/practice/` exists (Phase 3)
 
 **Publishing**
 
@@ -99,6 +100,14 @@ through this before publishing v1.0.0 — several are one-way doors once publish
       they disagree — currently correct, but it would have broken had the repo not been
       transferred to the org before v1
 - [ ] Diarise the token expiry. An expired token breaks releases silently, months later
+- [ ] **TypeDoc will not run under TypeScript 7.** TS 7's npm package does not expose the
+      classic compiler API — its main export is a version object, the real API sits behind
+      `./unstable/sync`. Every tool built on that API (TypeDoc, API Extractor, ts-morph) is
+      incompatible until individually ported. `typedoc@0.28.20` peer-caps at `5.0.x–6.0.x`;
+      only unreleased `1.0.0-dev.*` builds loosen it. Check for a stable TypeDoc with TS 7
+      support first. If there is none, the fallback is a **docs-only `typescript@5.9` devDep
+      plus `temporal-spec`** for the TypeDoc pass, leaving build and tests on TS 7 — the two
+      are independent. Do **not** pin `typedoc@1.0.0-dev.*`; it is a prerelease on no dist-tag
 
 **npm auth note.** This account uses a **passkey**, not TOTP, so there is no 6-digit code and
 `--otp` is not usable. npm falls back to a browser flow: it prints an auth URL and waits at

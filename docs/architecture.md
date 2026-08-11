@@ -106,10 +106,15 @@ tibetan-calendar-temporal/
 │   ├── fixtures/             # FPMT validation data (JSON)
 │   └── regression/           # Edge case tests
 ├── package.json
-├── tsup.config.ts
+├── biome.json
 ├── vitest.config.ts
-└── tsconfig.json
+├── tsconfig.json          # editor, typecheck, tests (noEmit)
+└── tsconfig.build.json    # emit: src/ -> dist/
 ```
+
+This is the **target** layout. Phase 0 created only `src/index.ts`, `test/smoke.test.ts` and the
+config files; the `computation/`, `traditions/`, `practice/` and test subdirectories arrive in
+the phase that fills them, rather than as empty stubs.
 
 ## Subpath Exports (package.json)
 
@@ -124,6 +129,10 @@ tibetan-calendar-temporal/
   "sideEffects": false
 }
 ```
+
+The `./practice` subpath is the target shape. As of Phase 0 only `.` is declared — `src/practice/`
+does not exist yet, and an export pointing at a file the build cannot produce would break
+`npm pack`. It is added in Phase 3.
 
 ## Core Types
 
@@ -171,11 +180,22 @@ interface CalendarConfig {
 
 | Tool | Purpose |
 |------|---------|
-| TypeScript 5.x | Language (strict mode) |
-| tsup | Bundler (ESM output + declarations) |
+| TypeScript 7 | Language (strict mode) and build — `tsc` emits ESM + declarations directly |
 | Vitest | Test runner |
 | fast-check | Property-based testing |
 | Biome | Lint + format |
-| changesets | Version management + changelog |
-| TypeDoc | API documentation |
+| changesets | Version management + changelog (Phase 4) |
+| TypeDoc | API documentation (Phase 4) |
 | GitHub Actions | CI/CD with npm provenance |
+
+There is no bundler. `tsc` alone emits the ESM output and declarations, which keeps `dist/`
+mirroring `src/` — the structure the `./practice` subpath export depends on. Reasoning:
+[decisions/2026-08-11-build-tooling.md](decisions/2026-08-11-build-tooling.md).
+
+### Temporal types
+
+TypeScript 7 ships `lib.esnext.temporal.d.ts`, so `"lib": ["ES2024", "ESNext.Temporal"]`
+declares `Temporal` as a **global** namespace. The package therefore needs no Temporal typings
+dependency, and neither do consumers — emitted `.d.ts` files reference the global. TypeScript
+5.9 and `@types/node` have no Temporal declarations at all, which is why the TypeScript major
+is a load-bearing choice rather than a preference.
