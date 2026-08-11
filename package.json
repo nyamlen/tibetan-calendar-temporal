@@ -4,7 +4,7 @@
   "description": "Tibetan calendar (Phugpa tradition) computation engine built on Temporal. Pre-release placeholder — implementation in development.",
   "type": "module",
   "license": "MIT",
-  "author": "Andreas Bothner <andreas@bothner.net>",
+  "author": "Andreas Bothner <hello@nyamlen.app>",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nyamlen/tibetan-calendar-temporal.git"
