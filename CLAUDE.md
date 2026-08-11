@@ -54,7 +54,34 @@ Temporal.
 accepts only built-in CLDR identifiers, which exclude `tibetan`. Do not attempt a calendar
 adapter — see [docs/decisions/2026-08-11-temporal-custom-calendars.md](docs/decisions/2026-08-11-temporal-custom-calendars.md).
 
+**TypeScript 7 is load-bearing.** It is the first release shipping `lib.esnext.temporal.d.ts`,
+which is why `tsconfig.json` sets `"lib": ["ES2024", "ESNext.Temporal"]` and `Temporal` resolves
+as a global. Do **not** downgrade TypeScript, and do **not** install `temporal-spec`,
+`temporal-polyfill` or any other Temporal typings package to fix a `Temporal` type error — the
+zero-dependency claim runs through the published `.d.ts`, which references the global. TypeScript
+5.9 and `@types/node` carry no Temporal declarations at all.
+
+**No bundler.** `tsc` alone emits ESM and declarations, which keeps `dist/` mirroring `src/` —
+the structure the `./practice` subpath export needs. Do not add tsup or similar. Both decisions:
+[docs/decisions/2026-08-11-build-tooling.md](docs/decisions/2026-08-11-build-tooling.md).
+
+## Commands
+
+`npm run lint`, `check:links`, `typecheck`, `build`, `test` — CI runs all five in that order.
+
+`check:links` validates relative markdown links and `#fragments` against the filesystem. Docs
+here cross-reference heavily, so renaming or deleting one breaks inbound links silently; fix them
+in the same commit.
+
 ## Conventions
 
 Technical identifiers are lowercase (`nyamlen`, `@nyamlen`); the brand is capitalised
 (`Nyamlen`). npm rejects uppercase package names, so this is a constraint, not a preference.
+
+Markdown uses semantic line breaks — one sentence or clause per line, so diffs stay limited to
+the sentence that changed. `.markdownlint.jsonc` disables the rules that fight this (`MD013`
+above all). Do not re-wrap prose to satisfy a linter, and do not remove those exclusions.
+
+Decision records document a **constraint a contributor would otherwise violate**, not a replay of
+how a choice was weighed. Records that only narrate deliberation get deleted — planning artifacts
+stay out of the repo, as `CONTRIBUTING.md` already states.
