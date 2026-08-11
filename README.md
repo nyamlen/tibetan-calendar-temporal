@@ -49,7 +49,6 @@ The engine is separate from the app because:
 - Other projects can use it (FPMT centres, independent developers)
 - It's open source to build trust — practitioners need to trust the dates are correct
 - Clean separation enables independent versioning and testing
-- White-label apps can use the same engine with different practice day configs
 
 ## Provenance
 
@@ -65,7 +64,6 @@ keep it that way.
 | npm package | `tibetan-calendar-temporal` (unscoped) |
 | GitHub/npm org | `nyamlen` |
 | Repository | `github.com/nyamlen/tibetan-calendar-temporal` |
-| App (separate repo) | `Nyamlen` |
 
 **Scoping policy.** The flagship engine stays unscoped — unscoped names rank better in npm
 search, and discoverability is this package's job. Everything else in the suite ships scoped:
@@ -78,12 +76,10 @@ search, and discoverability is this package's job. Everything else in the suite 
 | [docs/architecture.md](docs/architecture.md) | Layered model, API design, package structure, core types, tooling |
 | [docs/testing.md](docs/testing.md) | Three-tier testing strategy and validation sources |
 | [docs/roadmap.md](docs/roadmap.md) | Implementation phases and release status |
-| [docs/decisions/](docs/decisions/) | Decision records — naming, licensing |
+| [docs/decisions/](docs/decisions/) | Decision records |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Clean-room constraint, dev setup, how to add validation data |
 
 ## Licence
 
 MIT — see [LICENSE](LICENSE). Fork it, build on it, ship commercial products with it.
 
-Reasoning behind the choice, including why GPL/AGPL and MPL-2.0 were set aside:
-[docs/decisions/2026-08-11-licensing.md](docs/decisions/2026-08-11-licensing.md).

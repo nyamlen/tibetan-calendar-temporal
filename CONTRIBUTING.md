@@ -99,19 +99,17 @@ not how it came to be built.
 
 ## Conventions
 
-Lowercase for every technical identifier, capitalised for the human-facing brand. npm rejects
-uppercase in package names, so this is a hard constraint rather than a style preference.
+Lowercase for every technical identifier, capitalised for the human-facing brand (`Nyamlen`).
+npm rejects uppercase in package names, so this is a hard constraint rather than a style
+preference.
 
 | Slot | Form |
 |------|------|
 | npm package and scope | `nyamlen`, `@nyamlen` |
 | GitHub org URL | `github.com/nyamlen` |
 | Domains | `nyamlen.app`, `nyamlen.com` |
-| GitHub org display name | `Nyamlen` |
-| App name, store listing, README title, PWA `name` | `Nyamlen` |
 
 ## Licence
 
-Contributions are accepted under the MIT licence — see [LICENSE](LICENSE) and the reasoning in
-[docs/decisions/2026-08-11-licensing.md](docs/decisions/2026-08-11-licensing.md). By opening a
+Contributions are accepted under the MIT licence — see [LICENSE](LICENSE). By opening a
 pull request you agree your contribution may be distributed under those terms.
