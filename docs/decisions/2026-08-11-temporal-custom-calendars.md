@@ -62,8 +62,36 @@ Deferred deliberately: defining what `add({months: 1})` means across leap months
 and skipped days is a domain question, and it should be answered once the core computation
 exists rather than designed against an imagined API.
 
-## Note for future implementers
+## Why TC39 removed it
 
-If `tibetan` ever lands as a built-in CLDR calendar, revisit this. That would be a different
-mechanism from the removed custom-calendar protocol, and it would arrive through ICU rather
-than anything this package can ship.
+Not a design preference — engine implementers pushed back on **code size**. Temporal's scope
+was cut at the [June 2024 TC39 meeting](https://github.com/tc39/proposal-temporal/issues/2854)
+at their request, over the cost of shipping it to limited-capacity devices such as low-end
+Android phones and the Apple Watch.
+
+The calendar and time zone protocols were targeted because they gave the largest complexity
+reduction for the smallest loss of use cases:
+
+- **Callable hooks were what implementations were most uncomfortable with.** A custom calendar
+  means arbitrary user JS running inside date arithmetic, in an observable sequence, which
+  blocks engine optimisation.
+- **The efficiency assumption behind the design did not hold.** The protocol assumed computing
+  each calendar property separately would be cheap. In practice it was not.
+- **A Stage 3 change had already undermined it.** Global registration of custom calendar IDs
+  was removed earlier, and that was the feature that made the rest coherent. What remained was
+  a very large surface area serving a use case it could no longer serve properly.
+
+## Will it return?
+
+Left explicitly open, with no timeline or design: *"A future proposal could design a custom
+calendar implementation that requires much less code size."* Do not plan around it.
+
+Two points matter more than that possibility:
+
+- **The champions committed to a proof-of-concept showing custom calendars polyfilled by
+  wrapping or monkeypatching Temporal.** The use case was moved outside the standard, not
+  abandoned. That is a direct endorsement of the wrapper approach deferred to Phase 1 — a
+  `TibetanDate` class is the sanctioned path, not a workaround.
+- **A built-in `tibetan` calendar would arrive through CLDR/ICU, not through Temporal** — the
+  route `chinese`, `hebrew` and `indian` took. A different mechanism entirely, and nothing this
+  package ships could influence it.
