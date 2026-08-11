@@ -5,7 +5,8 @@ dependencies, built on Temporal.
 
 - Architecture, API design, core types: [docs/architecture.md](docs/architecture.md)
 - Testing strategy and validation sources: [docs/testing.md](docs/testing.md)
-- Implementation phases: [docs/roadmap.md](docs/roadmap.md)
+- Implementation phases and the **pre-v1.0.0 checklist**: [docs/roadmap.md](docs/roadmap.md) —
+  check it before any release; it holds deliberately deferred decisions
 - Contributor rules, dev setup: [CONTRIBUTING.md](CONTRIBUTING.md)
 - Decision records: [docs/decisions/](docs/decisions/)
 
