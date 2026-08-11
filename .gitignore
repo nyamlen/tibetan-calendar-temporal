@@ -5,6 +5,13 @@
 .DS_Store
 Thumbs.db
 
+# Agent tooling. Personal, machine-specific, and this repository goes public at
+# v1.0.0 — `.mcp.json` records absolute local paths, and settings.local.json is
+# per-machine permission overrides. Shared `.claude/settings.json` stays tracked
+# so any project-wide agent config can still be reviewed in a PR.
+.mcp.json
+.claude/settings.local.json
+
 # Build and Compilation Outputs
 dist/
 build/

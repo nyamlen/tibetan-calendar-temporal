@@ -23,13 +23,21 @@ For the testing approach, see [testing.md](testing.md). For build sequencing, se
 - PDF: <https://www2.math.uu.se/~svantejs/papers/calendars/tibet.pdf>
 - arXiv: <https://arxiv.org/abs/1401.6285v1>
 
+**Read the LaTeX source, not the PDF** — see the rule in [CLAUDE.md](../CLAUDE.md). `pdftotext`
+drops floor/ceiling brackets, inequalities and Greek constants, and has already produced three
+wrong formulas here.
+
 This paper contains every formula needed. The implementation maps to its sections:
 
-- §2: Epoch (year 806) and year/month numbering
-- §3: Mean astronomy (mean sun, mean moon, mean weekday)
-- §4-5: True corrections (correction to mean values via sine interpolation tables)
-- §6-7: Calendar assembly (leap months, skipped/doubled days)
-- §8: Conversions (Tibetan ↔ Western date mapping)
+- §4: Year numbering and naming — rabjung cycle, element, animal, gender
+- §5 + App. C: Month numbering, true month count, leap months, and the inverse problem
+- §6: Days — the labelling rule, and where skipped and doubled dates come from
+- §7: Mean date, mean sun, lunar anomaly, the correction tables, and true date
+- §8: `JD = ⌊true_date⌋`, its inverse, month boundaries and Losar
+- §9: Day of week
+
+§2–3 are notation and definitions rather than algorithms; §10–13 and App. D–E cover almanac,
+astrological and planetary data that this package does not compute.
 
 **Additional academic reference (2026):** "Possible Reforms of the Tibetan Lunisolar Calendar" (arXiv:2604.01233) — documents seasonal drift. Not needed for implementation but relevant context.
 
@@ -75,8 +83,10 @@ built-in CLDR identifiers, which do not include `tibetan`.
 See [decisions/2026-08-11-temporal-custom-calendars.md](decisions/2026-08-11-temporal-custom-calendars.md).
 
 Whether anything replaces it — most likely a Temporal-shaped `TibetanDate` class offering
-`add` / `until` / `with` — is deferred to Phase 1, once the core computation exists and the
-ergonomics consumers actually need are visible.
+`add` / `until` / `with` — was reconsidered at the start of Phase 1 and **deferred again to
+Phase 3**. Phase 1 ships pure functions over plain objects. Defining what `add({months: 1})`
+means across leap months, doubled days and skipped days is a domain question, and Phase 3's
+practice-day logic is the first consumer that will show which semantics are actually needed.
 
 This does not affect the package's Temporal-native claim. The engine speaks
 `Temporal.PlainDate` throughout; it simply is not a registered calendar.
@@ -91,11 +101,12 @@ tibetan-calendar-temporal/
 │   │   ├── types.ts          # TraditionConfig type
 │   │   └── phugpa.ts         # Phugpa constants (epoch, tables)
 │   ├── computation/
-│   │   ├── epoch.ts          # Year 806, year/month numbering (§2)
-│   │   ├── mean-astronomy.ts # Mean sun, moon, weekday (§3)
-│   │   ├── corrections.ts    # True date, true month, sine tables (§4-5)
-│   │   ├── calendar.ts       # Leap months, skip/double days (§6-7)
-│   │   └── conversion.ts     # ISO ↔ Tibetan bidirectional (§8)
+│   │   ├── arithmetic.ts     # floorDiv, mod, amod, scaled-integer helpers (§2)
+│   │   ├── epoch.ts          # Year numbering, rabjung, element/animal (§4)
+│   │   ├── mean-astronomy.ts # Mean date, mean sun, lunar anomaly (§7)
+│   │   ├── corrections.ts    # moon_tab / sun_tab, true date (§7)
+│   │   ├── calendar.ts       # True month count, leap months, day rule (§5-6)
+│   │   └── conversion.ts     # ISO ↔ Tibetan bidirectional, weekday (§8-9)
 │   ├── practice/
 │   │   ├── index.ts          # Practice day logic
 │   │   ├── types.ts          # Practice, PracticeDay, CalendarConfig
@@ -147,19 +158,29 @@ interface TraditionConfig {
 }
 
 interface TibetanDate {
-  year: number;           // Tibetan year (e.g., 2153)
-  month: number;          // Month ordinal (1-13)
+  year: number;           // Royal era, 127 BC epoch (e.g. 2153)
+  yearStartsIn: number;   // Janson's Y — Gregorian year this Tibetan year begins in (2026)
+  rabjung: Rabjung;       // Indian cycle — a numbering
+  yearName: TibetanYearName;  // Chinese cycle — a name
+  month: number;          // Month number (1-12); a leap month repeats the following month's
   monthCode: string;      // "M06" or "M06L" for leap month
-  day: number;            // Tibetan day (1-30)
   isLeapMonth: boolean;
-  isDoubledDay: boolean;
-  isSkippedDay: boolean;
+  day: number;            // Tibetan day number (1-30)
+  isDoubledDay: boolean;  // true on BOTH days sharing this number
+  isLeapDay: boolean;     // true only on the first of a doubled pair (almanacs: "Extra")
   isoDate: Temporal.PlainDate;
-  rabjungCycle: number;
-  rabjungYear: number;
-  animal: string;
-  element: string;
   dayOfWeek: number;      // 1=Mon, 7=Sun (ISO standard)
+}
+
+interface Rabjung {
+  cycle: number;          // 17 for 1987-2046
+  year: number;           // 1-60 position within the cycle
+}
+
+interface TibetanYearName {
+  element: string;        // wood, fire, earth, iron, water
+  animal: string;
+  gender: 'male' | 'female';
 }
 
 interface Practice {
@@ -175,6 +196,86 @@ interface CalendarConfig {
   teachers: TeacherConfig[];
 }
 ```
+
+### Why `year` is the royal era
+
+`year` is the 127 BC epoch numbering that almanacs print, not Janson's *Y*. See
+[decisions/2026-08-11-year-numbering.md](decisions/2026-08-11-year-numbering.md) — the engine
+computes in *Y* internally and converts only at the public boundary. Do not "correct" `year` to
+match the paper.
+
+### Why the shape is flat except for naming systems
+
+Settled at the start of Phase 1. The rule is two-axis:
+
+- **Date components stay flat**, because `Temporal.PlainDate` is flat — `.year`, `.month`,
+  `.day`, `.monthCode`. This package is Temporal-native and a consumer moving between the two
+  should not learn a second access pattern.
+- **Naming systems group under a `*Name` field.** Stated that way the rule extends: if Janson
+  App. E month-level and day-level naming is ever added, it lands as `monthName` and `dayName`,
+  parallel and non-breaking.
+
+Grouping everything — `year.number`, `month.code`, `day.isLeap` — was rejected. It is more
+uniform, but `d.month` as an object where `PlainDate.month` is a number generates silent
+failures: `d.month === 11` is quietly false and `${d.month}` renders `[object Object]`. That is
+the same failure class the [year numbering decision](decisions/2026-08-11-year-numbering.md)
+exists to eliminate.
+
+### Why `rabjung` is separate from `yearName`
+
+They are two different 60-year cycles, and Janson §4 is explicit that they are different *kinds*
+of system:
+
+- The **Indian** cycle is a **numbering** — cycles are numbered, and cycle plus position
+  identifies a year unambiguously. This is `rabjung`.
+- The **Chinese** cycle is a **name** — "the Chinese cycles are not numbered in the Tibetan
+  calendar". This is `yearName`.
+
+They also give a year *different positions*. 2026 is year **40** of the Indian cycle and year
+**43** of the Chinese (Janson Table 12). Holding both in one object put `40` directly beside
+`Fire–Horse`, which it does not index — position 40 indexes *parābhava*. Anyone building a
+60-entry lookup keyed on that number would be wrong for 57 of every 60 years. Splitting them
+makes the mistake unbuildable.
+
+`rabjung` is grouped rather than two flat scalars because its two numbers are only meaningful
+together — unlike `year` and `yearStartsIn`, each of which stands alone — and because it is where
+the Indian cycle names will go if they are ever added.
+
+### Why the 60 rabjung names are not included
+
+`rabjung.year` is a position in a list of 60 Tibetan and Sanskrit names, and v1 exposes the
+position without the name. That is deliberate: sourcing the names is a research task, not a data
+entry task.
+
+Janson's Table 12 ASCII column is lossy. Positions 4, 13 and 47 all read `pramadi`, where the
+actual names are three different words — *pramodūta* प्रमोदूत, *pramāthi* प्रमाथी and
+*pramādi* प्रमादी. The Hindu saṃvatsara list cannot simply be substituted either: the traditions
+diverge in content, not only spelling, with Tibetan position 20 being *akṣaya* अक्षय where the
+Hindu list has *vyaya* व्यय and puts *akṣaya* at 60. Resolving each entry is a per-item
+scholarly judgement.
+
+No source has been found carrying all 60 in Tibetan script with Lhasa phonetics, which
+[CLAUDE.md](../CLAUDE.md)'s terminology conventions require; Henning's book has transliterations
+but is a copyrighted secondary source. Adding them later at `rabjung.name` is additive and
+breaks nothing, which is what makes deferring legitimate rather than merely convenient.
+
+### Why `gender` is kept although it is derivable
+
+Janson notes the gender is the year mod 2 and is therefore already determined by the animal —
+every Horse year is male, every Sheep year female. It is stored anyway because almanacs print it
+as part of the name, and because recomputing it at every call site is worse than one redundant
+field. `TibetanYearName` is a name as printed, not a minimal encoding.
+
+### Why there is no `isSkippedDay`
+
+A skipped date is a *number that no calendar day carries* (Janson §6). `isoToTibetan` only ever
+returns a real calendar day, so such a field would be unconditionally `false`. The question
+belongs to the input side: `tibetanDateExists(...)` answers it, and `tibetanToIso` throws
+`SkippedDayError`.
+
+Doubled days need two flags rather than one, because a consumer must know both that a number is
+shared and which of the two days this is. `tibetanToIso` therefore accepts `isLeapDay` as optional
+input; without it, a doubled date is ambiguous.
 
 ## Tooling
 
