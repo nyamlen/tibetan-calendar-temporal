@@ -32,6 +32,19 @@ expensive kind of error here.
 Do not derive any formula from PDF text, and do not accept a mitigation that depends on
 "checking the rendered PDF" unless a renderer is actually installed.
 
+**Cite by section and content, never by number.** `T12` and `T60` in the LaTeX are *labels*, not
+table numbers — `T12` is the twelve-animal cycle, which prints as Table 3, while the 60-year
+cycle table is a different one entirely. Equation numbers are generated at render time and
+cannot be checked without a renderer, which is not installed. Write "§5, the inverse problem" or
+quote the constant's mixed-radix form (`m₁ = 29;31,50,0,480 ⟨60,60,6,707⟩`) — both are greppable
+in the source, which is the whole point.
+
+**Fixtures from the paper are generated, not transcribed.** `test/fixtures/losar.ts` and
+`sixty-year-cycle.ts` come from `scripts/extract-janson-fixtures.mjs`, which parses the LaTeX.
+Re-run it rather than editing them. Hand-copying 120 dates is how a silent one-day error reaches
+the primary correctness gate — and an early draft of `docs/testing.md` did exactly that, dating
+Losar 2026 to 17 February instead of 18.
+
 Permitted: running those libraries locally and comparing *computed dates* against ours. Dates
 are facts, not copyrightable expression. Reading their public README for API-design ideas is
 also fine.

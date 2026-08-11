@@ -73,10 +73,13 @@ describe("safe-integer bound", () => {
 
 // Guards the decision to keep epoch E806 rather than a later one with smaller constants.
 describe("epoch sign guard", () => {
-	it("keeps the true month count non-negative for every date after 806 CE", () => {
+	// From 807, not 806: the epoch sits at month 2 of 806, so months 1 and 2 of that year are
+	// the only ones with a negative count. Asserting from 806 made this property flaky — it
+	// passed until fast-check happened to draw year 806 with month 1.
+	it("keeps the true month count non-negative for every date from 807 CE", () => {
 		fc.assert(
 			fc.property(
-				fc.integer({ min: 806, max: 5000 }),
+				fc.integer({ min: 807, max: 5000 }),
 				fc.integer({ min: 1, max: 12 }),
 				(year, month) => {
 					expect(trueMonthCount(PHUGPA, year, month)).toBeGreaterThanOrEqual(0);

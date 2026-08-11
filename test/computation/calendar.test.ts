@@ -85,13 +85,21 @@ describe("trueMonthCount", () => {
 		);
 	});
 
-	// Guards the decision to keep epoch E806: n must never go negative for real dates.
-	it("stays non-negative for every month from 806 onwards", () => {
+	// Guards the decision to keep epoch E806. The boundary is the epoch month itself, not the
+	// start of 806: beta* = 61 puts true month count 0 at month 2 of 806, so months 1 and 2 of
+	// that single year are the only ones before it. Everything from 807 onwards is non-negative.
+	it("stays non-negative from 807 onwards", () => {
 		fc.assert(
-			fc.property(years, monthNumbers, (y, m) => {
+			fc.property(fc.integer({ min: 807, max: 4000 }), monthNumbers, (y, m) => {
 				expect(trueMonthCount(P, y, m, false)).toBeGreaterThanOrEqual(0);
 			}),
 		);
+	});
+
+	it("turns non-negative exactly at the epoch month, month 2 of 806", () => {
+		expect(trueMonthCount(P, 806, 1)).toBe(-1);
+		expect(trueMonthCount(P, 806, 2)).toBe(0);
+		expect(trueMonthCount(P, 806, 3)).toBe(1);
 	});
 });
 
