@@ -51,6 +51,15 @@ npm install
 npm test
 ```
 
+CI runs `lint`, `check:links`, `typecheck`, `build` and `test`. All five run locally with the
+same commands.
+
+`npm run check:links` validates every relative link in the markdown — the target file must
+exist, and a `#fragment` must match a heading. Docs here cross-reference heavily, so a renamed
+or deleted file breaks inbound links silently; the check exists because that has happened.
+External URLs are deliberately not checked, since reaching the validation sources in
+[docs/testing.md](docs/testing.md) from CI would only make the build flaky.
+
 ## Implementing from the paper
 
 Every formula comes from Svante Janson, *Tibetan Calendar Mathematics*
