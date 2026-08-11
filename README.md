@@ -82,4 +82,3 @@ search, and discoverability is this package's job. Everything else in the suite 
 ## Licence
 
 MIT — see [LICENSE](LICENSE). Fork it, build on it, ship commercial products with it.
-

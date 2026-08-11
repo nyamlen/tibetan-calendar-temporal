@@ -20,8 +20,8 @@ For the testing approach, see [testing.md](testing.md). For build sequencing, se
 
 **Primary source:** Svante Janson, "Tibetan Calendar Mathematics" (arXiv:1401.6285)
 
-- PDF: https://www2.math.uu.se/~svantejs/papers/calendars/tibet.pdf
-- arXiv: https://arxiv.org/abs/1401.6285v1
+- PDF: <https://www2.math.uu.se/~svantejs/papers/calendars/tibet.pdf>
+- arXiv: <https://arxiv.org/abs/1401.6285v1>
 
 This paper contains every formula needed. The implementation maps to its sections:
 
@@ -35,7 +35,7 @@ This paper contains every formula needed. The implementation maps to its section
 
 ## Layered Computation Model
 
-```
+```text
 ┌─────────────────────────────────────────────┐
 │  Layer 4: Practice Day Logic                │
 │  (Config-driven rules: which days special)  │
@@ -83,7 +83,7 @@ This does not affect the package's Temporal-native claim. The engine speaks
 
 ## Package Structure
 
-```
+```text
 tibetan-calendar-temporal/
 ├── src/
 │   ├── index.ts              # Public API exports

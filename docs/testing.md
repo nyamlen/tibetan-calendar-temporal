@@ -23,11 +23,11 @@ sources and assert the engine matches.
 
 | Source | URL | What it provides |
 |--------|-----|-----------------|
-| **FPMT Dharma Practice Dates** | https://fpmt.org/media/resources/dharma-dates/ | Annual published calendar of practice days (Losar, Saka Dawa, Chotrul Duchen, etc.) — the authoritative Gelug reference |
-| **Lotsawa House Phugpa Calculator** | https://www.lotsawahouse.org/Static/tools/phugpa.html | Interactive web tool — compute any year's dates for spot-checking |
-| **christian-steinert TibetanBuddhistPracticeDates** | https://github.com/christiansteinert/TibetanBuddhistPracticeDates | Java (GPL-3.0), has ICS export — run locally, compare outputs (code is GPL but *outputs are data*, not derived works) |
-| **eszthoff/tibetan-date-calculator** | https://github.com/eszthoff/tibetan-date-calculator | TypeScript, Phugpa, implements Janson — run locally to compare computed dates (do NOT copy code, only compare outputs) |
-| **lscalendars/tibcalendar** | https://github.com/lscalendars/tibcalendar | C library, reference implementation for Tibetan calendrical calculations |
+| **FPMT Dharma Practice Dates** | <https://fpmt.org/media/resources/dharma-dates/> | Annual published calendar of practice days (Losar, Saka Dawa, Chotrul Duchen, etc.) — the authoritative Gelug reference |
+| **Lotsawa House Phugpa Calculator** | <https://www.lotsawahouse.org/Static/tools/phugpa.html> | Interactive web tool — compute any year's dates for spot-checking |
+| **christian-steinert TibetanBuddhistPracticeDates** | <https://github.com/christiansteinert/TibetanBuddhistPracticeDates> | Java (GPL-3.0), has ICS export — run locally, compare outputs (code is GPL but *outputs are data*, not derived works) |
+| **eszthoff/tibetan-date-calculator** | <https://github.com/eszthoff/tibetan-date-calculator> | TypeScript, Phugpa, implements Janson — run locally to compare computed dates (do NOT copy code, only compare outputs) |
+| **lscalendars/tibcalendar** | <https://github.com/lscalendars/tibcalendar> | C library, reference implementation for Tibetan calendrical calculations |
 
 > **Clean-room note.** Running these to compare *outputs* is permitted — dates are facts, not
 > copyrightable expression. Reading their source is not. See [CONTRIBUTING.md](../CONTRIBUTING.md).

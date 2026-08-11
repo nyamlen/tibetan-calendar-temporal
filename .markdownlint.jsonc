@@ -1,0 +1,26 @@
+// Repo-level markdownlint config. Rules disabled here conflict with conventions the
+// docs follow deliberately — without this, `docs/` reports ~240 violations that are all
+// working as intended.
+{
+  // Semantic line breaks: one sentence or clause per line, so Git diffs stay limited to
+  // the sentence that changed. Sentences routinely exceed any fixed column limit, and
+  // hard-wrapping mid-sentence is exactly what the convention exists to prevent.
+  "MD013": false,
+
+  // Table pipe padding. Purely cosmetic, and the tables are hand-maintained.
+  "MD060": false,
+
+  // Bold labels used as sub-headings — `**Package**`, `**Publishing**` — group the
+  // pre-v1.0.0 checklist in roadmap.md. Promoting them to real headings would put
+  // internal checklist sections in every table of contents.
+  "MD036": false,
+
+  // Decision records carry the title in YAML front matter *and* as an H1: the front
+  // matter is machine-readable, the H1 is what renders. They are not two titles.
+  "MD025": { "front_matter_title": "" },
+
+  // Carried over from the user-level VS Code settings so behaviour does not change
+  // when this file takes precedence.
+  "MD031": false,
+  "MD022": { "lines_above": 1, "lines_below": 0 }
+}

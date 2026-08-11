@@ -24,7 +24,7 @@ const date = Temporal.PlainDate.from({ year: 2153, month: 6, day: 15, calendar: 
 Temporal removed user-defined calendars before shipping. Verified on Node v26.7.0 with native
 Temporal, no flags:
 
-```
+```text
 Temporal.Calendar exists?  undefined
 
 custom calendar object REJECTED:
