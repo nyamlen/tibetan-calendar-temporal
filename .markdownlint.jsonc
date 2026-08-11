@@ -15,10 +15,6 @@
   // internal checklist sections in every table of contents.
   "MD036": false,
 
-  // Decision records carry the title in YAML front matter *and* as an H1: the front
-  // matter is machine-readable, the H1 is what renders. They are not two titles.
-  "MD025": { "front_matter_title": "" },
-
   // Carried over from the user-level VS Code settings so behaviour does not change
   // when this file takes precedence.
   "MD031": false,

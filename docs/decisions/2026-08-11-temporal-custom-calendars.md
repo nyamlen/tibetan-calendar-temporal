@@ -1,7 +1,6 @@
 ---
-title: "No Temporal Calendar Protocol adapter"
 date: 2026-08-11
-status: decided
+status: accepted
 ---
 
 # No Temporal Calendar Protocol adapter

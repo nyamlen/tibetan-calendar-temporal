@@ -1,8 +1,12 @@
+---
+date: 2026-08-11
+status: accepted
+---
+
 # Build tooling: TypeScript 7 and no bundler
 
-**Date:** 2026-08-11
-**Status:** Accepted
-**Context:** Phase 0 scaffold
+**Decision:** the build uses TypeScript 7 with `"lib": ["ES2024", "ESNext.Temporal"]`, and no
+bundler — `tsc` emits ESM and declarations directly. Taken during the Phase 0 scaffold.
 
 Two entries in the architecture tooling table were written before the project's constraints
 settled, and re-reading them before scaffolding — as the roadmap instructed — showed both were

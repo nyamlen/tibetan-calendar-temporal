@@ -85,3 +85,8 @@ above all). Do not re-wrap prose to satisfy a linter, and do not remove those ex
 Decision records document a **constraint a contributor would otherwise violate**, not a replay of
 how a choice was weighed. Records that only narrate deliberation get deleted — planning artifacts
 stay out of the repo, as `CONTRIBUTING.md` already states.
+
+Their format is fixed: filename `YYYY-MM-DD-slug.md`, YAML front matter carrying only `date` and
+`status` (`accepted` / `superseded` / `deprecated`), a single H1 title, then a bold `**Decision:**`
+line stating the outcome before any reasoning. Do not put `title` in the front matter — it
+duplicates the H1 and makes markdownlint read the file as having two titles.

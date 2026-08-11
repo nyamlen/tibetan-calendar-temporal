@@ -42,7 +42,8 @@ Setup work not yet done. Nothing here blocks starting Phase 1 except the Node up
 
 - [x] **Node 26** installed — v26.7.0, verified 2026-08-11 by a Vitest smoke test reading
       `Temporal.PlainDate` with no polyfill present
-- [ ] GitHub org: set display name `Nyamlen`, description, and **require 2FA for all members**
+- [x] GitHub org: display name `Nyamlen`, description, and **2FA required for all members** —
+      done 2026-08-11
 - [x] Cloudflare **auto-renew** confirmed on both domains 2026-08-11 (they expire 2027-08-11).
       Unlike every other item here this has no external signal — registrar auto-renew
       preference is not published in RDAP — so it is recorded on report, not verified
