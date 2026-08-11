@@ -1,0 +1,177 @@
+# Architecture
+
+How `tibetan-calendar-temporal` is built and why.
+
+For what it is and why it exists, see the [README](../README.md).
+For the testing approach, see [testing.md](testing.md). For build sequencing, see
+[roadmap.md](roadmap.md).
+
+## Key Constraints
+
+- **Clean-room implementation** — do NOT reference or copy code from `eszthoff/tibetan-date-calculator`. That library has no license (legally all-rights-reserved). Implement directly from Janson's paper. Full rules in [CONTRIBUTING.md](../CONTRIBUTING.md).
+- **Temporal-native** — use `Temporal.PlainDate` (ES2026 standard) for date representation. No legacy `Date` objects anywhere.
+- **Zero runtime dependencies** — Temporal is a language built-in. The engine depends on nothing.
+- **Integer arithmetic only** — all Phugpa calendar math uses integer division with fixed denominators. No floating point. This ensures deterministic, cross-platform-identical results.
+- **Tradition-agnostic architecture** — astronomical constants are injected via a `TraditionConfig` type, not hardcoded. v1 ships only `PHUGPA` config, but the algorithm supports future addition of Tsurphu (Karma Kagyu) via a different config set.
+- **ESM-only** — `"type": "module"` in package.json. No dual CJS/ESM builds needed (Node.js 26+ can `require()` ESM).
+- **Stateless pure functions** — same input always gives same output, no side effects. Enables memoization and web worker offloading by consumers.
+
+## Mathematical Reference
+
+**Primary source:** Svante Janson, "Tibetan Calendar Mathematics" (arXiv:1401.6285)
+
+- PDF: https://www2.math.uu.se/~svantejs/papers/calendars/tibet.pdf
+- arXiv: https://arxiv.org/abs/1401.6285v1
+
+This paper contains every formula needed. The implementation maps to its sections:
+
+- §2: Epoch (year 806) and year/month numbering
+- §3: Mean astronomy (mean sun, mean moon, mean weekday)
+- §4-5: True corrections (correction to mean values via sine interpolation tables)
+- §6-7: Calendar assembly (leap months, skipped/doubled days)
+- §8: Conversions (Tibetan ↔ Western date mapping)
+
+**Additional academic reference (2026):** "Possible Reforms of the Tibetan Lunisolar Calendar" (arXiv:2604.01233) — documents seasonal drift. Not needed for implementation but relevant context.
+
+## Layered Computation Model
+
+```
+┌─────────────────────────────────────────────┐
+│  Layer 4: Practice Day Logic                │
+│  (Config-driven rules: which days special)  │
+├─────────────────────────────────────────────┤
+│  Layer 3: Calendar Assembly                 │
+│  (Months, years, leap insertion, day skip)  │
+├─────────────────────────────────────────────┤
+│  Layer 2: True Date / True Month            │
+│  (Corrections to mean values via tables)    │
+├─────────────────────────────────────────────┤
+│  Layer 1: Mean Astronomy                    │
+│  (Mean sun, mean moon, mean weekday)        │
+├─────────────────────────────────────────────┤
+│  Layer 0: Epoch & Constants                 │
+│  (Year 806, tradition-specific parameters)  │
+└─────────────────────────────────────────────┘
+```
+
+## Two-Layer API
+
+**Level 1: Standalone functions (framework-agnostic)**
+
+```typescript
+import { isoToTibetan, tibetanToIso, getPracticeDays } from 'tibetan-calendar-temporal';
+```
+
+- Pure functions, works everywhere
+- Accepts/returns Temporal types or plain objects
+
+**Level 2: Temporal Calendar Protocol adapter (optional)**
+
+```typescript
+import { TibetanCalendar } from 'tibetan-calendar-temporal/temporal';
+const date = Temporal.PlainDate.from({ year: 2153, month: 6, day: 15, calendar: new TibetanCalendar() });
+```
+
+- Wraps Level 1 in Temporal's Calendar Protocol
+- Optional subpath export — consumers who don't need it don't import it
+
+## Package Structure
+
+```
+tibetan-calendar-temporal/
+├── src/
+│   ├── index.ts              # Public API exports
+│   ├── temporal.ts           # Temporal Calendar Protocol adapter
+│   ├── traditions/
+│   │   ├── types.ts          # TraditionConfig type
+│   │   └── phugpa.ts         # Phugpa constants (epoch, tables)
+│   ├── computation/
+│   │   ├── epoch.ts          # Year 806, year/month numbering (§2)
+│   │   ├── mean-astronomy.ts # Mean sun, moon, weekday (§3)
+│   │   ├── corrections.ts    # True date, true month, sine tables (§4-5)
+│   │   ├── calendar.ts       # Leap months, skip/double days (§6-7)
+│   │   └── conversion.ts     # ISO ↔ Tibetan bidirectional (§8)
+│   ├── practice/
+│   │   ├── index.ts          # Practice day logic
+│   │   ├── types.ts          # Practice, PracticeDay, CalendarConfig
+│   │   └── default-gelug.ts  # Default Gelug practice day config
+│   └── types.ts              # TibetanDate, TibetanMonth, TibetanYear
+├── test/
+│   ├── properties/           # Property-based tests (fast-check)
+│   ├── fixtures/             # FPMT validation data (JSON)
+│   └── regression/           # Edge case tests
+├── package.json
+├── tsup.config.ts
+├── vitest.config.ts
+└── tsconfig.json
+```
+
+## Subpath Exports (package.json)
+
+```json
+{
+  "name": "tibetan-calendar-temporal",
+  "type": "module",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
+    "./temporal": { "types": "./dist/temporal.d.ts", "default": "./dist/temporal.js" },
+    "./practice": { "types": "./dist/practice/index.d.ts", "default": "./dist/practice/index.js" }
+  },
+  "sideEffects": false
+}
+```
+
+## Core Types
+
+```typescript
+interface TraditionConfig {
+  name: string;           // 'phugpa' | 'tsurphu'
+  epoch: number;          // Year 806 for Phugpa
+  meanSunCoefficients: { numerator: number; denominator: number }[];
+  meanMoonCoefficients: { numerator: number; denominator: number }[];
+  sineTable: number[];    // 6 values from Kālacakra tradition
+  // ... additional tradition-specific constants
+}
+
+interface TibetanDate {
+  year: number;           // Tibetan year (e.g., 2153)
+  month: number;          // Month ordinal (1-13)
+  monthCode: string;      // "M06" or "M06L" for leap month
+  day: number;            // Tibetan day (1-30)
+  isLeapMonth: boolean;
+  isDoubledDay: boolean;
+  isSkippedDay: boolean;
+  isoDate: Temporal.PlainDate;
+  rabjungCycle: number;
+  rabjungYear: number;
+  animal: string;
+  element: string;
+  dayOfWeek: number;      // 1=Mon, 7=Sun (ISO standard)
+}
+
+interface Practice {
+  type: string;           // 'tara', 'guru-puja', 'protector', etc.
+  name: string;
+  tier: 1 | 2 | 3;       // Universal, General Practice, Empowerment-Required
+  description?: string;
+}
+
+interface CalendarConfig {
+  tradition: TraditionConfig;
+  practiceDays: PracticeDayRule[];
+  teachers: TeacherConfig[];
+}
+```
+
+## Tooling
+
+| Tool | Purpose |
+|------|---------|
+| TypeScript 5.x | Language (strict mode) |
+| tsup | Bundler (ESM output + declarations) |
+| Vitest | Test runner |
+| fast-check | Property-based testing |
+| Biome | Lint + format |
+| changesets | Version management + changelog |
+| TypeDoc | API documentation |
+| GitHub Actions | CI/CD with npm provenance |

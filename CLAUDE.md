@@ -3,8 +3,11 @@
 Tibetan calendar (Phugpa tradition) computation engine. Pure TypeScript, zero runtime
 dependencies, built on Temporal.
 
-Full specification: [PROJECT.md](PROJECT.md).
-Naming decisions: [brainstorming-naming-session-2026-08-10.md](brainstorming-naming-session-2026-08-10.md).
+- Architecture, API design, core types: [docs/architecture.md](docs/architecture.md)
+- Testing strategy and validation sources: [docs/testing.md](docs/testing.md)
+- Implementation phases: [docs/roadmap.md](docs/roadmap.md)
+- Contributor rules, dev setup: [CONTRIBUTING.md](CONTRIBUTING.md)
+- Decision records: [docs/decisions/](docs/decisions/)
 
 ## Clean-room constraint — read this first
 
