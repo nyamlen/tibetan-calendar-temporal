@@ -15,6 +15,13 @@
 The layers referenced in Phase 1 are defined in [architecture.md](architecture.md); the
 validation sources in Phase 2 are listed in [testing.md](testing.md).
 
+**Before starting Phase 0:** re-read the package structure in
+[architecture.md](architecture.md) rather than scaffolding straight to it. That tree was
+written before we established that the Temporal calendar adapter cannot be built, and
+`src/temporal.ts` has been removed from it. The rest of the structure has not been re-examined
+since that change — check it still describes what you are actually building. Phase 0 looks
+purely mechanical and is the easiest place to bake in a stale assumption.
+
 **Decide during Phase 1:** whether anything replaces the dropped Temporal calendar adapter —
 most likely a Temporal-shaped `TibetanDate` class with `add` / `until` / `with`. Deferred
 deliberately, because defining what `add({months: 1})` means across leap months, doubled days
@@ -92,6 +99,12 @@ through this before publishing v1.0.0 — several are one-way doors once publish
       they disagree — currently correct, but it would have broken had the repo not been
       transferred to the org before v1
 - [ ] Diarise the token expiry. An expired token breaks releases silently, months later
+
+**npm auth note.** This account uses a **passkey**, not TOTP, so there is no 6-digit code and
+`--otp` is not usable. npm falls back to a browser flow: it prints an auth URL and waits at
+`Press ENTER to open in the browser…`. The command does nothing until you press ENTER,
+authenticate, and let it return — it is easy to assume it failed and move on, leaving the
+operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
 
 **Repository**
 

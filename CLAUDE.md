@@ -28,6 +28,10 @@ referencing their internal implementation decisions.
 The commit history is the evidence of independent derivation. Keep commits incremental and
 tied to the paper's sections — do not squash the build into a single large commit.
 
+This cuts the opposite way for documentation: batch doc edits into meaningful units rather
+than committing each one. Granular commits earn their place in `src/`, where they show
+derivation; in `docs/` they are just noise.
+
 ## Non-negotiable technical rules
 
 - **Temporal only.** `Temporal.PlainDate` everywhere. Never `Date`.
