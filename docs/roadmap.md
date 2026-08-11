@@ -34,6 +34,10 @@ Setup work not yet done. Nothing here blocks starting Phase 1 except the Node up
 - [ ] Cloudflare: confirm **auto-renew** on both domains (they expire 2027-08-11), enable
       **DNSSEC**, add a `nyamlen.com` → `nyamlen.app` redirect rule
 - [ ] Decide whether to register `nyamlen.org` and `nyamlen.dev` (both free as of 2026-08-11)
+- [ ] Switch the `nyamlen.com` → `nyamlen.app` redirect from **302 to 301** once `nyamlen.app`
+      actually serves the app. It is deliberately temporary for now: `nyamlen.app` has no
+      A/AAAA records yet, and a 301 to a dead host is cached hard by browsers and awkward to
+      undo
 - [ ] Record `Melong` as the name of the practice review screen in the app spec
 
 ## Pre-v1.0.0 checklist
