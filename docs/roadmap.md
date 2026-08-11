@@ -31,8 +31,9 @@ Setup work not yet done. Nothing here blocks starting Phase 1 except the Node up
 - [ ] Install **Node 26** — required for native Temporal before Phase 1 (currently v24.13.1,
       which does not have it enabled)
 - [ ] GitHub org: set display name `Nyamlen`, description, and **require 2FA for all members**
-- [ ] Cloudflare: confirm **auto-renew** on both domains and that a valid payment method is on
-      file — they expire 2027-08-11, and auto-renew fails silently without one
+- [x] Cloudflare **auto-renew** confirmed on both domains 2026-08-11 (they expire 2027-08-11).
+      Unlike every other item here this has no external signal — registrar auto-renew
+      preference is not published in RDAP — so it is recorded on report, not verified
 - [x] DNSSEC enabled on both domains — DS records verified live 2026-08-11
 - [x] `nyamlen.com` → `nyamlen.app` 301 redirect, path-preserving, apex and www — verified
       2026-08-11
