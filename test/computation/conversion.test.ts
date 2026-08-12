@@ -454,6 +454,18 @@ describe("skipped and doubled days", () => {
 		expect((thrown as Error).name).toBe("SkippedDayError");
 	});
 
+	// Undocumented until now, and therefore unpinned: the flag is ignored rather than rejected on
+	// an ordinary day. A caller iterating dates and carrying the flag forward from a previous
+	// result relies on this, and there is no ambiguity to resolve -- the day exists and exactly one
+	// calendar day carries it.
+	it("ignores isLeapDay on a day that is not doubled", () => {
+		const plain = { year: 2153, month: 3, day: 15 };
+		expect(isoToTibetan(tibetanToIso(plain)).isDoubledDay).toBe(false);
+		expect(tibetanToIso({ ...plain, isLeapDay: true }).toString()).toBe(
+			tibetanToIso(plain).toString(),
+		);
+	});
+
 	it("gives a doubled date two consecutive days, the first flagged as leap", () => {
 		let date = iso("2024-01-01");
 		for (let i = 0; i < 1000; i++) {

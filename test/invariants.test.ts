@@ -1,6 +1,14 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import { hasLeapMonth, losarJulianDay, trueMonthCount } from "../src/computation/calendar.js";
+import {
+	daysInMonth,
+	firstDayOfMonth,
+	hasLeapMonth,
+	lastDayOfMonth,
+	losarJulianDay,
+	trueMonthCount,
+} from "../src/computation/calendar.js";
+import { isoFromJulianDay } from "../src/computation/conversion.js";
 import { trueDate } from "../src/computation/corrections.js";
 import { deriveScaling } from "../src/computation/scaling.js";
 import { formatTibetanDate, isoToTibetan, PHUGPA, tibetanDateExists } from "../src/index.js";
@@ -16,6 +24,18 @@ describe("year lengths", () => {
 			const length = losarJulianDay(scaled, PHUGPA, y + 1) - losarJulianDay(scaled, PHUGPA, y);
 			expect([354, 355, 383, 384, 385]).toContain(length);
 		}
+	});
+
+	// Janson §6: a Tibetan month is one lunation, so it runs 29 or 30 calendar days and nothing
+	// else. Uses daysInMonth, which is the function written for exactly this question.
+	it("give every month either 29 or 30 days, over 1970-2070", () => {
+		const first = trueMonthCount(PHUGPA, 1970, 1);
+		const last = trueMonthCount(PHUGPA, 2070, 1);
+		const lengths = new Set<number>();
+		for (let n = first; n < last; n++) lengths.add(daysInMonth(scaled, n));
+		expect([...lengths].sort((a, b) => a - b)).toEqual([29, 30]);
+		// Both lengths must actually occur; a single-valued set would pass a `toContain` check.
+		expect(last - first).toBeGreaterThan(1200);
 	});
 
 	it("occur at roughly Janson's frequencies over 10,000 years", () => {
@@ -153,6 +173,36 @@ describe("formatTibetanDate", () => {
 			}),
 		);
 	});
+});
+
+// Janson §6: the full moon ends lunar day 15 and the new moon ends lunar day 30, so every month
+// must carry exactly one of each -- no more, and crucially no fewer. The "no fewer" half is the
+// point. `isFullMoon` is computed rather than derived from `day === 15`, because when 15 is
+// skipped no day is numbered 15 and a naive test would lose the full moon entirely. The
+// `day === 15 || day === 14` guard in buildDate is an optimisation over that computation, and
+// this property is what proves the guard does not drop a case.
+describe("moon phases", () => {
+	it("puts exactly one full moon and one new moon in every month over 1970-2070", () => {
+		const first = trueMonthCount(PHUGPA, 1970, 1);
+		const last = trueMonthCount(PHUGPA, 2070, 1);
+		const wrong: string[] = [];
+
+		for (let n = first; n < last; n++) {
+			let full = 0;
+			let dark = 0;
+			// Walk the month's calendar days directly. Every Julian day in the span is a real
+			// day, so this needs no reasoning about which numbers exist.
+			for (let jd = firstDayOfMonth(scaled, n); jd <= lastDayOfMonth(scaled, n); jd++) {
+				const date = isoToTibetan(isoFromJulianDay(jd));
+				if (date.isFullMoon) full++;
+				if (date.isNewMoon) dark++;
+			}
+			if (full !== 1 || dark !== 1) wrong.push(`month ${n}: ${full} full, ${dark} new`);
+		}
+
+		expect(wrong).toEqual([]);
+		expect(last - first).toBeGreaterThan(1200);
+	}, 30_000);
 });
 
 // The Tier 1 property docs/testing.md has promised since Phase 0. It constrains the *output*:

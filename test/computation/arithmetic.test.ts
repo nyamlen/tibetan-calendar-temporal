@@ -70,6 +70,13 @@ describe("ceilDiv", () => {
 			}),
 		);
 	});
+
+	// The guard is identical to floorDiv's, which was tested while this one was not.
+	it("rejects a zero divisor rather than returning Infinity", () => {
+		expect(() => ceilDiv(1, 0)).toThrow(RangeError);
+		// -0 === 0, so the negative zero divisor is rejected too rather than yielding -Infinity.
+		expect(() => ceilDiv(1, -0)).toThrow(RangeError);
+	});
 });
 
 describe("mod", () => {

@@ -345,6 +345,13 @@ export interface TibetanDateInput {
 	 *
 	 * @defaultValue `false` — the ordinary second day. Without this, a doubled date would be
 	 * ambiguous and the conversion would have to guess.
+	 *
+	 * @remarks
+	 * **Ignored on a day that is not doubled**, which returns that day as though the flag were
+	 * absent rather than throwing. This is deliberate: a caller iterating dates and setting the
+	 * flag from a previous result should not have to check whether each target happens to be
+	 * doubled, and unlike a skipped date there is no ambiguity to resolve — the day exists and
+	 * exactly one calendar day carries it.
 	 */
 	isLeapDay?: boolean;
 }

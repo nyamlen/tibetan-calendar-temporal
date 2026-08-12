@@ -19,6 +19,17 @@
 /**
  * Floor division — the largest integer `q` with `q * divisor <= dividend`.
  *
+ * @remarks
+ * "Exact for all safe-integer inputs" is a real claim, not a hopeful one, even though
+ * `Math.floor(a / b)` performs a floating-point divide first. For `|a| < 2⁵³` the exact quotient
+ * `a/b` is at least `1/b` away from the next integer, while the half-ulp rounding error of the
+ * divide is at most `a / (b · 2⁵³) < 1/b`. The error is therefore always smaller than the distance
+ * to the boundary, so the divide can never round across one and the floor cannot land on the wrong
+ * integer.
+ *
+ * This is why the module needs no `BigInt` and why the whole engine can claim identical results
+ * across platforms.
+ *
  * @param dividend - May be negative.
  * @param divisor - Must be non-zero.
  * @returns `⌊dividend / divisor⌋`, exact for all safe-integer inputs.
