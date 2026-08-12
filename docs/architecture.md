@@ -148,9 +148,13 @@ tradition. See
 }
 ```
 
-The `./practice` subpath is the target shape. As of Phase 0 only `.` is declared — `src/practice/`
-does not exist yet, and an export pointing at a file the build cannot produce would break
-`npm pack`. It is added in Phase 3.
+Both subpaths are declared. `./observances` was added in Phase 3, when `src/observances/` came to
+exist — an export pointing at a file the build cannot produce breaks `npm pack`, so the entry and
+the directory land together. `npm pack --dry-run` is the check.
+
+The split is not packaging convenience. Everything on `.` makes a falsifiable claim, checkable
+against Janson or an almanac; `./observances` holds conventions that published sources disagree
+about. See [decisions/2026-08-12-observance-policy.md](decisions/2026-08-12-observance-policy.md).
 
 ## Core Types
 

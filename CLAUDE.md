@@ -53,11 +53,20 @@ than editing the output. Hand-copying 120 dates is how a silent one-day error re
 correctness gate — and an early draft of `docs/testing.md` did exactly that, dating Losar 2026 to
 17 February instead of 18.
 
-The one deliberate exception is `test/fixtures/fpmt-holy-days.ts`, which is hand-curated because
-FPMT publishes its dates in prose announcements with no feed to parse. Do not "fix" it by trying
-to generate it, and do not delete it for breaking the rule. Its safeguards are that it is short
-enough to check by eye, every row carries its source URL, and every row was confirmed against
-three independent implementations first. See `docs/testing.md`.
+`test/fixtures/fpmt-observances.ts` comes from `scripts/fetch-fpmt-observances.mjs`, which parses
+FPMT's monthly calendars at `fpmt.org/resources/calendar/YYYY/Month.php`. Those are HTML tables
+mapping each Gregorian day to its Tibetan day number and observance labels, so they are the only
+**day-by-day almanac** source here — which is what makes them able to settle the `a₂` fork, where a
+list of observance dates cannot. Parse the markup, never a summarised rendering: a summarising
+fetch got the month-span caption wrong, reading the range `Tibetan Months 9-11` as two months
+rather than three. This is the same failure the LaTeX rule exists to prevent.
+
+The one deliberate exception to the generated rule is `test/fixtures/fpmt-holy-days.ts`, which is
+hand-curated because FPMT publishes *those* dates in prose announcements with no feed to parse.
+That justification is narrower than it looks and does not extend to the calendars above. Do not
+"fix" it by trying to generate it, and do not delete it for breaking the rule. Its safeguards are
+that it is short enough to check by eye, every row carries its source URL, and every row was
+confirmed against three independent implementations first. See `docs/testing.md`.
 
 Permitted: running those libraries locally and comparing *computed dates* against ours. Dates
 are facts, not copyrightable expression. Reading their public README for API-design ideas is
@@ -128,6 +137,12 @@ Technical identifiers are lowercase (`nyamlen`, `@nyamlen`); the brand is capita
 Markdown uses semantic line breaks — one sentence or clause per line, so diffs stay limited to
 the sentence that changed. `.markdownlint.jsonc` disables the rules that fight this (`MD013`
 above all). Do not re-wrap prose to satisfy a linter, and do not remove those exclusions.
+
+`biome.json` carries one formatter override, raising `lineWidth` for
+`test/fixtures/fpmt-observances.ts`. Its rows run to 174 characters because they carry observance
+labels, and at the default width Biome explodes each into eight lines — turning a reviewable
+one-row-per-line fixture into a 12k-line one. `scripts/fixture-row.mjs` documents the same problem
+for the cross-check fixtures, which avoid it by staying short. Do not remove the override.
 
 Decision records document a **constraint a contributor would otherwise violate**, not a replay of
 how a choice was weighed. Records that only narrate deliberation get deleted — planning artifacts

@@ -59,10 +59,16 @@ objects. The likely eventual replacement is still a Temporal-shaped `TibetanDate
 `add` / `subtract` / `until` / `with` / `toString` — familiar ergonomics without pretending to be
 a registered calendar.
 
-The reason for deferring has not changed, only sharpened: defining what `add({months: 1})` means
-across leap months, doubled days and skipped days is a domain question, and Phase 3's
-practice-day logic is the first real consumer that can answer it. Designing it during Phase 1
-would mean designing against an imagined API.
+The reason for deferring had not changed, only sharpened: defining what `add({months: 1})` means
+across leap months, doubled days and skipped days is a domain question, and Phase 3's observance
+logic was the first real consumer that could answer it. Designing it during Phase 1 would have
+meant designing against an imagined API.
+
+**Phase 3 answered it, and the answer is no.** The observance engine is month-indexed — it walks
+the true month count and never adds a month to a date — so the requirement never materialised, and
+`add({months: 1})` turns out to be ill-defined rather than merely unspecified. See
+[2026-08-12-no-tibetan-date-class.md](2026-08-12-no-tibetan-date-class.md). This paragraph is kept
+as the record of why the question stayed open through two phases.
 
 ## Why TC39 removed it
 
