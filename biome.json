@@ -26,5 +26,11 @@
       "indentStyle": "space",
       "indentWidth": 2
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["test/fixtures/fpmt-observances.ts"],
+      "formatter": { "lineWidth": 200 }
+    }
+  ]
 }
