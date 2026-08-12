@@ -341,6 +341,69 @@ describe("tibetanToIso", () => {
 		);
 	});
 
+	/** The code of the error a call throws, or `undefined` if it does not throw. */
+	const codeOf = (call: () => unknown): string | undefined => {
+		try {
+			call();
+			return undefined;
+		} catch (error) {
+			return (error as { code?: string }).code;
+		}
+	};
+
+	// Codes are the contract; message text is not. A consumer branching on a failure kind matches
+	// these, which is why they are asserted separately from the wording above.
+	it("codes each failure kind distinctly", () => {
+		expect(codeOf(() => tibetanToIso({ year: 2153, month: 13, day: 1 }))).toBe(
+			"TCT_FIELD_OUT_OF_RANGE",
+		);
+		expect(codeOf(() => tibetanToIso({ year: 2153, month: 1, day: 31 }))).toBe(
+			"TCT_FIELD_OUT_OF_RANGE",
+		);
+		expect(codeOf(() => tibetanToIso({ year: Number.NaN, month: 1, day: 1 }))).toBe(
+			"TCT_FIELD_OUT_OF_RANGE",
+		);
+		// A leap month that does not exist is its own code: the fields are all in range, and the
+		// caller's fix is to drop a flag rather than to correct a number.
+		expect(codeOf(() => tibetanToIso({ year: 2153, month: 5, day: 1, isLeapMonth: true }))).toBe(
+			"TCT_NO_SUCH_LEAP_MONTH",
+		);
+		expect(codeOf(() => tibetanToIso({ year: 1e15, month: 3, day: 15 }))).toBe(
+			"TCT_OUTSIDE_EXACT_RANGE",
+		);
+		expect(codeOf(() => isoToTibetan(iso("+012000-01-01"), PHUGPA_HENNING))).toBe(
+			"TCT_OUTSIDE_EXACT_RANGE",
+		);
+		expect(codeOf(() => losarFor(2153.7))).toBe("TCT_FIELD_OUT_OF_RANGE");
+	});
+
+	// A caller converting a table gets one throw and has to find the row that caused it. The bad
+	// field alone does not say which; the echoed input does.
+	it("echoes the whole input and names the call", () => {
+		expect(() => tibetanToIso({ year: 2153, month: 13, day: 4 })).toThrow(
+			/tibetanToIso\(\{ year: 2153, month: 13, day: 4 \}\)/,
+		);
+		expect(() => tibetanToIso({ year: 2153, month: 5, day: 1, isLeapMonth: true })).toThrow(
+			/isLeapMonth: true/,
+		);
+		expect(() => losarFor(2153.7)).toThrow(/losarFor\(2153\.7\)/);
+	});
+
+	// The bound is a property of the tradition, not of the package, so a caller who hits it on one
+	// config and not the other has to be told which refused -- and a raw JD in the tens of millions
+	// is not actionable without its ISO year.
+	it("names the tradition and an ISO year in the exact-range message", () => {
+		let thrown: unknown;
+		try {
+			isoToTibetan(iso("+012000-01-01"), PHUGPA_HENNING);
+		} catch (error) {
+			thrown = error;
+		}
+		const message = (thrown as Error).message;
+		expect(message).toContain(PHUGPA_HENNING.name);
+		expect(message).toMatch(/about ISO year \d+/);
+	});
+
 	// Everything below defends the integer-arithmetic premise at the one place untrusted values
 	// enter. A fractional day used to pass every bound check and return a confident wrong date.
 	it("rejects non-integer year, month and day", () => {
@@ -429,10 +492,19 @@ describe("skipped and doubled days", () => {
 		expect(tibetanDateExists({ year: 2153, month: 3, day: 15.5 })).toBe(false);
 		expect(tibetanDateExists({ year: Number.NaN, month: 3, day: 15 })).toBe(false);
 
-		// A malformed tradition config is a caller bug, not a statement about the date. The
-		// TypeError this raises used to come back as a calm `false`.
+		// A malformed tradition config is a caller bug, not a statement about the date, so it must
+		// come back as a throw. It reaches here as a RangeError like every other input problem, which
+		// the branch above would swallow -- the code is what keeps it out, and this pins that.
 		const broken = { ...PHUGPA, moonTab: null as unknown as readonly number[] };
-		expect(() => tibetanDateExists({ year: 2153, month: 3, day: 15 }, broken)).toThrow(TypeError);
+		let thrown: unknown;
+		try {
+			tibetanDateExists({ year: 2153, month: 3, day: 15 }, broken);
+		} catch (error) {
+			thrown = error;
+		}
+		expect(thrown).toBeInstanceOf(RangeError);
+		expect((thrown as { code?: string }).code).toBe("TCT_INVALID_TRADITION_CONFIG");
+		expect((thrown as Error).message).toMatch(/moonTab/);
 	});
 
 	it("throws SkippedDayError with the requested date attached", () => {

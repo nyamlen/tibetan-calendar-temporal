@@ -75,6 +75,85 @@ describe("public API surface", () => {
 		expect(error).toBeInstanceOf(Error);
 		expect(error.name).toBe("SkippedDayError");
 		expect(error.requested).toEqual({ year: 2150, month: 12, day: 29 });
+		expect(error.code).toBe("TCT_SKIPPED_DAY");
+	});
+});
+
+/**
+ * The error codes, pinned like the export list above and for the same reason.
+ *
+ * A code is the discriminator a consumer branches on, so it is as much a one-way door as an
+ * exported name: removing or repurposing one breaks their `switch`. Message text carries no such
+ * promise and is deliberately not pinned here.
+ *
+ * This suite also enforces the two directions that keep the list honest — every documented code is
+ * reachable from the public API, and no call throws a code that is not documented.
+ */
+const EXPECTED_ERROR_CODES = [
+	"TCT_FIELD_OUT_OF_RANGE",
+	"TCT_INTERNAL",
+	"TCT_INVALID_OBSERVANCE_CONFIG",
+	"TCT_INVALID_TRADITION_CONFIG",
+	"TCT_MISSING_TEMPORAL",
+	"TCT_NO_SUCH_LEAP_MONTH",
+	"TCT_OUTSIDE_EXACT_RANGE",
+	"TCT_SKIPPED_DAY",
+	"TCT_SPAN_TOO_WIDE",
+] as const;
+
+describe("error codes", () => {
+	const iso = (s: string) => Temporal.PlainDate.from(s);
+
+	const codeOf = (call: () => unknown): string | undefined => {
+		try {
+			call();
+			return undefined;
+		} catch (error) {
+			return (error as { code?: string }).code;
+		}
+	};
+
+	/**
+	 * One reachable call per code, except the two that are unreachable by construction.
+	 *
+	 * `TCT_MISSING_TEMPORAL` fires at import time on a runtime without Temporal, and the suite runs
+	 * on Node 26. `TCT_INTERNAL` guards an invariant this engine proves for itself; reaching it
+	 * would be the bug it reports. Both are covered by the union type and by the README's table
+	 * rather than by a call here.
+	 */
+	const REACHABLE: Record<string, () => unknown> = {
+		TCT_FIELD_OUT_OF_RANGE: () => api.tibetanToIso({ year: 2153, month: 13, day: 1 }),
+		TCT_NO_SUCH_LEAP_MONTH: () =>
+			api.tibetanToIso({ year: 2153, month: 5, day: 1, isLeapMonth: true }),
+		TCT_SKIPPED_DAY: () => api.tibetanToIso({ year: 2150, month: 12, day: 29 }),
+		TCT_OUTSIDE_EXACT_RANGE: () => api.isoToTibetan(iso("+012000-01-01"), api.PHUGPA_HENNING),
+		TCT_INVALID_TRADITION_CONFIG: () =>
+			api.isoToTibetan(iso("2026-08-12"), { ...api.PHUGPA, moonTab: [] }),
+		// Cast because the value is deliberately invalid: the check exists for the JavaScript
+		// consumer, and for the TypeScript one whose config came from JSON.parse or a form field.
+		TCT_INVALID_OBSERVANCE_CONFIG: () =>
+			observances.observancesOn(iso("2026-08-12"), {
+				...observances.GELUG,
+				doubledDay: "1st" as observances.DoubledDayChoice,
+			}),
+		TCT_SPAN_TOO_WIDE: () => observances.getObservances(iso("1500-01-01"), iso("2500-01-01")),
+	};
+
+	it("throws each reachable code from the public API", () => {
+		for (const [code, call] of Object.entries(REACHABLE)) {
+			expect(codeOf(call), code).toBe(code);
+		}
+	});
+
+	it("throws no code that is not documented", () => {
+		for (const call of Object.values(REACHABLE)) {
+			expect(EXPECTED_ERROR_CODES).toContain(codeOf(call));
+		}
+	});
+
+	it("documents no code beyond the two that are unreachable by construction", () => {
+		const unreachable = EXPECTED_ERROR_CODES.filter((c) => !(c in REACHABLE));
+		expect([...unreachable]).toEqual(["TCT_INTERNAL", "TCT_MISSING_TEMPORAL"]);
 	});
 });
 

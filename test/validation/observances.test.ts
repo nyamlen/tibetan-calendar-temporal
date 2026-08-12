@@ -288,6 +288,14 @@ describe("consumer config validation", () => {
 		expect(() => run(withRule({ id: "" }))).toThrow(/non-empty string/);
 	});
 
+	// The config is meant to be *extended* by spreading -- `{ ...GELUG, rules: [...GELUG.rules, x] }`
+	// -- and a reader who writes a partial one instead used to reach a `for...of` over undefined.
+	it("rejects a config whose rules are missing or not an array", () => {
+		for (const rules of [undefined, null, {}]) {
+			expect(() => run({ ...GELUG, rules } as never)).toThrow(/rules must be an array/);
+		}
+	});
+
 	// Type-level only, so JSON.parse or a plain-JS consumer walks straight past the compiler.
 	it.each([
 		["doubledDay", { doubledDay: "1st" }, /doubledDay must be one of/],
