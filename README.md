@@ -15,6 +15,24 @@ A TypeScript library that computes Tibetan calendar dates according to the Phugp
 It converts between Western (ISO) and Tibetan dates, handles leap months and skipped/doubled
 days, and determines practice days. Open source, MIT licensed, with zero runtime dependencies.
 
+## Contents
+
+- [Design](#design)
+- [Requirements](#requirements)
+- [Usage](#usage)
+  - [Converting a Western date](#converting-a-western-date)
+  - [Day of week](#day-of-week)
+  - [Converting back](#converting-back)
+  - [Three things that make this calendar hard](#three-things-that-make-this-calendar-hard)
+  - [Naming a year](#naming-a-year)
+  - [Traditions](#traditions)
+  - [Practice days](#practice-days)
+- [Why this exists](#why-this-exists)
+- [Provenance](#provenance)
+- [Project identity](#project-identity)
+- [Documentation](#documentation)
+- [Licence](#licence)
+
 ## Design
 
 - **Temporal-native** — `Temporal.PlainDate` throughout, no legacy `Date`
