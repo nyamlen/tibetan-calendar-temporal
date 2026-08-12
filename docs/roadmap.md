@@ -6,7 +6,7 @@
 |-------|-------|--------|
 | 0 | Scaffold (npm init, tsc, vitest, fast-check, biome, CI) — **done** | 2h |
 | 1 | Core computation: Layers 0-3 (Janson §2-9) — **done** | 20h |
-| 2 | Validation: FPMT fixtures, cross-check against reference implementations | 12h |
+| 2 | Validation: FPMT fixtures, cross-check against reference implementations — **done** | 12h |
 | 3 | Practice day logic (config-driven rules, Gelug default config) | 8h |
 | 4 | TypeDoc + release workflow + publish v1.0.0 | 6h |
 
@@ -49,12 +49,33 @@ otherwise.
 - **2027-01-15 is month 12 day 8**, not month 11 day 27 as the plan and an early draft of the
   year-numbering record both said.
 
-**Still open from Phase 1:** which `a₂` ships as the default. `PHUGPA` uses the almanac value
-`1/28` and `PHUGPA_HENNING` uses `3781/105840`; both reproduce Janson's entire Losar table, so
-that fixture cannot distinguish them. Settling it needs a published almanac checked against
-Janson's three named divergence dates — **2001-02-10, 2006-05-10, 2025-11-19**. Do this before
-Phase 2 fixture curation, not during it: `docs/testing.md`'s validation sources straddle the
-fork, so a mixed set guarantees failures that look like arithmetic bugs.
+**Phase 2 outcome.** The engine now validates against three independent implementations and
+against the almanac. Four things came out differently from the plan:
+
+- **The `a₂` fork was settled from the paper, not from a purchased almanac.** Janson states that
+  calendars use `1/28` "for example in the almanac", and his bibliography resolves that to the
+  Men-Tsee-Khang *Tibetan Annual Almanac 2013* — he had already done the check. The default was
+  already `1/28` and did not change, but it is now evidenced.
+  [decisions/2026-08-12-lunar-anomaly-a2-default.md](decisions/2026-08-12-lunar-anomaly-a2-default.md).
+- **The validation sources do not straddle the fork.** `docs/testing.md` claimed Lotsawa House
+  and christian-steinert descend from Henning's line; both were checked against Janson's three
+  divergence dates and both follow `1/28`. The claim was never tested and was wrong.
+- **Practice-day lists cannot settle the fork, and neither can Losar.** The 11 divergences in
+  1950–2050 are each self-correcting within a day: the two values disagree about which number is
+  doubled or skipped, never about where a month boundary falls. Only a day-by-day grid is
+  evidence. This ruled out the discriminator the plan was built on.
+- **christian-steinert disagrees on 23 of 1,461 days**, all at skipped dates, all in the same
+  direction, with Lotsawa House and eszthoff siding with the engine every time. Janson §6
+  decides it in the engine's favour. The disagreement is catalogued in the suite rather than
+  asserted away.
+
+Coverage: Lotsawa House 1,831 days and eszthoff 1,826 days, both matching exactly; FPMT's
+published holy days, all matching; named Tier 3 instances for every edge-case category.
+
+**Carried into Phase 3.** FPMT publishes the 2024 Chokhor Duchen as "July 9 or July 10", Kopan
+observing one and the Liberation Prison Project calendar the other. Both are 4 of leap month 6 —
+the institutions differ over which half of a **doubled day** to observe, not over the calendar.
+Practice-day logic must therefore make that a caller's choice, not a hardcoded convention.
 
 ## Release Status
 
@@ -75,7 +96,7 @@ The repository stays private under the `nyamlen` org until v1.0.0, then goes pub
       57 of every 60 years. See
       [architecture.md](architecture.md#why-rabjung-is-separate-from-yearname).
 
-Setup work not yet done. None of it blocks Phase 2.
+Setup work not yet done. None of it blocks Phase 3.
 
 - [x] **Node 26** installed — v26.7.0, verified 2026-08-11 by a Vitest smoke test reading
       `Temporal.PlainDate` with no polyfill present
