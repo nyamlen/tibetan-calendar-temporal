@@ -82,6 +82,8 @@ The full object:
   "day": 30,
   "isDoubledDay": false,
   "isLeapDay": false,
+  "isFullMoon": false,
+  "isNewMoon": true,
   "isoDate": "2026-08-12",
   "dayOfWeek": 3
 }

@@ -1,10 +1,17 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import { losarJulianDay } from "../../src/computation/calendar.js";
+import {
+	firstDayOfMonth,
+	lastDayOfMonth,
+	losarJulianDay,
+	monthFromCount,
+	trueMonthCount,
+} from "../../src/computation/calendar.js";
 import {
 	isoFromJulianDay,
 	isoToTibetan,
 	julianDayFromIso,
+	losarFor,
 	tibetanDateExists,
 	tibetanToIso,
 	tibetanWeekday,
@@ -116,6 +123,119 @@ describe("Janson's Losar table, 1927-2046", () => {
 			const date = isoToTibetan(iso(row.losar));
 			expect(`${date.yearName.element}-${date.yearName.animal}`).toBe(row.name);
 		}
+	});
+});
+
+describe("losarFor", () => {
+	it("reproduces all 120 dates in Janson's table", () => {
+		const mismatches: string[] = [];
+		for (const row of LOSAR_DATES) {
+			const computed = losarFor(row.year + 127).isoDate.toString();
+			if (computed !== row.losar)
+				mismatches.push(`${row.year}: expected ${row.losar}, got ${computed}`);
+		}
+		expect(mismatches).toEqual([]);
+	});
+
+	// The reason this function exists. `tibetanToIso({ month: 1, day: 1 })` throws here, so
+	// without it a caller cannot obtain Losar at all in these years.
+	it("returns day 2 where day 1 is skipped, which tibetanToIso cannot express", () => {
+		const losar = losarFor(2104);
+		expect(losar.isoDate.toString()).toBe("1977-02-19");
+		expect(losar.day).toBe(2);
+		expect(tibetanDateExists({ year: 2104, month: 1, day: 1 })).toBe(false);
+	});
+
+	// Janson's Losar remark: the year opened with a leap month 1 and Losar was still its first
+	// day — the one observance kept in a leap month.
+	it("returns the leap month 1 for 2000", () => {
+		const losar = losarFor(2127);
+		expect(losar.isoDate.toString()).toBe("2000-02-06");
+		expect(losar.monthCode).toBe("M01L");
+	});
+
+	it("takes the royal era, not Janson's Y", () => {
+		expect(losarFor(2153).isoDate.toString()).toBe("2026-02-18");
+		expect(losarFor(2153).yearStartsIn).toBe(2026);
+	});
+});
+
+// Janson §6: the full moon ends lunar day 15 and the new moon ends lunar day 30, so the calendar
+// day carrying one is the day that lunar day ends in. That is *usually* the day numbered 15 or 30
+// — but not when the number is skipped, which is exactly why these are computed rather than
+// derived from `day`.
+describe("full moon and new moon", () => {
+	it("puts exactly one of each in every month over 200 years", () => {
+		const first = trueMonthCount(PHUGPA, 1900, 1);
+		const last = trueMonthCount(PHUGPA, 2100, 1);
+		const wrong: string[] = [];
+		for (let n = first; n < last; n++) {
+			const month = monthFromCount(PHUGPA, n);
+			let full = 0;
+			let dark = 0;
+			// Walk the calendar days of the month directly, which needs no date-existence
+			// reasoning: every JD in the span is a real day carrying exactly one label.
+			for (let jd = firstDayOfMonth(scaled, n); jd <= lastDayOfMonth(scaled, n); jd++) {
+				const date = isoToTibetan(isoFromJulianDay(jd));
+				if (date.isFullMoon) full++;
+				if (date.isNewMoon) dark++;
+			}
+			if (full !== 1 || dark !== 1)
+				wrong.push(`${month.year}-${month.month}${month.isLeap ? "L" : ""}: ${full}/${dark}`);
+		}
+		expect(wrong).toEqual([]);
+	});
+
+	it("lands on day 15 and day 30 in an ordinary month", () => {
+		expect(isoToTibetan(iso("2026-08-12")).isNewMoon).toBe(true);
+		expect(isoToTibetan(iso("2026-08-12")).day).toBe(30);
+	});
+
+	// The cases that make `day === 15` the wrong test. When 15 is skipped, lunar days 14 and 15
+	// both end in one calendar day, which takes the earlier name — so the full moon is carried by
+	// the day numbered 14.
+	it("falls on day 14 when day 15 is skipped", () => {
+		const date = isoToTibetan(iso("2026-12-23"));
+		expect({ day: date.day, month: date.month, isFullMoon: date.isFullMoon }).toEqual({
+			day: 14,
+			month: 11,
+			isFullMoon: true,
+		});
+		expect(tibetanDateExists({ year: 2153, month: 11, day: 15 })).toBe(false);
+	});
+
+	it("falls on day 29 when day 30 is skipped", () => {
+		const date = isoToTibetan(iso("2025-02-27"));
+		expect({ day: date.day, month: date.month, isNewMoon: date.isNewMoon }).toEqual({
+			day: 29,
+			month: 12,
+			isNewMoon: true,
+		});
+		expect(tibetanDateExists({ year: 2151, month: 12, day: 30 })).toBe(false);
+	});
+
+	// A doubled number is carried by two calendar days; the phase instant is in the second of
+	// them, not the leap day. 19 and 20 November 2025 are both 30 of month 9.
+	it("falls on the second of a doubled pair, not the leap day", () => {
+		const leapDay = isoToTibetan(iso("2025-11-19"));
+		const ordinary = isoToTibetan(iso("2025-11-20"));
+		expect({ isLeapDay: leapDay.isLeapDay, isNewMoon: leapDay.isNewMoon }).toEqual({
+			isLeapDay: true,
+			isNewMoon: false,
+		});
+		expect({ isLeapDay: ordinary.isLeapDay, isNewMoon: ordinary.isNewMoon }).toEqual({
+			isLeapDay: false,
+			isNewMoon: true,
+		});
+	});
+
+	it("never marks a day as both", () => {
+		fc.assert(
+			fc.property(fc.integer({ min: -30_000, max: 30_000 }), (offset) => {
+				const date = isoToTibetan(iso("2000-01-01").add({ days: offset }));
+				return !(date.isFullMoon && date.isNewMoon);
+			}),
+		);
 	});
 });
 

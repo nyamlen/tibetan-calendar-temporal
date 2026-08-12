@@ -15,7 +15,13 @@ import type { TraditionConfig } from "../traditions/types.js";
 import type { TibetanDate, TibetanDateInput } from "../types.js";
 import { SkippedDayError } from "../types.js";
 import { floorDiv, mod } from "./arithmetic.js";
-import { classifyDay, hasLeapMonth, monthFromCount, trueMonthCount } from "./calendar.js";
+import {
+	classifyDay,
+	hasLeapMonth,
+	losarJulianDay,
+	monthFromCount,
+	trueMonthCount,
+} from "./calendar.js";
 import { julianDayOfLunarDay } from "./corrections.js";
 import { rabjungFromYear, royalEraFromYear, yearFromRoyalEra, yearNameFromYear } from "./epoch.js";
 import { deriveScaling, type ScaledTradition } from "./scaling.js";
@@ -71,8 +77,14 @@ function monthCodeOf(month: number, isLeap: boolean): string {
 	return `M${String(month).padStart(2, "0")}${isLeap ? "L" : ""}`;
 }
 
+/** The lunar day whose end is the full moon, and the one whose end is the new moon — Janson §6. */
+const FULL_MOON_LUNAR_DAY = 15;
+const NEW_MOON_LUNAR_DAY = 30;
+
 /** Assembles the public shape from a resolved lunar day. */
 function buildDate(
+	scaled: ScaledTradition,
+	monthCount: number,
 	year: number,
 	month: number,
 	isLeapMonth: boolean,
@@ -93,6 +105,11 @@ function buildDate(
 		day,
 		isDoubledDay,
 		isLeapDay,
+		// The phase instants end lunar days 15 and 30, so the day carrying one is the day that
+		// lunar day ends in — which is what labels every day anyway. Deriving it this way rather
+		// than from `day` is what makes it correct when 15 or 30 is skipped.
+		isFullMoon: julianDayOfLunarDay(scaled, FULL_MOON_LUNAR_DAY, monthCount) === julianDay,
+		isNewMoon: julianDayOfLunarDay(scaled, NEW_MOON_LUNAR_DAY, monthCount) === julianDay,
 		isoDate,
 		dayOfWeek: isoDate.dayOfWeek,
 	};
@@ -239,6 +256,8 @@ export function isoToTibetan(
 	const isDoubledDay = classification.kind === "doubled";
 
 	return buildDate(
+		scaled,
+		resolved.monthCount,
 		month.year,
 		month.month,
 		month.isLeap,
@@ -247,6 +266,35 @@ export function isoToTibetan(
 		isDoubledDay && classification.leapJulianDay === target,
 		target,
 	);
+}
+
+/**
+ * Losar, the Tibetan New Year, for a given royal-era year.
+ *
+ * @remarks
+ * Losar cannot be obtained as `tibetanToIso({ month: 1, day: 1 })`. Where day 1 is skipped the
+ * year begins on the day numbered **2** — 1977 is the case in range — and that call throws
+ * {@link SkippedDayError} instead of returning the new year. Where the year opens with a leap
+ * month 1, which happens twice per 65-year cycle and last did in 2000, the year begins in the
+ * leap month rather than the regular one.
+ *
+ * Janson computes it as one day after the last day of the preceding year, which sidesteps both
+ * cases rather than special-casing them, and confirms in the Losar remark that the new year is the
+ * first day of the year even when that day falls in a leap month — unlike other observances, which
+ * are usually not kept in leap months.
+ *
+ * `year` is the royal-era numbering, matching {@link TibetanDate.year}: 2153, not 2026.
+ *
+ * @example
+ * ```ts
+ * losarFor(2153).isoDate;   // 2026-02-18
+ * losarFor(2104).day;       // 2 — day 1 is skipped in 1977
+ * ```
+ */
+export function losarFor(year: number, config: TraditionConfig = PHUGPA): TibetanDate {
+	const scaled = scalingFor(config);
+	const julianDay = losarJulianDay(scaled, config, yearFromRoyalEra(year));
+	return isoToTibetan(isoFromJulianDay(julianDay), config);
 }
 
 /** Memoised scaling, so repeated conversions do not redo the gcd work. */

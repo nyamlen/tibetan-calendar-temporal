@@ -260,6 +260,34 @@ export interface TibetanDate {
 	isLeapDay: boolean;
 
 	/**
+	 * Whether the true full moon falls in this calendar day.
+	 *
+	 * @remarks
+	 * Janson §6 defines the full moon as the instant ending lunar day 15, so the calendar day
+	 * carrying it is `⌊true_date(15, n)⌋` — the same expression that labels every other day. Do
+	 * **not** substitute `day === 15`: that is right only when 15 is not skipped, and wrong
+	 * precisely in the months where it is.
+	 *
+	 * When 15 is skipped, lunar days 14 and 15 both end in one calendar day, which by the labelling
+	 * rule takes the earlier name. The full moon is then carried by the day numbered **14**.
+	 *
+	 * Janson notes the true elongation differs from the astronomical value by about 2°, roughly
+	 * four hours, so this usually — but not always — agrees with the astronomical full moon.
+	 */
+	isFullMoon: boolean;
+
+	/**
+	 * Whether the true new moon falls in this calendar day.
+	 *
+	 * @remarks
+	 * The counterpart of {@link TibetanDate.isFullMoon}: the new moon is the instant ending lunar
+	 * day 30, which is also where the lunar month ends. The same caveats apply — `day === 30` is
+	 * wrong when 30 is skipped, and when 30 is doubled the new moon falls in the **second** of the
+	 * pair, not the leap day.
+	 */
+	isNewMoon: boolean;
+
+	/**
 	 * The corresponding Western calendar day.
 	 *
 	 * @remarks
