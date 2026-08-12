@@ -46,8 +46,8 @@ cannot be checked without a renderer, which is not installed. Write "§5, the in
 quote the constant's mixed-radix form (`m₁ = 29;31,50,0,480 ⟨60,60,6,707⟩`) — both are greppable
 in the source, which is the whole point.
 
-**Fixtures are generated, not transcribed.** `test/fixtures/losar.ts` and `sixty-year-cycle.ts`
-come from `scripts/extract-janson-fixtures.mjs`, which parses the LaTeX; the three
+**Fixtures are generated, not transcribed.** `test/fixtures/losar.ts`, `sixty-year-cycle.ts` and
+`janson-epoch.ts` come from `scripts/extract-janson-fixtures.mjs`, which parses the LaTeX; the three
 `crosscheck-*.ts` files come from their own `scripts/fetch-*-fixtures.mjs`. Re-run those rather
 than editing the output. Hand-copying 120 dates is how a silent one-day error reaches the primary
 correctness gate — and an early draft of `docs/testing.md` did exactly that, dating Losar 2026 to
@@ -69,6 +69,13 @@ that it is short enough to check by eye, every row carries its source URL, and e
 confirmed against three independent implementations first. See `docs/testing.md`, which also states
 the window that agreement actually covers — day-by-day external validation spans 2022–2027, against
 a documented range starting 1447, so cite the window whenever citing the agreement.
+
+`scripts/rabjung-names.data.json` is **not** a second exception, because it is not a fixture: no
+test reads it, and nothing in `src/` depends on it. It holds the hand-written Lhasa-phonetic and
+English columns of `docs/rabjung-names.md`, a reference table built to decide what `rabjung.name`
+should carry. Keep it out of `test/fixtures/`, and keep the generated columns of that document
+generated — the whole value of the table is that a reader can tell sourced columns from authored
+ones at a glance.
 
 Permitted: running those libraries locally and comparing *computed dates* against ours. Dates
 are facts, not copyrightable expression. Reading their public README for API-design ideas is
@@ -105,8 +112,15 @@ derivation; in `docs/` they are just noise.
 ## Environment
 
 Node 26 required for development — Temporal ships enabled by default from 26.0.0. Verified
-working on v26.7.0. The *published* package needs no particular version; consumers supply
-Temporal.
+working on v26.7.0.
+
+The *published* package declares `engines: ">=26"` and **checks at import time**. `conversion.ts`
+touches `Temporal` at module evaluation to build its Unix-epoch anchor, so a runtime without
+Temporal fails on `import`, before any call. The guard above that line turns what was a bare
+`ReferenceError: Temporal is not defined` into a message naming Node 26, `--harmony-temporal`, and
+`temporal-polyfill/global`. A consumer supplying a polyfill still works — npm treats `engines` as a
+warning — so do not "simplify" either the declaration or the guard away; they cover different
+failures.
 
 **Temporal has no user-defined calendars.** `Temporal.Calendar` does not exist and `calendar:`
 accepts only built-in CLDR identifiers, which exclude `tibetan`. Do not attempt a calendar
@@ -126,6 +140,12 @@ the structure the `./observances` subpath export needs. Do not add tsup or simil
 ## Commands
 
 `npm run lint`, `check:links`, `typecheck`, `build`, `test` — CI runs all five in that order.
+
+**`npm run coverage` is not one of the five, so nothing gates it.** It was broken on `main` for an
+unknown stretch and nobody noticed: the 200-year moon-phase sweep runs in well under a second bare
+but takes 5–8 seconds under v8 instrumentation, against Vitest's 5s default, so `test` passed while
+`coverage` failed. The long sweeps now carry explicit timeouts. Run it before a release, and give
+any new multi-century test an explicit timeout rather than discovering this again.
 
 `check:links` validates relative markdown links and `#fragments` against the filesystem. Docs
 here cross-reference heavily, so renaming or deleting one breaks inbound links silently; fix them

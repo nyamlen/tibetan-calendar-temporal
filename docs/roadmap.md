@@ -284,7 +284,8 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
 
   **Sourcing re-checked 2026-08-12.** Four findings, none of which unblocks this on its own:
 
-  - **Janson's `T60` already carries a Tibetan (Wylie) column and a Sanskrit column, and
+  - **Janson's 60-year-cycle name table already carries a Tibetan (Wylie) column and a Sanskrit
+    column, and
     `extract-janson-fixtures.mjs` discards both** — its row regex swallows them in a `.*&`.
     Capturing them is a one-regex change needing no new source and raising no clean-room
     question, since a name list is a fact like the dates.
@@ -299,7 +300,7 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
     Choosing it means shipping names a Tibetan almanac does not print; choosing Janson's means
     bare ASCII with no Devanāgarī and spellings he himself flags as varying by source.
   - **The authority is Henning, *Kālacakra and the Tibetan Calendar*, Appendix I: The Sixty-Year
-    Cycles** — the source Janson cites for `T60`. A Columbia UP book, so not fetchable and not
+    Cycles** — the source Janson cites for that table. A Columbia UP book, so not fetchable and not
     generatable; consulting it is the way to settle the Tibetan-script and phonetics gap.
 
   **On English names, which were asked about directly:** no source found gives them, including

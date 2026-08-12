@@ -13,7 +13,7 @@ Read this before using any of it. The columns are **not** of equal standing.
 
 | Column | Source | Standing |
 |--------|--------|----------|
-| Wylie | Janson `T60`, taken from Henning, *Kālacakra and the Tibetan Calendar*, Appendix I | **Sourced.** Extracted mechanically from the LaTeX |
+| Wylie | Janson §"The 60 year cycle", the table captioned "The Chinese and Indian 60 year cycles of names" — taken in turn from Henning, *Kālacakra and the Tibetan Calendar*, Appendix I | **Sourced.** Extracted mechanically from the LaTeX |
 | Sanskrit (Janson) | the same table | **Sourced**, but unusable as a key — `pramadi` covers rows 4, 13 and 47 |
 | IAST | Sewell & Fleet, *The Siddhantas and the Indian Calendar* (1924), 292–294; S. Balachandra Rao, *Indian Astronomy* (2000), 59 — via the Wikipedia saṃvatsara table | **Sourced.** This is the *Indian* list, not a rendering of Janson's |
 | Devanāgarī | the same | **Sourced** |
@@ -39,13 +39,52 @@ flags as varying between sources.
 One point in the IAST column's favour: it **resolves the collision**. Where Janson has `pramadi`
 three times, the Indic list distinguishes *Pramodūta* (4), *Pramāthi* (13) and *Pramādin* (47).
 
-### What is not yet good enough to ship
+And one against it, which is heavier. At a handful of positions the two lists carry **different
+names, not different spellings**, and where they do the Tibetan sides with Janson:
 
-The Tibetan script, Lhasa phonetics and English columns are all my work, not anyone's authority.
-The script column comes from a converter written for this vocabulary alone — it is not a general
-EWTS implementation, and two entries (`anggi ra`, `spre'u`) are hard-coded because they do not
-follow Tibetan orthography. Checking these three columns against Henning's Appendix I, or against
-a reader of Tibetan, is the work that remains.
+| # | Tibetan | meaning | Janson | Indic IAST |
+|---|---------|---------|--------|------------|
+| 20 | `mi zad` | inexhaustible | `aksaya` | Avyaya/Vyaya |
+| 29 | `myos byed` | intoxicating | `mada` | Manmatha |
+| 52 | `dus kyi pho nya` | messenger of time | `kaladuti` | Kālayukta |
+| 60 | `zad pa` | exhaustion | `ksayaka` | Akshaya |
+
+Rows 20 and 60 are the clearest: `mi zad` *is* *akṣaya* and `zad pa` *is* *kṣaya*, so Janson's
+forms translate the Tibetan while the Indic list uses other names at those positions. Shipping the
+IAST column would therefore mean naming years things the Tibetan tradition does not call them —
+a correctness problem, not a matter of style.
+
+### How far each unsourced column can be trusted
+
+They are unverified in different ways, and lumping them together would overstate the doubt about
+one and understate it about another.
+
+**Tibetan script — mechanical, high confidence, wants confirmation rather than review.** Produced
+by a converter, and every row was checked by eye against Tibetan stacking rules. The converter is
+not a general EWTS implementation and should not be reused as one; two entries (`anggi ra`,
+`spre'u`) are hard-coded because they are Sanskrit transliterations that do not follow Tibetan
+orthography. Its first run put a spurious ཨ in every open syllable, which is the kind of error a
+converter makes and a human does not — systematic, and therefore caught. What it needs now is
+someone who reads Tibetan to confirm it, not to re-derive it.
+
+**Lhasa phonetics — rule-governed but with judgment calls.** These apply the conventions in
+`CLAUDE.md` to the Wylie. Three places where a second opinion would help:
+
+- Row 21 `thams cad 'dul` is rendered as two words, *tamché dül*; one word is also defensible.
+- Rows 38 and 59 are a feminine/masculine pair, `khro mo` and `khro bo`. They are kept distinct
+  as *thromo* and *throwo* rather than collapsed, which matters because the English gloss is
+  otherwise identical.
+- Row 6 `anggi ra` is a Sanskrit name in Tibetan letters, so "Lhasa phonetics" is nominal there.
+
+**English — the weakest column, and the one that cannot be sourced.** It glosses the Tibetan with
+the Sanskrit as a cross-check, so it inherits every divergence in the table above. Several entries
+have defensible alternatives (row 20 "inexhaustible" against "imperishable"; row 40 `zil gnon`
+"overwhelming" against "outshining"), and row 6 has no meaning to give at all, being a proper name.
+Unlike every other column, no amount of consulting Henning fixes this one: English would remain
+authored here, and would be the first fixture content this project wrote rather than sourced.
+
+Checking the first two against Henning's Appendix I, or against a reader of Tibetan, is the work
+that remains.
 
 ## The table
 

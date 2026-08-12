@@ -43,8 +43,12 @@ one commit.
 - Node 24 can expose Temporal via `node --harmony-temporal`, but that is V8's **in-progress**
   implementation and may not match the shipped spec. Do not validate calendar output against
   it — the whole point of this engine is deterministic, reproducible dates
-- Node 22+ works with `temporal-polyfill` if you cannot upgrade
-- The *published* package runs anywhere (compiled ESM output; consumers provide Temporal)
+- Node 22+ works with `temporal-polyfill` if you cannot upgrade, though `npm install` will warn:
+  `package.json` declares `engines: ">=26"`, which npm treats as advisory unless `engine-strict`
+  is set
+- The *published* package is compiled ESM and runs anywhere Temporal exists. It does **not** ship
+  a polyfill; it checks for `Temporal` at import time and throws a message naming Node 26 and
+  `temporal-polyfill/global` if it is missing
 
 ```sh
 npm install

@@ -20,9 +20,9 @@ test/
 Tiers 1 and 3 are interleaved with the unit suites rather than kept in separate directories —
 a property and the edge case it generalises belong next to the function they constrain.
 
-**Fixture provenance.** `test/fixtures/losar.ts` and `sixty-year-cycle.ts` are **generated**,
-not hand-written: run `node scripts/extract-janson-fixtures.mjs <path-to-tibet.tex>` to
-regenerate them from the paper's LaTeX. Do not edit them by hand. Transcribing 120 dates
+**Fixture provenance.** `test/fixtures/losar.ts`, `sixty-year-cycle.ts` and `janson-epoch.ts` are
+**generated**, not hand-written: run `node scripts/extract-janson-fixtures.mjs <path-to-tibet.tex>`
+to regenerate all three from the paper's LaTeX. Do not edit them by hand. Transcribing 120 dates
 manually is precisely how a silent one-day error enters the primary correctness gate.
 
 ## Tier 1: Property-Based Tests (fast-check)
