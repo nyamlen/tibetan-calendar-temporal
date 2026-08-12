@@ -33,3 +33,10 @@ jobs:
       - run: npm run typecheck
       - run: npm run build
       - run: npm test
+
+      # Everything above imports from `src/`, so nothing above can see a broken `exports` map, a
+      # file missing from `files`, or a `dist/` layout that does not match what `exports` points
+      # at. Those fail only for a consumer, after publishing. These two close that gap: publint and
+      # attw check the manifest statically, and test:pack proves the packed tarball actually runs.
+      - run: npm run check:publish
+      - run: npm run test:pack

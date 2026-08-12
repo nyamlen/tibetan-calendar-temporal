@@ -42,16 +42,20 @@
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:pack": "node scripts/check-pack.mjs",
     "coverage": "vitest run --coverage",
     "lint": "biome check .",
     "format": "biome check --write .",
-    "check:links": "node scripts/check-links.mjs"
+    "check:links": "node scripts/check-links.mjs",
+    "check:publish": "npm run build && publint && attw --pack . --profile esm-only"
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.2",
     "@biomejs/biome": "^2.5.8",
     "@types/node": "^26.2.0",
     "@vitest/coverage-v8": "^4.1.10",
     "fast-check": "^4.9.0",
+    "publint": "^0.3.14",
     "typescript": "^7.0.2",
     "vitest": "^4.1.10"
   },
