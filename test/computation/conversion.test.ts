@@ -416,6 +416,21 @@ describe("skipped and doubled days", () => {
 		expect(skipped).toBeGreaterThan(20);
 	});
 
+	// The predicate must distinguish "this date is not real" from "the engine broke". A bare catch
+	// cannot, and this function is the oracle for the suite's strongest property -- so a masked
+	// internal failure would make that property pass more easily rather than fail.
+	it("answers false for skipped and out-of-range input, and rethrows anything else", () => {
+		expect(tibetanDateExists({ year: 2153, month: 3, day: 15 })).toBe(true);
+		expect(tibetanDateExists({ year: 2153, month: 13, day: 1 })).toBe(false);
+		expect(tibetanDateExists({ year: 2153, month: 3, day: 15.5 })).toBe(false);
+		expect(tibetanDateExists({ year: Number.NaN, month: 3, day: 15 })).toBe(false);
+
+		// A malformed tradition config is a caller bug, not a statement about the date. The
+		// TypeError this raises used to come back as a calm `false`.
+		const broken = { ...PHUGPA, moonTab: null as unknown as readonly number[] };
+		expect(() => tibetanDateExists({ year: 2153, month: 3, day: 15 }, broken)).toThrow(TypeError);
+	});
+
 	it("throws SkippedDayError with the requested date attached", () => {
 		let thrown: unknown;
 		outer: for (let m = 1; m <= 12; m++) {

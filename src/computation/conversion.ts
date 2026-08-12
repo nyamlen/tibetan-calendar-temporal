@@ -236,9 +236,18 @@ export function tibetanToIso(
  * Whether a Tibetan date names a real calendar day.
  *
  * @remarks
- * The predicate counterpart to {@link tibetanToIso}: `false` exactly where that would throw
- * {@link SkippedDayError}. Out-of-range input is `false` rather than an error, so this is safe to
- * use for validating user input.
+ * The predicate counterpart to {@link tibetanToIso}. It answers `false` in the two cases a caller
+ * means by "this date is not real": the date is **skipped**, so no calendar day carries its
+ * number, and the input is out of range or not an integer. Both are ordinary answers about the
+ * input, which is what makes this safe to point at user input.
+ *
+ * It deliberately does **not** swallow anything else. A bare `catch` here would also return
+ * `false` for the `"this indicates a bug in the mean-motion estimate"` invariant violation in
+ * {@link isoToTibetan} — the one error in this codebase explicitly labelled as a bug — and for a
+ * `TypeError` from a malformed {@link TraditionConfig}. A predicate that reports "this date does
+ * not exist" when the truth is "the engine broke" is worse than a throw, and this one is used as
+ * an oracle by the suite's strongest property, where masking a failure would make that property
+ * pass more easily rather than fail.
  */
 export function tibetanDateExists(
 	input: TibetanDateInput,
@@ -247,8 +256,9 @@ export function tibetanDateExists(
 	try {
 		tibetanToIso(input, config);
 		return true;
-	} catch {
-		return false;
+	} catch (error) {
+		if (error instanceof SkippedDayError || error instanceof RangeError) return false;
+		throw error;
 	}
 }
 
