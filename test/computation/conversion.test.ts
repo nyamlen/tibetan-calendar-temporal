@@ -329,10 +329,68 @@ describe("tibetanToIso", () => {
 
 	it("rejects out-of-range input", () => {
 		expect(() => tibetanToIso({ year: 2153, month: 13, day: 1 })).toThrow(RangeError);
+		expect(() => tibetanToIso({ year: 2153, month: 0, day: 1 })).toThrow(/month must be/);
 		expect(() => tibetanToIso({ year: 2153, month: 1, day: 31 })).toThrow(RangeError);
+		expect(() => tibetanToIso({ year: 2153, month: 1, day: 0 })).toThrow(/day must be/);
 		expect(() => tibetanToIso({ year: 2153, month: 5, day: 1, isLeapMonth: true })).toThrow(
 			RangeError,
 		);
+	});
+
+	// Everything below defends the integer-arithmetic premise at the one place untrusted values
+	// enter. A fractional day used to pass every bound check and return a confident wrong date.
+	it("rejects non-integer year, month and day", () => {
+		expect(() => tibetanToIso({ year: 2153, month: 3, day: 15.5 })).toThrow(/day must be/);
+		expect(() => tibetanToIso({ year: 2153, month: 3.4, day: 15 })).toThrow(/month must be/);
+		expect(() => tibetanToIso({ year: 2153.7, month: 3, day: 15 })).toThrow(/year must be/);
+		expect(() => losarFor(2153.7)).toThrow(/year must be/);
+	});
+
+	// NaN satisfies neither `< 1` nor `> 30`, so the bounds alone let it straight through.
+	it("rejects NaN, Infinity and unsafe integers", () => {
+		for (const bad of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+			expect(() => tibetanToIso({ year: bad, month: 3, day: 15 })).toThrow(/year must be/);
+			expect(() => tibetanToIso({ year: 2153, month: bad, day: 15 })).toThrow(/month must be/);
+			expect(() => tibetanToIso({ year: 2153, month: 3, day: bad })).toThrow(/day must be/);
+			expect(() => losarFor(bad)).toThrow(/year must be/);
+		}
+		expect(() => tibetanToIso({ year: 2 ** 53, month: 3, day: 15 })).toThrow(/year must be/);
+	});
+
+	it("accepts -0 as a year, and rejects it as a month or day", () => {
+		// -0 is a safe integer and Janson's Y = 0 is a real year, so only the 1-based fields reject.
+		expect(() => tibetanToIso({ year: 2153, month: 3, day: -0 })).toThrow(/day must be/);
+		expect(() => tibetanToIso({ year: 2153, month: -0, day: 15 })).toThrow(/month must be/);
+		expect(() => losarFor(-0)).not.toThrow();
+	});
+
+	it("reports 2^53 overflow as out-of-exact-range, never as a skipped date", () => {
+		// The distinction is the whole point: a caller's correct response to SkippedDayError is
+		// "fine, that date does not exist", not "my input is garbage".
+		let thrown: unknown;
+		try {
+			tibetanToIso({ year: 1e15, month: 3, day: 15 });
+		} catch (error) {
+			thrown = error;
+		}
+		expect(thrown).toBeInstanceOf(RangeError);
+		expect((thrown as Error).name).not.toBe("SkippedDayError");
+		expect((thrown as Error).message).toMatch(/exact/);
+		expect(() => losarFor(1e15)).toThrow(/exact/);
+	});
+
+	// PHUGPA_HENNING's common denominator is 15x Phugpa's, so its exact range is 17x tighter --
+	// and unlike Phugpa's, it is reachable well inside Temporal.PlainDate's own range.
+	it("enforces the exact range per tradition, not globally", () => {
+		const henning = deriveScaling(PHUGPA_HENNING);
+		expect(henning.exactToJulianDay).toBeLessThan(scaled.exactToJulianDay);
+
+		const beyondHenning = iso("+012000-01-01");
+		expect(() => isoToTibetan(beyondHenning, PHUGPA_HENNING)).toThrow(/exact/);
+		expect(() => isoToTibetan(beyondHenning, PHUGPA)).not.toThrow();
+
+		// Past Phugpa's own bound, both refuse.
+		expect(() => isoToTibetan(iso("+275760-09-13"), PHUGPA)).toThrow(/exact/);
 	});
 });
 

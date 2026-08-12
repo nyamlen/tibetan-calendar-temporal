@@ -24,6 +24,7 @@ import {
 } from "./calendar.js";
 import { julianDayOfLunarDay } from "./corrections.js";
 import { rabjungFromYear, royalEraFromYear, yearFromRoyalEra, yearNameFromYear } from "./epoch.js";
+import { meanDate } from "./mean-astronomy.js";
 import { deriveScaling, type ScaledTradition } from "./scaling.js";
 
 /** 1970-01-01, the anchor for converting between Temporal and Julian day numbers. */
@@ -54,6 +55,43 @@ export function julianDayFromIso(date: Temporal.PlainDate): number {
 /** Converts a Julian day number back to a `Temporal.PlainDate`. */
 export function isoFromJulianDay(julianDay: number): Temporal.PlainDate {
 	return UNIX_EPOCH.add({ days: julianDay - JULIAN_DAY_AT_UNIX_EPOCH });
+}
+
+/**
+ * Rejects a year that is not a safe integer.
+ *
+ * @remarks
+ * One predicate covers fractions, `NaN`, `±Infinity` and 2⁵³ overflow. The bounds checks alone
+ * cannot: `NaN` satisfies neither `< 1` nor `> 30`, so it passes every comparison and reaches the
+ * arithmetic.
+ */
+function assertSafeYear(year: number): void {
+	if (!Number.isSafeInteger(year)) {
+		throw new RangeError(`year must be a safe integer, received ${year}`);
+	}
+}
+
+/**
+ * Rejects a Julian day past the point where this tradition's arithmetic stays exact.
+ *
+ * @remarks
+ * `true_date` is an integer numerator over `commonDenominator`, so it is roughly `JD · D` and
+ * stops being representable at {@link ScaledTradition.exactToJulianDay}. Past that the arithmetic
+ * degrades silently rather than refusing, and — worse — a degraded `true_date` misclassifies the
+ * day, so 2⁵³ overflow gets reported as a **skipped date**: a specific, confident calendrical
+ * claim about a date that was never computed. The correct response to `SkippedDayError` is "fine,
+ * that date does not exist"; the correct response here is "your input is out of range". They must
+ * not be the same error.
+ *
+ * Negated comparison so that a `NaN` Julian day fails rather than passes.
+ */
+function assertExactJulianDay(scaled: ScaledTradition, julianDay: number, subject: string): void {
+	if (!(Math.abs(julianDay) <= scaled.exactToJulianDay)) {
+		throw new RangeError(
+			`${subject} is outside the range where this tradition's arithmetic is exact: ` +
+				`|JD| must be at most ${scaled.exactToJulianDay}, received ${julianDay}`,
+		);
+	}
 }
 
 /**
@@ -140,8 +178,9 @@ function buildDate(
  * Julian. Neither is an error, but neither is what a contemporary would have written.
  *
  * @throws SkippedDayError if the date is skipped.
- * @throws RangeError if the month or day is out of range, or a leap month is requested for a
- * month that has none.
+ * @throws RangeError if `year`, `month` or `day` is not an integer, if the month or day is out of
+ * range, if a leap month is requested for a month that has none, or if the date falls outside the
+ * range where the arithmetic stays exact — see {@link ScaledTradition.exactToJulianDay}.
  *
  * @example
  * ```ts
@@ -154,20 +193,36 @@ export function tibetanToIso(
 	config: TraditionConfig = PHUGPA,
 ): Temporal.PlainDate {
 	const scaled = scalingFor(config);
-	const year = yearFromRoyalEra(input.year);
 	const isLeapMonth = input.isLeapMonth ?? false;
 
-	if (input.month < 1 || input.month > 12) {
-		throw new RangeError(`month must be 1-12, received ${input.month}`);
+	// Integrality before range: the whole determinism argument rests on integer arithmetic, and a
+	// fractional value passes every bound check below and comes out as a confident wrong date.
+	// NaN in particular satisfies neither `< 1` nor `> 30`, so the bounds alone let it through.
+	assertSafeYear(input.year);
+	if (!Number.isInteger(input.month) || input.month < 1 || input.month > 12) {
+		throw new RangeError(`month must be an integer 1-12, received ${input.month}`);
 	}
-	if (input.day < 1 || input.day > 30) {
-		throw new RangeError(`day must be 1-30, received ${input.day}`);
+	if (!Number.isInteger(input.day) || input.day < 1 || input.day > 30) {
+		throw new RangeError(`day must be an integer 1-30, received ${input.day}`);
 	}
+
+	const year = yearFromRoyalEra(input.year);
 	if (isLeapMonth && !hasLeapMonth(config, year, input.month)) {
 		throw new RangeError(`month ${input.month} of ${input.year} has no leap month`);
 	}
 
 	const monthCount = trueMonthCount(config, year, input.month, isLeapMonth);
+
+	// Bound before classifying, not after. Past the exact limit classifyDay's arithmetic has
+	// already lost precision, and it reports the damage as a skipped date. The mean date is within
+	// 0.6 days of the true date and is exact over a wider range — its denominator divides
+	// `commonDenominator` — so it is the right quantity to test the limit with.
+	assertExactJulianDay(
+		scaled,
+		floorDiv(meanDate(scaled, input.day, monthCount), scaled.meanDate.den),
+		`Tibetan date ${input.year}-${input.month}-${input.day}`,
+	);
+
 	const classification = classifyDay(scaled, input.day, monthCount);
 
 	if (classification.kind === "skipped") throw new SkippedDayError(input);
@@ -212,6 +267,10 @@ export function tibetanDateExists(
  * Do not widen this window "to be safe" — if a date is not found inside it, the fault is
  * elsewhere.
  *
+ * @throws RangeError if the date falls outside the range where the arithmetic stays exact. This
+ * is reachable inside `Temporal.PlainDate`'s own range: `PHUGPA_HENNING` is exact only to about
+ * year 11,356.
+ *
  * Counting matches inside the window classifies the day directly, which is why no separate pass
  * is needed: one lunar day ending here is the ordinary case; two means the second's number is
  * skipped and this day takes the first's name; none means this day is the first of a doubled
@@ -232,6 +291,7 @@ export function isoToTibetan(
 ): TibetanDate {
 	const scaled = scalingFor(config);
 	const target = julianDayFromIso(date);
+	assertExactJulianDay(scaled, target, date.toString());
 
 	// Invert the mean date over the linear lunar day count l = 30n + d.
 	const { den, perDay, atEpoch } = scaled.meanDate;
@@ -300,10 +360,15 @@ export function isoToTibetan(
  * losarFor(2153).isoDate;   // 2026-02-18
  * losarFor(2104).day;       // 2 — day 1 is skipped in 1977
  * ```
+ *
+ * @throws RangeError if `year` is not a safe integer, or falls outside the range where the
+ * arithmetic stays exact.
  */
 export function losarFor(year: number, config: TraditionConfig = PHUGPA): TibetanDate {
 	const scaled = scalingFor(config);
+	assertSafeYear(year);
 	const julianDay = losarJulianDay(scaled, config, yearFromRoyalEra(year));
+	assertExactJulianDay(scaled, julianDay, `Losar of ${year}`);
 	return isoToTibetan(isoFromJulianDay(julianDay), config);
 }
 
