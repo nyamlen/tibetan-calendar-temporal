@@ -275,8 +275,9 @@ describe("skipped and doubled days", () => {
 	});
 });
 
-// Janson names three dates where the two a2 values give different calendars. They are the
-// cheapest available check on which value a published almanac follows.
+// Janson names three dates where the two a2 values give different calendars. Settled
+// 2026-08-12 in favour of the almanac value 1/28 -- see
+// docs/decisions/2026-08-12-lunar-anomaly-a2-default.md.
 describe("the a2 fork", () => {
 	const forkDates = ["2001-02-10", "2006-05-10", "2025-11-19"];
 
@@ -286,6 +287,31 @@ describe("the a2 fork", () => {
 			const henning = isoToTibetan(iso(day), PHUGPA_HENNING);
 			expect({ day, differs: almanac.day !== henning.day }).toEqual({ day, differs: true });
 		}
+	});
+
+	// The whole point of the decision record: these three are the only cheap, public evidence
+	// of which value the calendar actually follows, and Janson verified 1/28 against the
+	// Men-Tsee-Khang Tibetan Annual Almanac 2013. Both Lotsawa House and christian-steinert
+	// agree with every row below. If one of these flips, the default has silently become
+	// Henning's -- which is a different calendar, not a rounding difference.
+	it("matches the Men-Tsee-Khang almanac on all three, under the default config", () => {
+		const observed = forkDates.map((day) => {
+			const t = isoToTibetan(iso(day));
+			return { day, tibetan: `${t.month}/${t.day}`, doubled: t.isDoubledDay, first: t.isLeapDay };
+		});
+		expect(observed).toEqual([
+			// 17th, and the 18th is skipped. Henning puts the 18th here and skips the 17th.
+			{ day: "2001-02-10", tibetan: "12/17", doubled: false, first: false },
+			// 13th doubled, so 10 and 11 May share it. Henning doubles the 12th instead.
+			{ day: "2006-05-10", tibetan: "3/13", doubled: true, first: true },
+			// 30th doubled, so 19 and 20 November share it. Henning doubles the 29th instead.
+			{ day: "2025-11-19", tibetan: "9/30", doubled: true, first: true },
+		]);
+	});
+
+	it("skips 18/12 in the 2001 case, which is how that divergence shows up", () => {
+		expect(tibetanDateExists({ year: 2000 + 127, month: 12, day: 18 })).toBe(false);
+		expect(tibetanDateExists({ year: 2000 + 127, month: 12, day: 18 }, PHUGPA_HENNING)).toBe(true);
 	});
 
 	// Both values reproduce Janson's Losar table in full. That is a useful negative result:

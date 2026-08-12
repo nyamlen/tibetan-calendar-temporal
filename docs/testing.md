@@ -48,25 +48,24 @@ sources and assert the engine matches.
 
 > **Clean-room note.** Running these to compare *outputs* is permitted — dates are facts, not
 > copyrightable expression. Reading their source is not. See [CONTRIBUTING.md](../CONTRIBUTING.md).
-
-> **Read this before curating anything.** These sources **straddle a genuine fork in the
-> tradition**, so a mixed fixture set is guaranteed to produce failures that look like
-> arithmetic bugs and are not.
+> **The `a₂` fork is settled — these sources do not straddle it.** Resolved 2026-08-12; see
+> [decisions/2026-08-12-lunar-anomaly-a2-default.md](decisions/2026-08-12-lunar-anomaly-a2-default.md).
 >
 > Janson §7 records two values for the lunar anomaly's daily increment `a₂`: almanacs use
 > `1/28`, while Henning uses the exact `3781/105840`. They disagree on roughly one day in 4,100
 > — Janson counts 9 divergences in 1900–1999 and 8 in 2000–2099, but 16 in the single cycle
 > 1027–1091, so the rate is not uniform and back-projection is worse.
 >
-> Christian Steinert and Lotsawa House descend from Henning's line; FPMT's published dates
-> follow almanac practice. The package ships both as `PHUGPA` (default, `1/28`) and
-> `PHUGPA_HENNING`.
+> An earlier draft of this file claimed Christian Steinert and Lotsawa House descend from
+> Henning's line. **Both were checked against Janson's three divergence dates — 2001-02-10,
+> 2006-05-10, 2025-11-19 — and both follow `1/28`**, agreeing with the Men-Tsee-Khang almanac
+> and with each other. Fixtures may be curated from all these sources together.
 >
-> **Settle this before curating fixtures, not during.** Janson names three divergence dates —
-> **2001-02-10, 2006-05-10, 2025-11-19** — and checking them against a published calendar
-> resolves it in minutes. Note that Losar cannot: a test in `conversion.test.ts` confirms both
-> values reproduce Janson's entire 1927–2046 Losar table, so that fixture carries no
-> information about the fork.
+> Two things that carry **no** information about the fork, so do not reach for them: Janson's
+> Losar table, which both values reproduce in full, and any list of *practice days*. The 11
+> divergences in 1950–2050 are each self-correcting within a day — the two values disagree
+> about which number is doubled or skipped, never about where a month boundary falls. Only a
+> day-by-day grid printing the doubled number is evidence.
 
 **Fixture format:**
 
