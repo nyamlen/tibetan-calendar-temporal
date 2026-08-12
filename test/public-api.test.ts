@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import * as api from "../src/index.js";
+import * as observances from "../src/observances/index.js";
 
 /**
  * The package's runtime export surface, pinned.
@@ -22,6 +23,7 @@ const EXPECTED_EXPORTS = [
 	"isoFromJulianDay",
 	"isoToTibetan",
 	"julianDayFromIso",
+	"losarFor",
 	"tibetanDateExists",
 	"tibetanToIso",
 	"tibetanWeekday",
@@ -44,6 +46,7 @@ describe("public API surface", () => {
 			isoFromJulianDay: "function",
 			isoToTibetan: "function",
 			julianDayFromIso: "function",
+			losarFor: "function",
 			tibetanDateExists: "function",
 			tibetanToIso: "function",
 			tibetanWeekday: "function",
@@ -62,10 +65,52 @@ describe("public API surface", () => {
 		expect(henning).toEqual(phugpa);
 	});
 
+	it("keeps the observance layer off the root, so a date consumer never loads it", () => {
+		expect(Object.keys(api)).not.toContain("getObservances");
+		expect(Object.keys(api)).not.toContain("GELUG");
+	});
+
 	it("makes SkippedDayError catchable as an Error subclass", () => {
 		const error = new api.SkippedDayError({ year: 2150, month: 12, day: 29 });
 		expect(error).toBeInstanceOf(Error);
 		expect(error.name).toBe("SkippedDayError");
 		expect(error.requested).toEqual({ year: 2150, month: 12, day: 29 });
+	});
+});
+
+/**
+ * The `./observances` subpath, pinned separately.
+ *
+ * It is a second one-way door and needs its own list: nothing in the root suite above would
+ * notice a name appearing or vanishing here. The split is deliberate — everything on the root
+ * makes a falsifiable claim, checkable against Janson or an almanac, while this layer encodes
+ * conventions that published sources disagree about. See `src/observances/types.ts`.
+ */
+const EXPECTED_OBSERVANCE_EXPORTS = ["GELUG", "getObservances", "observancesOn"] as const;
+
+describe("observances API surface", () => {
+	it("exports exactly the documented names", () => {
+		expect(Object.keys(observances).sort()).toEqual([...EXPECTED_OBSERVANCE_EXPORTS]);
+	});
+
+	it("ships the Gelug config as spreadable plain data, like a tradition config", () => {
+		expect(typeof observances.GELUG).toBe("object");
+		expect(observances.GELUG.id).toBe("gelug");
+		// An institution differs by spreading, never by subclassing.
+		const kopan = { ...observances.GELUG, id: "kopan", doubledDay: "first" as const };
+		expect(kopan.rules).toBe(observances.GELUG.rules);
+		expect(kopan.doubledDay).not.toBe(observances.GELUG.doubledDay);
+	});
+
+	it("cites a source for every shipped rule", () => {
+		for (const rule of observances.GELUG.rules) {
+			expect(rule.source).toMatch(/^https:\/\/fpmt\.org\//);
+		}
+	});
+
+	// Shipping an anniversary would put institution-specific data on a release cycle it does not
+	// belong on -- a new spiritual director should not need a package publish.
+	it("ships no teacher anniversaries, only the shape for a caller to supply them", () => {
+		expect(observances.GELUG.rules.some((r) => r.kind === "anniversary")).toBe(false);
 	});
 });

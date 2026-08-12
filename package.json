@@ -25,6 +25,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./observances": {
+      "types": "./dist/observances/index.d.ts",
+      "default": "./dist/observances/index.js"
     }
   },
   "files": [

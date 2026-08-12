@@ -33,6 +33,7 @@ export {
 	isoFromJulianDay,
 	isoToTibetan,
 	julianDayFromIso,
+	losarFor,
 	tibetanDateExists,
 	tibetanToIso,
 	tibetanWeekday,
