@@ -339,7 +339,7 @@ describe("the a2 fork", () => {
 	// it is an independent check: the counts depend on the equation tables, the day-labelling rule
 	// and both anomaly values agreeing with his implementation across two centuries.
 	//
-	// The 1027-1091 figure also documents why the headline rate misleads. One in 4,100 is a
+	// The 1027-1091 figure also documents why the headline rate misleads. One in 4,100 days is a
 	// long-run average; that cycle runs at one in 1,484, so back-projection diverges far more often
 	// than a reader extrapolating from the modern era would expect.
 	it("reproduces Janson's published divergence counts", () => {

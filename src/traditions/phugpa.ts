@@ -75,7 +75,7 @@ export const PHUGPA: TraditionConfig = {
 		 * This is a **known fork in the tradition**. Henning instead uses the mathematically more
 		 * natural `(1 + a₁)/30 = 3781/105840`, proposed by Minling Lochen Dharmashri
 		 * (1654–1717), and his computed calendars follow it. The two disagree on roughly one day
-		 * in 4,100 — Janson counts 9 divergences in 1900–1999 and 8 in 2000–2099, though 16 in
+		 * in 4,100 days — Janson counts 9 divergences in 1900–1999 and 8 in 2000–2099, though 16 in
 		 * the single cycle 1027–1091, so the rate is not uniform.
 		 *
 		 * Janson names three recent divergence dates: 10 February 2001, 10 May 2006 and

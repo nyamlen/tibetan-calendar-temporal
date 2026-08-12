@@ -131,6 +131,19 @@ through this before publishing v1.0.0 — several are one-way doors once publish
       it is only insurance for older bundlers
 - [x] Add `types` to the `exports` map once TypeScript declarations are built — done in Phase 0
 - [ ] Add the `./practice` subpath export once `src/practice/` exists (Phase 3)
+- [ ] **Decide whether the Julian-day helpers stay public.** `julianDayFromIso`,
+      `isoFromJulianDay` and `tibetanWeekday` sit at a lower altitude than the rest of the
+      surface, which is why the question only became visible when the README's API table put all
+      ten exports side by side. Once published, removing one is breaking and keeping one is
+      permanent.
+      - *Keep them.* They are genuinely useful for almanac work, and `tibetanWeekday` is the only
+        route to the traditional 0 = Saturday numbering, which `TibetanDate.dayOfWeek`
+        deliberately does not expose.
+      - *Make them internal.* A tighter surface of seven, all at the same altitude. The almanac
+        weekday numbering would then need re-exposing some other way, or dropping.
+
+      Either way, `test/public-api.test.ts` pins the list, so the choice has to be made
+      explicitly rather than drifting.
 
 **Publishing**
 

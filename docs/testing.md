@@ -55,7 +55,7 @@ sources and assert the engine matches.
 > [decisions/2026-08-12-lunar-anomaly-a2-default.md](decisions/2026-08-12-lunar-anomaly-a2-default.md).
 >
 > Janson §7 records two values for the lunar anomaly's daily increment `a₂`: almanacs use
-> `1/28`, while Henning uses the exact `3781/105840`. They disagree on roughly one day in 4,100
+> `1/28`, while Henning uses the exact `3781/105840`. They disagree on roughly one day in 4,100 days
 > — Janson counts 9 divergences in 1900–1999 and 8 in 2000–2099, but 16 in the single cycle
 > 1027–1091, so the rate is not uniform and back-projection is worse.
 >

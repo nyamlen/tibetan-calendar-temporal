@@ -206,7 +206,7 @@ formatTibetanDate(isoToTibetan(day, PHUGPA_HENNING));   // "2152-M09-29"
 `PHUGPA` uses the lunar anomaly increment `a₂ = 1/28` that almanacs use, and is the right default
 for nearly everyone. `PHUGPA_HENNING` uses Henning's exact `3781/105840`.
 
-The two disagree on about **one day in 4,100** — nine days in the twentieth century and eight in
+The two disagree on about **one day in 4,100 days** — nine days in the twentieth century and eight in
 the twenty-first, `2025-11-19` above being one of them. That is a long-run average rather than a
 schedule, and the divergences cluster: Janson counts sixteen in the 65 years from 1027, so
 back-projection is worse than the headline rate suggests. All three counts are reproduced by the
@@ -251,7 +251,7 @@ no side effects — and every function taking a `config` defaults it to `PHUGPA`
 | Export | Notes |
 |---|---|
 | `PHUGPA` | The default. Lunar anomaly increment `a₂ = 1/28`, as almanacs use |
-| `PHUGPA_HENNING` | Henning's exact `3781/105840`. Differs on ~1 day in 4,100 |
+| `PHUGPA_HENNING` | Henning's exact `3781/105840`. Differs on ~1 day in 4,100 days |
 
 **Errors**
 
