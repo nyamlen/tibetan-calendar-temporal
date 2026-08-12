@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
 	isoToTibetan,
@@ -150,5 +151,100 @@ describe("README observance examples", () => {
 
 	it("computes Losar without the day-1 trap the section warns about", () => {
 		expect(losarFor(2153).isoDate.toString()).toBe("2026-02-18");
+	});
+
+	// The README prints the three convention fields, their allowed values and GELUG's defaults as a
+	// table. A default changing there and not here would put a wrong date in front of a reader.
+	it("documents GELUG's convention defaults correctly", () => {
+		expect(GELUG.doubledDay).toBe("second");
+		expect(GELUG.skippedDay).toBe("preceding");
+		expect(GELUG.leapMonth).toBe("leap");
+	});
+
+	// The list of `resolution` values reads as exhaustive, and once was not -- it omitted
+	// "firstOfDoubled", which any config setting `doubledDay: 'first'` produces. Asserting the set
+	// rather than a sample is the point.
+	it("produces every resolution the README lists, and no other", () => {
+		const documented = ["exact", "firstOfDoubled", "secondOfDoubled", "shiftedFromSkipped"];
+		const seen = new Set<string>();
+		for (const doubledDay of ["first", "second", "both"] as const) {
+			const config = { ...GELUG, id: `readme-${doubledDay}`, doubledDay };
+			// A wide window on purpose: "exact" and the two doubled cases appear within months, but a
+			// rule's own day being skipped is rarer than a skipped day, so a few years would not
+			// exercise "shiftedFromSkipped" and the assertion would pass for the wrong reason.
+			for (const o of getObservances(iso("2010-01-01"), iso("2030-12-31"), config)) {
+				seen.add(o.resolution);
+			}
+		}
+		expect([...seen].sort()).toEqual(documented);
+	});
+
+	// The `myCentre` example: extend `rules` by spreading, never replace it.
+	it("accepts the documented custom-rule config", () => {
+		const myCentre = {
+			...GELUG,
+			id: "my-centre",
+			rules: [
+				...GELUG.rules,
+				{
+					id: "founder-anniversary",
+					name: "Founder's anniversary",
+					kind: "anniversary" as const,
+					tier: 2 as const,
+					when: { month: 4, day: 15 },
+					source: "https://example.org/calendar",
+					skippedDay: "preceding" as const,
+				},
+			],
+		};
+		const found = getObservances(iso("2026-01-01"), iso("2026-12-31"), myCentre).filter(
+			(o) => o.rule.id === "founder-anniversary",
+		);
+		expect(found).toHaveLength(1);
+	});
+});
+
+/**
+ * The "Errors and validation" section, and the code table in the API section.
+ *
+ * Codes are the contract a consumer branches on, so a code printed in the README that the engine
+ * does not throw is a broken `switch` in someone's app. `test/public-api.test.ts` pins the codes
+ * against the engine; this pins the README's worked examples against both.
+ */
+describe("README error examples", () => {
+	it("reports the documented skipped date with the documented code", () => {
+		let thrown: unknown;
+		try {
+			tibetanToIso({ year: 2150, month: 12, day: 29 });
+		} catch (error) {
+			thrown = error;
+		}
+		expect(thrown).toBeInstanceOf(SkippedDayError);
+		expect((thrown as { code?: string }).code).toBe("TCT_SKIPPED_DAY");
+		expect((thrown as SkippedDayError).requested).toEqual({ year: 2150, month: 12, day: 29 });
+	});
+
+	it("answers false for both predicate examples", () => {
+		expect(tibetanDateExists({ year: 2150, month: 12, day: 29 })).toBe(false);
+		expect(tibetanDateExists({ year: 2153, month: 13, day: 1 })).toBe(false);
+	});
+
+	// The royal-era warning. The README claims Gregorian 2026 passed as a royal-era year lands in
+	// 1899 with no throw -- which is exactly why it is a documentation problem and not a guard.
+	it("silently returns an 1899 date for the royal-era mistake", () => {
+		const wrong = tibetanToIso({ year: 2026, month: 6, day: 30 });
+		expect(wrong.year).toBe(1899);
+		expect(isoToTibetan(wrong).yearStartsIn).toBe(1899);
+	});
+
+	it("names the polyfill and Node 26 in the import-time guard, as quoted", () => {
+		// The guard cannot fire under test -- the suite runs on Node 26 -- so the README's quoted
+		// message is checked against the source that produces it.
+		const source = readFileSync(
+			new URL("../src/computation/conversion.ts", import.meta.url),
+			"utf8",
+		);
+		expect(source).toContain("Temporal ships enabled from Node 26");
+		expect(source).toContain("temporal-polyfill/global");
 	});
 });

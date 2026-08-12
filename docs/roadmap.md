@@ -169,9 +169,19 @@ through this before publishing v1.0.0 — several are one-way doors once publish
       on `import`, naming neither Temporal nor the polyfill that fixes it. `">=26"` tells the
       truth and npm treats it as a warning rather than a block, so polyfill consumers are not
       locked out; the guard turns the remaining failure into an actionable message. CI tests one
-      Node version, so neither would have surfaced in-repo
-- [ ] Decide whether to add a `main` field. `exports` supersedes it on modern toolchains;
-      it is only insurance for older bundlers
+      Node version, so neither would have surfaced in-repo.
+
+      The consumer-facing half of this landed later, and separately: the guard's message, the
+      polyfill's name, the fact that the failure is at *import* time, and the reason
+      `--harmony-temporal` is the wrong answer all lived only in `CLAUDE.md`, `CONTRIBUTING.md`
+      and this checkbox — none of which ship to npm. `README.md` is the only documentation in
+      `package.json#files`, and it now carries all of it under "Requirements"
+- [x] **Decided: no `main` field.** `exports` supersedes it on every toolchain that can run this
+      package at all, and the only consumer it would serve is one resolving by Node 10 rules —
+      which by definition predates `exports`, and cannot run an ESM-only package needing Node 26
+      regardless. `attw` reports exactly this as its `node10` row, which is why `check:publish`
+      runs it under `--profile esm-only`: the row is the deliberate design, not a defect. Adding
+      `main` would make that row green and change nothing real
 - [x] Add `types` to the `exports` map once TypeScript declarations are built — done in Phase 0
 - [x] Add the `./observances` subpath export once `src/observances/` exists — done in Phase 3.
       Renamed from `./practice`: a "practice day" asserts something about the practitioner that
@@ -229,6 +239,15 @@ through this before publishing v1.0.0 — several are one-way doors once publish
 
 **Release workflow (Phase 4)**
 
+- [x] **Packaging is verified in CI.** `check:publish` runs `publint` and `attw --pack . --profile
+      esm-only`; `test:pack` packs the tarball, installs it into a scratch directory outside the
+      repository, and imports both subpaths as a consumer would. The gap they close is structural
+      rather than incidental: every other test imports from `src/`, so nothing else in the suite
+      can see a broken `exports` map, a file missing from `files`, or a `dist/` layout that does
+      not match what `exports` points at. Those fail only for a consumer, after publishing.
+      `publint` and `attw` check the manifest; only `test:pack` proves the built JavaScript runs.
+      Writing it immediately found that `./package.json` is not in the `exports` map — correct, as
+      it happens, but nothing had established that either way
 - [ ] `.github/workflows/release.yml` publishing on tag, with `permissions: id-token: write`
       and `actions/setup-node` given `registry-url: 'https://registry.npmjs.org'` — that line
       generates the `.npmrc` that reads `NODE_AUTH_TOKEN`; without it the token is ignored and

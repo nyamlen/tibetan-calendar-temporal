@@ -139,7 +139,19 @@ the structure the `./observances` subpath export needs. Do not add tsup or simil
 
 ## Commands
 
-`npm run lint`, `check:links`, `typecheck`, `build`, `test` — CI runs all five in that order.
+`npm run lint`, `check:links`, `typecheck`, `build`, `test`, `check:publish`, `test:pack` — CI runs
+all seven in that order.
+
+The last two are the only checks that see the **published** package. Every test imports from
+`src/`, so a broken `exports` map, a file missing from `files`, or a `dist/` layout that does not
+match `exports` is invisible to the suite and fails only for a consumer, after publishing.
+`check:publish` runs publint and attw against the manifest; `test:pack` packs the tarball, installs
+it into a scratch directory **outside** the repository — a `node_modules` copy inside the working
+tree would be picked up by Biome, the link checker and Vitest — and imports both subpaths.
+
+`attw` runs under `--profile esm-only`. Its `node10` and `node16-cjs` rows are the deliberate
+design, not defects: there is no `main` field and no CJS build. Do not add `main` to make a row
+green.
 
 **`npm run coverage` is not one of the five, so nothing gates it.** It was broken on `main` for an
 unknown stretch and nobody noticed: the 200-year moon-phase sweep runs in well under a second bare

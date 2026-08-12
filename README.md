@@ -25,8 +25,10 @@ days, and determines observances. Open source, MIT licensed, with zero runtime d
   - [Converting back](#converting-back)
   - [Three things that make this calendar hard](#three-things-that-make-this-calendar-hard)
   - [Naming a year](#naming-a-year)
+  - [Errors and validation](#errors-and-validation)
   - [Traditions](#traditions)
   - [Observances](#observances)
+  - [Two kinds of config](#two-kinds-of-config)
 - [API](#api)
 - [Why this exists](#why-this-exists)
 - [Provenance](#provenance)
@@ -39,20 +41,54 @@ days, and determines observances. Open source, MIT licensed, with zero runtime d
 - **Temporal-native** — `Temporal.PlainDate` throughout, no legacy `Date`
 - **Zero runtime dependencies** — Temporal is a language built-in
 - **Integer arithmetic only** — deterministic, cross-platform-identical results
-- **Tradition-agnostic** — astronomical constants injected via config; v1 ships Phugpa, the
-  algorithm supports Tsurphu
+- **Tradition-agnostic** — astronomical constants injected via config, so v1 ships Phugpa and
+  Tsurphu is addable as data rather than as a code change
 - **Pure stateless functions** — memoizable, safe to offload to a worker
 - **ESM only**
 
 ## Requirements
 
-Node 26 or later, where `Temporal` is enabled by default. Earlier runtimes need a Temporal
-polyfill supplied by you — the package deliberately does not bundle one, which is what keeps it
-at zero runtime dependencies.
-
 ```sh
 npm install tibetan-calendar-temporal
 ```
+
+**Node 26 or later**, where `Temporal` is enabled by default. The package does not bundle a
+polyfill — that is what keeps it at zero runtime dependencies — so on any older runtime, and in a
+browser, you supply one.
+
+The failure mode if you do not is worth knowing in advance, because it is **not** a helpful
+`TypeError` at the call that needed a date. The engine touches `Temporal` while the module is
+evaluating, to build its Unix-epoch anchor, so a runtime without it fails on `import`, before your
+code has called anything:
+
+```js
+import 'tibetan-calendar-temporal';
+// Error: tibetan-calendar-temporal requires the Temporal API, which is not available in this
+// runtime. Temporal ships enabled from Node 26; Node 24 has it behind --harmony-temporal. On
+// older runtimes or in a browser, import a polyfill before this package:
+// `import "temporal-polyfill/global";`
+```
+
+That message is a guard the package raises deliberately. Without it you would get a bare
+`ReferenceError: Temporal is not defined` naming neither the requirement nor the fix.
+
+**Using a polyfill.** Install [`temporal-polyfill`](https://www.npmjs.com/package/temporal-polyfill)
+and import it once, before this package, anywhere in your app's entry module:
+
+```js
+import 'temporal-polyfill/global';
+import { isoToTibetan } from 'tibetan-calendar-temporal';
+```
+
+`package.json` declares `engines: { "node": ">=26" }`, which npm treats as **advisory**: you get a
+warning on install, not a block, so a polyfilled Node 22 or 24 project works fine. The declaration
+is there to tell the truth about the default path rather than to lock anyone out. Set
+`engine-strict=true` in `.npmrc` if you want it enforced.
+
+**Node 24 has `--harmony-temporal`, and you should not use it here.** That flag exposes V8's
+in-progress implementation, which may not match the shipped specification. The point of this
+engine is deterministic dates that are identical everywhere; a date computed against a moving
+implementation is not that. Use the polyfill instead.
 
 ## Usage
 
@@ -124,8 +160,19 @@ tibetanToIso({ year: 2153, month: 6, day: 30 }).toString();   // "2026-08-12"
 ```
 
 `year` is the **royal-era** number an almanac prints (2153), not the Gregorian year the Tibetan
-year began in (2026, exposed as `yearStartsIn`). The two differ by 127. Passing 2026 where 2153
-is meant returns a date 127 years away rather than failing quietly — loud by design.
+year began in (2026, exposed as `yearStartsIn`). The two differ by 127.
+
+> **This is the one mistake the library cannot catch for you.** Passing Gregorian 2026 where
+> royal-era 2153 is meant returns a well-formed date in **1899** — because 2026 *is* a valid
+> royal-era year. No guard can tell the two apart, so nothing throws. If your years come from user
+> input or another system, convert explicitly and sanity-check the result:
+>
+> ```js
+> const tibetanYear = gregorianYear + 127;
+> const date = tibetanToIso({ year: tibetanYear, month: 6, day: 30 });
+> // Or check after the fact, which also catches an off-by-one at a year boundary:
+> isoToTibetan(date).yearStartsIn;   // should be the Gregorian year you started from
+> ```
 
 ### Three things that make this calendar hard
 
@@ -196,14 +243,57 @@ cycle, which is a *numbering* rather than a name — and it indexes the year dif
 two are kept apart deliberately. See
 [docs/architecture.md](docs/architecture.md#why-rabjung-is-separate-from-yearname).
 
-### Traditions
+### Errors and validation
 
-Every function takes an optional `TraditionConfig`, defaulting to `PHUGPA`. Astronomical
-constants are injected rather than hardcoded, so Tsurphu can be added without touching the
-algorithm.
+Two failure kinds, and telling them apart matters because they call for different responses.
+
+**A skipped date is not an error in your code.** It is a fact about the calendar, and the right
+response is usually to show the user something rather than to log a bug. It arrives as
+`SkippedDayError`, the only error class this package exports.
+
+**Everything else is a `RangeError`** carrying a machine-readable `code`. Branch on `error.code`,
+never on the message text — codes are part of the API and never change; wording is not and may
+improve in any release.
 
 ```js
-import { PHUGPA_HENNING } from 'tibetan-calendar-temporal';
+import { tibetanToIso, SkippedDayError } from 'tibetan-calendar-temporal';
+
+try {
+  tibetanToIso(fromUserInput);
+} catch (error) {
+  switch (error.code) {
+    case 'TCT_SKIPPED_DAY':
+      // error instanceof SkippedDayError, and error.requested is the input you passed
+      return `${format(error.requested)} is not a day in this calendar`;
+    case 'TCT_FIELD_OUT_OF_RANGE':
+    case 'TCT_NO_SUCH_LEAP_MONTH':
+      return 'Please check the date';
+    default:
+      throw error;
+  }
+}
+```
+
+If you would rather test than catch, `tibetanDateExists` is the predicate, and it is `false`
+exactly where `tibetanToIso` throws for a reason about the *date*:
+
+```js
+tibetanDateExists({ year: 2150, month: 12, day: 29 });   // false — skipped
+tibetanDateExists({ year: 2153, month: 13, day: 1 });    // false — no such month
+```
+
+It deliberately still throws on a malformed `TraditionConfig`, because that is a bug in your
+program rather than a statement about a date, and answering `false` would hide it.
+
+The full code list is in the [API section](#errors) below.
+
+### Traditions
+
+**v1 ships one tradition: Phugpa** (*phug pa*), the Men-Tsee-Khang standard and the basis of the
+almanacs most practitioners use. What it ships *twice* is a parameterisation of that one tradition:
+
+```js
+import { PHUGPA, PHUGPA_HENNING } from 'tibetan-calendar-temporal';
 
 const day = Temporal.PlainDate.from('2025-11-19');
 
@@ -211,17 +301,38 @@ formatTibetanDate(isoToTibetan(day));                   // "2152-M09-30 (leap)"
 formatTibetanDate(isoToTibetan(day, PHUGPA_HENNING));   // "2152-M09-29"
 ```
 
-`PHUGPA` uses the lunar anomaly increment `a₂ = 1/28` that almanacs use, and is the right default
-for nearly everyone. `PHUGPA_HENNING` uses Henning's exact `3781/105840`.
+The two differ in exactly one constant, the lunar anomaly increment `a₂`, and are otherwise
+identical — a test asserts that. `PHUGPA` uses `a₂ = 1/28`, the value almanacs use, and is the
+right default for nearly everyone. `PHUGPA_HENNING` uses Henning's exact `3781/105840`.
 
-The two disagree on about **one day in 4,100 days** — nine days in the twentieth century and eight in
+They disagree on about **one day in 4,100 days** — nine days in the twentieth century and eight in
 the twenty-first, `2025-11-19` above being one of them. That is a long-run average rather than a
 schedule, and the divergences cluster: Janson counts sixteen in the 65 years from 1027, so
 back-projection is worse than the headline rate suggests. All three counts are reproduced by the
-engine and asserted in `test/computation/conversion.test.ts`.
-
-The evidence for the default is in
+engine and asserted in `test/computation/conversion.test.ts`. The evidence for the default is in
 [docs/decisions/2026-08-12-lunar-anomaly-a2-default.md](docs/decisions/2026-08-12-lunar-anomaly-a2-default.md).
+
+**The other real tradition is Tsurphu** (*mtshur phu*), the Karma Kagyu system, and it is **not
+shipped**. It is not shipped because nothing here has been validated against a Tsurphu almanac,
+and an unvalidated calendar published with this library's authority is exactly the failure this
+project exists to avoid — not because the algorithm cannot express it.
+
+It can. Every astronomical constant is injected through a `TraditionConfig` rather than hardcoded,
+including the scaling denominator, which is *derived* from the constants rather than fixed — Phugpa
+gives 102,317,040 and Tsurphu gives 1,534,755,600. So adding Tsurphu is a new config object, from
+Janson's Appendix A.2, and no change to any computation module:
+
+```js
+const TSURPHU = { ...PHUGPA, id: 'tsurphu', name: 'Tsurphu', /* …Janson App. A.2 constants… */ };
+
+isoToTibetan(Temporal.PlainDate.from('2026-08-12'), TSURPHU);
+```
+
+Configs are validated when first used, so a partial or mistyped one is rejected with the offending
+field named rather than failing somewhere inside the arithmetic. Field-by-field documentation is in
+[docs/architecture.md](docs/architecture.md#core-types). Note that validation checks **shape, not
+astronomy** — plausible constants that are wrong will produce a plausible calendar that is wrong,
+which is what [docs/testing.md](docs/testing.md) exists to catch.
 
 ### Observances
 
@@ -257,39 +368,100 @@ observancesOn(Temporal.PlainDate.from('2024-07-09'), kopan);
 // Chokhor Duchen — where the default GELUG config puts it on 10 July
 ```
 
-Every result carries a `resolution` — `"exact"`, `"secondOfDoubled"`, `"shiftedFromSkipped"` — so
-a display can show the almanac's footnote rather than presenting a moved date as an exact one.
+Three convention fields decide what happens when a rule's day is not an ordinary one. Each can be
+set on the config as a default and overridden per rule:
+
+| Field | Values | Default in `GELUG` | Decides |
+|---|---|---|---|
+| `doubledDay` | `'first'` `'second'` `'both'` | `'second'` | Which half of a doubled day carries the observance, or both |
+| `skippedDay` | `'preceding'` `'omit'` | `'preceding'` | Whether a skipped day moves to the day before, or vanishes that month |
+| `leapMonth` | `'leap'` `'regular'` `'both'` | `'leap'` | Which of two months sharing a number an annual rule falls in |
+
+To add your own days, extend `rules` rather than replacing it:
+
+```js
+const myCentre = {
+  ...GELUG,
+  id: 'my-centre',
+  rules: [
+    ...GELUG.rules,
+    {
+      id: 'founder-anniversary',
+      name: 'Founder’s anniversary',
+      kind: 'anniversary',
+      tier: 2,
+      when: { month: 4, day: 15 },
+      source: 'https://example.org/calendar',
+      skippedDay: 'preceding',   // optional; falls back to the config default
+    },
+  ],
+};
+```
+
+Every result carries a `resolution` saying how it got there — one of `"exact"`,
+`"firstOfDoubled"`, `"secondOfDoubled"` or `"shiftedFromSkipped"` — so a display can show the
+almanac's footnote rather than presenting a moved date as an exact one.
 
 Losar is deliberately *not* here: it is a calendar fact rather than a convention, so it is
 `losarFor` on the root export. Teacher anniversaries are not shipped either — that data is
 institution-specific and changes within a decade — but `kind: 'anniversary'` exists so you can
-supply your own.
+supply your own, as above.
+
+### Two kinds of config
+
+Both `getObservances` and `observancesOn` take **two** optional configs, and they are unrelated
+things that happen to share a word. Getting them the wrong way round is the easiest mistake to
+make against this API, so they are contrasted here rather than left to be inferred:
+
+```js
+getObservances(from, to, observanceConfig, traditionConfig);
+observancesOn(date, observanceConfig, traditionConfig);
+```
+
+| | `TraditionConfig` | `ObservanceConfig` |
+|---|---|---|
+| **Answers** | When is Tibetan day *n*? | Which days does an institution mark? |
+| **Contains** | Astronomical constants — mean motions, correction tables, epoch | Rules, each with a source URL, plus three convention defaults |
+| **Import from** | `tibetan-calendar-temporal` | `tibetan-calendar-temporal/observances` |
+| **Shipped** | `PHUGPA` (default), `PHUGPA_HENNING` | `GELUG` (default) |
+| **Kind of claim** | **Falsifiable** — checkable against Janson and against an almanac. A disagreement is a bug | **Convention** — published sources legitimately disagree. A difference is a difference, not a bug |
+| **Wrong value gives** | A wrong calendar | A different institution's calendar |
+| **Position** | Last argument | Before the tradition |
+
+The root export never takes an `ObservanceConfig`, which is the point of the split: a consumer who
+only converts dates never inherits anyone's conventions. Both are extended the same way — spread a
+shipped default and replace whole fields — and both are validated on first use, so a mistyped value
+like `doubledDay: '1st'` is rejected rather than silently falling through to a branch you did not
+mean.
 
 ## API
 
-The complete surface. Everything is a pure function over plain objects — same input, same output,
-no side effects — and every function taking a `config` defaults it to `PHUGPA`.
+The complete surface, across both entry points. Everything is a pure function over plain objects —
+same input, same output, no side effects. Wherever a `config?` parameter appears below it is a
+`TraditionConfig` defaulting to `PHUGPA`; the four functions that take no config need none.
 
-**Conversion**
+### `tibetan-calendar-temporal`
+
+#### Conversion
 
 | Export | Signature | Notes |
 |---|---|---|
 | `isoToTibetan` | `(date: Temporal.PlainDate, config?) => TibetanDate` | Total; every calendar day has a Tibetan date |
 | `tibetanToIso` | `(input: TibetanDateInput, config?) => Temporal.PlainDate` | Throws `SkippedDayError`, or `RangeError` on out-of-range input |
-| `tibetanDateExists` | `(input: TibetanDateInput, config?) => boolean` | The predicate counterpart; `false` exactly where `tibetanToIso` throws |
+| `tibetanDateExists` | `(input: TibetanDateInput, config?) => boolean` | The predicate counterpart; `false` exactly where `tibetanToIso` throws about the date |
 | `losarFor` | `(year: number, config?) => TibetanDate` | Tibetan New Year. Not `{ month: 1, day: 1 }` — that throws where day 1 is skipped |
 
-**Formatting**
+#### Formatting
 
 | Export | Signature | Notes |
 |---|---|---|
-| `formatTibetanDate` | `(date: TibetanDate) => string` | `"2153-M06-30"`, with `L` on a leap month and a trailing `(leap)` on a leap day |
+| `formatTibetanDate` | `(date: TibetanDate) => string` | `"2153-M06-30"`, with `L` on a leap month and a trailing `(leap)` on a leap day. Takes no config |
 
-**Interoperability**
+#### Interoperability
 
 The Julian day number is the interchange representation of calendrical computing — it is how you
 convert between any two calendars, and how Janson's paper is written. These are the extension
-point, not internals that leaked.
+point, not internals that leaked. None takes a config.
 
 | Export | Signature | Notes |
 |---|---|---|
@@ -297,23 +469,59 @@ point, not internals that leaked.
 | `isoFromJulianDay` | `(julianDay: number) => Temporal.PlainDate` | |
 | `tibetanWeekday` | `(julianDay: number) => number` | Almanac numbering, `0` = Saturday — not the ISO `dayOfWeek` field |
 
-**Traditions**
+#### Tradition configs
+
+Two parameterisations of one tradition, Phugpa — not two traditions. See
+[Traditions](#traditions) above.
 
 | Export | Notes |
 |---|---|
 | `PHUGPA` | The default. Lunar anomaly increment `a₂ = 1/28`, as almanacs use |
-| `PHUGPA_HENNING` | Henning's exact `3781/105840`. Differs on ~1 day in 4,100 days |
+| `PHUGPA_HENNING` | Identical but for `a₂`, Henning's exact `3781/105840`. Differs on ~1 day in 4,100 days |
 
-**Errors**
+#### Errors
 
-| Export | Notes |
-|---|---|
-| `SkippedDayError` | Carries the offending input as `.requested` |
+`SkippedDayError` is the only exported error class, and carries the offending input as
+`.requested`. Every other failure is a `RangeError`. All of them carry a `code`:
 
-**Types** (type-only exports, erased at runtime)
+| `error.code` | Thrown by | Meaning |
+|---|---|---|
+| `TCT_SKIPPED_DAY` | `tibetanToIso` | The date is well-formed but no calendar day carries its number. Not a bug in your code — see [Errors and validation](#errors-and-validation) |
+| `TCT_FIELD_OUT_OF_RANGE` | `tibetanToIso`, `losarFor` | A year, month or day is not an integer, or is outside 1–12 / 1–30 |
+| `TCT_NO_SUCH_LEAP_MONTH` | `tibetanToIso` | `isLeapMonth: true` for a month with no leap twin that year |
+| `TCT_OUTSIDE_EXACT_RANGE` | any conversion | Beyond where this tradition's integer arithmetic stays exact. `PHUGPA_HENNING` runs out around ISO year 11,356; `PHUGPA` does not, within Temporal's own range |
+| `TCT_INVALID_TRADITION_CONFIG` | any function taking a config | The `TraditionConfig` is malformed. The message names the field |
+| `TCT_INVALID_OBSERVANCE_CONFIG` | `getObservances`, `observancesOn` | The `ObservanceConfig` or one of its rules is malformed |
+| `TCT_SPAN_TOO_WIDE` | `getObservances` | More than 200 years requested at once. Chunk it; the function is pure, so concatenating is correct |
+| `TCT_MISSING_TEMPORAL` | the `import` itself | No `Temporal` in this runtime — see [Requirements](#requirements) |
+| `TCT_INTERNAL` | — | An invariant the engine proves for itself did not hold. Always a bug here; please [report it](https://github.com/nyamlen/tibetan-calendar-temporal/issues) |
 
-`TibetanDate`, `TibetanDateInput`, `TibetanYearName`, `Rabjung`, `TibetanElement`,
-`TibetanAnimal`, `TibetanGender`, `TraditionConfig`, `MeanMotion`, `Rational`.
+Codes are stable and part of the API. Message text is not — match on the code.
+
+#### Types
+
+Type-only exports, erased at runtime: `TibetanDate`, `TibetanDateInput`, `TibetanYearName`,
+`Rabjung`, `TibetanElement`, `TibetanAnimal`, `TibetanGender`, `TraditionConfig`, `MeanMotion`,
+`Rational`, `TibetanCalendarErrorCode`.
+
+### `tibetan-calendar-temporal/observances`
+
+A separate subpath, so a consumer who only converts dates never loads it. `config` here is an
+`ObservanceConfig` defaulting to `GELUG`, and `tradition` is the `TraditionConfig` — see
+[Two kinds of config](#two-kinds-of-config).
+
+| Export | Signature | Notes |
+|---|---|---|
+| `getObservances` | `(from: Temporal.PlainDate, to: Temporal.PlainDate, config?, tradition?) => Observance[]` | Date order. Returns `[]` if `to` precedes `from`; throws above a 200-year span |
+| `observancesOn` | `(date: Temporal.PlainDate, config?, tradition?) => Observance[]` | The single-day case |
+| `GELUG` | | The default config, sourced from FPMT with a URL on every rule |
+
+Type-only exports: `Observance`, `ObservanceConfig`, `ObservanceRule`, `ObservanceKind`,
+`ObservanceWhen`, `ObservanceResolution`, `DoubledDayChoice`, `SkippedDayChoice`,
+`LeapMonthChoice`.
+
+Note that `SkippedDayError` is exported from the **root** only. Nothing in this layer throws it —
+a skipped day is handled by the `skippedDay` convention instead.
 
 Full detail: [docs/architecture.md](docs/architecture.md).
 
@@ -356,6 +564,7 @@ search, and discoverability is this package's job. Everything else in the suite 
 | [docs/architecture.md](docs/architecture.md) | Layered model, API design, package structure, core types, tooling |
 | [docs/testing.md](docs/testing.md) | Three-tier testing strategy and validation sources |
 | [docs/roadmap.md](docs/roadmap.md) | Implementation phases and release status |
+| [docs/rabjung-names.md](docs/rabjung-names.md) | The 60 rabjung year names, with the provenance of every column |
 | [docs/decisions/](docs/decisions/) | Decision records |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Clean-room constraint, dev setup, how to add validation data |
 
