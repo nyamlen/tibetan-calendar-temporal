@@ -33,7 +33,8 @@ Mathematical invariants that must hold for all valid inputs:
 - **Monotonicity**: consecutive ISO dates map to non-decreasing Tibetan day numbers
 - **Month bounds**: every Tibetan year has 12 or 13 months
 - **Day bounds**: every Tibetan month has 29 or 30 civil days
-- **Skipped days are never practice days**
+- **Skipped days are never observance days** — a constraint on the *output*, satisfied by both
+  skipped-day conventions
 - **Leap month has same number as following main month**
 
 ## Tier 2: Fixture Validation

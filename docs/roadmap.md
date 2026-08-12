@@ -7,7 +7,7 @@
 | 0 | Scaffold (npm init, tsc, vitest, fast-check, biome, CI) — **done** | 2h |
 | 1 | Core computation: Layers 0-3 (Janson §2-9) — **done** | 20h |
 | 2 | Validation: FPMT fixtures, cross-check against reference implementations — **done** | 12h |
-| 3 | Practice day logic (config-driven rules, Gelug default config) | 8h |
+| 3 | Observances: config-driven rules, Gelug default config — **done** | 8h |
 | 4 | TypeDoc + release workflow + publish v1.0.0 | 6h |
 
 **Safe timeline: 3 weeks** (accounts for debugging edge cases in doubled/skipped day logic)
@@ -21,12 +21,11 @@ TypeScript 5.x because it is the first release to ship `lib.esnext.temporal.d.ts
 the package expose `Temporal` in its public types with no dependency. Both recorded in
 [decisions/2026-08-11-build-tooling.md](decisions/2026-08-11-build-tooling.md).
 
-**Decided at the start of Phase 1 — deferred to Phase 3.** The dropped Temporal calendar adapter
-gets no replacement in v1's first cut: Phase 1 ships pure functions over plain objects, not a
-Temporal-shaped `TibetanDate` class. Defining `add({months: 1})` across leap months, doubled days
-and skipped days is a domain question, and Phase 3's practice-day logic is the first consumer
-that can answer it. See
-[decisions/2026-08-11-temporal-custom-calendars.md](decisions/2026-08-11-temporal-custom-calendars.md).
+**Decided at the start of Phase 1, answered in Phase 3.** The dropped Temporal calendar adapter
+gets no replacement: there is no Temporal-shaped `TibetanDate` class. The question was deferred so
+a real consumer could settle it, and the observance engine settled it by walking months with
+`trueMonthCount` and needing no date arithmetic at all. See
+[decisions/2026-08-12-no-tibetan-date-class.md](decisions/2026-08-12-no-tibetan-date-class.md).
 
 **Also settled before Phase 1 began:** `year` is the royal-era numbering
 ([decisions/2026-08-11-year-numbering.md](decisions/2026-08-11-year-numbering.md)); `isSkippedDay`
@@ -76,6 +75,44 @@ published holy days, all matching; named Tier 3 instances for every edge-case ca
 observing one and the Liberation Prison Project calendar the other. Both are 4 of leap month 6 —
 the institutions differ over which half of a **doubled day** to observe, not over the calendar.
 Practice-day logic must therefore make that a caller's choice, not a hardcoded convention.
+
+**Phase 3 outcome.** The observance layer ships on `./observances`, validated against FPMT's own
+published calendars rather than against its guidance page. Six things came out differently from
+the plan:
+
+- **"Practice days" became "observances".** A practice day asserts something about the
+  *practitioner* — whether you keep it depends on your lineage, vows and empowerments — which the
+  calendar cannot know. *Observance* names the day, covers Losar and monastic *sojong* alike, and
+  does not presume the consumer is a practitioner.
+- **The doubled-day rule was documented backwards.** The README and `TibetanDate.isLeapDay` cited
+  Janson §11 for "the second of the pair"; §11 says the *first*. The shipped default stays
+  `"second"` because that is FPMT's own published rule and what its calendars print — only the
+  citation was wrong. The Losar exception was also misattributed: Janson's Losar remark is about
+  leap *months*, a separate axis.
+- **The `a₂` fork now has the evidence its record said was missing.** That record argued only a
+  day-by-day grid printing the doubled number could settle it, and that none was available. FPMT's
+  monthly calendars are one, from the Men-Tsee-Khang line: `a₂ = 1/28` diverges on 3 days in
+  1,461, Henning's value on 6. The default did not change; it is now measured rather than
+  reported.
+- **FPMT's calendar is not exactly Phugpa under either value.** Three residual divergences survive,
+  each about which number a skipped or doubled date consumes. Four explanations were tested and
+  ruled out, including the natural one that FPMT had chosen "more convenient" days — it had not;
+  the disagreement is in the day numbering, not in where a label sits. Catalogued in
+  [testing.md](testing.md#where-fpmts-calendars-differ).
+- **A monthly rule is monthly, and does not follow the doubled/skipped guidance.** The leap-month
+  convention applies only to annual observances; FPMT prints tsok on the 10th of both halves of a
+  leap pair. And its guidance about doubled and skipped days governs "special days" — the monthly
+  cycle instead tracks the printed numbers, so a doubled 8th is labelled twice and a skipped 25th
+  is simply not observed.
+- **Sojong is not shipped.** A fixed 15th-and-30th rule misses 38 of FPMT's occurrences over four
+  years and invents 36. Whatever governs it is not a day number, and an approximate rule is worse
+  than none here. The `kind` remains so a caller can supply their own.
+
+Also settled: **no `TibetanDate` class** — the deferred question, answered rather than deferred a
+third time — and **what belongs in the public surface**, on the rule that a name goes public when
+the consumer-side workaround is wrong or impossible. Root grew by one, `losarFor`, because
+`tibetanToIso({ month: 1, day: 1 })` throws in years where day 1 is skipped, so the most-asked
+question of a Tibetan calendar had no correct public answer.
 
 ## Release Status
 
@@ -130,8 +167,21 @@ through this before publishing v1.0.0 — several are one-way doors once publish
 - [ ] Decide whether to add a `main` field. `exports` supersedes it on modern toolchains;
       it is only insurance for older bundlers
 - [x] Add `types` to the `exports` map once TypeScript declarations are built — done in Phase 0
-- [ ] Add the `./practice` subpath export once `src/practice/` exists (Phase 3)
-- [ ] **Decide whether the Julian-day helpers stay public.** `julianDayFromIso`,
+- [x] Add the `./observances` subpath export once `src/observances/` exists — done in Phase 3.
+      Renamed from `./practice`: a "practice day" asserts something about the practitioner that
+      the calendar cannot know
+- [x] **Decided: the Julian-day helpers stay public** — done in Phase 3's surface review. They
+      are not plumbing at the wrong altitude; in calendrical software the Julian day is the domain
+      interchange representation, and they are the extension point that stops this being a closed
+      box. The altitude complaint was a documentation problem, fixed by grouping them under
+      "Interoperability" in the README. See
+      [decisions/2026-08-12-public-surface.md](decisions/2026-08-12-public-surface.md), which
+      states the rule the decision came from: expose when the consumer-side workaround is wrong or
+      impossible, keep internal when it merely costs a loop.
+
+      <details><summary>The original question</summary>
+
+      **Decide whether the Julian-day helpers stay public.** `julianDayFromIso`,
       `isoFromJulianDay` and `tibetanWeekday` sit at a lower altitude than the rest of the
       surface, which is why the question only became visible when the README's API table put all
       ten exports side by side. Once published, removing one is breaking and keeping one is
@@ -144,6 +194,17 @@ through this before publishing v1.0.0 — several are one-way doors once publish
 
       Either way, `test/public-api.test.ts` pins the list, so the choice has to be made
       explicitly rather than drifting.
+
+      </details>
+
+- [ ] **Decide whether month enumeration becomes public.** `monthsInYear`, `leapMonthOfYear` and
+      `isLeapYear` are internal, so an app rendering a Tibetan month grid cannot ask "which months
+      does this year have". Phase 3's surface review kept them internal on negative evidence — the
+      observance engine never asked — and because the workaround is correct if clumsy: walk from
+      `losarFor(y)` to `losarFor(y + 1)` collecting distinct `monthCode`s, O(365) rather than O(1).
+      Adding them later is non-breaking, which is what makes deferring legitimate; **Nyamlen is
+      likely to be the consumer that settles it.** See
+      [decisions/2026-08-12-public-surface.md](decisions/2026-08-12-public-surface.md).
 
 **Publishing**
 
@@ -211,4 +272,3 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   [architecture.md](architecture.md#why-the-60-rabjung-names-are-not-included).
 - **Tsurphu tradition** (Karma Kagyu) via a second `TraditionConfig` — the algorithm already
   supports it; only the constants differ.
-- `@nyamlen/timer` and `@nyamlen/vows` as sibling packages under the org scope.

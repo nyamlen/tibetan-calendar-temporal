@@ -109,7 +109,7 @@ zero-dependency claim runs through the published `.d.ts`, which references the g
 5.9 and `@types/node` carry no Temporal declarations at all.
 
 **No bundler.** `tsc` alone emits ESM and declarations, which keeps `dist/` mirroring `src/` —
-the structure the `./practice` subpath export needs. Do not add tsup or similar. Both decisions:
+the structure the `./observances` subpath export needs. Do not add tsup or similar. Both decisions:
 [docs/decisions/2026-08-11-build-tooling.md](docs/decisions/2026-08-11-build-tooling.md).
 
 ## Commands

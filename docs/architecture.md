@@ -45,8 +45,8 @@ astrological and planetary data that this package does not compute.
 
 ```text
 ┌─────────────────────────────────────────────┐
-│  Layer 4: Practice Day Logic                │
-│  (Config-driven rules: which days special)  │
+│  Layer 4: Observances                        │
+│  (Injected rules: which days are marked)    │
 ├─────────────────────────────────────────────┤
 │  Layer 3: Calendar Assembly                 │
 │  (Months, years, leap insertion, day skip)  │
@@ -67,7 +67,8 @@ astrological and planetary data that this package does not compute.
 Standalone pure functions, framework-agnostic:
 
 ```typescript
-import { isoToTibetan, tibetanToIso, getPracticeDays } from 'tibetan-calendar-temporal';
+import { isoToTibetan, tibetanToIso, losarFor } from 'tibetan-calendar-temporal';
+import { getObservances } from 'tibetan-calendar-temporal/observances';
 ```
 
 - Pure functions, work everywhere
@@ -82,11 +83,11 @@ built-in CLDR identifiers, which do not include `tibetan`.
 
 See [decisions/2026-08-11-temporal-custom-calendars.md](decisions/2026-08-11-temporal-custom-calendars.md).
 
-Whether anything replaces it — most likely a Temporal-shaped `TibetanDate` class offering
-`add` / `until` / `with` — was reconsidered at the start of Phase 1 and **deferred again to
-Phase 3**. Phase 1 ships pure functions over plain objects. Defining what `add({months: 1})`
-means across leap months, doubled days and skipped days is a domain question, and Phase 3's
-practice-day logic is the first consumer that will show which semantics are actually needed.
+Whether anything replaced it — most likely a Temporal-shaped `TibetanDate` class offering
+`add` / `until` / `with` — was deferred to Phase 3 so that a real consumer could answer it.
+**Phase 3 answered it: no.** The observance engine is month-indexed, walking `trueMonthCount`
+rather than doing date arithmetic, and needed none of it. See
+[decisions/2026-08-12-no-tibetan-date-class.md](decisions/2026-08-12-no-tibetan-date-class.md).
 
 This does not affect the package's Temporal-native claim. The engine speaks
 `Temporal.PlainDate` throughout; it simply is not a registered calendar.
@@ -108,10 +109,10 @@ tibetan-calendar-temporal/
 │   │   ├── corrections.ts    # moon_tab / sun_tab, true date (§7)
 │   │   ├── calendar.ts       # True month count, leap months, day rule (§5-6)
 │   │   └── conversion.ts     # ISO ↔ Tibetan bidirectional, weekday (§8-9)
-│   ├── practice/
-│   │   ├── index.ts          # Practice day logic
-│   │   ├── types.ts          # Practice, PracticeDay, CalendarConfig
-│   │   └── default-gelug.ts  # Default Gelug practice day config
+│   ├── observances/
+│   │   ├── index.ts          # getObservances, observancesOn (Layer 4)
+│   │   ├── types.ts          # ObservanceRule, ObservanceConfig, Observance
+│   │   └── default-gelug.ts  # GELUG — FPMT's published rules, each cited
 │   ├── format.ts             # formatTibetanDate — the canonical string form
 │   └── types.ts              # TibetanDate, TibetanDateInput, SkippedDayError
 ├── test/
@@ -125,7 +126,7 @@ tibetan-calendar-temporal/
 └── tsconfig.build.json    # emit: src/ -> dist/
 ```
 
-Phase 1 built everything except `practice/`, which arrives in Phase 3. Directories are created
+Phase 1 built everything except `observances/`, which arrived in Phase 3. Directories are created
 in the phase that fills them rather than as empty stubs.
 
 Constants are held as exact `Rational`s and scaled onto a common denominator derived per
@@ -141,7 +142,7 @@ tradition. See
   "type": "module",
   "exports": {
     ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
-    "./practice": { "types": "./dist/practice/index.d.ts", "default": "./dist/practice/index.js" }
+    "./observances": { "types": "./dist/observances/index.d.ts", "default": "./dist/observances/index.js" }
   },
   "sideEffects": false
 }
@@ -201,17 +202,26 @@ interface TibetanYearName {
   gender: TibetanGender;    // 'male' | 'female'
 }
 
-interface Practice {
-  type: string;           // 'tara', 'guru-puja', 'protector', etc.
+interface ObservanceRule {
+  id: string;
   name: string;
-  tier: 1 | 2 | 3;       // Universal, General Practice, Empowerment-Required
-  description?: string;
+  kind: 'duchen' | 'sojong' | 'tsok' | 'puja' | 'anniversary';
+  tier: 1 | 2 | 3;                        // Universal, General Practice, Empowerment-Required
+  when: { month: number; day: number }    // annual
+      | { day: number };                  // every month
+  doubledDay?: 'first' | 'second' | 'both';   // overrides the config default
+  skippedDay?: 'preceding' | 'omit';
+  leapMonth?: 'regular' | 'leap' | 'both';
+  source: string;                         // required, including for caller-supplied rules
 }
 
-interface CalendarConfig {
-  tradition: TraditionConfig;
-  practiceDays: PracticeDayRule[];
-  teachers: TeacherConfig[];
+interface ObservanceConfig {
+  id: string;
+  name: string;
+  rules: readonly ObservanceRule[];
+  doubledDay: 'first' | 'second' | 'both';
+  skippedDay: 'preceding' | 'omit';
+  leapMonth: 'regular' | 'leap' | 'both';
 }
 ```
 
@@ -308,7 +318,7 @@ input; without it, a doubled date is ambiguous.
 | GitHub Actions | CI/CD with npm provenance |
 
 There is no bundler. `tsc` alone emits the ESM output and declarations, which keeps `dist/`
-mirroring `src/` — the structure the `./practice` subpath export depends on. Reasoning:
+mirroring `src/` — the structure the `./observances` subpath export depends on. Reasoning:
 [decisions/2026-08-11-build-tooling.md](decisions/2026-08-11-build-tooling.md).
 
 ### Temporal types

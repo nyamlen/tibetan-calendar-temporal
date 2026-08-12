@@ -71,7 +71,7 @@ Each of those is cancelled by a rule this project already holds:
   public type surface is a core deliverable, generating it with the compiler rather than a
   wrapper is the lower-risk option.
 
-The `./practice` subpath export also wants `dist/` to *mirror* `src/` rather than be flattened,
+The `./observances` subpath export also wants `dist/` to *mirror* `src/` rather than be flattened,
 which is `tsc`'s default behaviour and something a bundler has to be configured not to undo.
 Speed was tsup's remaining advantage, and TS 7's native compiler largely erases it.
 
