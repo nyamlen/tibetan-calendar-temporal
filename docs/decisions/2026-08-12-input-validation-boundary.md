@@ -48,6 +48,12 @@ widen it back to a bare `catch`. It is the oracle for the Tier 1 property that s
 never observance days, so a swallowed internal failure would make that property pass *more* easily
 rather than fail.
 
+Two exclusions ride on top of that, because the error *type* alone is too coarse. The internal
+invariant violation in `isoToTibetan` is a plain `Error` rather than a `RangeError`, so the branch
+never sees it. A malformed `TraditionConfig` *is* a `RangeError` — it is genuinely bad input — and
+is excluded by **code** instead, via `hasCode`. See
+[the error-code record](2026-08-12-error-codes-not-classes.md).
+
 ## The 200-year span cap is deliberate, and is a one-way door
 
 Do not remove it, and do not raise it without treating that as a breaking change.
@@ -73,10 +79,28 @@ per-month cost above, which is orders of magnitude beyond a day-walker like `eac
 
 ## Consumer configs are validated once per object
 
-`ObservanceConfig` is the documented extension point, so its rules are checked rather than trusted,
-memoised on a `WeakSet` keyed by the config — the same bargain `scalingFor` already makes with its
-`WeakMap`. A consumer who mutates a config in place after first use escapes revalidation; that is
-accepted, not overlooked.
+**Both** config types, on the same pattern: checked rather than trusted, memoised on a `WeakSet`
+keyed by the config object — the same bargain `scalingFor` already makes with its `WeakMap`. A
+consumer who mutates a config in place after first use escapes revalidation; that is accepted, not
+overlooked.
+
+`ObservanceConfig` is validated by `validateObservanceConfig` in `src/observances/index.ts`;
+`TraditionConfig` by [`assertTraditionConfig`](../../src/traditions/validate.ts), called from both
+`scalingFor` functions, which are the single choke point every public entry reaches. Because the
+scaling derivation is already memoised per object, the check costs nothing after the first call —
+which is what lets it be thorough without touching the hot path.
+
+Add a config type, and it gets a validator. `TraditionConfig` went unchecked for a while despite
+this record already requiring "integrality, range, **and config shape**", and the gap was invisible
+because the failure looked like a language error rather than a missing feature: a partial mean
+motion surfaced as `Cannot read properties of undefined (reading 'den')` from inside
+`scaleMeanMotion`, naming neither the field nor the config, and a `moonTab` of the wrong length
+reached an interpolation that indexed past its end and returned `NaN` — which propagates into a
+date rather than failing.
+
+Both validators check **shape, not astronomy**. Plausible constants that are wrong pass and produce
+a plausible calendar that is wrong; only a fixture catches that. Do not let the presence of a
+validator suggest otherwise in a docblock.
 
 The mean-motion formulas are linear in the lunar day, so an unvalidated rule did not fail, it
 extrapolated: `when: { day: 31 }` returned the 1st of the *following* month labelled

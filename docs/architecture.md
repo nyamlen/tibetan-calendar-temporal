@@ -100,6 +100,7 @@ tibetan-calendar-temporal/
 │   ├── index.ts              # Public API exports
 │   ├── traditions/
 │   │   ├── types.ts          # TraditionConfig type
+│   │   ├── validate.ts       # assertTraditionConfig — shape check at the boundary
 │   │   └── phugpa.ts         # Phugpa constants (epoch, tables)
 │   ├── computation/
 │   │   ├── arithmetic.ts     # floorDiv, ceilDiv, mod, amod, gcd, lcm, scaleTo (§2)
@@ -113,6 +114,7 @@ tibetan-calendar-temporal/
 │   │   ├── index.ts          # getObservances, observancesOn (Layer 4)
 │   │   ├── types.ts          # ObservanceRule, ObservanceConfig, Observance
 │   │   └── default-gelug.ts  # GELUG — FPMT's published rules, each cited
+│   ├── errors.ts             # Error codes, and the constructors that attach them
 │   ├── format.ts             # formatTibetanDate — the canonical string form
 │   └── types.ts              # TibetanDate, TibetanDateInput, SkippedDayError
 ├── test/
@@ -324,7 +326,7 @@ and returned a confident, well-formed, wrong `PlainDate`, and `NaN` passed too, 
 neither `< 1` nor `> 30`.
 A plausible calendar that is quietly wrong is the most expensive failure this project has.
 
-Four rules follow from that:
+Five rules follow from that:
 
 - **Integrality is checked before range.** `Number.isSafeInteger` for years, which covers fractions,
   `NaN`, the infinities and 2⁵³ overflow in one predicate; `Number.isInteger` for fields whose
@@ -337,10 +339,18 @@ Four rules follow from that:
   is out of range". They must stay distinguishable.
 - **Predicates catch narrowly.** `tibetanDateExists` catches `SkippedDayError` and `RangeError` and
   rethrows everything else, so an internal invariant violation reaches the caller instead of being
-  reported as a missing date.
-- **Consumer data is validated once per object**, memoised on a `WeakSet`/`WeakMap` keyed by the
-  config — the same bargain `scalingFor` already makes. `ObservanceConfig` is the documented
-  extension point, so its rules are checked rather than trusted.
+  reported as a missing date. Two exclusions sit on top: the internal violation is a plain `Error`
+  rather than a `RangeError`, and a malformed `TraditionConfig` — which *is* bad input, so *is* a
+  `RangeError` — is excluded by its code.
+- **Both consumer configs are validated once per object**, memoised on a `WeakSet` keyed by the
+  config — the same bargain `scalingFor` already makes with its `WeakMap`. `ObservanceConfig` is
+  checked by `validateObservanceConfig`, `TraditionConfig` by
+  [`assertTraditionConfig`](../src/traditions/validate.ts), called from the two `scalingFor`
+  functions that every entry point passes through. Both check **shape, not astronomy**.
+- **Every error carries a code**, and `SkippedDayError` is the only error class. Construct through
+  `rangeError`/`codedError` in [`src/errors.ts`](../src/errors.ts) rather than with a bare
+  `new RangeError`, so the code is never omitted. Codes are contract; message text is not. See
+  [decisions/2026-08-12-error-codes-not-classes.md](decisions/2026-08-12-error-codes-not-classes.md).
 
 ## Tooling
 
