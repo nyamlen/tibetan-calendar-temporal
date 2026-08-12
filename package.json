@@ -56,7 +56,7 @@
     "vitest": "^4.1.10"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=26"
   },
   "sideEffects": false,
   "publishConfig": {

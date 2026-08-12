@@ -27,6 +27,21 @@ import { rabjungFromYear, royalEraFromYear, yearFromRoyalEra, yearNameFromYear }
 import { meanDate } from "./mean-astronomy.js";
 import { deriveScaling, type ScaledTradition } from "./scaling.js";
 
+// Checked at module evaluation, because the next line already needs Temporal. Without this a
+// consumer on a runtime that lacks it gets `ReferenceError: Temporal is not defined` on import,
+// before calling anything, naming neither the requirement nor the fix. Every entry point reaches
+// here: `./observances` imports this module.
+/* c8 ignore start -- unreachable under test: the suite runs on Node 26, where Temporal exists */
+if (typeof Temporal === "undefined") {
+	throw new Error(
+		"tibetan-calendar-temporal requires the Temporal API, which is not available in this " +
+			"runtime. Temporal ships enabled from Node 26; Node 24 has it behind " +
+			"--harmony-temporal. On older runtimes or in a browser, import a polyfill before this " +
+			'package: `import "temporal-polyfill/global";`',
+	);
+}
+/* c8 ignore stop */
+
 /** 1970-01-01, the anchor for converting between Temporal and Julian day numbers. */
 const UNIX_EPOCH = Temporal.PlainDate.from("1970-01-01");
 
@@ -84,11 +99,19 @@ function assertSafeYear(year: number): void {
  * not be the same error.
  *
  * Negated comparison so that a `NaN` Julian day fails rather than passes.
+ *
+ * `subject` is a thunk because this sits on the hot path — `isoToTibetan` is called once per day
+ * in the multi-century sweeps — and building the message eagerly would format a date on every
+ * successful conversion. It is only ever needed on the throw.
  */
-function assertExactJulianDay(scaled: ScaledTradition, julianDay: number, subject: string): void {
+function assertExactJulianDay(
+	scaled: ScaledTradition,
+	julianDay: number,
+	subject: () => string,
+): void {
 	if (!(Math.abs(julianDay) <= scaled.exactToJulianDay)) {
 		throw new RangeError(
-			`${subject} is outside the range where this tradition's arithmetic is exact: ` +
+			`${subject()} is outside the range where this tradition's arithmetic is exact: ` +
 				`|JD| must be at most ${scaled.exactToJulianDay}, received ${julianDay}`,
 		);
 	}
@@ -220,7 +243,7 @@ export function tibetanToIso(
 	assertExactJulianDay(
 		scaled,
 		floorDiv(meanDate(scaled, input.day, monthCount), scaled.meanDate.den),
-		`Tibetan date ${input.year}-${input.month}-${input.day}`,
+		() => `Tibetan date ${input.year}-${input.month}-${input.day}`,
 	);
 
 	const classification = classifyDay(scaled, input.day, monthCount);
@@ -301,7 +324,7 @@ export function isoToTibetan(
 ): TibetanDate {
 	const scaled = scalingFor(config);
 	const target = julianDayFromIso(date);
-	assertExactJulianDay(scaled, target, date.toString());
+	assertExactJulianDay(scaled, target, () => date.toString());
 
 	// Invert the mean date over the linear lunar day count l = 30n + d.
 	const { den, perDay, atEpoch } = scaled.meanDate;
@@ -378,7 +401,7 @@ export function losarFor(year: number, config: TraditionConfig = PHUGPA): Tibeta
 	const scaled = scalingFor(config);
 	assertSafeYear(year);
 	const julianDay = losarJulianDay(scaled, config, yearFromRoyalEra(year));
-	assertExactJulianDay(scaled, julianDay, `Losar of ${year}`);
+	assertExactJulianDay(scaled, julianDay, () => `Losar of ${year}`);
 	return isoToTibetan(isoFromJulianDay(julianDay), config);
 }
 

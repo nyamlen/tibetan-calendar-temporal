@@ -161,9 +161,13 @@ through this before publishing v1.0.0 — several are one-way doors once publish
 - [x] Remove the `STATUS` export from `index.js` — done in Phase 0; `index.js` is gone entirely,
       replaced by `src/index.ts` compiled to `dist/`
 - [ ] Remove the placeholder banner from `README.md`
-- [ ] Revisit `engines: ">=22"`. Correct for the stub, which needs nothing, but the real engine
-      uses Temporal at runtime. Decide whether to require Node 26 or keep it advisory and let
-      consumers supply a polyfill
+- [x] Revisit `engines: ">=22"` — resolved to `">=26"`, plus a runtime guard. The engine touches
+      Temporal at module evaluation (`conversion.ts` builds its Unix-epoch anchor there), so a
+      Node 22 consumer whose install npm had blessed got `ReferenceError: Temporal is not defined`
+      on `import`, naming neither Temporal nor the polyfill that fixes it. `">=26"` tells the
+      truth and npm treats it as a warning rather than a block, so polyfill consumers are not
+      locked out; the guard turns the remaining failure into an actionable message. CI tests one
+      Node version, so neither would have surfaced in-repo
 - [ ] Decide whether to add a `main` field. `exports` supersedes it on modern toolchains;
       it is only insurance for older bundlers
 - [x] Add `types` to the `exports` map once TypeScript declarations are built — done in Phase 0

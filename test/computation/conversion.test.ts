@@ -165,6 +165,10 @@ describe("losarFor", () => {
 // — but not when the number is skipped, which is exactly why these are computed rather than
 // derived from `day`.
 describe("full moon and new moon", () => {
+	// Explicit timeout: this walks about 73,000 calendar days, which is well under a second bare
+	// but 5-8 seconds under v8 coverage instrumentation -- so `npm run coverage` failed on Vitest's
+	// 5s default while `npm test` passed. CI runs test and not coverage, which is why it went
+	// unnoticed.
 	it("puts exactly one of each in every month over 200 years", () => {
 		const first = trueMonthCount(PHUGPA, 1900, 1);
 		const last = trueMonthCount(PHUGPA, 2100, 1);
@@ -184,7 +188,7 @@ describe("full moon and new moon", () => {
 				wrong.push(`${month.year}-${month.month}${month.isLeap ? "L" : ""}: ${full}/${dark}`);
 		}
 		expect(wrong).toEqual([]);
-	});
+	}, 30_000);
 
 	it("lands on day 15 and day 30 in an ordinary month", () => {
 		expect(isoToTibetan(iso("2026-08-12")).isNewMoon).toBe(true);
