@@ -8,7 +8,8 @@ trust the dates. Three tiers, all run in CI.
 ```text
 test/
 ├── computation/          # one suite per src/computation module
-├── fixtures/             # generated from Janson; FPMT data arrives in Phase 2
+├── validation/           # Tier 2, cross-checks against external sources
+├── fixtures/             # generated — from Janson, and from external implementations
 └── invariants.test.ts    # year lengths, safe-integer bound, §13 period
 ```
 
@@ -38,16 +39,17 @@ sources and assert the engine matches.
 
 **Validation sources:**
 
-| Source | URL | What it provides |
-|--------|-----|-----------------|
-| **FPMT Dharma Practice Dates** | <https://fpmt.org/media/resources/dharma-dates/> | Annual published calendar of practice days (Losar, Saka Dawa, Chotrul Duchen, etc.) — the authoritative Gelug reference |
-| **Lotsawa House Phugpa Calculator** | <https://www.lotsawahouse.org/Static/tools/phugpa.html> | Interactive web tool — compute any year's dates for spot-checking |
-| **christian-steinert TibetanBuddhistPracticeDates** | <https://github.com/christiansteinert/TibetanBuddhistPracticeDates> | Java (GPL-3.0), has ICS export — run locally, compare outputs (code is GPL but *outputs are data*, not derived works) |
-| **eszthoff/tibetan-date-calculator** | <https://github.com/eszthoff/tibetan-date-calculator> | TypeScript, Phugpa, implements Janson — run locally to compare computed dates (do NOT copy code, only compare outputs) |
-| **lscalendars/tibcalendar** | <https://github.com/lscalendars/tibcalendar> | C library, reference implementation for Tibetan calendrical calculations |
+| Source | URL | What it provides | Status |
+|--------|-----|-----------------|--------|
+| **Lotsawa House Phugpa Calculator** | <https://www.lotsawahouse.org/Static/tools/phugpa.html> | Whole-year day-by-day grid, marking skipped (`*`) and doubled (`+`) dates | **In use** — `crosscheck-lotsawa.ts`, 1,831 days, 2023–2027 |
+| **christian-steinert TibetanBuddhistPracticeDates** | <https://practicedates.christian-steinert.de> | JSON API `/dates/YYYYMMDD-YYYYMMDD` giving day numbers plus doubled and leap-month flags | **In use** — `crosscheck-steinert.ts`, 1,461 days, 2024–2027 |
+| **FPMT Dharma Practice Dates** | <https://fpmt.org/media/resources/dharma-dates/> | Practice days prepared from the Men-Tsee-Khang almanac — the authoritative Gelug reference | Practice days only; see the note on what it cannot settle |
+| **eszthoff/tibetan-date-calculator** | <https://github.com/eszthoff/tibetan-date-calculator> | TypeScript, Phugpa, implements Janson — run locally to compare computed dates (do NOT copy code, only compare outputs) | Not yet used |
+| **lscalendars/tibcalendar** | <https://github.com/lscalendars/tibcalendar> | C library, reference implementation for Tibetan calendrical calculations | **Deferred.** A fourth implementation of the same paper, needing a C toolchain, adding no independent tradition line |
 
 > **Clean-room note.** Running these to compare *outputs* is permitted — dates are facts, not
 > copyrightable expression. Reading their source is not. See [CONTRIBUTING.md](../CONTRIBUTING.md).
+
 > **The `a₂` fork is settled — these sources do not straddle it.** Resolved 2026-08-12; see
 > [decisions/2026-08-12-lunar-anomaly-a2-default.md](decisions/2026-08-12-lunar-anomaly-a2-default.md).
 >
@@ -67,21 +69,52 @@ sources and assert the engine matches.
 > about which number is doubled or skipped, never about where a month boundary falls. Only a
 > day-by-day grid printing the doubled number is evidence.
 
-**Fixture format:**
+### Where christian-steinert differs
 
-```json
-// test/fixtures/fpmt-2026.json
-[
-  { "iso": "2026-02-18", "event": "Losar 2153", "tibYear": 2153, "tibMonth": 1, "tibDay": 1 },
-  { "iso": "2026-05-17", "event": "Saka Dawa begins", "tibMonth": 4, "tibDay": 1 }
-]
-```
+The engine matches **Lotsawa House on all 1,831 days** of 2023–2027, including every doubled
+date, both leap months, and every skipped-date gap. Against christian-steinert it matches 1,438
+of 1,461 days; the 23 exceptions are a real, one-directional rule difference, and
+`test/validation/crosscheck.test.ts` catalogues them rather than asserting them away.
+
+In all 23, Steinert's number is exactly one higher than ours, and in all 23 Lotsawa House sides
+with the engine. Every one sits at a **skipped** date. Take 8 February 2024: both sources agree
+7 February is the 27th and 9 February is the 30th, so a single calendar day carries one of 28/29.
+We number it 28 and skip 29; Steinert numbers it 29 and skips 28.
+
+Janson's day-labelling rule, §6, decides it:
+
+> if two lunar days end the same calendar day, then the calendar day gets the name of the first
+> of them
+
+Lunar days 28 and 29 both end on 8 February 2024, so the calendar day takes the **first** name,
+28, and 29 is skipped. That is what the engine and Lotsawa House do.
+
+Do not "fix" the engine towards Steinert, and do not delete the fixture because it disagrees.
+The disagreement is the finding. It is also why the suite asserts the *shape* of the difference
+— never in the month number, never in the leap-month flag, never more than one in the day number
+— because that is what would change if the cause were something other than this rule.
+
+**Fixture provenance.** Every cross-check fixture is generated by a committed script and carries
+its source and tradition line in a header:
+
+- `scripts/fetch-lotsawa-fixtures.mjs` → `test/fixtures/crosscheck-lotsawa.ts`
+- `scripts/fetch-steinert-fixtures.mjs` → `test/fixtures/crosscheck-steinert.ts`
+
+Output is committed so CI never depends on a third party's uptime, and so a diff after
+regeneration is a finding to investigate rather than noise. Re-run the scripts deliberately; do
+not edit the fixtures by hand.
+
+> Two conventions bit during Phase 2 and will bite again. Both Lotsawa's `(+)` and Steinert's
+> `repeatedTibMonth` mean "**this month number occurs twice**", not "this is the leap month" —
+> the leap month is the *first* of the pair. Mapping either flag straight to `isLeapMonth`
+> mislabels about thirty days per leap year, and it looks like an engine bug rather than a
+> fixture bug. `fetch-steinert-fixtures.mjs` walks the runs to resolve this, and
+> `fetch-lotsawa-fixtures.mjs` re-derives the doubled flags and fails if they disagree with the
+> page's own markers.
 
 > Losar 2026 is **18 February**, per Janson's table and the engine. An earlier draft of this
 > file said 17 February, which is day 30 of the preceding month — the kind of one-day slip that
 > is invisible in review and poisons a fixture. Take dates from a source, never from memory.
-
-Curate data for at least 3 years (2024-2026). Run cross-validation in CI on every commit.
 
 ## Tier 3: Regression Tests
 
