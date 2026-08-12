@@ -277,6 +277,11 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   Lhasa phonetics. See
   [architecture.md](architecture.md#why-the-60-rabjung-names-are-not-included).
 
+  **All 60 are now tabulated side by side in [rabjung-names.md](rabjung-names.md)** — Wylie,
+  Tibetan script, Lhasa phonetics, IAST, Devanāgarī, Janson's Sanskrit and an English gloss, with
+  the provenance and standing of each column stated. Read that before deciding; the columns are
+  not of equal weight, and three of the seven are unverified.
+
   **Sourcing re-checked 2026-08-12.** Four findings, none of which unblocks this on its own:
 
   - **Janson's `T60` already carries a Tibetan (Wylie) column and a Sanskrit column, and
