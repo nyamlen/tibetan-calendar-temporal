@@ -10,7 +10,8 @@ test/
 ├── computation/          # one suite per src/computation module
 ├── validation/           # Tier 2, cross-checks against external sources
 ├── fixtures/             # generated — from Janson, and from external implementations
-└── invariants.test.ts    # year lengths, safe-integer bound, §13 period
+├── invariants.test.ts    # year lengths, safe-integer bound, §13 period
+└── regression.test.ts    # Tier 3, named instances of each edge case
 ```
 
 Tiers 1 and 3 are interleaved with the unit suites rather than kept in separate directories —
@@ -135,12 +136,38 @@ not edit the fixtures by hand.
 > file said 17 February, which is day 30 of the preceding month — the kind of one-day slip that
 > is invisible in review and poisons a fixture. Take dates from a source, never from memory.
 
+### The FPMT fixture
+
+`test/fixtures/fpmt-holy-days.ts` is the only fixture taken from the **almanac** rather than from
+someone's implementation of Janson, and it tests a different thing: not "do we compute what other
+engines compute" but "do our day numbers land on the days people actually observe". Each great
+holy day has a fixed Tibetan date, so each published Gregorian date is a direct assertion.
+
+It is **hand-curated**, the one exception to this directory's generated-only rule, because FPMT
+publishes these in prose announcements with no feed to parse. What keeps it safe: the list is
+short enough to check by eye, every row carries its source URL, and every row was confirmed
+against all three cross-check implementations before being written down. Rows whose source could
+not be named were left out rather than filled in from memory.
+
+Its best row is the 2024 Chokhor Duchen. FPMT writes that it "takes place this year on July 9 or
+July 10 depending on the various Tibetan calendars", with Kopan Monastery observing the 9th and
+the Liberation Prison Project calendar the 10th. Both dates are the **same** Tibetan date — 4 of
+the leap month 6 — so the institutions are not disagreeing about the calendar at all. They are
+choosing which half of a doubled day to observe, which Janson §11 discusses and no arithmetic can
+settle. That single row exercises a leap month and a doubled day at once, from an almanac-line
+source, and it is the concrete reason Phase 3 must let the caller choose rather than hardcoding a
+convention.
+
 ## Tier 3: Regression Tests
 
-Specific edge cases:
+Phase 1's suites prove these categories occur and behave consistently. `test/regression.test.ts`
+pins **named instances** of each, taken from sources rather than from the engine's own output —
+because "some day this decade is doubled" survives a systematic one-day error and "9 and 10 July
+2024 are both 4 of leap month 6, and FPMT says so" does not.
 
-- Doubled days (two ISO dates → same Tibetan day number)
-- Skipped days (Tibetan day number with no corresponding ISO date)
-- Leap months (13-month years)
-- Month/year boundaries
-- Dates near epoch (early years)
+- Doubled days — 2025-11-19/20 as 30 of month 9; 2024-07-09/10 as 4 of leap month 6
+- Skipped days — 29 of month 12 (2024-02-08) and 20 of month 9 (2025-11-10), one skipping the
+  higher number and one the lower, since which disappears is decided by the astronomy
+- Leap months — 2024 M06L from 6 July, 2027 M02L from 9 March, and the main month that follows
+- Month/year boundaries — the day before Losar 2026, and the royal-era year across 1 January
+- Dates near the epoch — round-trips through the first sixty days after E806
