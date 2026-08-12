@@ -66,7 +66,9 @@ hand-curated because FPMT publishes *those* dates in prose announcements with no
 That justification is narrower than it looks and does not extend to the calendars above. Do not
 "fix" it by trying to generate it, and do not delete it for breaking the rule. Its safeguards are
 that it is short enough to check by eye, every row carries its source URL, and every row was
-confirmed against three independent implementations first. See `docs/testing.md`.
+confirmed against three independent implementations first. See `docs/testing.md`, which also states
+the window that agreement actually covers — day-by-day external validation spans 2022–2027, against
+a documented range starting 1447, so cite the window whenever citing the agreement.
 
 Permitted: running those libraries locally and comparing *computed dates* against ours. Dates
 are facts, not copyrightable expression. Reading their public README for API-design ideas is

@@ -309,6 +309,39 @@ Doubled days need two flags rather than one, because a consumer must know both t
 shared and which of the two days this is. `tibetanToIso` therefore accepts `isLeapDay` as optional
 input; without it, a doubled date is ambiguous.
 
+## Input validation
+
+**Public entry points validate; internals assume validated input.**
+The boundary is the exported surface — `tibetanToIso`, `losarFor`, `isoToTibetan`, `getObservances`
+and `observancesOn`.
+Everything under `src/computation/` below that line may assume its arguments are already integers in
+range, and is free not to re-check.
+
+Add a guard when you add a public function.
+The engine's determinism rests entirely on integer arithmetic, and that premise was previously
+defended everywhere except where untrusted values enter: a fractional `day` passed every bound check
+and returned a confident, well-formed, wrong `PlainDate`, and `NaN` passed too, since it satisfies
+neither `< 1` nor `> 30`.
+A plausible calendar that is quietly wrong is the most expensive failure this project has.
+
+Four rules follow from that:
+
+- **Integrality is checked before range.** `Number.isSafeInteger` for years, which covers fractions,
+  `NaN`, the infinities and 2⁵³ overflow in one predicate; `Number.isInteger` for fields whose
+  bounds already confine them.
+- **Out-of-exact-range is its own error.** Past
+  [`ScaledTradition.exactToJulianDay`](../src/computation/scaling.ts) the arithmetic degrades
+  silently, and a degraded `true_date` misclassifies the day — so overflow surfaced as
+  `SkippedDayError`, a confident calendrical claim about a date that was never computed. A caller's
+  correct response to `SkippedDayError` is "fine, that date does not exist"; to this it is "my input
+  is out of range". They must stay distinguishable.
+- **Predicates catch narrowly.** `tibetanDateExists` catches `SkippedDayError` and `RangeError` and
+  rethrows everything else, so an internal invariant violation reaches the caller instead of being
+  reported as a missing date.
+- **Consumer data is validated once per object**, memoised on a `WeakSet`/`WeakMap` keyed by the
+  config — the same bargain `scalingFor` already makes. `ObservanceConfig` is the documented
+  extension point, so its rules are checked rather than trusted.
+
 ## Tooling
 
 | Tool | Purpose |

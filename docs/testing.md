@@ -87,6 +87,23 @@ Two of the three implementations agree with the engine on every single day, incl
 doubled date, both leap months, and every skipped-date gap. The fourth source is not an
 implementation at all — see below.
 
+#### What that does and does not cover
+
+Day-by-day external agreement spans **2022–2027**, six years.
+Add Janson's Losar table and the epoch-era worked examples and the *externally checked* evidence
+becomes 1927–2046 at one day per year, plus the epoch itself, plus those six years in full.
+
+The engine is documented as usable from 1447 and as a back-projection before that, so state the
+claim precisely: "agrees with three independent implementations" is true, and it is a statement
+about a six-year window, not about the whole range.
+Outside it the checks are internal self-consistency — round-trips, year-length frequencies, period
+arithmetic — and those can only catch an inconsistency, never a shared misreading of the paper.
+`test/invariants.test.ts` probes year 700 deliberately and asserts only that the month is 1–12 and
+the ISO date round-trips: well-formedness, not correctness.
+
+This is a known and accepted limit, not an oversight. The cheapest way to narrow it further is more
+worked values from Janson outside 1927–2046, extracted rather than transcribed.
+
 ### Where FPMT's calendars differ
 
 `test/fixtures/fpmt-observances.ts` is the only **day-by-day** almanac source here: FPMT's monthly
