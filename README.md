@@ -27,6 +27,7 @@ days, and determines practice days. Open source, MIT licensed, with zero runtime
   - [Naming a year](#naming-a-year)
   - [Traditions](#traditions)
   - [Practice days](#practice-days)
+- [API](#api)
 - [Why this exists](#why-this-exists)
 - [Provenance](#provenance)
 - [Project identity](#project-identity)
@@ -212,7 +213,52 @@ evidence for the default is in
 
 Shipping in v1.0.0 via a `tibetan-calendar-temporal/practice` subpath export. Not yet available.
 
-Full API detail: [docs/architecture.md](docs/architecture.md).
+## API
+
+The complete surface. Everything is a pure function over plain objects — same input, same output,
+no side effects — and every function taking a `config` defaults it to `PHUGPA`.
+
+**Conversion**
+
+| Export | Signature | Notes |
+|---|---|---|
+| `isoToTibetan` | `(date: Temporal.PlainDate, config?) => TibetanDate` | Total; every calendar day has a Tibetan date |
+| `tibetanToIso` | `(input: TibetanDateInput, config?) => Temporal.PlainDate` | Throws `SkippedDayError`, or `RangeError` on out-of-range input |
+| `tibetanDateExists` | `(input: TibetanDateInput, config?) => boolean` | The predicate counterpart; `false` exactly where `tibetanToIso` throws |
+
+**Formatting**
+
+| Export | Signature | Notes |
+|---|---|---|
+| `formatTibetanDate` | `(date: TibetanDate) => string` | `"2153-M06-30"`, with `L` on a leap month and a trailing `(leap)` on a leap day |
+
+**Julian day numbers**
+
+| Export | Signature | Notes |
+|---|---|---|
+| `julianDayFromIso` | `(date: Temporal.PlainDate) => number` | |
+| `isoFromJulianDay` | `(julianDay: number) => Temporal.PlainDate` | |
+| `tibetanWeekday` | `(julianDay: number) => number` | Almanac numbering, `0` = Saturday — not the ISO `dayOfWeek` field |
+
+**Traditions**
+
+| Export | Notes |
+|---|---|
+| `PHUGPA` | The default. Lunar anomaly increment `a₂ = 1/28`, as almanacs use |
+| `PHUGPA_HENNING` | Henning's exact `3781/105840`. Differs on ~1 day in 4,100 |
+
+**Errors**
+
+| Export | Notes |
+|---|---|
+| `SkippedDayError` | Carries the offending input as `.requested` |
+
+**Types** (type-only exports, erased at runtime)
+
+`TibetanDate`, `TibetanDateInput`, `TibetanYearName`, `Rabjung`, `TibetanElement`,
+`TibetanAnimal`, `TibetanGender`, `TraditionConfig`, `MeanMotion`, `Rational`.
+
+Full detail: [docs/architecture.md](docs/architecture.md).
 
 ## Why this exists
 
