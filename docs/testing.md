@@ -44,7 +44,7 @@ sources and assert the engine matches.
 | **Lotsawa House Phugpa Calculator** | <https://www.lotsawahouse.org/Static/tools/phugpa.html> | Whole-year day-by-day grid, marking skipped (`*`) and doubled (`+`) dates | **In use** — `crosscheck-lotsawa.ts`, 1,831 days, 2023–2027 |
 | **christian-steinert TibetanBuddhistPracticeDates** | <https://practicedates.christian-steinert.de> | JSON API `/dates/YYYYMMDD-YYYYMMDD` giving day numbers plus doubled and leap-month flags | **In use** — `crosscheck-steinert.ts`, 1,461 days, 2024–2027 |
 | **FPMT Dharma Practice Dates** | <https://fpmt.org/media/resources/dharma-dates/> | Practice days prepared from the Men-Tsee-Khang almanac — the authoritative Gelug reference | Practice days only; see the note on what it cannot settle |
-| **eszthoff/tibetan-date-calculator** | <https://github.com/eszthoff/tibetan-date-calculator> | TypeScript, Phugpa, implements Janson — run locally to compare computed dates (do NOT copy code, only compare outputs) | Not yet used |
+| **eszthoff/tibetan-date-calculator** | <https://www.npmjs.com/package/tibetan-date-calculator> | TypeScript, Phugpa, implements Janson — installed outside the repo and executed, never read | **In use** — `crosscheck-eszthoff.ts`, 1,826 days, 2023–2027 |
 | **lscalendars/tibcalendar** | <https://github.com/lscalendars/tibcalendar> | C library, reference implementation for Tibetan calendrical calculations | **Deferred.** A fourth implementation of the same paper, needing a C toolchain, adding no independent tradition line |
 
 > **Clean-room note.** Running these to compare *outputs* is permitted — dates are facts, not
@@ -69,11 +69,21 @@ sources and assert the engine matches.
 > about which number is doubled or skipped, never about where a month boundary falls. Only a
 > day-by-day grid printing the doubled number is evidence.
 
+### Results
+
+| Source | Range | Agreement |
+|--------|-------|-----------|
+| Lotsawa House | 2023–2027, 1,831 days | **all** |
+| eszthoff | 2023–2027, 1,826 days | **all** |
+| christian-steinert | 2024–2027, 1,461 days | 1,438 — see below |
+
+Two of the three agree with the engine on every single day, including every doubled date, both
+leap months, and every skipped-date gap.
+
 ### Where christian-steinert differs
 
-The engine matches **Lotsawa House on all 1,831 days** of 2023–2027, including every doubled
-date, both leap months, and every skipped-date gap. Against christian-steinert it matches 1,438
-of 1,461 days; the 23 exceptions are a real, one-directional rule difference, and
+Against christian-steinert the engine matches 1,438 of 1,461 days; the 23 exceptions are a real,
+one-directional rule difference, and
 `test/validation/crosscheck.test.ts` catalogues them rather than asserting them away.
 
 In all 23, Steinert's number is exactly one higher than ours, and in all 23 Lotsawa House sides
@@ -99,6 +109,15 @@ its source and tradition line in a header:
 
 - `scripts/fetch-lotsawa-fixtures.mjs` → `test/fixtures/crosscheck-lotsawa.ts`
 - `scripts/fetch-steinert-fixtures.mjs` → `test/fixtures/crosscheck-steinert.ts`
+- `scripts/fetch-eszthoff-fixtures.mjs` → `test/fixtures/crosscheck-eszthoff.ts`
+
+> **eszthoff is executed, never read, and never installed into this repository.** It has no
+> licence file, so it is all-rights-reserved — the reason `CLAUDE.md` forbids reading it at all.
+> Its generator resolves the package from the *current working directory*, so install it in a
+> scratch directory outside the repo and run the script from there. Do not add it as a
+> devDependency: that puts its code in the tree, which is the thing being avoided. If a
+> disagreement ever needs explaining, explain it from Janson — that is how the 23-day
+> christian-steinert divergence was resolved.
 
 Output is committed so CI never depends on a third party's uptime, and so a diff after
 regeneration is a finding to investigate rather than noise. Re-run the scripts deliberately; do

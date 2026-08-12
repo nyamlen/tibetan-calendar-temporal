@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { isoToTibetan, tibetanDateExists } from "../../src/computation/conversion.js";
 import { PHUGPA_HENNING } from "../../src/traditions/phugpa.js";
+import { ESZTHOFF_DATES } from "../fixtures/crosscheck-eszthoff.js";
 import { LOTSAWA_DATES } from "../fixtures/crosscheck-lotsawa.js";
 import { type CrosscheckRow, STEINERT_DATES } from "../fixtures/crosscheck-steinert.js";
 
@@ -106,6 +107,19 @@ describe("Lotsawa House Phugpa calculator, 2023-2027", () => {
 		}).map((row) => row.iso);
 
 		expect(disagreements).toContain("2025-11-19");
+	});
+});
+
+// A third implementation, independent of both the engine and Lotsawa House.
+describe("eszthoff/tibetan-date-calculator, 2023-2027", () => {
+	it("agrees on every day", () => {
+		expect(mismatchesIn(ESZTHOFF_DATES)).toEqual([]);
+	});
+
+	it("covers the features it is supposed to exercise", () => {
+		expect(ESZTHOFF_DATES.length).toBe(1826);
+		expect(ESZTHOFF_DATES.filter((r) => r.isDoubledDay === true).length).toBeGreaterThan(50);
+		expect(ESZTHOFF_DATES.filter((r) => r.isLeapMonth === true).length).toBeGreaterThan(50);
 	});
 });
 
