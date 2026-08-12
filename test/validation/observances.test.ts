@@ -126,6 +126,52 @@ describe("observance resolution", () => {
 		);
 		expect([...days].sort()).toEqual(days);
 	});
+
+	// The tie-break used localeCompare, which reads the host locale and ICU build -- so the same
+	// input could order differently on two machines, against a stated non-negotiable of this
+	// project. Shipped ids are ASCII and sort identically either way, so only a consumer config
+	// like this one can pin the behaviour.
+	it("breaks same-day ties by code unit, not by host collation", () => {
+		const rule = (id: string) => ({
+			id,
+			name: id,
+			kind: "puja" as const,
+			tier: 3 as const,
+			when: { day: 15 },
+			source: "https://example.invalid/",
+		});
+		const config = {
+			...GELUG,
+			id: "tie",
+			// Deliberately supplied out of order, and mixing case and an accent -- the inputs where
+			// collations disagree with each other.
+			rules: [rule("Zebra"), rule("apple"), rule("guru-rinpoche"), rule("guru-rinpoché")],
+		};
+		// The window covers two Tibetan months, so day 15 comes round twice; the date is the primary
+		// key and the id tie-break applies within each day.
+		const byDay = new Map<string, string[]>();
+		for (const o of getObservances(iso("2026-05-01"), iso("2026-05-31"), config)) {
+			const key = o.date.isoDate.toString();
+			byDay.set(key, [...(byDay.get(key) ?? []), o.rule.id]);
+		}
+		expect(byDay.size).toBeGreaterThan(0);
+
+		for (const ids of byDay.values()) {
+			expect(ids).toEqual([...ids].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0)));
+			// Uppercase sorts before lowercase by code unit; most locales do the opposite.
+			expect(ids[0]).toBe("Zebra");
+			// "guru-rinpoche" before "guru-rinpoché": by code unit "e" (0x65) precedes "é" (0xE9).
+			expect(ids.indexOf("guru-rinpoche")).toBeLessThan(ids.indexOf("guru-rinpoché"));
+		}
+	});
+
+	// Cost is linear in the span and the per-month work is real, so an unbounded query is minutes
+	// of synchronous CPU -- Temporal.PlainDate spans about 547,000 years.
+	it("caps the span, and admits exactly 200 years", () => {
+		expect(() => getObservances(iso("1950-01-01"), iso("2150-12-31"))).not.toThrow();
+		expect(() => getObservances(iso("1950-01-01"), iso("2151-01-01"))).toThrow(/at most 200 years/);
+		expect(() => getObservances(iso("0001-01-01"), iso("9999-12-31"))).toThrow(RangeError);
+	});
 });
 
 // The branch carrying the subtlest hand-reasoning in the layer, and unreachable from the shipped

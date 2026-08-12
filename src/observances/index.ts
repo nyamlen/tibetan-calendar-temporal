@@ -63,6 +63,14 @@ function scalingFor(config: TraditionConfig): ScaledTradition {
 	return derived;
 }
 
+/**
+ * The widest range {@link getObservances} will answer, in years.
+ *
+ * @remarks
+ * Compared as `to.year - from.year`, so 1950 to 2150 is 200 and admissible.
+ */
+const MAX_SPAN_YEARS = 200;
+
 const DOUBLED_DAY_CHOICES = ["first", "second", "both"];
 const SKIPPED_DAY_CHOICES = ["preceding", "omit"];
 const LEAP_MONTH_CHOICES = ["leap", "regular", "both"];
@@ -234,11 +242,26 @@ function appliesToMonth(
  * Both bounds are inclusive. Results for one day may be several, and on a doubled date under
  * `"both"` the same rule appears twice with different {@link Observance.resolution} values.
  *
+ * **The span is capped at {@link MAX_SPAN_YEARS} years.** Cost is linear in the range and the
+ * work per month is real — mean motion, two correction tables, and a full `isoToTibetan`
+ * inversion per hit — so an unbounded query is minutes of synchronous, non-yielding CPU rather
+ * than the milliseconds a day-walker would cost. `Temporal.PlainDate` reaches from -271821 to
+ * +275760, which is about 547,000 years, and any service forwarding user-supplied `from`/`to`
+ * straight through would hand that to its event loop.
+ *
+ * The cap is deliberately far beyond real use: the Phugpa tradition dates from 1447, so 200 years
+ * exceeds any span an almanac or an application asks for. A caller who genuinely wants a wider
+ * table — the whole rabjung era, 1027–2027, is the realistic example — requests it in chunks and
+ * concatenates. That is correct because this function is pure and restarts its month walk per
+ * call.
+ *
  * @param from - First calendar day to include.
  * @param to - Last calendar day to include. Returns `[]` if before `from`.
  * @param config - Which observances, and the conventions for resolving them. Defaults to
  * {@link GELUG}.
  * @param tradition - Astronomical constants. Defaults to `PHUGPA`.
+ *
+ * @throws RangeError if the span exceeds {@link MAX_SPAN_YEARS}, or if `config` is invalid.
  */
 export function getObservances(
 	from: Temporal.PlainDate,
@@ -247,6 +270,15 @@ export function getObservances(
 	tradition: TraditionConfig = PHUGPA,
 ): Observance[] {
 	if (Temporal.PlainDate.compare(from, to) > 0) return [];
+
+	// Compared as year numbers rather than elapsed days, which is how the docblock reads and what
+	// keeps the invariant suite's 1950-01-01 to 2150-12-31 sweep -- 201 calendar years -- admissible.
+	if (to.year - from.year > MAX_SPAN_YEARS) {
+		throw new RangeError(
+			`observance range must span at most ${MAX_SPAN_YEARS} years, received ` +
+				`${from.toString()} to ${to.toString()}; request it in chunks instead`,
+		);
+	}
 
 	ensureValidated(config);
 	const scaled = scalingFor(tradition);
@@ -282,7 +314,15 @@ export function getObservances(
 		}
 	}
 
-	found.sort((a, b) => a.julianDay - b.julianDay || a.rule.id.localeCompare(b.rule.id));
+	// Code-unit comparison, not localeCompare: that reads the host's default locale and ICU build,
+	// so two machines could order the same input differently. "Pure stateless functions, same
+	// input same output" is a stated non-negotiable, and a consumer config -- the documented use --
+	// with accented or mixed-case ids is where it would have bitten. The shipped ASCII ids sort
+	// identically either way, so nothing here would ever have caught it.
+	found.sort(
+		(a, b) =>
+			a.julianDay - b.julianDay || (a.rule.id < b.rule.id ? -1 : a.rule.id > b.rule.id ? 1 : 0),
+	);
 
 	// Convert once per distinct day rather than once per hit: a 15th carries several rules.
 	const dates = new Map<number, ReturnType<typeof isoToTibetan>>();
