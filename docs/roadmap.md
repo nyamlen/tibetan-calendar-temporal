@@ -276,6 +276,54 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   the Tibetan one in content, and no source has been found giving all 60 in Tibetan script with
   Lhasa phonetics. See
   [architecture.md](architecture.md#why-the-60-rabjung-names-are-not-included).
+
+  **Sourcing re-checked 2026-08-12.** Four findings, none of which unblocks this on its own:
+
+  - **Janson's `T60` already carries a Tibetan (Wylie) column and a Sanskrit column, and
+    `extract-janson-fixtures.mjs` discards both** — its row regex swallows them in a `.*&`.
+    Capturing them is a one-regex change needing no new source and raising no clean-room
+    question, since a name list is a fact like the dates.
+  - **The Wylie column is a usable key; Janson's Sanskrit is not.** Verified against the source:
+    60 rows, 60 distinct Wylie names, no duplicates — while `pramadi` covers `rab myos` (4),
+    `myos ldan` (13) and `bag med` (47). Any keying or round-tripping must go through the
+    Tibetan, not the Sanskrit.
+  - **Devanāgarī and IAST exist for the *Indian* list**, complete for all 60 (Wikipedia's
+    saṃvatsara table carries IAST plus Devanāgarī, Tamil, Telugu and Kannada). This does not
+    dissolve the divergence above — it is the Indic canonical form, so `śukla`, `pramoda`,
+    `āṅgirasa`, `bahudhānya` against Janson's `suklata`, `pramadi`, `ankira`, `vahudhvanya`.
+    Choosing it means shipping names a Tibetan almanac does not print; choosing Janson's means
+    bare ASCII with no Devanāgarī and spellings he himself flags as varying by source.
+  - **The authority is Henning, *Kālacakra and the Tibetan Calendar*, Appendix I: The Sixty-Year
+    Cycles** — the source Janson cites for `T60`. A Columbia UP book, so not fetchable and not
+    generatable; consulting it is the way to settle the Tibetan-script and phonetics gap.
+
+  **On English names, which were asked about directly:** no source found gives them, including
+  Janson, the saṃvatsara tables and the Tibetan references. But the Tibetan names are mostly
+  *semantic translations* rather than transliterations, so they encode the meaning already —
+  `dkar po` = "white" for *śukla*, `'bru mang po` = "much grain" for *bahudhānya*, `dpal gdong`
+  = "glorious face" for *śrīmukha*, `skyes bdag` = "lord of beings" for *prajāpati*. A few are
+  transliterations of proper names instead (`aṃ gi ra` for *aṅgiras*) and have no meaning to
+  give. So English is derivable from the Tibetan by translation — which is editorial work, not
+  extraction, and would be the first fixture content this project authored rather than sourced.
+
+- **Mutation testing with Stryker.** Open question, not a commitment. The argument for it is that
+  this project's real risk is semantic — a misread constant, `⌈⌉` for `⌊⌋`, a flipped comparison —
+  and mutation testing is the only tool that asks whether the suite would *catch* such a change,
+  rather than whether the code looks well formed. Coverage is already 100% of lines, which is
+  exactly the condition under which coverage stops being informative and mutation score starts.
+  Against it: it adds a devDependency, runs slowly against a suite with several multi-century
+  sweeps, and the sweeps themselves may need excluding to keep a run tractable. Evaluate after
+  v1.0.0, and judge it on whether it kills mutants in `corrections.ts` and `calendar.ts`
+  specifically — those are where a silent wrong answer would come from.
+
+- **CodeQL.** Open question. Free for public repos and GitHub-native, so it costs a workflow file
+  and no account, and it would arrive naturally with the repo going public. Be clear about what
+  it buys here, which is not much: zero runtime dependencies, no I/O, no network, no filesystem
+  access and no user-controlled regex mean there is very little for a SAST tool to find. Treat it
+  as supply-chain hygiene and a signal to consumers rather than as a defect-finder. **SonarQube
+  was considered and rejected** for this repo: it duplicates Biome and `tsc`, it cannot see the
+  semantic errors that actually threaten this project, and it would flag the deliberately
+  repetitive generated fixtures as duplication and the correction-table symmetry as complexity.
 - **Sojong**, once its rule can be sourced. Additive — `ObservanceConfig.rules` is an array, so a
   row can be added without a breaking change. Phase 3 established that it is **not** a fixed day
   number: against FPMT's calendars for 2022–2025, a 15th-and-30th rule misses 38 occurrences and
