@@ -29,8 +29,10 @@ import {
 import { isoFromJulianDay, isoToTibetan, julianDayFromIso } from "../computation/conversion.js";
 import { yearFromRoyalEra } from "../computation/epoch.js";
 import { deriveScaling, type ScaledTradition } from "../computation/scaling.js";
+import { rangeError } from "../errors.js";
 import { PHUGPA } from "../traditions/phugpa.js";
 import type { TraditionConfig } from "../traditions/types.js";
+import { assertTraditionConfig } from "../traditions/validate.js";
 import { GELUG } from "./default-gelug.js";
 import type {
 	Observance,
@@ -58,6 +60,7 @@ const scalingCache = new WeakMap<TraditionConfig, ScaledTradition>();
 function scalingFor(config: TraditionConfig): ScaledTradition {
 	const cached = scalingCache.get(config);
 	if (cached !== undefined) return cached;
+	assertTraditionConfig(config);
 	const derived = deriveScaling(config);
 	scalingCache.set(config, derived);
 	return derived;
@@ -99,15 +102,28 @@ function validateObservanceConfig(config: ObservanceConfig): void {
 	assertChoice(config.skippedDay, SKIPPED_DAY_CHOICES, "config skippedDay");
 	assertChoice(config.leapMonth, LEAP_MONTH_CHOICES, "config leapMonth");
 
+	if (!Array.isArray(config.rules)) {
+		throw rangeError(
+			"TCT_INVALID_OBSERVANCE_CONFIG",
+			`observance config "${config.id}": rules must be an array. An institution is built by ` +
+				"spreading a shipped config — `{ ...GELUG, rules: [...GELUG.rules, mine] }` — never by " +
+				"supplying a partial one",
+		);
+	}
+
 	const seen = new Set<string>();
 	for (const rule of config.rules) {
 		if (typeof rule.id !== "string" || rule.id === "") {
-			throw new RangeError(`observance rule id must be a non-empty string, received ${rule.id}`);
+			throw rangeError(
+				"TCT_INVALID_OBSERVANCE_CONFIG",
+				`observance rule id must be a non-empty string, received ${rule.id}`,
+			);
 		}
 		// Documented as "unique within a config" and never enforced; duplicates silently produced
 		// duplicate results, ordered only by the sort's stability.
 		if (seen.has(rule.id)) {
-			throw new RangeError(
+			throw rangeError(
+				"TCT_INVALID_OBSERVANCE_CONFIG",
 				`observance rule id must be unique within a config, "${rule.id}" repeats`,
 			);
 		}
@@ -115,15 +131,20 @@ function validateObservanceConfig(config: ObservanceConfig): void {
 
 		const { day } = rule.when;
 		if (!Number.isInteger(day) || day < 1 || day > 30) {
-			throw new RangeError(
-				`observance rule "${rule.id}": day must be an integer 1-30, received ${day}`,
+			throw rangeError(
+				"TCT_INVALID_OBSERVANCE_CONFIG",
+				`observance rule "${rule.id}": day must be an integer 1-30, received ${day}. A rule ` +
+					"names a Tibetan lunar day, which always runs 1-30; a day that no calendar day " +
+					"carries is handled by the skippedDay convention, not by omitting the rule",
 			);
 		}
 		if ("month" in rule.when) {
 			const { month } = rule.when;
 			if (!Number.isInteger(month) || month < 1 || month > 12) {
-				throw new RangeError(
-					`observance rule "${rule.id}": month must be an integer 1-12, received ${month}`,
+				throw rangeError(
+					"TCT_INVALID_OBSERVANCE_CONFIG",
+					`observance rule "${rule.id}": month must be an integer 1-12, received ${month}. ` +
+						"A leap month is selected by the leapMonth convention, not by a thirteenth number",
 				);
 			}
 		}
@@ -137,7 +158,11 @@ function validateObservanceConfig(config: ObservanceConfig): void {
 /** Rejects an optional convention field that is present but not one of its documented values. */
 function assertChoice(value: string | undefined, allowed: string[], subject: string): void {
 	if (value !== undefined && !allowed.includes(value)) {
-		throw new RangeError(`${subject} must be one of ${allowed.join(", ")}, received ${value}`);
+		throw rangeError(
+			"TCT_INVALID_OBSERVANCE_CONFIG",
+			`${subject} must be one of ${allowed.map((a) => `"${a}"`).join(", ")}, received ` +
+				`${JSON.stringify(value)}`,
+		);
 	}
 }
 
@@ -274,9 +299,12 @@ export function getObservances(
 	// Compared as year numbers rather than elapsed days, which is how the docblock reads and what
 	// keeps the invariant suite's 1950-01-01 to 2150-12-31 sweep -- 201 calendar years -- admissible.
 	if (to.year - from.year > MAX_SPAN_YEARS) {
-		throw new RangeError(
+		throw rangeError(
+			"TCT_SPAN_TOO_WIDE",
 			`observance range must span at most ${MAX_SPAN_YEARS} years, received ` +
-				`${from.toString()} to ${to.toString()}; request it in chunks instead`,
+				`${from.toString()} to ${to.toString()} (${to.year - from.year} years); request it in ` +
+				"chunks instead — the function is pure and restarts its month walk per call, so " +
+				"concatenating the results is correct",
 		);
 	}
 

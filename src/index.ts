@@ -21,7 +21,9 @@
  * - **`year` is the royal era**, not the Gregorian year the Tibetan year starts in. The two
  *   differ by 127 and are both exposed.
  * - **Skipped dates throw.** Some date numbers reach no calendar day at all; `tibetanToIso`
- *   raises {@link SkippedDayError} and {@link tibetanDateExists} is the predicate.
+ *   raises {@link SkippedDayError} and {@link tibetanDateExists} is the predicate. Every other
+ *   failure is a `RangeError` carrying a {@link TibetanCalendarErrorCode} — branch on
+ *   `error.code`, never on the message text.
  * - **Dates before 1447 are back-projections.** Phugpa did not exist earlier, the royal-era
  *   numbering is a modern convention, and `Temporal.PlainDate` is proleptic Gregorian where
  *   historical sources are Julian.
@@ -38,6 +40,7 @@ export {
 	tibetanToIso,
 	tibetanWeekday,
 } from "./computation/conversion.js";
+export type { TibetanCalendarErrorCode } from "./errors.js";
 export { formatTibetanDate } from "./format.js";
 export { PHUGPA, PHUGPA_HENNING } from "./traditions/phugpa.js";
 export type { MeanMotion, Rational, TraditionConfig } from "./traditions/types.js";

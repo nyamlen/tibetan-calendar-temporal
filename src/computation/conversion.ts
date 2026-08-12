@@ -10,8 +10,10 @@
  * @packageDocumentation
  */
 
+import { codedError, hasCode, rangeError } from "../errors.js";
 import { PHUGPA } from "../traditions/phugpa.js";
 import type { TraditionConfig } from "../traditions/types.js";
+import { assertTraditionConfig } from "../traditions/validate.js";
 import type { TibetanDate, TibetanDateInput } from "../types.js";
 import { SkippedDayError } from "../types.js";
 import { floorDiv, mod } from "./arithmetic.js";
@@ -33,7 +35,8 @@ import { deriveScaling, type ScaledTradition } from "./scaling.js";
 // here: `./observances` imports this module.
 /* c8 ignore start -- unreachable under test: the suite runs on Node 26, where Temporal exists */
 if (typeof Temporal === "undefined") {
-	throw new Error(
+	throw codedError(
+		"TCT_MISSING_TEMPORAL",
 		"tibetan-calendar-temporal requires the Temporal API, which is not available in this " +
 			"runtime. Temporal ships enabled from Node 26; Node 24 has it behind " +
 			"--harmony-temporal. On older runtimes or in a browser, import a polyfill before this " +
@@ -73,16 +76,41 @@ export function isoFromJulianDay(julianDay: number): Temporal.PlainDate {
 }
 
 /**
+ * Renders a caller's input back to them, so a failure identifies the row that produced it.
+ *
+ * @remarks
+ * A caller converting a table of dates gets one throw and needs to know *which* entry caused it.
+ * The bad field alone does not say. Optional flags appear only when set, so the common case stays
+ * short.
+ */
+function describeInput(input: TibetanDateInput): string {
+	const flags = [
+		input.isLeapMonth === true ? "isLeapMonth: true" : undefined,
+		input.isLeapDay === true ? "isLeapDay: true" : undefined,
+	].filter((f) => f !== undefined);
+	const fields = [`year: ${input.year}`, `month: ${input.month}`, `day: ${input.day}`, ...flags];
+	return `{ ${fields.join(", ")} }`;
+}
+
+/**
  * Rejects a year that is not a safe integer.
  *
  * @remarks
  * One predicate covers fractions, `NaN`, `±Infinity` and 2⁵³ overflow. The bounds checks alone
  * cannot: `NaN` satisfies neither `< 1` nor `> 30`, so it passes every comparison and reaches the
  * arithmetic.
+ *
+ * This does **not** catch the royal-era confusion — passing Gregorian 2026 where royal-era 2153 is
+ * meant. 2026 is a perfectly valid royal-era year (1899 CE), so no guard can distinguish the two,
+ * and the conversion returns a well-formed date 127 years away. That is a documentation problem,
+ * handled in the README, not something an error message can reach.
  */
-function assertSafeYear(year: number): void {
+function assertSafeYear(subject: string, year: number): void {
 	if (!Number.isSafeInteger(year)) {
-		throw new RangeError(`year must be a safe integer, received ${year}`);
+		throw rangeError(
+			"TCT_FIELD_OUT_OF_RANGE",
+			`${subject}: year must be a safe integer, received ${year}`,
+		);
 	}
 }
 
@@ -103,6 +131,11 @@ function assertSafeYear(year: number): void {
  * `subject` is a thunk because this sits on the hot path — `isoToTibetan` is called once per day
  * in the multi-century sweeps — and building the message eagerly would format a date on every
  * successful conversion. It is only ever needed on the throw.
+ *
+ * The message names the tradition, because the bound is a property of the tradition rather than of
+ * the package: `PHUGPA_HENNING`'s common denominator is fifteen times Phugpa's, so it runs out
+ * around ISO year 11,356 while Phugpa does not. A caller who hits this on one config and not the
+ * other needs to be told which one refused.
  */
 function assertExactJulianDay(
 	scaled: ScaledTradition,
@@ -110,10 +143,30 @@ function assertExactJulianDay(
 	subject: () => string,
 ): void {
 	if (!(Math.abs(julianDay) <= scaled.exactToJulianDay)) {
-		throw new RangeError(
-			`${subject()} is outside the range where this tradition's arithmetic is exact: ` +
-				`|JD| must be at most ${scaled.exactToJulianDay}, received ${julianDay}`,
+		throw rangeError(
+			"TCT_OUTSIDE_EXACT_RANGE",
+			`${subject()} is outside the range where the ${scaled.config.name} tradition's arithmetic ` +
+				`stays exact: |JD| must be at most ${scaled.exactToJulianDay}` +
+				`${describeBound(scaled.exactToJulianDay)}, received ${julianDay}`,
 		);
+	}
+}
+
+/**
+ * The exactness bound as an ISO year, parenthesised, or `""` when it has none.
+ *
+ * @remarks
+ * A raw Julian day in the tens of millions is not a number anyone can act on. The ISO year is, and
+ * it is what makes the `PHUGPA_HENNING` limit legible as "about year 11,356" rather than as
+ * `4295220`. Some bounds fall outside `Temporal.PlainDate`'s own ±273,972-year range, so this
+ * degrades to nothing rather than throwing a second error while reporting the first.
+ */
+function describeBound(exactToJulianDay: number): string {
+	try {
+		return ` (about ISO year ${isoFromJulianDay(exactToJulianDay).year})`;
+		/* c8 ignore next 3 -- only reachable for a tradition whose bound exceeds Temporal's range */
+	} catch {
+		return "";
 	}
 }
 
@@ -221,17 +274,31 @@ export function tibetanToIso(
 	// Integrality before range: the whole determinism argument rests on integer arithmetic, and a
 	// fractional value passes every bound check below and comes out as a confident wrong date.
 	// NaN in particular satisfies neither `< 1` nor `> 30`, so the bounds alone let it through.
-	assertSafeYear(input.year);
+	const subject = () => `tibetanToIso(${describeInput(input)})`;
+	assertSafeYear(subject(), input.year);
 	if (!Number.isInteger(input.month) || input.month < 1 || input.month > 12) {
-		throw new RangeError(`month must be an integer 1-12, received ${input.month}`);
+		throw rangeError(
+			"TCT_FIELD_OUT_OF_RANGE",
+			`${subject()}: month must be an integer 1-12, received ${input.month}`,
+		);
 	}
 	if (!Number.isInteger(input.day) || input.day < 1 || input.day > 30) {
-		throw new RangeError(`day must be an integer 1-30, received ${input.day}`);
+		throw rangeError(
+			"TCT_FIELD_OUT_OF_RANGE",
+			`${subject()}: day must be an integer 1-30, received ${input.day}. Note that Tibetan ` +
+				"months run to 30 even when fewer calendar days carry those numbers — a skipped date " +
+				"is still 1-30, and reports itself as SkippedDayError rather than as out of range",
+		);
 	}
 
 	const year = yearFromRoyalEra(input.year);
 	if (isLeapMonth && !hasLeapMonth(config, year, input.month)) {
-		throw new RangeError(`month ${input.month} of ${input.year} has no leap month`);
+		throw rangeError(
+			"TCT_NO_SUCH_LEAP_MONTH",
+			`${subject()}: month ${input.month} of ${input.year} has no leap month. Leap months ` +
+				"recur roughly every 32 months and fall on a different month number each time; drop " +
+				"isLeapMonth, or use isoToTibetan to discover which month of a year is doubled",
+		);
 	}
 
 	const monthCount = trueMonthCount(config, year, input.month, isLeapMonth);
@@ -243,7 +310,7 @@ export function tibetanToIso(
 	assertExactJulianDay(
 		scaled,
 		floorDiv(meanDate(scaled, input.day, monthCount), scaled.meanDate.den),
-		() => `Tibetan date ${input.year}-${input.month}-${input.day}`,
+		subject,
 	);
 
 	const classification = classifyDay(scaled, input.day, monthCount);
@@ -267,10 +334,15 @@ export function tibetanToIso(
  * It deliberately does **not** swallow anything else. A bare `catch` here would also return
  * `false` for the `"this indicates a bug in the mean-motion estimate"` invariant violation in
  * {@link isoToTibetan} — the one error in this codebase explicitly labelled as a bug — and for a
- * `TypeError` from a malformed {@link TraditionConfig}. A predicate that reports "this date does
- * not exist" when the truth is "the engine broke" is worse than a throw, and this one is used as
- * an oracle by the suite's strongest property, where masking a failure would make that property
- * pass more easily rather than fail.
+ * malformed {@link TraditionConfig}. A predicate that reports "this date does not exist" when the
+ * truth is "the engine broke" is worse than a throw, and this one is used as an oracle by the
+ * suite's strongest property, where masking a failure would make that property pass more easily
+ * rather than fail.
+ *
+ * Two mechanisms keep those out, because the error *type* alone is too coarse for one of them. The
+ * invariant violation is a plain `Error`, so the `RangeError` branch never sees it. A malformed
+ * config is a `RangeError` like every other input problem — it is genuinely bad input — so it is
+ * excluded by **code** instead. That is the case error codes were added for.
  */
 export function tibetanDateExists(
 	input: TibetanDateInput,
@@ -280,6 +352,7 @@ export function tibetanDateExists(
 		tibetanToIso(input, config);
 		return true;
 	} catch (error) {
+		if (hasCode(error, "TCT_INVALID_TRADITION_CONFIG")) throw error;
 		if (error instanceof SkippedDayError || error instanceof RangeError) return false;
 		throw error;
 	}
@@ -348,9 +421,15 @@ export function isoToTibetan(
 	const resolved = named ?? following;
 	/* c8 ignore next */
 	if (resolved === undefined) {
-		throw new RangeError(
+		// A plain Error, not a RangeError, and the distinction is load-bearing: `tibetanDateExists`
+		// reports `false` for a RangeError, so as one of those this would have been swallowed into
+		// "that date does not exist" — the opposite of the truth, and in the oracle for the suite's
+		// strongest property. See the remarks on that function.
+		throw codedError(
+			"TCT_INTERNAL",
 			`no Tibetan date found for ${date.toString()} within the proved search window; ` +
-				"this indicates a bug in the mean-motion estimate, not an unsupported date",
+				"this indicates a bug in the mean-motion estimate, not an unsupported date. " +
+				"Please report it at https://github.com/nyamlen/tibetan-calendar-temporal/issues",
 		);
 	}
 
@@ -399,18 +478,27 @@ export function isoToTibetan(
  */
 export function losarFor(year: number, config: TraditionConfig = PHUGPA): TibetanDate {
 	const scaled = scalingFor(config);
-	assertSafeYear(year);
+	assertSafeYear(`losarFor(${year})`, year);
 	const julianDay = losarJulianDay(scaled, config, yearFromRoyalEra(year));
-	assertExactJulianDay(scaled, julianDay, () => `Losar of ${year}`);
+	assertExactJulianDay(scaled, julianDay, () => `losarFor(${year})`);
 	return isoToTibetan(isoFromJulianDay(julianDay), config);
 }
 
 /** Memoised scaling, so repeated conversions do not redo the gcd work. */
 const scalingCache = new WeakMap<TraditionConfig, ScaledTradition>();
 
+/**
+ * The single choke point for tradition config, and therefore where it is validated.
+ *
+ * @remarks
+ * Every exported function reaches the arithmetic through here, and the cache already means the
+ * work happens once per config object, so the validation costs nothing after the first call. That
+ * is what lets the check be thorough without touching the multi-century sweeps.
+ */
 function scalingFor(config: TraditionConfig): ScaledTradition {
 	const cached = scalingCache.get(config);
 	if (cached !== undefined) return cached;
+	assertTraditionConfig(config);
 	const derived = deriveScaling(config);
 	scalingCache.set(config, derived);
 	return derived;

@@ -23,6 +23,8 @@
  * @packageDocumentation
  */
 
+import type { TibetanCalendarErrorCode } from "./errors.js";
+
 /**
  * The five elements of the 60-year cycle, in the order of Janson's ten-year cycle table (§4).
  *
@@ -367,10 +369,22 @@ export interface TibetanDateInput {
  *
  * This is an error rather than a `null` return because a skipped date is almost always a data
  * problem worth surfacing. Callers who want to test first should use `tibetanDateExists`.
+ *
+ * The only error class this package exports. Everything else discriminates on
+ * {@link SkippedDayError.code} and its siblings — see `src/errors.ts` for why.
  */
 export class SkippedDayError extends Error {
 	/** The date that was requested and does not exist. */
 	readonly requested: TibetanDateInput;
+
+	/**
+	 * Always `"TCT_SKIPPED_DAY"`.
+	 *
+	 * @remarks
+	 * Redundant with `instanceof SkippedDayError`, and present so that a caller handling several
+	 * failure kinds can switch on `error.code` throughout rather than mixing the two styles.
+	 */
+	readonly code: TibetanCalendarErrorCode = "TCT_SKIPPED_DAY";
 
 	constructor(requested: TibetanDateInput) {
 		const leap = requested.isLeapMonth ? " (leap)" : "";
