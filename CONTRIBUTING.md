@@ -60,6 +60,12 @@ or deleted file breaks inbound links silently; the check exists because that has
 External URLs are deliberately not checked, since reaching the validation sources in
 [docs/testing.md](docs/testing.md) from CI would only make the build flaky.
 
+**Two things in the docs are enforced by tests, not by review.** Every example in the README is
+asserted in `test/readme.test.ts`, and the package's export surface is pinned in
+`test/public-api.test.ts` against the API table the README publishes. Change a README example or
+add an `export`, and update the matching test in the same commit — otherwise CI fails, which is
+the point. See [docs/testing.md](docs/testing.md#contract-tests).
+
 ## Implementing from the paper
 
 Every formula comes from Svante Janson, *Tibetan Calendar Mathematics*

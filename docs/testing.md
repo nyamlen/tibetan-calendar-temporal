@@ -11,7 +11,10 @@ test/
 ├── validation/           # Tier 2, cross-checks against external sources
 ├── fixtures/             # generated — from Janson, and from external implementations
 ├── invariants.test.ts    # year lengths, safe-integer bound, §13 period
-└── regression.test.ts    # Tier 3, named instances of each edge case
+├── regression.test.ts    # Tier 3, named instances of each edge case
+├── public-api.test.ts    # the export surface, pinned
+├── readme.test.ts        # every example the README states
+└── smoke.test.ts         # Temporal reachable as a global
 ```
 
 Tiers 1 and 3 are interleaved with the unit suites rather than kept in separate directories —
@@ -171,3 +174,26 @@ because "some day this decade is doubled" survives a systematic one-day error an
 - Leap months — 2024 M06L from 6 July, 2027 M02L from 9 March, and the main month that follows
 - Month/year boundaries — the day before Losar 2026, and the royal-era year across 1 January
 - Dates near the epoch — round-trips through the first sixty days after E806
+
+## Contract tests
+
+Not a tier — these constrain what the package *promises* rather than what it computes. Both exist
+because the thing they guard is invisible until it has already broken.
+
+**`test/readme.test.ts` asserts every example the README states.** Prose examples rot silently:
+nothing compiles them, and a reader who copies one that no longer works concludes the library is
+broken. This is what lets the README print concrete outputs instead of hedging.
+
+> **If you change a README example, change this test in the same commit** — and run it before
+> believing the example. Writing it caught an error already in the draft: the leap-month example
+> claimed `{ month: 6, day: 4, isLeapMonth: true }` gave 9 July 2024, when it gives the 10th,
+> because that date is *also* a doubled day and needs `isLeapDay`. It read perfectly plausibly.
+
+**`test/public-api.test.ts` pins the export surface.** After v1.0.0 the published API is a one-way
+door: removing a name is breaking, and adding one is a permanent commitment. Without this, an
+`export` added while editing a module becomes public API by accident. It also asserts that the two
+tradition configs are identical apart from the lunar anomaly, which is the property making
+`PHUGPA_HENNING` a variant rather than a second tradition.
+
+A failure here is not a bug to fix by editing the expected list. It means the surface changed —
+decide whether that was intended, then update the list *and* the README's API table together.
