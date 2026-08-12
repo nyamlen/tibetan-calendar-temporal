@@ -270,5 +270,30 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   the Tibetan one in content, and no source has been found giving all 60 in Tibetan script with
   Lhasa phonetics. See
   [architecture.md](architecture.md#why-the-60-rabjung-names-are-not-included).
+- **Sojong**, once its rule can be sourced. Additive — `ObservanceConfig.rules` is an array, so a
+  row can be added without a breaking change. Phase 3 established that it is **not** a fixed day
+  number: against FPMT's calendars for 2022–2025, a 15th-and-30th rule misses 38 occurrences and
+  invents 36, and the misses are not random. It lands a day early in some months and not others:
+
+  | Date | Tibetan day | Sojong printed? |
+  |------|-------------|-----------------|
+  | 2022-01-31 | 29 | yes |
+  | 2022-02-01 | 30 | no |
+  | 2024-08-04 | 30 | yes |
+  | 2025-11-19 | 30, first of a doubled pair | yes |
+  | 2025-11-20 | 30, second of the pair | no |
+  | 2026-06-14 | 29 | yes |
+  | 2026-06-15 | 30 | no |
+
+  Note the 2025 row: sojong goes on the **first** of a doubled 30, where FPMT's own guidance and
+  its placement of the great days both say the second. So it does not follow the config's
+  `doubledDay` axis either.
+
+  **The question to put to FPMT:** what determines whether sojong falls on the 29th or the 30th,
+  and why does it take the first of a doubled day where the duchen take the second? If the answer
+  is that it is scheduled by each community rather than computed, that is a publishable finding
+  too — it would mean sojong belongs in caller-supplied rules permanently, and the docblock in
+  `src/observances/default-gelug.ts` should say so rather than leaving it open.
+
 - **Tsurphu tradition** (Karma Kagyu) via a second `TraditionConfig` — the algorithm already
   supports it; only the constants differ.

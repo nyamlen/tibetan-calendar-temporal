@@ -27,7 +27,8 @@
  *   not. Whatever governs that is not a day number, and `CONTRIBUTING.md` asks for a rule that can
  *   be cited and checked. So it is left out rather than shipped approximately wrong. The
  *   `ObservanceKind` union keeps `"sojong"` so a caller who knows their own community's schedule
- *   can supply it.
+ *   can supply it. Tracked as an open question in `docs/roadmap.md`, with the specific thing to
+ *   ask FPMT: adding it later is additive, since `rules` is an array.
  *
  * @packageDocumentation
  */
