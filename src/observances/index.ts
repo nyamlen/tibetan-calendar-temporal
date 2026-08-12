@@ -63,6 +63,91 @@ function scalingFor(config: TraditionConfig): ScaledTradition {
 	return derived;
 }
 
+const DOUBLED_DAY_CHOICES = ["first", "second", "both"];
+const SKIPPED_DAY_CHOICES = ["preceding", "omit"];
+const LEAP_MONTH_CHOICES = ["leap", "regular", "both"];
+
+/**
+ * Rejects a config whose rules could not resolve to the days they name.
+ *
+ * @remarks
+ * `ObservanceConfig` is the documented extension point — the type comments and the docs both push
+ * consumers toward `{ ...GELUG, rules: [...] }` — and every field below was previously accepted
+ * without a word. The mean-motion formulas are linear in the lunar day, so they extrapolate past
+ * the end of a month rather than failing: `day: 31` returned the 1st of the *following* month and
+ * `day: 0` the 30th of the *previous* one, each labelled `resolution: "exact"`. An out-of-range
+ * `when.month` failed the other way, silently yielding zero hits so the observance vanished from
+ * the year. A typo in a downstream rule table shipped a wrong date to practitioners with this
+ * library's full authority behind it.
+ *
+ * The convention fields are checked too. They are type-level only, so a JavaScript consumer — or
+ * a TypeScript one whose config came from `JSON.parse` — passing `"1st"` fell through to the
+ * `"both"` branch and got two observances where one was meant.
+ *
+ * @throws RangeError naming the offending rule.
+ */
+function validateObservanceConfig(config: ObservanceConfig): void {
+	assertChoice(config.doubledDay, DOUBLED_DAY_CHOICES, "config doubledDay");
+	assertChoice(config.skippedDay, SKIPPED_DAY_CHOICES, "config skippedDay");
+	assertChoice(config.leapMonth, LEAP_MONTH_CHOICES, "config leapMonth");
+
+	const seen = new Set<string>();
+	for (const rule of config.rules) {
+		if (typeof rule.id !== "string" || rule.id === "") {
+			throw new RangeError(`observance rule id must be a non-empty string, received ${rule.id}`);
+		}
+		// Documented as "unique within a config" and never enforced; duplicates silently produced
+		// duplicate results, ordered only by the sort's stability.
+		if (seen.has(rule.id)) {
+			throw new RangeError(
+				`observance rule id must be unique within a config, "${rule.id}" repeats`,
+			);
+		}
+		seen.add(rule.id);
+
+		const { day } = rule.when;
+		if (!Number.isInteger(day) || day < 1 || day > 30) {
+			throw new RangeError(
+				`observance rule "${rule.id}": day must be an integer 1-30, received ${day}`,
+			);
+		}
+		if ("month" in rule.when) {
+			const { month } = rule.when;
+			if (!Number.isInteger(month) || month < 1 || month > 12) {
+				throw new RangeError(
+					`observance rule "${rule.id}": month must be an integer 1-12, received ${month}`,
+				);
+			}
+		}
+
+		assertChoice(rule.doubledDay, DOUBLED_DAY_CHOICES, `observance rule "${rule.id}" doubledDay`);
+		assertChoice(rule.skippedDay, SKIPPED_DAY_CHOICES, `observance rule "${rule.id}" skippedDay`);
+		assertChoice(rule.leapMonth, LEAP_MONTH_CHOICES, `observance rule "${rule.id}" leapMonth`);
+	}
+}
+
+/** Rejects an optional convention field that is present but not one of its documented values. */
+function assertChoice(value: string | undefined, allowed: string[], subject: string): void {
+	if (value !== undefined && !allowed.includes(value)) {
+		throw new RangeError(`${subject} must be one of ${allowed.join(", ")}, received ${value}`);
+	}
+}
+
+/**
+ * Configs already validated, so a config passed on every frame of a UI is checked once.
+ *
+ * @remarks
+ * Keyed on the object, matching {@link scalingFor} above. A consumer who mutates a config in place
+ * after first use escapes revalidation, which is the same bargain the scaling cache already makes.
+ */
+const validatedConfigs = new WeakSet<ObservanceConfig>();
+
+function ensureValidated(config: ObservanceConfig): void {
+	if (validatedConfigs.has(config)) return;
+	validateObservanceConfig(config);
+	validatedConfigs.add(config);
+}
+
 /** The Julian days a rule occupies in one month, with how each was arrived at. */
 function resolveInMonth(
 	scaled: ScaledTradition,
@@ -98,7 +183,10 @@ function resolveInMonth(
 	// day 1 without a special case, where the preceding day belongs to the previous month.
 	// Janson's own advice for month boundaries is the same: add or subtract one from the JD
 	// rather than reason about numbers that may not exist.
-	if (day <= 1)
+	//
+	// Exactly 1, not `<= 1`: day is validated to 1-30 before it reaches here, so the wider guard
+	// only ever hid an invalid rule behind a plausible-looking result.
+	if (day === 1)
 		return [
 			{ julianDay: firstDayOfMonth(scaled, monthCount) - 1, resolution: "shiftedFromSkipped" },
 		];
@@ -160,6 +248,7 @@ export function getObservances(
 ): Observance[] {
 	if (Temporal.PlainDate.compare(from, to) > 0) return [];
 
+	ensureValidated(config);
 	const scaled = scalingFor(tradition);
 	const firstJd = julianDayFromIso(from);
 	const lastJd = julianDayFromIso(to);

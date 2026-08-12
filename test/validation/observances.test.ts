@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isoToTibetan } from "../../src/computation/conversion.js";
+import { isoToTibetan, losarFor, tibetanDateExists } from "../../src/computation/conversion.js";
 import { GELUG, getObservances, observancesOn } from "../../src/observances/index.js";
 import { FPMT_OBSERVANCES } from "../fixtures/fpmt-observances.js";
 
@@ -125,5 +125,141 @@ describe("observance resolution", () => {
 			o.date.isoDate.toString(),
 		);
 		expect([...days].sort()).toEqual(days);
+	});
+});
+
+// The branch carrying the subtlest hand-reasoning in the layer, and unreachable from the shipped
+// config: GELUG has no day-1 rule, and its monthly rules all opt out with skippedDay: "omit".
+// Only a consumer config gets here, which is exactly why it needs a test.
+describe("a rule on day 1, where the preceding day belongs to the previous month", () => {
+	const dayOne = {
+		...GELUG,
+		id: "day-one",
+		rules: [
+			{
+				id: "first-of-month",
+				name: "First of the month",
+				kind: "puja" as const,
+				tier: 3 as const,
+				when: { day: 1 },
+				skippedDay: "preceding" as const,
+				source: "https://example.invalid/ - test fixture, not a real observance",
+			},
+		],
+	};
+
+	// Losar 1977 is the case in range where day 1 is skipped: the year opens on the day numbered 2.
+	// So the day-1 rule for month 1 has no day to land on, and shifts back across a month boundary
+	// -- and across a *year* boundary -- onto the 30th of month 12 of the year before.
+	it("shifts back across the month boundary when day 1 is skipped", () => {
+		const shifted = getObservances(iso("1977-01-01"), iso("1977-12-31"), dayOne).filter(
+			(o) => o.resolution === "shiftedFromSkipped",
+		);
+		expect(shifted).toHaveLength(1);
+
+		const landed = shifted[0];
+		expect(landed?.date.isoDate.toString()).toBe("1977-02-18");
+		expect({ month: landed?.date.month, day: landed?.date.day }).toEqual({ month: 12, day: 30 });
+
+		// The day after is Losar, numbered 2 because 1 does not exist -- which is the whole reason
+		// this branch computes a Julian day rather than a day number.
+		const next = isoToTibetan(iso("1977-02-19"));
+		expect({ month: next.month, day: next.day }).toEqual({ month: 1, day: 2 });
+		expect(losarFor(next.year).isoDate.toString()).toBe("1977-02-19");
+	});
+
+	// Every month resolves, none silently vanishes, and none lands on a day that does not exist.
+	it("resolves all twelve months to real days", () => {
+		const found = getObservances(iso("1977-01-01"), iso("1977-12-31"), dayOne);
+		expect(found).toHaveLength(12);
+		for (const o of found) {
+			expect(tibetanDateExists({ year: o.date.year, month: o.date.month, day: o.date.day })).toBe(
+				true,
+			);
+		}
+		// One shift and one doubled day among them, so this year exercises all three resolutions.
+		const resolutions = new Set(found.map((o) => o.resolution));
+		expect([...resolutions].sort()).toEqual(["exact", "secondOfDoubled", "shiftedFromSkipped"]);
+	});
+});
+
+// ObservanceConfig is the documented extension point, and until now nothing checked what a
+// consumer put in it. The mean-motion formulas are linear in the lunar day, so an out-of-range
+// day extrapolated into a real, wrong calendar date labelled resolution: "exact".
+describe("consumer config validation", () => {
+	const withRule = (rule: Record<string, unknown>) => ({
+		...GELUG,
+		id: "test",
+		rules: [
+			{
+				id: "r",
+				name: "R",
+				kind: "puja" as const,
+				tier: 3 as const,
+				when: { day: 15 },
+				source: "https://example.invalid/",
+				...rule,
+			},
+		],
+	});
+	const run = (config: unknown) =>
+		getObservances(iso("2026-01-01"), iso("2026-12-31"), config as typeof GELUG);
+
+	it("accepts the shipped GELUG config", () => {
+		expect(() => run(GELUG)).not.toThrow();
+	});
+
+	// Each of these previously returned a real, wrong day rather than complaining.
+	it.each([
+		["day 31 - was the 1st of the following month", { when: { day: 31 } }],
+		["day 0 - was the 30th of the previous month", { when: { day: 0 } }],
+		["day -1 - was the 29th of the previous month", { when: { day: -1 } }],
+		["day 45 - was the 15th of the same month", { when: { day: 45 } }],
+		["fractional day", { when: { day: 15.5 } }],
+		["NaN day", { when: { day: Number.NaN } }],
+	])("rejects %s", (_label, rule) => {
+		expect(() => run(withRule(rule))).toThrow(/day must be an integer 1-30/);
+	});
+
+	// The other silent-failure mode: an out-of-range month matched nothing, so the observance
+	// vanished from the year without complaint.
+	it.each([
+		["month 0", 0],
+		["month 13", 13],
+		["fractional month", 6.5],
+	])("rejects %s", (_label, month) => {
+		expect(() => run(withRule({ when: { month, day: 15 } }))).toThrow(
+			/month must be an integer 1-12/,
+		);
+	});
+
+	it("rejects duplicate rule ids", () => {
+		const config = { ...GELUG, rules: [...GELUG.rules, GELUG.rules[0] as never] };
+		expect(() => run(config)).toThrow(/unique within a config/);
+	});
+
+	it("rejects an empty rule id", () => {
+		expect(() => run(withRule({ id: "" }))).toThrow(/non-empty string/);
+	});
+
+	// Type-level only, so JSON.parse or a plain-JS consumer walks straight past the compiler.
+	it.each([
+		["doubledDay", { doubledDay: "1st" }, /doubledDay must be one of/],
+		["skippedDay", { skippedDay: "before" }, /skippedDay must be one of/],
+		["leapMonth", { leapMonth: "yes" }, /leapMonth must be one of/],
+	])("rejects an invalid %s on a rule", (_label, rule, pattern) => {
+		expect(() => run(withRule(rule))).toThrow(pattern);
+	});
+
+	it("rejects an invalid convention on the config itself", () => {
+		expect(() => run({ ...GELUG, doubledDay: "1st" })).toThrow(/config doubledDay must be one of/);
+	});
+
+	// Validation is memoised per config object, so a repeated call must behave identically rather
+	// than passing the second time through.
+	it("stays rejected on a repeat call", () => {
+		const bad = withRule({ when: { day: 31 } });
+		expect(() => run(bad)).toThrow(/day must be/);
+		expect(() => run(bad)).toThrow(/day must be/);
 	});
 });

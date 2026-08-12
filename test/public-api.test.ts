@@ -108,6 +108,24 @@ describe("observances API surface", () => {
 		}
 	});
 
+	// The shipped config must satisfy the rules imposed on consumer configs. Without this, GELUG
+	// could drift out of its own contract and only a consumer would ever find out.
+	it("passes the validation it imposes on consumer configs", () => {
+		const day = Temporal.PlainDate.from("2026-01-01");
+		expect(() => observances.getObservances(day, day, observances.GELUG)).not.toThrow();
+
+		const ids = observances.GELUG.rules.map((r) => r.id);
+		expect(new Set(ids).size).toBe(ids.length);
+		for (const rule of observances.GELUG.rules) {
+			expect(rule.when.day).toBeGreaterThanOrEqual(1);
+			expect(rule.when.day).toBeLessThanOrEqual(30);
+			if ("month" in rule.when) {
+				expect(rule.when.month).toBeGreaterThanOrEqual(1);
+				expect(rule.when.month).toBeLessThanOrEqual(12);
+			}
+		}
+	});
+
 	// Shipping an anniversary would put institution-specific data on a release cycle it does not
 	// belong on -- a new spiritual director should not need a package publish.
 	it("ships no teacher anniversaries, only the shape for a caller to supply them", () => {
