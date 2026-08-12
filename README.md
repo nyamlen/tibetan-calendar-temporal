@@ -153,9 +153,15 @@ tibetanToIso({ year: 2152, month: 9, day: 30, isLeapDay: true });   // 2025-11-1
 tibetanToIso({ year: 2152, month: 9, day: 30 });                    // 2025-11-20
 ```
 
-Holidays are generally observed on the second day rather than the leap day — but not always, and
-institutions differ. FPMT published the 2024 Chokhor Duchen as "July 9 or July 10", which is one
-doubled day, not a disagreement about the calendar.
+Which of the two an observance falls on is a convention, not a calculation, and the published
+sources disagree. [FPMT's dharma-dates guidance](https://fpmt.org/media/resources/dharma-dates/dates-explained/)
+says such days are "usually celebrated on the second day, but may be celebrated on the first day if
+it is more convenient"; Janson §11, holidays, following Berzin, gives the opposite rule — the
+first, the leap day, the one almanacs mark "Extra". Janson adds that he has not checked those rules
+against published calendars.
+
+FPMT published the 2024 Chokhor Duchen as "July 9 or July 10", which is one doubled day, not a
+disagreement about the calendar — and its own hedge is why.
 
 **Leap months** repeat a month number, and the leap month is the **first** of the two. `month`
 alone is therefore not a unique key within a year; use `monthCode`, which is.

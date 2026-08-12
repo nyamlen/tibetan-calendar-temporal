@@ -245,8 +245,17 @@ export interface TibetanDate {
 	 * rather than one because a consumer must be able to answer both "is this number shared" and
 	 * "which of the two is this", and no single flag says both.
 	 *
-	 * Holidays are generally observed on the second day, not the leap day, but the Tibetan New
-	 * Year is an exception — see Janson §11.
+	 * Which of the two an observance falls on is a **convention, and the sources disagree**. FPMT's
+	 * dharma-dates guidance says such days are "usually celebrated on the second day, but may be
+	 * celebrated on the first day if it is more convenient". Janson §11, holidays, following Berzin,
+	 * gives the opposite rule — the first, this leap day — while noting he has not checked it
+	 * against published calendars. Neither is derivable from the arithmetic, so this package makes
+	 * it a caller's choice rather than picking one.
+	 *
+	 * The Tibetan New Year is **not** an exception to this. Janson's Losar remark concerns leap
+	 * *months* — Losar is the first day of the year even when that year opens with a leap month 1,
+	 * where other observances are usually not kept in a leap month at all. That is a separate axis
+	 * from which half of a doubled day an observance falls on, and conflating the two is easy.
 	 */
 	isLeapDay: boolean;
 
