@@ -78,8 +78,29 @@ Two negative results, both worth keeping so they are not re-derived:
   observed new-moon day is 20 November under both. A published list of practice days therefore
   carries no information about the fork — only a day-by-day grid showing the doubled number does.
 
-This is why FPMT's calendar, despite being prepared from the deciding almanac, cannot settle the
-question, and why a source must print day numbers per day to be usable as evidence here.
+This is why a *list* of practice days cannot settle the question, and why a source must print day
+numbers per day to be usable as evidence here.
+
+### The grid was found, and it confirms the default
+
+Phase 3 located exactly that source: FPMT's monthly calendars at
+`fpmt.org/resources/calendar/YYYY/Month.php` print a Tibetan day number for every Gregorian day,
+and are prepared from the Men-Tsee-Khang calendar. `test/fixtures/fpmt-observances.ts` generates
+1,461 days of it, and `test/validation/fpmt.test.ts` measures both values against it:
+
+- `a₂ = 1/28` diverges on **three** days.
+- Henning's `3781/105840` diverges on those three **and** on the 2025 cluster — including
+  2025-11-19, one of the three dates Janson names — where FPMT sides with the engine.
+
+So the default rests on a direct day-by-day comparison against the almanac line, not only on
+Janson's report of having checked a printed edition. An earlier version of this record said FPMT's
+calendar could not settle the question; that was true of the prose announcements behind
+`fpmt-holy-days.ts` and false of the monthly grids, which had not been found.
+
+Three residual divergences survive under `1/28`, which is to say FPMT's published calendar is not
+exactly Phugpa under either value. They are catalogued in
+[testing.md](../testing.md#where-fpmts-calendars-differ) with the four explanations that were
+tested and ruled out, and they do not bear on this decision: `1/28` is closer on every measure.
 
 ## Consequences
 

@@ -80,9 +80,58 @@ sources and assert the engine matches.
 | Lotsawa House | 2023–2027, 1,831 days | **all** |
 | eszthoff | 2023–2027, 1,826 days | **all** |
 | christian-steinert | 2024–2027, 1,461 days | 1,438 — see below |
+| FPMT monthly calendars | 2022–2025, 1,461 days | 1,458 — see below |
 
-Two of the three agree with the engine on every single day, including every doubled date, both
-leap months, and every skipped-date gap.
+Two of the three implementations agree with the engine on every single day, including every
+doubled date, both leap months, and every skipped-date gap. The fourth source is not an
+implementation at all — see below.
+
+### Where FPMT's calendars differ
+
+`test/fixtures/fpmt-observances.ts` is the only **day-by-day** almanac source here: FPMT's monthly
+calendars print a Tibetan day number for every Gregorian day, and are prepared from the
+Men-Tsee-Khang calendar. That makes it the one fixture capable of carrying information about the
+`a₂` fork, which needs a grid showing *which* number is doubled — see
+[decisions/2026-08-12-lunar-anomaly-a2-default.md](decisions/2026-08-12-lunar-anomaly-a2-default.md),
+written when no such source was to hand.
+
+**It decides for the shipped default.** Against 1,461 days, `PHUGPA` (`a₂ = 1/28`) diverges on
+three; `PHUGPA_HENNING` diverges on those three *and* the 2025 cluster Janson names, where FPMT
+sides with the engine.
+
+The three residual divergences are 2022-12-03, 2023-11-09 and 2024-12-08. Each is a difference
+about which number a skipped or doubled date consumes, one number apart, resolved again by the
+next day:
+
+| Date | Engine | FPMT |
+|------|--------|------|
+| 2022-12-03 | 11 of month 10; 10 skipped | 10 of month 10; 11 skipped |
+| 2023-11-09 | second 26 of month 9; 26 doubled | first 27 of month 9; 27 doubled |
+| 2024-12-08 | 8 of month 10; 7 skipped | 7 of month 10; 8 skipped |
+
+Stated in terms of the number consumed, FPMT is one higher every time — the same direction as
+christian-steinert's 23, though not the same rule, since FPMT agrees on the other 1,458 days where
+Steinert's rule would diverge far more often.
+
+Four explanations were tested and each is ruled out:
+
+- **Not our arithmetic.** Lotsawa House, eszthoff and christian-steinert all side with the engine
+  on every one of these days that falls in their range.
+- **Not the `a₂` fork.** No value in `[0.0345, 0.037]` reproduces FPMT exactly, and none beats
+  `1/28`, which remains the best fit at three.
+- **Not a near-tie in the labelling rule.** The margin to a day boundary at these points runs
+  0.010–0.050 of a day, while 2025-11-19 — where every source agrees — sits 0.00026 away, forty
+  times closer. Proximity to a boundary does not predict divergence.
+- **Not a choice of "more convenient" days.** FPMT's guidance does allow moving an *observance*
+  between the halves of a doubled day, but that is a claim about where a label sits on a fixed
+  calendar. These three are disagreements about the day *numbering* itself — the number printed
+  against a Gregorian date, on days that mostly carry no observance at all.
+
+So this is a property of the published calendar rather than of the engine, and
+`test/validation/fpmt.test.ts` catalogues the three rather than asserting them away. As with
+Steinert, what is pinned is the **shape**: never in the month, never in the leap-month flag, never
+more than one in the day number, always resolved by the next day. That is what would change if the
+cause were something other than a one-off difference in which number a date consumes.
 
 ### Where christian-steinert differs
 

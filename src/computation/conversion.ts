@@ -108,8 +108,18 @@ function buildDate(
 		// The phase instants end lunar days 15 and 30, so the day carrying one is the day that
 		// lunar day ends in — which is what labels every day anyway. Deriving it this way rather
 		// than from `day` is what makes it correct when 15 or 30 is skipped.
-		isFullMoon: julianDayOfLunarDay(scaled, FULL_MOON_LUNAR_DAY, monthCount) === julianDay,
-		isNewMoon: julianDayOfLunarDay(scaled, NEW_MOON_LUNAR_DAY, monthCount) === julianDay,
+		//
+		// The `day` guard is an optimisation, and a sound one: the phase lands on the day numbered
+		// 15 (or 30), or on 14 (or 29) when that number is skipped, and never earlier. Skipping
+		// two consecutive numbers would need three lunar day ends inside one calendar day, so two
+		// consecutive lunar days totalling under 24 hours, where the minimum length is 21.5 each.
+		// Without it, every conversion pays for two extra true-date evaluations.
+		isFullMoon:
+			(day === FULL_MOON_LUNAR_DAY || day === FULL_MOON_LUNAR_DAY - 1) &&
+			julianDayOfLunarDay(scaled, FULL_MOON_LUNAR_DAY, monthCount) === julianDay,
+		isNewMoon:
+			(day === NEW_MOON_LUNAR_DAY || day === NEW_MOON_LUNAR_DAY - 1) &&
+			julianDayOfLunarDay(scaled, NEW_MOON_LUNAR_DAY, monthCount) === julianDay,
 		isoDate,
 		dayOfWeek: isoDate.dayOfWeek,
 	};

@@ -481,7 +481,11 @@ describe("the a2 fork", () => {
 			twentyFirst: divergences("2000-01-01", "2099-12-31"),
 			firstCycle: divergences("1027-01-01", "1091-12-31"),
 		}).toEqual({ twentieth: 9, twentyFirst: 8, firstCycle: 16 });
-	});
+		// Roughly 265 years walked day by day, converting under both configs — about 190,000
+		// conversions, each doing the full true-date astronomy. It is inherently the slowest test
+		// here and sat just under the 5s default, so it gets explicit headroom rather than failing
+		// whenever the suite runs under load.
+	}, 30_000);
 
 	it("agrees almost everywhere else, as the ~1-in-4100 rate implies", () => {
 		let differences = 0;
