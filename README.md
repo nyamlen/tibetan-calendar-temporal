@@ -204,9 +204,15 @@ formatTibetanDate(isoToTibetan(day, PHUGPA_HENNING));   // "2152-M09-29"
 ```
 
 `PHUGPA` uses the lunar anomaly increment `a₂ = 1/28` that almanacs use, and is the right default
-for nearly everyone. `PHUGPA_HENNING` uses Henning's exact `3781/105840`. They disagree on about
-one day in 4,100 — eleven days between 1950 and 2050 — and `2025-11-19` above is one of them. The
-evidence for the default is in
+for nearly everyone. `PHUGPA_HENNING` uses Henning's exact `3781/105840`.
+
+The two disagree on about **one day in 4,100** — nine days in the twentieth century and eight in
+the twenty-first, `2025-11-19` above being one of them. That is a long-run average rather than a
+schedule, and the divergences cluster: Janson counts sixteen in the 65 years from 1027, so
+back-projection is worse than the headline rate suggests. All three counts are reproduced by the
+engine and asserted in `test/computation/conversion.test.ts`.
+
+The evidence for the default is in
 [docs/decisions/2026-08-12-lunar-anomaly-a2-default.md](docs/decisions/2026-08-12-lunar-anomaly-a2-default.md).
 
 ### Practice days

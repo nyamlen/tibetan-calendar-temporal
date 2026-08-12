@@ -334,6 +334,35 @@ describe("the a2 fork", () => {
 		expect(misses(PHUGPA_HENNING)).toEqual([]);
 	});
 
+	// Janson publishes exact divergence counts for three windows, derived from his own computer
+	// search. Reproducing all three pins the *rate* of disagreement rather than a single date, and
+	// it is an independent check: the counts depend on the equation tables, the day-labelling rule
+	// and both anomaly values agreeing with his implementation across two centuries.
+	//
+	// The 1027-1091 figure also documents why the headline rate misleads. One in 4,100 is a
+	// long-run average; that cycle runs at one in 1,484, so back-projection diverges far more often
+	// than a reader extrapolating from the modern era would expect.
+	it("reproduces Janson's published divergence counts", () => {
+		const divergences = (fromIso: string, toIso: string) => {
+			let date = iso(fromIso);
+			const end = iso(toIso);
+			let found = 0;
+			while (Temporal.PlainDate.compare(date, end) <= 0) {
+				const almanac = isoToTibetan(date, PHUGPA);
+				const henning = isoToTibetan(date, PHUGPA_HENNING);
+				if (almanac.day !== henning.day || almanac.monthCode !== henning.monthCode) found++;
+				date = date.add({ days: 1 });
+			}
+			return found;
+		};
+
+		expect({
+			twentieth: divergences("1900-01-01", "1999-12-31"),
+			twentyFirst: divergences("2000-01-01", "2099-12-31"),
+			firstCycle: divergences("1027-01-01", "1091-12-31"),
+		}).toEqual({ twentieth: 9, twentyFirst: 8, firstCycle: 16 });
+	});
+
 	it("agrees almost everywhere else, as the ~1-in-4100 rate implies", () => {
 		let differences = 0;
 		let date = iso("2000-01-01");
