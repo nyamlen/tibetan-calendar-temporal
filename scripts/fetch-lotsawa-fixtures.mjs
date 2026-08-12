@@ -41,6 +41,11 @@
  * externally-obtained file: the provenance is explicit, and the validation below makes silent
  * corruption fail loudly rather than quietly shrinking the fixture.
  *
+ * If you drive the page with the Playwright MCP rather than by hand, note that its
+ * `browser_evaluate` writes its `filename` output to the **repository root**, not to
+ * `.playwright-mcp/` — which is the directory `.gitignore` covers. Move the dump into a scratch
+ * directory before running this, or it lands untracked in the working tree.
+ *
  * ## Clean-room boundary
  *
  * This reads the rendered **output** of the calculator. Its calendar library is never opened.
