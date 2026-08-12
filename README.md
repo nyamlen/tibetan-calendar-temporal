@@ -13,7 +13,7 @@ A TypeScript library that computes Tibetan calendar dates according to the Phugp
 [Temporal](https://tc39.es/proposal-temporal/docs/).
 
 It converts between Western (ISO) and Tibetan dates, handles leap months and skipped/doubled
-days, and determines practice days. Open source, MIT licensed, with zero runtime dependencies.
+days, and determines observances. Open source, MIT licensed, with zero runtime dependencies.
 
 ## Contents
 
@@ -26,7 +26,7 @@ days, and determines practice days. Open source, MIT licensed, with zero runtime
   - [Three things that make this calendar hard](#three-things-that-make-this-calendar-hard)
   - [Naming a year](#naming-a-year)
   - [Traditions](#traditions)
-  - [Practice days](#practice-days)
+  - [Observances](#observances)
 - [API](#api)
 - [Why this exists](#why-this-exists)
 - [Provenance](#provenance)
@@ -223,9 +223,47 @@ engine and asserted in `test/computation/conversion.test.ts`.
 The evidence for the default is in
 [docs/decisions/2026-08-12-lunar-anomaly-a2-default.md](docs/decisions/2026-08-12-lunar-anomaly-a2-default.md).
 
-### Practice days
+### Observances
 
-Shipping in v1.0.0 via a `tibetan-calendar-temporal/practice` subpath export. Not yet available.
+Which days an institution marks — the great holy days and the monthly cycle — ship behind a
+separate subpath:
+
+```js
+import { getObservances, observancesOn, GELUG } from 'tibetan-calendar-temporal/observances';
+
+const duchen = getObservances(
+  Temporal.PlainDate.from('2026-01-01'),
+  Temporal.PlainDate.from('2026-12-31'),
+).filter((o) => o.rule.kind === 'duchen');
+
+duchen.map((o) => `${o.rule.name}: ${o.date.isoDate}`);
+// [ "Chotrul Duchen: 2026-03-03", "Saka Dawa Duchen: 2026-05-31",
+//   "Chokhor Duchen: 2026-07-18", "Lhabab Duchen: 2026-11-01" ]
+```
+
+It is a separate import for a reason. Everything on the root export makes a **falsifiable** claim:
+a constant checks against Janson, a date against an almanac, and a disagreement is a bug. Nothing
+here does. Which half of a doubled day an observance falls on, and whether it is kept in a leap
+month at all, are **conventions**, and the published sources disagree — Janson, following Berzin,
+says the first of a doubled pair; FPMT says the second. So the conventions are injected data
+carrying a citation, never logic, and a consumer who only wants date conversion never inherits
+anyone's.
+
+Institutions differ by spreading the config, the same way `PHUGPA_HENNING` is built from `PHUGPA`:
+
+```js
+const kopan = { ...GELUG, id: 'kopan', doubledDay: 'first' };
+observancesOn(Temporal.PlainDate.from('2024-07-09'), kopan);
+// Chokhor Duchen — where the default GELUG config puts it on 10 July
+```
+
+Every result carries a `resolution` — `"exact"`, `"secondOfDoubled"`, `"shiftedFromSkipped"` — so
+a display can show the almanac's footnote rather than presenting a moved date as an exact one.
+
+Losar is deliberately *not* here: it is a calendar fact rather than a convention, so it is
+`losarFor` on the root export. Teacher anniversaries are not shipped either — that data is
+institution-specific and changes within a decade — but `kind: 'anniversary'` exists so you can
+supply your own.
 
 ## API
 
@@ -239,6 +277,7 @@ no side effects — and every function taking a `config` defaults it to `PHUGPA`
 | `isoToTibetan` | `(date: Temporal.PlainDate, config?) => TibetanDate` | Total; every calendar day has a Tibetan date |
 | `tibetanToIso` | `(input: TibetanDateInput, config?) => Temporal.PlainDate` | Throws `SkippedDayError`, or `RangeError` on out-of-range input |
 | `tibetanDateExists` | `(input: TibetanDateInput, config?) => boolean` | The predicate counterpart; `false` exactly where `tibetanToIso` throws |
+| `losarFor` | `(year: number, config?) => TibetanDate` | Tibetan New Year. Not `{ month: 1, day: 1 }` — that throws where day 1 is skipped |
 
 **Formatting**
 
@@ -246,7 +285,11 @@ no side effects — and every function taking a `config` defaults it to `PHUGPA`
 |---|---|---|
 | `formatTibetanDate` | `(date: TibetanDate) => string` | `"2153-M06-30"`, with `L` on a leap month and a trailing `(leap)` on a leap day |
 
-**Julian day numbers**
+**Interoperability**
+
+The Julian day number is the interchange representation of calendrical computing — it is how you
+convert between any two calendars, and how Janson's paper is written. These are the extension
+point, not internals that leaked.
 
 | Export | Signature | Notes |
 |---|---|---|

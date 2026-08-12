@@ -2,11 +2,13 @@ import { describe, expect, it } from "vitest";
 import {
 	isoToTibetan,
 	julianDayFromIso,
+	losarFor,
 	tibetanDateExists,
 	tibetanToIso,
 	tibetanWeekday,
 } from "../src/computation/conversion.js";
 import { formatTibetanDate } from "../src/format.js";
+import { GELUG, getObservances, observancesOn } from "../src/observances/index.js";
 import { PHUGPA_HENNING } from "../src/traditions/phugpa.js";
 import { SkippedDayError } from "../src/types.js";
 
@@ -120,5 +122,33 @@ describe("README usage examples", () => {
 		const day = iso("2025-11-19");
 		expect(formatTibetanDate(isoToTibetan(day))).toBe("2152-M09-30 (leap)");
 		expect(formatTibetanDate(isoToTibetan(day, PHUGPA_HENNING))).toBe("2152-M09-29");
+	});
+});
+
+// The "Observances" section. Every date printed in a README comment is asserted here, because a
+// worked example that drifts is worse than none -- see docs/testing.md on the contract suites.
+describe("README observance examples", () => {
+	it("lists the four great days of 2026 as documented", () => {
+		const duchen = getObservances(iso("2026-01-01"), iso("2026-12-31")).filter(
+			(o) => o.rule.kind === "duchen",
+		);
+
+		expect(duchen.map((o) => `${o.rule.name}: ${o.date.isoDate}`)).toEqual([
+			"Chotrul Duchen: 2026-03-03",
+			"Saka Dawa Duchen: 2026-05-31",
+			"Chokhor Duchen: 2026-07-18",
+			"Lhabab Duchen: 2026-11-01",
+		]);
+	});
+
+	it("moves the 2024 Chokhor Duchen to 9 July under a spread config", () => {
+		const kopan = { ...GELUG, id: "kopan", doubledDay: "first" as const };
+		expect(observancesOn(iso("2024-07-09"), kopan).map((o) => o.rule.id)).toContain(
+			"chokhor-duchen",
+		);
+	});
+
+	it("computes Losar without the day-1 trap the section warns about", () => {
+		expect(losarFor(2153).isoDate.toString()).toBe("2026-02-18");
 	});
 });

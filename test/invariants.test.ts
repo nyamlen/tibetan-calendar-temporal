@@ -3,7 +3,8 @@ import { describe, expect, it } from "vitest";
 import { hasLeapMonth, losarJulianDay, trueMonthCount } from "../src/computation/calendar.js";
 import { trueDate } from "../src/computation/corrections.js";
 import { deriveScaling } from "../src/computation/scaling.js";
-import { formatTibetanDate, isoToTibetan, PHUGPA } from "../src/index.js";
+import { formatTibetanDate, isoToTibetan, PHUGPA, tibetanDateExists } from "../src/index.js";
+import { GELUG, getObservances } from "../src/observances/index.js";
 
 const scaled = deriveScaling(PHUGPA);
 
@@ -151,5 +152,47 @@ describe("formatTibetanDate", () => {
 				expect(() => Temporal.PlainDate.from(text)).toThrow();
 			}),
 		);
+	});
+});
+
+// The Tier 1 property docs/testing.md has promised since Phase 0. It constrains the *output*:
+// every observance must name a day that exists. Both skipped-day conventions satisfy it --
+// "omit" by emitting nothing, "preceding" by moving to a day that does exist -- so this does not
+// smuggle in a policy, which is easy to misread it as doing.
+describe("skipped days are never observance days", () => {
+	it("never places an observance on a date no calendar day carries", () => {
+		const found = getObservances(
+			Temporal.PlainDate.from("1950-01-01"),
+			Temporal.PlainDate.from("2150-12-31"),
+		);
+		const impossible = found.filter(
+			(o) =>
+				!tibetanDateExists({
+					year: o.date.year,
+					month: o.date.month,
+					day: o.date.day,
+					isLeapMonth: o.date.isLeapMonth,
+				}),
+		);
+		expect(impossible).toEqual([]);
+		// A guard against the property passing vacuously over an empty result.
+		expect(found.length).toBeGreaterThan(15_000);
+	});
+
+	it("holds under every skipped-day and doubled-day convention", () => {
+		for (const skippedDay of ["preceding", "omit"] as const) {
+			for (const doubledDay of ["first", "second", "both"] as const) {
+				const config = { ...GELUG, skippedDay, doubledDay };
+				for (const o of getObservances(
+					Temporal.PlainDate.from("2020-01-01"),
+					Temporal.PlainDate.from("2040-12-31"),
+					config,
+				)) {
+					// Round-tripping through the ISO date is the strongest form: the day the
+					// observance names must be the day it actually falls on.
+					expect(isoToTibetan(o.date.isoDate).day).toBe(o.date.day);
+				}
+			}
+		}
 	});
 });
