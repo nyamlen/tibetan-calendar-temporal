@@ -12,6 +12,10 @@ Thumbs.db
 .mcp.json
 .claude/settings.local.json
 
+# Playwright MCP drops page snapshots here, in whatever directory the session
+# was started from. Transient agent scratch output, never project artifacts.
+.playwright-mcp/
+
 # Build and Compilation Outputs
 dist/
 build/
