@@ -108,6 +108,17 @@ derivation; in `docs/` they are just noise.
 - **Pure stateless functions.** Same input, same output, no side effects.
 - **Tradition constants are injected** via `TraditionConfig`, never hardcoded. v1 ships
   `PHUGPA` only, but Tsurphu must remain addable without touching the algorithm.
+- **Errors carry codes; do not add an error class.** Throw through `rangeError`/`codedError` in
+  `src/errors.ts`, never a bare `new RangeError` — the code is the part consumers branch on, and a
+  bare construction silently omits it. `SkippedDayError` is the only class and stays the only one.
+  Codes are contract and message text is not, so assert on the code in tests and never tell a
+  consumer to match wording. Both rules and the message-writing guidance:
+  [docs/decisions/2026-08-12-error-codes-not-classes.md](docs/decisions/2026-08-12-error-codes-not-classes.md).
+- **Every consumer config gets a validator.** `TraditionConfig` and `ObservanceConfig` are both
+  documented extension points, so both are checked at the boundary and memoised per object. Add a
+  config type, add a validator — `TraditionConfig` went unchecked for three phases because the
+  failure looked like a language error (`Cannot read properties of undefined`) rather than a
+  missing feature.
 
 ## Environment
 
