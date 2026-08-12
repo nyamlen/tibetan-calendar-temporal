@@ -163,13 +163,19 @@ through this before publishing v1.0.0 — several are one-way doors once publish
 - [x] Remove the `STATUS` export from `index.js` — done in Phase 0; `index.js` is gone entirely,
       replaced by `src/index.ts` compiled to `dist/`
 - [ ] Remove the placeholder banner from `README.md`
-- [x] Revisit `engines: ">=22"` — resolved to `">=26"`, plus a runtime guard. The engine touches
-      Temporal at module evaluation (`conversion.ts` builds its Unix-epoch anchor there), so a
-      Node 22 consumer whose install npm had blessed got `ReferenceError: Temporal is not defined`
-      on `import`, naming neither Temporal nor the polyfill that fixes it. `">=26"` tells the
-      truth and npm treats it as a warning rather than a block, so polyfill consumers are not
-      locked out; the guard turns the remaining failure into an actionable message. CI tests one
-      Node version, so neither would have surfaced in-repo.
+- [x] Revisit `engines: ">=22"` — resolved to `">=26"`, plus a runtime guard.
+
+      The old declaration said Node 22 was supported, so a Node 22 consumer installed the package
+      with no warning at all. It then failed on `import`, before any call: `conversion.ts` builds
+      its Unix-epoch anchor at module evaluation, which needs Temporal, and Node 22 has none. What
+      they saw was `ReferenceError: Temporal is not defined` — naming neither Temporal as a
+      requirement nor the polyfill that supplies it.
+
+      Two separate fixes, because they cover different failures. `">=26"` makes the declaration
+      true; npm treats `engines` as a warning rather than a block, so a consumer who does supply a
+      polyfill is still not locked out. The guard then turns the remaining failure — polyfill
+      absent — into a message naming Node 26 and `temporal-polyfill/global`. Neither would have
+      surfaced in-repo: CI tests one Node version, and it is 26.
 
       The consumer-facing half of this landed later, and separately: the guard's message, the
       polyfill's name, the fact that the failure is at *import* time, and the reason
