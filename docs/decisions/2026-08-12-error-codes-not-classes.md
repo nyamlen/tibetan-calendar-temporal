@@ -41,16 +41,19 @@ class is not.
 - **`Error`** for a broken invariant this engine proves for itself — `TCT_INTERNAL` — and for
   the missing-Temporal guard, which is about the runtime rather than a call.
 
-The distinction is load-bearing rather than stylistic. `tibetanDateExists` reports `false` for a
-`RangeError` and rethrows everything else, so an internal invariant violation typed as a
-`RangeError` would come back as the calm answer "that date does not exist" when the truth is that
-the engine broke — inside the oracle for the suite's strongest property, where masking a failure
-makes that property pass more easily rather than fail. It was a `RangeError` once, and the docblock
-claiming otherwise was wrong for as long as it was.
+The distinction is load-bearing rather than stylistic. `tibetanDateExists` must not report "that
+date does not exist" when the truth is that the engine broke — it is the oracle for the suite's
+strongest property, where masking a failure makes that property pass more easily rather than fail.
+Typing an internal violation as a `RangeError` puts it one `catch` away from that. It was a
+`RangeError` once, and the docblock claiming otherwise was wrong for as long as it was.
 
-A malformed `TraditionConfig` is the case where the type is genuinely too coarse: it is bad input,
-so it is a `RangeError`, but it must not come back as `false` either. That one is excluded by
-**code**, via `hasCode`, which is precisely the job codes were added for.
+The **type** is only half of it, and relying on the type alone failed. `tibetanDateExists` used to
+report `false` for every `RangeError` bar one excluded code, which meant a bare
+`new RangeError` anywhere below the boundary became "that date does not exist" — and `scaleTo`
+had one, reachable through `deriveScaling` from a consumer's config. The predicate now works from
+an **allowlist** of three codes and rethrows the rest, so a new failure mode is loud by default
+instead of silently absorbed. That is the argument for coding every throw: a code makes the
+allowlist possible, and a bare construction silently opts the failure out of it.
 
 ## Codes are contract; messages are not
 

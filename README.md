@@ -448,7 +448,7 @@ same input, same output, no side effects. Wherever a `config?` parameter appears
 |---|---|---|
 | `isoToTibetan` | `(date: Temporal.PlainDate, config?) => TibetanDate` | Total; every calendar day has a Tibetan date |
 | `tibetanToIso` | `(input: TibetanDateInput, config?) => Temporal.PlainDate` | Throws `SkippedDayError`, or `RangeError` on out-of-range input |
-| `tibetanDateExists` | `(input: TibetanDateInput, config?) => boolean` | The predicate counterpart; `false` exactly where `tibetanToIso` throws about the date |
+| `tibetanDateExists` | `(input: TibetanDateInput, config?) => boolean` | The predicate counterpart. `false` for a skipped date, an out-of-range field or a missing leap month; **throws** for anything else, including a date past the exact range — where the day was never computed, so `false` would be a claim about arithmetic that was refused |
 | `losarFor` | `(year: number, config?) => TibetanDate` | Tibetan New Year. Not `{ month: 1, day: 1 }` — that throws where day 1 is skipped |
 
 #### Formatting
@@ -461,12 +461,12 @@ same input, same output, no side effects. Wherever a `config?` parameter appears
 
 The Julian day number is the interchange representation of calendrical computing — it is how you
 convert between any two calendars, and how Janson's paper is written. These are the extension
-point, not internals that leaked. None takes a config.
+point, not internals that leaked.
 
 | Export | Signature | Notes |
 |---|---|---|
-| `julianDayFromIso` | `(date: Temporal.PlainDate) => number` | |
-| `isoFromJulianDay` | `(julianDay: number) => Temporal.PlainDate` | |
+| `julianDayFromIso` | `(date: Temporal.PlainDate) => number` | Also accepts anything `Temporal.PlainDate.from` does — a `PlainDateTime`, a `ZonedDateTime`, an ISO string, `{ year, month, day }` |
+| `isoFromJulianDay` | `(julianDay: number, config?) => Temporal.PlainDate` | Takes a config because the exact-range bound it enforces belongs to the tradition |
 | `tibetanWeekday` | `(julianDay: number) => number` | Almanac numbering, `0` = Saturday — not the ISO `dayOfWeek` field |
 
 #### Tradition configs

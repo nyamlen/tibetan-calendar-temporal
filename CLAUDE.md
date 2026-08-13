@@ -108,17 +108,36 @@ derivation; in `docs/` they are just noise.
 - **Pure stateless functions.** Same input, same output, no side effects.
 - **Tradition constants are injected** via `TraditionConfig`, never hardcoded. v1 ships
   `PHUGPA` only, but Tsurphu must remain addable without touching the algorithm.
+  This extends to anything **derived from** those constants. The `±3` search window in
+  `isoToTibetan` was proved from `(25 + 11)/60` — Phugpa's largest `moonTab` and `sunTab` entries —
+  and written at the loop as a literal `3`, so a wider table passed validation and then broke the
+  window on 8% of days, half of them by returning a date that did not convert back. It is now
+  `ScaledTradition.searchHalfWidth`, computed per tradition. If a bound is proved from a config's
+  numbers, derive it from that config; assertions specific to Phugpa's values belong in the test
+  suite, where they also catch a mistyped transcription.
+- **The shipped configs are deeply frozen.** `PHUGPA`, `PHUGPA_HENNING` and `GELUG` go through
+  `deepFreeze` in `src/freeze.ts`. They are the objects the docs point at for `{ ...PHUGPA, … }`,
+  so they are the ones a keystroke off a spread mutates — and because scaling and validation are
+  both memoised on the config object, a mutation after first use yields neither the old constants
+  nor the new ones but a stale mix. Do not unfreeze one to make a test easier.
 - **Errors carry codes; do not add an error class.** Throw through `rangeError`/`codedError` in
   `src/errors.ts`, never a bare `new RangeError` — the code is the part consumers branch on, and a
   bare construction silently omits it. `SkippedDayError` is the only class and stays the only one.
   Codes are contract and message text is not, so assert on the code in tests and never tell a
-  consumer to match wording. Both rules and the message-writing guidance:
+  consumer to match wording. `tibetanDateExists` swallows errors by **allowlist** — three codes
+  answer `false`, everything else rethrows — and must not go back to a denylist: as one, a single
+  bare `RangeError` in `scaleTo` made it report that Losar 2026 does not exist. Both rules and the
+  message-writing guidance:
   [docs/decisions/2026-08-12-error-codes-not-classes.md](docs/decisions/2026-08-12-error-codes-not-classes.md).
-- **Every consumer config gets a validator.** `TraditionConfig` and `ObservanceConfig` are both
-  documented extension points, so both are checked at the boundary and memoised per object. Add a
-  config type, add a validator — `TraditionConfig` went unchecked for three phases because the
-  failure looked like a language error (`Cannot read properties of undefined`) rather than a
-  missing feature.
+- **Every consumer config gets a validator, and every export gets a guard.** `TraditionConfig` and
+  `ObservanceConfig` are both documented extension points, so both are checked at the boundary and
+  memoised per object. Add a config type, add a validator — `TraditionConfig` went unchecked for
+  three phases because the failure looked like a language error (`Cannot read properties of
+  undefined`) rather than a missing feature. Two corollaries, each of which was violated:
+  a field the type declares **required** must be rejected when absent, not merely when wrong
+  (`undefined` is the likelier input, and it silently inherited whichever branch came last); and
+  the boundary is the **whole** exported surface, so when an internal caller needs to skip a guard,
+  give it a separate name like `isoFromJulianDayUnchecked` rather than leaving the export bare.
 
 ## Environment
 
@@ -164,11 +183,16 @@ tree would be picked up by Biome, the link checker and Vitest — and imports bo
 design, not defects: there is no `main` field and no CJS build. Do not add `main` to make a row
 green.
 
-**`npm run coverage` is not one of the five, so nothing gates it.** It was broken on `main` for an
+**`npm run coverage` is not one of the seven, so nothing gates it.** It was broken on `main` for an
 unknown stretch and nobody noticed: the 200-year moon-phase sweep runs in well under a second bare
 but takes 5–8 seconds under v8 instrumentation, against Vitest's 5s default, so `test` passed while
 `coverage` failed. The long sweeps now carry explicit timeouts. Run it before a release, and give
 any new multi-century test an explicit timeout rather than discovering this again.
+
+Run it for what it *reports*, not only to keep it passing. An unreachable-line report is how the
+2026-08-13 review pass found that a new config check sat after the `scaleTo` call that already
+guarded the same condition — the test passed, because both throws carry the same code, and only
+coverage showed the check could never run.
 
 `check:links` validates relative markdown links and `#fragments` against the filesystem. Docs
 here cross-reference heavily, so renaming or deleting one breaks inbound links silently; fix them

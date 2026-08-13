@@ -337,11 +337,13 @@ Five rules follow from that:
   `SkippedDayError`, a confident calendrical claim about a date that was never computed. A caller's
   correct response to `SkippedDayError` is "fine, that date does not exist"; to this it is "my input
   is out of range". They must stay distinguishable.
-- **Predicates catch narrowly.** `tibetanDateExists` catches `SkippedDayError` and `RangeError` and
-  rethrows everything else, so an internal invariant violation reaches the caller instead of being
-  reported as a missing date. Two exclusions sit on top: the internal violation is a plain `Error`
-  rather than a `RangeError`, and a malformed `TraditionConfig` — which *is* bad input, so *is* a
-  `RangeError` — is excluded by its code.
+- **Predicates catch by allowlist.** `tibetanDateExists` answers `false` for exactly three codes —
+  `TCT_SKIPPED_DAY`, `TCT_FIELD_OUT_OF_RANGE`, `TCT_NO_SUCH_LEAP_MONTH` — and rethrows everything
+  else, so an internal violation, a malformed config, or a date past the exact range reaches the
+  caller rather than being reported as a missing date. It was a denylist and lost: an uncoded
+  `RangeError` from the scaling derivation came back as "Losar 2026 does not exist". A denylist has
+  to anticipate every failure anyone will ever add; an allowlist names only the three that are
+  answers about the input.
 - **Both consumer configs are validated once per object**, memoised on a `WeakSet` keyed by the
   config — the same bargain `scalingFor` already makes with its `WeakMap`. `ObservanceConfig` is
   checked by `validateObservanceConfig`, `TraditionConfig` by
