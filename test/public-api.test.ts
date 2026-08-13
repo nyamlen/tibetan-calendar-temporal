@@ -65,6 +65,32 @@ describe("public API surface", () => {
 		expect(henning).toEqual(phugpa);
 	});
 
+	/**
+	 * The shipped configs are the objects the docs tell consumers to spread, so they are the ones a
+	 * keystroke off `{ ...PHUGPA, … }` mutates — for the whole process, and invisibly, because the
+	 * derived scaling and the validation are both memoised on the object and would not rerun.
+	 *
+	 * Free to do now and breaking to do later: a consumer shipping `PHUGPA.moonTab.sort()` against
+	 * v1.0.0 would break on the release that adds this.
+	 */
+	it("freezes the shipped configs, correction tables included", () => {
+		for (const config of [api.PHUGPA, api.PHUGPA_HENNING]) {
+			expect(Object.isFrozen(config)).toBe(true);
+			expect(Object.isFrozen(config.moonTab)).toBe(true);
+			expect(Object.isFrozen(config.sunTab)).toBe(true);
+			expect(Object.isFrozen(config.meanDate)).toBe(true);
+			expect(Object.isFrozen(config.meanDate.perDay)).toBe(true);
+		}
+
+		// Strict mode -- which an ES module always is -- makes these throw rather than fail silently.
+		expect(() => {
+			(api.PHUGPA.moonTab as number[])[4] = 0;
+		}).toThrow(TypeError);
+		expect(() => {
+			(api.PHUGPA as { id: string }).id = "not-phugpa";
+		}).toThrow(TypeError);
+	});
+
 	it("keeps the observance layer off the root, so a date consumer never loads it", () => {
 		expect(Object.keys(api)).not.toContain("getObservances");
 		expect(Object.keys(api)).not.toContain("GELUG");

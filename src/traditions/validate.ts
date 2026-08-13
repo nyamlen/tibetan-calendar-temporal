@@ -147,6 +147,10 @@ const validated = new WeakSet<TraditionConfig>();
  * escapes revalidation; that is the same accepted bargain the scaling cache and the observance
  * validator already make, and it is what keeps the check off the hot path.
  *
+ * The bargain covers **consumer-supplied** configs only. `PHUGPA` and `PHUGPA_HENNING` are deeply
+ * frozen, so the objects a reader is most likely to mutate — they are the ones the docs point at
+ * for `{ ...PHUGPA, … }` — cannot reach the stale-cache state at all.
+ *
  * This validates **shape, not astronomy**. A config with plausible types and wrong constants passes
  * here and produces a wrong calendar — nothing but a fixture can catch that, which is what
  * `docs/testing.md` is about.

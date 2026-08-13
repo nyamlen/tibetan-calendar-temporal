@@ -201,7 +201,14 @@ export interface Observance {
 	/** The day it falls on. Always a real calendar day. */
 	readonly date: TibetanDate;
 
-	/** The rule that produced it. */
+	/**
+	 * The rule that produced it.
+	 *
+	 * @remarks
+	 * The **same object** the config holds, not a copy — so for a consumer-supplied config,
+	 * mutating this mutates their own rule table. `readonly` says so at compile time; the shipped
+	 * `GELUG` is deeply frozen, so this aliases a frozen object there.
+	 */
 	readonly rule: ObservanceRule;
 
 	/** How it landed here. */

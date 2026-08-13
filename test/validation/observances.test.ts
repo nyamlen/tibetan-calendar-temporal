@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { isoToTibetan, losarFor, tibetanDateExists } from "../../src/computation/conversion.js";
 import { GELUG, getObservances, observancesOn } from "../../src/observances/index.js";
+import type { ObservanceRule } from "../../src/observances/types.js";
 import { FPMT_OBSERVANCES } from "../fixtures/fpmt-observances.js";
 
 const iso = (s: string) => Temporal.PlainDate.from(s);
@@ -263,6 +264,21 @@ describe("consumer config validation", () => {
 
 	it("accepts the shipped GELUG config", () => {
 		expect(() => run(GELUG)).not.toThrow();
+	});
+
+	// `{ ...GELUG, rules: [...GELUG.rules, mine] }` is what the docs tell a consumer to write, so
+	// `GELUG.rules.push(mine)` is the mistake one keystroke away -- and it used to succeed, adding
+	// the rule for every caller in the process.
+	it("freezes GELUG, its rules array and each rule", () => {
+		expect(Object.isFrozen(GELUG)).toBe(true);
+		expect(Object.isFrozen(GELUG.rules)).toBe(true);
+		for (const rule of GELUG.rules) {
+			expect(Object.isFrozen(rule)).toBe(true);
+			expect(Object.isFrozen(rule.when)).toBe(true);
+		}
+		expect(() => (GELUG.rules as ObservanceRule[]).push({ id: "z" } as ObservanceRule)).toThrow(
+			TypeError,
+		);
 	});
 
 	// Each of these previously returned a real, wrong day rather than complaining.

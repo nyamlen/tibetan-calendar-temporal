@@ -11,6 +11,7 @@
  * @packageDocumentation
  */
 
+import { deepFreeze } from "../freeze.js";
 import type { TraditionConfig } from "./types.js";
 
 /**
@@ -26,8 +27,13 @@ import type { TraditionConfig } from "./types.js";
  * import { PHUGPA } from "tibetan-calendar-temporal";
  * isoToTibetan(Temporal.PlainDate.from("2027-01-15"), PHUGPA);
  * ```
+ *
+ * **Deeply frozen**, correction tables included. This is the object the docs point a reader at for
+ * `{ ...PHUGPA, … }`, and a mutation one keystroke away from that spread would change the calendar
+ * for every caller in the process — silently, because the derived scaling is memoised on the
+ * object and would not be recomputed. See {@link deepFreeze}.
  */
-export const PHUGPA: TraditionConfig = {
+export const PHUGPA: TraditionConfig = deepFreeze({
 	id: "phugpa",
 	name: "Phugpa",
 
@@ -93,7 +99,7 @@ export const PHUGPA: TraditionConfig = {
 
 	/** sun_tab(0…3). Increments are at most 6, bounding the correction at 11/60 days. */
 	sunTab: [0, 6, 10, 11],
-};
+});
 
 /**
  * Phugpa with Henning's value for `a₂`.
@@ -108,9 +114,9 @@ export const PHUGPA: TraditionConfig = {
  *
  * @see {@link PHUGPA} for the divergence dates and frequency.
  */
-export const PHUGPA_HENNING: TraditionConfig = {
+export const PHUGPA_HENNING: TraditionConfig = deepFreeze({
 	...PHUGPA,
 	id: "phugpa-henning",
 	name: "Phugpa (Henning a₂)",
 	lunarAnomaly: { ...PHUGPA.lunarAnomaly, perDay: { num: 3781, den: 105_840 } },
-};
+});

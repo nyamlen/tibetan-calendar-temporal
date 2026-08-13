@@ -33,6 +33,7 @@
  * @packageDocumentation
  */
 
+import { deepFreeze } from "../freeze.js";
 import type { ObservanceConfig } from "./types.js";
 
 /**
@@ -46,7 +47,16 @@ import type { ObservanceConfig } from "./types.js";
  */
 const DATES_EXPLAINED = "https://fpmt.org/media/resources/dharma-dates/dates-explained/";
 
-export const GELUG: ObservanceConfig = {
+/**
+ * FPMT's Gelug observance conventions and rules.
+ *
+ * @remarks
+ * **Deeply frozen**, `rules` and each rule object included. The docs point a reader at
+ * `{ ...GELUG, rules: [...GELUG.rules, mine] }`, and `GELUG.rules.push(mine)` is the mistake one
+ * keystroke away from it — which used to succeed and add the rule for every caller in the process.
+ * See {@link deepFreeze}.
+ */
+export const GELUG: ObservanceConfig = deepFreeze({
 	id: "gelug",
 	name: "Gelug (FPMT)",
 
@@ -175,4 +185,4 @@ export const GELUG: ObservanceConfig = {
 			source: DATES_EXPLAINED,
 		},
 	],
-};
+});
