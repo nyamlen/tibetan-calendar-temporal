@@ -29,7 +29,7 @@ import {
 import { isoFromJulianDay, isoToTibetan, julianDayFromIso } from "../computation/conversion.js";
 import { yearFromRoyalEra } from "../computation/epoch.js";
 import { deriveScaling, type ScaledTradition } from "../computation/scaling.js";
-import { rangeError } from "../errors.js";
+import { codedError, rangeError } from "../errors.js";
 import { PHUGPA } from "../traditions/phugpa.js";
 import type { TraditionConfig } from "../traditions/types.js";
 import { assertTraditionConfig } from "../traditions/validate.js";
@@ -77,6 +77,8 @@ const MAX_SPAN_YEARS = 200;
 const DOUBLED_DAY_CHOICES = ["first", "second", "both"];
 const SKIPPED_DAY_CHOICES = ["preceding", "omit"];
 const LEAP_MONTH_CHOICES = ["leap", "regular", "both"];
+const OBSERVANCE_KINDS = ["duchen", "sojong", "tsok", "puja", "anniversary"];
+const TIERS = [1, 2, 3];
 
 /**
  * Rejects a config whose rules could not resolve to the days they name.
@@ -91,13 +93,33 @@ const LEAP_MONTH_CHOICES = ["leap", "regular", "both"];
  * the year. A typo in a downstream rule table shipped a wrong date to practitioners with this
  * library's full authority behind it.
  *
- * The convention fields are checked too. They are type-level only, so a JavaScript consumer — or
- * a TypeScript one whose config came from `JSON.parse` — passing `"1st"` fell through to the
- * `"both"` branch and got two observances where one was meant.
+ * The convention fields are checked too, and **required rather than optional**. They are
+ * type-level only, so a JavaScript consumer — or a TypeScript one whose config came from
+ * `JSON.parse`, or a hand-built config, or a spread of a `Partial<>` — can supply a wrong value or
+ * none at all. A wrong one (`"1st"`) was caught; a missing one was not, and missing is the likelier
+ * input. All three then resolved to `undefined`, fell through the `if` chains below to whichever
+ * branch happened to be last, and produced a wrong date in silence: omitting `leapMonth` put the
+ * 2024 Chokhor Duchen in the regular month 6 rather than the leap month FPMT prints, one month off.
  *
  * @throws RangeError naming the offending rule.
  */
 function validateObservanceConfig(config: ObservanceConfig): void {
+	// The config object itself, before anything dereferences it. `assertTraditionConfig` has covered
+	// this since it was written; this validator was modelled on it and stopped short, so
+	// `observancesOn(date, null)` produced a raw uncoded TypeError and a consumer's
+	// `catch (e) { if (e.code === …) }` fell through to its generic branch.
+	if (config === null || typeof config !== "object") {
+		throw rangeError(
+			"TCT_INVALID_OBSERVANCE_CONFIG",
+			`ObservanceConfig must be an object, received ${describe(config)}. Pass GELUG, or a ` +
+				"config spread from it",
+		);
+	}
+
+	// `config.id` is interpolated into the messages below, so it is checked before they can quote it.
+	assertNonEmptyString(config.id, "observance config id");
+	assertNonEmptyString(config.name, `observance config "${config.id}": name`);
+
 	assertChoice(config.doubledDay, DOUBLED_DAY_CHOICES, "config doubledDay");
 	assertChoice(config.skippedDay, SKIPPED_DAY_CHOICES, "config skippedDay");
 	assertChoice(config.leapMonth, LEAP_MONTH_CHOICES, "config leapMonth");
@@ -113,10 +135,17 @@ function validateObservanceConfig(config: ObservanceConfig): void {
 
 	const seen = new Set<string>();
 	for (const rule of config.rules) {
+		if (rule === null || typeof rule !== "object") {
+			throw rangeError(
+				"TCT_INVALID_OBSERVANCE_CONFIG",
+				`observance config "${config.id}": every rule must be an object, received ` +
+					`${describe(rule)}`,
+			);
+		}
 		if (typeof rule.id !== "string" || rule.id === "") {
 			throw rangeError(
 				"TCT_INVALID_OBSERVANCE_CONFIG",
-				`observance rule id must be a non-empty string, received ${rule.id}`,
+				`observance rule id must be a non-empty string, received ${describe(rule.id)}`,
 			);
 		}
 		// Documented as "unique within a config" and never enforced; duplicates silently produced
@@ -128,6 +157,33 @@ function validateObservanceConfig(config: ObservanceConfig): void {
 			);
 		}
 		seen.add(rule.id);
+
+		assertNonEmptyString(rule.name, `observance rule "${rule.id}": name`);
+		assertChoice(rule.kind, OBSERVANCE_KINDS, `observance rule "${rule.id}" kind`);
+		if (!TIERS.includes(rule.tier)) {
+			throw rangeError(
+				"TCT_INVALID_OBSERVANCE_CONFIG",
+				`observance rule "${rule.id}": tier must be 1, 2 or 3, received ${describe(rule.tier)}. ` +
+					"It says who may keep the observance — 1 universal, 2 general practice, 3 requires " +
+					"empowerment — and a consumer filters on it",
+			);
+		}
+		// An empty string satisfies the type but not the intent. The field exists so that "a rule
+		// invented from memory is at least conspicuously uncited", which "" defeats exactly.
+		assertNonEmptyString(
+			rule.source,
+			`observance rule "${rule.id}": source`,
+			"Every rule carries where it comes from, consumer-supplied rules included, so that one " +
+				"invented from memory is conspicuously uncited",
+		);
+
+		if (rule.when === null || typeof rule.when !== "object") {
+			throw rangeError(
+				"TCT_INVALID_OBSERVANCE_CONFIG",
+				`observance rule "${rule.id}": when must be a { month?, day } object, received ` +
+					`${describe(rule.when)}`,
+			);
+		}
 
 		const { day } = rule.when;
 		if (!Number.isInteger(day) || day < 1 || day > 30) {
@@ -149,21 +205,70 @@ function validateObservanceConfig(config: ObservanceConfig): void {
 			}
 		}
 
-		assertChoice(rule.doubledDay, DOUBLED_DAY_CHOICES, `observance rule "${rule.id}" doubledDay`);
-		assertChoice(rule.skippedDay, SKIPPED_DAY_CHOICES, `observance rule "${rule.id}" skippedDay`);
-		assertChoice(rule.leapMonth, LEAP_MONTH_CHOICES, `observance rule "${rule.id}" leapMonth`);
+		assertOptionalChoice(
+			rule.doubledDay,
+			DOUBLED_DAY_CHOICES,
+			`observance rule "${rule.id}" doubledDay`,
+		);
+		assertOptionalChoice(
+			rule.skippedDay,
+			SKIPPED_DAY_CHOICES,
+			`observance rule "${rule.id}" skippedDay`,
+		);
+		assertOptionalChoice(
+			rule.leapMonth,
+			LEAP_MONTH_CHOICES,
+			`observance rule "${rule.id}" leapMonth`,
+		);
 	}
 }
 
-/** Rejects an optional convention field that is present but not one of its documented values. */
-function assertChoice(value: string | undefined, allowed: string[], subject: string): void {
-	if (value !== undefined && !allowed.includes(value)) {
+/**
+ * Rejects a **required** field that is not one of its documented values, `undefined` included.
+ *
+ * @remarks
+ * The `undefined` case is the whole point of the split from {@link assertOptionalChoice}. These
+ * fields are declared required on `ObservanceConfig`, and a missing one used to fall through to
+ * whichever branch of `resolveInMonth` or `appliesToMonth` came last.
+ */
+function assertChoice(value: unknown, allowed: readonly string[], subject: string): void {
+	if (typeof value !== "string" || !allowed.includes(value)) {
 		throw rangeError(
 			"TCT_INVALID_OBSERVANCE_CONFIG",
 			`${subject} must be one of ${allowed.map((a) => `"${a}"`).join(", ")}, received ` +
-				`${JSON.stringify(value)}`,
+				`${describe(value)}`,
 		);
 	}
+}
+
+/**
+ * Rejects a per-rule override that is present but not one of its documented values.
+ *
+ * @remarks
+ * Absent is legitimate here and only here: an override that is missing means "use the config's
+ * default", which is what {@link ObservanceRule.doubledDay} and its two siblings document.
+ */
+function assertOptionalChoice(value: unknown, allowed: readonly string[], subject: string): void {
+	if (value !== undefined) assertChoice(value, allowed, subject);
+}
+
+/** A non-empty string, with an optional sentence explaining why the field matters. */
+function assertNonEmptyString(value: unknown, subject: string, why?: string): void {
+	if (typeof value !== "string" || value === "") {
+		throw rangeError(
+			"TCT_INVALID_OBSERVANCE_CONFIG",
+			`${subject} must be a non-empty string, received ${describe(value)}` +
+				(why === undefined ? "" : `. ${why}`),
+		);
+	}
+}
+
+/** A value rendered short enough for a message, and unambiguously — `"3"` is not `3`. */
+function describe(value: unknown): string {
+	if (typeof value === "string") return JSON.stringify(value);
+	if (Array.isArray(value)) return `an array of ${value.length}`;
+	if (value !== null && typeof value === "object") return "an object";
+	return String(value);
 }
 
 /**
@@ -204,13 +309,26 @@ function resolveInMonth(
 			julianDay: classification.julianDay as number,
 			resolution: "secondOfDoubled" as const,
 		};
+		// Explicit rather than positional. `return [first, second]` as a bare fall-through meant any
+		// value that was not "first" or "second" — `undefined` above all — silently inherited the
+		// "both" branch and emitted two observances where one was meant. The validator now excludes
+		// that, and this makes a future fourth choice fail loudly rather than inherit a neighbour's
+		// behaviour.
 		if (choice === "first") return [first];
 		if (choice === "second") return [second];
-		return [first, second];
+		if (choice === "both") return [first, second];
+		/* c8 ignore next */
+		throw codedError("TCT_INTERNAL", `unhandled doubledDay choice ${JSON.stringify(choice)}`);
 	}
 
 	// Skipped: no calendar day carries this number.
-	if ((rule.skippedDay ?? config.skippedDay) === "omit") return [];
+	const skipped = rule.skippedDay ?? config.skippedDay;
+	if (skipped === "omit") return [];
+	/* c8 ignore next */
+	if (skipped !== "preceding") {
+		/* c8 ignore next */
+		throw codedError("TCT_INTERNAL", `unhandled skippedDay choice ${JSON.stringify(skipped)}`);
+	}
 
 	// The preceding calendar day. Taking it as a Julian day rather than as a day *number* handles
 	// day 1 without a special case, where the preceding day belongs to the previous month.
@@ -250,9 +368,15 @@ function appliesToMonth(
 	if (rule.when.month !== month.month) return false;
 	if (!yearHasLeapOfThisNumber) return true;
 
+	// Explicit rather than positional, for the same reason as resolveInMonth's branches: `"regular"`
+	// was the fall-through, so a missing `leapMonth` put an annual observance in the regular month
+	// with no error — one month off what FPMT prints for the 2024 Chokhor Duchen.
 	const choice = rule.leapMonth ?? config.leapMonth;
 	if (choice === "both") return true;
-	return choice === "leap" ? month.isLeap : !month.isLeap;
+	if (choice === "leap") return month.isLeap;
+	if (choice === "regular") return !month.isLeap;
+	/* c8 ignore next */
+	throw codedError("TCT_INTERNAL", `unhandled leapMonth choice ${JSON.stringify(choice)}`);
 }
 
 /**

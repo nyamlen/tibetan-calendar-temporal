@@ -5,6 +5,16 @@ import { FPMT_OBSERVANCES } from "../fixtures/fpmt-observances.js";
 
 const iso = (s: string) => Temporal.PlainDate.from(s);
 
+/** The error a call throws, or `undefined` if it does not throw. */
+const thrownBy = (call: () => unknown): (Error & { code?: string }) | undefined => {
+	try {
+		call();
+		return undefined;
+	} catch (error) {
+		return error as Error & { code?: string };
+	}
+};
+
 /**
  * FPMT's printed label, and the rule ids that should produce it.
  *
@@ -315,5 +325,135 @@ describe("consumer config validation", () => {
 		const bad = withRule({ when: { day: 31 } });
 		expect(() => run(bad)).toThrow(/day must be/);
 		expect(() => run(bad)).toThrow(/day must be/);
+	});
+
+	// The three convention fields are declared *required* on ObservanceConfig, and the validator's
+	// `value !== undefined` escape let all three through when missing. Downstream they resolved to
+	// `undefined` and fell into whichever branch came last. `undefined` is also the far likelier
+	// input than the `"1st"` the validator did catch: it is what a config written before a field
+	// existed, a hand-built config, or a spread of a Partial<> all produce.
+	it.each(["doubledDay", "skippedDay", "leapMonth"])(
+		"rejects a config with %s missing entirely",
+		(field) => {
+			const config = { ...GELUG } as Record<string, unknown>;
+			delete config[field];
+			expect(thrownBy(() => run(config))?.code).toBe("TCT_INVALID_OBSERVANCE_CONFIG");
+		},
+	);
+
+	// What the omission actually cost, kept as a worked case rather than only a shape assertion.
+	// 2024 is a leap-6 year; FPMT prints Chokhor Duchen in the leap month, and with `leapMonth`
+	// dropped the engine returned 2024-08-08 from the regular month 6 instead of 2024-07-10.
+	it("no longer resolves Chokhor Duchen a month late when leapMonth is dropped", () => {
+		const chokhor = {
+			...GELUG,
+			id: "chokhor-only",
+			rules: [
+				{
+					id: "chokhor-duchen",
+					name: "Chokhor Duchen",
+					kind: "duchen" as const,
+					tier: 1 as const,
+					when: { month: 6, day: 4 },
+					source: "https://fpmt.org/resources/calendar/",
+				},
+			],
+		} as Record<string, unknown>;
+
+		const withLeap = { ...chokhor, leapMonth: "leap" };
+		expect(
+			getObservances(iso("2024-01-01"), iso("2024-12-31"), withLeap as typeof GELUG).map((o) =>
+				o.date.isoDate.toString(),
+			),
+		).toEqual(["2024-07-10"]);
+
+		const dropped = { ...chokhor };
+		delete dropped.leapMonth;
+		expect(thrownBy(() => run(dropped))?.code).toBe("TCT_INVALID_OBSERVANCE_CONFIG");
+	});
+
+	// CLAUDE.md: "Every consumer config gets a validator ... TraditionConfig went unchecked for
+	// three phases because the failure looked like a language error rather than a missing feature."
+	// These are that same language error, one layer out: all three were raw TypeErrors with
+	// code: undefined, so a consumer's `catch (e) { if (e.code === ...) }` fell through.
+	it.each([
+		["a null config", null],
+		["a non-object config", 42],
+		["a string config", "gelug"],
+	])("rejects %s with a coded error", (_label, config) => {
+		expect(thrownBy(() => observancesOn(iso("2026-01-01"), config as never))?.code).toBe(
+			"TCT_INVALID_OBSERVANCE_CONFIG",
+		);
+	});
+
+	// `undefined` is not in the list above on purpose: it means "argument omitted", so the default
+	// parameter supplies GELUG and the call is correct. Only an explicitly wrong value is an error.
+	it("treats an undefined config as the GELUG default", () => {
+		expect(() => observancesOn(iso("2026-01-01"), undefined)).not.toThrow();
+	});
+
+	it.each([
+		["a null rule", { ...GELUG, rules: [null] }],
+		["a rule with no when", { ...GELUG, rules: [{ id: "r", name: "R", kind: "puja", tier: 1 }] }],
+		["a null when", { ...GELUG, rules: [{ id: "r", name: "R", kind: "puja", tier: 1, when: null }] }],
+	])("rejects %s with a coded error", (_label, config) => {
+		expect(thrownBy(() => run(config))?.code).toBe("TCT_INVALID_OBSERVANCE_CONFIG");
+	});
+
+	// Accepted and returned results before: kind: "not-a-kind", tier: 99, source: "".
+	it.each([
+		["an unknown kind", { kind: "not-a-kind" }],
+		["an out-of-range tier", { tier: 99 }],
+		["a fractional tier", { tier: 1.5 }],
+		["an empty source", { source: "" }],
+		["a missing source", { source: undefined }],
+		["an empty name", { name: "" }],
+	])("rejects a rule with %s", (_label, patch) => {
+		expect(thrownBy(() => run(withRule(patch)))?.code).toBe("TCT_INVALID_OBSERVANCE_CONFIG");
+	});
+
+	/**
+	 * The test the hand-written lists could not be: every rejection carries the code.
+	 *
+	 * A list of calls known to be coded — which is what `test/public-api.test.ts` walks — can only
+	 * confirm the paths someone already thought of. Dropping and nulling each field in turn is what
+	 * finds the path nobody did, and it is how the null-config and missing-`when` holes above would
+	 * have surfaced without an external reviewer probing for them.
+	 */
+	it("codes every rejection, over every dropped and nulled field", () => {
+		const uncoded: string[] = [];
+		const topLevel = Object.keys(GELUG);
+		const ruleFields = Object.keys(GELUG.rules[0] as object);
+
+		for (const field of topLevel) {
+			for (const mutation of ["drop", "null"] as const) {
+				const config = { ...GELUG, id: `mutant-${field}-${mutation}` } as Record<string, unknown>;
+				if (mutation === "drop") delete config[field];
+				else config[field] = null;
+
+				const error = thrownBy(() => run(config));
+				// `name` is metadata the arithmetic never reads, so dropping it may legitimately not
+				// throw -- but if it throws, it must be coded.
+				if (error !== undefined && error.code !== "TCT_INVALID_OBSERVANCE_CONFIG") {
+					uncoded.push(`config.${field} ${mutation}: ${error.name} code=${error.code}`);
+				}
+			}
+		}
+
+		for (const field of ruleFields) {
+			for (const mutation of ["drop", "null"] as const) {
+				const rule = { ...(GELUG.rules[0] as object) } as Record<string, unknown>;
+				if (mutation === "drop") delete rule[field];
+				else rule[field] = null;
+				const config = { ...GELUG, id: `mutant-rule-${field}-${mutation}`, rules: [rule] };
+
+				const error = thrownBy(() => run(config));
+				if (error !== undefined && error.code !== "TCT_INVALID_OBSERVANCE_CONFIG") {
+					uncoded.push(`rule.${field} ${mutation}: ${error.name} code=${error.code}`);
+				}
+			}
+		}
+
+		expect(uncoded).toEqual([]);
 	});
 });
