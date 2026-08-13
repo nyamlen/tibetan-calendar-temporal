@@ -26,7 +26,11 @@ import {
 	monthFromCount,
 	trueMonthCount,
 } from "../computation/calendar.js";
-import { isoFromJulianDay, isoToTibetan, julianDayFromIso } from "../computation/conversion.js";
+import {
+	isoFromJulianDayUnchecked,
+	isoToTibetan,
+	julianDayFromIso,
+} from "../computation/conversion.js";
 import { yearFromRoyalEra } from "../computation/epoch.js";
 import { deriveScaling, type ScaledTradition } from "../computation/scaling.js";
 import { codedError, rangeError } from "../errors.js";
@@ -484,7 +488,7 @@ export function getObservances(
 	return found.map((hit) => {
 		let date = dates.get(hit.julianDay);
 		if (date === undefined) {
-			date = isoToTibetan(isoFromJulianDay(hit.julianDay), tradition);
+			date = isoToTibetan(isoFromJulianDayUnchecked(hit.julianDay), tradition);
 			dates.set(hit.julianDay, date);
 		}
 		return { date, rule: hit.rule, resolution: hit.resolution };

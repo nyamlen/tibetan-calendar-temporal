@@ -411,7 +411,10 @@ describe("consumer config validation", () => {
 	it.each([
 		["a null rule", { ...GELUG, rules: [null] }],
 		["a rule with no when", { ...GELUG, rules: [{ id: "r", name: "R", kind: "puja", tier: 1 }] }],
-		["a null when", { ...GELUG, rules: [{ id: "r", name: "R", kind: "puja", tier: 1, when: null }] }],
+		[
+			"a null when",
+			{ ...GELUG, rules: [{ id: "r", name: "R", kind: "puja", tier: 1, when: null }] },
+		],
 	])("rejects %s with a coded error", (_label, config) => {
 		expect(thrownBy(() => run(config))?.code).toBe("TCT_INVALID_OBSERVANCE_CONFIG");
 	});

@@ -181,6 +181,56 @@ describe("error codes", () => {
 		const unreachable = EXPECTED_ERROR_CODES.filter((c) => !(c in REACHABLE));
 		expect([...unreachable]).toEqual(["TCT_INTERNAL", "TCT_MISSING_TEMPORAL"]);
 	});
+
+	/**
+	 * The four exports the boundary decision record forgot.
+	 *
+	 * `docs/decisions/2026-08-12-input-validation-boundary.md` says "**every** exported function
+	 * validates its own input" and then enumerated five of the eleven. The other four behaved as
+	 * unguarded code does: `tibetanWeekday(1.5)` returned a fractional weekday `3.5`,
+	 * `julianDayFromIso(null)` threw a `TypeError` about `.since`, and `formatTibetanDate({})`
+	 * returned `"undefined-undefined-undefined"` — from the one function whose entire docblock is an
+	 * argument against producing plausible-but-wrong strings.
+	 */
+	it.each([
+		["tibetanWeekday, fractional", () => api.tibetanWeekday(1.5)],
+		["tibetanWeekday, NaN", () => api.tibetanWeekday(Number.NaN)],
+		["tibetanWeekday, string", () => api.tibetanWeekday("x" as unknown as number)],
+		["isoFromJulianDay, fractional", () => api.isoFromJulianDay(0.5)],
+		["isoFromJulianDay, NaN", () => api.isoFromJulianDay(Number.NaN)],
+		["julianDayFromIso, null", () => api.julianDayFromIso(null as unknown as Temporal.PlainDate)],
+		["julianDayFromIso, number", () => api.julianDayFromIso(7 as unknown as Temporal.PlainDate)],
+		["formatTibetanDate, empty object", () => api.formatTibetanDate({} as never)],
+		["formatTibetanDate, null", () => api.formatTibetanDate(null as never)],
+		["isoToTibetan, garbage string", () => api.isoToTibetan("not-a-date" as never)],
+	])("codes the failure of %s", (_label, call) => {
+		expect(codeOf(call)).toBe("TCT_FIELD_OUT_OF_RANGE");
+	});
+
+	// The one route that did not apply the exactness bound, so it was the way into the range the
+	// rest of the API refuses. 1e15 is inside Number.isSafeInteger and far outside every tradition.
+	it("bounds isoFromJulianDay by the tradition's exact range", () => {
+		expect(codeOf(() => api.isoFromJulianDay(1e15))).toBe("TCT_OUTSIDE_EXACT_RANGE");
+	});
+
+	/**
+	 * Accepting a `PlainDateTime` is now deliberate rather than accidental.
+	 *
+	 * It used to work by duck-typing on `.since` and truncating silently, while a string threw
+	 * `date.since is not a function` and a `ZonedDateTime` threw Temporal's `Must specify time
+	 * zone`. One `Temporal.PlainDate.from` replaced all three, which widens the accepted input:
+	 * these are calendar-day operations, so narrowing a datetime to its date is the right reading.
+	 */
+	it("accepts every Temporal shape that names a calendar day", () => {
+		const expected = api.isoToTibetan(iso("2026-08-12"));
+		for (const input of [
+			Temporal.PlainDateTime.from("2026-08-12T13:45:00"),
+			"2026-08-12",
+			{ year: 2026, month: 8, day: 12 },
+		]) {
+			expect(api.isoToTibetan(input as never)).toEqual(expected);
+		}
+	});
 });
 
 /**
