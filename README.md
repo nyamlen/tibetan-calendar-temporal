@@ -482,19 +482,22 @@ Two parameterisations of one tradition, Phugpa — not two traditions. See
 #### Errors
 
 `SkippedDayError` is the only exported error class, and carries the offending input as
-`.requested`. Every other failure is a `RangeError`. All of them carry a `code`:
+`.requested`. Every failure about your **input** is a `RangeError`; the two that are not about your
+input — `TCT_INTERNAL` and `TCT_MISSING_TEMPORAL` — are plain `Error`s, deliberately, so that
+`tibetanDateExists` cannot mistake either for "that date does not exist". Every one of them carries
+a `code`, which is what to branch on rather than the type:
 
 | `error.code` | Thrown by | Meaning |
 |---|---|---|
 | `TCT_SKIPPED_DAY` | `tibetanToIso` | The date is well-formed but no calendar day carries its number. Not a bug in your code — see [Errors and validation](#errors-and-validation) |
-| `TCT_FIELD_OUT_OF_RANGE` | `tibetanToIso`, `losarFor` | A year, month or day is not an integer, or is outside 1–12 / 1–30 |
+| `TCT_FIELD_OUT_OF_RANGE` | every function taking a date, a year or a Julian day | A year, month, day or Julian day is not an integer, or is outside 1–12 / 1–30 |
 | `TCT_NO_SUCH_LEAP_MONTH` | `tibetanToIso` | `isLeapMonth: true` for a month with no leap twin that year |
 | `TCT_OUTSIDE_EXACT_RANGE` | any conversion | Beyond where this tradition's integer arithmetic stays exact. `PHUGPA_HENNING` runs out around ISO year 11,356; `PHUGPA` does not, within Temporal's own range |
 | `TCT_INVALID_TRADITION_CONFIG` | any function taking a config | The `TraditionConfig` is malformed. The message names the field |
 | `TCT_INVALID_OBSERVANCE_CONFIG` | `getObservances`, `observancesOn` | The `ObservanceConfig` or one of its rules is malformed |
 | `TCT_SPAN_TOO_WIDE` | `getObservances` | More than 200 years requested at once. Chunk it; the function is pure, so concatenating is correct |
 | `TCT_MISSING_TEMPORAL` | the `import` itself | No `Temporal` in this runtime — see [Requirements](#requirements) |
-| `TCT_INTERNAL` | — | An invariant the engine proves for itself did not hold. Always a bug here; please [report it](https://github.com/nyamlen/tibetan-calendar-temporal/issues) |
+| `TCT_INTERNAL` | `isoToTibetan`, and the arithmetic primitives beneath it | An invariant the engine proves for itself did not hold. A bug here rather than in your input; please [report it](https://github.com/nyamlen/tibetan-calendar-temporal/issues) |
 
 Codes are stable and part of the API. Message text is not — match on the code.
 

@@ -398,12 +398,11 @@ function appliesToMonth(
  * Both bounds are inclusive. Results for one day may be several, and on a doubled date under
  * `"both"` the same rule appears twice with different {@link Observance.resolution} values.
  *
- * **The span is capped at {@link MAX_SPAN_YEARS} years.** Cost is linear in the range and the
- * work per month is real — mean motion, two correction tables, and a full `isoToTibetan`
- * inversion per hit — so an unbounded query is minutes of synchronous, non-yielding CPU rather
- * than the milliseconds a day-walker would cost. `Temporal.PlainDate` reaches from -271821 to
- * +275760, which is about 547,000 years, and any service forwarding user-supplied `from`/`to`
- * straight through would hand that to its event loop.
+ * **The span is capped at {@link MAX_SPAN_YEARS} years.** Cost is linear in the range, and what
+ * the cap guards against is not the cap itself — the maximum admissible span runs in about 190 ms
+ * — but the range beyond it. `Temporal.PlainDate` reaches from -271821 to +275760, about 547,000
+ * years, so a service forwarding user-supplied `from`/`to` straight through would hand its event
+ * loop three orders of magnitude more than that, synchronously and without yielding.
  *
  * The cap is deliberately far beyond real use: the Phugpa tradition dates from 1447, so 200 years
  * exceeds any span an almanac or an application asks for. A caller who genuinely wants a wider

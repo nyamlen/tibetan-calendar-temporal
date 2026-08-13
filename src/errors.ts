@@ -35,8 +35,15 @@
  * - `TCT_INVALID_OBSERVANCE_CONFIG` — an `ObservanceConfig` or one of its rules is malformed.
  * - `TCT_SPAN_TOO_WIDE` — `getObservances` was asked for more than 200 years at once.
  * - `TCT_MISSING_TEMPORAL` — the runtime has no `Temporal`. Thrown at **import** time.
- * - `TCT_INTERNAL` — an invariant this engine proves for itself did not hold. Always a bug here,
- *   never a problem with the caller's input; please report it.
+ * - `TCT_INTERNAL` — an invariant this engine proves for itself did not hold. A bug here rather
+ *   than a problem with the caller's input; please report it.
+ *
+ * That last claim is only true because the boundary keeps it true, and it has been false once. The
+ * ±3 search window in `isoToTibetan` was proved from Phugpa's correction tables but the tables are
+ * injected, so a consumer's config could break the window and be told the engine was broken and
+ * asked to open an issue. The window is now derived per tradition and a config that could not
+ * satisfy it is rejected as `TCT_INVALID_TRADITION_CONFIG` instead. Before adding a `TCT_INTERNAL`,
+ * check that no consumer-supplied value can reach it.
  */
 export type TibetanCalendarErrorCode =
 	| "TCT_FIELD_OUT_OF_RANGE"

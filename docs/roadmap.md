@@ -219,14 +219,30 @@ through this before publishing v1.0.0 — several are one-way doors once publish
 
       </details>
 
-- [ ] **Decide whether month enumeration becomes public.** `monthsInYear`, `leapMonthOfYear` and
-      `isLeapYear` are internal, so an app rendering a Tibetan month grid cannot ask "which months
-      does this year have". Phase 3's surface review kept them internal on negative evidence — the
-      observance engine never asked — and because the workaround is correct if clumsy: walk from
-      `losarFor(y)` to `losarFor(y + 1)` collecting distinct `monthCode`s, O(365) rather than O(1).
-      Adding them later is non-breaking, which is what makes deferring legitimate; **Nyamlen is
-      likely to be the consumer that settles it.** See
+- [ ] **Export month enumeration.** Settled: it ships in v1.0.0. `monthsInYear`, `leapMonthOfYear`
+      and `isLeapYear` already exist in
+      [`src/computation/calendar.ts`](../src/computation/calendar.ts), so this is exporting working
+      code with boundary validation rather than writing any. `daysInMonth` needs a wrapper — the
+      internal one takes a `ScaledTradition`, and the public form should take a `TraditionConfig`
+      like every other entry point.
+
+      Phase 3's surface review kept them internal on negative evidence — the observance engine
+      never asked — and because the workaround is correct if clumsy: walk from `losarFor(y)` to
+      `losarFor(y + 1)` collecting distinct `monthCode`s, O(365) rather than O(1). The 2026-08-13
+      review made the positive case: every comparable library exposes this tier (`@hebcal/core` has
+      `HDate.daysInMonth` / `monthsInYear` / `isLeapYear`, `jalaali-js` has `jalaaliMonthLength`),
+      it is what a month-grid UI asks first, and the workaround makes the consumer reimplement
+      leap-month grouping, which is the part most likely to be got wrong. Nyamlen will want it in
+      week one. See
       [decisions/2026-08-12-public-surface.md](decisions/2026-08-12-public-surface.md).
+
+- [ ] **Add `parseTibetanDate`, the counterpart to `formatTibetanDate`.** The canonical string form
+      is currently write-only: `"2153-M01L-01 (leap)"` is a well-designed format that nothing can
+      read back, this package included. Peers round-trip — `HDate` parses, and `jalaali-js` is
+      symmetric by construction — so the asymmetry is conspicuous in the API table. Unlike the item
+      above this is new code rather than an export of existing code, and it needs the same boundary
+      validation: a malformed string is `TCT_FIELD_OUT_OF_RANGE`, and round-tripping every date in
+      a multi-year sweep is the test that earns it.
 
 **Publishing**
 
