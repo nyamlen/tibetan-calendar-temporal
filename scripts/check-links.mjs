@@ -16,7 +16,14 @@ const root = execFileSync("git", ["rev-parse", "--show-toplevel"], {
 	encoding: "utf8",
 }).trim();
 
-const files = execFileSync("git", ["ls-files", "*.md"], { cwd: root, encoding: "utf8" })
+// --others --exclude-standard adds untracked files while still respecting .gitignore, so a new
+// doc is checked before it is ever `git add`-ed. Without it this only ever saw tracked files,
+// which read as "all links resolve" on a brand-new file that was never actually checked.
+const files = execFileSync(
+	"git",
+	["ls-files", "--cached", "--others", "--exclude-standard", "*.md"],
+	{ cwd: root, encoding: "utf8" },
+)
 	.split("\n")
 	.filter(Boolean);
 

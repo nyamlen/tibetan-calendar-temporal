@@ -75,6 +75,11 @@ or deleted file breaks inbound links silently; the check exists because that has
 External URLs are deliberately not checked, since reaching the validation sources in
 [docs/testing.md](docs/testing.md) from CI would only make the build flaky.
 
+It lists candidates with `git ls-files --cached --others --exclude-standard`, not a directory walk —
+`--others --exclude-standard` covers a brand-new file that has not been `git add`-ed yet, while
+still respecting `.gitignore` so `node_modules` and `dist` are never walked. A file the check
+should genuinely skip belongs in `.gitignore`, not in an untracked-but-uncommitted limbo.
+
 **Two things in the docs are enforced by tests, not by review.** Every example in the README is
 asserted in `test/readme.test.ts`, and the package's export surface is pinned in
 `test/public-api.test.ts` against the API table the README publishes. Change a README example or
