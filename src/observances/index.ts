@@ -32,11 +32,10 @@ import {
 	julianDayFromIso,
 } from "../computation/conversion.js";
 import { yearFromRoyalEra } from "../computation/epoch.js";
-import { deriveScaling, type ScaledTradition } from "../computation/scaling.js";
+import { type ScaledTradition, scalingFor } from "../computation/scaling.js";
 import { codedError, rangeError } from "../errors.js";
 import { PHUGPA } from "../traditions/phugpa.js";
 import type { TraditionConfig } from "../traditions/types.js";
-import { assertTraditionConfig } from "../traditions/validate.js";
 import { GELUG } from "./default-gelug.js";
 import type {
 	Observance,
@@ -57,18 +56,6 @@ export type {
 	ObservanceWhen,
 	SkippedDayChoice,
 } from "./types.js";
-
-/** Memoised scaling, so a range query does not redo the gcd work per month. */
-const scalingCache = new WeakMap<TraditionConfig, ScaledTradition>();
-
-function scalingFor(config: TraditionConfig): ScaledTradition {
-	const cached = scalingCache.get(config);
-	if (cached !== undefined) return cached;
-	assertTraditionConfig(config);
-	const derived = deriveScaling(config);
-	scalingCache.set(config, derived);
-	return derived;
-}
 
 /**
  * The widest range {@link getObservances} will answer, in years.

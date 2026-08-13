@@ -11,9 +11,9 @@
  */
 
 import { codedError, hasCode, rangeError } from "../errors.js";
+import { monthCodeOf } from "../format.js";
 import { PHUGPA } from "../traditions/phugpa.js";
 import type { TraditionConfig } from "../traditions/types.js";
-import { assertTraditionConfig } from "../traditions/validate.js";
 import type { TibetanDate, TibetanDateInput } from "../types.js";
 import { SkippedDayError } from "../types.js";
 import { floorDiv, mod } from "./arithmetic.js";
@@ -27,7 +27,7 @@ import {
 import { julianDayOfLunarDay } from "./corrections.js";
 import { rabjungFromYear, royalEraFromYear, yearFromRoyalEra, yearNameFromYear } from "./epoch.js";
 import { meanDate } from "./mean-astronomy.js";
-import { deriveScaling, type ScaledTradition } from "./scaling.js";
+import { type ScaledTradition, scalingFor } from "./scaling.js";
 
 // Checked at module evaluation, because the next line already needs Temporal. Without this a
 // consumer on a runtime that lacks it gets `ReferenceError: Temporal is not defined` on import,
@@ -216,7 +216,7 @@ function assertSafeYear(subject: string, year: number): void {
  * around ISO year 11,356 while Phugpa does not. A caller who hits this on one config and not the
  * other needs to be told which one refused.
  */
-function assertExactJulianDay(
+export function assertExactJulianDay(
 	scaled: ScaledTradition,
 	julianDay: number,
 	subject: () => string,
@@ -273,11 +273,6 @@ export function tibetanWeekday(julianDay: number): number {
 		);
 	}
 	return mod(julianDay + 2, 7);
-}
-
-/** Formats a month as a Temporal-style code: `"M01"`…`"M12"`, with `L` appended for a leap month. */
-function monthCodeOf(month: number, isLeap: boolean): string {
-	return `M${String(month).padStart(2, "0")}${isLeap ? "L" : ""}`;
 }
 
 /** The lunar day whose end is the full moon, and the one whose end is the new moon — Janson §6. */
@@ -581,24 +576,4 @@ export function losarFor(year: number, config: TraditionConfig = PHUGPA): Tibeta
 	const julianDay = losarJulianDay(scaled, config, yearFromRoyalEra(year));
 	assertExactJulianDay(scaled, julianDay, () => `losarFor(${year})`);
 	return isoToTibetan(isoFromJulianDayUnchecked(julianDay), config);
-}
-
-/** Memoised scaling, so repeated conversions do not redo the gcd work. */
-const scalingCache = new WeakMap<TraditionConfig, ScaledTradition>();
-
-/**
- * The single choke point for tradition config, and therefore where it is validated.
- *
- * @remarks
- * Every exported function reaches the arithmetic through here, and the cache already means the
- * work happens once per config object, so the validation costs nothing after the first call. That
- * is what lets the check be thorough without touching the multi-century sweeps.
- */
-function scalingFor(config: TraditionConfig): ScaledTradition {
-	const cached = scalingCache.get(config);
-	if (cached !== undefined) return cached;
-	assertTraditionConfig(config);
-	const derived = deriveScaling(config);
-	scalingCache.set(config, derived);
-	return derived;
 }

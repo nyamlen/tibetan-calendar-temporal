@@ -8,6 +8,22 @@ import { rangeError } from "./errors.js";
 import type { TibetanDate } from "./types.js";
 
 /**
+ * Formats a month as a Temporal-style code: `"M01"`…`"M12"`, with `L` appended for a leap month.
+ *
+ * @remarks
+ * The **sole** producer of this substring, deliberately. It lives here rather than beside
+ * `isoToTibetan`, which was its only caller when it was written, because three things now render a
+ * month this way — `TibetanDate.monthCode`, `TibetanMonth.monthCode` and `formatTibetanDate` — and
+ * a second definition is how two of them would come to disagree.
+ *
+ * Not exported from the package barrel. Being in this file does not make it API; `src/index.ts`
+ * decides that.
+ */
+export function monthCodeOf(month: number, isLeap: boolean): string {
+	return `M${String(month).padStart(2, "0")}${isLeap ? "L" : ""}`;
+}
+
+/**
  * Formats a Tibetan date as `YYYY-MMM-DD`, e.g. `"2153-M12-08"`.
  *
  * @remarks

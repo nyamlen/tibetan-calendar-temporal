@@ -19,7 +19,7 @@
  */
 
 import type { MeanMotion, Rational, TraditionConfig } from "../traditions/types.js";
-import { assertDerivable } from "../traditions/validate.js";
+import { assertDerivable, assertTraditionConfig } from "../traditions/validate.js";
 import { ceilDiv, gcd, lcm, scaleTo } from "./arithmetic.js";
 
 /** A {@link MeanMotion} with each coefficient expressed as an integer over a shared denominator. */
@@ -195,4 +195,29 @@ export function deriveScaling(config: TraditionConfig): ScaledTradition {
 		exactToJulianDay: Math.floor(Number.MAX_SAFE_INTEGER / commonDenominator),
 		searchHalfWidth,
 	};
+}
+
+/** Memoised scaling, so repeated conversions do not redo the gcd work. */
+const scalingCache = new WeakMap<TraditionConfig, ScaledTradition>();
+
+/**
+ * The single choke point for tradition config, and therefore where it is validated.
+ *
+ * @remarks
+ * Every exported function in the package reaches the arithmetic through here, and the cache means
+ * the work happens once per config object, so validation costs nothing after the first call. That
+ * is what lets the check be thorough without touching the multi-century sweeps.
+ *
+ * It lives here rather than beside its callers because there are now three of them — `conversion`,
+ * `observances` and `months` — and it was already duplicated verbatim between the first two. Three
+ * copies would be three caches, so a config validated through one entry point would be revalidated
+ * through the next, and a future change to the validation could land in one copy and not the others.
+ */
+export function scalingFor(config: TraditionConfig): ScaledTradition {
+	const cached = scalingCache.get(config);
+	if (cached !== undefined) return cached;
+	assertTraditionConfig(config);
+	const derived = deriveScaling(config);
+	scalingCache.set(config, derived);
+	return derived;
 }
