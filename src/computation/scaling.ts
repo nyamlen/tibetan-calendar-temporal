@@ -19,7 +19,8 @@
  */
 
 import type { MeanMotion, Rational, TraditionConfig } from "../traditions/types.js";
-import { gcd, lcm, scaleTo } from "./arithmetic.js";
+import { assertDerivable } from "../traditions/validate.js";
+import { ceilDiv, gcd, lcm, scaleTo } from "./arithmetic.js";
 
 /** A {@link MeanMotion} with each coefficient expressed as an integer over a shared denominator. */
 export interface ScaledMeanMotion {
@@ -90,6 +91,39 @@ export interface ScaledTradition {
 	 * thin enough to be worth asserting rather than assuming.
 	 */
 	exactToJulianDay: number;
+
+	/**
+	 * How far either side of the mean-motion estimate `isoToTibetan` must search, in lunar days.
+	 *
+	 * @remarks
+	 * **3 for Phugpa, and derived rather than assumed.** The bound is a function of the tradition's
+	 * own correction tables, which are injected — so writing `3` at the search loop would hardcode
+	 * a Phugpa constant into a computation over data a consumer supplies. A wider `moonTab` then
+	 * breaks the window silently: the search finds no lunar day ending on the target, and either
+	 * reports an internal error or returns a date that does not convert back.
+	 *
+	 * The derivation, which is Janson §7 read as an inequality:
+	 *
+	 * - `true_date = mean_date + moon_equ/60 − sun_equ/60`, and each equation is bounded by the
+	 *   largest magnitude in its table, so `|true_date − mean_date| ≤ (max|moonTab| + max|sunTab|)/60`
+	 *   days. For Phugpa that is `(25 + 11)/60 = 0.6`.
+	 * - One lunar day is `meanDate.perDay / meanDate.den` calendar days, so dividing converts that
+	 *   bound from calendar days into lunar days.
+	 * - `Math.round` on the estimate contributes at most a further half a lunar day, and the `+ 2`
+	 *   below absorbs that with a full unit to spare.
+	 *
+	 * Computed with {@link ceilDiv} on integers, never a floating-point divide, so the result is
+	 * identical on every platform like everything else here.
+	 *
+	 * Do **not** widen this at the call site "to be safe". If a date is not found inside the window
+	 * the fault is elsewhere, and `isoToTibetan` says so with `TCT_INTERNAL`.
+	 */
+	searchHalfWidth: number;
+}
+
+/** The largest absolute value in a correction table, which is what bounds its equation. */
+function maxMagnitude(table: readonly number[]): number {
+	return table.reduce((largest, entry) => Math.max(largest, Math.abs(entry)), 0);
 }
 
 /** Scales one mean motion's three coefficients onto the lcm of their denominators. */
@@ -139,7 +173,12 @@ export function deriveScaling(config: TraditionConfig): ScaledTradition {
 	// true_date = mean_date + moon_equ/60 − sun_equ/60, so D must absorb all three.
 	const commonDenominator = [meanDate.den, moonTabArgDen * 60, sunTabArgDen * 60].reduce(lcm);
 
-	return {
+	// The correction bound, in lunar days, from this tradition's own tables. See
+	// ScaledTradition.searchHalfWidth for the derivation.
+	const equationBound = maxMagnitude(config.moonTab) + maxMagnitude(config.sunTab);
+	const searchHalfWidth = ceilDiv(equationBound * meanDate.den, 60 * meanDate.perDay) + 2;
+
+	const scaled: ScaledTradition = {
 		config,
 		meanDate,
 		meanSun,
@@ -149,5 +188,9 @@ export function deriveScaling(config: TraditionConfig): ScaledTradition {
 		quarterCircle: scaleTo(1, 4, meanSun.den),
 		commonDenominator,
 		exactToJulianDay: Math.floor(Number.MAX_SAFE_INTEGER / commonDenominator),
+		searchHalfWidth,
 	};
+
+	assertDerivable(scaled);
+	return scaled;
 }

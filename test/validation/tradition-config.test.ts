@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { isoToTibetan, losarFor, tibetanToIso } from "../../src/computation/conversion.js";
+import {
+	isoToTibetan,
+	losarFor,
+	tibetanDateExists,
+	tibetanToIso,
+} from "../../src/computation/conversion.js";
+import { deriveScaling } from "../../src/computation/scaling.js";
 import { getObservances } from "../../src/observances/index.js";
-import { PHUGPA } from "../../src/traditions/phugpa.js";
+import { PHUGPA, PHUGPA_HENNING } from "../../src/traditions/phugpa.js";
 import type { TraditionConfig } from "../../src/traditions/types.js";
 import { assertTraditionConfig } from "../../src/traditions/validate.js";
 
@@ -152,5 +158,93 @@ describe("tradition config validation", () => {
 		expect(isoToTibetan(iso("2026-08-12"), plausibleButWrong).day).not.toBe(
 			isoToTibetan(iso("2026-08-12"), PHUGPA).day,
 		);
+	});
+
+	// The solar anomaly is mean_sun - 1/4, so 4 must divide the *derived* meanSun denominator -- the
+	// lcm of its three coefficient denominators, not any one of them. Unchecked, this reached
+	// `scaleTo` and threw an uncoded RangeError from three frames down, which `tibetanDateExists`
+	// read as "that date does not exist" and reported `false` for Losar.
+	it("rejects a meanSun denominator that cannot express a quarter", () => {
+		// All three coefficients, because the derived denominator is their lcm: leaving any one of
+		// Phugpa's own (804, 4824) in place reintroduces the factor of 4 and the config is fine.
+		const patch = {
+			meanSun: {
+				perMonth: { num: 65, den: 803 },
+				perDay: { num: 13, den: 803 },
+				atEpoch: { num: 743, den: 803 },
+			},
+		};
+		for (const call of [
+			() => isoToTibetan(iso("2026-02-18"), broken(patch)),
+			() => tibetanToIso({ year: 2153, month: 1, day: 1 }, broken(patch)),
+			() => tibetanDateExists({ year: 2153, month: 1, day: 1 }, broken(patch)),
+		]) {
+			expect(thrownBy(call)?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
+		}
+	});
+});
+
+/**
+ * The ±3 search window in `isoToTibetan`, which is derived from the tradition rather than written
+ * at the loop.
+ *
+ * Two assertions with different jobs. The Phugpa-specific ones below pin the paper's constants and
+ * the window they prove, and would fire on a mistyped table entry in `phugpa.ts` — where today a
+ * one-digit error would quietly produce a different calendar. The general one is in the shipped
+ * validator, because it has to hold for a tradition nobody has written yet.
+ */
+describe("derived search window", () => {
+	it("reproduces the proved ±3 for the shipped traditions", () => {
+		expect(deriveScaling(PHUGPA).searchHalfWidth).toBe(3);
+		expect(deriveScaling(PHUGPA_HENNING).searchHalfWidth).toBe(3);
+	});
+
+	// The two numbers the written proof rests on: |true_date - mean_date| <= (25 + 11)/60 = 0.6
+	// days. Pinned here so the proof and the tables cannot drift apart silently.
+	it("pins the table magnitudes the proof quotes", () => {
+		expect(Math.max(...PHUGPA.moonTab.map(Math.abs))).toBe(25);
+		expect(Math.max(...PHUGPA.sunTab.map(Math.abs))).toBe(11);
+	});
+
+	it("widens the window for a tradition with larger corrections", () => {
+		const wide = broken({ moonTab: [0, 50, 100, 150, 190, 220, 240, 250] });
+		expect(deriveScaling(wide).searchHalfWidth).toBeGreaterThan(3);
+	});
+
+	// The finding this closes. A well-formed but non-Phugpa-shaped config passed validation and then
+	// broke the hardcoded window: 88 days of 2026 threw TCT_INTERNAL -- blaming the engine for the
+	// caller's config -- and 22 more converted to a date that did not convert back, with no throw at
+	// all. Every other config test here checks that a *malformed* config is rejected; this is the
+	// one that checks a *different* one computes, which is the whole point of injecting them.
+	it("round-trips every day of a year under a wider correction table", () => {
+		const wide = broken({ moonTab: [0, 50, 100, 150, 190, 220, 240, 250] });
+		const mismatches: string[] = [];
+
+		for (let d = iso("2026-01-01"); d.year === 2026; d = d.add({ days: 1 })) {
+			const tibetan = isoToTibetan(d, wide);
+			const back = tibetanToIso(
+				{
+					year: tibetan.year,
+					month: tibetan.month,
+					day: tibetan.day,
+					isLeapMonth: tibetan.isLeapMonth,
+					isLeapDay: tibetan.isLeapDay,
+				},
+				wide,
+			);
+			if (!back.equals(d)) mismatches.push(`${d.toString()} -> ${back.toString()}`);
+		}
+
+		expect(mismatches).toEqual([]);
+	});
+
+	// The general bound, which is on the derived window rather than on the tables. A magnitude limit
+	// would hardcode Phugpa's 25 and 11 into a field the non-negotiables declare injectable, and
+	// would have to decide "is this Phugpa" from a consumer-settable `id`.
+	it("rejects tables whose implied window exceeds a lunar month", () => {
+		const absurd = broken({ moonTab: [0, 500, 1000, 1500, 1900, 2200, 2400, 2500] });
+		const error = thrownBy(() => isoToTibetan(iso("2026-08-12"), absurd));
+		expect(error?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
+		expect(error?.message).toContain("search window");
 	});
 });

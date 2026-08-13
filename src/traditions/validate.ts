@@ -20,6 +20,7 @@
  * @packageDocumentation
  */
 
+import type { ScaledTradition } from "../computation/scaling.js";
 import { rangeError } from "../errors.js";
 import type { MeanMotion, Rational, TraditionConfig } from "./types.js";
 
@@ -101,10 +102,15 @@ function assertTable(
 		throw invalid(config, `${path} must have exactly ${length} entries, received ${value.length}`);
 	}
 	for (const [index, entry] of value.entries()) {
-		if (!Number.isFinite(entry)) {
+		// Safe integer, not merely finite. A fractional entry computes without complaint — the final
+		// floorDiv launders the result back to an integer Julian day — so it produces a plausible
+		// calendar rather than a failure, which is exactly the error class this project is built to
+		// exclude. "No floating point anywhere" is a stated non-negotiable, and these are the values
+		// that feed the interpolation. Every other numeric field here already uses this check.
+		if (!Number.isSafeInteger(entry)) {
 			throw invalid(
 				config,
-				`${path}[${index}] must be a finite number, received ${describe(entry)}`,
+				`${path}[${index}] must be a safe integer, received ${describe(entry)}`,
 			);
 		}
 	}
@@ -173,3 +179,60 @@ export function assertTraditionConfig(config: TraditionConfig): void {
 
 	validated.add(config);
 }
+
+/**
+ * The checks that need the derived scaling rather than the raw config.
+ *
+ * @remarks
+ * Split from {@link assertTraditionConfig} because these quantities do not exist until
+ * `deriveScaling` has run, not because they are any less part of validating a config — both throw
+ * the same code, and both are reached through the same `scalingFor` choke point.
+ *
+ * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG`.
+ */
+export function assertDerivable(scaled: ScaledTradition): void {
+	const { config } = scaled;
+
+	// A general bound on the search window, deliberately not a bound on the tables themselves.
+	// `|moonTab| ≤ 25` would hardcode Phugpa's magnitudes into a field the non-negotiables declare
+	// injectable, and would have to decide "is this Phugpa" from a consumer-settable `id`. What is
+	// genuinely universal is that a tradition whose corrections push the true date a whole month
+	// off the mean is not a lunisolar calendar at all. This bounds the work a pathological table
+	// can cause without ruling on which traditions are astronomically legitimate.
+	if (scaled.searchHalfWidth > MAX_SEARCH_HALF_WIDTH) {
+		throw invalid(
+			config,
+			`the correction tables imply a search window of ±${scaled.searchHalfWidth} lunar days, ` +
+				`beyond the ±${MAX_SEARCH_HALF_WIDTH} this engine will search. moonTab and sunTab are ` +
+				"equations in sixtieths of a day; entries this large describe no lunisolar calendar",
+		);
+	}
+
+	// `deriveScaling` forms the solar anomaly as `mean_sun − 1/4`, so 4 must divide the *derived*
+	// mean-sun denominator — the lcm of the three coefficient denominators, not any one of them —
+	// or `scaleTo(1, 4, meanSun.den)` cannot represent the quarter exactly. It holds for every
+	// tradition Janson gives and went unchecked, so a config that failed it threw from three frames
+	// down with no code at all, and `tibetanDateExists` read that as "the date does not exist".
+	//
+	// Checked before the derivation would hit it: `deriveScaling` calls `scaleTo` for
+	// `quarterCircle`, whose own guard now carries the same code, but a message naming the field is
+	// worth more to a consumer than one naming two integers.
+	if (scaled.meanSun.den % 4 !== 0) {
+		throw invalid(
+			config,
+			`the derived meanSun denominator ${scaled.meanSun.den} is not divisible by 4. The solar ` +
+				"anomaly is mean_sun − 1/4, so a denominator that cannot express a quarter exactly " +
+				"makes the derivation inexact; it is the lcm of meanSun's three coefficient " +
+				"denominators, so it is one of those that needs the factor of 4",
+		);
+	}
+}
+
+/**
+ * The widest search window this engine will accept from a tradition's correction tables.
+ *
+ * @remarks
+ * A full lunar month. Phugpa derives 3; anything approaching a month describes no lunisolar
+ * calendar and is a typo in a table.
+ */
+const MAX_SEARCH_HALF_WIDTH = 30;

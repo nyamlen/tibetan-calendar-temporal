@@ -331,18 +331,21 @@ export function tibetanToIso(
  * number, and the input is out of range or not an integer. Both are ordinary answers about the
  * input, which is what makes this safe to point at user input.
  *
- * It deliberately does **not** swallow anything else. A bare `catch` here would also return
- * `false` for the `"this indicates a bug in the mean-motion estimate"` invariant violation in
- * {@link isoToTibetan} — the one error in this codebase explicitly labelled as a bug — and for a
- * malformed {@link TraditionConfig}. A predicate that reports "this date does not exist" when the
- * truth is "the engine broke" is worse than a throw, and this one is used as an oracle by the
- * suite's strongest property, where masking a failure would make that property pass more easily
- * rather than fail.
+ * It deliberately does **not** swallow anything else. A predicate that reports "this date does not
+ * exist" when the truth is "the engine broke" is worse than a throw, and this one is used as an
+ * oracle by the suite's strongest property, where masking a failure would make that property pass
+ * more easily rather than fail.
  *
- * Two mechanisms keep those out, because the error *type* alone is too coarse for one of them. The
- * invariant violation is a plain `Error`, so the `RangeError` branch never sees it. A malformed
- * config is a `RangeError` like every other input problem — it is genuinely bad input — so it is
- * excluded by **code** instead. That is the case error codes were added for.
+ * So the `catch` is an **allowlist**: three named codes answer `false` and everything else
+ * propagates. It was a denylist — every `RangeError` bar one code answered `false` — and that lost
+ * the race, because a config whose denominators `deriveScaling` could not work with threw an
+ * uncoded `RangeError` from three frames down and this function reported that Losar does not
+ * exist. A denylist has to anticipate every failure that will ever be added; an allowlist only has
+ * to name the three that are genuinely answers about the input.
+ *
+ * `TCT_OUTSIDE_EXACT_RANGE` is on the throwing side on purpose. Past that bound the day was never
+ * computed, so `false` would be a confident claim about arithmetic that was refused rather than
+ * performed — which is the same reason that code exists separately from `TCT_SKIPPED_DAY`.
  */
 export function tibetanDateExists(
 	input: TibetanDateInput,
@@ -352,8 +355,11 @@ export function tibetanDateExists(
 		tibetanToIso(input, config);
 		return true;
 	} catch (error) {
-		if (hasCode(error, "TCT_INVALID_TRADITION_CONFIG")) throw error;
-		if (error instanceof SkippedDayError || error instanceof RangeError) return false;
+		// Matched by class first, as before: SkippedDayError carries TCT_SKIPPED_DAY too, but the
+		// class is what a caller branches on and what the rest of this package throws.
+		if (error instanceof SkippedDayError) return false;
+		if (hasCode(error, "TCT_FIELD_OUT_OF_RANGE")) return false;
+		if (hasCode(error, "TCT_NO_SUCH_LEAP_MONTH")) return false;
 		throw error;
 	}
 }
@@ -363,15 +369,16 @@ export function tibetanDateExists(
  *
  * @remarks
  * There is no closed-form inverse, so this estimates and searches. The estimate comes from mean
- * motion over the linear lunar day count `l = 30n + d`, and the search window is **provably**
- * ±3:
+ * motion over the linear lunar day count `l = 30n + d`, and the search window is provably wide
+ * enough — ±3 for Phugpa, from `|true_date − mean_date| ≤ (25 + 11)/60 = 0.6` days.
  *
- * - `|true_date − mean_date| = |moon_equ − sun_equ| / 60 ≤ (25 + 11)/60 = 0.6` days, and
- * - no true lunar day is shorter than about 0.897 days,
+ * That bound is **derived from the tradition, not written down here**: `25` and `11` are
+ * `moonTab`'s and `sunTab`'s largest entries, which are injected config rather than constants, so
+ * a `3` at the loop below would hardcode Phugpa's tables into a computation over a consumer's
+ * data. {@link ScaledTradition.searchHalfWidth} carries the derivation and the proof.
  *
- * so the estimate cannot be more than 2 away from the truth. Both bounds are asserted by tests.
- * Do not widen this window "to be safe" — if a date is not found inside it, the fault is
- * elsewhere.
+ * Do not widen the window at the call site "to be safe" — if a date is not found inside it, the
+ * fault is elsewhere.
  *
  * @throws RangeError if the date falls outside the range where the arithmetic stays exact. This
  * is reachable inside `Temporal.PlainDate`'s own range: `PHUGPA_HENNING` is exact only to about
@@ -408,7 +415,7 @@ export function isoToTibetan(
 	let named: { day: number; monthCount: number } | undefined;
 	let following: { day: number; monthCount: number } | undefined;
 
-	for (let l = estimate - 3; l <= estimate + 3; l++) {
+	for (let l = estimate - scaled.searchHalfWidth; l <= estimate + scaled.searchHalfWidth; l++) {
 		const monthCount = floorDiv(l - 1, 30);
 		const day = l - 30 * monthCount;
 		const julianDay = julianDayOfLunarDay(scaled, day, monthCount);
