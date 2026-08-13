@@ -24,6 +24,7 @@
  */
 
 import type { TibetanCalendarErrorCode } from "./errors.js";
+import { formatTibetanDate } from "./format.js";
 
 /**
  * The five elements of the 60-year cycle, in the order of Janson's ten-year cycle table (§4).
@@ -472,11 +473,12 @@ export class SkippedDayError extends Error {
 	readonly code: TibetanCalendarErrorCode = "TCT_SKIPPED_DAY";
 
 	constructor(requested: TibetanDateInput) {
-		const leap = requested.isLeapMonth ? " (leap)" : "";
-		super(
-			`Tibetan date ${requested.year}-${requested.month}${leap}-${requested.day} is skipped: ` +
-				"no calendar day carries this number.",
-		);
+		// Through the canonical formatter, not hand-rolled. This message used to print
+		// `2150-12-29` — no `M`, so indistinguishable from an ISO date by eye — and used the
+		// ` (leap)` suffix for a leap *month* where `formatTibetanDate` uses it for a leap *day*.
+		// Two incompatible renderings of a date inside one package is exactly what that function's
+		// docblock argues against, and this was the second one.
+		super(`Tibetan date ${formatTibetanDate(requested)} is skipped: no calendar day carries it.`);
 		this.name = "SkippedDayError";
 		this.requested = requested;
 	}

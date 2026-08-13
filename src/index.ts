@@ -42,6 +42,14 @@ export {
 } from "./computation/conversion.js";
 export type { TibetanCalendarErrorCode } from "./errors.js";
 export { formatTibetanDate } from "./format.js";
+export {
+	daysInMonth,
+	hasLeapMonth,
+	leapMonthOfYear,
+	monthsFor,
+	monthsInYear,
+} from "./months.js";
+export { parseTibetanDate } from "./parse.js";
 export { PHUGPA, PHUGPA_HENNING } from "./traditions/phugpa.js";
 export type { MeanMotion, Rational, TraditionConfig } from "./traditions/types.js";
 export type {
@@ -51,6 +59,8 @@ export type {
 	TibetanDateInput,
 	TibetanElement,
 	TibetanGender,
+	TibetanMonth,
+	TibetanMonthInput,
 	TibetanYearName,
 } from "./types.js";
 export { SkippedDayError } from "./types.js";

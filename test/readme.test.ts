@@ -68,11 +68,13 @@ describe("README usage examples", () => {
 		expect(date.year - date.yearStartsIn).toBe(127);
 	});
 
+	// The message text is pinned here only because the README prints it. Everywhere else the suite
+	// asserts on `error.code`, which is the contract; wording is not and may change.
 	it("reports and throws on the documented skipped date", () => {
 		expect(tibetanDateExists({ year: 2150, month: 12, day: 29 })).toBe(false);
 		expect(() => tibetanToIso({ year: 2150, month: 12, day: 29 })).toThrow(SkippedDayError);
 		expect(() => tibetanToIso({ year: 2150, month: 12, day: 29 })).toThrow(
-			"Tibetan date 2150-12-29 is skipped: no calendar day carries this number.",
+			"Tibetan date 2150-M12-29 is skipped: no calendar day carries it.",
 		);
 	});
 

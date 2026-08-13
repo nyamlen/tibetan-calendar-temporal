@@ -19,11 +19,17 @@ const EXPECTED_EXPORTS = [
 	"PHUGPA",
 	"PHUGPA_HENNING",
 	"SkippedDayError",
+	"daysInMonth",
 	"formatTibetanDate",
+	"hasLeapMonth",
 	"isoFromJulianDay",
 	"isoToTibetan",
 	"julianDayFromIso",
+	"leapMonthOfYear",
 	"losarFor",
+	"monthsFor",
+	"monthsInYear",
+	"parseTibetanDate",
 	"tibetanDateExists",
 	"tibetanToIso",
 	"tibetanWeekday",
@@ -42,15 +48,48 @@ describe("public API surface", () => {
 			PHUGPA_HENNING: "object",
 			// A class, hence "function".
 			SkippedDayError: "function",
+			daysInMonth: "function",
 			formatTibetanDate: "function",
+			hasLeapMonth: "function",
 			isoFromJulianDay: "function",
 			isoToTibetan: "function",
 			julianDayFromIso: "function",
+			leapMonthOfYear: "function",
 			losarFor: "function",
+			monthsFor: "function",
+			monthsInYear: "function",
+			parseTibetanDate: "function",
 			tibetanDateExists: "function",
 			tibetanToIso: "function",
 			tibetanWeekday: "function",
 		});
+	});
+
+	/**
+	 * The rename's one real hazard. `hasLeapMonth` was the internal per-month predicate taking
+	 * `(config, year, month)`; the export is the per-year one taking `(year, config?)`. An import
+	 * resolving to the wrong one would still be callable — the first argument would be a config
+	 * where a year is expected, coerce to `NaN`, and be rejected only by the safe-integer guard.
+	 * Pinning the arity and the answer is cheaper than relying on that.
+	 */
+	it("exports the per-year hasLeapMonth, not the internal per-month one", () => {
+		// One required parameter — `length` stops at the first default, and `config` has one. The
+		// internal predicate takes three required arguments, so this alone separates them.
+		expect(api.hasLeapMonth.length).toBe(1);
+		expect(api.hasLeapMonth(2151)).toBe(true);
+		expect(api.hasLeapMonth(2153)).toBe(false);
+		expect(api.hasLeapMonth(2151, api.PHUGPA)).toBe(true);
+	});
+
+	/**
+	 * The pair the roadmap called write-only. The formatter takes the input shape precisely so this
+	 * composes as an identity rather than as a four-step pipeline through the calendar.
+	 */
+	it("round-trips the canonical string form", () => {
+		const text = api.formatTibetanDate(api.isoToTibetan(Temporal.PlainDate.from("2027-01-15")));
+		expect(text).toBe("2153-M12-08");
+		expect(api.formatTibetanDate(api.parseTibetanDate(text))).toBe(text);
+		expect(api.tibetanToIso(api.parseTibetanDate(text)).toString()).toBe("2027-01-15");
 	});
 
 	it("ships both tradition configs, differing only in the lunar anomaly", () => {

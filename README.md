@@ -188,7 +188,7 @@ import { tibetanDateExists, SkippedDayError } from 'tibetan-calendar-temporal';
 
 tibetanDateExists({ year: 2150, month: 12, day: 29 });   // false
 tibetanToIso({ year: 2150, month: 12, day: 29 });
-// SkippedDayError: Tibetan date 2150-12-29 is skipped: no calendar day carries this number.
+// SkippedDayError: Tibetan date 2150-M12-29 is skipped: no calendar day carries it.
 ```
 
 **Doubled dates** are carried by two consecutive calendar days. Both report `isDoubledDay: true`;
