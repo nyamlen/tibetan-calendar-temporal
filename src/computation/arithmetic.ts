@@ -13,8 +13,18 @@
  * intercalation index both feed negative values through these operations for dates
  * before the epoch, where a sign error produces a plausible calendar that is wrong.
  *
+ * Every `throw` here goes through {@link codedError} or {@link rangeError} rather than a bare
+ * construction, so each carries the `code` a consumer branches on. The distinction between the two
+ * is load-bearing and not cosmetic: the divisor and modulus guards are invariants this engine
+ * proves for itself, so they are `TCT_INTERNAL` plain `Error`s that `tibetanDateExists` must not
+ * swallow; {@link scaleTo}'s denominator guards are reached with a **caller-supplied** denominator
+ * through `deriveScaling`, so they are `TCT_INVALID_TRADITION_CONFIG` `RangeError`s like every
+ * other input problem.
+ *
  * @packageDocumentation
  */
+
+import { codedError, rangeError } from "../errors.js";
 
 /**
  * Floor division — the largest integer `q` with `q * divisor <= dividend`.
@@ -33,7 +43,8 @@
  * @param dividend - May be negative.
  * @param divisor - Must be non-zero.
  * @returns `⌊dividend / divisor⌋`, exact for all safe-integer inputs.
- * @throws RangeError if `divisor` is zero.
+ * @throws Error with code `TCT_INTERNAL` if `divisor` is zero. Every divisor here is derived from
+ * a tradition's constants, so a zero is a broken invariant rather than bad input.
  *
  * @example
  * ```ts
@@ -41,7 +52,7 @@
  * ```
  */
 export function floorDiv(dividend: number, divisor: number): number {
-	if (divisor === 0) throw new RangeError("floorDiv: divisor must be non-zero");
+	if (divisor === 0) throw codedError("TCT_INTERNAL", "floorDiv: divisor must be non-zero");
 	return Math.floor(dividend / divisor);
 }
 
@@ -56,10 +67,10 @@ export function floorDiv(dividend: number, divisor: number): number {
  *
  * @param dividend - May be negative.
  * @param divisor - Must be non-zero.
- * @throws RangeError if `divisor` is zero.
+ * @throws Error with code `TCT_INTERNAL` if `divisor` is zero.
  */
 export function ceilDiv(dividend: number, divisor: number): number {
-	if (divisor === 0) throw new RangeError("ceilDiv: divisor must be non-zero");
+	if (divisor === 0) throw codedError("TCT_INTERNAL", "ceilDiv: divisor must be non-zero");
 	return Math.ceil(dividend / divisor);
 }
 
@@ -72,7 +83,7 @@ export function ceilDiv(dividend: number, divisor: number): number {
  *
  * @param m - May be of any sign.
  * @param n - Must be positive; Janson defines the operation only for `n > 0`.
- * @throws RangeError if `n` is not positive.
+ * @throws Error with code `TCT_INTERNAL` if `n` is not positive.
  *
  * @example
  * ```ts
@@ -81,7 +92,7 @@ export function ceilDiv(dividend: number, divisor: number): number {
  * ```
  */
 export function mod(m: number, n: number): number {
-	if (n <= 0) throw new RangeError("mod: modulus must be positive");
+	if (n <= 0) throw codedError("TCT_INTERNAL", "mod: modulus must be positive");
 	return ((m % n) + n) % n;
 }
 
@@ -94,7 +105,7 @@ export function mod(m: number, n: number): number {
  * rabjung cycle, both of which occur constantly.
  *
  * @param n - Must be positive.
- * @throws RangeError if `n` is not positive.
+ * @throws Error with code `TCT_INTERNAL` if `n` is not positive.
  */
 export function amod(m: number, n: number): number {
 	return 1 + mod(m - 1, n);
@@ -140,8 +151,11 @@ export function lcm(a: number, b: number): number {
  * @param den - Denominator of the source rational; must be positive and must divide
  * `commonDenominator`.
  * @param commonDenominator - The scaling denominator, typically derived per tradition.
- * @throws RangeError if `den` does not divide `commonDenominator`, which would make the
- * result inexact.
+ * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG` if `den` does not divide
+ * `commonDenominator`, which would make the result inexact. Coded as a config problem rather than
+ * as an internal one because every denominator reaching here came from a `TraditionConfig` —
+ * `deriveScaling` is on the public path through `scalingFor`, so this is genuinely reachable from
+ * a config the shape validator accepted.
  *
  * @example
  * ```ts
@@ -149,9 +163,15 @@ export function lcm(a: number, b: number): number {
  * ```
  */
 export function scaleTo(num: number, den: number, commonDenominator: number): number {
-	if (den <= 0) throw new RangeError("scaleTo: denominator must be positive");
+	if (den <= 0) {
+		throw rangeError(
+			"TCT_INVALID_TRADITION_CONFIG",
+			`scaleTo: denominator must be positive, received ${den}`,
+		);
+	}
 	if (commonDenominator % den !== 0) {
-		throw new RangeError(
+		throw rangeError(
+			"TCT_INVALID_TRADITION_CONFIG",
 			`scaleTo: ${den} does not divide ${commonDenominator}; the result would be inexact`,
 		);
 	}

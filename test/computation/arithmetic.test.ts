@@ -39,7 +39,7 @@ describe("floorDiv", () => {
 	});
 
 	it("rejects a zero divisor rather than returning Infinity", () => {
-		expect(() => floorDiv(1, 0)).toThrow(RangeError);
+		expect(() => floorDiv(1, 0)).toThrow(expect.objectContaining({ code: "TCT_INTERNAL" }));
 	});
 });
 
@@ -73,9 +73,9 @@ describe("ceilDiv", () => {
 
 	// The guard is identical to floorDiv's, which was tested while this one was not.
 	it("rejects a zero divisor rather than returning Infinity", () => {
-		expect(() => ceilDiv(1, 0)).toThrow(RangeError);
+		expect(() => ceilDiv(1, 0)).toThrow(expect.objectContaining({ code: "TCT_INTERNAL" }));
 		// -0 === 0, so the negative zero divisor is rejected too rather than yielding -Infinity.
-		expect(() => ceilDiv(1, -0)).toThrow(RangeError);
+		expect(() => ceilDiv(1, -0)).toThrow(expect.objectContaining({ code: "TCT_INTERNAL" }));
 	});
 });
 
@@ -102,8 +102,8 @@ describe("mod", () => {
 	});
 
 	it("rejects a non-positive modulus, which Janson does not define", () => {
-		expect(() => mod(1, 0)).toThrow(RangeError);
-		expect(() => mod(1, -3)).toThrow(RangeError);
+		expect(() => mod(1, 0)).toThrow(expect.objectContaining({ code: "TCT_INTERNAL" }));
+		expect(() => mod(1, -3)).toThrow(expect.objectContaining({ code: "TCT_INTERNAL" }));
 	});
 });
 

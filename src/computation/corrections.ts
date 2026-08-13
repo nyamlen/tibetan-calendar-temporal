@@ -20,6 +20,7 @@
  * @packageDocumentation
  */
 
+import { codedError } from "../errors.js";
 import { floorDiv, mod, scaleTo } from "./arithmetic.js";
 import { lunarAnomaly, meanDate, solarAnomaly } from "./mean-astronomy.js";
 import type { ScaledTradition } from "./scaling.js";
@@ -59,7 +60,7 @@ export function moonTabAt(table: readonly number[], index: number): number {
 					? -(table[j - 14] ?? 0)
 					: -(table[28 - j] ?? 0);
 	/* c8 ignore next */
-	if (value === undefined) throw new Error("moonTabAt: table must have 8 entries");
+	if (value === undefined) throw codedError("TCT_INTERNAL", "moonTabAt: table must have 8 entries");
 	return normaliseZero(value);
 }
 
@@ -81,7 +82,7 @@ export function sunTabAt(table: readonly number[], index: number): number {
 					? -(table[j - 6] ?? 0)
 					: -(table[12 - j] ?? 0);
 	/* c8 ignore next */
-	if (value === undefined) throw new Error("sunTabAt: table must have 4 entries");
+	if (value === undefined) throw codedError("TCT_INTERNAL", "sunTabAt: table must have 4 entries");
 	return normaliseZero(value);
 }
 
