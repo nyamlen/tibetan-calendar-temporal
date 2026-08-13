@@ -178,7 +178,12 @@ export function deriveScaling(config: TraditionConfig): ScaledTradition {
 	const equationBound = maxMagnitude(config.moonTab) + maxMagnitude(config.sunTab);
 	const searchHalfWidth = ceilDiv(equationBound * meanDate.den, 60 * meanDate.perDay) + 2;
 
-	const scaled: ScaledTradition = {
+	// Before `quarterCircle` below, not after. `scaleTo` guards the same divisibility and carries the
+	// same code, so checking afterwards would be dead code and would hand the consumer a message
+	// naming two integers rather than the field to fix.
+	assertDerivable(config, meanSun.den, searchHalfWidth);
+
+	return {
 		config,
 		meanDate,
 		meanSun,
@@ -190,7 +195,4 @@ export function deriveScaling(config: TraditionConfig): ScaledTradition {
 		exactToJulianDay: Math.floor(Number.MAX_SAFE_INTEGER / commonDenominator),
 		searchHalfWidth,
 	};
-
-	assertDerivable(scaled);
-	return scaled;
 }

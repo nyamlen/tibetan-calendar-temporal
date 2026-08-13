@@ -20,7 +20,6 @@
  * @packageDocumentation
  */
 
-import type { ScaledTradition } from "../computation/scaling.js";
 import { rangeError } from "../errors.js";
 import type { MeanMotion, Rational, TraditionConfig } from "./types.js";
 
@@ -185,28 +184,35 @@ export function assertTraditionConfig(config: TraditionConfig): void {
 }
 
 /**
- * The checks that need the derived scaling rather than the raw config.
+ * The checks that need derived quantities rather than the raw config.
  *
  * @remarks
- * Split from {@link assertTraditionConfig} because these quantities do not exist until
- * `deriveScaling` has run, not because they are any less part of validating a config — both throw
- * the same code, and both are reached through the same `scalingFor` choke point.
+ * Split from {@link assertTraditionConfig} because these values do not exist until `deriveScaling`
+ * has computed them, not because they are any less part of validating a config — both throw the
+ * same code, and both are reached through the same `scalingFor` choke point.
+ *
+ * Called from the **middle** of `deriveScaling`, after the mean motions are scaled and before
+ * `quarterCircle` is formed. The order is load-bearing: `scaleTo(1, 4, meanSun.den)` carries the
+ * same code, so putting this after it would leave the check unreachable and hand the consumer a
+ * message naming two integers instead of the field to fix.
  *
  * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG`.
  */
-export function assertDerivable(scaled: ScaledTradition): void {
-	const { config } = scaled;
-
+export function assertDerivable(
+	config: TraditionConfig,
+	meanSunDen: number,
+	searchHalfWidth: number,
+): void {
 	// A general bound on the search window, deliberately not a bound on the tables themselves.
 	// `|moonTab| ≤ 25` would hardcode Phugpa's magnitudes into a field the non-negotiables declare
 	// injectable, and would have to decide "is this Phugpa" from a consumer-settable `id`. What is
 	// genuinely universal is that a tradition whose corrections push the true date a whole month
 	// off the mean is not a lunisolar calendar at all. This bounds the work a pathological table
 	// can cause without ruling on which traditions are astronomically legitimate.
-	if (scaled.searchHalfWidth > MAX_SEARCH_HALF_WIDTH) {
+	if (searchHalfWidth > MAX_SEARCH_HALF_WIDTH) {
 		throw invalid(
 			config,
-			`the correction tables imply a search window of ±${scaled.searchHalfWidth} lunar days, ` +
+			`the correction tables imply a search window of ±${searchHalfWidth} lunar days, ` +
 				`beyond the ±${MAX_SEARCH_HALF_WIDTH} this engine will search. moonTab and sunTab are ` +
 				"equations in sixtieths of a day; entries this large describe no lunisolar calendar",
 		);
@@ -217,14 +223,10 @@ export function assertDerivable(scaled: ScaledTradition): void {
 	// or `scaleTo(1, 4, meanSun.den)` cannot represent the quarter exactly. It holds for every
 	// tradition Janson gives and went unchecked, so a config that failed it threw from three frames
 	// down with no code at all, and `tibetanDateExists` read that as "the date does not exist".
-	//
-	// Checked before the derivation would hit it: `deriveScaling` calls `scaleTo` for
-	// `quarterCircle`, whose own guard now carries the same code, but a message naming the field is
-	// worth more to a consumer than one naming two integers.
-	if (scaled.meanSun.den % 4 !== 0) {
+	if (meanSunDen % 4 !== 0) {
 		throw invalid(
 			config,
-			`the derived meanSun denominator ${scaled.meanSun.den} is not divisible by 4. The solar ` +
+			`the derived meanSun denominator ${meanSunDen} is not divisible by 4. The solar ` +
 				"anomaly is mean_sun − 1/4, so a denominator that cannot express a quarter exactly " +
 				"makes the derivation inexact; it is the lcm of meanSun's three coefficient " +
 				"denominators, so it is one of those that needs the factor of 4",
