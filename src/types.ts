@@ -313,6 +313,91 @@ export interface TibetanDate {
 }
 
 /**
+ * One month of a Tibetan year, as produced by `monthsFor`.
+ *
+ * @remarks
+ * Every instance describes a real, contiguous span of calendar days. The months of a year tile it
+ * exactly: the first begins at Losar and the last ends the day before the next Losar, with no gap
+ * and no overlap.
+ *
+ * Three things about this shape mislead if skimmed, and each is a way to build a wrong calendar.
+ *
+ * **{@link TibetanMonth.days} counts calendar days, not date numbers.** The numbering always runs
+ * 1–30; the *span* is 29 or 30 days, because some numbers are skipped and some are carried by two
+ * consecutive days. So `for (let d = 1; d <= days; d++)` is wrong and produces a silently bad grid.
+ * Walk {@link TibetanMonth.firstDay} to {@link TibetanMonth.lastDay} and call `isoToTibetan` on
+ * each — which is also the right model for a UI, since a grid holds one cell per calendar day.
+ *
+ * **{@link TibetanMonth.month} is not a unique key within the year.** In a leap year two months
+ * share a number. {@link TibetanMonth.monthCode} is the unique one.
+ *
+ * **The year is Tibetan, not Gregorian.** It opens in February or early March, so it straddles two
+ * ISO years.
+ */
+export interface TibetanMonth {
+	/**
+	 * Month number, 1–12.
+	 *
+	 * @remarks
+	 * A leap month carries the same number as the month that follows it, so in a leap year this
+	 * appears twice and the leap one comes first.
+	 */
+	month: number;
+
+	/**
+	 * The month as a Temporal-style code: `"M01"` through `"M12"`, with an `L` suffix for a leap
+	 * month. Unique within the year, unlike {@link TibetanMonth.month}.
+	 */
+	monthCode: string;
+
+	/** Whether this is the leap month — the first of the two sharing this number. */
+	isLeapMonth: boolean;
+
+	/**
+	 * How many **calendar days** this month spans: 29 or 30.
+	 *
+	 * @remarks
+	 * Not the highest date number, which is always 30. See the remarks on {@link TibetanMonth}.
+	 */
+	days: number;
+
+	/**
+	 * The Western calendar day this month begins on.
+	 *
+	 * @remarks
+	 * Computed from the previous month's last day rather than by evaluating date 1, because date 1
+	 * may be skipped or doubled. Janson §8 notes that evaluating it directly is the source of errors
+	 * in published tables.
+	 */
+	firstDay: Temporal.PlainDate;
+
+	/** The Western calendar day this month ends on. */
+	lastDay: Temporal.PlainDate;
+}
+
+/**
+ * The identifying fields needed to name a Tibetan month, as accepted by `daysInMonth`.
+ *
+ * @remarks
+ * Both {@link TibetanDate} and {@link TibetanDateInput} are assignable to this, so a value from
+ * `isoToTibetan` can be passed straight in — the extra `day` is simply ignored.
+ */
+export interface TibetanMonthInput {
+	/** Royal-era year, matching {@link TibetanDate.year}. Not Janson's *Y*. */
+	year: number;
+
+	/** Month number, 1–12. Pair with `isLeapMonth` in a leap year. */
+	month: number;
+
+	/**
+	 * Select the leap month when two months share this number.
+	 *
+	 * @defaultValue `false` — the regular month, which is the second of the two.
+	 */
+	isLeapMonth?: boolean;
+}
+
+/**
  * The identifying fields needed to name a Tibetan date, as accepted by `tibetanToIso`.
  *
  * @remarks
