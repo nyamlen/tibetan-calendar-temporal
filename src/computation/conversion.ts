@@ -19,7 +19,7 @@ import { SkippedDayError } from "../types.js";
 import { floorDiv, mod } from "./arithmetic.js";
 import {
 	classifyDay,
-	hasLeapMonth,
+	hasLeapTwin,
 	losarJulianDay,
 	monthFromCount,
 	trueMonthCount,
@@ -381,7 +381,7 @@ export function tibetanToIso(
 	}
 
 	const year = yearFromRoyalEra(input.year);
-	if (isLeapMonth && !hasLeapMonth(config, year, input.month)) {
+	if (isLeapMonth && !hasLeapTwin(config, year, input.month)) {
 		throw rangeError(
 			"TCT_NO_SUCH_LEAP_MONTH",
 			`${subject()}: month ${input.month} of ${input.year} has no leap month. Leap months ` +

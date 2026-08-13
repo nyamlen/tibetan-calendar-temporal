@@ -20,8 +20,15 @@ import { amod, ceilDiv, floorDiv, mod } from "./arithmetic.js";
 import { julianDayOfLunarDay } from "./corrections.js";
 import type { ScaledTradition } from "./scaling.js";
 
-/** A month identified the way the calendar names it. */
-export interface TibetanMonth {
+/**
+ * A month identified the way the calendar names it.
+ *
+ * @remarks
+ * Not the public `TibetanMonth`, which this must not be confused with: `year` here is Janson's *Y*
+ * rather than the royal era, and the flag is `isLeap` rather than `isLeapMonth`. This is the
+ * identity triple the arithmetic works in; the public shape is the boundary's rendering of it.
+ */
+export interface MonthIdentity {
 	/** Janson's *Y* — the Gregorian year the Tibetan year begins in. */
 	year: number;
 	/** Month number, 1–12. Shared with the following month when `isLeap` is true. */
@@ -88,13 +95,18 @@ export function intercalationIndex(config: TraditionConfig, year: number, month:
 }
 
 /**
- * Whether month `M` of year `Y` is preceded by a leap month with the same number.
+ * Whether month `M` of year `Y` is preceded by a leap month with the same number — its *leap twin*.
  *
  * @remarks
  * The traditional Phugpa rule: a leap month is inserted when the intercalation index is
  * **48 or 49**.
+ *
+ * Named for the twin rather than for the year because the question is per-**month**. The public
+ * `hasLeapMonth` asks a per-**year** question — does this year contain a leap month anywhere — and
+ * the two must not share a name. `TCT_NO_SUCH_LEAP_MONTH` already describes the failure this
+ * detects as a month having "no leap twin that year".
  */
-export function hasLeapMonth(config: TraditionConfig, year: number, month: number): boolean {
+export function hasLeapTwin(config: TraditionConfig, year: number, month: number): boolean {
 	const index = intercalationIndex(config, year, month);
 	return index === 48 || index === 49;
 }
@@ -113,7 +125,7 @@ export function hasLeapMonth(config: TraditionConfig, year: number, month: numbe
  * `n` is zero at the epoch and increases by exactly one per month, leap months included.
  *
  * @param isLeap - Pass `true` for the leap month of a pair. Passing `true` for a month that is
- * not a leap month yields a count belonging to a different month; use {@link hasLeapMonth} to
+ * not a leap month yields a count belonging to a different month; use {@link hasLeapTwin} to
  * check first.
  */
 export function trueMonthCount(
@@ -145,7 +157,7 @@ export function trueMonthCount(
  * A month is leap exactly when it takes the same number as the next one, which is what the
  * remainder test detects.
  */
-export function monthFromCount(config: TraditionConfig, monthCount: number): TibetanMonth {
+export function monthFromCount(config: TraditionConfig, monthCount: number): MonthIdentity {
 	const scaled = 65 * monthCount + beta(config);
 	const x = ceilDiv(scaled, 67);
 	const remainder = mod(scaled, 67);
@@ -166,7 +178,7 @@ export function monthFromCount(config: TraditionConfig, monthCount: number): Tib
  * complementary 41 years of every 65 — a calendar with leap months in all the wrong places, and
  * one that still produces well-formed dates.
  *
- * This is an independent derivation from the {@link hasLeapMonth} route, which tests the
+ * This is an independent derivation from the {@link hasLeapTwin} route, which tests the
  * intercalation index directly. The two must agree for every year, and the test suite asserts
  * that as a cross-check.
  */
