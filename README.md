@@ -2,11 +2,11 @@
 
 > ## ⚠️ Placeholder release
 >
-> **This package does not work yet.** v0.0.1 exports nothing but a status string. It exists to
-> reserve the name while the engine is built.
+> **The published package does not work yet.** v0.0.1 exports nothing but a status string. It
+> exists to reserve the name while the engine is built.
 >
-> Everything below describes the **planned** API, not shipped behaviour. Do not depend on this
-> package until v1.0.0.
+> The API below is implemented and tested — every example in this file is asserted by the test
+> suite — but it is **not yet published**. Do not depend on this package until v1.0.0.
 
 A TypeScript library that computes Tibetan calendar dates according to the Phugpa tradition
 (Men-Tsee-Khang standard), built on
@@ -23,6 +23,8 @@ days, and determines observances. Open source, MIT licensed, with zero runtime d
   - [Converting a Western date](#converting-a-western-date)
   - [Day of week](#day-of-week)
   - [Converting back](#converting-back)
+  - [Building a month grid](#building-a-month-grid)
+  - [Reading a date back](#reading-a-date-back)
   - [Three things that make this calendar hard](#three-things-that-make-this-calendar-hard)
   - [Naming a year](#naming-a-year)
   - [Errors and validation](#errors-and-validation)
@@ -41,7 +43,7 @@ days, and determines observances. Open source, MIT licensed, with zero runtime d
 - **Temporal-native** — `Temporal.PlainDate` throughout, no legacy `Date`
 - **Zero runtime dependencies** — Temporal is a language built-in
 - **Integer arithmetic only** — deterministic, cross-platform-identical results
-- **Tradition-agnostic** — astronomical constants injected via config, so v1 ships Phugpa and
+- **Tradition-agnostic** — astronomical constants injected via config. v1 ships Phugpa only;
   Tsurphu is addable as data rather than as a code change
 - **Pure stateless functions** — memoizable, safe to offload to a worker
 - **ESM only**
@@ -173,6 +175,77 @@ year began in (2026, exposed as `yearStartsIn`). The two differ by 127.
 > // Or check after the fact, which also catches an off-by-one at a year boundary:
 > isoToTibetan(date).yearStartsIn;   // should be the Gregorian year you started from
 > ```
+
+### Building a month grid
+
+`monthsFor` gives a year's months in calendar order, with the leap month sitting immediately before
+the regular month it shares a number with. Reconstructing that ordering yourself is the part most
+easily got wrong.
+
+```js
+import { monthsFor, hasLeapMonth, leapMonthOfYear } from 'tibetan-calendar-temporal';
+
+const months = monthsFor(2151);
+months.length;                                 // 13
+months.map((m) => m.monthCode).join(' ');
+// "M01 M02 M03 M04 M05 M06L M06 M07 M08 M09 M10 M11 M12"
+
+hasLeapMonth(2151);                            // true
+leapMonthOfYear(2151);                         // 6
+```
+
+Each month carries its own boundaries, so a grid needs no further conversion to lay out:
+
+```js
+const month = monthsFor(2153)[0];
+month.monthCode;                 // "M01"
+month.days;                      // 29
+month.firstDay.toString();       // "2026-02-18" — Losar
+month.lastDay.toString();        // "2026-03-18"
+```
+
+> **`days` counts calendar days, not date numbers.** Date numbers always run 1–30; the span is 29 or
+> 30, because some numbers are skipped and some are carried by two days. So `for (d = 1; d <= days;
+> d++)` builds a **wrong** grid. Walk the calendar days instead — one cell per day, labelled by
+> conversion:
+>
+> ```js
+> for (let day = month.firstDay; Temporal.PlainDate.compare(day, month.lastDay) <= 0;
+>      day = day.add({ days: 1 })) {
+>   const date = isoToTibetan(day);   // date.day is the number to print in the cell
+> }
+> ```
+
+`hasLeapMonth`, `leapMonthOfYear` and `monthsInYear` are closed forms over the year and never touch
+lunar arithmetic, so reach for them rather than for `monthsFor(y).length` when the months themselves
+are not wanted.
+
+### Reading a date back
+
+`parseTibetanDate` is the inverse of `formatTibetanDate`, and an exact one.
+
+```js
+import { formatTibetanDate, parseTibetanDate, tibetanToIso } from 'tibetan-calendar-temporal';
+
+parseTibetanDate('2153-M12-08');
+// { year: 2153, month: 12, day: 8, isLeapMonth: false, isLeapDay: false }
+
+tibetanToIso(parseTibetanDate('2153-M12-08')).toString();   // "2027-01-15"
+
+formatTibetanDate(parseTibetanDate('2152-M09-30 (leap)'));  // "2152-M09-30 (leap)"
+```
+
+It returns the fields that *name* a date rather than a resolved one, which is what lets it read a
+**skipped** date — a well-formed string that no calendar day carries. Almanacs print such dates, so
+a parser that threw on them could not read back a published table.
+
+```js
+const skipped = parseTibetanDate('2150-M12-29');   // parses fine
+tibetanDateExists(skipped);                        // false
+```
+
+The grammar is strict: the canonical form only. `'2153-M12-8'`, `'2153-m12-08'` and the ISO-looking
+`'2153-12-08'` are all rejected with `TCT_FIELD_OUT_OF_RANGE`.
 
 ### Three things that make this calendar hard
 
@@ -438,7 +511,8 @@ mean.
 
 The complete surface, across both entry points. Everything is a pure function over plain objects —
 same input, same output, no side effects. Wherever a `config?` parameter appears below it is a
-`TraditionConfig` defaulting to `PHUGPA`; the four functions that take no config need none.
+`TraditionConfig` defaulting to `PHUGPA`. Four take none, because naming or renumbering a date needs
+no calendar: `formatTibetanDate`, `parseTibetanDate`, `julianDayFromIso` and `tibetanWeekday`.
 
 ### `tibetan-calendar-temporal`
 
@@ -451,11 +525,31 @@ same input, same output, no side effects. Wherever a `config?` parameter appears
 | `tibetanDateExists` | `(input: TibetanDateInput, config?) => boolean` | The predicate counterpart. `false` for a skipped date, an out-of-range field or a missing leap month; **throws** for anything else, including a date past the exact range — where the day was never computed, so `false` would be a claim about arithmetic that was refused |
 | `losarFor` | `(year: number, config?) => TibetanDate` | Tibetan New Year. Not `{ month: 1, day: 1 }` — that throws where day 1 is skipped |
 
-#### Formatting
+#### Months
+
+`year` here is the royal era, matching `TibetanDate.year` — 2153, not 2026.
+
+The first two compute month boundaries, so they evaluate the calendar and are bounded by the
+tradition's exact range. The last three are closed forms over the year alone: no lunar arithmetic,
+a handful of integer operations, and exact for any year — including ones where `monthsFor` refuses.
 
 | Export | Signature | Notes |
 |---|---|---|
-| `formatTibetanDate` | `(date: TibetanDate) => string` | `"2153-M06-30"`, with `L` on a leap month and a trailing `(leap)` on a leap day. Takes no config |
+| `monthsFor` | `(year: number, config?) => TibetanMonth[]` | The year's months in calendar order, 12 or 13. Tiles Losar to the day before the next Losar, leap month first of its pair |
+| `daysInMonth` | `(month: TibetanMonthInput, config?) => number` | **Calendar days**, 29 or 30 — not the highest date number, which is always 30. Accepts a `TibetanDate` directly |
+| `hasLeapMonth` | `(year: number, config?) => boolean` | Whether the year has a thirteenth month. Not called `isLeapYear`: a Tibetan leap year gains a *month*, not a day |
+| `leapMonthOfYear` | `(year: number, config?) => number \| undefined` | Which month number is doubled, or `undefined` |
+| `monthsInYear` | `(year: number, config?) => number` | 12 or 13 |
+
+#### Formatting
+
+The two are exact inverses: `formatTibetanDate(parseTibetanDate(s)) === s`. Neither takes a config,
+because naming a date needs no calendar.
+
+| Export | Signature | Notes |
+|---|---|---|
+| `formatTibetanDate` | `(date: TibetanDateInput) => string` | `"2153-M06-30"`, with `L` on a leap month and a trailing `(leap)` on a leap day. A `TibetanDate` is assignable, so pass one straight in |
+| `parseTibetanDate` | `(text: string) => TibetanDateInput` | Strict — the canonical form only. Returns the naming fields rather than a resolved date, so a **skipped** date parses rather than throwing; pass it to `tibetanToIso` or `tibetanDateExists` |
 
 #### Interoperability
 
@@ -503,9 +597,9 @@ Codes are stable and part of the API. Message text is not — match on the code.
 
 #### Types
 
-Type-only exports, erased at runtime: `TibetanDate`, `TibetanDateInput`, `TibetanYearName`,
-`Rabjung`, `TibetanElement`, `TibetanAnimal`, `TibetanGender`, `TraditionConfig`, `MeanMotion`,
-`Rational`, `TibetanCalendarErrorCode`.
+Type-only exports, erased at runtime: `TibetanDate`, `TibetanDateInput`, `TibetanMonth`,
+`TibetanMonthInput`, `TibetanYearName`, `Rabjung`, `TibetanElement`, `TibetanAnimal`,
+`TibetanGender`, `TraditionConfig`, `MeanMotion`, `Rational`, `TibetanCalendarErrorCode`.
 
 ### `tibetan-calendar-temporal/observances`
 

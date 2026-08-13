@@ -219,30 +219,57 @@ through this before publishing v1.0.0 — several are one-way doors once publish
 
       </details>
 
-- [ ] **Export month enumeration.** Settled: it ships in v1.0.0. `monthsInYear`, `leapMonthOfYear`
-      and `isLeapYear` already exist in
-      [`src/computation/calendar.ts`](../src/computation/calendar.ts), so this is exporting working
-      code with boundary validation rather than writing any. `daysInMonth` needs a wrapper — the
-      internal one takes a `ScaledTradition`, and the public form should take a `TraditionConfig`
-      like every other entry point.
+- [x] **Export month enumeration** — done 2026-08-13, as five names rather than the three or four
+      this item anticipated: `monthsFor`, `daysInMonth`, `hasLeapMonth`, `leapMonthOfYear` and
+      `monthsInYear`.
 
-      Phase 3's surface review kept them internal on negative evidence — the observance engine
-      never asked — and because the workaround is correct if clumsy: walk from `losarFor(y)` to
-      `losarFor(y + 1)` collecting distinct `monthCode`s, O(365) rather than O(1). The 2026-08-13
-      review made the positive case: every comparable library exposes this tier (`@hebcal/core` has
-      `HDate.daysInMonth` / `monthsInYear` / `isLeapYear`, `jalaali-js` has `jalaaliMonthLength`),
-      it is what a month-grid UI asks first, and the workaround makes the consumer reimplement
-      leap-month grouping, which is the part most likely to be got wrong. Nyamlen will want it in
-      week one. See
+      Four things came out differently from this item as written.
+
+      - **The list function was the missing piece, and it was not on the list.** This item named
+        only scalars, but the ordering — leap month immediately *before* the regular month sharing
+        its number — is the part a consumer most easily gets wrong, and no scalar exposes it.
+        `monthsFor` does, and carries each month's `firstDay` and `lastDay` because they are
+        computed anyway to get `days`.
+      - **"They already exist, so this is exporting working code" is not an argument for exporting
+        them.** It is an implementation-cost argument, and it carried no weight either way. The
+        scalars ship because deriving them from `monthsFor` is *correct and grossly
+        disproportionate* — 26 `julianDayOfLunarDay` calls against a five-operation closed form.
+        That case was missing from the public-surface rule, which now records it.
+      - **`isLeapYear` ships as `hasLeapMonth`.** A Tibetan leap year gains a month, not a day, and
+        every other `leap` name here denotes the thing that is duplicated. The internal per-month
+        predicate was renamed to `hasLeapTwin` to free the name. See
+        [decisions/2026-08-13-api-vocabulary.md](decisions/2026-08-13-api-vocabulary.md).
+      - **`days` is a trap worth documenting loudly.** It counts calendar days, 29 or 30, while the
+        date numbering always runs 1–30. Looping `1..days` builds a silently wrong grid, so the
+        docblock, the README and the type all say so.
+
+      Phase 3's surface review had kept these internal on negative evidence — the observance engine
+      never asked — and deferred the call on the tie-breaker that adding later is non-breaking. That
+      worked as intended: the decision was made on evidence rather than anticipation. See
       [decisions/2026-08-12-public-surface.md](decisions/2026-08-12-public-surface.md).
 
-- [ ] **Add `parseTibetanDate`, the counterpart to `formatTibetanDate`.** The canonical string form
-      is currently write-only: `"2153-M01L-01 (leap)"` is a well-designed format that nothing can
-      read back, this package included. Peers round-trip — `HDate` parses, and `jalaali-js` is
-      symmetric by construction — so the asymmetry is conspicuous in the API table. Unlike the item
-      above this is new code rather than an export of existing code, and it needs the same boundary
-      validation: a malformed string is `TCT_FIELD_OUT_OF_RANGE`, and round-tripping every date in
-      a multi-year sweep is the test that earns it.
+- [x] **Add `parseTibetanDate`, the counterpart to `formatTibetanDate`** — done 2026-08-13. Two
+      things came out differently.
+
+      - **It returns `TibetanDateInput`, not a resolved date, and takes no config.** `"2150-M12-29"`
+        is a well-formed string naming a *skipped* date. Almanacs print such dates — that is why
+        `SkippedDayError` exists rather than a `null` return — so a parser that threw on them could
+        not read back a published table, which is most of the point of having one.
+      - **Closing the round trip meant widening `formatTibetanDate`, not narrowing the parser.**
+        The formatter took `TibetanDate` and read its `monthCode`, so `format(parse(s))` did not
+        even typecheck and the "symmetry" would have been a four-step pipeline through the
+        calendar. It now takes `TibetanDateInput` and derives the month segment, which is
+        non-breaking — `TibetanDate` stays assignable — and strictly more robust, since an object
+        whose `month` and `monthCode` disagree can no longer render a self-contradicting string.
+
+      That widening also let `SkippedDayError` stop hand-rolling its own rendering. It printed
+      `2150-12-29` — no `M`, indistinguishable from an ISO date by eye — and used ` (leap)` for a
+      leap *month* where the formatter uses it for a leap *day*. Two incompatible renderings of a
+      date inside one package is exactly what `formatTibetanDate` exists to prevent.
+
+      The grammar is strict, on the rule that a parser can be loosened later without breaking anyone
+      but cannot be tightened. `tryParseTibetanDate` was considered and dropped for the same reason:
+      additive later.
 
 **Publishing**
 

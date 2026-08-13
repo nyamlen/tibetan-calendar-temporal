@@ -103,7 +103,9 @@ describe("parseTibetanDate", () => {
 	});
 
 	it("refuses a non-string and an unrepresentable year", () => {
-		for (const value of [null, undefined, 2153, {}, ["2153-M12-08"]]) {
+		// `Object.create(null)` is in the list because it has no `constructor` — the branch the
+		// message-building helper needs a fallback for, and the one coverage showed untested.
+		for (const value of [null, undefined, 2153, {}, ["2153-M12-08"], Object.create(null)]) {
 			expect(codeOf(() => parseTibetanDate(value as unknown as string))).toBe(
 				"TCT_FIELD_OUT_OF_RANGE",
 			);

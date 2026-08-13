@@ -31,6 +31,29 @@ check(
 	`root export computed ${api.formatTibetanDate(date)}, expected 2153-M06-30`,
 );
 
+// The month tier and the parser reach a consumer through `dist/` like everything else, and nothing
+// else in the suite can see whether they do — every other test imports from `src/`. The round trip
+// is the cheapest single assertion that covers both new modules and the widened formatter.
+const months = api.monthsFor(2151);
+check(
+	months.length === 13 && months.some((m) => m.monthCode === "M06L"),
+	`monthsFor(2151) returned ${months.length} months, codes ${months.map((m) => m.monthCode).join(" ")}`,
+);
+check(
+	api.hasLeapMonth(2151) && api.leapMonthOfYear(2151) === 6 && api.monthsInYear(2151) === 13,
+	"the closed-form month scalars disagree with monthsFor in the packed build",
+);
+check(
+	api.daysInMonth({ year: 2153, month: 1 }) === 29,
+	`daysInMonth for 2153-M01 returned ${api.daysInMonth({ year: 2153, month: 1 })}, expected 29`,
+);
+
+const roundTripped = api.formatTibetanDate(api.parseTibetanDate("2153-M06-30"));
+check(
+	roundTripped === "2153-M06-30",
+	`format(parse(s)) returned ${roundTripped}, expected the string back unchanged`,
+);
+
 const duchen = observances
 	.getObservances(Temporal.PlainDate.from("2026-01-01"), Temporal.PlainDate.from("2026-12-31"))
 	.filter((o) => o.rule.kind === "duchen");

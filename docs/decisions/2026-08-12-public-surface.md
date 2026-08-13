@@ -24,7 +24,7 @@ The discriminator is whether a consumer can get a **correct** answer without us.
 | `isFullMoon` / `isNewMoon` | `day === 15` — **wrong** in months where 15 is skipped | public, as fields |
 | `tibetanWeekday` | none; `dayOfWeek` is deliberately ISO, so the almanac's 0 = Saturday has no other route | public |
 | `julianDayFromIso`, `isoFromJulianDay` | none for converting to any other calendar | public |
-| `monthsInYear`, `leapMonthOfYear`, `isLeapYear` | walk the year with `losarFor`, collect distinct `monthCode`s — correct, just O(365) | internal |
+| `monthsInYear`, `leapMonthOfYear`, `isLeapYear` | walk the year with `losarFor`, collect distinct `monthCode`s — correct, just O(365) | internal — **revisited, see below** |
 
 ## Two findings that fell out of applying it
 
@@ -43,6 +43,38 @@ delayed this decision until the observance engine existed, on the grounds that a
 has. Exposing `losarFor` also makes the workaround feasible, since `losarFor(y)` to
 `losarFor(y + 1)` bounds a year. Adding these later is non-breaking; adding them now is permanent,
 and that asymmetry decides a tie.
+
+## Revisited 2026-08-13: the rule needs a third case
+
+The month row above is now wrong in both halves, and the way it was wrong is the useful part.
+
+**The rule stands.** It is what narrowed five candidate names to the ones that ship, and it is why
+`monthsFor` and `daysInMonth` were never in doubt: there is no correct consumer-side route to a
+month's boundaries. Differencing `tibetanToIso({ month, day: 1 })` against `{ month, day: 30 }`
+throws whenever either number is skipped and is off by one when either is doubled, and Janson §8 is
+explicit that a month's first day must come from the previous month's last.
+
+**But the dichotomy was too coarse.** "Wrong or impossible" against "merely costs a loop" has no
+case for a workaround that is **correct and grossly disproportionate**, and the scalars are exactly
+that. `monthsFor(y).length === 13` runs 26 `julianDayOfLunarDay` calls and allocates 26
+`Temporal.PlainDate`s to answer a question whose closed form, `(24·Y + γ*) mod 65 ≥ 41`, is about
+five integer operations. A year picker rendering a century would do thousands of `true_date`
+evaluations to learn a hundred booleans. Add that third case when applying the rule.
+
+Two things also came out of it that the original assessment missed:
+
+- **The cost estimate was wrong, not just the conclusion.** "O(365)" described walking days with
+  `losarFor`; the actual workaround, once `monthsFor` exists, is O(26) — but each of those 26 is a
+  full mean-astronomy pass with two correction-table lookups, against five integer operations. The
+  complexity class was never the point.
+- **The scalars are exact over a wider domain than the list.** They never evaluate `true_date`, so
+  they answer for years where `monthsFor` must throw `TCT_OUTSIDE_EXACT_RANGE`. That is not a
+  quirk to hide — it moves those names from "costs a loop" toward "impossible", which is the rule's
+  own criterion.
+
+The tie-breaker the original record leaned on — "adding later is non-breaking; adding now is
+permanent" — is what was being cashed in, and it worked as intended: the decision was deferred
+until a real consumer existed, and then made on evidence rather than on anticipation.
 
 ## Consequences
 

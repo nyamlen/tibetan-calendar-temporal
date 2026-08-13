@@ -9,7 +9,9 @@ import {
 	tibetanWeekday,
 } from "../src/computation/conversion.js";
 import { formatTibetanDate } from "../src/format.js";
+import { hasLeapMonth, leapMonthOfYear, monthsFor } from "../src/months.js";
 import { GELUG, getObservances, observancesOn } from "../src/observances/index.js";
+import { parseTibetanDate } from "../src/parse.js";
 import { PHUGPA_HENNING } from "../src/traditions/phugpa.js";
 import { SkippedDayError } from "../src/types.js";
 
@@ -66,6 +68,46 @@ describe("README usage examples", () => {
 	it("converts back, with the royal-era year 127 ahead of yearStartsIn", () => {
 		expect(tibetanToIso({ year: 2153, month: 6, day: 30 }).toString()).toBe("2026-08-12");
 		expect(date.year - date.yearStartsIn).toBe(127);
+	});
+
+	it("builds the documented month grid", () => {
+		const leapYear = monthsFor(2151);
+		expect(leapYear.length).toBe(13);
+		expect(leapYear.map((m) => m.monthCode).join(" ")).toBe(
+			"M01 M02 M03 M04 M05 M06L M06 M07 M08 M09 M10 M11 M12",
+		);
+		expect(hasLeapMonth(2151)).toBe(true);
+		expect(leapMonthOfYear(2151)).toBe(6);
+
+		const month = monthsFor(2153)[0];
+		expect(month?.monthCode).toBe("M01");
+		expect(month?.days).toBe(29);
+		expect(month?.firstDay.toString()).toBe("2026-02-18");
+		expect(month?.lastDay.toString()).toBe("2026-03-18");
+	});
+
+	it("reads the documented dates back, including a skipped one", () => {
+		expect(parseTibetanDate("2153-M12-08")).toEqual({
+			year: 2153,
+			month: 12,
+			day: 8,
+			isLeapMonth: false,
+			isLeapDay: false,
+		});
+		expect(tibetanToIso(parseTibetanDate("2153-M12-08")).toString()).toBe("2027-01-15");
+		expect(formatTibetanDate(parseTibetanDate("2152-M09-30 (leap)"))).toBe("2152-M09-30 (leap)");
+
+		const skipped = parseTibetanDate("2150-M12-29");
+		expect(tibetanDateExists(skipped)).toBe(false);
+
+		for (const rejected of ["2153-M12-8", "2153-m12-08", "2153-12-08"]) {
+			try {
+				parseTibetanDate(rejected);
+				expect.unreachable(`${rejected} should be refused`);
+			} catch (error) {
+				expect((error as { code?: string }).code, rejected).toBe("TCT_FIELD_OUT_OF_RANGE");
+			}
+		}
 	});
 
 	// The message text is pinned here only because the README prints it. Everywhere else the suite

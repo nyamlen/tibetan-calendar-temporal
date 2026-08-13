@@ -67,12 +67,23 @@ astrological and planetary data that this package does not compute.
 Standalone pure functions, framework-agnostic:
 
 ```typescript
-import { isoToTibetan, tibetanToIso, losarFor } from 'tibetan-calendar-temporal';
+import { isoToTibetan, tibetanToIso, losarFor, monthsFor } from 'tibetan-calendar-temporal';
 import { getObservances } from 'tibetan-calendar-temporal/observances';
 ```
 
 - Pure functions, work everywhere
 - Accept and return Temporal types or plain objects
+
+The surface has four tiers: conversion, months, the string form, and Julian-day interoperability.
+What earns a place on it is decided by
+[decisions/2026-08-12-public-surface.md](decisions/2026-08-12-public-surface.md), and pinned by
+`test/public-api.test.ts`.
+
+The month tier splits along a line worth knowing. `monthsFor` and `daysInMonth` compute month
+boundaries, so they evaluate `true_date` and are bounded by the tradition's exact range;
+`hasLeapMonth`, `leapMonthOfYear` and `monthsInYear` are closed forms over the year alone, cost a
+handful of integer operations, and stay exact for any safe integer year — including years the
+first two refuse.
 
 ### No Temporal Calendar Protocol adapter
 
@@ -115,8 +126,10 @@ tibetan-calendar-temporal/
 │   │   ├── types.ts          # ObservanceRule, ObservanceConfig, Observance
 │   │   └── default-gelug.ts  # GELUG — FPMT's published rules, each cited
 │   ├── errors.ts             # Error codes, and the constructors that attach them
-│   ├── format.ts             # formatTibetanDate — the canonical string form
-│   └── types.ts              # TibetanDate, TibetanDateInput, SkippedDayError
+│   ├── format.ts             # formatTibetanDate, monthCodeOf — the canonical string form
+│   ├── parse.ts              # parseTibetanDate — its inverse
+│   ├── months.ts             # monthsFor, daysInMonth, and the three closed-form scalars
+│   └── types.ts              # TibetanDate, TibetanMonth, their inputs, SkippedDayError
 ├── test/
 │   ├── computation/          # One suite per computation module
 │   ├── fixtures/             # Janson's tables, then FPMT data in Phase 2
@@ -195,6 +208,21 @@ interface TibetanDate {
   isLeapDay: boolean;     // true only on the first of a doubled pair (almanacs: "Extra")
   isoDate: Temporal.PlainDate;
   dayOfWeek: number;      // 1=Mon, 7=Sun (ISO standard)
+}
+
+interface TibetanMonth {
+  month: number;          // 1-12; shared with its twin in a leap year
+  monthCode: string;      // "M06" or "M06L" — unique within the year, unlike `month`
+  isLeapMonth: boolean;
+  days: number;           // CALENDAR days, 29 or 30 — not the date numbering, which runs 1-30
+  firstDay: Temporal.PlainDate;
+  lastDay: Temporal.PlainDate;
+}
+
+interface TibetanMonthInput {
+  year: number;           // Royal era, like TibetanDate.year
+  month: number;          // 1-12
+  isLeapMonth?: boolean;
 }
 
 interface Rabjung {
