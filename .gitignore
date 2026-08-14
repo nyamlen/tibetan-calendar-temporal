@@ -46,3 +46,6 @@ yarn-error.log*
 .tsbuildinfo
 *.tsbuildinfo
 coverage/
+
+# Subagent-driven-development scratch workspace (ledgers, briefs, review packages)
+.superpowers/
