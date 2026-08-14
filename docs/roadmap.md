@@ -8,7 +8,8 @@
 | 1 | Core computation: Layers 0-3 (Janson §2-9) — **done** | 20h |
 | 2 | Validation: FPMT fixtures, cross-check against reference implementations — **done** | 12h |
 | 3 | Observances: config-driven rules, Gelug default config — **done** | 8h |
-| 4 | TypeDoc + release workflow + publish v1.0.0 | 6h |
+| 4 | TypeDoc + release workflow + publish v1.0.0 (docblock audit split out — see Phase 4a) | 6h |
+| 4a | Docblock audit: verify 265 docblocks against actual behaviour — see the [Pre-v1.0.0 checklist](#pre-v100-checklist) | 10h |
 
 **Safe timeline: 3 weeks** (accounts for debugging edge cases in doubled/skipped day logic)
 
@@ -271,6 +272,33 @@ through this before publishing v1.0.0 — several are one-way doors once publish
       but cannot be tightened. `tryParseTibetanDate` was considered and dropped for the same reason:
       additive later.
 
+- [ ] **Audit and correct all 265 docblocks against actual behaviour** — see
+      [Phase 4a](#implementation-phases) for the effort estimate. `src/types.ts` (46),
+      `src/observances/types.ts` (28), `src/computation/calendar.ts` (28) and
+      `src/computation/scaling.ts` (22) are the concentrations, across 20 files in `src/` in total.
+      Must run after this plan's Part 1, which changed the behaviour of eight files — already true
+      by the time this item is worked.
+
+      Docblocks reach the shipped `.d.ts` and are what editor hover shows, so a stale one is a false
+      contract statement, not a tidying issue. This review already found three: `hasLeapMonth`,
+      `leapMonthOfYear` and `monthsInYear` promised exactness "for any safe integer year" (corrected
+      when the arithmetic was fixed); `getObservances` stated a threat model its guard did not cover
+      (Finding 1); and `asPlainDate` argued for a widening that was later removed (Finding 2 — see
+      [decisions/2026-08-13-tibetan-date-input-boundary.md](decisions/2026-08-13-tibetan-date-input-boundary.md),
+      which records what superseded it). None was caught by lint, typecheck or the suite, because
+      nothing checks prose against behaviour.
+
+      Check, in this priority order:
+
+      1. Every factual claim is true of the code as it now stands — bounds, ranges, totality, what
+         throws and with which code, what is accepted and what is refused.
+      2. Every `@throws` matches the codes actually thrown, including any this plan's Part 1 added.
+      3. Every `@example` runs and produces the stated output.
+      4. Every `{@link}` resolves.
+      5. Citations follow the clean-room rule: by section and content, never by a rendered equation
+         or table number.
+      6. Only then, prose quality and consistency of voice.
+
 **Publishing**
 
 - [ ] Publish from **GitHub Actions with npm provenance**, not locally — provenance ties each
@@ -425,3 +453,36 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
 
 - **Tsurphu tradition** (Karma Kagyu) via a second `TraditionConfig` — the algorithm already
   supports it; only the constants differ.
+
+- **Navigation and date-arithmetic functions** (`addMonths`, `addDays`, `daysBetween` and
+  similar) over `TibetanDateInput` — deferred, additive, and free functions rather than methods on
+  a class. [decisions/2026-08-12-no-tibetan-date-class.md](decisions/2026-08-12-no-tibetan-date-class.md)
+  already ruled out a `TibetanDate` class, for exactly the leap-month and overflow ambiguities
+  below, so a future design here inherits that constraint rather than reopening it. Record the open
+  questions so a brainstorm starts from them:
+
+  - What "add one month" means across a leap month — skip it, land in it, or refuse.
+  - What `addDays` returns when the target date is skipped.
+  - Whether the return type is `TibetanDate` (resolved) or `TibetanDateInput` (naming fields only).
+  - Whether `daysBetween` takes two Tibetan dates directly, or the consumer converts each to
+    `Temporal.PlainDate` and subtracts.
+
+- **Tibetan-language output** — locale-aware rendering of month names, day names, the
+  twelve-animal cycle and five elements, per Janson's Appendix E — deferred and additive. This is
+  **not** the same sourcing problem as the 60 rabjung cycle names above: that entry is blocked on
+  finding a source giving Tibetan-script and Lhasa-phonetic renderings of the Indian saṃvatsara
+  list, while the animal/element/month vocabulary this item needs is Janson's own and already
+  sourced. Open questions:
+
+  - A locale parameter, or a structured object with named fields.
+  - Which scripts ship — Tibetan script, Wylie, Lhasa phonetics, IAST — and whether all four or a
+    subset.
+  - Whether it reaches `formatTibetanDate` as an option, or ships as a separate formatter.
+
+- **iCalendar (ICS) export — declined.** `getObservances` returns plain objects; a consumer maps
+  them to whatever format they need. Per
+  [decisions/2026-08-12-public-surface.md](decisions/2026-08-12-public-surface.md), a name is
+  exposed when the consumer-side workaround is wrong or impossible, and stays internal when it
+  merely costs a loop — an ICS export is a loop, not a wrong-or-impossible workaround, and it would
+  mean owning RFC 5545 escaping, `VTIMEZONE` and folding, none of which is calendrical. An
+  `@nyamlen/icalendar` package remains open if one is requested.

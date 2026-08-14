@@ -48,6 +48,18 @@ days, and determines observances. Open source, MIT licensed, with zero runtime d
 - **Pure stateless functions** — memoizable, safe to offload to a worker
 - **ESM only**
 
+The engine is usable from 1447, and documented as a back-projection before that.
+Day-by-day external agreement with three independent implementations covers 2022–2027 — six
+years, a window rather than the whole range; see
+[docs/testing.md](docs/testing.md#what-that-does-and-does-not-cover) for what that window does
+and does not establish.
+Outside it, correctness rests on internal consistency (round-trips, year-length frequencies) and
+on Janson's own worked values — the Losar table, 1927–2046 — rather than on external day-by-day
+agreement.
+Every result is a whole calendar day on the Tibetan meridian, with no sunset boundary and no
+timezone; a consumer who needs a local instant supplies their own time zone against the returned
+`isoDate`.
+
 ## Requirements
 
 ```sh
@@ -479,6 +491,10 @@ Losar is deliberately *not* here: it is a calendar fact rather than a convention
 `losarFor` on the root export. Teacher anniversaries are not shipped either — that data is
 institution-specific and changes within a decade — but `kind: 'anniversary'` exists so you can
 supply your own, as above.
+
+Calendar export (ICS) is deliberately out of scope: `getObservances` returns plain objects that a
+consumer maps to whatever format they need, and an `@nyamlen/icalendar` package remains open if
+one is requested.
 
 ### Two kinds of config
 
