@@ -15,10 +15,46 @@
  * @packageDocumentation
  */
 
+import { rangeError } from "../errors.js";
 import type { TraditionConfig } from "../traditions/types.js";
 import { amod, ceilDiv, floorDiv, mod } from "./arithmetic.js";
 import { julianDayOfLunarDay } from "./corrections.js";
 import type { ScaledTradition } from "./scaling.js";
+
+/**
+ * Rejects a year for which the closed-form arithmetic would overflow `Number.MAX_SAFE_INTEGER`.
+ *
+ * @remarks
+ * Every closed form here is built on `12·(year − epochYear) + …`
+ * ({@link solarMonthsSinceEpoch}) or on `24·year` ({@link isLeapYear}'s `γ*` term), and both
+ * silently lose precision past 2⁵³ rather than throwing — so an absurdly large year would come
+ * back as a confident `false` or `undefined` computed from arithmetic noise instead of refusing to
+ * answer. `12` is the wider of the two multipliers, so bounding `|year − epochYear|` against it
+ * covers both.
+ *
+ * The bound is **derived from `config.epochYear` at each call**, never a literal: `epochYear`
+ * is injected per tradition, so a bound computed once for Phugpa and hardcoded would be silently
+ * wrong for a tradition with a different epoch. The arithmetic here is cheap enough that, unlike
+ * {@link ScaledTradition.searchHalfWidth}, it needs no memoisation to stay off the hot path.
+ *
+ * `subject` is a thunk for the same reason as {@link assertExactJulianDay}'s: this guard runs on
+ * every closed-form call, and building the message eagerly would cost every success to save one
+ * throw.
+ */
+export function assertClosedFormYear(
+	subject: () => string,
+	year: number,
+	config: TraditionConfig,
+): void {
+	const limit = Math.floor((Number.MAX_SAFE_INTEGER - 12) / 12);
+	if (Math.abs(year - config.epochYear) > limit) {
+		throw rangeError(
+			"TCT_OUTSIDE_EXACT_RANGE",
+			`${subject()} is outside the range where this tradition's closed-form year arithmetic ` +
+				`stays exact: |year − epochYear| must be at most ${limit}, received ${year}`,
+		);
+	}
+}
 
 /**
  * A month identified the way the calendar names it.

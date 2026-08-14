@@ -18,6 +18,7 @@ import type { TibetanDate, TibetanDateInput } from "../types.js";
 import { SkippedDayError } from "../types.js";
 import { floorDiv, mod } from "./arithmetic.js";
 import {
+	assertClosedFormYear,
 	classifyDay,
 	hasLeapTwin,
 	losarJulianDay,
@@ -376,6 +377,7 @@ export function tibetanToIso(
 	}
 
 	const year = yearFromRoyalEra(input.year);
+	assertClosedFormYear(subject, year, config);
 	if (isLeapMonth && !hasLeapTwin(config, year, input.month)) {
 		throw rangeError(
 			"TCT_NO_SUCH_LEAP_MONTH",

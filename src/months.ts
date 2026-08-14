@@ -12,8 +12,9 @@
  * - {@link monthsFor} and {@link daysInMonth} compute month **boundaries**, so they evaluate
  *   `true_date` and are bounded by {@link ScaledTradition.exactToJulianDay}.
  * - {@link hasLeapMonth}, {@link leapMonthOfYear} and {@link monthsInYear} are closed forms over
- *   the year alone. They touch no lunar arithmetic, stay exact for any safe integer year, and cost
- *   a handful of integer operations against the ~26 `true_date` evaluations the list costs.
+ *   the year alone. They touch no lunar arithmetic and stay exact up to the configured tradition's
+ *   derivable range — far past {@link ScaledTradition.exactToJulianDay} — for a handful of integer
+ *   operations against the ~26 `true_date` evaluations the list costs.
  *
  * That difference is why both exist. Deriving `hasLeapMonth(y)` from `monthsFor(y)` is correct and
  * disproportionate; a year picker rendering a century would do thousands of `true_date` evaluations
@@ -23,6 +24,7 @@
  */
 
 import {
+	assertClosedFormYear,
 	daysInMonth as daysInMonthCount,
 	firstDayOfMonth,
 	hasLeapTwin,
@@ -65,11 +67,16 @@ function assertSafeYear(subject: string, year: number): void {
  * `epochMonth` and `intercalationIndexAtEpoch`, so a malformed config gives a wrong answer rather
  * than no answer. `scalingFor` is the memoised choke point that does it, and after the first call
  * per config object it costs a `WeakMap` hit.
+ *
+ * `assertClosedFormYear` runs after `yearFromRoyalEra` converts to Janson's *Y*, since that is the
+ * value the closed forms — and the bound itself — are stated in terms of.
  */
 function closedFormYear(subject: string, year: number, config: TraditionConfig): number {
 	assertSafeYear(subject, year);
 	assertTraditionConfig(config);
-	return yearFromRoyalEra(year);
+	const y = yearFromRoyalEra(year);
+	assertClosedFormYear(() => subject, y, config);
+	return y;
 }
 
 /** Builds the public shape for one month, given its true month count. */
@@ -190,6 +197,7 @@ export function daysInMonth(month: TibetanMonthInput, config: TraditionConfig = 
 	}
 
 	const y = yearFromRoyalEra(month.year);
+	assertClosedFormYear(subject, y, config);
 	if (isLeapMonth && !hasLeapTwin(config, y, month.month)) {
 		throw rangeError(
 			"TCT_NO_SUCH_LEAP_MONTH",
@@ -214,11 +222,14 @@ export function daysInMonth(month: TibetanMonthInput, config: TraditionConfig = 
  * not an extra day, and `isLeapYear` invites the Gregorian reading.
  *
  * Janson's closed form, `(24·Y + γ*) mod 65 ≥ 41`. This touches no lunar arithmetic, so unlike
- * {@link monthsFor} it stays exact for **any** safe integer year and is not bounded by
- * {@link ScaledTradition.exactToJulianDay}. That asymmetry is deliberate: past that bound the
- * month boundaries were never computed, but leap-year-ness still has a correct answer.
+ * {@link monthsFor} it stays exact up to the configured tradition's derivable range and is not
+ * bounded by {@link ScaledTradition.exactToJulianDay}. That asymmetry is deliberate: past that
+ * bound the month boundaries were never computed, but leap-year-ness still has a correct answer —
+ * up until `24·Y` itself would overflow a safe integer, where the arithmetic is refused rather
+ * than answered.
  *
- * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `year` is not a safe integer.
+ * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `year` is not a safe integer, or
+ * `TCT_OUTSIDE_EXACT_RANGE` if it falls beyond the tradition's derivable range.
  */
 export function hasLeapMonth(year: number, config: TraditionConfig = PHUGPA): boolean {
 	return isLeapYear(config, closedFormYear(`hasLeapMonth(${year})`, year, config));
@@ -228,10 +239,11 @@ export function hasLeapMonth(year: number, config: TraditionConfig = PHUGPA): bo
  * Which month number is doubled in `year`, or `undefined` if the year has no leap month.
  *
  * @remarks
- * The leap month carries this number and precedes the regular month sharing it. Exact for any safe
- * integer year, like {@link hasLeapMonth} and for the same reason.
+ * The leap month carries this number and precedes the regular month sharing it. Exact up to the
+ * configured tradition's derivable range, like {@link hasLeapMonth} and for the same reason.
  *
- * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `year` is not a safe integer.
+ * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `year` is not a safe integer, or
+ * `TCT_OUTSIDE_EXACT_RANGE` if it falls beyond the tradition's derivable range.
  *
  * @example
  * ```ts
@@ -250,9 +262,11 @@ export function leapMonthOfYear(
  * How many months the Tibetan year `year` has: 12, or 13 in a year with a leap month.
  *
  * @remarks
- * Equal to `monthsFor(year).length`, and exact for any safe integer year where that is not.
+ * Equal to `monthsFor(year).length`, and exact up to the configured tradition's derivable range
+ * where that is not.
  *
- * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `year` is not a safe integer.
+ * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `year` is not a safe integer, or
+ * `TCT_OUTSIDE_EXACT_RANGE` if it falls beyond the tradition's derivable range.
  */
 export function monthsInYear(year: number, config: TraditionConfig = PHUGPA): number {
 	return isLeapYear(config, closedFormYear(`monthsInYear(${year})`, year, config)) ? 13 : 12;

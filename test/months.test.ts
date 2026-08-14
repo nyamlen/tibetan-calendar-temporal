@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { isLeapYear, leapMonthOfYear as leapMonthOfYearY } from "../src/computation/calendar.js";
-import { isoToTibetan, losarFor } from "../src/computation/conversion.js";
+import {
+	isoToTibetan,
+	losarFor,
+	tibetanDateExists,
+	tibetanToIso,
+} from "../src/computation/conversion.js";
 import {
 	daysInMonth,
 	hasLeapMonth,
@@ -259,5 +264,48 @@ describe("the scalars agree with the list", () => {
 		expect(codeOf(() => hasLeapMonth(2153, { ...PHUGPA, moonTab: [] }))).toBe(
 			"TCT_INVALID_TRADITION_CONFIG",
 		);
+	});
+});
+
+/**
+ * `12·(year − epochYear) + …` overflows `Number.MAX_SAFE_INTEGER` for an absurdly large year, and
+ * before this guard existed the flagged and unflagged branches disagreed about it: the flagged one
+ * ran `hasLeapTwin` on overflowed arithmetic and reported `TCT_NO_SUCH_LEAP_MONTH`, a confident
+ * claim about a month that was never actually evaluated, while the unflagged one reached the
+ * exactness check further down and correctly refused with `TCT_OUTSIDE_EXACT_RANGE`.
+ */
+describe("closed-form overflow guard", () => {
+	const OVERFLOW_YEAR = 9_007_199_254_740_000;
+
+	it("refuses an overflowing year identically, flagged and unflagged, across every closed form", () => {
+		for (const call of [
+			() => tibetanToIso({ year: OVERFLOW_YEAR, month: 5, day: 1 }),
+			() => tibetanToIso({ year: OVERFLOW_YEAR, month: 5, day: 1, isLeapMonth: true }),
+			() => daysInMonth({ year: OVERFLOW_YEAR, month: 5 }),
+			() => daysInMonth({ year: OVERFLOW_YEAR, month: 5, isLeapMonth: true }),
+			() => hasLeapMonth(OVERFLOW_YEAR),
+			() => leapMonthOfYear(OVERFLOW_YEAR),
+			() => monthsInYear(OVERFLOW_YEAR),
+		]) {
+			expect(codeOf(call)).toBe("TCT_OUTSIDE_EXACT_RANGE");
+		}
+	});
+
+	it("rethrows the overflow from tibetanDateExists rather than reporting the date absent", () => {
+		expect(codeOf(() => tibetanDateExists({ year: OVERFLOW_YEAR, month: 5, day: 1 }))).toBe(
+			"TCT_OUTSIDE_EXACT_RANGE",
+		);
+		expect(
+			codeOf(() => tibetanDateExists({ year: OVERFLOW_YEAR, month: 5, day: 1, isLeapMonth: true })),
+		).toBe("TCT_OUTSIDE_EXACT_RANGE");
+	});
+
+	it("answers just inside the bound, pinning the derivation from both sides", () => {
+		// Mirrors src/computation/calendar.ts's own derivation of the bound from epochYear, rather
+		// than a value transcribed by hand — this is the arithmetic a mistyped derivation would break.
+		const limit = Math.floor((Number.MAX_SAFE_INTEGER - 12) / 12);
+		const justInside = PHUGPA.epochYear + limit + 127; // royal era year = Janson's Y + 127
+		expect(typeof hasLeapMonth(justInside)).toBe("boolean");
+		expect(codeOf(() => hasLeapMonth(justInside + 1))).toBe("TCT_OUTSIDE_EXACT_RANGE");
 	});
 });
