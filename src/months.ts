@@ -42,6 +42,7 @@ import { PHUGPA } from "./traditions/phugpa.js";
 import type { TraditionConfig } from "./traditions/types.js";
 import { assertTraditionConfig } from "./traditions/validate.js";
 import type { TibetanMonth, TibetanMonthInput } from "./types.js";
+import { rejectTemporalInstance } from "./types.js";
 
 /**
  * Rejects a year that is not a safe integer.
@@ -182,6 +183,7 @@ export function monthsFor(year: number, config: TraditionConfig = PHUGPA): Tibet
  * ```
  */
 export function daysInMonth(month: TibetanMonthInput, config: TraditionConfig = PHUGPA): number {
+	rejectTemporalInstance("daysInMonth", month);
 	const scaled = scalingFor(config);
 	const isLeapMonth = month.isLeapMonth ?? false;
 	const subject = () =>

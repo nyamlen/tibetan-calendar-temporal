@@ -253,22 +253,95 @@ describe("error codes", () => {
 	});
 
 	/**
-	 * Accepting a `PlainDateTime` is now deliberate rather than accidental.
+	 * Accepting a `PlainDateTime` or `ZonedDateTime` is deliberate rather than accidental.
 	 *
 	 * It used to work by duck-typing on `.since` and truncating silently, while a string threw
 	 * `date.since is not a function` and a `ZonedDateTime` threw Temporal's `Must specify time
-	 * zone`. One `Temporal.PlainDate.from` replaced all three, which widens the accepted input:
-	 * these are calendar-day operations, so narrowing a datetime to its date is the right reading.
+	 * zone`. These are calendar-day operations, so narrowing a datetime to its date is the right
+	 * reading — but this stops short of a bare `{ year, month, day } object`, which is covered
+	 * separately below, because that shape is ambiguous with this package's own Tibetan-date input.
 	 */
 	it("accepts every Temporal shape that names a calendar day", () => {
 		const expected = api.isoToTibetan(iso("2026-08-12"));
 		for (const input of [
 			Temporal.PlainDateTime.from("2026-08-12T13:45:00"),
+			Temporal.ZonedDateTime.from("2026-08-12T13:45:00+00:00[UTC]"),
 			"2026-08-12",
-			{ year: 2026, month: 8, day: 12 },
 		]) {
 			expect(api.isoToTibetan(input as never)).toEqual(expected);
 		}
+	});
+
+	/**
+	 * Finding 2, part B. `{ year: 2153, month: 12, day: 8 }` is a genuine value of both
+	 * `TibetanDateInput` and the shape `Temporal.PlainDate.from` accepts, so
+	 * `isoToTibetan({ year: 2153, month: 12, day: 8 })` used to read a royal-era Tibetan year as
+	 * an ISO one — the specific confusion the royal-era numbering argument was supposed to make
+	 * loud, quietly defeated by the very same object shape being accepted on both sides.
+	 * `julianDayFromIso` shares the same entry point (`asPlainDate`), so it is covered too.
+	 */
+	it.each([
+		["isoToTibetan", () => api.isoToTibetan({ year: 2153, month: 12, day: 8 } as never)],
+		["julianDayFromIso", () => api.julianDayFromIso({ year: 2026, month: 8, day: 12 } as never)],
+	])("rejects a bare { year, month, day } object at %s", (_label, call) => {
+		expect(codeOf(call)).toBe("TCT_FIELD_OUT_OF_RANGE");
+	});
+
+	/**
+	 * Finding 2, part A. `Temporal.PlainDate` and `TibetanDateInput` are structurally close enough
+	 * — both expose numeric `year`/`month`/`day` — that the four Tibetan-date entry points used to
+	 * accept a Temporal instance silently: `tibetanToIso(pd)` read `pd.year/.month/.day` as though
+	 * they were royal-era fields and returned a confident, wrong Tibetan date.
+	 *
+	 * `tibetanDateExists` is asserted to *throw*, not answer `false` — `TCT_FIELD_OUT_OF_RANGE` is
+	 * on its allowlist for ordinary bad input, so this specifically checks that the Temporal-
+	 * instance guard runs before that allowlist has a chance to swallow it.
+	 */
+	it.each([
+		["tibetanToIso, PlainDate", () => api.tibetanToIso(iso("2026-08-12") as never)],
+		[
+			"tibetanToIso, PlainDateTime",
+			() => api.tibetanToIso(Temporal.PlainDateTime.from("2026-08-12T00:00") as never),
+		],
+		[
+			"tibetanToIso, ZonedDateTime",
+			() => api.tibetanToIso(Temporal.ZonedDateTime.from("2026-08-12T00:00+00:00[UTC]") as never),
+		],
+		["tibetanDateExists, PlainDate", () => api.tibetanDateExists(iso("2026-08-12") as never)],
+		[
+			"tibetanDateExists, PlainDateTime",
+			() => api.tibetanDateExists(Temporal.PlainDateTime.from("2026-08-12T00:00") as never),
+		],
+		[
+			"tibetanDateExists, ZonedDateTime",
+			() =>
+				api.tibetanDateExists(Temporal.ZonedDateTime.from("2026-08-12T00:00+00:00[UTC]") as never),
+		],
+		["formatTibetanDate, PlainDate", () => api.formatTibetanDate(iso("2026-08-12") as never)],
+		[
+			"formatTibetanDate, PlainDateTime",
+			() => api.formatTibetanDate(Temporal.PlainDateTime.from("2026-08-12T00:00") as never),
+		],
+		[
+			"formatTibetanDate, ZonedDateTime",
+			() =>
+				api.formatTibetanDate(Temporal.ZonedDateTime.from("2026-08-12T00:00+00:00[UTC]") as never),
+		],
+		["daysInMonth, PlainDate", () => api.daysInMonth(iso("2026-08-12") as never)],
+		[
+			"daysInMonth, PlainDateTime",
+			() => api.daysInMonth(Temporal.PlainDateTime.from("2026-08-12T00:00") as never),
+		],
+		[
+			"daysInMonth, ZonedDateTime",
+			() => api.daysInMonth(Temporal.ZonedDateTime.from("2026-08-12T00:00+00:00[UTC]") as never),
+		],
+	])("rejects a Temporal instance at %s", (_label, call) => {
+		expect(codeOf(call)).toBe("TCT_FIELD_OUT_OF_RANGE");
+	});
+
+	it("tibetanDateExists throws for a Temporal instance rather than answering false", () => {
+		expect(() => api.tibetanDateExists(iso("2026-08-12") as never)).toThrow();
 	});
 });
 
@@ -324,5 +397,25 @@ describe("observances API surface", () => {
 	// belong on -- a new spiritual director should not need a package publish.
 	it("ships no teacher anniversaries, only the shape for a caller to supply them", () => {
 		expect(observances.GELUG.rules.some((r) => r.kind === "anniversary")).toBe(false);
+	});
+
+	/**
+	 * Finding 2, part B, inherited rather than implemented directly here: both functions call
+	 * `asPlainDate` as their first statement, so narrowing that helper to reject a bare
+	 * `{ year, month, day }` object closes this hole at both entry points without either function
+	 * needing its own check.
+	 */
+	it("rejects a bare { year, month, day } object at getObservances and observancesOn", () => {
+		const bare = { year: 2026, month: 8, day: 12 } as never;
+		const codeOf = (call: () => unknown): string | undefined => {
+			try {
+				call();
+				return undefined;
+			} catch (error) {
+				return (error as { code?: string }).code;
+			}
+		};
+		expect(codeOf(() => observances.getObservances(bare, bare))).toBe("TCT_FIELD_OUT_OF_RANGE");
+		expect(codeOf(() => observances.observancesOn(bare))).toBe("TCT_FIELD_OUT_OF_RANGE");
 	});
 });

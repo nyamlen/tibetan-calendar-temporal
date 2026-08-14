@@ -5,7 +5,7 @@
  */
 
 import { rangeError } from "./errors.js";
-import type { TibetanDateInput } from "./types.js";
+import { rejectTemporalInstance, type TibetanDateInput } from "./types.js";
 
 /**
  * Formats a month as a Temporal-style code: `"M01"`…`"M12"`, with `L` appended for a leap month.
@@ -70,6 +70,7 @@ export function monthCodeOf(month: number, isLeap: boolean): string {
  * `"undefined-undefined-undefined"`.
  */
 export function formatTibetanDate(date: TibetanDateInput): string {
+	rejectTemporalInstance("formatTibetanDate", date);
 	if (
 		date === null ||
 		typeof date !== "object" ||

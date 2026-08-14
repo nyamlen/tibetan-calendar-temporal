@@ -15,7 +15,7 @@ import { monthCodeOf } from "../format.js";
 import { PHUGPA } from "../traditions/phugpa.js";
 import type { TraditionConfig } from "../traditions/types.js";
 import type { TibetanDate, TibetanDateInput } from "../types.js";
-import { SkippedDayError } from "../types.js";
+import { rejectTemporalInstance, SkippedDayError } from "../types.js";
 import { floorDiv, mod } from "./arithmetic.js";
 import {
 	assertClosedFormYear,
@@ -76,28 +76,54 @@ export function julianDayFromIso(date: Temporal.PlainDate): number {
  * Normalises whatever a caller passed into a `Temporal.PlainDate`.
  *
  * @remarks
- * The date entry points duck-typed on `.since`, which produced three different failures for three
- * ways of getting the argument wrong: a `PlainDateTime` was silently accepted and truncated, a
- * string threw `date.since is not a function`, and a `ZonedDateTime` threw Temporal's own
- * `Must specify time zone`. None of the three carried a code.
+ * The date entry points used to duck-type on `.since`, which produced three different failures
+ * for three ways of getting the argument wrong: a `PlainDateTime` was silently accepted and
+ * truncated, a string threw `date.since is not a function`, and a `ZonedDateTime` threw Temporal's
+ * own `Must specify time zone`. None of the three carried a code.
  *
- * `Temporal.PlainDate.from` replaces all of them, and **widens** the accepted input deliberately:
- * an ISO string, a `PlainDateTime`, a `ZonedDateTime` and a `{ year, month, day }` object are all
- * meaningful ways to name a calendar day, and Temporal already defines what each one means. These
- * are calendar-day operations, so narrowing a datetime to its date is the right reading rather
- * than a lossy accident.
+ * This accepts an ISO string, a `Temporal.PlainDate`, a `PlainDateTime` or a `ZonedDateTime` — all
+ * genuine ways to name a calendar day, narrowing a datetime to its date rather than losing
+ * anything a caller meant.
  *
- * What it does not accept is nonsense. `null`, a number, or an out-of-range string now throw a
+ * It deliberately does **not** accept a bare `{ year, month, day }` object, even though
+ * `Temporal.PlainDate.from` does. That shape is exactly this package's own {@link TibetanDateInput}
+ * — `isoToTibetan({ year: 2153, month: 12, day: 8 })` is a genuine value of both types, so nothing
+ * about the object itself says which calendar it names. Left accepted, it reads a royal-era
+ * Tibetan year as an ISO one, or the reverse, and returns a confident, silently wrong date. A
+ * caller who wants a plain-fields object read as a Western date can still write
+ * `Temporal.PlainDate.from({ year, month, day })` explicitly, which is unambiguous because the
+ * class it is called on says which calendar is meant.
+ *
+ * What it does not accept is also nonsense: `null`, a number, or an out-of-range string throw a
  * `RangeError` with `TCT_FIELD_OUT_OF_RANGE`, naming this package rather than Temporal's internals.
  */
 export function asPlainDate(date: Temporal.PlainDate): Temporal.PlainDate {
 	if (date instanceof Temporal.PlainDate) return date;
+	// Declared as `unknown` from here: the parameter's own type says `Temporal.PlainDate`, which is
+	// the guarantee a TypeScript caller gets, but this function's job past this line is to accept
+	// runtime input that does not honour it and either normalise or reject it.
+	const raw: unknown = date;
+	if (raw instanceof Temporal.PlainDateTime || raw instanceof Temporal.ZonedDateTime) {
+		return raw.toPlainDate();
+	}
+	if (typeof raw !== "string") {
+		throw rangeError(
+			"TCT_FIELD_OUT_OF_RANGE",
+			"expected a Temporal.PlainDate, an ISO string, a PlainDateTime or a ZonedDateTime, " +
+				`received ${describeValue(raw)}` +
+				(raw !== null && typeof raw === "object"
+					? ". A bare { year, month, day } object is ambiguous with this package's own " +
+						"Tibetan-date shape, so it is rejected rather than guessed at — pass a Temporal " +
+						"instance or an ISO string instead"
+					: ""),
+		);
+	}
 	try {
-		return Temporal.PlainDate.from(date as Parameters<typeof Temporal.PlainDate.from>[0]);
+		return Temporal.PlainDate.from(raw);
 	} catch (error) {
 		throw rangeError(
 			"TCT_FIELD_OUT_OF_RANGE",
-			`expected a Temporal.PlainDate, received ${describeValue(date)}` +
+			`expected a Temporal.PlainDate, received ${describeValue(raw)}` +
 				`${error instanceof Error ? `: ${error.message}` : ""}`,
 		);
 	}
@@ -353,6 +379,7 @@ export function tibetanToIso(
 	input: TibetanDateInput,
 	config: TraditionConfig = PHUGPA,
 ): Temporal.PlainDate {
+	rejectTemporalInstance("tibetanToIso", input);
 	const scaled = scalingFor(config);
 	const isLeapMonth = input.isLeapMonth ?? false;
 
@@ -437,6 +464,10 @@ export function tibetanDateExists(
 	input: TibetanDateInput,
 	config: TraditionConfig = PHUGPA,
 ): boolean {
+	// Runs before the try, deliberately: TCT_FIELD_OUT_OF_RANGE is on the allowlist below, so a
+	// Temporal instance caught inside the try would be swallowed into `false` — reporting a
+	// caller's type confusion as "that date does not exist" — rather than thrown out to them.
+	rejectTemporalInstance("tibetanDateExists", input);
 	try {
 		tibetanToIso(input, config);
 		return true;

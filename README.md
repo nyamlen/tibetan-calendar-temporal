@@ -559,7 +559,7 @@ point, not internals that leaked.
 
 | Export | Signature | Notes |
 |---|---|---|
-| `julianDayFromIso` | `(date: Temporal.PlainDate) => number` | Also accepts anything `Temporal.PlainDate.from` does — a `PlainDateTime`, a `ZonedDateTime`, an ISO string, `{ year, month, day }` |
+| `julianDayFromIso` | `(date: Temporal.PlainDate) => number` | Also accepts a `PlainDateTime`, a `ZonedDateTime`, or an ISO string — but not a bare `{ year, month, day }` object, which is ambiguous with this package's own Tibetan-date input |
 | `isoFromJulianDay` | `(julianDay: number, config?) => Temporal.PlainDate` | Takes a config because the exact-range bound it enforces belongs to the tradition |
 | `tibetanWeekday` | `(julianDay: number) => number` | Almanac numbering, `0` = Saturday — not the ISO `dayOfWeek` field |
 

@@ -23,7 +23,7 @@
  * @packageDocumentation
  */
 
-import type { TibetanCalendarErrorCode } from "./errors.js";
+import { rangeError, type TibetanCalendarErrorCode } from "./errors.js";
 import { formatTibetanDate } from "./format.js";
 
 /**
@@ -377,6 +377,43 @@ export interface TibetanMonth {
 }
 
 /**
+ * Rejects a `Temporal.PlainDate`, `PlainDateTime` or `ZonedDateTime` passed where a Tibetan-date
+ * input is expected.
+ *
+ * @remarks
+ * `TibetanDateInput` and `Temporal.PlainDate` are structurally close enough — both are plain
+ * objects exposing numeric `year`, `month` and `day` — that nothing stops a caller from handing a
+ * Western date to a Tibetan-date entry point. Nothing crashes: `tibetanToIso` reads the same three
+ * fields off a `PlainDate` that it would off a real `TibetanDateInput`, and returns a confident,
+ * silently wrong Tibetan date. This check runs before any field validation, which would otherwise
+ * accept a `PlainDate`'s in-range numeric fields without complaint.
+ *
+ * The runtime half of the defence; {@link TibetanDateInput.calendarId} and
+ * {@link TibetanMonthInput.calendarId} are the compile-time half, for callers who stay inside the
+ * type system. This half is what catches JavaScript callers, `any`, and casts.
+ *
+ * Shared across every Tibetan-date entry point — `tibetanToIso`, `tibetanDateExists`,
+ * `formatTibetanDate`, `daysInMonth` — so the message and the code are one policy rather than four.
+ * `tibetanDateExists` calls this itself, before its own `try`, in addition to `tibetanToIso`
+ * calling it again internally: `TCT_FIELD_OUT_OF_RANGE` is on that function's allowlist for
+ * answering `false`, so a Temporal instance caught inside the `try` would be swallowed into
+ * "that date does not exist" rather than thrown out to the caller who confused the two APIs.
+ */
+export function rejectTemporalInstance(functionName: string, value: unknown): void {
+	if (
+		value instanceof Temporal.PlainDate ||
+		value instanceof Temporal.PlainDateTime ||
+		value instanceof Temporal.ZonedDateTime
+	) {
+		throw rangeError(
+			"TCT_FIELD_OUT_OF_RANGE",
+			`${functionName}: received a Temporal.${value.constructor.name}, which names a Western ` +
+				"calendar day, not a Tibetan one. Did you mean isoToTibetan(date)?",
+		);
+	}
+}
+
+/**
  * The identifying fields needed to name a Tibetan month, as accepted by `daysInMonth`.
  *
  * @remarks
@@ -396,6 +433,20 @@ export interface TibetanMonthInput {
 	 * @defaultValue `false` — the regular month, which is the second of the two.
 	 */
 	isLeapMonth?: boolean;
+
+	/**
+	 * Always absent. Present only to reject `Temporal.PlainDate`, `PlainDateTime` and
+	 * `ZonedDateTime` at compile time.
+	 *
+	 * @remarks
+	 * All three classes declare `readonly calendarId: string` (checked against
+	 * `lib.esnext.temporal.d.ts` and confirmed at runtime on Node v26.7.0, where all three return
+	 * `"iso8601"`). `string` does not satisfy `never`, so a `Temporal.PlainDate` stops being
+	 * structurally assignable to this type — closing the compile-time half of the confusion that
+	 * {@link rejectTemporalInstance} closes at runtime. Do not delete this as an unused field: it
+	 * has no reads because its entire job is to make an *invalid* call fail to typecheck.
+	 */
+	calendarId?: never;
 }
 
 /**
@@ -442,6 +493,17 @@ export interface TibetanDateInput {
 	 * exactly one calendar day carries it.
 	 */
 	isLeapDay?: boolean;
+
+	/**
+	 * Always absent. Present only to reject `Temporal.PlainDate`, `PlainDateTime` and
+	 * `ZonedDateTime` at compile time.
+	 *
+	 * @remarks
+	 * See {@link TibetanMonthInput.calendarId} — the same field, for the same reason. Do not
+	 * delete this as an unused field: it has no reads because its entire job is to make an
+	 * *invalid* call fail to typecheck.
+	 */
+	calendarId?: never;
 }
 
 /**
