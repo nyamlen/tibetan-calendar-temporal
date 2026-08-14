@@ -23,14 +23,20 @@
  * in `test/public-api.test.ts`. Message *text* carries no such promise — match on the code, never
  * on the wording.
  *
- * - `TCT_FIELD_OUT_OF_RANGE` — a year, month or day is not an integer, or falls outside its
- *   permitted range. A data problem in the caller's input.
+ * - `TCT_FIELD_OUT_OF_RANGE` — a year, month, day or Julian day is not an integer, or falls
+ *   outside its permitted range; or the argument's shape or type is wrong even where numeric
+ *   fields would be in range — a `Temporal.PlainDate`/`PlainDateTime`/`ZonedDateTime` passed where
+ *   a Tibetan-date input is expected, a non-boolean `isLeapMonth`/`isLeapDay`, a bare
+ *   `{ year, month, day }` object passed where a Western date is expected, or `null`/`undefined`/a
+ *   non-object passed where a date-shaped input is expected. A data problem in the caller's input.
  * - `TCT_NO_SUCH_LEAP_MONTH` — `isLeapMonth` was set for a month that has no leap twin that year.
  * - `TCT_SKIPPED_DAY` — the date is well-formed but no calendar day carries its number. Not an
  *   input error; use `tibetanDateExists` to test first.
- * - `TCT_OUTSIDE_EXACT_RANGE` — the date lies beyond where this tradition's integer arithmetic
- *   stays exact. Deliberately distinct from `TCT_SKIPPED_DAY`: past the bound the day was never
- *   computed, so reporting it as non-existent would be a confident false claim.
+ * - `TCT_OUTSIDE_EXACT_RANGE` — the date or year lies beyond where this tradition's integer
+ *   arithmetic stays exact. Thrown by conversions and by the closed-form year functions
+ *   (`hasLeapMonth`, `leapMonthOfYear`, `monthsInYear`) alike. Deliberately distinct from
+ *   `TCT_SKIPPED_DAY`: past the bound the day was never computed, so reporting it as non-existent
+ *   would be a confident false claim.
  * - `TCT_INVALID_TRADITION_CONFIG` — a `TraditionConfig` is malformed.
  * - `TCT_INVALID_OBSERVANCE_CONFIG` — an `ObservanceConfig` or one of its rules is malformed.
  * - `TCT_SPAN_TOO_WIDE` — `getObservances` was asked for more than 200 years at once.

@@ -242,6 +242,14 @@ describe("error codes", () => {
 		["formatTibetanDate, empty object", () => api.formatTibetanDate({} as never)],
 		["formatTibetanDate, null", () => api.formatTibetanDate(null as never)],
 		["isoToTibetan, garbage string", () => api.isoToTibetan("not-a-date" as never)],
+		// The three Tibetan-date entry points that lacked formatTibetanDate's null/non-object guard:
+		// rejectInvalidLeapFlags dereferenced `value[field]` with no shape check first, so these threw
+		// an uncoded native TypeError instead of TCT_FIELD_OUT_OF_RANGE.
+		["tibetanToIso, null", () => api.tibetanToIso(null as never)],
+		["tibetanToIso, undefined", () => api.tibetanToIso(undefined as never)],
+		["daysInMonth, null", () => api.daysInMonth(null as never)],
+		["daysInMonth, undefined", () => api.daysInMonth(undefined as never)],
+		["tibetanDateExists, null", () => api.tibetanDateExists(null as never)],
 	])("codes the failure of %s", (_label, call) => {
 		expect(codeOf(call)).toBe("TCT_FIELD_OUT_OF_RANGE");
 	});
@@ -344,6 +352,11 @@ describe("error codes", () => {
 		expect(() => api.tibetanDateExists(iso("2026-08-12") as never)).toThrow();
 	});
 
+	it("tibetanDateExists throws for null rather than answering false", () => {
+		expect(() => api.tibetanDateExists(null as never)).toThrow();
+		expect(codeOf(() => api.tibetanDateExists(null as never))).toBe("TCT_FIELD_OUT_OF_RANGE");
+	});
+
 	/**
 	 * Finding 5. Both flags used to be read as `?? false` and used for truthiness, so a
 	 * non-boolean — a string from a form field, a stray `1` — was silently coerced into "leap"
@@ -424,8 +437,8 @@ describe("error codes", () => {
 		expect(() => api.formatTibetanDate({ year: 2153, month: 1, day: 1 })).not.toThrow();
 		expect(() => api.daysInMonth({ year: 2153, month: 1 })).not.toThrow();
 
-		// explicit true/false still work. 2151 month 6 is a genuine leap month (see
-		// `leapMonthOfYear`'s own doc example).
+		// explicit true/false still work. 2151 month 6 is a genuine leap month
+		// (leapMonthOfYear(2151) === 6).
 		expect(() =>
 			api.tibetanToIso({ year: 2151, month: 6, day: 1, isLeapMonth: true }),
 		).not.toThrow();

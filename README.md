@@ -351,6 +351,8 @@ try {
       // error instanceof SkippedDayError, and error.requested is the input you passed
       return `${format(error.requested)} is not a day in this calendar`;
     case 'TCT_FIELD_OUT_OF_RANGE':
+      // Also covers argument-shape/type confusion, not just numeric range — e.g. a
+      // Temporal.PlainDate passed where a Tibetan date is expected.
     case 'TCT_NO_SUCH_LEAP_MONTH':
       return 'Please check the date';
     default:
@@ -600,9 +602,9 @@ a `code`, which is what to branch on rather than the type:
 | `error.code` | Thrown by | Meaning |
 |---|---|---|
 | `TCT_SKIPPED_DAY` | `tibetanToIso` | The date is well-formed but no calendar day carries its number. Not a bug in your code — see [Errors and validation](#errors-and-validation) |
-| `TCT_FIELD_OUT_OF_RANGE` | every function taking a date, a year or a Julian day | A year, month, day or Julian day is not an integer, or is outside 1–12 / 1–30 |
+| `TCT_FIELD_OUT_OF_RANGE` | every function taking a date, a year or a Julian day | A year, month, day or Julian day is not an integer, or is outside 1–12 / 1–30 — or the argument's shape or type is wrong, e.g. a `Temporal.PlainDate` passed where a Tibetan date is expected, a bare `{ year, month, day }` passed where a Western date is expected, a non-boolean `isLeapMonth`/`isLeapDay`, or `null`/`undefined` |
 | `TCT_NO_SUCH_LEAP_MONTH` | `tibetanToIso` | `isLeapMonth: true` for a month with no leap twin that year |
-| `TCT_OUTSIDE_EXACT_RANGE` | any conversion | Beyond where this tradition's integer arithmetic stays exact. `PHUGPA_HENNING` runs out around ISO year 11,356; `PHUGPA` does not, within Temporal's own range |
+| `TCT_OUTSIDE_EXACT_RANGE` | any conversion, and the closed-form year functions `hasLeapMonth`, `leapMonthOfYear`, `monthsInYear` | Beyond where this tradition's integer arithmetic stays exact. `PHUGPA_HENNING` runs out around ISO year 11,356; `PHUGPA` does not, within Temporal's own range |
 | `TCT_INVALID_TRADITION_CONFIG` | any function taking a config | The `TraditionConfig` is malformed. The message names the field |
 | `TCT_INVALID_OBSERVANCE_CONFIG` | `getObservances`, `observancesOn` | The `ObservanceConfig` or one of its rules is malformed |
 | `TCT_SPAN_TOO_WIDE` | `getObservances` | More than 200 years requested at once. Chunk it; the function is pure, so concatenating is correct |

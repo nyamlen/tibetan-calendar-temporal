@@ -58,14 +58,23 @@ export function assertClosedFormYear(
 	config: TraditionConfig,
 ): void {
 	// solarMonthsSinceEpoch: 12·(year − epochYear) + month − epochMonth must stay safe. `12` is a
-	// generous margin for the trailing `+ month − epochMonth`, which is at most 24 in magnitude.
+	// generous margin for the trailing `+ month − epochMonth`, which is at most 11 in magnitude
+	// (month and epochMonth each range 1..12, so their difference is at most 11).
 	const relativeLimit = Math.floor((Number.MAX_SAFE_INTEGER - 12) / 12);
 	// isLeapYear / leapMonthOfYear: 24·year + γ* must stay safe, on the *absolute* year. γ* is
 	// `mod(…, 65)`, so at most 64; `65` is a generous margin. Converted to the same
 	// |year − epochYear| terms via the triangle inequality: if |year − epochYear| ≤ this limit
-	// then |year| ≤ |epochYear| + limit ≤ absoluteLimit, which is what 24·year needs.
+	// then |year| ≤ |epochYear| + limit ≤ floor((MAX_SAFE_INTEGER − 65) / 24), which is what
+	// 24·year needs — the right-hand side here is that raw quantity, not `absoluteLimit` itself,
+	// since `absoluteLimit` is that quantity already reduced by `|epochYear|`.
 	const absoluteLimit =
 		Math.floor((Number.MAX_SAFE_INTEGER - 65) / 24) - Math.abs(config.epochYear);
+	// absoluteLimit is always the binding constraint here, for any config, not merely realistic
+	// ones: relativeLimit is ~7.5e14 (Number.MAX_SAFE_INTEGER / 12), and absoluteLimit is
+	// ~3.75e14 minus a non-negative `|epochYear|`, so absoluteLimit ≤ ~3.75e14 < relativeLimit
+	// unconditionally. The `Math.min` therefore never actually selects `relativeLimit` — kept as
+	// defensive code rather than removed, since it costs nothing and the proof lives only in this
+	// comment.
 	const limit = Math.min(relativeLimit, absoluteLimit);
 	if (Math.abs(year - config.epochYear) > limit) {
 		throw rangeError(

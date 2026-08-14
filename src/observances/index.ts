@@ -398,13 +398,18 @@ function appliesToMonth(
  * concatenates. That is correct because this function is pure and restarts its month walk per
  * call.
  *
- * @param from - First calendar day to include.
- * @param to - Last calendar day to include. Returns `[]` if before `from`.
+ * @param from - First calendar day to include. Accepts a `Temporal.PlainDate`, an ISO string, a
+ * `PlainDateTime` or a `ZonedDateTime` — normalised the same way as every other date entry point,
+ * via `asPlainDate`.
+ * @param to - Last calendar day to include, accepting the same shapes as `from`. Returns `[]` if
+ * before `from`.
  * @param config - Which observances, and the conventions for resolving them. Defaults to
  * {@link GELUG}.
  * @param tradition - Astronomical constants. Defaults to `PHUGPA`.
  *
- * @throws RangeError if the span exceeds {@link MAX_SPAN_YEARS}, or if `config` is invalid.
+ * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `from` or `to` is not a value
+ * `asPlainDate` accepts; `TCT_SPAN_TOO_WIDE` if the span exceeds {@link MAX_SPAN_YEARS}; or
+ * `TCT_INVALID_OBSERVANCE_CONFIG` if `config` is invalid.
  */
 export function getObservances(
 	from: Temporal.PlainDate,

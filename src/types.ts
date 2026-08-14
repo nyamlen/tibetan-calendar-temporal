@@ -432,6 +432,13 @@ function describeFlagValue(value: unknown): string {
  * `undefined` is deliberately still accepted here: the fields are optional and default to
  * `false`, and this check only narrows their *type* when present, not their *presence*.
  *
+ * Also the null/non-object guard for the three entry points that lacked one: `tibetanToIso`,
+ * `daysInMonth` and `tibetanDateExists` (via delegation) all read a field off their input before
+ * this function returned, so `null` or `undefined` reached `input.year` and threw an uncoded
+ * native `TypeError` instead of this package's `TCT_FIELD_OUT_OF_RANGE` — `formatTibetanDate` was
+ * the only one of the four that already guarded this. Checking it here, once, closes it for all
+ * three at the shared point rather than adding the same guard three times.
+ *
  * Shared across the same four entry points as {@link rejectTemporalInstance}, for the same
  * reason: one policy for the message and the code rather than four. `tibetanDateExists` calls
  * this itself, before its own `try`, in addition to `tibetanToIso` calling it again internally —
@@ -441,8 +448,14 @@ function describeFlagValue(value: unknown): string {
  */
 export function rejectInvalidLeapFlags(
 	functionName: string,
-	value: { isLeapMonth?: unknown; isLeapDay?: unknown },
+	value: { isLeapMonth?: unknown; isLeapDay?: unknown } | null | undefined,
 ): void {
+	if (value === null || typeof value !== "object") {
+		throw rangeError(
+			"TCT_FIELD_OUT_OF_RANGE",
+			`${functionName}: expected an object naming a Tibetan date, received ${describeFlagValue(value)}`,
+		);
+	}
 	for (const field of ["isLeapMonth", "isLeapDay"] as const) {
 		const flag = value[field];
 		if (flag !== undefined && typeof flag !== "boolean") {

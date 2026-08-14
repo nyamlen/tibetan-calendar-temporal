@@ -11,7 +11,8 @@
 | 4 | TypeDoc + release workflow + publish v1.0.0 (docblock audit split out — see Phase 4a) | 6h |
 | 4a | Docblock audit: verify 265 docblocks against actual behaviour — see the [Pre-v1.0.0 checklist](#pre-v100-checklist) | 10h |
 
-**Safe timeline: 3 weeks** (accounts for debugging edge cases in doubled/skipped day logic)
+**Safe timeline: 3 weeks** (accounts for debugging edge cases in doubled/skipped day logic —
+predates Phase 4a's addition below and has not been revisited against its extra 10h)
 
 The layers referenced in Phase 1 are defined in [architecture.md](architecture.md); the
 validation sources in Phase 2 are listed in [testing.md](testing.md).
