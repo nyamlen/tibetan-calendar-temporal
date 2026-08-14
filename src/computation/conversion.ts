@@ -15,7 +15,7 @@ import { monthCodeOf } from "../format.js";
 import { PHUGPA } from "../traditions/phugpa.js";
 import type { TraditionConfig } from "../traditions/types.js";
 import type { TibetanDate, TibetanDateInput } from "../types.js";
-import { rejectTemporalInstance, SkippedDayError } from "../types.js";
+import { rejectInvalidLeapFlags, rejectTemporalInstance, SkippedDayError } from "../types.js";
 import { floorDiv, mod } from "./arithmetic.js";
 import {
 	assertClosedFormYear,
@@ -366,8 +366,9 @@ function buildDate(
  *
  * @throws SkippedDayError if the date is skipped.
  * @throws RangeError if `year`, `month` or `day` is not an integer, if the month or day is out of
- * range, if a leap month is requested for a month that has none, or if the date falls outside the
- * range where the arithmetic stays exact — see {@link ScaledTradition.exactToJulianDay}.
+ * range, if `isLeapMonth`/`isLeapDay` are present but not `boolean`, if a leap month is requested
+ * for a month that has none, or if the date falls outside the range where the arithmetic stays
+ * exact — see {@link ScaledTradition.exactToJulianDay}.
  *
  * @example
  * ```ts
@@ -380,6 +381,7 @@ export function tibetanToIso(
 	config: TraditionConfig = PHUGPA,
 ): Temporal.PlainDate {
 	rejectTemporalInstance("tibetanToIso", input);
+	rejectInvalidLeapFlags("tibetanToIso", input);
 	const scaled = scalingFor(config);
 	const isLeapMonth = input.isLeapMonth ?? false;
 
@@ -465,9 +467,11 @@ export function tibetanDateExists(
 	config: TraditionConfig = PHUGPA,
 ): boolean {
 	// Runs before the try, deliberately: TCT_FIELD_OUT_OF_RANGE is on the allowlist below, so a
-	// Temporal instance caught inside the try would be swallowed into `false` — reporting a
-	// caller's type confusion as "that date does not exist" — rather than thrown out to them.
+	// Temporal instance, or a bad-typed leap flag, caught inside the try would be swallowed into
+	// `false` — reporting a caller's type confusion as "that date does not exist" — rather than
+	// thrown out to them.
 	rejectTemporalInstance("tibetanDateExists", input);
+	rejectInvalidLeapFlags("tibetanDateExists", input);
 	try {
 		tibetanToIso(input, config);
 		return true;

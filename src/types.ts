@@ -413,6 +413,50 @@ export function rejectTemporalInstance(functionName: string, value: unknown): vo
 	}
 }
 
+/** A value rendered short enough for a message, and unambiguously: `"3"` is not `3`. */
+function describeFlagValue(value: unknown): string {
+	if (typeof value === "string") return JSON.stringify(value);
+	return String(value);
+}
+
+/**
+ * Rejects an `isLeapMonth` or `isLeapDay` flag that is present but not a boolean.
+ *
+ * @remarks
+ * Both flags are read as `value.isLeapMonth ?? false` / `value.isLeapDay ?? false` and then used
+ * for truthiness, so a non-boolean that is merely *absent-like* — the string `"false"`, the
+ * number `0`'s sibling `1`, a stray object — is truthy and silently selects the leap month or
+ * leap day. `0` and `""` would happen to fall out falsy and do the right thing by accident; `1`,
+ * `"false"` and everything else would not, and the failure is silent because nothing throws.
+ *
+ * `undefined` is deliberately still accepted here: the fields are optional and default to
+ * `false`, and this check only narrows their *type* when present, not their *presence*.
+ *
+ * Shared across the same four entry points as {@link rejectTemporalInstance}, for the same
+ * reason: one policy for the message and the code rather than four. `tibetanDateExists` calls
+ * this itself, before its own `try`, in addition to `tibetanToIso` calling it again internally —
+ * `TCT_FIELD_OUT_OF_RANGE` is on that function's allowlist for answering `false`, so a bad-typed
+ * flag caught inside the `try` would be swallowed into "that date does not exist" rather than
+ * thrown out to the caller who passed the wrong type.
+ */
+export function rejectInvalidLeapFlags(
+	functionName: string,
+	value: { isLeapMonth?: unknown; isLeapDay?: unknown },
+): void {
+	for (const field of ["isLeapMonth", "isLeapDay"] as const) {
+		const flag = value[field];
+		if (flag !== undefined && typeof flag !== "boolean") {
+			const noun = field === "isLeapMonth" ? "month" : "day";
+			throw rangeError(
+				"TCT_FIELD_OUT_OF_RANGE",
+				`${functionName}: ${field} must be a boolean or omitted, received ${describeFlagValue(flag)}. ` +
+					`A string like "false" is truthy, so a non-boolean here would silently select the leap ${noun} ` +
+					"instead of being rejected.",
+			);
+		}
+	}
+}
+
 /**
  * The identifying fields needed to name a Tibetan month, as accepted by `daysInMonth`.
  *

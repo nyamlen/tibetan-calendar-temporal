@@ -343,6 +343,100 @@ describe("error codes", () => {
 	it("tibetanDateExists throws for a Temporal instance rather than answering false", () => {
 		expect(() => api.tibetanDateExists(iso("2026-08-12") as never)).toThrow();
 	});
+
+	/**
+	 * Finding 5. Both flags used to be read as `?? false` and used for truthiness, so a
+	 * non-boolean — a string from a form field, a stray `1` — was silently coerced into "leap"
+	 * instead of being rejected. `"false"` is the sharpest case: it reads as a rejection in
+	 * prose and is truthy in JavaScript.
+	 */
+	it.each([
+		[
+			"tibetanToIso, isLeapMonth: 1",
+			() => api.tibetanToIso({ year: 2153, month: 6, day: 1, isLeapMonth: 1 } as never),
+		],
+		[
+			"tibetanToIso, isLeapDay: 'x'",
+			() => api.tibetanToIso({ year: 2153, month: 1, day: 1, isLeapDay: "x" } as never),
+		],
+		[
+			"tibetanToIso, isLeapMonth: 'false'",
+			() => api.tibetanToIso({ year: 2153, month: 6, day: 1, isLeapMonth: "false" } as never),
+		],
+		[
+			"formatTibetanDate, isLeapMonth: 1",
+			() => api.formatTibetanDate({ year: 2153, month: 6, day: 1, isLeapMonth: 1 } as never),
+		],
+		[
+			"formatTibetanDate, isLeapDay: 'x'",
+			() => api.formatTibetanDate({ year: 2153, month: 1, day: 1, isLeapDay: "x" } as never),
+		],
+		[
+			"formatTibetanDate, isLeapMonth: 'false'",
+			() => api.formatTibetanDate({ year: 2153, month: 6, day: 1, isLeapMonth: "false" } as never),
+		],
+		[
+			"daysInMonth, isLeapMonth: 1",
+			() => api.daysInMonth({ year: 2153, month: 6, isLeapMonth: 1 } as never),
+		],
+		[
+			"daysInMonth, isLeapDay: 'x'",
+			() => api.daysInMonth({ year: 2153, month: 1, isLeapDay: "x" } as never),
+		],
+		[
+			"daysInMonth, isLeapMonth: 'false'",
+			() => api.daysInMonth({ year: 2153, month: 6, isLeapMonth: "false" } as never),
+		],
+	])("rejects a non-boolean leap flag at %s", (_label, call) => {
+		expect(codeOf(call)).toBe("TCT_FIELD_OUT_OF_RANGE");
+	});
+
+	// The review's exact reproduction: this used to return "2153-M01L-01 (leap)" instead of
+	// throwing, because both flags were read with `?? false` and used for truthiness.
+	it("rejects the review's reproduction case instead of formatting a wrong string", () => {
+		expect(
+			codeOf(() =>
+				api.formatTibetanDate({
+					year: 2153,
+					month: 1,
+					day: 1,
+					isLeapMonth: 1,
+					isLeapDay: "x",
+				} as never),
+			),
+		).toBe("TCT_FIELD_OUT_OF_RANGE");
+	});
+
+	it("tibetanDateExists throws for a non-boolean leap flag rather than answering false", () => {
+		expect(() =>
+			api.tibetanDateExists({ year: 2153, month: 6, day: 1, isLeapMonth: 1 } as never),
+		).toThrow();
+		expect(
+			codeOf(() =>
+				api.tibetanDateExists({ year: 2153, month: 6, day: 1, isLeapMonth: 1 } as never),
+			),
+		).toBe("TCT_FIELD_OUT_OF_RANGE");
+	});
+
+	it("still accepts undefined and real booleans for both leap flags", () => {
+		// undefined (genuinely absent) still defaults to "not leap" and does not throw.
+		expect(() => api.tibetanToIso({ year: 2153, month: 1, day: 1 })).not.toThrow();
+		expect(() => api.formatTibetanDate({ year: 2153, month: 1, day: 1 })).not.toThrow();
+		expect(() => api.daysInMonth({ year: 2153, month: 1 })).not.toThrow();
+
+		// explicit true/false still work. 2151 month 6 is a genuine leap month (see
+		// `leapMonthOfYear`'s own doc example).
+		expect(() =>
+			api.tibetanToIso({ year: 2151, month: 6, day: 1, isLeapMonth: true }),
+		).not.toThrow();
+		expect(() =>
+			api.tibetanToIso({ year: 2153, month: 6, day: 1, isLeapMonth: false }),
+		).not.toThrow();
+		expect(
+			api.formatTibetanDate({ year: 2153, month: 1, day: 1, isLeapMonth: false, isLeapDay: true }),
+		).toBe("2153-M01-01 (leap)");
+		expect(() => api.daysInMonth({ year: 2151, month: 6, isLeapMonth: true })).not.toThrow();
+	});
 });
 
 /**

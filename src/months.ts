@@ -42,7 +42,7 @@ import { PHUGPA } from "./traditions/phugpa.js";
 import type { TraditionConfig } from "./traditions/types.js";
 import { assertTraditionConfig } from "./traditions/validate.js";
 import type { TibetanMonth, TibetanMonthInput } from "./types.js";
-import { rejectTemporalInstance } from "./types.js";
+import { rejectInvalidLeapFlags, rejectTemporalInstance } from "./types.js";
 
 /**
  * Rejects a year that is not a safe integer.
@@ -172,9 +172,10 @@ export function monthsFor(year: number, config: TraditionConfig = PHUGPA): Tibet
  * Accepts anything carrying `year`, `month` and optionally `isLeapMonth`, so a {@link TibetanDate}
  * from `isoToTibetan` can be passed straight in.
  *
- * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` for a non-integer or out-of-range field,
- * `TCT_NO_SUCH_LEAP_MONTH` if `isLeapMonth` is set for a month with no leap twin that year, or
- * `TCT_OUTSIDE_EXACT_RANGE` past the tradition's exact range.
+ * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` for a non-integer or out-of-range field, or
+ * if `isLeapMonth` is present but not `boolean`; `TCT_NO_SUCH_LEAP_MONTH` if `isLeapMonth` is set
+ * for a month with no leap twin that year; or `TCT_OUTSIDE_EXACT_RANGE` past the tradition's exact
+ * range.
  *
  * @example
  * ```ts
@@ -184,6 +185,7 @@ export function monthsFor(year: number, config: TraditionConfig = PHUGPA): Tibet
  */
 export function daysInMonth(month: TibetanMonthInput, config: TraditionConfig = PHUGPA): number {
 	rejectTemporalInstance("daysInMonth", month);
+	rejectInvalidLeapFlags("daysInMonth", month);
 	const scaled = scalingFor(config);
 	const isLeapMonth = month.isLeapMonth ?? false;
 	const subject = () =>

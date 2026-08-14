@@ -5,7 +5,7 @@
  */
 
 import { rangeError } from "./errors.js";
-import { rejectTemporalInstance, type TibetanDateInput } from "./types.js";
+import { rejectInvalidLeapFlags, rejectTemporalInstance, type TibetanDateInput } from "./types.js";
 
 /**
  * Formats a month as a Temporal-style code: `"M01"`…`"M12"`, with `L` appended for a leap month.
@@ -65,12 +65,17 @@ export function monthCodeOf(month: number, isLeap: boolean): string {
  * ```
  *
  * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `date` does not carry an integer year,
- * a month in 1–12 and a day in 1–30. Everything above is an argument that a plausible-but-wrong
- * string is the failure worth preventing, and handed `{}` this produced exactly one:
- * `"undefined-undefined-undefined"`.
+ * a month in 1–12 and a day in 1–30, or if `isLeapMonth`/`isLeapDay` are present but not
+ * `boolean`. Everything above is an argument that a plausible-but-wrong string is the failure
+ * worth preventing, and handed `{}` this produced exactly one: `"undefined-undefined-undefined"`;
+ * handed `{ isLeapMonth: 1, isLeapDay: "x" }` it produced a confident `" (leap)"` suffix from a
+ * truthy string.
  */
 export function formatTibetanDate(date: TibetanDateInput): string {
 	rejectTemporalInstance("formatTibetanDate", date);
+	if (date !== null && typeof date === "object") {
+		rejectInvalidLeapFlags("formatTibetanDate", date);
+	}
 	if (
 		date === null ||
 		typeof date !== "object" ||
