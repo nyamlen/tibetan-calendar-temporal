@@ -405,10 +405,17 @@ export function rejectTemporalInstance(functionName: string, value: unknown): vo
 		value instanceof Temporal.PlainDateTime ||
 		value instanceof Temporal.ZonedDateTime
 	) {
+		// tibetanToIso and tibetanDateExists take a Tibetan date and can be swapped directly for
+		// isoToTibetan; formatTibetanDate and daysInMonth take a Tibetan date but do not produce
+		// one, so the fix is "convert first", not "call this instead".
+		const suggestion =
+			functionName === "tibetanToIso" || functionName === "tibetanDateExists"
+				? "Did you mean isoToTibetan(date)?"
+				: "Convert it first with isoToTibetan(date).";
 		throw rangeError(
 			"TCT_FIELD_OUT_OF_RANGE",
 			`${functionName}: received a Temporal.${value.constructor.name}, which names a Western ` +
-				"calendar day, not a Tibetan one. Did you mean isoToTibetan(date)?",
+				`calendar day, not a Tibetan one. ${suggestion}`,
 		);
 	}
 }

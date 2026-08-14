@@ -188,17 +188,22 @@ describe("observance resolution", () => {
 	// arguments, so a string has no numeric `.year` and `NaN > 200` is `false`. A >200-year string
 	// range used to return 15,000+ observances silently instead of throwing.
 	it("still catches the span cap when the range is given as strings", () => {
-		expect(thrownBy(() => getObservances("1500-01-01" as never, "1900-01-01" as never))?.code).toBe(
-			"TCT_SPAN_TOO_WIDE",
-		);
+		expect(
+			thrownBy(() =>
+				getObservances(
+					"1500-01-01" as unknown as Temporal.PlainDate,
+					"1900-01-01" as unknown as Temporal.PlainDate,
+				),
+			)?.code,
+		).toBe("TCT_SPAN_TOO_WIDE");
 	});
 
 	it("still catches the span cap when the range is given as PlainDateTimes", () => {
 		expect(
 			thrownBy(() =>
 				getObservances(
-					Temporal.PlainDateTime.from("1500-01-01T00:00:00") as never,
-					Temporal.PlainDateTime.from("1900-01-01T00:00:00") as never,
+					Temporal.PlainDateTime.from("1500-01-01T00:00:00") as unknown as Temporal.PlainDate,
+					Temporal.PlainDateTime.from("1900-01-01T00:00:00") as unknown as Temporal.PlainDate,
 				),
 			)?.code,
 		).toBe("TCT_SPAN_TOO_WIDE");
@@ -218,24 +223,34 @@ describe("bad from/to arguments", () => {
 	];
 
 	it.each(BAD_ARGS)("getObservances rejects %s for from and to", (_label, value) => {
-		expect(thrownBy(() => getObservances(value as never, value as never))?.code).toBe(
-			"TCT_FIELD_OUT_OF_RANGE",
-		);
+		expect(
+			thrownBy(() =>
+				getObservances(
+					value as unknown as Temporal.PlainDate,
+					value as unknown as Temporal.PlainDate,
+				),
+			)?.code,
+		).toBe("TCT_FIELD_OUT_OF_RANGE");
 	});
 
 	it.each(BAD_ARGS)("observancesOn rejects %s", (_label, value) => {
-		expect(thrownBy(() => observancesOn(value as never))?.code).toBe("TCT_FIELD_OUT_OF_RANGE");
+		expect(thrownBy(() => observancesOn(value as unknown as Temporal.PlainDate))?.code).toBe(
+			"TCT_FIELD_OUT_OF_RANGE",
+		);
 	});
 
 	// Regression: valid ISO strings within the span cap must still work exactly as before, both
 	// through getObservances and through observancesOn's delegation to it.
 	it("still accepts valid ISO strings within the span cap, unchanged", () => {
 		const viaPlainDate = getObservances(iso("2024-01-01"), iso("2024-12-31"));
-		const viaStrings = getObservances("2024-01-01" as never, "2024-12-31" as never);
+		const viaStrings = getObservances(
+			"2024-01-01" as unknown as Temporal.PlainDate,
+			"2024-12-31" as unknown as Temporal.PlainDate,
+		);
 		expect(viaStrings).toEqual(viaPlainDate);
 
 		const onPlainDate = observancesOn(iso("2024-07-10"));
-		const onString = observancesOn("2024-07-10" as never);
+		const onString = observancesOn("2024-07-10" as unknown as Temporal.PlainDate);
 		expect(onString).toEqual(onPlainDate);
 		expect(onString.length).toBeGreaterThan(0);
 	});
