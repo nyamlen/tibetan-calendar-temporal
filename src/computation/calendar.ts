@@ -25,12 +25,23 @@ import type { ScaledTradition } from "./scaling.js";
  * Rejects a year for which the closed-form arithmetic would overflow `Number.MAX_SAFE_INTEGER`.
  *
  * @remarks
- * Every closed form here is built on `12·(year − epochYear) + …`
- * ({@link solarMonthsSinceEpoch}) or on `24·year` ({@link isLeapYear}'s `γ*` term), and both
- * silently lose precision past 2⁵³ rather than throwing — so an absurdly large year would come
+ * Two different closed forms route through this one guard, and they overflow at two different
+ * points because they are stated in two different variables:
+ *
+ * - {@link solarMonthsSinceEpoch} (reached from {@link hasLeapTwin}, hence `tibetanToIso` and
+ *   `daysInMonth`) computes `12·(year − epochYear) + …` — **relative** to the epoch.
+ * - {@link isLeapYear} and {@link leapMonthOfYear} compute `24·year + γ*` directly on the
+ *   **absolute** Janson *Y* — not relative to the epoch at all, so a year far from the epoch in
+ *   either direction overflows this one at roughly half the relative formula's magnitude, even
+ *   while `|year − epochYear|` still looks comfortably in range.
+ *
+ * Both silently lose precision past 2⁵³ rather than throwing, so an absurdly large year would come
  * back as a confident `false` or `undefined` computed from arithmetic noise instead of refusing to
- * answer. `12` is the wider of the two multipliers, so bounding `|year − epochYear|` against it
- * covers both.
+ * answer. The bound taken is the **tighter** of the two, converted to the same `|year − epochYear|`
+ * terms this guard is stated in via the triangle inequality
+ * (`|year| ≤ |epochYear| + |year − epochYear|`), so a single check protects whichever formula the
+ * caller goes on to evaluate — over-protecting the relative formula costs nothing, since every
+ * real year is nowhere near either limit.
  *
  * The bound is **derived from `config.epochYear` at each call**, never a literal: `epochYear`
  * is injected per tradition, so a bound computed once for Phugpa and hardcoded would be silently
@@ -46,7 +57,16 @@ export function assertClosedFormYear(
 	year: number,
 	config: TraditionConfig,
 ): void {
-	const limit = Math.floor((Number.MAX_SAFE_INTEGER - 12) / 12);
+	// solarMonthsSinceEpoch: 12·(year − epochYear) + month − epochMonth must stay safe. `12` is a
+	// generous margin for the trailing `+ month − epochMonth`, which is at most 24 in magnitude.
+	const relativeLimit = Math.floor((Number.MAX_SAFE_INTEGER - 12) / 12);
+	// isLeapYear / leapMonthOfYear: 24·year + γ* must stay safe, on the *absolute* year. γ* is
+	// `mod(…, 65)`, so at most 64; `65` is a generous margin. Converted to the same
+	// |year − epochYear| terms via the triangle inequality: if |year − epochYear| ≤ this limit
+	// then |year| ≤ |epochYear| + limit ≤ absoluteLimit, which is what 24·year needs.
+	const absoluteLimit =
+		Math.floor((Number.MAX_SAFE_INTEGER - 65) / 24) - Math.abs(config.epochYear);
+	const limit = Math.min(relativeLimit, absoluteLimit);
 	if (Math.abs(year - config.epochYear) > limit) {
 		throw rangeError(
 			"TCT_OUTSIDE_EXACT_RANGE",

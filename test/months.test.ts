@@ -300,12 +300,44 @@ describe("closed-form overflow guard", () => {
 		).toBe("TCT_OUTSIDE_EXACT_RANGE");
 	});
 
-	it("answers just inside the bound, pinning the derivation from both sides", () => {
-		// Mirrors src/computation/calendar.ts's own derivation of the bound from epochYear, rather
-		// than a value transcribed by hand — this is the arithmetic a mistyped derivation would break.
-		const limit = Math.floor((Number.MAX_SAFE_INTEGER - 12) / 12);
-		const justInside = PHUGPA.epochYear + limit + 127; // royal era year = Janson's Y + 127
-		expect(typeof hasLeapMonth(justInside)).toBe("boolean");
-		expect(codeOf(() => hasLeapMonth(justInside + 1))).toBe("TCT_OUTSIDE_EXACT_RANGE");
+	/**
+	 * `isLeapYear`/`leapMonthOfYear` compute `24·year + γ*` on the *absolute* Janson `Y`, not on
+	 * `year − epochYear` like `hasLeapTwin`'s route does — so the bound has to be the tighter of two
+	 * different overflow points, converted into the same `|year − epochYear|` terms. A version of
+	 * the guard that only accounted for the `12·(year − epochYear)` formula let `hasLeapMonth` answer
+	 * with a wrong boolean throughout the top half of the range it claimed to protect, computed from
+	 * a `24·year` that had already lost precision — silently, since a boolean is a boolean whether or
+	 * not the float arithmetic that produced it was exact. `typeof x === "boolean"` cannot catch that;
+	 * only comparing against an exact reference can, which is what this does with `BigInt`.
+	 */
+	it("answers correctly just inside the bound, checked against a BigInt reference", () => {
+		const bigMod = (a: bigint, m: bigint): bigint => {
+			const r = a % m;
+			return r < 0n ? r + m : r;
+		};
+		// Mirrors calendar.ts's beta()/gammaStar(): small numbers, so ordinary float math is exact.
+		const beta = 67 * PHUGPA.epochMonth - PHUGPA.intercalationIndexAtEpoch - 17;
+		const gammaStar = Number(bigMod(BigInt(-24 * PHUGPA.epochYear - beta), 65n));
+		// The exact, overflow-proof reference for isLeapYear's `(24·Y + γ*) mod 65 >= 41`.
+		const referenceIsLeapYear = (year: number): boolean =>
+			bigMod(24n * BigInt(year) + BigInt(gammaStar), 65n) >= 41n;
+
+		// Mirrors assertClosedFormYear's own derivation, rather than a value transcribed by hand —
+		// this is the arithmetic a mistyped derivation would break.
+		const relativeLimit = Math.floor((Number.MAX_SAFE_INTEGER - 12) / 12);
+		const absoluteLimit =
+			Math.floor((Number.MAX_SAFE_INTEGER - 65) / 24) - Math.abs(PHUGPA.epochYear);
+		const limit = Math.min(relativeLimit, absoluteLimit);
+
+		// Sweep the last 50 years inside the bound, not just the single boundary year: the bug this
+		// guards against was wrong across the whole top half of the naive range, not only at its edge.
+		for (let offset = 0; offset < 50; offset++) {
+			const y = PHUGPA.epochYear + limit - offset; // Janson's Y
+			const royalEraYear = y + 127;
+			expect(hasLeapMonth(royalEraYear), `Y=${y}`).toBe(referenceIsLeapYear(y));
+		}
+
+		const justInsideRoyal = PHUGPA.epochYear + limit + 127;
+		expect(codeOf(() => hasLeapMonth(justInsideRoyal + 1))).toBe("TCT_OUTSIDE_EXACT_RANGE");
 	});
 });
