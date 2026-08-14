@@ -27,6 +27,7 @@ import {
 	trueMonthCount,
 } from "../computation/calendar.js";
 import {
+	asPlainDate,
 	isoFromJulianDayUnchecked,
 	isoToTibetan,
 	julianDayFromIso,
@@ -411,6 +412,13 @@ export function getObservances(
 	config: ObservanceConfig = GELUG,
 	tradition: TraditionConfig = PHUGPA,
 ): Observance[] {
+	// Normalised before anything else touches from/to: Temporal.PlainDate.compare and the span-cap
+	// comparison below both accept a raw string without complaint, which let a string range slip
+	// past the cap (NaN > 200 is false) and let null/number arguments reach Temporal as uncoded
+	// TypeErrors instead of this package's coded RangeError.
+	from = asPlainDate(from);
+	to = asPlainDate(to);
+
 	if (Temporal.PlainDate.compare(from, to) > 0) return [];
 
 	// Compared as year numbers rather than elapsed days, which is how the docblock reads and what

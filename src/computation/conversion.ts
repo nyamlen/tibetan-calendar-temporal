@@ -89,7 +89,7 @@ export function julianDayFromIso(date: Temporal.PlainDate): number {
  * What it does not accept is nonsense. `null`, a number, or an out-of-range string now throw a
  * `RangeError` with `TCT_FIELD_OUT_OF_RANGE`, naming this package rather than Temporal's internals.
  */
-function asPlainDate(date: Temporal.PlainDate): Temporal.PlainDate {
+export function asPlainDate(date: Temporal.PlainDate): Temporal.PlainDate {
 	if (date instanceof Temporal.PlainDate) return date;
 	try {
 		return Temporal.PlainDate.from(date as Parameters<typeof Temporal.PlainDate.from>[0]);
