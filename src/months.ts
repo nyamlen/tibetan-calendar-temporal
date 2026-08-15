@@ -80,16 +80,26 @@ function closedFormYear(subject: string, year: number, config: TraditionConfig):
 	return y;
 }
 
-/** Builds the public shape for one month, given its true month count. */
+/**
+ * Builds the public shape for one month, given its true month count.
+ *
+ * @remarks
+ * `year` is the **royal era**, matching the published shape, so callers holding Janson's *Y*
+ * convert first. The month count is carried out as {@link TibetanMonth.lunation} rather than
+ * recomputed, since it is the value this function was located by.
+ */
 function describeMonth(
 	scaled: ScaledTradition,
 	monthCount: number,
+	year: number,
 	month: number,
 	isLeapMonth: boolean,
 ): TibetanMonth {
 	const firstJulianDay = firstDayOfMonth(scaled, monthCount);
 	const lastJulianDay = lastDayOfMonth(scaled, monthCount);
 	return {
+		year,
+		lunation: monthCount,
 		month,
 		monthCode: monthCodeOf(month, isLeapMonth),
 		isLeapMonth,
@@ -151,9 +161,9 @@ export function monthsFor(year: number, config: TraditionConfig = PHUGPA): Tibet
 	const months: TibetanMonth[] = [];
 	for (let month = 1; month <= 12; month++) {
 		if (hasLeapTwin(config, y, month)) {
-			months.push(describeMonth(scaled, trueMonthCount(config, y, month, true), month, true));
+			months.push(describeMonth(scaled, trueMonthCount(config, y, month, true), year, month, true));
 		}
-		months.push(describeMonth(scaled, trueMonthCount(config, y, month, false), month, false));
+		months.push(describeMonth(scaled, trueMonthCount(config, y, month, false), year, month, false));
 	}
 	return months;
 }

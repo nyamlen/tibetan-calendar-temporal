@@ -228,10 +228,30 @@ Each month carries its own boundaries, so a grid needs no further conversion to 
 
 ```js
 const month = monthsFor(2153)[0];
+month.year;                      // 2153
 month.monthCode;                 // "M01"
 month.days;                      // 29
 month.firstDay.toString();       // "2026-02-18" — Losar
 month.lastDay.toString();        // "2026-03-18"
+```
+
+A month identifies itself, so it can be passed on without the year travelling separately:
+
+```js
+daysInMonth(month);                       // 29 — a TibetanMonth is accepted directly
+tibetanDateExists({ ...month, day: 8 });  // true
+```
+
+It also carries `lunation`, its position in the unbroken count of lunations since the tradition's
+epoch. Every Tibetan month is one lunation and every month counts once, leap months included, so
+this rises by exactly one per month and continues across Losar without a gap. That makes it the
+month's identity as a **single sortable integer** — useful as a database or cache key, where
+`(year, month, isLeapMonth)` cannot serve, because a leap month comes *before* the regular month it
+shares a number with and `false` sorts before `true`.
+
+```js
+monthsFor(2151).map((m) => m.lunation);
+// consecutive integers — M06L is one less than M06, which is the ordering a tuple sort gets wrong
 ```
 
 > **`days` counts calendar days, not date numbers.** Date numbers always run 1–30; the span is 29 or

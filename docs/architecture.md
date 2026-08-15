@@ -211,6 +211,8 @@ interface TibetanDate {
 }
 
 interface TibetanMonth {
+  year: number;           // Royal era, so the month identifies itself without its producer
+  lunation: number;       // Unbroken count since the epoch; +1 per month, leap months included
   month: number;          // 1-12; shared with its twin in a leap year
   monthCode: string;      // "M06" or "M06L" — unique within the year, unlike `month`
   isLeapMonth: boolean;

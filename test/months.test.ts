@@ -66,6 +66,50 @@ describe("monthsFor", () => {
 		}
 	});
 
+	/**
+	 * `TibetanMonth` carried no `year`, because `monthsFor(year)` was its only producer and supplied
+	 * it implicitly. That made it unusable anywhere the consumer did not already know the year —
+	 * a returned month could not be fed to `daysInMonth`, and could not be spread into a date.
+	 */
+	it("carries the year it belongs to, so a month can be used without one in hand", () => {
+		for (const year of [2151, 2153]) {
+			for (const month of monthsFor(year)) {
+				expect(month.year, `${year} ${month.monthCode}`).toBe(year);
+				// The composition the missing field blocked: a TibetanMonth satisfies
+				// TibetanMonthFields, so it round-trips through the month-level API.
+				expect(daysInMonth(month)).toBe(month.days);
+			}
+		}
+	});
+
+	/**
+	 * The month's identity as one sortable integer. `(year, month, isLeapMonth)` cannot serve:
+	 * a leap month precedes the regular month it shares a number with, so sorting on the tuple puts
+	 * them the wrong way round — `false` sorts before `true`.
+	 */
+	it("carries a lunation that increases strictly in calendar order", () => {
+		for (const year of [2151, 2153]) {
+			const lunations = monthsFor(year).map((m) => m.lunation);
+			for (let i = 1; i < lunations.length; i++) {
+				expect(at(lunations, i), `${year} month ${i}`).toBe(at(lunations, i - 1) + 1);
+			}
+		}
+	});
+
+	it("numbers a leap month one lunation before the regular month it shares a number with", () => {
+		const months = monthsFor(2151);
+		const leap = months.find((m) => m.monthCode === "M06L");
+		const regular = months.find((m) => m.monthCode === "M06");
+		expect(leap?.lunation).toBe((regular?.lunation ?? Number.NaN) - 1);
+	});
+
+	// Lunations are the unbroken count, so they continue across the Losar boundary without a gap.
+	it("continues its lunation count into the next year", () => {
+		const lastOf2151 = at(monthsFor(2151), -1);
+		const firstOf2152 = at(monthsFor(2152), 0);
+		expect(firstOf2152.lunation).toBe(lastOf2151.lunation + 1);
+	});
+
 	it("emits contiguous, non-overlapping months of 29 or 30 days", { timeout: 30_000 }, () => {
 		for (const year of YEARS) {
 			const months = monthsFor(year);

@@ -9,7 +9,7 @@ import {
 	tibetanWeekday,
 } from "../src/computation/conversion.js";
 import { formatTibetanDate } from "../src/format.js";
-import { hasLeapMonth, leapMonthOfYear, monthsFor } from "../src/months.js";
+import { daysInMonth, hasLeapMonth, leapMonthOfYear, monthsFor } from "../src/months.js";
 import { GELUG, getObservances, observancesOn } from "../src/observances/index.js";
 import { parseTibetanDate } from "../src/parse.js";
 import { PHUGPA_HENNING } from "../src/traditions/phugpa.js";
@@ -83,10 +83,29 @@ describe("README usage examples", () => {
 		expect(leapMonthOfYear(2151)).toBe(6);
 
 		const month = monthsFor(2153)[0];
+		expect(month?.year).toBe(2153);
 		expect(month?.monthCode).toBe("M01");
 		expect(month?.days).toBe(29);
 		expect(month?.firstDay.toString()).toBe("2026-02-18");
 		expect(month?.lastDay.toString()).toBe("2026-03-18");
+	});
+
+	it("passes a month on without the year travelling separately", () => {
+		const month = monthsFor(2153)[0];
+		if (month === undefined) expect.unreachable("2153 has months");
+		expect(daysInMonth(month)).toBe(29);
+		expect(tibetanDateExists({ ...month, day: 8 })).toBe(true);
+	});
+
+	it("numbers lunations consecutively, with the leap month before its twin", () => {
+		const lunations = monthsFor(2151).map((m) => m.lunation);
+		for (let i = 1; i < lunations.length; i++) {
+			expect(lunations[i]).toBe((lunations[i - 1] ?? Number.NaN) + 1);
+		}
+		const months = monthsFor(2151);
+		const leap = months.find((m) => m.monthCode === "M06L");
+		const regular = months.find((m) => m.monthCode === "M06");
+		expect(leap?.lunation).toBe((regular?.lunation ?? Number.NaN) - 1);
 	});
 
 	it("reads the documented dates back, including a skipped one", () => {

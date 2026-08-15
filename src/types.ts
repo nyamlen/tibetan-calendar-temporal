@@ -362,6 +362,40 @@ export interface TibetanDate {
  */
 export interface TibetanMonth {
 	/**
+	 * Royal-era year this month belongs to, matching {@link TibetanDate.year}.
+	 *
+	 * @remarks
+	 * Present so that a `TibetanMonth` identifies itself. `monthsFor(year)` supplies the year
+	 * implicitly — the caller passed it — but that only holds while `monthsFor` is the sole producer,
+	 * and it is not what a consumer holding one month needs. Without this field a month could not be
+	 * passed to `daysInMonth`, could not be spread into a date as `{ ...month, day: 8 }`, and could
+	 * not be returned by anything that crosses a year boundary.
+	 *
+	 * Tibetan years straddle two ISO years, opening in February or early March, so this is not
+	 * recoverable from {@link TibetanMonth.firstDay} without redoing the conversion.
+	 */
+	year: number;
+
+	/**
+	 * The month's position in the unbroken count of lunations since the tradition's epoch.
+	 *
+	 * @remarks
+	 * A Tibetan month **is** a lunation, and every month counts once — leap months included — so
+	 * this increases by exactly one per month with no special case, and continues across Losar
+	 * without a gap. Janson calls it the true month count.
+	 *
+	 * It is the month's identity as a **single sortable integer**, which is what
+	 * `(year, month, isLeapMonth)` cannot be: a leap month precedes the regular month it shares a
+	 * number with, so sorting on the tuple puts them the wrong way round, since `false` sorts before
+	 * `true`. Use this as a database key, a cache key or an array index, and `+ 1` for the next
+	 * month.
+	 *
+	 * Zero is the epoch, so values are large and negative before it. Do not read it as a month
+	 * number.
+	 */
+	lunation: number;
+
+	/**
 	 * Month number, 1–12.
 	 *
 	 * @remarks
