@@ -96,10 +96,14 @@ describe("parseTibetanDate", () => {
 		["trailing text", "2153-M12-08 extra"],
 		["empty string", ""],
 	])("refuses %s", (_label, text) => {
+		// A well-typed string in the wrong shape is a wrong argument, not a field out of a range:
+		// the grammar never got far enough to have a field. Some of these do name an out-of-range
+		// number — "2153-M13-01" — but the regex rejects the whole string before any field is read,
+		// so one code covers the grammar and the split stays at the boundary the parser draws.
 		expect(
 			codeOf(() => parseTibetanDate(text)),
 			text,
-		).toBe("TCT_FIELD_OUT_OF_RANGE");
+		).toBe("TCT_INVALID_ARGUMENT");
 	});
 
 	it("refuses a non-string and an unrepresentable year", () => {
@@ -107,9 +111,11 @@ describe("parseTibetanDate", () => {
 		// message-building helper needs a fallback for, and the one coverage showed untested.
 		for (const value of [null, undefined, 2153, {}, ["2153-M12-08"], Object.create(null)]) {
 			expect(codeOf(() => parseTibetanDate(value as unknown as string))).toBe(
-				"TCT_FIELD_OUT_OF_RANGE",
+				"TCT_INVALID_ARGUMENT",
 			);
 		}
+		// This one *is* a field out of a range: it parses as canonical, then the year it names
+		// cannot be represented. The grammar was satisfied, so the failure is about the value.
 		expect(codeOf(() => parseTibetanDate("99999999999999999999-M12-08"))).toBe(
 			"TCT_FIELD_OUT_OF_RANGE",
 		);

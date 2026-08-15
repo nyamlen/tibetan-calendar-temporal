@@ -157,6 +157,7 @@ describe("public API surface", () => {
 const EXPECTED_ERROR_CODES = [
 	"TCT_FIELD_OUT_OF_RANGE",
 	"TCT_INTERNAL",
+	"TCT_INVALID_ARGUMENT",
 	"TCT_INVALID_OBSERVANCE_CONFIG",
 	"TCT_INVALID_TRADITION_CONFIG",
 	"TCT_MISSING_TEMPORAL",
@@ -188,6 +189,7 @@ describe("error codes", () => {
 	 */
 	const REACHABLE: Record<string, () => unknown> = {
 		TCT_FIELD_OUT_OF_RANGE: () => api.tibetanToIso({ year: 2153, month: 13, day: 1 }),
+		TCT_INVALID_ARGUMENT: () => api.tibetanToIso(iso("2026-08-12") as never),
 		TCT_NO_SUCH_LEAP_MONTH: () =>
 			api.tibetanToIso({ year: 2153, month: 5, day: 1, isLeapMonth: true }),
 		TCT_SKIPPED_DAY: () => api.tibetanToIso({ year: 2150, month: 12, day: 29 }),
@@ -237,21 +239,38 @@ describe("error codes", () => {
 		["tibetanWeekday, string", () => api.tibetanWeekday("x" as unknown as number)],
 		["isoFromJulianDay, fractional", () => api.isoFromJulianDay(0.5)],
 		["isoFromJulianDay, NaN", () => api.isoFromJulianDay(Number.NaN)],
+		["formatTibetanDate, empty object", () => api.formatTibetanDate({} as never)],
+	])("codes the failure of %s", (_label, call) => {
+		expect(codeOf(call)).toBe("TCT_FIELD_OUT_OF_RANGE");
+	});
+
+	/**
+	 * The other half of that same set, after the code split.
+	 *
+	 * These fail because the argument is the wrong *kind of thing*, not because a number is out of
+	 * range: `null` is not a date, `7` is not a `PlainDate`, `"not-a-date"` is not a date string.
+	 * `TCT_FIELD_OUT_OF_RANGE` named neither a field nor a range for any of them, which is what
+	 * `docs/decisions/2026-08-15-argument-errors-split.md` records.
+	 *
+	 * `formatTibetanDate({})` stays with the range code above deliberately: `{}` *is* an object, so
+	 * it clears the shape guard and fails on `year` not being a safe integer — the same place
+	 * `tibetanToIso({})` fails, and the two must agree.
+	 */
+	it.each([
 		["julianDayFromIso, null", () => api.julianDayFromIso(null as unknown as Temporal.PlainDate)],
 		["julianDayFromIso, number", () => api.julianDayFromIso(7 as unknown as Temporal.PlainDate)],
-		["formatTibetanDate, empty object", () => api.formatTibetanDate({} as never)],
 		["formatTibetanDate, null", () => api.formatTibetanDate(null as never)],
 		["isoToTibetan, garbage string", () => api.isoToTibetan("not-a-date" as never)],
 		// The three Tibetan-date entry points that lacked formatTibetanDate's null/non-object guard:
 		// rejectInvalidLeapFlags dereferenced `value[field]` with no shape check first, so these threw
-		// an uncoded native TypeError instead of TCT_FIELD_OUT_OF_RANGE.
+		// an uncoded native TypeError before the guard was added.
 		["tibetanToIso, null", () => api.tibetanToIso(null as never)],
 		["tibetanToIso, undefined", () => api.tibetanToIso(undefined as never)],
 		["daysInMonth, null", () => api.daysInMonth(null as never)],
 		["daysInMonth, undefined", () => api.daysInMonth(undefined as never)],
 		["tibetanDateExists, null", () => api.tibetanDateExists(null as never)],
-	])("codes the failure of %s", (_label, call) => {
-		expect(codeOf(call)).toBe("TCT_FIELD_OUT_OF_RANGE");
+	])("codes the wrong-argument failure of %s", (_label, call) => {
+		expect(codeOf(call)).toBe("TCT_INVALID_ARGUMENT");
 	});
 
 	// The one route that did not apply the exactness bound, so it was the way into the range the
@@ -292,7 +311,7 @@ describe("error codes", () => {
 		["isoToTibetan", () => api.isoToTibetan({ year: 2153, month: 12, day: 8 } as never)],
 		["julianDayFromIso", () => api.julianDayFromIso({ year: 2026, month: 8, day: 12 } as never)],
 	])("rejects a bare { year, month, day } object at %s", (_label, call) => {
-		expect(codeOf(call)).toBe("TCT_FIELD_OUT_OF_RANGE");
+		expect(codeOf(call)).toBe("TCT_INVALID_ARGUMENT");
 	});
 
 	/**
@@ -301,9 +320,11 @@ describe("error codes", () => {
 	 * accept a Temporal instance silently: `tibetanToIso(pd)` read `pd.year/.month/.day` as though
 	 * they were royal-era fields and returned a confident, wrong Tibetan date.
 	 *
-	 * `tibetanDateExists` is asserted to *throw*, not answer `false` — `TCT_FIELD_OUT_OF_RANGE` is
-	 * on its allowlist for ordinary bad input, so this specifically checks that the Temporal-
-	 * instance guard runs before that allowlist has a chance to swallow it.
+	 * `tibetanDateExists` is asserted to *throw*, not answer `false`. Before the code split this
+	 * needed the guard hoisted out of the predicate's `try`, because `TCT_FIELD_OUT_OF_RANGE` is on
+	 * its allowlist and would have swallowed a Temporal instance into "that date does not exist".
+	 * `TCT_INVALID_ARGUMENT` is not on that allowlist, so the guard now works from inside the `try`
+	 * and the hoisted copy is gone — this assertion is what proves the behaviour survived the move.
 	 */
 	it.each([
 		["tibetanToIso, PlainDate", () => api.tibetanToIso(iso("2026-08-12") as never)],
@@ -345,7 +366,7 @@ describe("error codes", () => {
 			() => api.daysInMonth(Temporal.ZonedDateTime.from("2026-08-12T00:00+00:00[UTC]") as never),
 		],
 	])("rejects a Temporal instance at %s", (_label, call) => {
-		expect(codeOf(call)).toBe("TCT_FIELD_OUT_OF_RANGE");
+		expect(codeOf(call)).toBe("TCT_INVALID_ARGUMENT");
 	});
 
 	it("tibetanDateExists throws for a Temporal instance rather than answering false", () => {
@@ -354,7 +375,7 @@ describe("error codes", () => {
 
 	it("tibetanDateExists throws for null rather than answering false", () => {
 		expect(() => api.tibetanDateExists(null as never)).toThrow();
-		expect(codeOf(() => api.tibetanDateExists(null as never))).toBe("TCT_FIELD_OUT_OF_RANGE");
+		expect(codeOf(() => api.tibetanDateExists(null as never))).toBe("TCT_INVALID_ARGUMENT");
 	});
 
 	/**
@@ -401,7 +422,7 @@ describe("error codes", () => {
 			() => api.daysInMonth({ year: 2153, month: 6, isLeapMonth: "false" } as never),
 		],
 	])("rejects a non-boolean leap flag at %s", (_label, call) => {
-		expect(codeOf(call)).toBe("TCT_FIELD_OUT_OF_RANGE");
+		expect(codeOf(call)).toBe("TCT_INVALID_ARGUMENT");
 	});
 
 	// The review's exact reproduction: this used to return "2153-M01L-01 (leap)" instead of
@@ -417,7 +438,7 @@ describe("error codes", () => {
 					isLeapDay: "x",
 				} as never),
 			),
-		).toBe("TCT_FIELD_OUT_OF_RANGE");
+		).toBe("TCT_INVALID_ARGUMENT");
 	});
 
 	it("tibetanDateExists throws for a non-boolean leap flag rather than answering false", () => {
@@ -428,7 +449,7 @@ describe("error codes", () => {
 			codeOf(() =>
 				api.tibetanDateExists({ year: 2153, month: 6, day: 1, isLeapMonth: 1 } as never),
 			),
-		).toBe("TCT_FIELD_OUT_OF_RANGE");
+		).toBe("TCT_INVALID_ARGUMENT");
 	});
 
 	it("still accepts undefined and real booleans for both leap flags", () => {
@@ -522,7 +543,7 @@ describe("observances API surface", () => {
 				return (error as { code?: string }).code;
 			}
 		};
-		expect(codeOf(() => observances.getObservances(bare, bare))).toBe("TCT_FIELD_OUT_OF_RANGE");
-		expect(codeOf(() => observances.observancesOn(bare))).toBe("TCT_FIELD_OUT_OF_RANGE");
+		expect(codeOf(() => observances.getObservances(bare, bare))).toBe("TCT_INVALID_ARGUMENT");
+		expect(codeOf(() => observances.observancesOn(bare))).toBe("TCT_INVALID_ARGUMENT");
 	});
 });

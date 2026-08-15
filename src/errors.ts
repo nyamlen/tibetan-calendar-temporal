@@ -24,11 +24,21 @@
  * on the wording.
  *
  * - `TCT_FIELD_OUT_OF_RANGE` — a year, month, day or Julian day is not an integer, or falls
- *   outside its permitted range; or the argument's shape or type is wrong even where numeric
- *   fields would be in range — a `Temporal.PlainDate`/`PlainDateTime`/`ZonedDateTime` passed where
- *   a Tibetan-date input is expected, a non-boolean `isLeapMonth`/`isLeapDay`, a bare
- *   `{ year, month, day }` object passed where a Western date is expected, or `null`/`undefined`/a
- *   non-object passed where a date-shaped input is expected. A data problem in the caller's input.
+ *   outside its permitted range. The argument was the right *kind* of thing and one of its numbers
+ *   was wrong. An absent required field counts, since `undefined` is not an integer, and so does a
+ *   non-number where a number belongs: the check is "is this a safe integer", and splitting inside
+ *   it would buy a distinction no caller acts on.
+ * - `TCT_INVALID_ARGUMENT` — the argument is the wrong *kind of thing*, so no field of it is out of
+ *   any range: a `Temporal.PlainDate`/`PlainDateTime`/`ZonedDateTime` passed where a Tibetan-date
+ *   input is expected, a bare `{ year, month, day }` object passed where a Western date is expected,
+ *   a non-boolean `isLeapMonth`/`isLeapDay`, `null`/`undefined`/a non-object where a date-shaped
+ *   input is expected, or a string that is not in the grammar `parseTibetanDate` accepts.
+ *
+ *   These two used to share `TCT_FIELD_OUT_OF_RANGE`, which named neither a field nor a range for
+ *   half its sites. The split is not cosmetic: it is what lets `tibetanDateExists` allowlist the
+ *   range code — "that date does not exist" — while a caller who passed a `PlainDate` gets a throw
+ *   rather than a `false` they will read as a calendrical fact. See
+ *   `docs/decisions/2026-08-15-argument-errors-split.md`.
  * - `TCT_NO_SUCH_LEAP_MONTH` — `isLeapMonth` was set for a month that has no leap twin that year.
  * - `TCT_SKIPPED_DAY` — the date is well-formed but no calendar day carries its number. Not an
  *   input error; use `tibetanDateExists` to test first.
@@ -53,6 +63,7 @@
  */
 export type TibetanCalendarErrorCode =
 	| "TCT_FIELD_OUT_OF_RANGE"
+	| "TCT_INVALID_ARGUMENT"
 	| "TCT_NO_SUCH_LEAP_MONTH"
 	| "TCT_SKIPPED_DAY"
 	| "TCT_OUTSIDE_EXACT_RANGE"

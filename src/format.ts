@@ -64,21 +64,24 @@ export function monthCodeOf(month: number, isLeap: boolean): string {
  * // "2153-M12-08" — the round trip, as an identity
  * ```
  *
- * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `date` does not carry an integer year,
- * a month in 1–12 and a day in 1–30, or if `isLeapMonth`/`isLeapDay` are present but not
- * `boolean`. Everything above is an argument that a plausible-but-wrong string is the failure
- * worth preventing, and handed `{}` this produced exactly one: `"undefined-undefined-undefined"`;
- * handed `{ isLeapMonth: 1, isLeapDay: "x" }` it produced a confident `" (leap)"` suffix from a
- * truthy string.
+ * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `date` is not an object naming a Tibetan
+ * date at all — `null`, a string, a `Temporal` instance — or if `isLeapMonth`/`isLeapDay` are
+ * present but not `boolean`. Handed `{ isLeapMonth: 1, isLeapDay: "x" }` this once produced a
+ * confident `" (leap)"` suffix from a truthy string.
+ *
+ * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `date` is object-shaped but does not
+ * carry an integer year, a month in 1–12 and a day in 1–30. Everything above is an argument that a
+ * plausible-but-wrong string is the failure worth preventing, and handed `{}` this produced exactly
+ * one: `"undefined-undefined-undefined"`.
  */
 export function formatTibetanDate(date: TibetanDateInput): string {
 	rejectTemporalInstance("formatTibetanDate", date);
-	if (date !== null && typeof date === "object") {
-		rejectInvalidLeapFlags("formatTibetanDate", date);
-	}
+	// Unconditional, and it carries the null/non-object check for this function as well as the flag
+	// checks — which is why the field test below no longer repeats either. Guarding it with its own
+	// shape test would make that test the reachable one and this function's shape error would then
+	// carry the range code, disagreeing with the other three entry points.
+	rejectInvalidLeapFlags("formatTibetanDate", date);
 	if (
-		date === null ||
-		typeof date !== "object" ||
 		!Number.isSafeInteger(date.year) ||
 		!Number.isInteger(date.month) ||
 		date.month < 1 ||
@@ -98,12 +101,17 @@ export function formatTibetanDate(date: TibetanDateInput): string {
 	return `${date.year}-${monthCode}-${day}${date.isLeapDay ? " (leap)" : ""}`;
 }
 
-/** A value rendered short enough for a message, and unambiguously: `"3"` is not `3`. */
-function describe(value: unknown): string {
-	if (typeof value === "string") return JSON.stringify(value);
-	if (value !== null && typeof value === "object") {
-		const keys = Object.keys(value);
-		return keys.length === 0 ? "{}" : `an object with keys ${keys.join(", ")}`;
-	}
-	return String(value);
+/**
+ * The object rendered short enough for a message, by the keys it does carry.
+ *
+ * @remarks
+ * Takes `object` rather than `unknown` because by its only call site it cannot be anything else:
+ * `rejectInvalidLeapFlags` runs first and rejects `null`, `undefined`, strings and numbers, so the
+ * field check below it only ever describes a real object. It used to branch on all three, and
+ * coverage showed those branches dead as soon as the shape guard moved above them — the parameter
+ * type is what stops them being written back.
+ */
+function describe(value: object): string {
+	const keys = Object.keys(value);
+	return keys.length === 0 ? "{}" : `an object with keys ${keys.join(", ")}`;
 }

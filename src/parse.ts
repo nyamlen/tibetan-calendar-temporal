@@ -54,9 +54,10 @@ const CANONICAL = /^(0|-?[1-9]\d*)-M(0[1-9]|1[0-2])(L?)-(0[1-9]|[12]\d|30)( \(le
  * Both optional flags are **always present** in the result, so the shape is predictable to inspect
  * and to compare.
  *
- * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `text` is not a string in the canonical
- * form, or names a year outside the safe-integer range. This is the only code it throws — a
- * skipped date parses successfully, because the string is not the thing that is wrong.
+ * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `text` is not a string, or is a string
+ * outside the canonical grammar; `TCT_FIELD_OUT_OF_RANGE` if it parses but names a year outside the
+ * safe-integer range. Those two are the only codes it throws — a skipped date parses successfully,
+ * because the string is not the thing that is wrong.
  *
  * @example
  * ```ts
@@ -76,15 +77,19 @@ const CANONICAL = /^(0|-?[1-9]\d*)-M(0[1-9]|1[0-2])(L?)-(0[1-9]|[12]\d|30)( \(le
 export function parseTibetanDate(text: string): TibetanDateInput {
 	if (typeof text !== "string") {
 		throw rangeError(
-			"TCT_FIELD_OUT_OF_RANGE",
+			"TCT_INVALID_ARGUMENT",
 			`parseTibetanDate: expected a string, received ${describe(text)}`,
 		);
 	}
 
+	// Failing the grammar is TCT_INVALID_ARGUMENT rather than TCT_FIELD_OUT_OF_RANGE: the parse
+	// never reached a field, so nothing here is a field out of a range. Some rejected strings do
+	// name an out-of-range number — "2153-M13-01" — but the pattern refuses the whole string before
+	// any group is read, so the split follows the boundary the parser actually draws.
 	const match = CANONICAL.exec(text);
 	if (match === null) {
 		throw rangeError(
-			"TCT_FIELD_OUT_OF_RANGE",
+			"TCT_INVALID_ARGUMENT",
 			`parseTibetanDate: ${JSON.stringify(text)} is not a Tibetan date in the canonical form ` +
 				'YYYY-MMM-DD, as produced by formatTibetanDate — for example "2153-M12-08", ' +
 				'"2127-M01L-01" for a leap month, or "2152-M09-30 (leap)" for the first day of a ' +

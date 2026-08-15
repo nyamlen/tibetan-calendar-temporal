@@ -407,7 +407,7 @@ function appliesToMonth(
  * {@link GELUG}.
  * @param tradition - Astronomical constants. Defaults to `PHUGPA`.
  *
- * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `from` or `to` is not a value
+ * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `from` or `to` is not a value
  * `asPlainDate` accepts; `TCT_SPAN_TOO_WIDE` if the span exceeds {@link MAX_SPAN_YEARS}; or
  * `TCT_INVALID_OBSERVANCE_CONFIG` if `config` is invalid.
  */

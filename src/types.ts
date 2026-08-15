@@ -394,10 +394,13 @@ export interface TibetanMonth {
  *
  * Shared across every Tibetan-date entry point — `tibetanToIso`, `tibetanDateExists`,
  * `formatTibetanDate`, `daysInMonth` — so the message and the code are one policy rather than four.
- * `tibetanDateExists` calls this itself, before its own `try`, in addition to `tibetanToIso`
- * calling it again internally: `TCT_FIELD_OUT_OF_RANGE` is on that function's allowlist for
- * answering `false`, so a Temporal instance caught inside the `try` would be swallowed into
- * "that date does not exist" rather than thrown out to the caller who confused the two APIs.
+ *
+ * The code is `TCT_INVALID_ARGUMENT` rather than `TCT_FIELD_OUT_OF_RANGE`, and that is load-bearing
+ * for `tibetanDateExists`. Only the range code is on that predicate's allowlist for answering
+ * `false`, so a Temporal instance thrown from here propagates out of it — telling a caller who
+ * confused the two APIs that they did, instead of reporting a Western date as a Tibetan one that
+ * does not exist. While the two shared one code, `tibetanDateExists` had to call this itself before
+ * its own `try` to get that behaviour; it no longer does.
  */
 export function rejectTemporalInstance(functionName: string, value: unknown): void {
 	if (
@@ -413,7 +416,7 @@ export function rejectTemporalInstance(functionName: string, value: unknown): vo
 				? "Did you mean isoToTibetan(date)?"
 				: "Convert it first with isoToTibetan(date).";
 		throw rangeError(
-			"TCT_FIELD_OUT_OF_RANGE",
+			"TCT_INVALID_ARGUMENT",
 			`${functionName}: received a Temporal.${value.constructor.name}, which names a Western ` +
 				`calendar day, not a Tibetan one. ${suggestion}`,
 		);
@@ -442,16 +445,15 @@ function describeFlagValue(value: unknown): string {
  * Also the null/non-object guard for the three entry points that lacked one: `tibetanToIso`,
  * `daysInMonth` and `tibetanDateExists` (via delegation) all read a field off their input before
  * this function returned, so `null` or `undefined` reached `input.year` and threw an uncoded
- * native `TypeError` instead of this package's `TCT_FIELD_OUT_OF_RANGE` — `formatTibetanDate` was
- * the only one of the four that already guarded this. Checking it here, once, closes it for all
- * three at the shared point rather than adding the same guard three times.
+ * native `TypeError`. `formatTibetanDate` was the only one of the four that already guarded this.
+ * Checking it here, once, closes it for all three at the shared point rather than adding the same
+ * guard three times.
  *
- * Shared across the same four entry points as {@link rejectTemporalInstance}, for the same
- * reason: one policy for the message and the code rather than four. `tibetanDateExists` calls
- * this itself, before its own `try`, in addition to `tibetanToIso` calling it again internally —
- * `TCT_FIELD_OUT_OF_RANGE` is on that function's allowlist for answering `false`, so a bad-typed
- * flag caught inside the `try` would be swallowed into "that date does not exist" rather than
- * thrown out to the caller who passed the wrong type.
+ * Shared across the same four entry points as {@link rejectTemporalInstance}, for the same reason:
+ * one policy for the message and the code rather than four. Both throws are
+ * `TCT_INVALID_ARGUMENT` — a non-boolean flag and a non-object are wrong *kinds* of argument, not
+ * numbers out of a range — which is what keeps them off `tibetanDateExists`'s allowlist and so
+ * thrown out to the caller rather than reported as a date that does not exist.
  */
 export function rejectInvalidLeapFlags(
 	functionName: string,
@@ -459,7 +461,7 @@ export function rejectInvalidLeapFlags(
 ): void {
 	if (value === null || typeof value !== "object") {
 		throw rangeError(
-			"TCT_FIELD_OUT_OF_RANGE",
+			"TCT_INVALID_ARGUMENT",
 			`${functionName}: expected an object naming a Tibetan date, received ${describeFlagValue(value)}`,
 		);
 	}
@@ -468,7 +470,7 @@ export function rejectInvalidLeapFlags(
 		if (flag !== undefined && typeof flag !== "boolean") {
 			const noun = field === "isLeapMonth" ? "month" : "day";
 			throw rangeError(
-				"TCT_FIELD_OUT_OF_RANGE",
+				"TCT_INVALID_ARGUMENT",
 				`${functionName}: ${field} must be a boolean or omitted, received ${describeFlagValue(flag)}. ` +
 					`A string like "false" is truthy, so a non-boolean here would silently select the leap ${noun} ` +
 					"instead of being rejected.",

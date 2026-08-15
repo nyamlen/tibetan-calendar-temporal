@@ -105,7 +105,7 @@ describe("README usage examples", () => {
 				parseTibetanDate(rejected);
 				expect.unreachable(`${rejected} should be refused`);
 			} catch (error) {
-				expect((error as { code?: string }).code, rejected).toBe("TCT_FIELD_OUT_OF_RANGE");
+				expect((error as { code?: string }).code, rejected).toBe("TCT_INVALID_ARGUMENT");
 			}
 		}
 	});

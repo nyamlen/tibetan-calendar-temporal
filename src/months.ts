@@ -172,10 +172,11 @@ export function monthsFor(year: number, config: TraditionConfig = PHUGPA): Tibet
  * Accepts anything carrying `year`, `month` and optionally `isLeapMonth`, so a {@link TibetanDate}
  * from `isoToTibetan` can be passed straight in.
  *
- * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` for a non-integer or out-of-range field, or
- * if `isLeapMonth` is present but not `boolean`; `TCT_NO_SUCH_LEAP_MONTH` if `isLeapMonth` is set
- * for a month with no leap twin that year; or `TCT_OUTSIDE_EXACT_RANGE` past the tradition's exact
- * range.
+ * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` for a non-integer or out-of-range field;
+ * `TCT_INVALID_ARGUMENT` if `month` is not an object naming a Tibetan month — a `Temporal` instance,
+ * `null` — or if `isLeapMonth` is present but not `boolean`; `TCT_NO_SUCH_LEAP_MONTH` if
+ * `isLeapMonth` is set for a month with no leap twin that year; or `TCT_OUTSIDE_EXACT_RANGE` past
+ * the tradition's exact range.
  *
  * @example
  * ```ts
