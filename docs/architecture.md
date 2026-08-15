@@ -128,8 +128,10 @@ tibetan-calendar-temporal/
 │   ├── errors.ts             # Error codes, and the constructors that attach them
 │   ├── format.ts             # formatTibetanDate, monthCodeOf — the canonical string form
 │   ├── parse.ts              # parseTibetanDate — its inverse
-│   ├── months.ts             # monthsFor, daysInMonth, and the three closed-form scalars
-│   └── types.ts              # TibetanDate, TibetanMonth, their inputs, SkippedDayError
+│   ├── months.ts             # monthsFor, datesFor, daysInMonth, the three closed-form scalars
+│   ├── navigation.ts         # the lunation coordinate, day and month arithmetic, the phases
+│   ├── naming.ts             # yearNameFor, rabjungFor — closed forms over the year alone
+│   └── types.ts              # TibetanDate, TibetanMonth, their field shapes, SkippedDayError
 ├── test/
 │   ├── computation/          # One suite per computation module
 │   ├── fixtures/             # Janson's tables, then FPMT data in Phase 2
@@ -211,6 +213,8 @@ interface TibetanDate {
 }
 
 interface TibetanMonth {
+  year: number;           // Royal era, so the month identifies itself without its producer
+  lunation: number;       // Unbroken count since the epoch; +1 per month, leap months included
   month: number;          // 1-12; shared with its twin in a leap year
   monthCode: string;      // "M06" or "M06L" — unique within the year, unlike `month`
   isLeapMonth: boolean;
@@ -219,7 +223,7 @@ interface TibetanMonth {
   lastDay: Temporal.PlainDate;
 }
 
-interface TibetanMonthInput {
+interface TibetanMonthFields {
   year: number;           // Royal era, like TibetanDate.year
   month: number;          // 1-12
   isLeapMonth?: boolean;
@@ -377,10 +381,29 @@ Five rules follow from that:
   checked by `validateObservanceConfig`, `TraditionConfig` by
   [`assertTraditionConfig`](../src/traditions/validate.ts), called from the two `scalingFor`
   functions that every entry point passes through. Both check **shape, not astronomy**.
+- **A wrong-kind argument is not a field out of range.** `TCT_FIELD_OUT_OF_RANGE` means a number is
+  wrong; `TCT_INVALID_ARGUMENT` means the argument is the wrong sort of thing — a `Temporal`
+  instance where a Tibetan date belongs, a non-boolean leap flag, `null`. They are handled
+  differently by a consumer (bad data to show a user, against a bug in their own code), and only the
+  first is on the allowlist above. See
+  [decisions/2026-08-15-argument-errors-split.md](decisions/2026-08-15-argument-errors-split.md).
 - **Every error carries a code**, and `SkippedDayError` is the only error class. Construct through
   `rangeError`/`codedError` in [`src/errors.ts`](../src/errors.ts) rather than with a bare
   `new RangeError`, so the code is never omitted. Codes are contract; message text is not. See
   [decisions/2026-08-12-error-codes-not-classes.md](decisions/2026-08-12-error-codes-not-classes.md).
+
+## The day boundary
+
+The engine returns whole proleptic-Gregorian calendar days and models no instants. The calendar's
+own boundary is **daybreak**, and it is already inside the arithmetic: Janson's `true_date` is a
+local Julian date whose integer values fall at mean dawn rather than at noon UT, so the offset was
+fixed with the epoch constants and is never re-applied. No sunrise is computed anywhere, which is
+part of why results are deterministic and need no location.
+
+There is therefore no daybreak field on `TraditionConfig` — nothing would read it — and no
+instant-to-date helper, because such a helper must choose between local and Tibetan-meridian
+daybreak and practice is not uniform. See
+[decisions/2026-08-15-daybreak-not-modelled.md](decisions/2026-08-15-daybreak-not-modelled.md).
 
 ## Tooling
 

@@ -9,7 +9,7 @@
 | 2 | Validation: FPMT fixtures, cross-check against reference implementations — **done** | 12h |
 | 3 | Observances: config-driven rules, Gelug default config — **done** | 8h |
 | 4 | TypeDoc + release workflow + publish v1.0.0 (docblock audit split out — see Phase 4a) | 6h |
-| 4a | Docblock audit: verify 265 docblocks against actual behaviour — see the [Pre-v1.0.0 checklist](#pre-v100-checklist) | 10h |
+| 4a | Docblock audit: verify 300 docblocks against actual behaviour — see the [Pre-v1.0.0 checklist](#pre-v100-checklist) | 10h |
 
 **Safe timeline: 3 weeks** (accounts for debugging edge cases in doubled/skipped day logic —
 predates Phase 4a's addition below and has not been revisited against its extra 10h)
@@ -253,14 +253,14 @@ through this before publishing v1.0.0 — several are one-way doors once publish
 - [x] **Add `parseTibetanDate`, the counterpart to `formatTibetanDate`** — done 2026-08-13. Two
       things came out differently.
 
-      - **It returns `TibetanDateInput`, not a resolved date, and takes no config.** `"2150-M12-29"`
+      - **It returns `TibetanDateFields`, not a resolved date, and takes no config.** `"2150-M12-29"`
         is a well-formed string naming a *skipped* date. Almanacs print such dates — that is why
         `SkippedDayError` exists rather than a `null` return — so a parser that threw on them could
         not read back a published table, which is most of the point of having one.
       - **Closing the round trip meant widening `formatTibetanDate`, not narrowing the parser.**
         The formatter took `TibetanDate` and read its `monthCode`, so `format(parse(s))` did not
         even typecheck and the "symmetry" would have been a four-step pipeline through the
-        calendar. It now takes `TibetanDateInput` and derives the month segment, which is
+        calendar. It now takes `TibetanDateFields` and derives the month segment, which is
         non-breaking — `TibetanDate` stays assignable — and strictly more robust, since an object
         whose `month` and `monthCode` disagree can no longer render a self-contradicting string.
 
@@ -273,12 +273,16 @@ through this before publishing v1.0.0 — several are one-way doors once publish
       but cannot be tightened. `tryParseTibetanDate` was considered and dropped for the same reason:
       additive later.
 
-- [ ] **Audit and correct all 265 docblocks against actual behaviour** — see
-      [Phase 4a](#implementation-phases) for the effort estimate. `src/types.ts` (46),
-      `src/observances/types.ts` (28), `src/computation/calendar.ts` (28) and
-      `src/computation/scaling.ts` (22) are the concentrations, across 20 files in `src/` in total.
-      Must run after this plan's Part 1, which changed the behaviour of eight files — already true
-      by the time this item is worked.
+- [ ] **Audit and correct all 300 docblocks against actual behaviour** — see
+      [Phase 4a](#implementation-phases) for the effort estimate. `src/types.ts` (56),
+      `src/computation/calendar.ts` (30), `src/observances/types.ts` (28),
+      `src/computation/scaling.ts` (22) and `src/navigation.ts` (16) are the concentrations, across
+      22 files in `src/` in total.
+
+      **Recount 2026-08-15: 265 became 300.** The navigation and naming work added 35, and the
+      10h estimate predates them — it has not been revisited. The new ones are the least likely to
+      be stale, having just been written against the behaviour, but they are also where the newest
+      contract statements live, so they are not exempt from the audit.
 
       Docblocks reach the shipped `.d.ts` and are what editor hover shows, so a stale one is a false
       contract statement, not a tidying issue. This review already found three: `hasLeapMonth`,
@@ -455,18 +459,36 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
 - **Tsurphu tradition** (Karma Kagyu) via a second `TraditionConfig` — the algorithm already
   supports it; only the constants differ.
 
-- **Navigation and date-arithmetic functions** (`addMonths`, `addDays`, `daysBetween` and
-  similar) over `TibetanDateInput` — deferred, additive, and free functions rather than methods on
-  a class. [decisions/2026-08-12-no-tibetan-date-class.md](decisions/2026-08-12-no-tibetan-date-class.md)
-  already ruled out a `TibetanDate` class, for exactly the leap-month and overflow ambiguities
-  below, so a future design here inherits that constraint rather than reopening it. Record the open
-  questions so a brainstorm starts from them:
+- **Navigation and date arithmetic — shipped 2026-08-15**, so this entry records only what became
+  of its open questions. `addDays`, `daysBetween`, `addMonths`, `monthsBetween`,
+  `lunationFromMonth`, `monthFromLunation`, `nextFullMoon` and `nextNewMoon` are free functions on
+  the root export; no `TibetanDate` class, so
+  [decisions/2026-08-12-no-tibetan-date-class.md](decisions/2026-08-12-no-tibetan-date-class.md)
+  stands. The reasoning is in
+  [decisions/2026-08-15-lunation-arithmetic.md](decisions/2026-08-15-lunation-arithmetic.md).
 
-  - What "add one month" means across a leap month — skip it, land in it, or refuse.
-  - What `addDays` returns when the target date is skipped.
-  - Whether the return type is `TibetanDate` (resolved) or `TibetanDateInput` (naming fields only).
-  - Whether `daysBetween` takes two Tibetan dates directly, or the consumer converts each to
-    `Temporal.PlainDate` and subtracts.
+  - *What "add one month" means across a leap month* — none of skip, land or refuse. A Tibetan month
+    is a lunation, so one month after M05 of 2151 is M06L, which is what the calendar counts.
+  - *What `addDays` returns when the target date is skipped* — **struck, not answered.** It cannot
+    land on one: stepping real days never reaches a label no calendar day carries.
+  - *Whether the return is resolved or naming fields* — `addMonths` returns a `TibetanMonth`, which
+    is what keeps it total; `addDays` returns a `TibetanDate`.
+  - *Whether `daysBetween` takes two Tibetan dates* — it does, and its docblock says when not to use
+    it. For two dates this package produced, `a.isoDate.until(b.isoDate)` is better. It is recorded
+    as **the first export to cut** if the surface ever needs trimming.
+
+- **A signal when observances go to the leap twin.** `GELUG` sets `leapMonth: "leap"`, so in a leap
+  year every observance of the doubled month falls in the leap half and the regular twin renders
+  with **no tier-1 observances at all** — 2151's regular M06 is empty while M06L holds Chökhor
+  Düchen. That is correct and matches FPMT's published date, but a consumer laying out the regular
+  month sees a blank month with nothing to explain it, and `Observance` carries no field naming the
+  twin. Behaviour must not change —
+  [decisions/2026-08-12-observance-policy.md](decisions/2026-08-12-observance-policy.md) keeps this
+  in injected config — so any fix is additive shape, not logic.
+
+- **`Observance.rule.kind` reads worse than `o.kind`** for what is arguably the observance's own
+  primary attribute. Cosmetic, on a subpath surface, and breaking to change, so it is a note rather
+  than a task.
 
 - **Tibetan-language output** — locale-aware rendering of month names, day names, the
   twelve-animal cycle and five elements, per Janson's Appendix E — deferred and additive. This is
@@ -479,6 +501,15 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   - Which scripts ship — Tibetan script, Wylie, Lhasa phonetics, IAST — and whether all four or a
     subset.
   - Whether it reaches `formatTibetanDate` as an option, or ships as a separate formatter.
+
+  **The weekday names are the readiest piece, and the least blocked.** Janson's day-of-week section
+  already tabulates all seven with their English name, Wylie and planet — `spen ma`/Saturn,
+  `nyi ma`/Sun, `zla ba`/Moon, `mig dmar`/Mars, `lhag pa`/Mercury, `phur bu`/Jupiter,
+  `pa sangs`/Venus — so unlike the 60 rabjung names there is nothing to source. `TibetanDate` now
+  carries the numeric `tibetanWeekday`, and a `weekdayName` would group beside it under the `*Name`
+  rule exactly as `yearName` sits beside `year`. Only the Tibetan script and Lhasa phonetics would
+  need adding to what Janson gives, and those are mechanical from Wylie rather than a search for a
+  source. Do not let this item's harder parts hold that one.
 
 - **iCalendar (ICS) export — declined.** `getObservances` returns plain objects; a consumer maps
   them to whatever format they need. Per

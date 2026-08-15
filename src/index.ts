@@ -28,6 +28,20 @@
  *   numbering is a modern convention, and `Temporal.PlainDate` is proleptic Gregorian where
  *   historical sources are Julian.
  *
+ * ## Observances are on a separate subpath
+ *
+ * `getObservances`, `observancesOn` and the `GELUG` config are **not** exported here. They live on
+ * `tibetan-calendar-temporal/observances`, and importing them from the root fails at module load:
+ *
+ * ```ts
+ * import { getObservances, GELUG } from "tibetan-calendar-temporal/observances";
+ * ```
+ *
+ * The split is not packaging tidiness. Everything on this entry point makes a **falsifiable** claim
+ * — a constant checks against Janson, a date against an almanac, and a disagreement is a bug.
+ * Nothing in the observance layer does: published sources legitimately disagree about which day an
+ * institution keeps, so those conventions are injected config rather than engine logic.
+ *
  * @packageDocumentation
  */
 
@@ -43,12 +57,24 @@ export {
 export type { TibetanCalendarErrorCode } from "./errors.js";
 export { formatTibetanDate } from "./format.js";
 export {
+	datesFor,
 	daysInMonth,
 	hasLeapMonth,
 	leapMonthOfYear,
 	monthsFor,
 	monthsInYear,
 } from "./months.js";
+export { rabjungFor, yearNameFor } from "./naming.js";
+export {
+	addDays,
+	addMonths,
+	daysBetween,
+	lunationFromMonth,
+	monthFromLunation,
+	monthsBetween,
+	nextFullMoon,
+	nextNewMoon,
+} from "./navigation.js";
 export { parseTibetanDate } from "./parse.js";
 export { PHUGPA, PHUGPA_HENNING } from "./traditions/phugpa.js";
 export type { MeanMotion, Rational, TraditionConfig } from "./traditions/types.js";
@@ -56,11 +82,11 @@ export type {
 	Rabjung,
 	TibetanAnimal,
 	TibetanDate,
-	TibetanDateInput,
+	TibetanDateFields,
 	TibetanElement,
 	TibetanGender,
 	TibetanMonth,
-	TibetanMonthInput,
+	TibetanMonthFields,
 	TibetanYearName,
 } from "./types.js";
 export { SkippedDayError } from "./types.js";

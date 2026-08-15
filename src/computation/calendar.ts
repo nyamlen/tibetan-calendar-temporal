@@ -86,6 +86,39 @@ export function assertClosedFormYear(
 }
 
 /**
+ * Bounds a true month count so {@link monthFromCount} cannot overflow into confident nonsense.
+ *
+ * @remarks
+ * The counterpart of {@link assertClosedFormYear} for the *inverse* direction, and it exists for the
+ * same reason. `monthFromCount` computes `65·monthCount + β` before anything else, so a large enough
+ * count loses precision past 2⁵³ and silently returns a month identity built from arithmetic noise —
+ * exactly the failure `solarMonthsSinceEpoch` had until it was bounded.
+ *
+ * `assertClosedFormYear` cannot cover this: it is stated in `|year − epochYear|`, and the year is
+ * not known until *after* the overflowing multiplication has happened.
+ *
+ * The bound is **derived from the config at each call**, never a literal. `β = 67·M₀ − β* − 17` is
+ * built from injected fields, so a tradition with a different epoch month or intercalation index
+ * gets a different limit.
+ */
+export function assertLunation(
+	subject: () => string,
+	monthCount: number,
+	config: TraditionConfig,
+): void {
+	// 65·monthCount + β must stay inside the safe range. Subtracting |β| rather than β covers the
+	// negative direction with the same limit.
+	const limit = Math.floor((Number.MAX_SAFE_INTEGER - Math.abs(beta(config))) / 65);
+	if (Math.abs(monthCount) > limit) {
+		throw rangeError(
+			"TCT_OUTSIDE_EXACT_RANGE",
+			`${subject()} is outside the range where this tradition's month-count arithmetic stays ` +
+				`exact: |lunation| must be at most ${limit}, received ${monthCount}`,
+		);
+	}
+}
+
+/**
  * A month identified the way the calendar names it.
  *
  * @remarks

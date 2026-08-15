@@ -105,7 +105,18 @@ derivation; in `docs/` they are just noise.
   platforms.
 - **Zero runtime dependencies.** Temporal is a language built-in; the engine depends on nothing.
 - **ESM only.** `"type": "module"`. No dual CJS build.
-- **Pure stateless functions.** Same input, same output, no side effects.
+- **Pure stateless functions.** Same input, same output, no side effects — measured by what a
+  **caller** can observe, not by whether a module holds a variable. Memoising a pure function is
+  therefore allowed and already done three times: `scalingFor` on a `WeakMap`, the config validators
+  on a `WeakSet`, and `monthsFor` on a per-`(config, year)` cache. Do not delete one for offending
+  the word "stateless"; `monthsFor` earns its keep because stepping a month grid re-derives
+  neighbouring years constantly, and caching cuts a repeated year from ~180 µs to under 1 µs.
+
+  Two things a cache here must get right, both of which a naive one gets wrong. **Key on the config,
+  not just the year** — a config-blind cache serves one tradition's answers for another, and would
+  pass nearly every test, since `PHUGPA` and `PHUGPA_HENNING` diverge at month level in only four
+  years between 1500 and 2500. And **never hand out shared mutable state**: return a fresh array, or
+  one consumer's `sort()` corrupts the next consumer's.
 - **Tradition constants are injected** via `TraditionConfig`, never hardcoded. v1 ships
   `PHUGPA` only, but Tsurphu must remain addable without touching the algorithm.
   This extends to anything **derived from** those constants. The `±3` search window in
@@ -120,6 +131,20 @@ derivation; in `docs/` they are just noise.
   so they are the ones a keystroke off a spread mutates — and because scaling and validation are
   both memoised on the config object, a mutation after first use yields neither the old constants
   nor the new ones but a stale mix. Do not unfreeze one to make a test easier.
+- **What goes on the public surface is decided by a rule, and the rule has a scope.** Only the
+  barrel in `src/index.ts` makes a name API — exporting from a module under `src/` does not, which
+  is how `describeMonth` and `asPlainDate` are shared without being published.
+  [docs/decisions/2026-08-12-public-surface.md](docs/decisions/2026-08-12-public-surface.md) governs
+  the decision, and its 2026-08-15 revision is the part to read: the **wrong-or-impossible** test
+  applies to computation internals and contested conventions, where the failure mode is a plausible
+  wrong answer. A thin composition over already-public functions is judged instead by whether a
+  calendar library normally provides it **and** whether it has one obvious correct semantics.
+
+  Do not cite that record to refuse a convenience — it was misapplied that way and cost the surface
+  four functions that had to be added back. Equally, do not cite the second test to expose something
+  whose semantics are contested: two defensible answers means it belongs in injected config.
+  `test/public-api.test.ts` pins the list and each name's kind; a failure there means the surface
+  changed, so decide whether that was intended before editing the list.
 - **Errors carry codes; do not add an error class.** Throw through `rangeError`/`codedError` in
   `src/errors.ts`, never a bare `new RangeError` — the code is the part consumers branch on, and a
   bare construction silently omits it. `SkippedDayError` is the only class and stays the only one.
@@ -129,6 +154,13 @@ derivation; in `docs/` they are just noise.
   bare `RangeError` in `scaleTo` made it report that Losar 2026 does not exist. Both rules and the
   message-writing guidance:
   [docs/decisions/2026-08-12-error-codes-not-classes.md](docs/decisions/2026-08-12-error-codes-not-classes.md).
+
+  Two codes, not one, for bad input: `TCT_FIELD_OUT_OF_RANGE` means a **number** is wrong;
+  `TCT_INVALID_ARGUMENT` means the argument is the wrong **kind of thing** — a `Temporal` instance
+  where a Tibetan date belongs, a non-boolean leap flag, `null`. Only the first is on the allowlist,
+  which is what makes a caller's type confusion throw instead of being reported as a date that does
+  not exist. A new shape check uses the second, never the first:
+  [docs/decisions/2026-08-15-argument-errors-split.md](docs/decisions/2026-08-15-argument-errors-split.md).
 - **Every consumer config gets a validator, and every export gets a guard.** `TraditionConfig` and
   `ObservanceConfig` are both documented extension points, so both are checked at the boundary and
   memoised per object. Add a config type, add a validator — `TraditionConfig` went unchecked for

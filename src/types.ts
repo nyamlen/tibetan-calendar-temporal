@@ -1,6 +1,6 @@
 /**
- * The public data shapes: {@link TibetanDate}, its input counterpart
- * {@link TibetanDateInput}, and {@link SkippedDayError}.
+ * The public data shapes: {@link TibetanDate}, its unresolved counterpart
+ * {@link TibetanDateFields}, and {@link SkippedDayError}.
  *
  * @remarks
  * ## How this shape is organised
@@ -305,12 +305,52 @@ export interface TibetanDate {
 	 * ISO day of week: 1 = Monday through 7 = Sunday.
 	 *
 	 * @remarks
-	 * Deliberately the ISO numbering rather than Janson's, which runs 0 = Saturday through
+	 * Deliberately the ISO numbering rather than the Tibetan one, which runs 0 = Saturday through
 	 * 6 = Friday. The Tibetan and Western weekdays are the same seven-day cycle, so no
 	 * information is lost, and matching `Temporal.PlainDate.dayOfWeek` avoids an off-by-two that
-	 * would be invisible in most tests.
+	 * would be invisible in most tests. For the Tibetan numbering see {@link
+	 * TibetanDate.tibetanWeekday}.
 	 */
 	dayOfWeek: number;
+
+	/**
+	 * Tibetan day of week: 0 = Saturday through 6 = Friday.
+	 *
+	 * @remarks
+	 * The same seven-day cycle as {@link TibetanDate.dayOfWeek}, differently numbered. Each day
+	 * corresponds to one of the seven "planets", and the Tibetan name of the day is essentially the
+	 * name of the planet — 0 Saturn (*spen ma*), 1 Sun (*nyi ma*), 2 Moon (*zla ba*), 3 Mars
+	 * (*mig dmar*), 4 Mercury (*lhag pa*), 5 Jupiter (*phur bu*), 6 Venus (*pa sangs*). Janson's
+	 * day-of-week section gives the table; the correspondence reached Tibet from India and goes back
+	 * to Roman astrology, which is why it matches the Latin and English weekday names.
+	 *
+	 * This is not a display convenience. Janson notes that the date and the day of week are usually
+	 * given together because that *resolves the ambiguity when days are repeated*: both halves of a
+	 * doubled pair carry the same {@link TibetanDate.day}, and the weekday is what tells them apart.
+	 * He also lists it as the first of the five components (*lnga bsdus*) that make up the calendar.
+	 *
+	 * Field and function carry one name: this is exactly `tibetanWeekday(julianDayFromIso(isoDate))`,
+	 * computed here from the Julian day the conversion already holds. It is flat rather than grouped
+	 * because it is a date component; a future `weekdayName` carrying the planet in Tibetan script
+	 * and phonetics would group under `*Name`, exactly as {@link TibetanDate.yearName} does beside
+	 * {@link TibetanDate.year}.
+	 */
+	tibetanWeekday: number;
+
+	/**
+	 * The lunation this date falls in — the same integer {@link TibetanMonth.lunation} carries.
+	 *
+	 * @remarks
+	 * The date's route back to its own month. Without it a consumer holding a date has to rediscover
+	 * the month by matching two keys — `monthsFor(d.year).find(m => m.month === d.month &&
+	 * m.isLeapMonth === d.isLeapMonth)` — and the second key is the one that gets forgotten, which
+	 * silently picks the wrong half of a leap pair. With it, `monthFromLunation(date.lunation)` is
+	 * the whole operation.
+	 *
+	 * Zero is the epoch, so values are large, and negative before it. It is a coordinate, not a
+	 * month number.
+	 */
+	lunation: number;
 }
 
 /**
@@ -336,6 +376,53 @@ export interface TibetanDate {
  * ISO years.
  */
 export interface TibetanMonth {
+	/**
+	 * Royal-era year this month belongs to, matching {@link TibetanDate.year}.
+	 *
+	 * @remarks
+	 * Present so that a `TibetanMonth` identifies itself. `monthsFor(year)` supplies the year
+	 * implicitly — the caller passed it — but that only holds while `monthsFor` is the sole producer,
+	 * and it is not what a consumer holding one month needs. Without this field a month could not be
+	 * passed to `daysInMonth`, could not be spread into a date as `{ ...month, day: 8 }`, and could
+	 * not be returned by anything that crosses a year boundary.
+	 *
+	 * Tibetan years straddle two ISO years, opening in February or early March, so this is not
+	 * recoverable from {@link TibetanMonth.firstDay} without redoing the conversion.
+	 */
+	year: number;
+
+	/**
+	 * The month's position in the unbroken count of lunations since the tradition's epoch.
+	 *
+	 * @remarks
+	 * A Tibetan month **is** a lunation, and every month counts once — leap months included — so
+	 * this increases by exactly one per month with no special case, and continues across Losar
+	 * without a gap. Janson calls it the true month count.
+	 *
+	 * It is the month's identity as a **single sortable integer**, which is what
+	 * `(year, month, isLeapMonth)` cannot be: a leap month precedes the regular month it shares a
+	 * number with, so sorting on the tuple puts them the wrong way round, since `false` sorts before
+	 * `true`. Use this as a database key, a cache key or an array index, and `+ 1` for the next
+	 * month.
+	 *
+	 * Zero is the epoch, so values are large and negative before it. Do not read it as a month
+	 * number.
+	 */
+	lunation: number;
+
+	/**
+	 * The element–animal name of the year this month belongs to.
+	 *
+	 * @remarks
+	 * The same value {@link TibetanDate.yearName} carries, and it is here for the same reason
+	 * {@link TibetanMonth.year} is: a month should identify itself. Rendering a month header
+	 * otherwise means hopping into the date tier through `losarFor`, which is not a route anyone
+	 * would guess from the name.
+	 *
+	 * Both halves of a leap pair carry the same name — they are two months of one year.
+	 */
+	yearName: TibetanYearName;
+
 	/**
 	 * Month number, 1–12.
 	 *
@@ -381,23 +468,26 @@ export interface TibetanMonth {
  * input is expected.
  *
  * @remarks
- * `TibetanDateInput` and `Temporal.PlainDate` are structurally close enough — both are plain
+ * `TibetanDateFields` and `Temporal.PlainDate` are structurally close enough — both are plain
  * objects exposing numeric `year`, `month` and `day` — that nothing stops a caller from handing a
  * Western date to a Tibetan-date entry point. Nothing crashes: `tibetanToIso` reads the same three
- * fields off a `PlainDate` that it would off a real `TibetanDateInput`, and returns a confident,
+ * fields off a `PlainDate` that it would off a real `TibetanDateFields`, and returns a confident,
  * silently wrong Tibetan date. This check runs before any field validation, which would otherwise
  * accept a `PlainDate`'s in-range numeric fields without complaint.
  *
- * The runtime half of the defence; {@link TibetanDateInput.calendarId} and
- * {@link TibetanMonthInput.calendarId} are the compile-time half, for callers who stay inside the
+ * The runtime half of the defence; {@link TibetanDateFields.calendarId} and
+ * {@link TibetanMonthFields.calendarId} are the compile-time half, for callers who stay inside the
  * type system. This half is what catches JavaScript callers, `any`, and casts.
  *
  * Shared across every Tibetan-date entry point — `tibetanToIso`, `tibetanDateExists`,
  * `formatTibetanDate`, `daysInMonth` — so the message and the code are one policy rather than four.
- * `tibetanDateExists` calls this itself, before its own `try`, in addition to `tibetanToIso`
- * calling it again internally: `TCT_FIELD_OUT_OF_RANGE` is on that function's allowlist for
- * answering `false`, so a Temporal instance caught inside the `try` would be swallowed into
- * "that date does not exist" rather than thrown out to the caller who confused the two APIs.
+ *
+ * The code is `TCT_INVALID_ARGUMENT` rather than `TCT_FIELD_OUT_OF_RANGE`, and that is load-bearing
+ * for `tibetanDateExists`. Only the range code is on that predicate's allowlist for answering
+ * `false`, so a Temporal instance thrown from here propagates out of it — telling a caller who
+ * confused the two APIs that they did, instead of reporting a Western date as a Tibetan one that
+ * does not exist. While the two shared one code, `tibetanDateExists` had to call this itself before
+ * its own `try` to get that behaviour; it no longer does.
  */
 export function rejectTemporalInstance(functionName: string, value: unknown): void {
 	if (
@@ -413,7 +503,7 @@ export function rejectTemporalInstance(functionName: string, value: unknown): vo
 				? "Did you mean isoToTibetan(date)?"
 				: "Convert it first with isoToTibetan(date).";
 		throw rangeError(
-			"TCT_FIELD_OUT_OF_RANGE",
+			"TCT_INVALID_ARGUMENT",
 			`${functionName}: received a Temporal.${value.constructor.name}, which names a Western ` +
 				`calendar day, not a Tibetan one. ${suggestion}`,
 		);
@@ -442,16 +532,15 @@ function describeFlagValue(value: unknown): string {
  * Also the null/non-object guard for the three entry points that lacked one: `tibetanToIso`,
  * `daysInMonth` and `tibetanDateExists` (via delegation) all read a field off their input before
  * this function returned, so `null` or `undefined` reached `input.year` and threw an uncoded
- * native `TypeError` instead of this package's `TCT_FIELD_OUT_OF_RANGE` — `formatTibetanDate` was
- * the only one of the four that already guarded this. Checking it here, once, closes it for all
- * three at the shared point rather than adding the same guard three times.
+ * native `TypeError`. `formatTibetanDate` was the only one of the four that already guarded this.
+ * Checking it here, once, closes it for all three at the shared point rather than adding the same
+ * guard three times.
  *
- * Shared across the same four entry points as {@link rejectTemporalInstance}, for the same
- * reason: one policy for the message and the code rather than four. `tibetanDateExists` calls
- * this itself, before its own `try`, in addition to `tibetanToIso` calling it again internally —
- * `TCT_FIELD_OUT_OF_RANGE` is on that function's allowlist for answering `false`, so a bad-typed
- * flag caught inside the `try` would be swallowed into "that date does not exist" rather than
- * thrown out to the caller who passed the wrong type.
+ * Shared across the same four entry points as {@link rejectTemporalInstance}, for the same reason:
+ * one policy for the message and the code rather than four. Both throws are
+ * `TCT_INVALID_ARGUMENT` — a non-boolean flag and a non-object are wrong *kinds* of argument, not
+ * numbers out of a range — which is what keeps them off `tibetanDateExists`'s allowlist and so
+ * thrown out to the caller rather than reported as a date that does not exist.
  */
 export function rejectInvalidLeapFlags(
 	functionName: string,
@@ -459,7 +548,7 @@ export function rejectInvalidLeapFlags(
 ): void {
 	if (value === null || typeof value !== "object") {
 		throw rangeError(
-			"TCT_FIELD_OUT_OF_RANGE",
+			"TCT_INVALID_ARGUMENT",
 			`${functionName}: expected an object naming a Tibetan date, received ${describeFlagValue(value)}`,
 		);
 	}
@@ -468,7 +557,7 @@ export function rejectInvalidLeapFlags(
 		if (flag !== undefined && typeof flag !== "boolean") {
 			const noun = field === "isLeapMonth" ? "month" : "day";
 			throw rangeError(
-				"TCT_FIELD_OUT_OF_RANGE",
+				"TCT_INVALID_ARGUMENT",
 				`${functionName}: ${field} must be a boolean or omitted, received ${describeFlagValue(flag)}. ` +
 					`A string like "false" is truthy, so a non-boolean here would silently select the leap ${noun} ` +
 					"instead of being rejected.",
@@ -481,10 +570,10 @@ export function rejectInvalidLeapFlags(
  * The identifying fields needed to name a Tibetan month, as accepted by `daysInMonth`.
  *
  * @remarks
- * Both {@link TibetanDate} and {@link TibetanDateInput} are assignable to this, so a value from
+ * Both {@link TibetanDate} and {@link TibetanDateFields} are assignable to this, so a value from
  * `isoToTibetan` can be passed straight in — the extra `day` is simply ignored.
  */
-export interface TibetanMonthInput {
+export interface TibetanMonthFields {
 	/** Royal-era year, matching {@link TibetanDate.year}. Not Janson's *Y*. */
 	year: number;
 
@@ -519,8 +608,19 @@ export interface TibetanMonthInput {
  * @remarks
  * A {@link TibetanDate} is assignable to this type, so a value obtained from `isoToTibetan` can
  * be passed straight back in.
+ *
+ * ## Why `Fields` rather than `Input`
+ *
+ * It was `TibetanDateInput` until the 1.0.0 corrections, and that name described a role it does not
+ * only play: `parseTibetanDate` **returns** one. A type named for being an input, appearing in a
+ * return position, tells a reader the wrong thing about what it is.
+ *
+ * What it actually is: the fields that *name* a date, resolved or not. That distinction is
+ * load-bearing rather than cosmetic — naming a date without resolving it is the only way to
+ * represent a **skipped** date, which is a string almanacs print and no calendar day carries. A
+ * type that could only hold resolved dates could not be `parseTibetanDate`'s return.
  */
-export interface TibetanDateInput {
+export interface TibetanDateFields {
 	/**
 	 * Royal-era year, matching {@link TibetanDate.year}.
 	 *
@@ -563,7 +663,7 @@ export interface TibetanDateInput {
 	 * `ZonedDateTime` at compile time.
 	 *
 	 * @remarks
-	 * See {@link TibetanMonthInput.calendarId} — the same field, for the same reason. Do not
+	 * See {@link TibetanMonthFields.calendarId} — the same field, for the same reason. Do not
 	 * delete this as an unused field: it has no reads because its entire job is to make an
 	 * *invalid* call fail to typecheck.
 	 */
@@ -587,7 +687,7 @@ export interface TibetanDateInput {
  */
 export class SkippedDayError extends Error {
 	/** The date that was requested and does not exist. */
-	readonly requested: TibetanDateInput;
+	readonly requested: TibetanDateFields;
 
 	/**
 	 * Always `"TCT_SKIPPED_DAY"`.
@@ -598,7 +698,7 @@ export class SkippedDayError extends Error {
 	 */
 	readonly code: TibetanCalendarErrorCode = "TCT_SKIPPED_DAY";
 
-	constructor(requested: TibetanDateInput) {
+	constructor(requested: TibetanDateFields) {
 		// Through the canonical formatter, not hand-rolled. This message used to print
 		// `2150-12-29` — no `M`, so indistinguishable from an ISO date by eye — and used the
 		// ` (leap)` suffix for a leap *month* where `formatTibetanDate` uses it for a leap *day*.

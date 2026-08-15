@@ -65,11 +65,17 @@ describe("formatTibetanDate", () => {
 	 * preventing, and handed `{}` this once produced exactly one.
 	 */
 	it("refuses anything that is not a date rather than rendering undefined", () => {
+		// Not a date-shaped thing at all: nothing here has a field to be out of a range.
+		for (const value of [null, undefined, "2153-M12-08"]) {
+			expect(
+				codeOf(() => formatTibetanDate(value as never)),
+				JSON.stringify(value),
+			).toBe("TCT_INVALID_ARGUMENT");
+		}
+		// Object-shaped, so it clears the shape guard and fails on a field: absent counts as
+		// out of range, since `undefined` is not a safe integer.
 		for (const value of [
 			{},
-			null,
-			undefined,
-			"2153-M12-08",
 			{ year: 2153, month: 12 },
 			{ year: 2153, month: 0, day: 1 },
 			{ year: 2153, month: 13, day: 1 },

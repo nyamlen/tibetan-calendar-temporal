@@ -7,6 +7,7 @@ import {
 	tibetanToIso,
 } from "../src/computation/conversion.js";
 import {
+	datesFor,
 	daysInMonth,
 	hasLeapMonth,
 	leapMonthOfYear,
@@ -64,6 +65,115 @@ describe("monthsFor", () => {
 			const total = months.reduce((sum, m) => sum + m.days, 0);
 			expect(total, `${year} day total`).toBe(nextLosar.since(losar).days);
 		}
+	});
+
+	/**
+	 * `TibetanMonth` carried no `year`, because `monthsFor(year)` was its only producer and supplied
+	 * it implicitly. That made it unusable anywhere the consumer did not already know the year —
+	 * a returned month could not be fed to `daysInMonth`, and could not be spread into a date.
+	 */
+	it("carries the year it belongs to, so a month can be used without one in hand", () => {
+		for (const year of [2151, 2153]) {
+			for (const month of monthsFor(year)) {
+				expect(month.year, `${year} ${month.monthCode}`).toBe(year);
+				// The composition the missing field blocked: a TibetanMonth satisfies
+				// TibetanMonthFields, so it round-trips through the month-level API.
+				expect(daysInMonth(month)).toBe(month.days);
+			}
+		}
+	});
+
+	/**
+	 * The month's identity as one sortable integer. `(year, month, isLeapMonth)` cannot serve:
+	 * a leap month precedes the regular month it shares a number with, so sorting on the tuple puts
+	 * them the wrong way round — `false` sorts before `true`.
+	 */
+	it("carries a lunation that increases strictly in calendar order", () => {
+		for (const year of [2151, 2153]) {
+			const lunations = monthsFor(year).map((m) => m.lunation);
+			for (let i = 1; i < lunations.length; i++) {
+				expect(at(lunations, i), `${year} month ${i}`).toBe(at(lunations, i - 1) + 1);
+			}
+		}
+	});
+
+	/**
+	 * Every `TibetanDate` carries `yearName`; no `TibetanMonth` did, so rendering a month header
+	 * meant hopping into the date tier through a function called `losarFor` — not a route anyone
+	 * guesses. Both halves of a doubled pair are checked because reading the year off the wrong
+	 * twin is the way a naive implementation gets this wrong.
+	 */
+	it("names the year of every month, including both halves of a leap pair", () => {
+		for (const year of [2151, 2153]) {
+			const expected = losarFor(year).yearName;
+			for (const month of monthsFor(year)) {
+				expect(month.yearName, `${year} ${month.monthCode}`).toEqual(expected);
+			}
+		}
+	});
+
+	/**
+	 * `monthsFor` was not memoised, so every consumer stepping a month grid paid for a full
+	 * month-boundary computation two or three times per step. The cache must key on the config as
+	 * well as the year — a cache ignoring it would serve PHUGPA results for PHUGPA_HENNING.
+	 */
+	it("memoises per year without letting one caller corrupt another", () => {
+		const first = monthsFor(2151);
+		const second = monthsFor(2151);
+		expect(second).toEqual(first);
+		// Whatever the cache hands out must survive a caller mutating it.
+		first.sort((a, b) => b.lunation - a.lunation);
+		expect(monthsFor(2151).map((m) => m.monthCode)).toEqual([
+			"M01",
+			"M02",
+			"M03",
+			"M04",
+			"M05",
+			"M06L",
+			"M06",
+			"M07",
+			"M08",
+			"M09",
+			"M10",
+			"M11",
+			"M12",
+		]);
+	});
+
+	/**
+	 * The cache must key on the config, not the year alone, or it serves one tradition's months for
+	 * another. Royal-era 2226 is one of only four years between 1500 and 2500 where the two shipped
+	 * configs disagree at month level — M09 begins 2099-10-15 under `PHUGPA` and 2099-10-14 under
+	 * `PHUGPA_HENNING` — which is exactly why the test names it rather than a convenient year: a
+	 * config-blind cache passes everywhere else.
+	 */
+	it("keeps the two traditions apart in the cache", () => {
+		const phugpaFirst = monthsFor(2226)
+			.find((m) => m.monthCode === "M09")
+			?.firstDay.toString();
+		const henning = monthsFor(2226, PHUGPA_HENNING).find((m) => m.monthCode === "M09");
+		expect(phugpaFirst).toBe("2099-10-15");
+		expect(henning?.firstDay.toString()).toBe("2099-10-14");
+		// Ask for the first one again, after the second has been through the cache.
+		expect(
+			monthsFor(2226)
+				.find((m) => m.monthCode === "M09")
+				?.firstDay.toString(),
+		).toBe("2099-10-15");
+	});
+
+	it("numbers a leap month one lunation before the regular month it shares a number with", () => {
+		const months = monthsFor(2151);
+		const leap = months.find((m) => m.monthCode === "M06L");
+		const regular = months.find((m) => m.monthCode === "M06");
+		expect(leap?.lunation).toBe((regular?.lunation ?? Number.NaN) - 1);
+	});
+
+	// Lunations are the unbroken count, so they continue across the Losar boundary without a gap.
+	it("continues its lunation count into the next year", () => {
+		const lastOf2151 = at(monthsFor(2151), -1);
+		const firstOf2152 = at(monthsFor(2152), 0);
+		expect(firstOf2152.lunation).toBe(lastOf2151.lunation + 1);
 	});
 
 	it("emits contiguous, non-overlapping months of 29 or 30 days", { timeout: 30_000 }, () => {
@@ -339,5 +449,93 @@ describe("closed-form overflow guard", () => {
 
 		const justInsideRoyal = PHUGPA.epochYear + limit + 127;
 		expect(codeOf(() => hasLeapMonth(justInsideRoyal + 1))).toBe("TCT_OUTSIDE_EXACT_RANGE");
+	});
+});
+
+/**
+ * The month grid: every calendar day of a month, labelled.
+ *
+ * The loop this replaces is documented in the README and correct — but only because a warning box
+ * explains that `for (d = 1; d <= days; d++)` is wrong. Date numbers are not contiguous; calendar
+ * days are, which is what this walks.
+ */
+describe("datesFor", () => {
+	it("returns one entry per calendar day, not per date number", () => {
+		for (const year of [2151, 2153]) {
+			for (const month of monthsFor(year)) {
+				const dates = datesFor(month);
+				expect(dates.length, `${year} ${month.monthCode}`).toBe(month.days);
+				expect(at(dates, 0).isoDate.toString()).toBe(month.firstDay.toString());
+				expect(at(dates, -1).isoDate.toString()).toBe(month.lastDay.toString());
+			}
+		}
+	});
+
+	it("labels every entry with the month it belongs to", () => {
+		const month = at(monthsFor(2151), 5);
+		for (const date of datesFor(month)) {
+			expect(date.month).toBe(month.month);
+			expect(date.isLeapMonth).toBe(month.isLeapMonth);
+			expect(date.lunation).toBe(month.lunation);
+		}
+	});
+
+	/**
+	 * The two irregularities a grid has to render. A doubled number appears twice — once with
+	 * `isLeapDay` — and a skipped number does not appear at all, which is precisely why counting to
+	 * `days` produces a wrong grid.
+	 */
+	it("repeats a doubled number and omits a skipped one", () => {
+		// 2151 M05 doubles 14 and skips 17 and 28.
+		const may = monthsFor(2151).find((m) => m.monthCode === "M05");
+		if (may === undefined) expect.unreachable("2151 has M05");
+		const numbers = datesFor(may).map((d) => d.day);
+		expect(numbers.filter((n) => n === 14)).toHaveLength(2);
+		expect(numbers).not.toContain(17);
+		expect(numbers).not.toContain(28);
+		expect(
+			datesFor(may)
+				.filter((d) => d.isLeapDay)
+				.map((d) => d.day),
+		).toEqual([14]);
+	});
+
+	it("accepts a hand-built month, not only one from monthsFor", () => {
+		const fromList = monthsFor(2151).find((m) => m.monthCode === "M06L");
+		if (fromList === undefined) expect.unreachable("2151 has a leap month 6");
+		expect(datesFor({ year: 2151, month: 6, isLeapMonth: true })).toHaveLength(fromList.days);
+	});
+
+	it.each([
+		["a PlainDate", () => datesFor(iso("2026-08-12") as never)],
+		["null", () => datesFor(null as never)],
+		[
+			"a non-boolean isLeapMonth",
+			() => datesFor({ year: 2151, month: 6, isLeapMonth: 1 } as never),
+		],
+	])("rejects %s", (_label, call) => {
+		expect(codeOf(call)).toBe("TCT_INVALID_ARGUMENT");
+	});
+
+	it.each([
+		["month 13", () => datesFor({ year: 2151, month: 13 })],
+		["a fractional year", () => datesFor({ year: 2151.5, month: 1 })],
+	])("rejects %s", (_label, call) => {
+		expect(codeOf(call)).toBe("TCT_FIELD_OUT_OF_RANGE");
+	});
+
+	it("refuses a leap month the year does not have", () => {
+		expect(codeOf(() => datesFor({ year: 2153, month: 5, isLeapMonth: true }))).toBe(
+			"TCT_NO_SUCH_LEAP_MONTH",
+		);
+	});
+
+	it("refuses a month outside the exact range", () => {
+		// PHUGPA_HENNING runs out around royal era 11,483. Both sides of that are pinned, so the
+		// bound cannot silently tighten into refusing dates it can compute.
+		expect(datesFor({ year: 11_480, month: 1 }, PHUGPA_HENNING)).toHaveLength(30);
+		expect(codeOf(() => datesFor({ year: 11_490, month: 1 }, PHUGPA_HENNING))).toBe(
+			"TCT_OUTSIDE_EXACT_RANGE",
+		);
 	});
 });

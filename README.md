@@ -56,9 +56,25 @@ and does not establish.
 Outside it, correctness rests on internal consistency (round-trips, year-length frequencies) and
 on Janson's own worked values — the Losar table, 1927–2046 — rather than on external day-by-day
 agreement.
-Every result is a whole calendar day on the Tibetan meridian, with no sunset boundary and no
-timezone; a consumer who needs a local instant supplies their own time zone against the returned
-`isoDate`.
+**The day boundary.** Every result labels a **whole proleptic-Gregorian calendar day**. The package
+models no instants and picks no time zone, so there is no moment at which a returned date "starts".
+
+The calendar's own rule is that a day takes the number of the lunar day running at **daybreak** —
+about 5 a.m. Tibetan local mean solar time, which Henning specifies and Janson reports. That offset
+is already inside the arithmetic: Janson's `true_date` is a local Julian date whose integer values
+fall at mean dawn rather than at noon UT, so the boundary was fixed once when the epoch constants
+were chosen and is never re-applied. No sunrise is calculated anywhere, which is one reason the
+results are deterministic.
+
+For most uses that is the whole story, because almanacs print one grid and a civil date is what you
+want to display. Where it matters is observance: Mahayana precepts and other one-day vows are taken
+at daybreak and held until the next, so someone at 2 a.m. is still on the previous Tibetan date. A
+consumer who needs that precision applies their own daybreak rule to the returned `isoDate` — the
+package will not guess a location for you.
+
+This is **not** the sunset boundary a reader arriving from a Jewish or Islamic calendar library will
+expect. Sunset moves with latitude and season and cannot be resolved without a place; daybreak here
+is a fixed convention on a fixed meridian, so this calendar is fully determined without one.
 
 ## Requirements
 
@@ -135,7 +151,9 @@ The full object:
   "isFullMoon": false,
   "isNewMoon": true,
   "isoDate": "2026-08-12",
-  "dayOfWeek": 3
+  "dayOfWeek": 3,
+  "tibetanWeekday": 4,
+  "lunation": 15094
 }
 ```
 
@@ -156,8 +174,25 @@ No weekday *name* is included, because `Temporal` already gives you one in the r
 date.isoDate.toLocaleString('en-GB', { weekday: 'long' });   // "Wednesday"
 ```
 
-Tibetan almanacs number the week differently — `0` = Saturday through `6` = Friday. If you need
-that convention, it is exported separately rather than conflated with the ISO field:
+The Tibetan week is numbered differently — `0` = Saturday through `6` = Friday. It is the same
+seven-day cycle, renumbered, and it is kept in a separate field rather than conflated with the ISO
+one:
+
+```js
+date.tibetanWeekday;   // 4 — Wednesday, in the Tibetan numbering
+```
+
+Each day corresponds to one of the seven planets, and the Tibetan name of the day is essentially the
+planet's: `0` Saturn (*spen ma*), `1` Sun (*nyi ma*), `2` Moon (*zla ba*), `3` Mars (*mig dmar*),
+`4` Mercury (*lhag pa*), `5` Jupiter (*phur bu*), `6` Venus (*pa sangs*). That correspondence
+reached Tibet from India and goes back to Roman astrology, which is why it lines up with the Latin
+and English names.
+
+It is worth more than display. Janson notes that a date and its weekday are usually given together
+because that **resolves the ambiguity when days are repeated** — both halves of a doubled pair carry
+the same `day`, and the weekday is what tells them apart.
+
+The same numbering is available from a Julian day, for callers who have one but no `TibetanDate`:
 
 ```js
 import { julianDayFromIso, tibetanWeekday } from 'tibetan-calendar-temporal';
@@ -208,12 +243,37 @@ leapMonthOfYear(2151);                         // 6
 
 Each month carries its own boundaries, so a grid needs no further conversion to lay out:
 
+`lunation` is also on every `TibetanDate`, carrying the month that date falls in — so a date has a
+direct route back to its own month rather than needing a two-key search that is easy to get wrong
+across a leap pair.
+
 ```js
 const month = monthsFor(2153)[0];
+month.year;                      // 2153
+month.yearName;                  // { element: 'fire', animal: 'horse', gender: 'male' }
 month.monthCode;                 // "M01"
 month.days;                      // 29
 month.firstDay.toString();       // "2026-02-18" — Losar
 month.lastDay.toString();        // "2026-03-18"
+```
+
+A month identifies itself, so it can be passed on without the year travelling separately:
+
+```js
+daysInMonth(month);                       // 29 — a TibetanMonth is accepted directly
+tibetanDateExists({ ...month, day: 8 });  // true
+```
+
+It also carries `lunation`, its position in the unbroken count of lunations since the tradition's
+epoch. Every Tibetan month is one lunation and every month counts once, leap months included, so
+this rises by exactly one per month and continues across Losar without a gap. That makes it the
+month's identity as a **single sortable integer** — useful as a database or cache key, where
+`(year, month, isLeapMonth)` cannot serve, because a leap month comes *before* the regular month it
+shares a number with and `false` sorts before `true`.
+
+```js
+monthsFor(2151).map((m) => m.lunation);
+// consecutive integers — M06L is one less than M06, which is the ordering a tuple sort gets wrong
 ```
 
 > **`days` counts calendar days, not date numbers.** Date numbers always run 1–30; the span is 29 or
@@ -257,7 +317,7 @@ tibetanDateExists(skipped);                        // false
 ```
 
 The grammar is strict: the canonical form only. `'2153-M12-8'`, `'2153-m12-08'` and the ISO-looking
-`'2153-12-08'` are all rejected with `TCT_FIELD_OUT_OF_RANGE`.
+`'2153-12-08'` are all rejected with `TCT_INVALID_ARGUMENT`.
 
 ### Three things that make this calendar hard
 
@@ -351,10 +411,13 @@ try {
       // error instanceof SkippedDayError, and error.requested is the input you passed
       return `${format(error.requested)} is not a day in this calendar`;
     case 'TCT_FIELD_OUT_OF_RANGE':
-      // Also covers argument-shape/type confusion, not just numeric range — e.g. a
-      // Temporal.PlainDate passed where a Tibetan date is expected.
+      // A number is wrong: month 13, day 31, a year that is not an integer.
     case 'TCT_NO_SUCH_LEAP_MONTH':
       return 'Please check the date';
+    case 'TCT_INVALID_ARGUMENT':
+      // Not bad data — a bug in the calling code. A Temporal.PlainDate where a Tibetan
+      // date belongs, a non-boolean isLeapMonth, null. Do not show this to a user.
+      throw error;
     default:
       throw error;
   }
@@ -539,8 +602,8 @@ no calendar: `formatTibetanDate`, `parseTibetanDate`, `julianDayFromIso` and `ti
 | Export | Signature | Notes |
 |---|---|---|
 | `isoToTibetan` | `(date: Temporal.PlainDate, config?) => TibetanDate` | Total; every calendar day has a Tibetan date |
-| `tibetanToIso` | `(input: TibetanDateInput, config?) => Temporal.PlainDate` | Throws `SkippedDayError`, or `RangeError` on out-of-range input |
-| `tibetanDateExists` | `(input: TibetanDateInput, config?) => boolean` | The predicate counterpart. `false` for a skipped date, an out-of-range field or a missing leap month; **throws** for anything else, including a date past the exact range — where the day was never computed, so `false` would be a claim about arithmetic that was refused |
+| `tibetanToIso` | `(input: TibetanDateFields, config?) => Temporal.PlainDate` | Throws `SkippedDayError`, or `RangeError` on out-of-range input |
+| `tibetanDateExists` | `(input: TibetanDateFields, config?) => boolean` | The predicate counterpart. `false` for a skipped date, an out-of-range field or a missing leap month; **throws** for anything else, including a date past the exact range — where the day was never computed, so `false` would be a claim about arithmetic that was refused |
 | `losarFor` | `(year: number, config?) => TibetanDate` | Tibetan New Year. Not `{ month: 1, day: 1 }` — that throws where day 1 is skipped |
 
 #### Months
@@ -554,10 +617,57 @@ a handful of integer operations, and exact for any year — including ones where
 | Export | Signature | Notes |
 |---|---|---|
 | `monthsFor` | `(year: number, config?) => TibetanMonth[]` | The year's months in calendar order, 12 or 13. Tiles Losar to the day before the next Losar, leap month first of its pair |
-| `daysInMonth` | `(month: TibetanMonthInput, config?) => number` | **Calendar days**, 29 or 30 — not the highest date number, which is always 30. Accepts a `TibetanDate` directly |
+| `daysInMonth` | `(month: TibetanMonthFields, config?) => number` | **Calendar days**, 29 or 30 — not the highest date number, which is always 30. Accepts a `TibetanDate` directly |
 | `hasLeapMonth` | `(year: number, config?) => boolean` | Whether the year has a thirteenth month. Not called `isLeapYear`: a Tibetan leap year gains a *month*, not a day |
 | `leapMonthOfYear` | `(year: number, config?) => number \| undefined` | Which month number is doubled, or `undefined` |
 | `monthsInYear` | `(year: number, config?) => number` | 12 or 13 |
+| `datesFor` | `(month: TibetanMonthFields, config?) => TibetanDate[]` | The month's calendar days, labelled — one entry per day, so a doubled number appears twice and a skipped one not at all. Bounded at 29 or 30 |
+
+#### Navigation
+
+Arithmetic happens on the calendar's two **integer coordinate lines** — the Julian day for solar
+days, the lunation for months — never on the labels. Labels are partial (a skipped date names no
+day) and non-injective (a leap year has two months numbered 6), which is where ambiguity comes
+from; in coordinate space a leap month is simply the next lunation.
+
+| Export | Signature | Notes |
+|---|---|---|
+| `addDays` | `(date: TibetanDateFields, days: number, config?) => TibetanDate` | **Solar** days, the unit elapsed-time reckonings use. Total — it can never land on a skipped date, because stepping real days never reaches a label no day carries |
+| `daysBetween` | `(from: TibetanDateFields, to: TibetanDateFields, config?) => number` | Signed. If both dates came from this package, `a.isoDate.until(b.isoDate)` is the better route; this is for dates you built yourself |
+| `addMonths` | `(month: TibetanMonthFields, months: number, config?) => TibetanMonth` | Month in, month out, so **total**. `+1` from a leap month is its twin. A `TibetanDate` is accepted; the day is ignored |
+| `monthsBetween` | `(from: TibetanMonthFields, to: TibetanMonthFields, config?) => number` | Signed, counted in **lunations** — month 5 to month 7 is three in a year that doubles month 6, two otherwise |
+| `lunationFromMonth` | `(month: TibetanMonthFields, config?) => number` | The month as one sortable integer, for a database or cache key. No consumer-side route: it needs the intercalation index |
+| `monthFromLunation` | `(lunation: number, config?) => TibetanMonth` | The inverse, for a stored coordinate with no year in hand. Narrower domain than its inverse — it returns boundaries, so it evaluates the calendar |
+| `nextFullMoon` | `(date: Temporal.PlainDate, config?) => TibetanDate` | Strictly after. **Not** `day === 15`: when 15 is skipped the full moon is on the day numbered 14, about one month in forty-five |
+| `nextNewMoon` | `(date: Temporal.PlainDate, config?) => TibetanDate` | Strictly after. On a doubled 30 it is the **second** of the pair, not the leap day |
+
+Western in, Tibetan out for the two phases, so they do not chain with themselves — step through
+`.isoDate`:
+
+```js
+let moon = nextFullMoon(Temporal.PlainDate.from('2026-01-01'));
+moon = nextFullMoon(moon.isoDate);   // the one after that
+```
+
+#### Year names
+
+Closed forms over the year alone — no lunar arithmetic, no config, and exact for any safe integer
+year, including ones where `losarFor` must refuse.
+
+| Export | Signature | Notes |
+|---|---|---|
+| `yearNameFor` | `(year: number) => TibetanYearName` | `{ element, animal, gender }`. Element and gender repeat every ten years, the animal every twelve, the whole name every sixty |
+| `rabjungFor` | `(year: number) => Rabjung` | `{ cycle, year }`, the sixty-year numbering from 1027 CE. A *numbering*, not a name — the two cycles sit three apart |
+
+A year picker is a loop over these plus `hasLeapMonth`; there is no range function, because building
+the list is the consumer's business and nothing about it can go wrong.
+
+```js
+const years = [];
+for (let y = 2140; y <= 2160; y++) {
+  years.push({ year: y, name: yearNameFor(y), rabjung: rabjungFor(y), leap: hasLeapMonth(y) });
+}
+```
 
 #### Formatting
 
@@ -566,8 +676,8 @@ because naming a date needs no calendar.
 
 | Export | Signature | Notes |
 |---|---|---|
-| `formatTibetanDate` | `(date: TibetanDateInput) => string` | `"2153-M06-30"`, with `L` on a leap month and a trailing `(leap)` on a leap day. A `TibetanDate` is assignable, so pass one straight in |
-| `parseTibetanDate` | `(text: string) => TibetanDateInput` | Strict — the canonical form only. Returns the naming fields rather than a resolved date, so a **skipped** date parses rather than throwing; pass it to `tibetanToIso` or `tibetanDateExists` |
+| `formatTibetanDate` | `(date: TibetanDateFields) => string` | `"2153-M06-30"`, with `L` on a leap month and a trailing `(leap)` on a leap day. A `TibetanDate` is assignable, so pass one straight in |
+| `parseTibetanDate` | `(text: string) => TibetanDateFields` | Strict — the canonical form only. Returns the naming fields rather than a resolved date, so a **skipped** date parses rather than throwing; pass it to `tibetanToIso` or `tibetanDateExists` |
 
 #### Interoperability
 
@@ -575,11 +685,19 @@ The Julian day number is the interchange representation of calendrical computing
 convert between any two calendars, and how Janson's paper is written. These are the extension
 point, not internals that leaked.
 
+**These are Julian day *numbers*, not Julian *dates*.** The distinction bites when wiring this to
+an astronomy library. A Julian Date (JD) is a real number whose integer values fall at **noon UT**,
+so JD 2440588.0 is 1970-01-01 12:00. A Julian Day Number (JDN) is the integer naming a whole day.
+This package uses JDN only — integers throughout, no fractions, which is the same no-floating-point
+rule that makes every result identical across platforms. Passing a fractional JD throws
+`TCT_FIELD_OUT_OF_RANGE` rather than silently truncating; floor it, and mind the half-day offset in
+whichever direction you are converting.
+
 | Export | Signature | Notes |
 |---|---|---|
 | `julianDayFromIso` | `(date: Temporal.PlainDate) => number` | Also accepts a `PlainDateTime`, a `ZonedDateTime`, or an ISO string — but not a bare `{ year, month, day }` object, which is ambiguous with this package's own Tibetan-date input |
 | `isoFromJulianDay` | `(julianDay: number, config?) => Temporal.PlainDate` | Takes a config because the exact-range bound it enforces belongs to the tradition |
-| `tibetanWeekday` | `(julianDay: number) => number` | Almanac numbering, `0` = Saturday — not the ISO `dayOfWeek` field |
+| `tibetanWeekday` | `(julianDay: number) => number` | The Tibetan day of week, `0` = Saturday, one per planet — not the ISO `dayOfWeek` field. Also on every `TibetanDate` as `tibetanWeekday`, which is what to use when you have one |
 
 #### Tradition configs
 
@@ -602,7 +720,8 @@ a `code`, which is what to branch on rather than the type:
 | `error.code` | Thrown by | Meaning |
 |---|---|---|
 | `TCT_SKIPPED_DAY` | `tibetanToIso` | The date is well-formed but no calendar day carries its number. Not a bug in your code — see [Errors and validation](#errors-and-validation) |
-| `TCT_FIELD_OUT_OF_RANGE` | every function taking a date, a year or a Julian day | A year, month, day or Julian day is not an integer, or is outside 1–12 / 1–30 — or the argument's shape or type is wrong, e.g. a `Temporal.PlainDate` passed where a Tibetan date is expected, a bare `{ year, month, day }` passed where a Western date is expected, a non-boolean `isLeapMonth`/`isLeapDay`, or `null`/`undefined` |
+| `TCT_FIELD_OUT_OF_RANGE` | every function taking a date, a year or a Julian day | A year, month, day or Julian day is not an integer, or is outside 1–12 / 1–30. The argument was the right kind of thing and one of its numbers was wrong — so this is the one to surface to a user |
+| `TCT_INVALID_ARGUMENT` | the same functions, plus `parseTibetanDate` | The argument is the wrong *kind* of thing, so nothing in it is a field out of a range: a `Temporal.PlainDate` where a Tibetan date is expected, a bare `{ year, month, day }` where a Western date is expected, a non-boolean `isLeapMonth`/`isLeapDay`, `null`/`undefined`, or a string outside `parseTibetanDate`'s grammar. A bug in the calling code rather than bad data |
 | `TCT_NO_SUCH_LEAP_MONTH` | `tibetanToIso` | `isLeapMonth: true` for a month with no leap twin that year |
 | `TCT_OUTSIDE_EXACT_RANGE` | any conversion, and the closed-form year functions `hasLeapMonth`, `leapMonthOfYear`, `monthsInYear` | Beyond where this tradition's integer arithmetic stays exact. `PHUGPA_HENNING` runs out around ISO year 11,356; `PHUGPA` does not, within Temporal's own range |
 | `TCT_INVALID_TRADITION_CONFIG` | any function taking a config | The `TraditionConfig` is malformed. The message names the field |
@@ -615,8 +734,8 @@ Codes are stable and part of the API. Message text is not — match on the code.
 
 #### Types
 
-Type-only exports, erased at runtime: `TibetanDate`, `TibetanDateInput`, `TibetanMonth`,
-`TibetanMonthInput`, `TibetanYearName`, `Rabjung`, `TibetanElement`, `TibetanAnimal`,
+Type-only exports, erased at runtime: `TibetanDate`, `TibetanDateFields`, `TibetanMonth`,
+`TibetanMonthFields`, `TibetanYearName`, `Rabjung`, `TibetanElement`, `TibetanAnimal`,
 `TibetanGender`, `TraditionConfig`, `MeanMotion`, `Rational`, `TibetanCalendarErrorCode`.
 
 ### `tibetan-calendar-temporal/observances`

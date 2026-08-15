@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
+	isoFromJulianDay,
 	isoToTibetan,
 	julianDayFromIso,
 	losarFor,
@@ -9,7 +10,9 @@ import {
 	tibetanWeekday,
 } from "../src/computation/conversion.js";
 import { formatTibetanDate } from "../src/format.js";
-import { hasLeapMonth, leapMonthOfYear, monthsFor } from "../src/months.js";
+import { datesFor, daysInMonth, hasLeapMonth, leapMonthOfYear, monthsFor } from "../src/months.js";
+import { rabjungFor, yearNameFor } from "../src/naming.js";
+import { addMonths, monthsBetween, nextFullMoon } from "../src/navigation.js";
 import { GELUG, getObservances, observancesOn } from "../src/observances/index.js";
 import { parseTibetanDate } from "../src/parse.js";
 import { PHUGPA_HENNING } from "../src/traditions/phugpa.js";
@@ -54,14 +57,26 @@ describe("README usage examples", () => {
 			isNewMoon: true,
 			isoDate: "2026-08-12",
 			dayOfWeek: 3,
+			tibetanWeekday: 4,
+			lunation: 15_094,
 		});
+	});
+
+	// The date's route back to its own month, and the invariant that makes it usable: the number on
+	// the date is the number on the month containing it.
+	it("carries the lunation of the month containing it", () => {
+		const month = monthsFor(date.year).find((m) => m.monthCode === date.monthCode);
+		expect(date.lunation).toBe(month?.lunation);
+		expect(month?.yearName).toEqual(date.yearName);
 	});
 
 	it("numbers the weekday as ISO 8601 and names it through Temporal", () => {
 		expect(date.dayOfWeek).toBe(3);
 		expect(date.isoDate.dayOfWeek).toBe(3);
 		expect(date.isoDate.toLocaleString("en-GB", { weekday: "long" })).toBe("Wednesday");
-		// The almanac convention, 0 = Saturday, kept separate from the ISO field.
+		// The Tibetan numbering, 0 = Saturday, kept separate from the ISO field. Available both as
+		// a field and from a Julian day, and the two must agree.
+		expect(date.tibetanWeekday).toBe(4);
 		expect(tibetanWeekday(julianDayFromIso(iso("2026-08-12")))).toBe(4);
 	});
 
@@ -80,10 +95,30 @@ describe("README usage examples", () => {
 		expect(leapMonthOfYear(2151)).toBe(6);
 
 		const month = monthsFor(2153)[0];
+		expect(month?.year).toBe(2153);
+		expect(month?.yearName).toEqual({ element: "fire", animal: "horse", gender: "male" });
 		expect(month?.monthCode).toBe("M01");
 		expect(month?.days).toBe(29);
 		expect(month?.firstDay.toString()).toBe("2026-02-18");
 		expect(month?.lastDay.toString()).toBe("2026-03-18");
+	});
+
+	it("passes a month on without the year travelling separately", () => {
+		const month = monthsFor(2153)[0];
+		if (month === undefined) expect.unreachable("2153 has months");
+		expect(daysInMonth(month)).toBe(29);
+		expect(tibetanDateExists({ ...month, day: 8 })).toBe(true);
+	});
+
+	it("numbers lunations consecutively, with the leap month before its twin", () => {
+		const lunations = monthsFor(2151).map((m) => m.lunation);
+		for (let i = 1; i < lunations.length; i++) {
+			expect(lunations[i]).toBe((lunations[i - 1] ?? Number.NaN) + 1);
+		}
+		const months = monthsFor(2151);
+		const leap = months.find((m) => m.monthCode === "M06L");
+		const regular = months.find((m) => m.monthCode === "M06");
+		expect(leap?.lunation).toBe((regular?.lunation ?? Number.NaN) - 1);
 	});
 
 	it("reads the documented dates back, including a skipped one", () => {
@@ -105,7 +140,7 @@ describe("README usage examples", () => {
 				parseTibetanDate(rejected);
 				expect.unreachable(`${rejected} should be refused`);
 			} catch (error) {
-				expect((error as { code?: string }).code, rejected).toBe("TCT_FIELD_OUT_OF_RANGE");
+				expect((error as { code?: string }).code, rejected).toBe("TCT_INVALID_ARGUMENT");
 			}
 		}
 	});
@@ -167,6 +202,21 @@ describe("README usage examples", () => {
 		const day = iso("2025-11-19");
 		expect(formatTibetanDate(isoToTibetan(day))).toBe("2152-M09-30 (leap)");
 		expect(formatTibetanDate(isoToTibetan(day, PHUGPA_HENNING))).toBe("2152-M09-29");
+	});
+
+	/**
+	 * The Interoperability section's claim that these are Julian day *numbers*, not Julian *dates*.
+	 * The worked value is the one a reader coming from an astronomy library will check first: JD
+	 * 2440588.0 is 1970-01-01 at noon UT, and the JDN naming that whole day is the same integer.
+	 */
+	it("uses Julian day numbers, refusing the fractional Julian date form", () => {
+		expect(julianDayFromIso(iso("1970-01-01"))).toBe(2_440_588);
+		try {
+			isoFromJulianDay(2_440_588.5);
+			expect.unreachable("a fractional Julian day should be refused");
+		} catch (error) {
+			expect((error as { code?: string }).code).toBe("TCT_FIELD_OUT_OF_RANGE");
+		}
 	});
 });
 
@@ -290,5 +340,55 @@ describe("README error examples", () => {
 		);
 		expect(source).toContain("Temporal ships enabled from Node 26");
 		expect(source).toContain("temporal-polyfill/global");
+	});
+});
+
+/**
+ * The API section's Navigation and Year-names blocks. Signatures in a table cannot rot silently,
+ * but the worked snippets beside them can, so those are asserted like every other README claim.
+ */
+describe("README navigation examples", () => {
+	it("chains the phases through .isoDate, as documented", () => {
+		let moon = nextFullMoon(iso("2026-01-01"));
+		const first = moon.isoDate.toString();
+		moon = nextFullMoon(moon.isoDate);
+		expect(moon.isFullMoon).toBe(true);
+		expect(Temporal.PlainDate.compare(moon.isoDate, iso(first))).toBeGreaterThan(0);
+	});
+
+	it("builds the documented year picker", () => {
+		const years = [];
+		for (let y = 2140; y <= 2160; y++) {
+			years.push({ year: y, name: yearNameFor(y), rabjung: rabjungFor(y), leap: hasLeapMonth(y) });
+		}
+		expect(years).toHaveLength(21);
+		expect(years[13]).toEqual({
+			year: 2153,
+			name: { element: "fire", animal: "horse", gender: "male" },
+			rabjung: { cycle: 17, year: 40 },
+			leap: false,
+		});
+		// A picker wants the leap years visible; 2151 is one.
+		expect(years.filter((y) => y.leap).map((y) => y.year)).toContain(2151);
+	});
+
+	it("lays out a month grid with datesFor, one entry per calendar day", () => {
+		const [first] = monthsFor(2153);
+		if (first === undefined) expect.unreachable("2153 has months");
+		const dates = datesFor(first);
+		expect(dates).toHaveLength(first.days);
+		expect(dates[0]?.isoDate.toString()).toBe("2026-02-18");
+	});
+
+	it("steps months into and out of a leap pair, as the table says", () => {
+		expect(addMonths({ year: 2151, month: 5 }, 1).monthCode).toBe("M06L");
+		expect(monthsBetween({ year: 2151, month: 5 }, { year: 2151, month: 7 })).toBe(3);
+		expect(monthsBetween({ year: 2153, month: 5 }, { year: 2153, month: 7 })).toBe(2);
+	});
+
+	// The losarFor docblock's M01L case, which the README's Losar note now also has to survive.
+	it("opens some years in a leap month", () => {
+		expect(losarFor(2146).monthCode).toBe("M01L");
+		expect(losarFor(2153).monthCode).toBe("M01");
 	});
 });

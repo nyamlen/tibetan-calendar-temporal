@@ -230,12 +230,12 @@ describe("bad from/to arguments", () => {
 					value as unknown as Temporal.PlainDate,
 				),
 			)?.code,
-		).toBe("TCT_FIELD_OUT_OF_RANGE");
+		).toBe("TCT_INVALID_ARGUMENT");
 	});
 
 	it.each(BAD_ARGS)("observancesOn rejects %s", (_label, value) => {
 		expect(thrownBy(() => observancesOn(value as unknown as Temporal.PlainDate))?.code).toBe(
-			"TCT_FIELD_OUT_OF_RANGE",
+			"TCT_INVALID_ARGUMENT",
 		);
 	});
 
