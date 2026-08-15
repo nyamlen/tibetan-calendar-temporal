@@ -31,7 +31,13 @@ import {
 	monthFromCount,
 	trueMonthCount,
 } from "./computation/calendar.js";
-import { assertExactJulianDay } from "./computation/conversion.js";
+import {
+	assertExactJulianDay,
+	isoFromJulianDayUnchecked,
+	isoToTibetan,
+	julianDayFromIso,
+	tibetanToIso,
+} from "./computation/conversion.js";
 import { royalEraFromYear, yearFromRoyalEra } from "./computation/epoch.js";
 import { scalingFor } from "./computation/scaling.js";
 import { rangeError } from "./errors.js";
@@ -39,7 +45,7 @@ import { describeMonth } from "./months.js";
 import { PHUGPA } from "./traditions/phugpa.js";
 import type { TraditionConfig } from "./traditions/types.js";
 import { assertTraditionConfig } from "./traditions/validate.js";
-import type { TibetanMonth, TibetanMonthFields } from "./types.js";
+import type { TibetanDate, TibetanDateFields, TibetanMonth, TibetanMonthFields } from "./types.js";
 import { rejectInvalidLeapFlags, rejectTemporalInstance } from "./types.js";
 
 /**
@@ -64,6 +70,38 @@ function assertMonthFields(subject: string, month: TibetanMonthFields): void {
 		throw rangeError(
 			"TCT_FIELD_OUT_OF_RANGE",
 			`${subject}: month must be an integer 1-12, received ${month.month}`,
+		);
+	}
+}
+
+/**
+ * Validates a date-shaped argument, under the name the caller actually used.
+ *
+ * @remarks
+ * The same checks `tibetanToIso` runs, deliberately repeated here rather than delegated: it names
+ * *itself* in its messages, so without this a caller who wrote `addDays` would be told about a
+ * function they never called. Neither copy is dead — `tibetanToIso` stays reachable from its own
+ * entry point — so this costs a few comparisons and buys a message that echoes the real call.
+ */
+function assertDateFields(subject: string, date: TibetanDateFields): void {
+	rejectTemporalInstance(subject, date);
+	rejectInvalidLeapFlags(subject, date);
+	if (!Number.isSafeInteger(date.year)) {
+		throw rangeError(
+			"TCT_FIELD_OUT_OF_RANGE",
+			`${subject}: year must be a safe integer, received ${date.year}`,
+		);
+	}
+	if (!Number.isInteger(date.month) || date.month < 1 || date.month > 12) {
+		throw rangeError(
+			"TCT_FIELD_OUT_OF_RANGE",
+			`${subject}: month must be an integer 1-12, received ${date.month}`,
+		);
+	}
+	if (!Number.isInteger(date.day) || date.day < 1 || date.day > 30) {
+		throw rangeError(
+			"TCT_FIELD_OUT_OF_RANGE",
+			`${subject}: day must be an integer 1-30, received ${date.day}`,
 		);
 	}
 }
@@ -289,4 +327,85 @@ export function monthsBetween(
 	return (
 		lunationOf("monthsBetween (to)", to, config) - lunationOf("monthsBetween (from)", from, config)
 	);
+}
+
+/**
+ * The Tibetan date `days` **solar days** after this one. Negative counts step backwards.
+ *
+ * @remarks
+ * Solar days, not lunar ones, and the distinction is the whole point. A Tibetan date *number* is a
+ * lunar day — one thirtieth of a lunation, varying between about 21.5 and 25.7 hours — which is why
+ * some numbers are skipped and some carried by two days. Elapsed-time reckonings count solar days:
+ * the forty-nine days of the *bardo*, the weekly pujas after a death. That is what this counts.
+ *
+ * **Total.** `isoToTibetan` is total over calendar days, and a skipped date is a *label* no calendar
+ * day carries — so stepping real days can never arrive at one. There is no skipped-day case to
+ * decide here, only the two failures that already exist: a skipped **starting** date throws
+ * `SkippedDayError` before any arithmetic, and leaving the tradition's exact range throws
+ * `TCT_OUTSIDE_EXACT_RANGE`.
+ *
+ * @param date - The date to step from.
+ * @param days - How many solar days to move. May be negative or zero.
+ * @param config - Astronomical constants. Defaults to `PHUGPA`.
+ *
+ * @throws SkippedDayError if `date` itself names no calendar day.
+ * @throws RangeError with code `TCT_INVALID_ARGUMENT` for a wrong-kind argument;
+ * `TCT_FIELD_OUT_OF_RANGE` if a field or `days` is out of range; `TCT_OUTSIDE_EXACT_RANGE` if the
+ * result leaves the range where the arithmetic stays exact.
+ *
+ * @example
+ * ```ts
+ * addDays({ year: 2153, month: 12, day: 8 }, 49).isoDate;   // 49 calendar days later
+ * ```
+ */
+export function addDays(
+	date: TibetanDateFields,
+	days: number,
+	config: TraditionConfig = PHUGPA,
+): TibetanDate {
+	assertTraditionConfig(config);
+	assertDateFields("addDays", date);
+	assertCount("addDays", "days", days);
+
+	const scaled = scalingFor(config);
+	const target = julianDayFromIso(tibetanToIso(date, config)) + days;
+	// The starting date was inside the range or tibetanToIso would have refused it, but the *result*
+	// need not be: Julian-day arithmetic walks straight out of it. Without this the conversion below
+	// would either throw uncoded from Temporal or answer from degraded arithmetic.
+	assertExactJulianDay(scaled, target, () => `addDays(…, ${days})`);
+	return isoToTibetan(isoFromJulianDayUnchecked(target), config);
+}
+
+/**
+ * How many **solar days** separate two Tibetan dates, signed.
+ *
+ * @remarks
+ * Positive when `to` follows `from`, matching `getObservances(from, to)`.
+ *
+ * **If both dates came from this package, prefer Temporal.** `a.isoDate.until(b.isoDate)` is
+ * Temporal-native, does the same arithmetic, and needs nothing from here. This function earns its
+ * place for dates a caller **built themselves** — where there is no `isoDate` to subtract — and
+ * those are also the ones that may name no calendar day at all. Saying so is more useful than
+ * pretending this is always the right tool.
+ *
+ * Both endpoints must resolve, so a skipped date throws rather than counting from a day that does
+ * not exist. Both arguments are validated separately and the message names which one failed.
+ *
+ * @throws SkippedDayError if either endpoint names no calendar day.
+ * @throws RangeError with the codes {@link addDays} throws, for either argument.
+ *
+ * @example
+ * ```ts
+ * daysBetween({ year: 2153, month: 1, day: 1 }, { year: 2153, month: 6, day: 30 });
+ * ```
+ */
+export function daysBetween(
+	from: TibetanDateFields,
+	to: TibetanDateFields,
+	config: TraditionConfig = PHUGPA,
+): number {
+	assertTraditionConfig(config);
+	assertDateFields("daysBetween (from)", from);
+	assertDateFields("daysBetween (to)", to);
+	return julianDayFromIso(tibetanToIso(to, config)) - julianDayFromIso(tibetanToIso(from, config));
 }

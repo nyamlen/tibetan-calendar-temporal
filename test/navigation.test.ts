@@ -1,8 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { isoToTibetan, losarFor } from "../src/computation/conversion.js";
+import {
+	isoToTibetan,
+	losarFor,
+	tibetanDateExists,
+	tibetanToIso,
+} from "../src/computation/conversion.js";
 import { monthsFor } from "../src/months.js";
 import {
+	addDays,
 	addMonths,
+	daysBetween,
 	lunationFromMonth,
 	monthFromLunation,
 	monthsBetween,
@@ -305,6 +312,137 @@ describe("month arithmetic input guards", () => {
 
 	it("bounds a count that would leave the exact range", () => {
 		expect(codeOf(() => addMonths({ year: 2151, month: 5 }, Number.MAX_SAFE_INTEGER))).toBe(
+			"TCT_OUTSIDE_EXACT_RANGE",
+		);
+	});
+});
+
+/**
+ * Day arithmetic, in **solar** days.
+ *
+ * The unit matters: a Tibetan date number is a lunar day, and lunar days vary between about 21.5
+ * and 25.7 hours, which is why some numbers are skipped and some carried by two days. Elapsed-time
+ * reckonings — the 49-day bardo count, the weekly pujas after a death — are counted in solar days,
+ * and that is what these do.
+ */
+describe("addDays", () => {
+	/**
+	 * The roadmap asked what `addDays` returns when the target date is skipped. The question rests
+	 * on a false premise: `isoToTibetan` is total, so every calendar day has a Tibetan date, and
+	 * stepping real days can never arrive at a label no day carries.
+	 */
+	it("never lands on a date that does not exist", { timeout: 30_000 }, () => {
+		// A span holding known skips and doubles — 2151 doubles a day and skips two in month 5 alone.
+		const start = { year: 2151, month: 1, day: 1 };
+		for (let n = 0; n < 800; n++) {
+			const result = addDays(start, n);
+			expect(tibetanDateExists(result), `+${n} -> ${result.monthCode}-${result.day}`).toBe(true);
+		}
+	});
+
+	it("counts solar days, so 49 days is 49 calendar days", () => {
+		const from = { year: 2153, month: 12, day: 8 };
+		const iso49 = tibetanToIso(from).add({ days: 49 });
+		expect(addDays(from, 49).isoDate.toString()).toBe(iso49.toString());
+	});
+
+	it("steps backwards and is the identity at zero", () => {
+		const d = { year: 2153, month: 6, day: 30 };
+		expect(addDays(d, 0).isoDate.toString()).toBe(tibetanToIso(d).toString());
+		expect(addDays(addDays(d, 40), -40).isoDate.toString()).toBe(tibetanToIso(d).toString());
+	});
+
+	it("crosses a skipped number without stalling on it", () => {
+		// Month 5 of 2151 skips 17 and 28: stepping through must simply not produce them.
+		const dates = [...Array(30).keys()].map((n) => addDays({ year: 2151, month: 5, day: 1 }, n));
+		const numbers = dates.filter((d) => d.month === 5 && !d.isLeapMonth).map((d) => d.day);
+		expect(numbers).not.toContain(17);
+		expect(new Set(numbers).size).toBeLessThan(numbers.length + 1);
+	});
+
+	it("throws for a skipped starting date rather than guessing", () => {
+		expect(codeOf(() => addDays({ year: 2150, month: 12, day: 29 }, 1))).toBe("TCT_SKIPPED_DAY");
+	});
+});
+
+describe("daysBetween", () => {
+	it("is signed, antisymmetric and zero on itself", () => {
+		const a = { year: 2153, month: 1, day: 1 };
+		const b = { year: 2153, month: 6, day: 30 };
+		expect(daysBetween(a, b)).toBeGreaterThan(0);
+		expect(daysBetween(b, a)).toBe(-daysBetween(a, b));
+		expect(daysBetween(a, a)).toBe(0);
+	});
+
+	it("inverts addDays", () => {
+		const a = { year: 2153, month: 1, day: 1 };
+		const b = { year: 2154, month: 3, day: 12 };
+		expect(addDays(a, daysBetween(a, b)).isoDate.toString()).toBe(tibetanToIso(b).toString());
+	});
+
+	it("agrees with Temporal on the same two days", () => {
+		const a = { year: 2153, month: 1, day: 1 };
+		const b = { year: 2153, month: 6, day: 30 };
+		expect(daysBetween(a, b)).toBe(tibetanToIso(b).since(tibetanToIso(a)).days);
+	});
+
+	it("throws for a skipped endpoint, which names no day to count from", () => {
+		const skipped = { year: 2150, month: 12, day: 29 };
+		expect(codeOf(() => daysBetween(skipped, { year: 2153, month: 1, day: 1 }))).toBe(
+			"TCT_SKIPPED_DAY",
+		);
+		expect(codeOf(() => daysBetween({ year: 2153, month: 1, day: 1 }, skipped))).toBe(
+			"TCT_SKIPPED_DAY",
+		);
+	});
+});
+
+describe("day arithmetic input guards", () => {
+	it.each([
+		["addDays, a PlainDate", () => addDays(iso("2026-08-12") as never, 1)],
+		["addDays, null", () => addDays(null as never, 1)],
+		[
+			"addDays, a non-boolean isLeapDay",
+			() => addDays({ year: 2153, month: 1, day: 1, isLeapDay: "x" } as never, 1),
+		],
+		[
+			"daysBetween, a PlainDate as from",
+			() => daysBetween(iso("2026-08-12") as never, { year: 2153, month: 1, day: 1 }),
+		],
+		[
+			"daysBetween, a PlainDate as to",
+			() => daysBetween({ year: 2153, month: 1, day: 1 }, iso("2026-08-12") as never),
+		],
+	])("rejects %s", (_label, call) => {
+		expect(codeOf(call)).toBe("TCT_INVALID_ARGUMENT");
+	});
+
+	it.each([
+		["a fractional count", () => addDays({ year: 2153, month: 1, day: 1 }, 1.5)],
+		["NaN", () => addDays({ year: 2153, month: 1, day: 1 }, Number.NaN)],
+		["Infinity", () => addDays({ year: 2153, month: 1, day: 1 }, Number.POSITIVE_INFINITY)],
+		["day 31", () => addDays({ year: 2153, month: 1, day: 31 }, 1)],
+		["day 0", () => addDays({ year: 2153, month: 1, day: 0 }, 1)],
+		["month 13", () => addDays({ year: 2153, month: 13, day: 1 }, 1)],
+		["a fractional year", () => addDays({ year: 2153.5, month: 1, day: 1 }, 1)],
+		["a NaN year", () => addDays({ year: Number.NaN, month: 1, day: 1 }, 1)],
+	])("addDays rejects %s", (_label, call) => {
+		expect(codeOf(call)).toBe("TCT_FIELD_OUT_OF_RANGE");
+	});
+
+	it("names which of daysBetween's two arguments was wrong", () => {
+		try {
+			daysBetween({ year: 2153, month: 1, day: 1 }, iso("2026-08-12") as never);
+			expect.unreachable("should reject the second argument");
+		} catch (error) {
+			expect((error as Error).message).toContain("daysBetween");
+			expect((error as Error).message).toContain("to");
+		}
+	});
+
+	// Julian-day arithmetic can leave the exact range even when the starting date is well inside it.
+	it("bounds a result that leaves the exact range", () => {
+		expect(codeOf(() => addDays({ year: 2153, month: 1, day: 1 }, Number.MAX_SAFE_INTEGER))).toBe(
 			"TCT_OUTSIDE_EXACT_RANGE",
 		);
 	});
