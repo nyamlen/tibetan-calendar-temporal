@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { isoToTibetan, losarFor } from "../src/computation/conversion.js";
 import { monthsFor } from "../src/months.js";
-import { lunationFromMonth, monthFromLunation } from "../src/navigation.js";
+import {
+	addMonths,
+	lunationFromMonth,
+	monthFromLunation,
+	monthsBetween,
+} from "../src/navigation.js";
 import { PHUGPA_HENNING } from "../src/traditions/phugpa.js";
 
 const iso = (s: string) => Temporal.PlainDate.from(s);
@@ -171,5 +176,136 @@ describe("lunation coordinate input guards", () => {
 		} catch (error) {
 			expect((error as Error).message).toContain("lunationFromMonth");
 		}
+	});
+});
+
+/**
+ * Month arithmetic, and the three naive versions it exists to replace.
+ *
+ * A throwaway grid spike wrote each of them against the surface before these shipped. All three
+ * are wrong, and the second is wrong *silently*, which is what settled the question.
+ */
+describe("addMonths", () => {
+	it("steps into the leap month and then out of it", () => {
+		const may = { year: 2151, month: 5 };
+		expect(addMonths(may, 1).monthCode).toBe("M06L");
+		expect(addMonths(may, 2).monthCode).toBe("M06");
+		expect(addMonths(may, 3).monthCode).toBe("M07");
+	});
+
+	/**
+	 * The naive step a consumer actually writes is `monthsFor(year)[month.month]`, indexing the
+	 * array by month number. In a leap year that returns **the month you are already on** from the
+	 * leap month onward — a dead "next month" button, returning a valid object and throwing
+	 * nothing, in one year out of three. This is the case that argues the export into existence.
+	 */
+	it("advances past the leap month where indexing by month number stalls", () => {
+		const months = monthsFor(2151);
+		const june = months.find((m) => m.monthCode === "M06");
+		if (june === undefined) expect.unreachable("2151 has a regular M06");
+
+		// The naive version, reproduced so the failure is on the record rather than in a comment.
+		expect(months[june.month]?.monthCode).toBe("M06");
+		// What it should be.
+		expect(addMonths(june, 1).monthCode).toBe("M07");
+	});
+
+	it("crosses Losar, where searching a single year returns nothing", () => {
+		expect(addMonths({ year: 2151, month: 12 }, 1)).toMatchObject({ year: 2152, month: 1 });
+		expect(addMonths({ year: 2152, month: 1 }, -1)).toMatchObject({ year: 2151, month: 12 });
+	});
+
+	it("steps backwards as far as it steps forwards", () => {
+		// The hand-rolled version searched one year either side, so its range was silently
+		// asymmetric: +20 worked from M05 and -20 threw.
+		const may = { year: 2151, month: 5 };
+		expect(addMonths(may, 20).year).toBe(2152);
+		expect(addMonths(may, -20).year).toBe(2149);
+	});
+
+	it("is the identity at zero and composes", () => {
+		const m = { year: 2151, month: 6, isLeapMonth: true };
+		expect(addMonths(m, 0).monthCode).toBe("M06L");
+		expect(addMonths(addMonths(m, 3), -3).monthCode).toBe("M06L");
+	});
+
+	it("accepts a TibetanDate, ignoring the day", () => {
+		const date = isoToTibetan(iso("2026-08-12"));
+		expect(addMonths(date, 1).lunation).toBe(date.lunation + 1);
+	});
+});
+
+describe("monthsBetween", () => {
+	it("counts lunations, so a leap month counts as one", () => {
+		expect(monthsBetween({ year: 2151, month: 5 }, { year: 2151, month: 7 })).toBe(3);
+		expect(monthsBetween({ year: 2153, month: 5 }, { year: 2153, month: 7 })).toBe(2);
+	});
+
+	it("is signed and antisymmetric", () => {
+		const a = { year: 2151, month: 5 };
+		const b = { year: 2152, month: 3 };
+		expect(monthsBetween(a, b)).toBe(-monthsBetween(b, a));
+		expect(monthsBetween(a, a)).toBe(0);
+	});
+
+	it("inverts addMonths", () => {
+		const a = { year: 2151, month: 5 };
+		const b = { year: 2152, month: 3 };
+		expect(addMonths(a, monthsBetween(a, b)).monthCode).toBe(
+			monthFromLunation(lunationFromMonth(b)).monthCode,
+		);
+	});
+
+	it("distinguishes the halves of a leap pair", () => {
+		const leap = { year: 2151, month: 6, isLeapMonth: true };
+		const regular = { year: 2151, month: 6 };
+		expect(monthsBetween(leap, regular)).toBe(1);
+	});
+});
+
+describe("month arithmetic input guards", () => {
+	it.each([
+		["addMonths, a PlainDate", () => addMonths(iso("2026-08-12") as never, 1)],
+		["addMonths, null", () => addMonths(null as never, 1)],
+		[
+			"monthsBetween, a PlainDate as from",
+			() => monthsBetween(iso("2026-08-12") as never, { year: 2151, month: 1 }),
+		],
+		[
+			"monthsBetween, a PlainDate as to",
+			() => monthsBetween({ year: 2151, month: 1 }, iso("2026-08-12") as never),
+		],
+		["monthsBetween, null as to", () => monthsBetween({ year: 2151, month: 1 }, null as never)],
+	])("rejects %s", (_label, call) => {
+		expect(codeOf(call)).toBe("TCT_INVALID_ARGUMENT");
+	});
+
+	it.each([
+		["a fractional count", () => addMonths({ year: 2151, month: 5 }, 1.5)],
+		["NaN", () => addMonths({ year: 2151, month: 5 }, Number.NaN)],
+		["Infinity", () => addMonths({ year: 2151, month: 5 }, Number.POSITIVE_INFINITY)],
+		["month 13 in the argument", () => addMonths({ year: 2151, month: 13 }, 1)],
+	])("addMonths rejects %s", (_label, call) => {
+		expect(codeOf(call)).toBe("TCT_FIELD_OUT_OF_RANGE");
+	});
+
+	/**
+	 * Both arguments are guarded, separately, and the message says which one failed. These are the
+	 * first two-date exports on this surface, and checking only the first is the obvious omission.
+	 */
+	it("names which of monthsBetween's two arguments was wrong", () => {
+		try {
+			monthsBetween({ year: 2151, month: 1 }, iso("2026-08-12") as never);
+			expect.unreachable("should reject the second argument");
+		} catch (error) {
+			expect((error as Error).message).toContain("monthsBetween");
+			expect((error as Error).message).toContain("to");
+		}
+	});
+
+	it("bounds a count that would leave the exact range", () => {
+		expect(codeOf(() => addMonths({ year: 2151, month: 5 }, Number.MAX_SAFE_INTEGER))).toBe(
+			"TCT_OUTSIDE_EXACT_RANGE",
+		);
 	});
 });

@@ -118,9 +118,21 @@ export function lunationFromMonth(
 ): number {
 	assertTraditionConfig(config);
 	assertMonthFields("lunationFromMonth", month);
-	const subject = () => `lunationFromMonth({ year: ${month.year}, month: ${month.month} })`;
+	return lunationOf("lunationFromMonth", month, config);
+}
+
+/**
+ * The lunation of an already-validated month, reporting under the caller's name.
+ *
+ * @remarks
+ * `subject` is threaded so that `addMonths` and `monthsBetween` report themselves rather than the
+ * helper they delegate to. Guarding again inside each of them instead would leave an unreachable
+ * branch, which is the redundancy `coverage` is run to find.
+ */
+function lunationOf(subject: string, month: TibetanMonthFields, config: TraditionConfig): number {
+	const describe = () => `${subject}({ year: ${month.year}, month: ${month.month} })`;
 	const y = yearFromRoyalEra(month.year);
-	assertClosedFormYear(subject, y, config);
+	assertClosedFormYear(describe, y, config);
 
 	const isLeap = month.isLeapMonth ?? false;
 	// Without this, asking for a leap month that does not exist returns the *previous* month's count
@@ -128,7 +140,7 @@ export function lunationFromMonth(
 	if (isLeap && !hasLeapTwin(config, y, month.month)) {
 		throw rangeError(
 			"TCT_NO_SUCH_LEAP_MONTH",
-			`${subject()}: month ${month.month} of ${month.year} has no leap month. Drop isLeapMonth, ` +
+			`${describe()}: month ${month.month} of ${month.year} has no leap month. Drop isLeapMonth, ` +
 				"or use monthsFor to see which month of a year is doubled.",
 		);
 	}
@@ -165,7 +177,12 @@ export function monthFromLunation(
 ): TibetanMonth {
 	assertTraditionConfig(config);
 	assertCount("monthFromLunation", "lunation", lunation);
-	const subject = () => `monthFromLunation(${lunation})`;
+	return monthAt("monthFromLunation", lunation, config);
+}
+
+/** The month at an already-validated lunation, reporting under the caller's name. */
+function monthAt(name: string, lunation: number, config: TraditionConfig): TibetanMonth {
+	const subject = () => `${name}(${lunation})`;
 	// Before monthFromCount, not after: it multiplies by 65 first, so an unbounded count loses
 	// precision and returns an identity built from noise rather than throwing.
 	assertLunation(subject, lunation, config);
@@ -188,5 +205,88 @@ export function monthFromLunation(
 		royalEraFromYear(identity.year),
 		identity.month,
 		identity.isLeap,
+	);
+}
+
+/**
+ * The month `months` lunations after this one. Negative counts step backwards.
+ *
+ * @remarks
+ * **Month in, month out — and therefore total.** It never places a day number, so it never meets a
+ * skipped one, and there is no convention to choose. That is the whole reason it takes a month
+ * rather than a date: `addMonths(someDate, 1)` would have to decide what "the 8th of next month"
+ * means when the 8th is skipped there, and the tradition supplies no answer. A `TibetanDate`
+ * satisfies `TibetanMonthFields`, so you can still pass one — the day is ignored.
+ *
+ * ## What the naive versions do
+ *
+ * This exists because the obvious consumer-side step is wrong, and wrong quietly. Indexing the
+ * year's months by month number — `monthsFor(year)[month.month]` — returns **the month you are
+ * already on** from the leap month onward, so a "next month" control dies halfway through every
+ * leap year while returning a perfectly valid `TibetanMonth` and throwing nothing. Incrementing
+ * `month` instead skips the leap month entirely, losing a whole thirty days. Searching a single
+ * year by lunation returns nothing at month 12, which is Losar, twelve times a year.
+ *
+ * In lunation space none of that arises: `+1` from a leap month is its twin, because that is the
+ * order the moon goes in.
+ *
+ * @param month - The month to step from. `isLeapMonth` distinguishes the twins of a leap pair.
+ * @param months - How many lunations to move. May be negative or zero.
+ * @param config - Astronomical constants. Defaults to `PHUGPA`.
+ *
+ * @throws RangeError with the codes {@link lunationFromMonth} and {@link monthFromLunation} throw;
+ * `TCT_FIELD_OUT_OF_RANGE` if `months` is not a safe integer.
+ *
+ * @example
+ * ```ts
+ * addMonths({ year: 2151, month: 5 }, 1).monthCode;   // "M06L" — into the leap month
+ * addMonths({ year: 2151, month: 5 }, 2).monthCode;   // "M06"  — and out of it
+ * addMonths({ year: 2151, month: 12 }, 1).year;       // 2152   — across Losar
+ * ```
+ */
+export function addMonths(
+	month: TibetanMonthFields,
+	months: number,
+	config: TraditionConfig = PHUGPA,
+): TibetanMonth {
+	assertTraditionConfig(config);
+	assertMonthFields("addMonths", month);
+	assertCount("addMonths", "months", months);
+	return monthAt("addMonths", lunationOf("addMonths", month, config) + months, config);
+}
+
+/**
+ * How many lunations separate two months, signed.
+ *
+ * @remarks
+ * Positive when `to` follows `from`, matching `getObservances(from, to)`. Counting **lunations**
+ * rather than month labels is what makes a leap year come out right: from month 5 to month 7 of a
+ * year whose month 6 is doubled is three months, not two, because three new moons pass.
+ *
+ * A `TibetanDate` satisfies `TibetanMonthFields`, so passing dates compiles and **ignores the
+ * days** — this measures the months they fall in, so two dates in the same month are zero apart.
+ *
+ * Both arguments are validated separately, and the message names which one failed.
+ *
+ * @throws RangeError with the codes {@link lunationFromMonth} throws, for either argument.
+ *
+ * @example
+ * ```ts
+ * monthsBetween({ year: 2151, month: 5 }, { year: 2151, month: 7 });   // 3 — 2151 doubles month 6
+ * monthsBetween({ year: 2153, month: 5 }, { year: 2153, month: 7 });   // 2 — 2153 does not
+ * ```
+ */
+export function monthsBetween(
+	from: TibetanMonthFields,
+	to: TibetanMonthFields,
+	config: TraditionConfig = PHUGPA,
+): number {
+	assertTraditionConfig(config);
+	// Named per argument, because "monthsBetween: expected an object" would not say which of the two
+	// the caller got wrong — and these are the first two-month exports on this surface.
+	assertMonthFields("monthsBetween (from)", from);
+	assertMonthFields("monthsBetween (to)", to);
+	return (
+		lunationOf("monthsBetween (to)", to, config) - lunationOf("monthsBetween (from)", from, config)
 	);
 }
