@@ -7,6 +7,7 @@ import {
 	tibetanToIso,
 } from "../src/computation/conversion.js";
 import {
+	datesFor,
 	daysInMonth,
 	hasLeapMonth,
 	leapMonthOfYear,
@@ -448,5 +449,93 @@ describe("closed-form overflow guard", () => {
 
 		const justInsideRoyal = PHUGPA.epochYear + limit + 127;
 		expect(codeOf(() => hasLeapMonth(justInsideRoyal + 1))).toBe("TCT_OUTSIDE_EXACT_RANGE");
+	});
+});
+
+/**
+ * The month grid: every calendar day of a month, labelled.
+ *
+ * The loop this replaces is documented in the README and correct — but only because a warning box
+ * explains that `for (d = 1; d <= days; d++)` is wrong. Date numbers are not contiguous; calendar
+ * days are, which is what this walks.
+ */
+describe("datesFor", () => {
+	it("returns one entry per calendar day, not per date number", () => {
+		for (const year of [2151, 2153]) {
+			for (const month of monthsFor(year)) {
+				const dates = datesFor(month);
+				expect(dates.length, `${year} ${month.monthCode}`).toBe(month.days);
+				expect(at(dates, 0).isoDate.toString()).toBe(month.firstDay.toString());
+				expect(at(dates, -1).isoDate.toString()).toBe(month.lastDay.toString());
+			}
+		}
+	});
+
+	it("labels every entry with the month it belongs to", () => {
+		const month = at(monthsFor(2151), 5);
+		for (const date of datesFor(month)) {
+			expect(date.month).toBe(month.month);
+			expect(date.isLeapMonth).toBe(month.isLeapMonth);
+			expect(date.lunation).toBe(month.lunation);
+		}
+	});
+
+	/**
+	 * The two irregularities a grid has to render. A doubled number appears twice — once with
+	 * `isLeapDay` — and a skipped number does not appear at all, which is precisely why counting to
+	 * `days` produces a wrong grid.
+	 */
+	it("repeats a doubled number and omits a skipped one", () => {
+		// 2151 M05 doubles 14 and skips 17 and 28.
+		const may = monthsFor(2151).find((m) => m.monthCode === "M05");
+		if (may === undefined) expect.unreachable("2151 has M05");
+		const numbers = datesFor(may).map((d) => d.day);
+		expect(numbers.filter((n) => n === 14)).toHaveLength(2);
+		expect(numbers).not.toContain(17);
+		expect(numbers).not.toContain(28);
+		expect(
+			datesFor(may)
+				.filter((d) => d.isLeapDay)
+				.map((d) => d.day),
+		).toEqual([14]);
+	});
+
+	it("accepts a hand-built month, not only one from monthsFor", () => {
+		const fromList = monthsFor(2151).find((m) => m.monthCode === "M06L");
+		if (fromList === undefined) expect.unreachable("2151 has a leap month 6");
+		expect(datesFor({ year: 2151, month: 6, isLeapMonth: true })).toHaveLength(fromList.days);
+	});
+
+	it.each([
+		["a PlainDate", () => datesFor(iso("2026-08-12") as never)],
+		["null", () => datesFor(null as never)],
+		[
+			"a non-boolean isLeapMonth",
+			() => datesFor({ year: 2151, month: 6, isLeapMonth: 1 } as never),
+		],
+	])("rejects %s", (_label, call) => {
+		expect(codeOf(call)).toBe("TCT_INVALID_ARGUMENT");
+	});
+
+	it.each([
+		["month 13", () => datesFor({ year: 2151, month: 13 })],
+		["a fractional year", () => datesFor({ year: 2151.5, month: 1 })],
+	])("rejects %s", (_label, call) => {
+		expect(codeOf(call)).toBe("TCT_FIELD_OUT_OF_RANGE");
+	});
+
+	it("refuses a leap month the year does not have", () => {
+		expect(codeOf(() => datesFor({ year: 2153, month: 5, isLeapMonth: true }))).toBe(
+			"TCT_NO_SUCH_LEAP_MONTH",
+		);
+	});
+
+	it("refuses a month outside the exact range", () => {
+		// PHUGPA_HENNING runs out around royal era 11,483. Both sides of that are pinned, so the
+		// bound cannot silently tighten into refusing dates it can compute.
+		expect(datesFor({ year: 11_480, month: 1 }, PHUGPA_HENNING)).toHaveLength(30);
+		expect(codeOf(() => datesFor({ year: 11_490, month: 1 }, PHUGPA_HENNING))).toBe(
+			"TCT_OUTSIDE_EXACT_RANGE",
+		);
 	});
 });

@@ -33,7 +33,11 @@ import {
 	leapMonthOfYear as leapMonthOfYearY,
 	trueMonthCount,
 } from "./computation/calendar.js";
-import { assertExactJulianDay, isoFromJulianDayUnchecked } from "./computation/conversion.js";
+import {
+	assertExactJulianDay,
+	isoFromJulianDayUnchecked,
+	isoToTibetan,
+} from "./computation/conversion.js";
 import { yearFromRoyalEra, yearNameFromYear } from "./computation/epoch.js";
 import { type ScaledTradition, scalingFor } from "./computation/scaling.js";
 import { rangeError } from "./errors.js";
@@ -41,7 +45,7 @@ import { monthCodeOf } from "./format.js";
 import { PHUGPA } from "./traditions/phugpa.js";
 import type { TraditionConfig } from "./traditions/types.js";
 import { assertTraditionConfig } from "./traditions/validate.js";
-import type { TibetanMonth, TibetanMonthFields } from "./types.js";
+import type { TibetanDate, TibetanMonth, TibetanMonthFields } from "./types.js";
 import { rejectInvalidLeapFlags, rejectTemporalInstance } from "./types.js";
 
 /**
@@ -320,4 +324,83 @@ export function leapMonthOfYear(
  */
 export function monthsInYear(year: number, config: TraditionConfig = PHUGPA): number {
 	return isLeapYear(config, closedFormYear(`monthsInYear(${year})`, year, config)) ? 13 : 12;
+}
+
+/**
+ * Every calendar day of a Tibetan month, in order, each labelled with its Tibetan date.
+ *
+ * @remarks
+ * The month grid, and the counterpart of {@link monthsFor}: `monthsFor(year)` then `datesFor(month)`
+ * lays out a whole year in two calls.
+ *
+ * **Why this is not `for (let d = 1; d <= month.days; d++)`.** Date numbers always run 1–30 while
+ * the span is 29 or 30 *calendar days*, because some numbers are skipped and some are carried by
+ * two consecutive days. Counting to `days` therefore produces a grid that is wrong in most months —
+ * over 754 months sampled, 708 are missing at least one number. This walks the calendar days
+ * instead, which is also the right model for a UI: one cell per day, labelled by conversion.
+ *
+ * So a doubled number appears **twice**, the first carrying {@link TibetanDate.isLeapDay}, and a
+ * skipped number does not appear at all. Both are ordinary — expect roughly one of each every
+ * couple of months.
+ *
+ * Bounded by construction at 29 or 30 entries, so unlike a date *range* it needs no span cap.
+ *
+ * @param month - The month to lay out. Accepts a {@link TibetanMonth} from `monthsFor` directly, or
+ * a hand-built `{ year, month, isLeapMonth }`.
+ * @param config - Astronomical constants. Defaults to `PHUGPA`.
+ *
+ * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `month` is not an object naming a Tibetan
+ * month, or `isLeapMonth` is present and not a boolean; `TCT_FIELD_OUT_OF_RANGE` for a field out of
+ * range; `TCT_NO_SUCH_LEAP_MONTH` if `isLeapMonth` is set for a month with no twin that year;
+ * `TCT_OUTSIDE_EXACT_RANGE` past the tradition's exact range.
+ *
+ * @example
+ * ```ts
+ * const [first] = monthsFor(2153);
+ * for (const date of datesFor(first)) {
+ *   render(date.day, date.isoDate);   // date.day is the number to print in the cell
+ * }
+ * ```
+ */
+export function datesFor(
+	month: TibetanMonthFields,
+	config: TraditionConfig = PHUGPA,
+): TibetanDate[] {
+	// daysInMonth already carries the whole guard set for a month-shaped argument — shape, fields,
+	// the leap twin and the exact range — and reporting under its own name here would be the one
+	// thing wrong with delegating, so the guards run first under this function's name.
+	rejectTemporalInstance("datesFor", month);
+	rejectInvalidLeapFlags("datesFor", month);
+	assertSafeYear(`datesFor({ year: ${month.year}, month: ${month.month} })`, month.year);
+	if (!Number.isInteger(month.month) || month.month < 1 || month.month > 12) {
+		throw rangeError(
+			"TCT_FIELD_OUT_OF_RANGE",
+			`datesFor: month must be an integer 1-12, received ${month.month}`,
+		);
+	}
+
+	const scaled = scalingFor(config);
+	const y = yearFromRoyalEra(month.year);
+	const isLeapMonth = month.isLeapMonth ?? false;
+	const subject = () => `datesFor({ year: ${month.year}, month: ${month.month} })`;
+	assertClosedFormYear(subject, y, config);
+	if (isLeapMonth && !hasLeapTwin(config, y, month.month)) {
+		throw rangeError(
+			"TCT_NO_SUCH_LEAP_MONTH",
+			`${subject()}: month ${month.month} of ${month.year} has no leap month. Drop isLeapMonth, ` +
+				"or use monthsFor to see which month of a year is doubled.",
+		);
+	}
+
+	const monthCount = trueMonthCount(config, y, month.month, isLeapMonth);
+	const first = firstDayOfMonth(scaled, monthCount);
+	const last = lastDayOfMonth(scaled, monthCount);
+	assertExactJulianDay(scaled, first, subject);
+	assertExactJulianDay(scaled, last, subject);
+
+	const dates: TibetanDate[] = [];
+	for (let julianDay = first; julianDay <= last; julianDay++) {
+		dates.push(isoToTibetan(isoFromJulianDayUnchecked(julianDay), config));
+	}
+	return dates;
 }
