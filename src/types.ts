@@ -305,12 +305,37 @@ export interface TibetanDate {
 	 * ISO day of week: 1 = Monday through 7 = Sunday.
 	 *
 	 * @remarks
-	 * Deliberately the ISO numbering rather than Janson's, which runs 0 = Saturday through
+	 * Deliberately the ISO numbering rather than the Tibetan one, which runs 0 = Saturday through
 	 * 6 = Friday. The Tibetan and Western weekdays are the same seven-day cycle, so no
 	 * information is lost, and matching `Temporal.PlainDate.dayOfWeek` avoids an off-by-two that
-	 * would be invisible in most tests.
+	 * would be invisible in most tests. For the Tibetan numbering see {@link
+	 * TibetanDate.tibetanWeekday}.
 	 */
 	dayOfWeek: number;
+
+	/**
+	 * Tibetan day of week: 0 = Saturday through 6 = Friday.
+	 *
+	 * @remarks
+	 * The same seven-day cycle as {@link TibetanDate.dayOfWeek}, differently numbered. Each day
+	 * corresponds to one of the seven "planets", and the Tibetan name of the day is essentially the
+	 * name of the planet — 0 Saturn (*spen ma*), 1 Sun (*nyi ma*), 2 Moon (*zla ba*), 3 Mars
+	 * (*mig dmar*), 4 Mercury (*lhag pa*), 5 Jupiter (*phur bu*), 6 Venus (*pa sangs*). Janson's
+	 * day-of-week section gives the table; the correspondence reached Tibet from India and goes back
+	 * to Roman astrology, which is why it matches the Latin and English weekday names.
+	 *
+	 * This is not a display convenience. Janson notes that the date and the day of week are usually
+	 * given together because that *resolves the ambiguity when days are repeated*: both halves of a
+	 * doubled pair carry the same {@link TibetanDate.day}, and the weekday is what tells them apart.
+	 * He also lists it as the first of the five components (*lnga bsdus*) that make up the calendar.
+	 *
+	 * Field and function carry one name: this is exactly `tibetanWeekday(julianDayFromIso(isoDate))`,
+	 * computed here from the Julian day the conversion already holds. It is flat rather than grouped
+	 * because it is a date component; a future `weekdayName` carrying the planet in Tibetan script
+	 * and phonetics would group under `*Name`, exactly as {@link TibetanDate.yearName} does beside
+	 * {@link TibetanDate.year}.
+	 */
+	tibetanWeekday: number;
 }
 
 /**

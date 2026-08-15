@@ -135,7 +135,8 @@ The full object:
   "isFullMoon": false,
   "isNewMoon": true,
   "isoDate": "2026-08-12",
-  "dayOfWeek": 3
+  "dayOfWeek": 3,
+  "tibetanWeekday": 4
 }
 ```
 
@@ -156,8 +157,25 @@ No weekday *name* is included, because `Temporal` already gives you one in the r
 date.isoDate.toLocaleString('en-GB', { weekday: 'long' });   // "Wednesday"
 ```
 
-Tibetan almanacs number the week differently — `0` = Saturday through `6` = Friday. If you need
-that convention, it is exported separately rather than conflated with the ISO field:
+The Tibetan week is numbered differently — `0` = Saturday through `6` = Friday. It is the same
+seven-day cycle, renumbered, and it is kept in a separate field rather than conflated with the ISO
+one:
+
+```js
+date.tibetanWeekday;   // 4 — Wednesday, in the Tibetan numbering
+```
+
+Each day corresponds to one of the seven planets, and the Tibetan name of the day is essentially the
+planet's: `0` Saturn (*spen ma*), `1` Sun (*nyi ma*), `2` Moon (*zla ba*), `3` Mars (*mig dmar*),
+`4` Mercury (*lhag pa*), `5` Jupiter (*phur bu*), `6` Venus (*pa sangs*). That correspondence
+reached Tibet from India and goes back to Roman astrology, which is why it lines up with the Latin
+and English names.
+
+It is worth more than display. Janson notes that a date and its weekday are usually given together
+because that **resolves the ambiguity when days are repeated** — both halves of a doubled pair carry
+the same `day`, and the weekday is what tells them apart.
+
+The same numbering is available from a Julian day, for callers who have one but no `TibetanDate`:
 
 ```js
 import { julianDayFromIso, tibetanWeekday } from 'tibetan-calendar-temporal';
@@ -582,7 +600,7 @@ point, not internals that leaked.
 |---|---|---|
 | `julianDayFromIso` | `(date: Temporal.PlainDate) => number` | Also accepts a `PlainDateTime`, a `ZonedDateTime`, or an ISO string — but not a bare `{ year, month, day }` object, which is ambiguous with this package's own Tibetan-date input |
 | `isoFromJulianDay` | `(julianDay: number, config?) => Temporal.PlainDate` | Takes a config because the exact-range bound it enforces belongs to the tradition |
-| `tibetanWeekday` | `(julianDay: number) => number` | Almanac numbering, `0` = Saturday — not the ISO `dayOfWeek` field |
+| `tibetanWeekday` | `(julianDay: number) => number` | The Tibetan day of week, `0` = Saturday, one per planet — not the ISO `dayOfWeek` field. Also on every `TibetanDate` as `tibetanWeekday`, which is what to use when you have one |
 
 #### Tradition configs
 

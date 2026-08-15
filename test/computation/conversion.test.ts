@@ -62,6 +62,37 @@ describe("day of week", () => {
 			}),
 		);
 	});
+
+	/**
+	 * The field form. Reaching this from a `TibetanDate` used to mean
+	 * `tibetanWeekday(julianDayFromIso(date.isoDate))` — two calls and a re-conversion for a Julian
+	 * day the engine had already computed — while `date.dayOfWeek` sat in plain sight carrying the
+	 * ISO numbering. A consumer who reached for the visible one printed numbers that did not match
+	 * the almanac column.
+	 */
+	it("carries the same numbering as a field on TibetanDate", () => {
+		fc.assert(
+			fc.property(fc.integer({ min: 2_200_000, max: 2_500_000 }), (jd) => {
+				const date = isoToTibetan(isoFromJulianDay(jd));
+				expect(date.tibetanWeekday).toBe(tibetanWeekday(jd));
+			}),
+		);
+	});
+
+	/**
+	 * Janson's reason for the field, which is stronger than the display one: "The date and the day
+	 * of week are often given together. This resolves the ambiguity when days are repeated." Both
+	 * halves of a doubled pair carry the same `day`, so the weekday is what tells them apart.
+	 */
+	it("distinguishes the two halves of a doubled day", () => {
+		const first = isoToTibetan(iso("2025-11-19"));
+		const second = isoToTibetan(iso("2025-11-20"));
+		expect(first.isDoubledDay).toBe(true);
+		expect(second.isDoubledDay).toBe(true);
+		expect(first.day).toBe(second.day);
+		expect(first.tibetanWeekday).not.toBe(second.tibetanWeekday);
+		expect(second.tibetanWeekday).toBe((first.tibetanWeekday + 1) % 7);
+	});
 });
 
 // The primary correctness gate. Losar exercises the month count, the leap-month rule, the

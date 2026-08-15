@@ -54,6 +54,7 @@ describe("README usage examples", () => {
 			isNewMoon: true,
 			isoDate: "2026-08-12",
 			dayOfWeek: 3,
+			tibetanWeekday: 4,
 		});
 	});
 
@@ -61,7 +62,9 @@ describe("README usage examples", () => {
 		expect(date.dayOfWeek).toBe(3);
 		expect(date.isoDate.dayOfWeek).toBe(3);
 		expect(date.isoDate.toLocaleString("en-GB", { weekday: "long" })).toBe("Wednesday");
-		// The almanac convention, 0 = Saturday, kept separate from the ISO field.
+		// The Tibetan numbering, 0 = Saturday, kept separate from the ISO field. Available both as
+		// a field and from a Julian day, and the two must agree.
+		expect(date.tibetanWeekday).toBe(4);
 		expect(tibetanWeekday(julianDayFromIso(iso("2026-08-12")))).toBe(4);
 	});
 

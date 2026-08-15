@@ -480,6 +480,15 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
     subset.
   - Whether it reaches `formatTibetanDate` as an option, or ships as a separate formatter.
 
+  **The weekday names are the readiest piece, and the least blocked.** Janson's day-of-week section
+  already tabulates all seven with their English name, Wylie and planet — `spen ma`/Saturn,
+  `nyi ma`/Sun, `zla ba`/Moon, `mig dmar`/Mars, `lhag pa`/Mercury, `phur bu`/Jupiter,
+  `pa sangs`/Venus — so unlike the 60 rabjung names there is nothing to source. `TibetanDate` now
+  carries the numeric `tibetanWeekday`, and a `weekdayName` would group beside it under the `*Name`
+  rule exactly as `yearName` sits beside `year`. Only the Tibetan script and Lhasa phonetics would
+  need adding to what Janson gives, and those are mechanical from Wylie rather than a search for a
+  source. Do not let this item's harder parts hold that one.
+
 - **iCalendar (ICS) export — declined.** `getObservances` returns plain objects; a consumer maps
   them to whatever format they need. Per
   [decisions/2026-08-12-public-surface.md](decisions/2026-08-12-public-surface.md), a name is

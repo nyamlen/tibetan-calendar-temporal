@@ -279,16 +279,31 @@ function describeBound(exactToJulianDay: number): string {
 }
 
 /**
- * The Tibetan day of week, 0 = Saturday through 6 = Friday — Janson §9.
+ * `(JD + 2) mod 7`, with no validation.
  *
  * @remarks
- * `(JD + 2) mod 7`. Each weekday is named for a planet, as in Latin and several modern European
- * languages; the cycle is identical to the Western one, so this is a renumbering rather than a
- * different week.
+ * For Julian days this package computed and has already bounded. The exported
+ * {@link tibetanWeekday} is the guarded entry point, named per the convention
+ * `isoFromJulianDayUnchecked` set: an internal caller that has done the checking gets its own name
+ * rather than the boundary quietly losing a guard.
+ */
+function tibetanWeekdayUnchecked(julianDay: number): number {
+	return mod(julianDay + 2, 7);
+}
+
+/**
+ * The Tibetan day of week, 0 = Saturday through 6 = Friday — Janson's day-of-week section.
+ *
+ * @remarks
+ * `(JD + 2) mod 7`. Each weekday corresponds to one of the seven "planets" and takes its name from
+ * that planet, as in Latin and several modern European languages; the correspondence reached Tibet
+ * from India and goes back to Roman astrology. The cycle is identical to the Western one, so this
+ * is a renumbering rather than a different week.
  *
  * {@link TibetanDate.dayOfWeek} exposes the **ISO** numbering instead, matching
- * `Temporal.PlainDate.dayOfWeek`. This function is provided for callers working with almanac
- * conventions.
+ * `Temporal.PlainDate.dayOfWeek`. {@link TibetanDate.tibetanWeekday} carries *this* numbering as a
+ * field, which is what to reach for when a `TibetanDate` is already in hand — this function is for
+ * callers working from a Julian day directly.
  */
 export function tibetanWeekday(julianDay: number): number {
 	// The guard this function most needed, and the one it did not have. It returns a plain `number`
@@ -301,7 +316,7 @@ export function tibetanWeekday(julianDay: number): number {
 			`tibetanWeekday: julianDay must be a safe integer, received ${describeValue(julianDay)}`,
 		);
 	}
-	return mod(julianDay + 2, 7);
+	return tibetanWeekdayUnchecked(julianDay);
 }
 
 /** The lunar day whose end is the full moon, and the one whose end is the new moon — Janson §6. */
@@ -349,6 +364,9 @@ function buildDate(
 			julianDayOfLunarDay(scaled, NEW_MOON_LUNAR_DAY, monthCount) === julianDay,
 		isoDate,
 		dayOfWeek: isoDate.dayOfWeek,
+		// From the Julian day already in hand rather than from isoDate, which would mean converting
+		// back out of Temporal to get the number this function was given.
+		tibetanWeekday: tibetanWeekdayUnchecked(julianDay),
 	};
 }
 
