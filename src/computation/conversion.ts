@@ -14,7 +14,7 @@ import { codedError, hasCode, rangeError } from "../errors.js";
 import { monthCodeOf } from "../format.js";
 import { PHUGPA } from "../traditions/phugpa.js";
 import type { TraditionConfig } from "../traditions/types.js";
-import type { TibetanDate, TibetanDateInput } from "../types.js";
+import type { TibetanDate, TibetanDateFields } from "../types.js";
 import { rejectInvalidLeapFlags, rejectTemporalInstance, SkippedDayError } from "../types.js";
 import { floorDiv, mod } from "./arithmetic.js";
 import {
@@ -86,7 +86,7 @@ export function julianDayFromIso(date: Temporal.PlainDate): number {
  * anything a caller meant.
  *
  * It deliberately does **not** accept a bare `{ year, month, day }` object, even though
- * `Temporal.PlainDate.from` does. That shape is exactly this package's own {@link TibetanDateInput}
+ * `Temporal.PlainDate.from` does. That shape is exactly this package's own {@link TibetanDateFields}
  * — `isoToTibetan({ year: 2153, month: 12, day: 8 })` is a genuine value of both types, so nothing
  * about the object itself says which calendar it names. Left accepted, it reads a royal-era
  * Tibetan year as an ISO one, or the reverse, and returns a confident, silently wrong date. A
@@ -191,7 +191,7 @@ export function isoFromJulianDayUnchecked(julianDay: number): Temporal.PlainDate
  * The bad field alone does not say. Optional flags appear only when set, so the common case stays
  * short.
  */
-function describeInput(input: TibetanDateInput): string {
+function describeInput(input: TibetanDateFields): string {
 	const flags = [
 		input.isLeapMonth === true ? "isLeapMonth: true" : undefined,
 		input.isLeapDay === true ? "isLeapDay: true" : undefined,
@@ -381,7 +381,7 @@ function buildDate(
  * ```
  */
 export function tibetanToIso(
-	input: TibetanDateInput,
+	input: TibetanDateFields,
 	config: TraditionConfig = PHUGPA,
 ): Temporal.PlainDate {
 	rejectTemporalInstance("tibetanToIso", input);
@@ -471,7 +471,7 @@ export function tibetanToIso(
  * exist, and answering `false` would let that confusion look like a calendrical fact.
  */
 export function tibetanDateExists(
-	input: TibetanDateInput,
+	input: TibetanDateFields,
 	config: TraditionConfig = PHUGPA,
 ): boolean {
 	// These duplicate the same two guards inside tibetanToIso, and the reason is the *message*, not

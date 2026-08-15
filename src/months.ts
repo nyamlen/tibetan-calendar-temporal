@@ -41,7 +41,7 @@ import { monthCodeOf } from "./format.js";
 import { PHUGPA } from "./traditions/phugpa.js";
 import type { TraditionConfig } from "./traditions/types.js";
 import { assertTraditionConfig } from "./traditions/validate.js";
-import type { TibetanMonth, TibetanMonthInput } from "./types.js";
+import type { TibetanMonth, TibetanMonthFields } from "./types.js";
 import { rejectInvalidLeapFlags, rejectTemporalInstance } from "./types.js";
 
 /**
@@ -184,7 +184,7 @@ export function monthsFor(year: number, config: TraditionConfig = PHUGPA): Tibet
  * daysInMonth(isoToTibetan(Temporal.PlainDate.from("2026-08-12")));  // that day's own month
  * ```
  */
-export function daysInMonth(month: TibetanMonthInput, config: TraditionConfig = PHUGPA): number {
+export function daysInMonth(month: TibetanMonthFields, config: TraditionConfig = PHUGPA): number {
 	rejectTemporalInstance("daysInMonth", month);
 	rejectInvalidLeapFlags("daysInMonth", month);
 	const scaled = scalingFor(config);

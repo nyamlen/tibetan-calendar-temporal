@@ -56,11 +56,11 @@ export type {
 	Rabjung,
 	TibetanAnimal,
 	TibetanDate,
-	TibetanDateInput,
+	TibetanDateFields,
 	TibetanElement,
 	TibetanGender,
 	TibetanMonth,
-	TibetanMonthInput,
+	TibetanMonthFields,
 	TibetanYearName,
 } from "./types.js";
 export { SkippedDayError } from "./types.js";

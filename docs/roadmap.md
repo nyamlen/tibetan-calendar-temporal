@@ -253,14 +253,14 @@ through this before publishing v1.0.0 — several are one-way doors once publish
 - [x] **Add `parseTibetanDate`, the counterpart to `formatTibetanDate`** — done 2026-08-13. Two
       things came out differently.
 
-      - **It returns `TibetanDateInput`, not a resolved date, and takes no config.** `"2150-M12-29"`
+      - **It returns `TibetanDateFields`, not a resolved date, and takes no config.** `"2150-M12-29"`
         is a well-formed string naming a *skipped* date. Almanacs print such dates — that is why
         `SkippedDayError` exists rather than a `null` return — so a parser that threw on them could
         not read back a published table, which is most of the point of having one.
       - **Closing the round trip meant widening `formatTibetanDate`, not narrowing the parser.**
         The formatter took `TibetanDate` and read its `monthCode`, so `format(parse(s))` did not
         even typecheck and the "symmetry" would have been a four-step pipeline through the
-        calendar. It now takes `TibetanDateInput` and derives the month segment, which is
+        calendar. It now takes `TibetanDateFields` and derives the month segment, which is
         non-breaking — `TibetanDate` stays assignable — and strictly more robust, since an object
         whose `month` and `monthCode` disagree can no longer render a self-contradicting string.
 
@@ -456,7 +456,7 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   supports it; only the constants differ.
 
 - **Navigation and date-arithmetic functions** (`addMonths`, `addDays`, `daysBetween` and
-  similar) over `TibetanDateInput` — deferred, additive, and free functions rather than methods on
+  similar) over `TibetanDateFields` — deferred, additive, and free functions rather than methods on
   a class. [decisions/2026-08-12-no-tibetan-date-class.md](decisions/2026-08-12-no-tibetan-date-class.md)
   already ruled out a `TibetanDate` class, for exactly the leap-month and overflow ambiguities
   below, so a future design here inherits that constraint rather than reopening it. Record the open
@@ -464,7 +464,7 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
 
   - What "add one month" means across a leap month — skip it, land in it, or refuse.
   - What `addDays` returns when the target date is skipped.
-  - Whether the return type is `TibetanDate` (resolved) or `TibetanDateInput` (naming fields only).
+  - Whether the return type is `TibetanDate` (resolved) or `TibetanDateFields` (naming fields only).
   - Whether `daysBetween` takes two Tibetan dates directly, or the consumer converts each to
     `Temporal.PlainDate` and subtracts.
 

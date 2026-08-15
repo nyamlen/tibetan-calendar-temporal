@@ -5,7 +5,7 @@
  */
 
 import { rangeError } from "./errors.js";
-import { rejectInvalidLeapFlags, rejectTemporalInstance, type TibetanDateInput } from "./types.js";
+import { rejectInvalidLeapFlags, rejectTemporalInstance, type TibetanDateFields } from "./types.js";
 
 /**
  * Formats a month as a Temporal-style code: `"M01"`…`"M12"`, with `L` appended for a leap month.
@@ -41,12 +41,12 @@ export function monthCodeOf(month: number, isLeap: boolean): string {
  *
  * ## Why this takes the input shape rather than a `TibetanDate`
  *
- * `parseTibetanDate` is the inverse, and it returns a {@link TibetanDateInput} — a string names a
+ * `parseTibetanDate` is the inverse, and it returns a {@link TibetanDateFields} — a string names a
  * date without resolving it, and resolving would make a skipped date unreadable. Narrowed to
  * {@link TibetanDate}, this function could not consume that, so `formatTibetanDate(parse(s))` would
  * not even typecheck and the round trip would be a four-step pipeline instead of an identity.
  *
- * Widening loses nothing: a `TibetanDate` is assignable to {@link TibetanDateInput}, so every
+ * Widening loses nothing: a `TibetanDate` is assignable to {@link TibetanDateFields}, so every
  * existing call still compiles. It also gains something, because the month segment is now
  * **derived** from `month` and `isLeapMonth` rather than read from the caller's `monthCode`. An
  * object whose two disagree can no longer produce a string contradicting itself, since
@@ -74,7 +74,7 @@ export function monthCodeOf(month: number, isLeap: boolean): string {
  * plausible-but-wrong string is the failure worth preventing, and handed `{}` this produced exactly
  * one: `"undefined-undefined-undefined"`.
  */
-export function formatTibetanDate(date: TibetanDateInput): string {
+export function formatTibetanDate(date: TibetanDateFields): string {
 	rejectTemporalInstance("formatTibetanDate", date);
 	// Unconditional, and it carries the null/non-object check for this function as well as the flag
 	// checks — which is why the field test below no longer repeats either. Guarding it with its own

@@ -5,7 +5,7 @@
  */
 
 import { rangeError } from "./errors.js";
-import type { TibetanDateInput } from "./types.js";
+import type { TibetanDateFields } from "./types.js";
 
 /**
  * The canonical form, and only the canonical form.
@@ -37,7 +37,7 @@ const CANONICAL = /^(0|-?[1-9]\d*)-M(0[1-9]|1[0-2])(L?)-(0[1-9]|[12]\d|30)( \(le
  *
  * ## Why this returns an input shape rather than a resolved date
  *
- * It returns {@link TibetanDateInput} — the fields that *name* a date — rather than a
+ * It returns {@link TibetanDateFields} — the fields that *name* a date — rather than a
  * {@link TibetanDate}, and takes no `TraditionConfig`. Three reasons, of which the first decides
  * it:
  *
@@ -74,7 +74,7 @@ const CANONICAL = /^(0|-?[1-9]\d*)-M(0[1-9]|1[0-2])(L?)-(0[1-9]|[12]\d|30)( \(le
  * // Temporal.PlainDate 2027-01-15
  * ```
  */
-export function parseTibetanDate(text: string): TibetanDateInput {
+export function parseTibetanDate(text: string): TibetanDateFields {
 	if (typeof text !== "string") {
 		throw rangeError(
 			"TCT_INVALID_ARGUMENT",

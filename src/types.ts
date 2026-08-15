@@ -1,6 +1,6 @@
 /**
- * The public data shapes: {@link TibetanDate}, its input counterpart
- * {@link TibetanDateInput}, and {@link SkippedDayError}.
+ * The public data shapes: {@link TibetanDate}, its unresolved counterpart
+ * {@link TibetanDateFields}, and {@link SkippedDayError}.
  *
  * @remarks
  * ## How this shape is organised
@@ -381,15 +381,15 @@ export interface TibetanMonth {
  * input is expected.
  *
  * @remarks
- * `TibetanDateInput` and `Temporal.PlainDate` are structurally close enough — both are plain
+ * `TibetanDateFields` and `Temporal.PlainDate` are structurally close enough — both are plain
  * objects exposing numeric `year`, `month` and `day` — that nothing stops a caller from handing a
  * Western date to a Tibetan-date entry point. Nothing crashes: `tibetanToIso` reads the same three
- * fields off a `PlainDate` that it would off a real `TibetanDateInput`, and returns a confident,
+ * fields off a `PlainDate` that it would off a real `TibetanDateFields`, and returns a confident,
  * silently wrong Tibetan date. This check runs before any field validation, which would otherwise
  * accept a `PlainDate`'s in-range numeric fields without complaint.
  *
- * The runtime half of the defence; {@link TibetanDateInput.calendarId} and
- * {@link TibetanMonthInput.calendarId} are the compile-time half, for callers who stay inside the
+ * The runtime half of the defence; {@link TibetanDateFields.calendarId} and
+ * {@link TibetanMonthFields.calendarId} are the compile-time half, for callers who stay inside the
  * type system. This half is what catches JavaScript callers, `any`, and casts.
  *
  * Shared across every Tibetan-date entry point — `tibetanToIso`, `tibetanDateExists`,
@@ -483,10 +483,10 @@ export function rejectInvalidLeapFlags(
  * The identifying fields needed to name a Tibetan month, as accepted by `daysInMonth`.
  *
  * @remarks
- * Both {@link TibetanDate} and {@link TibetanDateInput} are assignable to this, so a value from
+ * Both {@link TibetanDate} and {@link TibetanDateFields} are assignable to this, so a value from
  * `isoToTibetan` can be passed straight in — the extra `day` is simply ignored.
  */
-export interface TibetanMonthInput {
+export interface TibetanMonthFields {
 	/** Royal-era year, matching {@link TibetanDate.year}. Not Janson's *Y*. */
 	year: number;
 
@@ -521,8 +521,19 @@ export interface TibetanMonthInput {
  * @remarks
  * A {@link TibetanDate} is assignable to this type, so a value obtained from `isoToTibetan` can
  * be passed straight back in.
+ *
+ * ## Why `Fields` rather than `Input`
+ *
+ * It was `TibetanDateInput` until the 1.0.0 corrections, and that name described a role it does not
+ * only play: `parseTibetanDate` **returns** one. A type named for being an input, appearing in a
+ * return position, tells a reader the wrong thing about what it is.
+ *
+ * What it actually is: the fields that *name* a date, resolved or not. That distinction is
+ * load-bearing rather than cosmetic — naming a date without resolving it is the only way to
+ * represent a **skipped** date, which is a string almanacs print and no calendar day carries. A
+ * type that could only hold resolved dates could not be `parseTibetanDate`'s return.
  */
-export interface TibetanDateInput {
+export interface TibetanDateFields {
 	/**
 	 * Royal-era year, matching {@link TibetanDate.year}.
 	 *
@@ -565,7 +576,7 @@ export interface TibetanDateInput {
 	 * `ZonedDateTime` at compile time.
 	 *
 	 * @remarks
-	 * See {@link TibetanMonthInput.calendarId} — the same field, for the same reason. Do not
+	 * See {@link TibetanMonthFields.calendarId} — the same field, for the same reason. Do not
 	 * delete this as an unused field: it has no reads because its entire job is to make an
 	 * *invalid* call fail to typecheck.
 	 */
@@ -589,7 +600,7 @@ export interface TibetanDateInput {
  */
 export class SkippedDayError extends Error {
 	/** The date that was requested and does not exist. */
-	readonly requested: TibetanDateInput;
+	readonly requested: TibetanDateFields;
 
 	/**
 	 * Always `"TCT_SKIPPED_DAY"`.
@@ -600,7 +611,7 @@ export class SkippedDayError extends Error {
 	 */
 	readonly code: TibetanCalendarErrorCode = "TCT_SKIPPED_DAY";
 
-	constructor(requested: TibetanDateInput) {
+	constructor(requested: TibetanDateFields) {
 		// Through the canonical formatter, not hand-rolled. This message used to print
 		// `2150-12-29` — no `M`, so indistinguishable from an ISO date by eye — and used the
 		// ` (leap)` suffix for a leap *month* where `formatTibetanDate` uses it for a leap *day*.

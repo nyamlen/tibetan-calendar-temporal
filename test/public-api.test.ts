@@ -301,7 +301,7 @@ describe("error codes", () => {
 
 	/**
 	 * Finding 2, part B. `{ year: 2153, month: 12, day: 8 }` is a genuine value of both
-	 * `TibetanDateInput` and the shape `Temporal.PlainDate.from` accepts, so
+	 * `TibetanDateFields` and the shape `Temporal.PlainDate.from` accepts, so
 	 * `isoToTibetan({ year: 2153, month: 12, day: 8 })` used to read a royal-era Tibetan year as
 	 * an ISO one — the specific confusion the royal-era numbering argument was supposed to make
 	 * loud, quietly defeated by the very same object shape being accepted on both sides.
@@ -315,7 +315,7 @@ describe("error codes", () => {
 	});
 
 	/**
-	 * Finding 2, part A. `Temporal.PlainDate` and `TibetanDateInput` are structurally close enough
+	 * Finding 2, part A. `Temporal.PlainDate` and `TibetanDateFields` are structurally close enough
 	 * — both expose numeric `year`/`month`/`day` — that the four Tibetan-date entry points used to
 	 * accept a Temporal instance silently: `tibetanToIso(pd)` read `pd.year/.month/.day` as though
 	 * they were royal-era fields and returned a confident, wrong Tibetan date.

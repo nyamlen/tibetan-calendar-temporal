@@ -542,8 +542,8 @@ no calendar: `formatTibetanDate`, `parseTibetanDate`, `julianDayFromIso` and `ti
 | Export | Signature | Notes |
 |---|---|---|
 | `isoToTibetan` | `(date: Temporal.PlainDate, config?) => TibetanDate` | Total; every calendar day has a Tibetan date |
-| `tibetanToIso` | `(input: TibetanDateInput, config?) => Temporal.PlainDate` | Throws `SkippedDayError`, or `RangeError` on out-of-range input |
-| `tibetanDateExists` | `(input: TibetanDateInput, config?) => boolean` | The predicate counterpart. `false` for a skipped date, an out-of-range field or a missing leap month; **throws** for anything else, including a date past the exact range — where the day was never computed, so `false` would be a claim about arithmetic that was refused |
+| `tibetanToIso` | `(input: TibetanDateFields, config?) => Temporal.PlainDate` | Throws `SkippedDayError`, or `RangeError` on out-of-range input |
+| `tibetanDateExists` | `(input: TibetanDateFields, config?) => boolean` | The predicate counterpart. `false` for a skipped date, an out-of-range field or a missing leap month; **throws** for anything else, including a date past the exact range — where the day was never computed, so `false` would be a claim about arithmetic that was refused |
 | `losarFor` | `(year: number, config?) => TibetanDate` | Tibetan New Year. Not `{ month: 1, day: 1 }` — that throws where day 1 is skipped |
 
 #### Months
@@ -557,7 +557,7 @@ a handful of integer operations, and exact for any year — including ones where
 | Export | Signature | Notes |
 |---|---|---|
 | `monthsFor` | `(year: number, config?) => TibetanMonth[]` | The year's months in calendar order, 12 or 13. Tiles Losar to the day before the next Losar, leap month first of its pair |
-| `daysInMonth` | `(month: TibetanMonthInput, config?) => number` | **Calendar days**, 29 or 30 — not the highest date number, which is always 30. Accepts a `TibetanDate` directly |
+| `daysInMonth` | `(month: TibetanMonthFields, config?) => number` | **Calendar days**, 29 or 30 — not the highest date number, which is always 30. Accepts a `TibetanDate` directly |
 | `hasLeapMonth` | `(year: number, config?) => boolean` | Whether the year has a thirteenth month. Not called `isLeapYear`: a Tibetan leap year gains a *month*, not a day |
 | `leapMonthOfYear` | `(year: number, config?) => number \| undefined` | Which month number is doubled, or `undefined` |
 | `monthsInYear` | `(year: number, config?) => number` | 12 or 13 |
@@ -569,8 +569,8 @@ because naming a date needs no calendar.
 
 | Export | Signature | Notes |
 |---|---|---|
-| `formatTibetanDate` | `(date: TibetanDateInput) => string` | `"2153-M06-30"`, with `L` on a leap month and a trailing `(leap)` on a leap day. A `TibetanDate` is assignable, so pass one straight in |
-| `parseTibetanDate` | `(text: string) => TibetanDateInput` | Strict — the canonical form only. Returns the naming fields rather than a resolved date, so a **skipped** date parses rather than throwing; pass it to `tibetanToIso` or `tibetanDateExists` |
+| `formatTibetanDate` | `(date: TibetanDateFields) => string` | `"2153-M06-30"`, with `L` on a leap month and a trailing `(leap)` on a leap day. A `TibetanDate` is assignable, so pass one straight in |
+| `parseTibetanDate` | `(text: string) => TibetanDateFields` | Strict — the canonical form only. Returns the naming fields rather than a resolved date, so a **skipped** date parses rather than throwing; pass it to `tibetanToIso` or `tibetanDateExists` |
 
 #### Interoperability
 
@@ -619,8 +619,8 @@ Codes are stable and part of the API. Message text is not — match on the code.
 
 #### Types
 
-Type-only exports, erased at runtime: `TibetanDate`, `TibetanDateInput`, `TibetanMonth`,
-`TibetanMonthInput`, `TibetanYearName`, `Rabjung`, `TibetanElement`, `TibetanAnimal`,
+Type-only exports, erased at runtime: `TibetanDate`, `TibetanDateFields`, `TibetanMonth`,
+`TibetanMonthFields`, `TibetanYearName`, `Rabjung`, `TibetanElement`, `TibetanAnimal`,
 `TibetanGender`, `TraditionConfig`, `MeanMotion`, `Rational`, `TibetanCalendarErrorCode`.
 
 ### `tibetan-calendar-temporal/observances`

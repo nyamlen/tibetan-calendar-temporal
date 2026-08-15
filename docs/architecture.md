@@ -219,7 +219,7 @@ interface TibetanMonth {
   lastDay: Temporal.PlainDate;
 }
 
-interface TibetanMonthInput {
+interface TibetanMonthFields {
   year: number;           // Royal era, like TibetanDate.year
   month: number;          // 1-12
   isLeapMonth?: boolean;
