@@ -9,7 +9,7 @@
 | 2 | Validation: FPMT fixtures, cross-check against reference implementations — **done** | 12h |
 | 3 | Observances: config-driven rules, Gelug default config — **done** | 8h |
 | 4 | TypeDoc + release workflow + publish v1.0.0 (docblock audit split out — see Phase 4a) | 6h |
-| 4a | Docblock audit: verify 265 docblocks against actual behaviour — see the [Pre-v1.0.0 checklist](#pre-v100-checklist) | 10h |
+| 4a | Docblock audit: verify 300 docblocks against actual behaviour — see the [Pre-v1.0.0 checklist](#pre-v100-checklist) | 10h |
 
 **Safe timeline: 3 weeks** (accounts for debugging edge cases in doubled/skipped day logic —
 predates Phase 4a's addition below and has not been revisited against its extra 10h)
@@ -273,12 +273,16 @@ through this before publishing v1.0.0 — several are one-way doors once publish
       but cannot be tightened. `tryParseTibetanDate` was considered and dropped for the same reason:
       additive later.
 
-- [ ] **Audit and correct all 265 docblocks against actual behaviour** — see
-      [Phase 4a](#implementation-phases) for the effort estimate. `src/types.ts` (46),
-      `src/observances/types.ts` (28), `src/computation/calendar.ts` (28) and
-      `src/computation/scaling.ts` (22) are the concentrations, across 20 files in `src/` in total.
-      Must run after this plan's Part 1, which changed the behaviour of eight files — already true
-      by the time this item is worked.
+- [ ] **Audit and correct all 300 docblocks against actual behaviour** — see
+      [Phase 4a](#implementation-phases) for the effort estimate. `src/types.ts` (56),
+      `src/computation/calendar.ts` (30), `src/observances/types.ts` (28),
+      `src/computation/scaling.ts` (22) and `src/navigation.ts` (16) are the concentrations, across
+      22 files in `src/` in total.
+
+      **Recount 2026-08-15: 265 became 300.** The navigation and naming work added 35, and the
+      10h estimate predates them — it has not been revisited. The new ones are the least likely to
+      be stale, having just been written against the behaviour, but they are also where the newest
+      contract statements live, so they are not exempt from the audit.
 
       Docblocks reach the shipped `.d.ts` and are what editor hover shows, so a stale one is a false
       contract statement, not a tidying issue. This review already found three: `hasLeapMonth`,

@@ -128,8 +128,10 @@ tibetan-calendar-temporal/
 │   ├── errors.ts             # Error codes, and the constructors that attach them
 │   ├── format.ts             # formatTibetanDate, monthCodeOf — the canonical string form
 │   ├── parse.ts              # parseTibetanDate — its inverse
-│   ├── months.ts             # monthsFor, daysInMonth, and the three closed-form scalars
-│   └── types.ts              # TibetanDate, TibetanMonth, their inputs, SkippedDayError
+│   ├── months.ts             # monthsFor, datesFor, daysInMonth, the three closed-form scalars
+│   ├── navigation.ts         # the lunation coordinate, day and month arithmetic, the phases
+│   ├── naming.ts             # yearNameFor, rabjungFor — closed forms over the year alone
+│   └── types.ts              # TibetanDate, TibetanMonth, their field shapes, SkippedDayError
 ├── test/
 │   ├── computation/          # One suite per computation module
 │   ├── fixtures/             # Janson's tables, then FPMT data in Phase 2
