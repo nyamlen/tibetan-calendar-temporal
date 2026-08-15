@@ -621,6 +621,53 @@ a handful of integer operations, and exact for any year — including ones where
 | `hasLeapMonth` | `(year: number, config?) => boolean` | Whether the year has a thirteenth month. Not called `isLeapYear`: a Tibetan leap year gains a *month*, not a day |
 | `leapMonthOfYear` | `(year: number, config?) => number \| undefined` | Which month number is doubled, or `undefined` |
 | `monthsInYear` | `(year: number, config?) => number` | 12 or 13 |
+| `datesFor` | `(month: TibetanMonthFields, config?) => TibetanDate[]` | The month's calendar days, labelled — one entry per day, so a doubled number appears twice and a skipped one not at all. Bounded at 29 or 30 |
+
+#### Navigation
+
+Arithmetic happens on the calendar's two **integer coordinate lines** — the Julian day for solar
+days, the lunation for months — never on the labels. Labels are partial (a skipped date names no
+day) and non-injective (a leap year has two months numbered 6), which is where ambiguity comes
+from; in coordinate space a leap month is simply the next lunation.
+
+| Export | Signature | Notes |
+|---|---|---|
+| `addDays` | `(date: TibetanDateFields, days: number, config?) => TibetanDate` | **Solar** days, the unit elapsed-time reckonings use. Total — it can never land on a skipped date, because stepping real days never reaches a label no day carries |
+| `daysBetween` | `(from: TibetanDateFields, to: TibetanDateFields, config?) => number` | Signed. If both dates came from this package, `a.isoDate.until(b.isoDate)` is the better route; this is for dates you built yourself |
+| `addMonths` | `(month: TibetanMonthFields, months: number, config?) => TibetanMonth` | Month in, month out, so **total**. `+1` from a leap month is its twin. A `TibetanDate` is accepted; the day is ignored |
+| `monthsBetween` | `(from: TibetanMonthFields, to: TibetanMonthFields, config?) => number` | Signed, counted in **lunations** — month 5 to month 7 is three in a year that doubles month 6, two otherwise |
+| `lunationFromMonth` | `(month: TibetanMonthFields, config?) => number` | The month as one sortable integer, for a database or cache key. No consumer-side route: it needs the intercalation index |
+| `monthFromLunation` | `(lunation: number, config?) => TibetanMonth` | The inverse, for a stored coordinate with no year in hand. Narrower domain than its inverse — it returns boundaries, so it evaluates the calendar |
+| `nextFullMoon` | `(date: Temporal.PlainDate, config?) => TibetanDate` | Strictly after. **Not** `day === 15`: when 15 is skipped the full moon is on the day numbered 14, about one month in forty-five |
+| `nextNewMoon` | `(date: Temporal.PlainDate, config?) => TibetanDate` | Strictly after. On a doubled 30 it is the **second** of the pair, not the leap day |
+
+Western in, Tibetan out for the two phases, so they do not chain with themselves — step through
+`.isoDate`:
+
+```js
+let moon = nextFullMoon(Temporal.PlainDate.from('2026-01-01'));
+moon = nextFullMoon(moon.isoDate);   // the one after that
+```
+
+#### Year names
+
+Closed forms over the year alone — no lunar arithmetic, no config, and exact for any safe integer
+year, including ones where `losarFor` must refuse.
+
+| Export | Signature | Notes |
+|---|---|---|
+| `yearNameFor` | `(year: number) => TibetanYearName` | `{ element, animal, gender }`. Element and gender repeat every ten years, the animal every twelve, the whole name every sixty |
+| `rabjungFor` | `(year: number) => Rabjung` | `{ cycle, year }`, the sixty-year numbering from 1027 CE. A *numbering*, not a name — the two cycles sit three apart |
+
+A year picker is a loop over these plus `hasLeapMonth`; there is no range function, because building
+the list is the consumer's business and nothing about it can go wrong.
+
+```js
+const years = [];
+for (let y = 2140; y <= 2160; y++) {
+  years.push({ year: y, name: yearNameFor(y), rabjung: rabjungFor(y), leap: hasLeapMonth(y) });
+}
+```
 
 #### Formatting
 

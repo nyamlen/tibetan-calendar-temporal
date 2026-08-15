@@ -455,18 +455,36 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
 - **Tsurphu tradition** (Karma Kagyu) via a second `TraditionConfig` — the algorithm already
   supports it; only the constants differ.
 
-- **Navigation and date-arithmetic functions** (`addMonths`, `addDays`, `daysBetween` and
-  similar) over `TibetanDateFields` — deferred, additive, and free functions rather than methods on
-  a class. [decisions/2026-08-12-no-tibetan-date-class.md](decisions/2026-08-12-no-tibetan-date-class.md)
-  already ruled out a `TibetanDate` class, for exactly the leap-month and overflow ambiguities
-  below, so a future design here inherits that constraint rather than reopening it. Record the open
-  questions so a brainstorm starts from them:
+- **Navigation and date arithmetic — shipped 2026-08-15**, so this entry records only what became
+  of its open questions. `addDays`, `daysBetween`, `addMonths`, `monthsBetween`,
+  `lunationFromMonth`, `monthFromLunation`, `nextFullMoon` and `nextNewMoon` are free functions on
+  the root export; no `TibetanDate` class, so
+  [decisions/2026-08-12-no-tibetan-date-class.md](decisions/2026-08-12-no-tibetan-date-class.md)
+  stands. The reasoning is in
+  [decisions/2026-08-15-lunation-arithmetic.md](decisions/2026-08-15-lunation-arithmetic.md).
 
-  - What "add one month" means across a leap month — skip it, land in it, or refuse.
-  - What `addDays` returns when the target date is skipped.
-  - Whether the return type is `TibetanDate` (resolved) or `TibetanDateFields` (naming fields only).
-  - Whether `daysBetween` takes two Tibetan dates directly, or the consumer converts each to
-    `Temporal.PlainDate` and subtracts.
+  - *What "add one month" means across a leap month* — none of skip, land or refuse. A Tibetan month
+    is a lunation, so one month after M05 of 2151 is M06L, which is what the calendar counts.
+  - *What `addDays` returns when the target date is skipped* — **struck, not answered.** It cannot
+    land on one: stepping real days never reaches a label no calendar day carries.
+  - *Whether the return is resolved or naming fields* — `addMonths` returns a `TibetanMonth`, which
+    is what keeps it total; `addDays` returns a `TibetanDate`.
+  - *Whether `daysBetween` takes two Tibetan dates* — it does, and its docblock says when not to use
+    it. For two dates this package produced, `a.isoDate.until(b.isoDate)` is better. It is recorded
+    as **the first export to cut** if the surface ever needs trimming.
+
+- **A signal when observances go to the leap twin.** `GELUG` sets `leapMonth: "leap"`, so in a leap
+  year every observance of the doubled month falls in the leap half and the regular twin renders
+  with **no tier-1 observances at all** — 2151's regular M06 is empty while M06L holds Chökhor
+  Düchen. That is correct and matches FPMT's published date, but a consumer laying out the regular
+  month sees a blank month with nothing to explain it, and `Observance` carries no field naming the
+  twin. Behaviour must not change —
+  [decisions/2026-08-12-observance-policy.md](decisions/2026-08-12-observance-policy.md) keeps this
+  in injected config — so any fix is additive shape, not logic.
+
+- **`Observance.rule.kind` reads worse than `o.kind`** for what is arguably the observance's own
+  primary attribute. Cosmetic, on a subpath surface, and breaking to change, so it is a note rather
+  than a task.
 
 - **Tibetan-language output** — locale-aware rendering of month names, day names, the
   twelve-animal cycle and five elements, per Janson's Appendix E — deferred and additive. This is

@@ -10,7 +10,9 @@ import {
 	tibetanWeekday,
 } from "../src/computation/conversion.js";
 import { formatTibetanDate } from "../src/format.js";
-import { daysInMonth, hasLeapMonth, leapMonthOfYear, monthsFor } from "../src/months.js";
+import { datesFor, daysInMonth, hasLeapMonth, leapMonthOfYear, monthsFor } from "../src/months.js";
+import { rabjungFor, yearNameFor } from "../src/naming.js";
+import { addMonths, monthsBetween, nextFullMoon } from "../src/navigation.js";
 import { GELUG, getObservances, observancesOn } from "../src/observances/index.js";
 import { parseTibetanDate } from "../src/parse.js";
 import { PHUGPA_HENNING } from "../src/traditions/phugpa.js";
@@ -338,5 +340,55 @@ describe("README error examples", () => {
 		);
 		expect(source).toContain("Temporal ships enabled from Node 26");
 		expect(source).toContain("temporal-polyfill/global");
+	});
+});
+
+/**
+ * The API section's Navigation and Year-names blocks. Signatures in a table cannot rot silently,
+ * but the worked snippets beside them can, so those are asserted like every other README claim.
+ */
+describe("README navigation examples", () => {
+	it("chains the phases through .isoDate, as documented", () => {
+		let moon = nextFullMoon(iso("2026-01-01"));
+		const first = moon.isoDate.toString();
+		moon = nextFullMoon(moon.isoDate);
+		expect(moon.isFullMoon).toBe(true);
+		expect(Temporal.PlainDate.compare(moon.isoDate, iso(first))).toBeGreaterThan(0);
+	});
+
+	it("builds the documented year picker", () => {
+		const years = [];
+		for (let y = 2140; y <= 2160; y++) {
+			years.push({ year: y, name: yearNameFor(y), rabjung: rabjungFor(y), leap: hasLeapMonth(y) });
+		}
+		expect(years).toHaveLength(21);
+		expect(years[13]).toEqual({
+			year: 2153,
+			name: { element: "fire", animal: "horse", gender: "male" },
+			rabjung: { cycle: 17, year: 40 },
+			leap: false,
+		});
+		// A picker wants the leap years visible; 2151 is one.
+		expect(years.filter((y) => y.leap).map((y) => y.year)).toContain(2151);
+	});
+
+	it("lays out a month grid with datesFor, one entry per calendar day", () => {
+		const [first] = monthsFor(2153);
+		if (first === undefined) expect.unreachable("2153 has months");
+		const dates = datesFor(first);
+		expect(dates).toHaveLength(first.days);
+		expect(dates[0]?.isoDate.toString()).toBe("2026-02-18");
+	});
+
+	it("steps months into and out of a leap pair, as the table says", () => {
+		expect(addMonths({ year: 2151, month: 5 }, 1).monthCode).toBe("M06L");
+		expect(monthsBetween({ year: 2151, month: 5 }, { year: 2151, month: 7 })).toBe(3);
+		expect(monthsBetween({ year: 2153, month: 5 }, { year: 2153, month: 7 })).toBe(2);
+	});
+
+	// The losarFor docblock's M01L case, which the README's Losar note now also has to survive.
+	it("opens some years in a leap month", () => {
+		expect(losarFor(2146).monthCode).toBe("M01L");
+		expect(losarFor(2153).monthCode).toBe("M01");
 	});
 });

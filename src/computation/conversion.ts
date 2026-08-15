@@ -633,14 +633,20 @@ export function isoToTibetan(
  *
  * `year` is the royal-era numbering, matching {@link TibetanDate.year}: 2153, not 2026.
  *
+ * **So `monthCode` is not always `"M01"`.** In a year opening with a leap month it is `"M01L"` —
+ * `losarFor(2146)` is one. Anything reading more than the date off this must expect that; for the
+ * year's *name* alone, {@link yearNameFor} and {@link rabjungFor} answer without evaluating the
+ * calendar at all.
+ *
  * @example
  * ```ts
- * losarFor(2153).isoDate;   // 2026-02-18
- * losarFor(2104).day;       // 2 — day 1 is skipped in 1977
+ * losarFor(2153).isoDate;     // 2026-02-18
+ * losarFor(2104).day;         // 2 — day 1 is skipped in 1977
+ * losarFor(2146).monthCode;   // "M01L" — the year opens in a leap month
  * ```
  *
- * @throws RangeError if `year` is not a safe integer, or falls outside the range where the
- * arithmetic stays exact.
+ * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `year` is not a safe integer, or
+ * `TCT_OUTSIDE_EXACT_RANGE` if it falls outside the range where the arithmetic stays exact.
  */
 export function losarFor(year: number, config: TraditionConfig = PHUGPA): TibetanDate {
 	const scaled = scalingFor(config);
