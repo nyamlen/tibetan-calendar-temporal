@@ -34,7 +34,7 @@ import {
 	trueMonthCount,
 } from "./computation/calendar.js";
 import { assertExactJulianDay, isoFromJulianDayUnchecked } from "./computation/conversion.js";
-import { yearFromRoyalEra } from "./computation/epoch.js";
+import { yearFromRoyalEra, yearNameFromYear } from "./computation/epoch.js";
 import { type ScaledTradition, scalingFor } from "./computation/scaling.js";
 import { rangeError } from "./errors.js";
 import { monthCodeOf } from "./format.js";
@@ -81,6 +81,26 @@ function closedFormYear(subject: string, year: number, config: TraditionConfig):
 }
 
 /**
+ * Computed months, keyed by config identity and then by royal-era year.
+ *
+ * @remarks
+ * Keyed on the **config**, not the year alone. A cache ignoring it would serve one tradition's
+ * months for another, and the two shipped configs do diverge — royal-era 2226 M09 begins
+ * 2099-10-15 under `PHUGPA` and 2099-10-14 under `PHUGPA_HENNING`. Rare enough (four years between
+ * 1500 and 2500) that a config-blind cache would pass almost every test written against it, which
+ * is exactly what makes it worth stating.
+ *
+ * A `WeakMap` on the outside so a caller's throwaway config does not pin its months forever — the
+ * same bargain {@link scalingFor} already makes. The inner `Map` is bounded in practice by how many
+ * years a consumer asks for, and its entries die with the config.
+ *
+ * This is memoisation of a **pure** function, so it changes cost and nothing else. It earns its
+ * place because stepping a month grid re-derives neighbouring years constantly: advancing twelve
+ * months through the obvious consumer-side route costs 24 recomputations of work already done.
+ */
+const monthCache = new WeakMap<TraditionConfig, Map<number, TibetanMonth[]>>();
+
+/**
  * Builds the public shape for one month, given its true month count.
  *
  * @remarks
@@ -100,6 +120,7 @@ function describeMonth(
 	return {
 		year,
 		lunation: monthCount,
+		yearName: yearNameFromYear(yearFromRoyalEra(year)),
 		month,
 		monthCode: monthCodeOf(month, isLeapMonth),
 		isLeapMonth,
@@ -143,6 +164,13 @@ function describeMonth(
  * ```
  */
 export function monthsFor(year: number, config: TraditionConfig = PHUGPA): TibetanMonth[] {
+	const cached = monthCache.get(config)?.get(year);
+	// A fresh array every call, deliberately: the cache holds the computed months, but handing the
+	// same array to two callers lets one caller's `sort()` or `splice()` corrupt the other's. The
+	// TibetanMonth objects inside are safe to share — nothing in this package mutates them, and a
+	// consumer who does is reaching past a documented shape.
+	if (cached !== undefined) return [...cached];
+
 	const scaled = scalingFor(config);
 	const subject = () => `monthsFor(${year})`;
 	assertSafeYear(subject(), year);
@@ -165,7 +193,14 @@ export function monthsFor(year: number, config: TraditionConfig = PHUGPA): Tibet
 		}
 		months.push(describeMonth(scaled, trueMonthCount(config, y, month, false), year, month, false));
 	}
-	return months;
+
+	let byYear = monthCache.get(config);
+	if (byYear === undefined) {
+		byYear = new Map();
+		monthCache.set(config, byYear);
+	}
+	byYear.set(year, months);
+	return [...months];
 }
 
 /**

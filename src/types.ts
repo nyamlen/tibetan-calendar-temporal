@@ -336,6 +336,21 @@ export interface TibetanDate {
 	 * {@link TibetanDate.year}.
 	 */
 	tibetanWeekday: number;
+
+	/**
+	 * The lunation this date falls in — the same integer {@link TibetanMonth.lunation} carries.
+	 *
+	 * @remarks
+	 * The date's route back to its own month. Without it a consumer holding a date has to rediscover
+	 * the month by matching two keys — `monthsFor(d.year).find(m => m.month === d.month &&
+	 * m.isLeapMonth === d.isLeapMonth)` — and the second key is the one that gets forgotten, which
+	 * silently picks the wrong half of a leap pair. With it, `monthFromLunation(date.lunation)` is
+	 * the whole operation.
+	 *
+	 * Zero is the epoch, so values are large, and negative before it. It is a coordinate, not a
+	 * month number.
+	 */
+	lunation: number;
 }
 
 /**
@@ -394,6 +409,19 @@ export interface TibetanMonth {
 	 * number.
 	 */
 	lunation: number;
+
+	/**
+	 * The element–animal name of the year this month belongs to.
+	 *
+	 * @remarks
+	 * The same value {@link TibetanDate.yearName} carries, and it is here for the same reason
+	 * {@link TibetanMonth.year} is: a month should identify itself. Rendering a month header
+	 * otherwise means hopping into the date tier through `losarFor`, which is not a route anyone
+	 * would guess from the name.
+	 *
+	 * Both halves of a leap pair carry the same name — they are two months of one year.
+	 */
+	yearName: TibetanYearName;
 
 	/**
 	 * Month number, 1–12.

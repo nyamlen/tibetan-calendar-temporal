@@ -96,6 +96,55 @@ describe("monthsFor", () => {
 		}
 	});
 
+	/**
+	 * Every `TibetanDate` carries `yearName`; no `TibetanMonth` did, so rendering a month header
+	 * meant hopping into the date tier through a function called `losarFor` — not a route anyone
+	 * guesses. Both halves of a doubled pair are checked because reading the year off the wrong
+	 * twin is the way a naive implementation gets this wrong.
+	 */
+	it("names the year of every month, including both halves of a leap pair", () => {
+		for (const year of [2151, 2153]) {
+			const expected = losarFor(year).yearName;
+			for (const month of monthsFor(year)) {
+				expect(month.yearName, `${year} ${month.monthCode}`).toEqual(expected);
+			}
+		}
+	});
+
+	/**
+	 * `monthsFor` was not memoised, so every consumer stepping a month grid paid for a full
+	 * month-boundary computation two or three times per step. The cache must key on the config as
+	 * well as the year — a cache ignoring it would serve PHUGPA results for PHUGPA_HENNING.
+	 */
+	it("memoises per year without letting one caller corrupt another", () => {
+		const first = monthsFor(2151);
+		const second = monthsFor(2151);
+		expect(second).toEqual(first);
+		// Whatever the cache hands out must survive a caller mutating it.
+		first.sort((a, b) => b.lunation - a.lunation);
+		expect(monthsFor(2151).map((m) => m.monthCode)).toEqual([
+			"M01", "M02", "M03", "M04", "M05", "M06L", "M06", "M07", "M08", "M09", "M10", "M11", "M12",
+		]);
+	});
+
+	/**
+	 * The cache must key on the config, not the year alone, or it serves one tradition's months for
+	 * another. Royal-era 2226 is one of only four years between 1500 and 2500 where the two shipped
+	 * configs disagree at month level — M09 begins 2099-10-15 under `PHUGPA` and 2099-10-14 under
+	 * `PHUGPA_HENNING` — which is exactly why the test names it rather than a convenient year: a
+	 * config-blind cache passes everywhere else.
+	 */
+	it("keeps the two traditions apart in the cache", () => {
+		const phugpaFirst = monthsFor(2226).find((m) => m.monthCode === "M09")?.firstDay.toString();
+		const henning = monthsFor(2226, PHUGPA_HENNING).find((m) => m.monthCode === "M09");
+		expect(phugpaFirst).toBe("2099-10-15");
+		expect(henning?.firstDay.toString()).toBe("2099-10-14");
+		// Ask for the first one again, after the second has been through the cache.
+		expect(monthsFor(2226).find((m) => m.monthCode === "M09")?.firstDay.toString()).toBe(
+			"2099-10-15",
+		);
+	});
+
 	it("numbers a leap month one lunation before the regular month it shares a number with", () => {
 		const months = monthsFor(2151);
 		const leap = months.find((m) => m.monthCode === "M06L");

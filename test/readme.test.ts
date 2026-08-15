@@ -56,7 +56,16 @@ describe("README usage examples", () => {
 			isoDate: "2026-08-12",
 			dayOfWeek: 3,
 			tibetanWeekday: 4,
+			lunation: 15_094,
 		});
+	});
+
+	// The date's route back to its own month, and the invariant that makes it usable: the number on
+	// the date is the number on the month containing it.
+	it("carries the lunation of the month containing it", () => {
+		const month = monthsFor(date.year).find((m) => m.monthCode === date.monthCode);
+		expect(date.lunation).toBe(month?.lunation);
+		expect(month?.yearName).toEqual(date.yearName);
 	});
 
 	it("numbers the weekday as ISO 8601 and names it through Temporal", () => {
@@ -85,6 +94,7 @@ describe("README usage examples", () => {
 
 		const month = monthsFor(2153)[0];
 		expect(month?.year).toBe(2153);
+		expect(month?.yearName).toEqual({ element: "fire", animal: "horse", gender: "male" });
 		expect(month?.monthCode).toBe("M01");
 		expect(month?.days).toBe(29);
 		expect(month?.firstDay.toString()).toBe("2026-02-18");

@@ -367,6 +367,8 @@ function buildDate(
 		// From the Julian day already in hand rather than from isoDate, which would mean converting
 		// back out of Temporal to get the number this function was given.
 		tibetanWeekday: tibetanWeekdayUnchecked(julianDay),
+		// The month count this date was located by, carried out rather than made rediscoverable.
+		lunation: monthCount,
 	};
 }
 

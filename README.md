@@ -152,7 +152,8 @@ The full object:
   "isNewMoon": true,
   "isoDate": "2026-08-12",
   "dayOfWeek": 3,
-  "tibetanWeekday": 4
+  "tibetanWeekday": 4,
+  "lunation": 15094
 }
 ```
 
@@ -242,9 +243,14 @@ leapMonthOfYear(2151);                         // 6
 
 Each month carries its own boundaries, so a grid needs no further conversion to lay out:
 
+`lunation` is also on every `TibetanDate`, carrying the month that date falls in — so a date has a
+direct route back to its own month rather than needing a two-key search that is easy to get wrong
+across a leap pair.
+
 ```js
 const month = monthsFor(2153)[0];
 month.year;                      // 2153
+month.yearName;                  // { element: 'fire', animal: 'horse', gender: 'male' }
 month.monthCode;                 // "M01"
 month.days;                      // 29
 month.firstDay.toString();       // "2026-02-18" — Losar
