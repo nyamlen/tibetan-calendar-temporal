@@ -123,7 +123,19 @@ describe("monthsFor", () => {
 		// Whatever the cache hands out must survive a caller mutating it.
 		first.sort((a, b) => b.lunation - a.lunation);
 		expect(monthsFor(2151).map((m) => m.monthCode)).toEqual([
-			"M01", "M02", "M03", "M04", "M05", "M06L", "M06", "M07", "M08", "M09", "M10", "M11", "M12",
+			"M01",
+			"M02",
+			"M03",
+			"M04",
+			"M05",
+			"M06L",
+			"M06",
+			"M07",
+			"M08",
+			"M09",
+			"M10",
+			"M11",
+			"M12",
 		]);
 	});
 
@@ -135,14 +147,18 @@ describe("monthsFor", () => {
 	 * config-blind cache passes everywhere else.
 	 */
 	it("keeps the two traditions apart in the cache", () => {
-		const phugpaFirst = monthsFor(2226).find((m) => m.monthCode === "M09")?.firstDay.toString();
+		const phugpaFirst = monthsFor(2226)
+			.find((m) => m.monthCode === "M09")
+			?.firstDay.toString();
 		const henning = monthsFor(2226, PHUGPA_HENNING).find((m) => m.monthCode === "M09");
 		expect(phugpaFirst).toBe("2099-10-15");
 		expect(henning?.firstDay.toString()).toBe("2099-10-14");
 		// Ask for the first one again, after the second has been through the cache.
-		expect(monthsFor(2226).find((m) => m.monthCode === "M09")?.firstDay.toString()).toBe(
-			"2099-10-15",
-		);
+		expect(
+			monthsFor(2226)
+				.find((m) => m.monthCode === "M09")
+				?.firstDay.toString(),
+		).toBe("2099-10-15");
 	});
 
 	it("numbers a leap month one lunation before the regular month it shares a number with", () => {

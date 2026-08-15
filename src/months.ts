@@ -108,7 +108,7 @@ const monthCache = new WeakMap<TraditionConfig, Map<number, TibetanMonth[]>>();
  * convert first. The month count is carried out as {@link TibetanMonth.lunation} rather than
  * recomputed, since it is the value this function was located by.
  */
-function describeMonth(
+export function describeMonth(
 	scaled: ScaledTradition,
 	monthCount: number,
 	year: number,
