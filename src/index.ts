@@ -43,12 +43,24 @@ export {
 export type { TibetanCalendarErrorCode } from "./errors.js";
 export { formatTibetanDate } from "./format.js";
 export {
+	datesFor,
 	daysInMonth,
 	hasLeapMonth,
 	leapMonthOfYear,
 	monthsFor,
 	monthsInYear,
 } from "./months.js";
+export { rabjungFor, yearNameFor } from "./naming.js";
+export {
+	addDays,
+	addMonths,
+	daysBetween,
+	lunationFromMonth,
+	monthFromLunation,
+	monthsBetween,
+	nextFullMoon,
+	nextNewMoon,
+} from "./navigation.js";
 export { parseTibetanDate } from "./parse.js";
 export { PHUGPA, PHUGPA_HENNING } from "./traditions/phugpa.js";
 export type { MeanMotion, Rational, TraditionConfig } from "./traditions/types.js";
