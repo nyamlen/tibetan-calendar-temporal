@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
+	isoFromJulianDay,
 	isoToTibetan,
 	julianDayFromIso,
 	losarFor,
@@ -189,6 +190,21 @@ describe("README usage examples", () => {
 		const day = iso("2025-11-19");
 		expect(formatTibetanDate(isoToTibetan(day))).toBe("2152-M09-30 (leap)");
 		expect(formatTibetanDate(isoToTibetan(day, PHUGPA_HENNING))).toBe("2152-M09-29");
+	});
+
+	/**
+	 * The Interoperability section's claim that these are Julian day *numbers*, not Julian *dates*.
+	 * The worked value is the one a reader coming from an astronomy library will check first: JD
+	 * 2440588.0 is 1970-01-01 at noon UT, and the JDN naming that whole day is the same integer.
+	 */
+	it("uses Julian day numbers, refusing the fractional Julian date form", () => {
+		expect(julianDayFromIso(iso("1970-01-01"))).toBe(2_440_588);
+		try {
+			isoFromJulianDay(2_440_588.5);
+			expect.unreachable("a fractional Julian day should be refused");
+		} catch (error) {
+			expect((error as { code?: string }).code).toBe("TCT_FIELD_OUT_OF_RANGE");
+		}
 	});
 });
 

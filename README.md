@@ -56,9 +56,25 @@ and does not establish.
 Outside it, correctness rests on internal consistency (round-trips, year-length frequencies) and
 on Janson's own worked values — the Losar table, 1927–2046 — rather than on external day-by-day
 agreement.
-Every result is a whole calendar day on the Tibetan meridian, with no sunset boundary and no
-timezone; a consumer who needs a local instant supplies their own time zone against the returned
-`isoDate`.
+**The day boundary.** Every result labels a **whole proleptic-Gregorian calendar day**. The package
+models no instants and picks no time zone, so there is no moment at which a returned date "starts".
+
+The calendar's own rule is that a day takes the number of the lunar day running at **daybreak** —
+about 5 a.m. Tibetan local mean solar time, which Henning specifies and Janson reports. That offset
+is already inside the arithmetic: Janson's `true_date` is a local Julian date whose integer values
+fall at mean dawn rather than at noon UT, so the boundary was fixed once when the epoch constants
+were chosen and is never re-applied. No sunrise is calculated anywhere, which is one reason the
+results are deterministic.
+
+For most uses that is the whole story, because almanacs print one grid and a civil date is what you
+want to display. Where it matters is observance: Mahayana precepts and other one-day vows are taken
+at daybreak and held until the next, so someone at 2 a.m. is still on the previous Tibetan date. A
+consumer who needs that precision applies their own daybreak rule to the returned `isoDate` — the
+package will not guess a location for you.
+
+This is **not** the sunset boundary a reader arriving from a Jewish or Islamic calendar library will
+expect. Sunset moves with latitude and season and cannot be resolved without a place; daybreak here
+is a fixed convention on a fixed meridian, so this calendar is fully determined without one.
 
 ## Requirements
 
@@ -615,6 +631,14 @@ because naming a date needs no calendar.
 The Julian day number is the interchange representation of calendrical computing — it is how you
 convert between any two calendars, and how Janson's paper is written. These are the extension
 point, not internals that leaked.
+
+**These are Julian day *numbers*, not Julian *dates*.** The distinction bites when wiring this to
+an astronomy library. A Julian Date (JD) is a real number whose integer values fall at **noon UT**,
+so JD 2440588.0 is 1970-01-01 12:00. A Julian Day Number (JDN) is the integer naming a whole day.
+This package uses JDN only — integers throughout, no fractions, which is the same no-floating-point
+rule that makes every result identical across platforms. Passing a fractional JD throws
+`TCT_FIELD_OUT_OF_RANGE` rather than silently truncating; floor it, and mind the half-day offset in
+whichever direction you are converting.
 
 | Export | Signature | Notes |
 |---|---|---|
