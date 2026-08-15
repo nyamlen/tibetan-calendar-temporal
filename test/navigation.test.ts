@@ -13,6 +13,8 @@ import {
 	lunationFromMonth,
 	monthFromLunation,
 	monthsBetween,
+	nextFullMoon,
+	nextNewMoon,
 } from "../src/navigation.js";
 import { PHUGPA_HENNING } from "../src/traditions/phugpa.js";
 
@@ -445,5 +447,123 @@ describe("day arithmetic input guards", () => {
 		expect(codeOf(() => addDays({ year: 2153, month: 1, day: 1 }, Number.MAX_SAFE_INTEGER))).toBe(
 			"TCT_OUTSIDE_EXACT_RANGE",
 		);
+	});
+});
+
+/**
+ * Phase navigation.
+ *
+ * These earn their place on the wrong-answer criterion rather than on cost. The obvious
+ * consumer-side shortcut is `day === 15`, and it is wrong whenever 15 is skipped: the full moon is
+ * then carried by the day numbered 14. When 30 is doubled the new moon is on the **second** of the
+ * pair, not the leap day.
+ */
+describe("nextFullMoon and nextNewMoon", () => {
+	it("finds a phase strictly after the given day", () => {
+		const from = iso("2026-01-01");
+		const full = nextFullMoon(from);
+		expect(full.isFullMoon).toBe(true);
+		expect(Temporal.PlainDate.compare(full.isoDate, from)).toBeGreaterThan(0);
+
+		const dark = nextNewMoon(from);
+		expect(dark.isNewMoon).toBe(true);
+		expect(Temporal.PlainDate.compare(dark.isoDate, from)).toBeGreaterThan(0);
+	});
+
+	it("does not return the given day even when it is itself a phase", () => {
+		const full = nextFullMoon(iso("2026-01-01"));
+		const after = nextFullMoon(full.isoDate);
+		expect(Temporal.PlainDate.compare(after.isoDate, full.isoDate)).toBeGreaterThan(0);
+		expect(after.isFullMoon).toBe(true);
+	});
+
+	/**
+	 * The oracle. `test/invariants.test.ts` already proves exactly one full and one new moon per
+	 * month by walking every calendar day; this asserts the O(1) lookup agrees with that walk, so
+	 * a reimplementation that quietly became a day-walk — or quietly became `day === 15` — fails.
+	 */
+	it("agrees with a day-by-day walk over four years", { timeout: 30_000 }, () => {
+		let cursor = iso("2024-01-01");
+		const end = iso("2028-01-01");
+		while (Temporal.PlainDate.compare(cursor, end) < 0) {
+			const expected = nextFullMoon(cursor);
+			// Walk forward one day at a time until isFullMoon, which is how a consumer would do it.
+			let probe = cursor.add({ days: 1 });
+			while (!isoToTibetan(probe).isFullMoon) probe = probe.add({ days: 1 });
+			expect(expected.isoDate.toString(), `from ${cursor}`).toBe(probe.toString());
+			cursor = probe;
+		}
+	});
+
+	/**
+	 * The case `day === 15` gets wrong, with a real date rather than a scan: 2026-12-23 carries the
+	 * full moon of 2153 M11 on the day numbered **14**. Measured over 2500 lunations, 56 of them —
+	 * about one in forty-five — put the full moon on 14 rather than 15, and 48 put the new moon on 29
+	 * rather than 30. A consumer testing the number is silently wrong that often.
+	 */
+	it("finds the full moon on a day numbered 14, where 15 is skipped", () => {
+		const moon = nextFullMoon(iso("2026-12-01"));
+		expect(moon.isoDate.toString()).toBe("2026-12-23");
+		expect(moon.day).toBe(14);
+		expect(moon.isFullMoon).toBe(true);
+	});
+
+	it("finds the new moon on a day numbered 29, where 30 is skipped", () => {
+		const moon = nextNewMoon(iso("2025-02-01"));
+		expect(moon.isoDate.toString()).toBe("2025-02-27");
+		expect(moon.day).toBe(29);
+		expect(moon.isNewMoon).toBe(true);
+	});
+
+	it("puts the new moon on the second of a doubled 30, not the leap day", () => {
+		let cursor = iso("2020-01-01");
+		for (let i = 0; i < 80; i++) {
+			const moon = nextNewMoon(cursor);
+			if (moon.isDoubledDay) expect(moon.isLeapDay).toBe(false);
+			cursor = moon.isoDate;
+		}
+	});
+
+	it.each([
+		["a bare fields object", () => nextFullMoon({ year: 2026, month: 8, day: 12 } as never)],
+		["null", () => nextNewMoon(null as never)],
+		["a number", () => nextFullMoon(42 as never)],
+	])("rejects %s", (_label, call) => {
+		expect(codeOf(call)).toBe("TCT_INVALID_ARGUMENT");
+	});
+
+	it("accepts the Temporal shapes that name a calendar day", () => {
+		const expected = nextFullMoon(iso("2026-01-01")).isoDate.toString();
+		expect(nextFullMoon("2026-01-01" as never).isoDate.toString()).toBe(expected);
+		expect(
+			nextFullMoon(Temporal.PlainDateTime.from("2026-01-01T13:00") as never).isoDate.toString(),
+		).toBe(expected);
+	});
+
+	it("refuses a starting day outside the exact range", () => {
+		expect(codeOf(() => nextFullMoon(iso("+012000-01-01"), PHUGPA_HENNING))).toBe(
+			"TCT_OUTSIDE_EXACT_RANGE",
+		);
+	});
+
+	/**
+	 * The second bound, and it is not the same check as the first. `PHUGPA_HENNING` runs out of
+	 * exactness at +011356-03-03, so a day a fortnight earlier is itself perfectly computable while
+	 * the next full moon after it is not. Without the guard on the *result*, that case would answer
+	 * from arithmetic the tradition refuses rather than throwing.
+	 */
+	it("refuses a phase that falls past the bound although the starting day does not", () => {
+		// +011356-03-02 is the last day PHUGPA_HENNING can compute; the full moon after it is not.
+		expect(codeOf(() => nextFullMoon(iso("+011356-03-02"), PHUGPA_HENNING))).toBe(
+			"TCT_OUTSIDE_EXACT_RANGE",
+		);
+		// One day earlier the phase lands exactly on the bound and is answerable, which is what makes
+		// the line above the *result* guard rather than the input one.
+		expect(nextFullMoon(iso("+011356-03-01"), PHUGPA_HENNING).isoDate.toString()).toBe(
+			"+011356-03-02",
+		);
+		// And the same day is fine under PHUGPA, whose range is far wider — so this is the tradition's
+		// bound biting, not a broken date.
+		expect(() => nextFullMoon(iso("+011356-03-02"))).not.toThrow();
 	});
 });

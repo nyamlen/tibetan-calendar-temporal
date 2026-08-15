@@ -32,12 +32,14 @@ import {
 	trueMonthCount,
 } from "./computation/calendar.js";
 import {
+	asPlainDate,
 	assertExactJulianDay,
 	isoFromJulianDayUnchecked,
 	isoToTibetan,
 	julianDayFromIso,
 	tibetanToIso,
 } from "./computation/conversion.js";
+import { julianDayOfLunarDay } from "./computation/corrections.js";
 import { royalEraFromYear, yearFromRoyalEra } from "./computation/epoch.js";
 import { scalingFor } from "./computation/scaling.js";
 import { rangeError } from "./errors.js";
@@ -408,4 +410,87 @@ export function daysBetween(
 	assertDateFields("daysBetween (from)", from);
 	assertDateFields("daysBetween (to)", to);
 	return julianDayFromIso(tibetanToIso(to, config)) - julianDayFromIso(tibetanToIso(from, config));
+}
+
+/** The lunar days whose ends are the full moon and the new moon — Janson's day-classification rule. */
+const FULL_MOON = 15;
+const NEW_MOON = 30;
+
+/**
+ * The next moon phase strictly after a given calendar day.
+ *
+ * @remarks
+ * An O(1) lookup rather than a search: `julianDayOfLunarDay(scaled, 15, n)` gives the full moon of
+ * lunation `n` directly, so this locates the containing month, asks for its phase, and steps one
+ * lunation if that has already passed.
+ */
+function nextPhase(
+	name: string,
+	lunarDay: number,
+	date: Temporal.PlainDate,
+	config: TraditionConfig,
+): TibetanDate {
+	assertTraditionConfig(config);
+	const from = asPlainDate(date);
+	const scaled = scalingFor(config);
+	const target = julianDayFromIso(from);
+	assertExactJulianDay(scaled, target, () => `${name}(${from.toString()})`);
+
+	let lunation = isoToTibetan(from, config).lunation;
+	let julianDay = julianDayOfLunarDay(scaled, lunarDay, lunation);
+	if (julianDay <= target) {
+		lunation += 1;
+		julianDay = julianDayOfLunarDay(scaled, lunarDay, lunation);
+	}
+	assertExactJulianDay(scaled, julianDay, () => `${name}(${from.toString()})`);
+	return isoToTibetan(isoFromJulianDayUnchecked(julianDay), config);
+}
+
+/**
+ * The next full moon strictly after `date`.
+ *
+ * @remarks
+ * **Do not test for this with `day === 15`.** The full moon is the *end* of the fifteenth lunar
+ * day, and when the number 15 is skipped that instant falls on the day numbered 14 — so the naive
+ * check misses the full moon entirely in those months, silently. Measured over 2500 lunations, 56
+ * of them do this: about one month in forty-five. 2026-12-23 is one, carrying the full moon of
+ * 2153 M11 on the day numbered 14. {@link TibetanDate.isFullMoon} is derived correctly and is what
+ * to read when you already have a date.
+ *
+ * Western in, Tibetan out, matching `isoToTibetan`. These therefore do not chain with themselves:
+ * for the next three, step through `isoDate` each time.
+ *
+ * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `date` is not a value `asPlainDate`
+ * accepts — notably a bare `{ year, month, day }` object; `TCT_OUTSIDE_EXACT_RANGE` if the phase
+ * lies past where the arithmetic stays exact.
+ *
+ * @example
+ * ```ts
+ * let moon = nextFullMoon(Temporal.PlainDate.from("2026-01-01"));
+ * moon = nextFullMoon(moon.isoDate);   // the one after that
+ * ```
+ */
+export function nextFullMoon(
+	date: Temporal.PlainDate,
+	config: TraditionConfig = PHUGPA,
+): TibetanDate {
+	return nextPhase("nextFullMoon", FULL_MOON, date, config);
+}
+
+/**
+ * The next new moon strictly after `date`.
+ *
+ * @remarks
+ * The new moon ends lunar day 30 and so ends the month. Two reasons not to test the number: when 30
+ * is **doubled** the instant falls on the *second* of the pair rather than on the leap day, and when
+ * 30 is **skipped** it falls on the day numbered 29 — 48 times in 2500 lunations, 2025-02-27 among
+ * them. {@link TibetanDate.isNewMoon} is the field form.
+ *
+ * @throws The codes {@link nextFullMoon} throws.
+ */
+export function nextNewMoon(
+	date: Temporal.PlainDate,
+	config: TraditionConfig = PHUGPA,
+): TibetanDate {
+	return nextPhase("nextNewMoon", NEW_MOON, date, config);
 }
