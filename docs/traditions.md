@@ -12,12 +12,12 @@ and because the roadmap carried a claim about Tsurphu that turned out to be fals
 `docs/roadmap.md` said for three phases that Tsurphu "differs solely in the constants". It does not.
 Janson states a **different leap-month rule for each version**:
 
-| Tradition | Leap month when the intercalation index is | Janson's β\* at that version's epoch |
-|---|---|---|
-| Phugpa | 48 or 49 | 61 (E806) |
-| Tsurphu | 0 or 1 | 59 (E1732), 0 counting back to 806 |
-| Mongolian (New Genden) | 46 or 47 | 10 at its epoch, 46 counting back to 806 |
-| Bhutanese | 57 or 58 *(simplified)*, 59 or 60 *(traditional)* | 2 (E1754) |
+| Tradition | Leap month when the intercalation index is | Janson's β\* at that version's epoch | `leapMonthPosition` |
+|---|---|---|---|
+| Phugpa | 48 or 49 | 61 (E806) | `"before"` |
+| Tsurphu | 0 or 1 | 59 (E1732), 0 counting back to 806 | `"before"` |
+| Mongolian (New Genden) | 46 or 47 | 10 at its epoch, 46 counting back to 806 | `"before"` |
+| Bhutanese | 57 or 58 *(simplified)*, 59 or 60 *(traditional)* | 2 (E1754) | `"after"` |
 
 That rule was hardcoded to Phugpa's until 2026-08-16. A Tsurphu config built from constants alone
 would have placed leap months in the wrong years — with no error and nothing about the output

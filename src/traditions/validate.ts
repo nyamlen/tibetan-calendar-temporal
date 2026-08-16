@@ -145,6 +145,42 @@ function assertLeapIndexThreshold(config: TraditionConfig): void {
 }
 
 /**
+ * Where a leap month sits relative to the regular month sharing its number.
+ *
+ * @remarks
+ * Absence is checked before the value, and reported differently, for the reason
+ * {@link assertLeapIndexThreshold} states: a missing field and a mistyped one are different
+ * mistakes with different fixes, and the missing one is likelier for the newest member of an
+ * interface.
+ *
+ * No default, and no derivation from {@link TraditionConfig.leapIndexThreshold} — Janson states
+ * Bhutan's leap rule against two different intercalation indices, so `57 ⇒ "after"` would reject a
+ * config built from his traditional 59-or-60 formulation, which is correct Bhutan.
+ */
+function assertLeapMonthPosition(config: TraditionConfig): void {
+	const value = config.leapMonthPosition;
+	if (value === undefined) {
+		throw invalid(
+			config,
+			'leapMonthPosition is required and was not supplied. Use "before" for Phugpa, Tsurphu and ' +
+				'the Mongolian version, "after" for the Bhutanese, which numbers a leap month from the ' +
+				"preceding month and so places it after the regular month sharing its number. There is " +
+				'no default because "before" would silently give Tibet\'s ordering to a Bhutanese ' +
+				"calendar — every date in one lunation a month out, with nothing about the output " +
+				"looking wrong",
+		);
+	}
+	if (value !== "before" && value !== "after") {
+		throw invalid(
+			config,
+			`leapMonthPosition must be "before" or "after", received ${describe(value)}. It states the ` +
+				"leap month's *position*, not the numbering convention Janson describes it by: Bhutan " +
+				'numbers from the preceding month, which is "after" here',
+		);
+	}
+}
+
+/**
  * `naming` is optional, so absence is fine — but a present-and-wrong value is not.
  *
  * @remarks
@@ -220,6 +256,7 @@ export function assertTraditionConfig(config: TraditionConfig): void {
 	assertInteger(config, "epochMonth", config.epochMonth);
 	assertInteger(config, "intercalationIndexAtEpoch", config.intercalationIndexAtEpoch);
 	assertLeapIndexThreshold(config);
+	assertLeapMonthPosition(config);
 	assertNaming(config);
 
 	for (const motion of MEAN_MOTIONS) {

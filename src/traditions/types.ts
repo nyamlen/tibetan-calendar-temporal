@@ -9,8 +9,10 @@
  * Note that this is **not** the same claim as "only the constants differ", which an earlier
  * version of this docblock made about Tsurphu and which is false: Tsurphu, the Mongolian and the
  * Bhutanese versions each use a different **leap-month rule**, which is why
- * {@link TraditionConfig.leapIndexThreshold} exists. Bhutan differs further still, in a way no
- * field here expresses — see `docs/traditions.md`.
+ * {@link TraditionConfig.leapIndexThreshold} exists. Bhutan differs further still, placing a leap
+ * month *after* rather than *before* the regular month sharing its number — see
+ * {@link TraditionConfig.leapMonthPosition}, and `docs/traditions.md` for what a version still has
+ * to carry beyond these.
  *
  * Constants are held as exact {@link Rational}s rather than pre-scaled integers. The scaling
  * denominator is **derived** from them — see `computation/scaling.ts` — because it is not the
@@ -121,6 +123,47 @@ export interface TraditionConfig {
 	 * the following one, which this field does **not** express; see `docs/traditions.md`.
 	 */
 	readonly leapIndexThreshold: number;
+
+	/**
+	 * Where a leap month sits relative to the regular month sharing its number.
+	 *
+	 * @remarks
+	 * `"before"` for Phugpa, Tsurphu and the Mongolian version; **`"after"` for the Bhutanese**,
+	 * alone among the four Janson gives. He calls it "an important difference", notes it is the
+	 * Chinese system rather than the Indian, and that it seems to have been the original Kālacakra
+	 * कालचक्र system.
+	 *
+	 * **Two vocabularies describe this, and they invert.** Janson and this project's prose use the
+	 * *numbering* framing — Bhutan numbers a leap month from the **preceding** month — while this
+	 * field uses the *positional* one. They are the same fact:
+	 *
+	 * > Bhutan numbers a leap month from the **preceding** month, which places the leap month
+	 * > **after** the regular month sharing its number. The two framings are inverses; this field
+	 * > states the position.
+	 *
+	 * The positional framing is the one the field takes because every reader of it computes with
+	 * **order** — the sign of the true-month adjustment, which twin a count identifies, which month
+	 * a year ends with, the order {@link ../months.monthsFor} emits. None of them needs the
+	 * numbering.
+	 *
+	 * A **numbering convention, not an arithmetic one.** The lunation boundaries are identical
+	 * either way; what moves is which of two consecutive months carries the leap flag, and with it
+	 * every date in one of them.
+	 *
+	 * **Required, and deliberately so** — the same reasoning as
+	 * {@link TraditionConfig.leapIndexThreshold}, one level out. A default of `"before"` would
+	 * silently give Tibet's ordering to a Bhutanese config: no error, no wrong-looking output, just
+	 * every date in one lunation a month out. A missing field is the likelier mistake than a wrong
+	 * one.
+	 *
+	 * Not derivable from anything else here, so do not try. It cannot come from
+	 * {@link TraditionConfig.leapIndexThreshold} — Janson states Bhutan's rule twice, 57-or-58
+	 * against the simplified intercalation index this package computes and 59-or-60 against the
+	 * traditional one, so threshold 59 with `"after"` is correct Bhutan and any derivation rule
+	 * rejects it. Nor from the config's identity: {@link TraditionConfig.id} is consumer-settable and
+	 * must never decide which tradition this is.
+	 */
+	readonly leapMonthPosition: "before" | "after";
 
 	/** Mean date — Janson's `m₁`, `m₂`, `m₀`. Yields a Julian day number when `m₀` includes the
 	 * epoch's JD offset. */

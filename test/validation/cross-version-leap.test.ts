@@ -16,9 +16,11 @@
  * - **Not validated:** any day-level date for anything but Phugpa. That needs `m₀`, `s₀`, `a₀`, and
  *   `docs/traditions.md` records why those are not yet safe to transcribe.
  *
- * The configs below are `PHUGPA` with two fields replaced, which is legitimate precisely because
- * nothing else participates. They are **not** runnable calendars and must not be copied into `src/`
- * as though they were.
+ * The configs below are `PHUGPA` with three fields replaced, which is legitimate precisely because
+ * nothing else participates. `leapMonthPosition` is the third and does not affect anything this file
+ * asserts — a leap month's *number* is the same whichever side of its twin it falls — but it is
+ * required, and stating Bhutan's `"after"` here keeps these configs honest for the files that reuse
+ * them. They are **not** runnable calendars and must not be copied into `src/` as though they were.
  */
 
 import { describe, expect, it } from "vitest";
@@ -37,9 +39,24 @@ import { CROSS_VERSION_LEAP } from "../fixtures/cross-version-leap.js";
  */
 const CONFIGS: Record<string, TraditionConfig> = {
 	phugpa: PHUGPA,
-	tsurphu: { ...PHUGPA, intercalationIndexAtEpoch: 0, leapIndexThreshold: 0 },
-	mongolian: { ...PHUGPA, intercalationIndexAtEpoch: 46, leapIndexThreshold: 46 },
-	bhutanese: { ...PHUGPA, intercalationIndexAtEpoch: 0, leapIndexThreshold: 57 },
+	tsurphu: {
+		...PHUGPA,
+		intercalationIndexAtEpoch: 0,
+		leapIndexThreshold: 0,
+		leapMonthPosition: "before",
+	},
+	mongolian: {
+		...PHUGPA,
+		intercalationIndexAtEpoch: 46,
+		leapIndexThreshold: 46,
+		leapMonthPosition: "before",
+	},
+	bhutanese: {
+		...PHUGPA,
+		intercalationIndexAtEpoch: 0,
+		leapIndexThreshold: 57,
+		leapMonthPosition: "after",
+	},
 };
 
 type Version = "phugpa" | "tsurphu" | "mongolian" | "bhutanese";

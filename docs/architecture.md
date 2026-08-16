@@ -190,11 +190,14 @@ interface TraditionConfig {
   epochYear: number;                   // Y0 — 806, in Janson's Y numbering
   epochMonth: number;                  // M0 — 3 by tradition
   intercalationIndexAtEpoch: number;   // beta* — 61; beta and gamma* derive from it
+  leapIndexThreshold: number;          // 48 Phugpa, 0 Tsurphu, 46 Mongolian, 57 Bhutanese
+  leapMonthPosition: 'before'|'after'; // 'after' for Bhutan alone
   meanDate: MeanMotion;
   meanSun: MeanMotion;
   lunarAnomaly: MeanMotion;
   moonTab: readonly number[];          // 8 values, extended by symmetry to period 28
   sunTab: readonly number[];           // 4 values, extended to period 12
+  naming?: TraditionNaming;            // weekdayOffset — naming only, never the date
 }
 
 interface TibetanDate {

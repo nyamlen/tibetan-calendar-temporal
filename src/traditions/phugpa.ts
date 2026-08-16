@@ -54,6 +54,15 @@ export const PHUGPA: TraditionConfig = deepFreeze({
 	 */
 	leapIndexThreshold: 48,
 
+	/**
+	 * A leap month precedes the regular month sharing its number — the Indian convention, shared
+	 * with Tsurphu and the Mongolian version.
+	 *
+	 * Stated rather than assumed: Bhutan does the opposite, and this is a choice Phugpa makes rather
+	 * than the only possibility.
+	 */
+	leapMonthPosition: "before",
+
 	meanDate: {
 		/** m₁ = 29;31,50,0,480 ⟨60,60,6,707⟩ ≈ 29.530587 days, the mean lunar month. */
 		perMonth: { num: 167_025, den: 5656 },
