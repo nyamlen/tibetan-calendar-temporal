@@ -1,7 +1,12 @@
 # Traditions
 
-**Status: reference, not shipped data.** Nothing in `src/` or `test/` reads this file. `PHUGPA` and
-`PHUGPA_HENNING` remain the only exported configs.
+**Status: reference, not shipped data.** Nothing in `src/` or `test/` reads this file.
+
+**Exported means day-by-day validated.** `PHUGPA`, `PHUGPA_HENNING`, `BHUTAN` and `BHUTAN_HENNING`
+are exported because each has been tiled against an external calendar day by day. Tsurphu and the
+Mongolian version are documented here and *not* exported, and the difference is evidence rather than
+effort: their leap months are validated against Janson, their dates against nothing. That is the
+rule, not an accident of what got written first — see "Why there are no drop-in configs here".
 
 It exists because the project's founding promise — that a second tradition is a new
 `TraditionConfig` rather than a change to any computation module — was believed rather than tested,
@@ -100,7 +105,15 @@ validation data would only move the guess. **Three claims must be kept apart:**
 - *This tradition is expressible in `TraditionConfig`* — true for Tsurphu and the Mongolian version,
   since the leap rule was the only thing missing.
 - *Its **leap months** are right* — **now established** for all four versions. See below.
-- *Its **dates** are right* — not established for any tradition but Phugpa.
+- *Its **dates** are right* — established for Phugpa and, since 2026-08-16, for Bhutan. Not for
+  Tsurphu or the Mongolian version, and that is why neither is exported.
+
+**Bhutan needed none of this reconciliation, and the reason is worth knowing before anyone repeats
+the work.** The offset above is a property of the *comparison table*, not of Janson's paper. His
+Bhutan appendix gives the epoch data directly — JD 2361807, Monday 22 April 1754 — and states that
+`m₀` there is already "modified to yield the JD", which is the form a `TraditionConfig` wants. So
+`BHUTAN` is built from the appendix and the table is not involved. Check the appendices before
+reaching for the comparison table; Tsurphu and Mongolia are the versions that genuinely need it.
 
 ## What is now validated: leap months, all four versions
 
@@ -196,6 +209,30 @@ than leaving a narrower check than the data supports.
 
 **One consequence to know before re-running that script: it will now refuse to write this window.**
 The committed fixture predates the fifth check and does not satisfy it.
+
+### The a₂ fork is one fork, not one per tradition
+
+Janson states that `a₂` is the same in every version, and his Remark 30 explains the split: `1/28` is
+a rounded value used "for convenience", while Henning uses the exact `(1 + a₁)/30 = 3781/105840`,
+proposed by Minling Lochen Dharmashri (1654–1717). So the choice is between **almanac practice and
+Henning's computed calendars**, across all four versions at once — not between Tibet and Bhutan.
+
+`BHUTAN` therefore keeps the rounded value, exactly as `PHUGPA` does, and `BHUTAN_HENNING` carries
+the exact one. They differ on **three days in 11,050** — 2001-12-10, 2004-04-10 and 2020-04-23 —
+about one in 3,700, matching the rate Janson gives for Tibet.
+
+**Which side the validation data sits on, stated plainly.** The only day-by-day Bhutanese calendar
+available descends from Henning's own software, so it follows Henning's `a₂` and validates
+`BHUTAN_HENNING`. Reading that as evidence about what *Bhutanese almanacs* print would be circular,
+and Janson gives no Bhutanese statement on the fork. The default follows almanac practice for
+consistency with Phugpa, and this is the open question a Bhutanese almanac would settle.
+
+### Observances are not validated for Bhutan
+
+`getObservances(from, to, BHUTAN, GELUG)` type-checks the moment `BHUTAN` is exported, and nothing
+establishes it. `GELUG` is FPMT's Tibetan-practice observance calendar; Bhutan's state calendar has
+its own holidays, including a winter solstice computed at mean solar longitude 250° that has no
+counterpart in `GELUG` at all. Treat that pairing as out of scope.
 
 ### Still Bhutan's, and still not modelled
 

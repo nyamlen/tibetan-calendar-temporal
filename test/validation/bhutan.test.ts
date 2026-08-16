@@ -23,9 +23,10 @@
 import { describe, expect, it } from "vitest";
 import { monthFromCount, trueMonthCount } from "../../src/computation/calendar.js";
 import { isoToTibetan, losarFor } from "../../src/computation/conversion.js";
+import { BHUTAN, BHUTAN_HENNING } from "../../src/traditions/bhutan.js";
 import { BHUTAN_DAYS, BHUTAN_END, BHUTAN_START } from "../fixtures/bhutan.js";
 import { CROSS_VERSION_LEAP } from "../fixtures/cross-version-leap.js";
-import { BHUTAN_CANDIDATE, VERSION_CONFIGS } from "../support/versions.js";
+import { VERSION_CONFIGS } from "../support/versions.js";
 
 const start = Temporal.PlainDate.from(BHUTAN_START);
 const end = Temporal.PlainDate.from(BHUTAN_END);
@@ -109,7 +110,12 @@ describe("the phenomena a day-level check needs", () => {
 	});
 });
 
-const BHUTAN = VERSION_CONFIGS.bhutanese;
+/**
+ * The leap-rule-only Bhutanese config: Phugpa's astronomy with Bhutan's epoch index, threshold and
+ * position. Used for the month-sequence check below, which depends on nothing astronomical, so that
+ * the check stays independent of whether the shipped constants are right.
+ */
+const BHUTAN_RULES = VERSION_CONFIGS.bhutanese;
 
 interface Block {
 	month: number;
@@ -139,7 +145,7 @@ function fixtureBlocks(): Block[] {
 function engineBlocks(from: number, length: number): Block[] {
 	const blocks: Block[] = [];
 	for (let n = from; n < from + length; n += 1) {
-		const identity = monthFromCount(BHUTAN, n);
+		const identity = monthFromCount(BHUTAN_RULES, n);
 		blocks.push({ month: identity.month, isLeap: identity.isLeap });
 	}
 	return blocks;
@@ -190,7 +196,7 @@ const TRUSTED_DAYS = (() => {
 
 // The window opens on 2000-01-01, inside the Tibetan year that began in 1999. Searching two years
 // either side of that is generous and still narrow enough that a match is meaningful.
-const SEARCH_CENTRE = trueMonthCount(BHUTAN, 1999, 1);
+const SEARCH_CENTRE = trueMonthCount(BHUTAN_RULES, 1999, 1);
 const SEARCH_RADIUS = 30;
 
 function matchingOffsets(): number[] {
@@ -273,7 +279,7 @@ describe("the engine reproduces it", () => {
 		// Ties the match to the year numbering rather than leaving it a bare integer. The first row is
 		// day 25 of month 11, in the Tibetan year that began in 1999.
 		const [offset] = matchingOffsets();
-		expect(offset).toBe(trueMonthCount(BHUTAN, 1999, 11));
+		expect(offset).toBe(trueMonthCount(BHUTAN_RULES, 1999, 11));
 	});
 
 	it("agrees on every month, reported together rather than one at a time", () => {
@@ -298,7 +304,7 @@ describe("it disagrees with Tibet's ordering, which is the point", () => {
 	it("fails to match when the position is flipped to before", () => {
 		// The negative control. Without this the suite could not distinguish "Bhutan's ordering is
 		// right" from "the fixture is insensitive to ordering".
-		const flipped = { ...BHUTAN, leapMonthPosition: "before" as const };
+		const flipped = { ...BHUTAN_RULES, leapMonthPosition: "before" as const };
 		const found: number[] = [];
 		for (
 			let from = SEARCH_CENTRE - SEARCH_RADIUS;
@@ -325,7 +331,7 @@ describe("the runnable Bhutanese config, day by day", () => {
 		for (const [index, [day, month, leapNumber]] of BHUTAN_DAYS.entries()) {
 			if (index >= TRUSTED_DAYS) break;
 			const iso = start.add({ days: index });
-			const date = isoToTibetan(iso, BHUTAN_CANDIDATE);
+			const date = isoToTibetan(iso, BHUTAN_HENNING);
 			const expectedLeap = leapNumber !== 0;
 			if (date.day !== day || date.month !== month || date.isLeapMonth !== expectedLeap) {
 				bad.push(
@@ -340,11 +346,31 @@ describe("the runnable Bhutanese config, day by day", () => {
 		expect(bad).toEqual([]);
 	}, 30_000);
 
+	it("differs from the shipped default on exactly three days, which is the a₂ fork", () => {
+		// The reason BHUTAN and BHUTAN_HENNING both exist, stated as data rather than as prose.
+		//
+		// BHUTAN carries the almanac's rounded a₂ = 1/28, matching what PHUGPA defaults to; the
+		// variant carries Henning's exact (1+a₁)/30. The fixture descends from Henning's own software
+		// and so follows his value — which is why it validates the variant and not the default. Three
+		// misses in 11,050 days is about one in 3,700, the rate PHUGPA's docblock records for this
+		// fork. Concluding from this which value Bhutanese *almanacs* print would be circular.
+		const differing: string[] = [];
+		for (let index = 0; index < TRUSTED_DAYS; index += 1) {
+			const iso = start.add({ days: index });
+			const rounded = isoToTibetan(iso, BHUTAN);
+			const exact = isoToTibetan(iso, BHUTAN_HENNING);
+			if (rounded.day !== exact.day || rounded.month !== exact.month) {
+				differing.push(iso.toString());
+			}
+		}
+		expect(differing).toEqual(["2001-12-10", "2004-04-10", "2020-04-23"]);
+	}, 30_000);
+
 	it("puts Losar 2003 on 4 March, after the repeated day 30 of the leap month", () => {
 		// Janson's own Bhutanese anchor, and the case that breaks a year-end computed as
 		// (12, isLeap: false). His government-calendar disagreement is recorded above and not ours to
 		// resolve; this follows the computed line, as the fixture does.
-		const losar = losarFor(2003 - 1096 + 1223, BHUTAN_CANDIDATE);
+		const losar = losarFor(2003 - 1096 + 1223, BHUTAN_HENNING);
 		expect(losar.isoDate.toString()).toBe("2003-03-04");
 	});
 });

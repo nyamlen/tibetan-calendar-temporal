@@ -16,6 +16,8 @@ import * as observances from "../src/observances/index.js";
  * to assert. `tsc` covers those.
  */
 const EXPECTED_EXPORTS = [
+	"BHUTAN",
+	"BHUTAN_HENNING",
 	"PHUGPA",
 	"PHUGPA_HENNING",
 	"SkippedDayError",
@@ -59,6 +61,8 @@ describe("public API surface", () => {
 		const kinds = Object.fromEntries(Object.entries(api).map(([key, v]) => [key, typeof v]));
 		expect(kinds).toEqual({
 			// Tradition configs are plain data, so that a consumer can spread one to make a variant.
+			BHUTAN: "object",
+			BHUTAN_HENNING: "object",
 			PHUGPA: "object",
 			PHUGPA_HENNING: "object",
 			// A class, hence "function".
@@ -122,16 +126,33 @@ describe("public API surface", () => {
 		expect(api.tibetanToIso(api.parseTibetanDate(text)).toString()).toBe("2027-01-15");
 	});
 
-	it("ships both tradition configs, differing only in the lunar anomaly", () => {
-		expect(api.PHUGPA.id).toBe("phugpa");
-		expect(api.PHUGPA_HENNING.id).toBe("phugpa-henning");
-		expect(api.PHUGPA.lunarAnomaly.perDay).toEqual({ num: 1, den: 28 });
-		expect(api.PHUGPA_HENNING.lunarAnomaly.perDay).toEqual({ num: 3781, den: 105_840 });
+	it.each([
+		["phugpa", () => api.PHUGPA, () => api.PHUGPA_HENNING],
+		["bhutan", () => api.BHUTAN, () => api.BHUTAN_HENNING],
+	])("ships %s as a pair differing only in the lunar anomaly", (id, base, variant) => {
+		expect(base().id).toBe(id);
+		expect(variant().id).toBe(`${id}-henning`);
+		// The default is almanac practice for every tradition, and the variant is Henning's exact
+		// value. One fork, not one per tradition: Janson states a₂ is the same in every version.
+		expect(base().lunarAnomaly.perDay).toEqual({ num: 1, den: 28 });
+		expect(variant().lunarAnomaly.perDay).toEqual({ num: 3781, den: 105_840 });
 
 		// Everything else must match, or the two are not the same tradition with one value changed.
-		const { lunarAnomaly: _a, id: _b, name: _c, ...phugpa } = api.PHUGPA;
-		const { lunarAnomaly: _d, id: _e, name: _f, ...henning } = api.PHUGPA_HENNING;
-		expect(henning).toEqual(phugpa);
+		const { lunarAnomaly: _a, id: _b, name: _c, ...standard } = base();
+		const { lunarAnomaly: _d, id: _e, name: _f, ...henning } = variant();
+		expect(henning).toEqual(standard);
+	});
+
+	it("keeps the two traditions distinct where Janson says they differ", () => {
+		// Guards against BHUTAN being an accidental alias of PHUGPA, which a spread makes easy.
+		expect(api.BHUTAN.epochYear).toBe(1754);
+		expect(api.BHUTAN.leapIndexThreshold).toBe(57);
+		expect(api.BHUTAN.leapMonthPosition).toBe("after");
+		expect(api.PHUGPA.leapMonthPosition).toBe("before");
+		// And against them drifting apart where he says they agree.
+		expect(api.BHUTAN.moonTab).toEqual(api.PHUGPA.moonTab);
+		expect(api.BHUTAN.sunTab).toEqual(api.PHUGPA.sunTab);
+		expect(api.BHUTAN.meanDate.perMonth).toEqual(api.PHUGPA.meanDate.perMonth);
 	});
 
 	/**

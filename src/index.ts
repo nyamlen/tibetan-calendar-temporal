@@ -83,6 +83,7 @@ export {
 	nextNewMoon,
 } from "./navigation.js";
 export { parseTibetanDate } from "./parse.js";
+export { BHUTAN, BHUTAN_HENNING } from "./traditions/bhutan.js";
 export { PHUGPA, PHUGPA_HENNING } from "./traditions/phugpa.js";
 export type {
 	MeanMotion,
