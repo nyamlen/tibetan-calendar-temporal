@@ -5,6 +5,9 @@ dependencies, built on Temporal.
 
 - Architecture, API design, core types: [docs/architecture.md](docs/architecture.md)
 - Testing strategy and validation sources: [docs/testing.md](docs/testing.md)
+- What differs between traditions, and the two source traps found while working it out:
+  [docs/traditions.md](docs/traditions.md)
+- Provenance of every Tibetan name string: [docs/name-sources.md](docs/name-sources.md)
 - Implementation phases and the **pre-v1.0.0 checklist**: [docs/roadmap.md](docs/roadmap.md) —
   check it before any release; it holds deliberately deferred decisions
 - Contributor rules, dev setup: [CONTRIBUTING.md](CONTRIBUTING.md)
@@ -46,10 +49,24 @@ cannot be checked without a renderer, which is not installed. Write "§5, the in
 quote the constant's mixed-radix form (`m₁ = 29;31,50,0,480 ⟨60,60,6,707⟩`) — both are greppable
 in the source, which is the whole point.
 
-**Fixtures are generated, not transcribed.** `test/fixtures/losar.ts`, `sixty-year-cycle.ts` and
-`janson-epoch.ts` come from `scripts/extract-janson-fixtures.mjs`, which parses the LaTeX; the three
-`crosscheck-*.ts` files come from their own `scripts/fetch-*-fixtures.mjs`. Re-run those rather
-than editing the output. Hand-copying 120 dates is how a silent one-day error reaches the primary
+**Janson is the sole source, and he is not always self-consistent.** His day-of-week table gives
+Saturday as `spen ma`; his own Bhutan appendix gives `spen pa` for the same day in Tibet. The wrong
+one reached a shipped docblock and sat there for three phases. So for **names**, a single Janson
+table is not sufficient evidence — `scripts/verify-name-sources.mjs` puts every term through five
+independent checks and refuses to emit if any fails. Corrections to the source live in that script
+as data carrying their evidence, and self-invalidate; do not patch a name by editing `src/names.ts`.
+
+Two further traps of the same class, both found in his tables and both documented in
+[docs/traditions.md](docs/traditions.md): his mixed-radix notation distinguishes an integer part by
+**semicolon** from a leading **comma** that has none, and his four-version epoch table is stated
+**exactly one mean lunar month** away from the epoch a `TraditionConfig` uses. Either misread yields
+a calendar that runs and is wrong. His six-decimal column is the guard against the first — use it.
+
+**Fixtures are generated, not transcribed.** `test/fixtures/losar.ts`, `sixty-year-cycle.ts`,
+`janson-epoch.ts` and `cross-version-leap.ts` come from `scripts/extract-janson-fixtures.mjs`, which
+parses the LaTeX; the three `crosscheck-*.ts` files come from their own
+`scripts/fetch-*-fixtures.mjs`; `names.ts` from `scripts/verify-name-sources.mjs`; `bhutan.ts` from
+`scripts/fetch-bhutan-fixtures.mjs`. Re-run those rather than editing the output. Hand-copying 120 dates is how a silent one-day error reaches the primary
 correctness gate — and an early draft of `docs/testing.md` did exactly that, dating Losar 2026 to
 17 February instead of 18.
 
@@ -90,6 +107,12 @@ thing being avoided. `scripts/fetch-eszthoff-fixtures.mjs` resolves the package 
 *caller's working directory* instead, so it is installed in a scratch directory outside the repo
 and the script is run from there.
 
+**That pattern is the rule for any generation-time package, not just the unlicensed ones.**
+`scripts/verify-name-sources.mjs` needs two EWTS converters (`jsewts` and `tibetan-ewts-converter`)
+and resolves both the same way. Nothing that exists only to build a fixture belongs in this
+package's dependency tree — the zero-dependency claim runs through the lockfile as well as the
+runtime.
+
 The commit history is the evidence of independent derivation. Keep commits incremental and
 tied to the paper's sections — do not squash the build into a single large commit.
 
@@ -119,6 +142,14 @@ derivation; in `docs/` they are just noise.
   one consumer's `sort()` corrupts the next consumer's.
 - **Tradition constants are injected** via `TraditionConfig`, never hardcoded. v1 ships
   `PHUGPA` only, but Tsurphu must remain addable without touching the algorithm.
+
+  **That promise was false until 2026-08-16, and the way it was false is the lesson.** Every
+  *constant* was injected, but the **leap-month rule itself** was hardcoded to Phugpa's — Janson
+  states a different one for each version (48/49 Phugpa, 0/1 Tsurphu, 46/47 Mongolian, 57/58
+  Bhutanese). A Tsurphu config built from constants alone would have placed leap months in the wrong
+  years, with no error and nothing about the output looking wrong. It is now
+  `leapIndexThreshold`, and `β` and the true-month rounding term derive from it. When adding a
+  tradition, check that the *rules* are injected too, not only the numbers.
   This extends to anything **derived from** those constants. The `±3` search window in
   `isoToTibetan` was proved from `(25 + 11)/60` — Phugpa's largest `moonTab` and `sunTab` entries —
   and written at the loop as a literal `3`, so a wider table passed validation and then broke the
@@ -215,6 +246,13 @@ tree would be picked up by Biome, the link checker and Vitest — and imports bo
 design, not defects: there is no `main` field and no CJS build. Do not add `main` to make a row
 green.
 
+**Two commands are deliberately outside CI, and both are release-time checks.** `npm run coverage`
+(below) and `npm run verify:names`, which re-derives the whole Tibetan name vocabulary from Janson
+and re-checks it against Wiktionary, THL and CLDR. It needs the network and two converters installed
+outside the repo, so it cannot gate a push — what gates a push is its committed output,
+`test/fixtures/names.ts`, which the suite reads. Provenance is checked before a release; integrity
+is checked on every push.
+
 **`npm run coverage` is not one of the seven, so nothing gates it.** It was broken on `main` for an
 unknown stretch and nobody noticed: the 200-year moon-phase sweep runs in well under a second bare
 but takes 5–8 seconds under v8 instrumentation, against Vitest's 5s default, so `test` passed while
@@ -238,6 +276,18 @@ Technical identifiers are lowercase (`nyamlen`, `@nyamlen`); the brand is capita
 Markdown uses semantic line breaks — one sentence or clause per line, so diffs stay limited to
 the sentence that changed. `.markdownlint.jsonc` disables the rules that fight this (`MD013`
 above all). Do not re-wrap prose to satisfy a linter, and do not remove those exclusions.
+
+**Test files must not export, and a shared helper goes in `test/support/`.** Biome enforces the
+first; the second is what it forces. This is not cosmetic — `names.test.ts` briefly imported a guard
+from `unicode-tibetan.test.ts`, which made vitest **re-run that file's 28 tests** as part of the
+importer. The suite reported 669 tests where 641 existed. A count that quietly inflates is worse
+than a lint error.
+
+**In a sweep over thousands of fixture rows, collect violations and assert once.** Do not call
+`expect` per row with a message built from a `Temporal` date: eleven thousand rows times six
+assertions killed a vitest worker outright, reported only as `Worker exited unexpectedly`. Push
+failures onto an array and `expect(bad).toEqual([])` — one assertion, and the message names every
+offending date instead of only the first.
 
 `biome.json` carries one formatter override, raising `lineWidth` for
 `test/fixtures/fpmt-observances.ts`. Its rows run to 174 characters because they carry observance

@@ -12,12 +12,18 @@
  *    ({@link rabjungFromYear}), and the Chinese element–animal, which is a *name*
  *    ({@link yearNameFromYear}). They assign a year different positions, three apart.
  *
- * None of these is tradition-dependent: Phugpa and Tsurphu number and name years identically,
+ * None of these is tradition-dependent: Phugpa and Tsurphu number and name **years** identically,
  * so nothing here takes a `TraditionConfig`.
+ *
+ * That is a claim about years specifically, and it does not extend to naming in general. **Weekday
+ * naming is tradition-dependent** — Bhutan names its days one planet ahead — which is why
+ * `weekdayName` is built in `conversion.ts`, where the config is in hand, rather than here. Month
+ * naming will be too, if it is ever added.
  *
  * @packageDocumentation
  */
 
+import { animalNameOf, elementNameOf, genderNameOf } from "../names.js";
 import type { Rabjung, TibetanAnimal, TibetanElement, TibetanYearName } from "../types.js";
 import { amod, ceilDiv } from "./arithmetic.js";
 
@@ -140,7 +146,10 @@ export function rabjungFromYear(year: number): Rabjung {
  *
  * @example
  * ```ts
- * yearNameFromYear(2007); // { element: 'fire', animal: 'pig', gender: 'female' }
+ * yearNameFromYear(2007).element; // 'fire'
+ * yearNameFromYear(2007).animal;  // 'pig'
+ * yearNameFromYear(2007).gender;  // 'female'
+ * yearNameFromYear(2007).animalName.wylie; // 'phag'
  * ```
  */
 export function yearNameFromYear(year: number): TibetanYearName {
@@ -152,5 +161,13 @@ export function yearNameFromYear(year: number): TibetanYearName {
 	// assertion exists only to satisfy noUncheckedIndexedAccess without widening the type.
 	/* c8 ignore next */
 	if (element === undefined || animal === undefined) throw new Error("unreachable");
-	return { element, animal, gender: tenYearPosition % 2 === 1 ? "male" : "female" };
+	const gender = tenYearPosition % 2 === 1 ? "male" : "female";
+	return {
+		element,
+		animal,
+		gender,
+		elementName: elementNameOf(element),
+		genderName: genderNameOf(gender),
+		animalName: animalNameOf(animal),
+	};
 }

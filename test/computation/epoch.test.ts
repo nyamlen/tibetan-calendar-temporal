@@ -50,7 +50,11 @@ describe("yearNameFromYear", () => {
 	// Janson §4: "AD 2007 is the 24th year in the Chinese cycle (21st in the Indian) and is
 	// thus Fire--female--Pig or simply Fire--Pig."
 	it("reproduces Janson's worked example for 2007", () => {
-		expect(yearNameFromYear(2007)).toEqual({ element: "fire", animal: "pig", gender: "female" });
+		expect(yearNameFromYear(2007)).toMatchObject({
+			element: "fire",
+			animal: "pig",
+			gender: "female",
+		});
 	});
 
 	it("matches Janson's 60-year cycle table for all 120 listed years", () => {
@@ -105,7 +109,11 @@ describe("the two cycles are offset by three", () => {
 
 	it("shows 2026 is Indian 40 but Fire-Horse, which is Chinese 43", () => {
 		expect(rabjungFromYear(2026)).toEqual({ cycle: 17, year: 40 });
-		expect(yearNameFromYear(2026)).toEqual({ element: "fire", animal: "horse", gender: "male" });
+		expect(yearNameFromYear(2026)).toMatchObject({
+			element: "fire",
+			animal: "horse",
+			gender: "male",
+		});
 		const atIndian40 = SIXTY_YEAR_CYCLE[39];
 		const atChinese40 = SIXTY_YEAR_CYCLE.find((r) => r.chinese === 40);
 		expect(atIndian40?.chinese).toBe(43);

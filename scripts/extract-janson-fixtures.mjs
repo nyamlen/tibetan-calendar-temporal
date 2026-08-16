@@ -182,6 +182,60 @@ const divergenceCounts = [
 	{ from: Number(cycleCount[2]), to: Number(cycleCount[3]), count: Number(cycleCount[1]) },
 ];
 
+// ---------------------------------------------------------------------------------------------
+// Cross-version leap months: one row per Gregorian year, one column per tradition, the cell
+// holding the leap month number or nothing.
+//
+// Janson prints 2000-2020 and leaves 2021-2030 commented out in the source. The commented rows are
+// extracted too and flagged, per CLAUDE.md: his LaTeX comments carry material absent from the
+// rendered paper, and a decade of extra rows is worth having as long as their standing is visible.
+//
+// The Bhutan column uses *Bhutanese* numbering, in which a leap month takes the number of the
+// preceding month. This package numbers from the following month, so its numbers are expected to
+// differ — see the fixture's docblock.
+// ---------------------------------------------------------------------------------------------
+const crossVersionLeap = [];
+{
+	const end = lines.findIndex((l) => l.includes("\\label{T4Leap}"));
+	if (end === -1) throw new Error("label T4Leap not found — is this the right source file?");
+	for (let i = end; i >= 0 && !lines[i].includes("\\begin{table}"); i--) {
+		const raw = lines[i];
+		const commented = /^\s*%/.test(raw);
+		const body = stripRowEnd(raw.replace(/^\s*%\s*/, ""));
+		const cells = body.split("&").map((c) => c.trim());
+		if (cells.length !== 5) continue;
+		// Must be an explicit four-digit year. `Number("")` is 0 and `Number.isInteger(0)` is true,
+		// so a looser check swallows the header row `& \PH & \TS & Mongolia & Bhutan` as year zero.
+		if (!/^\d{4}$/.test(cells[0])) continue;
+		const year = Number(cells[0]);
+		const cell = (value) => (value === "" ? undefined : Number(value));
+		crossVersionLeap.unshift({
+			year,
+			commented,
+			phugpa: cell(cells[1]),
+			tsurphu: cell(cells[2]),
+			mongolian: cell(cells[3]),
+			bhutanese: cell(cells[4]),
+		});
+	}
+	if (crossVersionLeap.length < 21) {
+		throw new Error(`expected at least 21 T4Leap rows, got ${crossVersionLeap.length}`);
+	}
+	const printed = crossVersionLeap.filter((r) => !r.commented).length;
+	if (printed !== 21)
+		throw new Error(`expected 21 printed T4Leap rows (2000-2020), got ${printed}`);
+	// Tsurphu and the Mongolian version have the same leap months, which Janson states in prose.
+	// Checking it here means a mis-parsed column cannot pass unnoticed.
+	for (const row of crossVersionLeap) {
+		if (row.tsurphu !== row.mongolian) {
+			throw new Error(
+				`T4Leap ${row.year}: Tsurphu ${row.tsurphu} and Mongolian ${row.mongolian} differ, but ` +
+					"Janson states the two versions have the same leap months — the parse is wrong",
+			);
+		}
+	}
+}
+
 const header = (what) => `/**
  * ${what}
  *
@@ -309,8 +363,44 @@ ${divergenceCounts.map((c) => `\t{ from: ${c.from}, to: ${c.to}, count: ${c.coun
 `,
 );
 
+writeFileSync(
+	join(fixtures, "cross-version-leap.ts"),
+	`${header(
+		"Leap months for four versions of the Tibetan calendar, one row per Gregorian year.\n *\n * This is the only *external* check the engine has for any tradition but Phugpa, and it is\n * available because leap months depend on nothing astronomical: the intercalation index is built\n * from the epoch year, the epoch month and the tradition's leap-index threshold alone. So a\n * Tsurphu or Mongolian config can be validated here without any of its mean-motion constants.\n *\n * Two columns need their conventions stated.\n *\n * **Tsurphu and Mongolian are identical throughout**, which Janson states in prose and the\n * extractor asserts while parsing — a mis-read column cannot reach this file.\n *\n * **The Bhutanese column uses Bhutanese numbering**, in which a leap month takes the number of the\n * *preceding* month. This package numbers a leap month from the month that follows it, so its\n * output is expected to differ from this column, and the difference is the convention rather than\n * an error.",
+	)}
+export interface CrossVersionLeapRow {
+	/** Janson's *Y* — the Gregorian year the Tibetan year begins in. */
+	year: number;
+	/**
+	 * Whether the row is commented out in Janson's source rather than printed in the paper.
+	 *
+	 * He prints 2000-2020 and leaves 2021-2030 commented. The commented rows are his own computed
+	 * values and are kept, flagged, because CLAUDE.md's rule is to read the LaTeX rather than the
+	 * rendered output — but a claim resting on them should say which tier it is using.
+	 */
+	commented: boolean;
+	/** Leap month number, or \`undefined\` for a year with no leap month. */
+	phugpa: number | undefined;
+	tsurphu: number | undefined;
+	mongolian: number | undefined;
+	/** In Bhutanese numbering — see the note above. */
+	bhutanese: number | undefined;
+}
+
+export const CROSS_VERSION_LEAP: readonly CrossVersionLeapRow[] = [
+${crossVersionLeap
+	.map(
+		(r) =>
+			`\t{ year: ${r.year}, commented: ${r.commented}, phugpa: ${r.phugpa}, tsurphu: ${r.tsurphu}, mongolian: ${r.mongolian}, bhutanese: ${r.bhutanese} },`,
+	)
+	.join("\n")}
+];
+`,
+);
+
 console.log(
 	`wrote ${losar.length} Losar rows, ${cycle.length} cycle rows, ` +
-		`the epoch at JD ${epochMatch[1]}, ${divergenceDates.length} a2 divergence dates and ` +
-		`${divergenceCounts.length} divergence counts to test/fixtures/`,
+		`the epoch at JD ${epochMatch[1]}, ${divergenceDates.length} a2 divergence dates, ` +
+		`${divergenceCounts.length} divergence counts and ${crossVersionLeap.length} cross-version ` +
+		`leap rows (${crossVersionLeap.filter((r) => !r.commented).length} printed) to test/fixtures/`,
 );

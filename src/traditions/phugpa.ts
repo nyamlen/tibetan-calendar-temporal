@@ -46,6 +46,14 @@ export const PHUGPA: TraditionConfig = deepFreeze({
 	 */
 	intercalationIndexAtEpoch: 61,
 
+	/**
+	 * A leap month has intercalation index 48 or 49 — Janson's Phugpa leap-month rule, and the
+	 * value from which the `+17` of the rounding rule is derived (`65 − 48`).
+	 *
+	 * Not shared with the other versions: Tsurphu uses 0, the Mongolian 46, the Bhutanese 57.
+	 */
+	leapIndexThreshold: 48,
+
 	meanDate: {
 		/** m₁ = 29;31,50,0,480 ⟨60,60,6,707⟩ ≈ 29.530587 days, the mean lunar month. */
 		perMonth: { num: 167_025, den: 5656 },

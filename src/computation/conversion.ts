@@ -12,6 +12,7 @@
 
 import { codedError, hasCode, rangeError } from "../errors.js";
 import { monthCodeOf } from "../format.js";
+import { weekdayNameOf } from "../names.js";
 import { PHUGPA } from "../traditions/phugpa.js";
 import type { TraditionConfig } from "../traditions/types.js";
 import type { TibetanDate, TibetanDateFields } from "../types.js";
@@ -367,6 +368,12 @@ function buildDate(
 		// From the Julian day already in hand rather than from isoDate, which would mean converting
 		// back out of Temporal to get the number this function was given.
 		tibetanWeekday: tibetanWeekdayUnchecked(julianDay),
+		// Built here rather than in epoch.ts because it is the one part of naming that varies by
+		// tradition — Bhutan names its weekdays one planet ahead — and this is where the config is.
+		weekdayName: weekdayNameOf(
+			tibetanWeekdayUnchecked(julianDay),
+			scaled.config.naming?.weekdayOffset ?? 0,
+		),
 		// The month count this date was located by, carried out rather than made rediscoverable.
 		lunation: monthCount,
 	};

@@ -150,6 +150,87 @@ export interface TibetanYearName {
 	 * name as printed, not a minimal encoding.
 	 */
 	gender: TibetanGender;
+
+	/** The element's Tibetan name — ཤིང *shing* for wood, མེ *me* for fire, and so on. */
+	elementName: TibetanName;
+
+	/** The gender's Tibetan name — ཕོ *pho* for male, མོ *mo* for female. */
+	genderName: TibetanName;
+
+	/** The animal's Tibetan name — རྟ *rta* for horse, སྟག *stag* for tiger, and so on. */
+	animalName: TibetanName;
+}
+
+/**
+ * A Tibetan name, in the three renderings this package ships.
+ *
+ * @remarks
+ * **There is deliberately no English field.** For an element or an animal the English identity is
+ * already carried by the sibling union — `TibetanYearName.element` *is* `"fire"` — so a gloss here
+ * would duplicate it. Those unions are the i18n contract: they are stable lowercase identifiers, and
+ * a consumer's message catalogue keys off them to produce French, Russian or anything else. This
+ * package ships no translations, because authoring them would mean writing content in languages
+ * nobody here reads.
+ *
+ * Every value was verified before being written down — two independent EWTS implementations must
+ * agree on the script, it must read back as the same Wylie, and English Wiktionary must have an
+ * entry at exactly that title. See `docs/name-sources.md`.
+ *
+ * These objects are **shared and frozen**. A `TibetanDate` holds a pointer, not a copy, so building
+ * a year of dates costs pointer fields rather than thousands of strings — and freezing is what keeps
+ * that sharing safe.
+ */
+export interface TibetanName {
+	/** Tibetan script. First, because it is the name; the other two are ways of reaching it. */
+	tibetan: string;
+
+	/**
+	 * Extended Wylie transliteration, and the **key** rather than a convenience.
+	 *
+	 * @remarks
+	 * ASCII, collision-free, and the form Janson prints. Phonetics collide — སྟག *stag* (tiger) and
+	 * རྟ *rta* (horse) both render *ta* — so lookups, logs and tests key on this.
+	 */
+	wylie: string;
+
+	/**
+	 * THL Simplified Phonetic Transcription (Germano & Tournadre, 2003), from THL's own converter.
+	 *
+	 * @remarks
+	 * A published standard rather than a house style, which is what makes the column verifiable.
+	 * Not an identifier: see {@link TibetanName.wylie}.
+	 */
+	phonetic: string;
+}
+
+/** One of the seven "planets" a weekday is named for. */
+export type TibetanPlanet = "saturn" | "sun" | "moon" | "mars" | "mercury" | "jupiter" | "venus";
+
+/**
+ * The element a weekday carries — **not** one of the five year elements.
+ *
+ * @remarks
+ * A genuinely different set. The years cycle through wood, fire, earth, iron and water; the
+ * weekdays take earth, fire, water and **wind**, which is not a year element at all. Janson gives
+ * the weekday column in his day-of-week table and the year elements in a separate one. Typing this
+ * as {@link TibetanElement} would be wrong and would make `wind` unrepresentable.
+ */
+export type TibetanWeekdayElement = "earth" | "fire" | "water" | "wind";
+
+/**
+ * The Tibetan name of a weekday: the three renderings, plus what the name actually *means*.
+ *
+ * @remarks
+ * The planet is not decoration — the Tibetan name of the day essentially *is* the planet's name.
+ * The element is the day's astrological attribute, which combines with the lunar day's own element
+ * in the almanac's elemental yoga.
+ */
+export interface TibetanWeekdayName extends TibetanName {
+	/** The planet the day is named for. */
+	planet: TibetanPlanet;
+
+	/** The day's astrological element. See {@link TibetanWeekdayElement} — `wind` is possible. */
+	element: TibetanWeekdayElement;
 }
 
 /**
@@ -319,10 +400,13 @@ export interface TibetanDate {
 	 * @remarks
 	 * The same seven-day cycle as {@link TibetanDate.dayOfWeek}, differently numbered. Each day
 	 * corresponds to one of the seven "planets", and the Tibetan name of the day is essentially the
-	 * name of the planet — 0 Saturn (*spen ma*), 1 Sun (*nyi ma*), 2 Moon (*zla ba*), 3 Mars
+	 * name of the planet — 0 Saturn (*spen pa*), 1 Sun (*nyi ma*), 2 Moon (*zla ba*), 3 Mars
 	 * (*mig dmar*), 4 Mercury (*lhag pa*), 5 Jupiter (*phur bu*), 6 Venus (*pa sangs*). Janson's
 	 * day-of-week section gives the table; the correspondence reached Tibet from India and goes back
 	 * to Roman astrology, which is why it matches the Latin and English weekday names.
+	 *
+	 * Saturday is *spen pa*, not the *spen ma* Janson's table prints — his own Bhutan appendix uses
+	 * *spen pa*, and Wiktionary and CLDR both agree with the appendix. See `docs/name-sources.md`.
 	 *
 	 * This is not a display convenience. Janson notes that the date and the day of week are usually
 	 * given together because that *resolves the ambiguity when days are repeated*: both halves of a
@@ -331,11 +415,32 @@ export interface TibetanDate {
 	 *
 	 * Field and function carry one name: this is exactly `tibetanWeekday(julianDayFromIso(isoDate))`,
 	 * computed here from the Julian day the conversion already holds. It is flat rather than grouped
-	 * because it is a date component; a future `weekdayName` carrying the planet in Tibetan script
-	 * and phonetics would group under `*Name`, exactly as {@link TibetanDate.yearName} does beside
-	 * {@link TibetanDate.year}.
+	 * because it is a date component; the name groups under `*Name` — see
+	 * {@link TibetanDate.weekdayName}.
 	 */
 	tibetanWeekday: number;
+
+	/**
+	 * The Tibetan name of {@link TibetanDate.tibetanWeekday} — script, Wylie, phonetics, and the
+	 * planet the day is named for.
+	 *
+	 * @remarks
+	 * **Tradition-dependent, which nothing else about the weekday is.** Bhutan names its weekdays
+	 * one planet ahead of Tibet: day 0 is *spen pa* in Tibet and *nyi ma* in Bhutan. The number
+	 * above and the Western weekday are identical in both, which is why Janson notes the difference
+	 * vanishes when dates are written in English.
+	 *
+	 * For a weekday name in a **Western language**, do not look here — use `Intl` on
+	 * {@link TibetanDate.isoDate}, which covers every locale CLDR carries:
+	 *
+	 * ```ts
+	 * date.isoDate.toLocaleString("fr", { weekday: "long" }); // "mercredi"
+	 * ```
+	 *
+	 * This package ships the Tibetan name and no translations; see the README's
+	 * Internationalisation section for why, and for how to localise the rest.
+	 */
+	weekdayName: TibetanWeekdayName;
 
 	/**
 	 * The lunation this date falls in — the same integer {@link TibetanMonth.lunation} carries.

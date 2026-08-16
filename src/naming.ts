@@ -17,7 +17,19 @@
 
 import { rabjungFromYear, yearFromRoyalEra, yearNameFromYear } from "./computation/epoch.js";
 import { rangeError } from "./errors.js";
-import type { Rabjung, TibetanYearName } from "./types.js";
+import { animalNameOf, elementNameOf, genderNameOf, weekdayNameOf } from "./names.js";
+import { PHUGPA } from "./traditions/phugpa.js";
+import type { TraditionConfig } from "./traditions/types.js";
+import { assertTraditionConfig } from "./traditions/validate.js";
+import type {
+	Rabjung,
+	TibetanAnimal,
+	TibetanElement,
+	TibetanGender,
+	TibetanName,
+	TibetanWeekdayName,
+	TibetanYearName,
+} from "./types.js";
 
 /**
  * Validates a year for the naming functions.
@@ -95,4 +107,76 @@ export function yearNameFor(year: number): TibetanYearName {
 export function rabjungFor(year: number): Rabjung {
 	assertYear("rabjungFor", year);
 	return rabjungFromYear(yearFromRoyalEra(year));
+}
+
+/**
+ * The Tibetan name of a weekday, for a tradition.
+ *
+ * @remarks
+ * Takes the config because **Bhutan names its weekdays one planet ahead of Tibet**: day 0 is
+ * *spen pa* in Tibet and *nyi ma* in Bhutan. The three lookups below take none, because element,
+ * gender and animal vocabulary is shared by every version.
+ *
+ * For a weekday name in a Western language, use `Intl` on the date's `isoDate` instead — this
+ * package ships the Tibetan name and no translations. See the README's Internationalisation
+ * section.
+ *
+ * @param weekday - Tibetan weekday, **0 = Saturday through 6 = Friday**. This is
+ * `TibetanDate.tibetanWeekday`, not the ISO `dayOfWeek`.
+ * @param config - Tradition; defaults to Phugpa.
+ *
+ * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `weekday` is not an integer in 0–6.
+ *
+ * @example
+ * ```ts
+ * weekdayNameFor(0).wylie;    // 'spen pa'
+ * weekdayNameFor(0).planet;   // 'saturn'
+ * ```
+ */
+export function weekdayNameFor(
+	weekday: number,
+	config: TraditionConfig = PHUGPA,
+): TibetanWeekdayName {
+	if (!Number.isInteger(weekday) || weekday < 0 || weekday > 6) {
+		throw rangeError(
+			"TCT_FIELD_OUT_OF_RANGE",
+			`weekdayNameFor: weekday must be an integer in 0…6, received ${weekday}. ` +
+				"This is the Tibetan numbering — 0 is Saturday — not the ISO dayOfWeek",
+		);
+	}
+	assertTraditionConfig(config);
+	return weekdayNameOf(weekday, config.naming?.weekdayOffset ?? 0);
+}
+
+/** The Tibetan name of one of the five elements. */
+export function elementNameFor(element: TibetanElement): TibetanName {
+	return requireName(elementNameOf(element), "elementNameFor", element);
+}
+
+/** The Tibetan name of a year's gender. */
+export function genderNameFor(gender: TibetanGender): TibetanName {
+	return requireName(genderNameOf(gender), "genderNameFor", gender);
+}
+
+/** The Tibetan name of one of the twelve animals. */
+export function animalNameFor(animal: TibetanAnimal): TibetanName {
+	return requireName(animalNameOf(animal), "animalNameFor", animal);
+}
+
+/**
+ * Rejects a member that is not in the union.
+ *
+ * @remarks
+ * The unions are the package's i18n contract — a consumer's message catalogue keys off them — so a
+ * caller reaching here with `"Fire"` or `"rooster"` has a real bug that a silent `undefined` would
+ * hide until it surfaced as a missing translation.
+ */
+function requireName(name: TibetanName | undefined, subject: string, member: string): TibetanName {
+	if (name === undefined) {
+		throw rangeError(
+			"TCT_FIELD_OUT_OF_RANGE",
+			`${subject}: unknown member ${JSON.stringify(member)}`,
+		);
+	}
+	return name;
 }

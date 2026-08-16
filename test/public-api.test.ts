@@ -21,10 +21,13 @@ const EXPECTED_EXPORTS = [
 	"SkippedDayError",
 	"addDays",
 	"addMonths",
+	"animalNameFor",
 	"datesFor",
 	"daysBetween",
 	"daysInMonth",
+	"elementNameFor",
 	"formatTibetanDate",
+	"genderNameFor",
 	"hasLeapMonth",
 	"isoFromJulianDay",
 	"isoToTibetan",
@@ -43,6 +46,7 @@ const EXPECTED_EXPORTS = [
 	"tibetanDateExists",
 	"tibetanToIso",
 	"tibetanWeekday",
+	"weekdayNameFor",
 	"yearNameFor",
 ] as const;
 
@@ -63,8 +67,11 @@ describe("public API surface", () => {
 			addMonths: "function",
 			datesFor: "function",
 			daysBetween: "function",
+			animalNameFor: "function",
 			daysInMonth: "function",
+			elementNameFor: "function",
 			formatTibetanDate: "function",
+			genderNameFor: "function",
 			hasLeapMonth: "function",
 			isoFromJulianDay: "function",
 			isoToTibetan: "function",
@@ -83,6 +90,7 @@ describe("public API surface", () => {
 			tibetanDateExists: "function",
 			tibetanToIso: "function",
 			tibetanWeekday: "function",
+			weekdayNameFor: "function",
 			yearNameFor: "function",
 		});
 	});

@@ -1,7 +1,7 @@
 {
   "name": "tibetan-calendar-temporal",
   "version": "0.0.1",
-  "description": "Tibetan calendar (Phugpa tradition) computation engine built on Temporal. Pre-release placeholder — implementation in development.",
+  "description": "Tibetan calendar computation engine built on Temporal — the Phugpa tradition, with the Tsurphu, Bhutanese and Mongolian variants addable as config. Pre-release placeholder — implementation in development.",
   "type": "module",
   "license": "MIT",
   "author": "Andreas Bothner <contact@nyamlen.app>",
@@ -19,7 +19,14 @@
     "buddhist",
     "lunisolar",
     "tibetan-calendar",
-    "losar"
+    "losar",
+    "bhutanese",
+    "dzongkha",
+    "mongolian",
+    "tsagaan-sar",
+    "tsurphu",
+    "kalacakra",
+    "rabjung"
   ],
   "exports": {
     ".": {
@@ -46,6 +53,7 @@
     "coverage": "vitest run --coverage",
     "lint": "biome check .",
     "format": "biome check --write .",
+    "verify:names": "node scripts/verify-name-sources.mjs",
     "check:links": "node scripts/check-links.mjs",
     "check:publish": "npm run build && publint && attw --pack . --profile esm-only"
   },
