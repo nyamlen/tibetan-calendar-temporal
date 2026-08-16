@@ -31,6 +31,23 @@
     {
       "includes": ["test/fixtures/fpmt-observances.ts"],
       "formatter": { "lineWidth": 200 }
+    },
+    {
+      "includes": ["src/**/*.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedGlobals": {
+              "level": "error",
+              "options": {
+                "deniedGlobals": {
+                  "Date": "Use Temporal.PlainDate. `Date` carries a time zone and a time of day the calendar has no use for, and its arithmetic is not deterministic across platforms — which is the whole property this engine sells. Scoped to src/ so scripts/ and test/ may still use it."
+                }
+              }
+            }
+          }
+        }
+      }
     }
   ]
 }

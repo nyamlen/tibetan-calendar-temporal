@@ -58,7 +58,7 @@ monthsFor(year)[month.month]   // index the year's months by month number
 
 In a leap year this returns **the month you are already on**, from the leap month onward:
 
-```
+```text
 2151:  0:M01 1:M02 2:M03 3:M04 4:M05 5:M06L 6:M06 7:M07 …
 from M05  → M06L   correct
 from M06L → M06    correct

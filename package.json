@@ -52,9 +52,11 @@
     "test:pack": "node scripts/check-pack.mjs",
     "coverage": "vitest run --coverage",
     "lint": "biome check .",
+    "lint:md": "markdownlint-cli2",
     "format": "biome check --write .",
     "verify:names": "node scripts/verify-name-sources.mjs",
     "check:links": "node scripts/check-links.mjs",
+    "check:conventions": "node scripts/check-conventions.mjs",
     "check:publish": "npm run build && publint && attw --pack . --profile esm-only"
   },
   "devDependencies": {
@@ -63,6 +65,7 @@
     "@types/node": "^26.2.0",
     "@vitest/coverage-v8": "^4.1.10",
     "fast-check": "^4.9.0",
+    "markdownlint-cli2": "^0.19.0",
     "publint": "^0.3.14",
     "typescript": "^7.0.2",
     "vitest": "^4.1.10"
