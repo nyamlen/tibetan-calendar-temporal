@@ -44,6 +44,7 @@ A rule with a command beside it will stop a push. A rule marked **review** will 
 | `TCT_FIELD_OUT_OF_RANGE` for a wrong **number**; `TCT_INVALID_ARGUMENT` for the wrong **kind of thing** | **review** | Only the first is on `tibetanDateExists`'s allowlist, which is what makes a caller's type confusion throw rather than be reported as a date that does not exist — [decisions/2026-08-15-argument-errors-split.md](decisions/2026-08-15-argument-errors-split.md) |
 | `tibetanDateExists` swallows by **allowlist**, never denylist | **review** | As a denylist, one bare `RangeError` in `scaleTo` made it report that Losar 2026 does not exist |
 | Codes are contract; message text is not | `test/public-api.test.ts` asserts the codes | Assert on the code in tests, and never tell a consumer to match wording |
+| Every `TCT_` code named in `src/` — in a `@throws` or a `codedError` call — is a real union member | `npm run check:conventions` | Both are string literals, so a typo is not a type error: it sends a consumer branching on a code that is never thrown |
 | `noUncheckedIndexedAccess` is discharged with `assertInternal`, not a cast | `npm run check:conventions` (the cast route needs no `new Error`, so this is partly **review**) | A cast lets a bad index return `undefined` wearing the element type |
 
 ## Configuration and extension
@@ -80,7 +81,7 @@ A rule with a command beside it will stop a push. A rule marked **review** will 
 | A decision record documents a **constraint a contributor would otherwise violate** | **review** | Records that only narrate deliberation get deleted — planning artifacts stay out of the repo |
 | Comments only for non-obvious logic or architectural constraints | **review** | |
 | Lowercase technical identifiers; capitalised `Nyamlen` brand | **review** | npm rejects uppercase package names, so this is a constraint rather than a preference |
-| Docblocks are contract — they reach the shipped `.d.ts` | `npm run check:conventions` checks `{@link}` targets; the rest is **review** | A stale docblock is a false contract statement, not a tidying issue |
+| Docblocks are contract — they reach the shipped `.d.ts` | `npm run check:conventions` checks `{@link}` targets; `test/docblock-examples.test.ts` asserts every `@example` stating a value; prose claims are **review** | A stale docblock is a false contract statement, not a tidying issue. The example suite found `leapMonthOfYear` documenting `2153 → 6` when 2153 has no leap month at all |
 
 ### Sanskrit and Tibetan terminology
 

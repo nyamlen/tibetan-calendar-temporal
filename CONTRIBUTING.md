@@ -63,9 +63,14 @@ CI runs `lint`, `lint:md`, `check:links`, `check:conventions`, `typecheck`, `bui
 `check:publish` and `test:pack`. All nine run locally with the same commands.
 
 `check:conventions` covers the rules that lint, typecheck and the suite cannot see — the
-zero-dependency claim, integer-only arithmetic, coded errors, `{@link}` targets, the
-decision-record format and fixture provenance. Each of those fails *silently* rather than loudly,
-which is why it needed its own gate; before it existed, nothing checked any of them.
+zero-dependency claim, integer-only arithmetic, coded errors, `{@link}` targets, whether every
+`TCT_` code named in a `@throws` is real, the decision-record format and fixture provenance. Each
+of those fails *silently* rather than loudly, which is why it needed its own gate; before it
+existed, nothing checked any of them.
+
+**Docblocks are checked too.** `test/docblock-examples.test.ts` asserts every `@example` in `src/`
+that states a concrete result, the way `test/readme.test.ts` does for the README. It found a false
+one on its first run. If you add an `@example` stating a value, assert it there in the same commit.
 
 The last two check the *published* package rather than the source. Everything else imports from
 `src/`, which means nothing else can see a broken `exports` map, a file missing from `files`, or a

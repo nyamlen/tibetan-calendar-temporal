@@ -244,7 +244,8 @@ the structure the `./observances` subpath export needs. Do not add tsup or simil
 
 **`check:conventions` enforces the rules in this file that lint, typecheck and the suite cannot
 see**, which before it existed was all of them: the zero-dependency claim, integer-only arithmetic,
-coded errors, `{@link}` targets, the decision-record format, fixture provenance, and whether
+coded errors, `{@link}` targets, the reality of every `TCT_` code named in a `@throws`, the
+decision-record format, fixture provenance, and whether
 [docs/coding-standards.md](docs/coding-standards.md) still names real commands and paths. Each of
 those fails silently rather than loudly. When you add a rule here, check whether
 `scripts/check-conventions.mjs` can hold it, and write the failing case before the check — a guard

@@ -301,8 +301,8 @@ export function hasLeapMonth(year: number, config: TraditionConfig = PHUGPA): bo
  *
  * @example
  * ```ts
- * leapMonthOfYear(2153);   // 6
- * leapMonthOfYear(2152);   // undefined
+ * leapMonthOfYear(2151);   // 6 — the leap month precedes the regular month 6
+ * leapMonthOfYear(2153);   // undefined — no leap month that year
  * ```
  */
 export function leapMonthOfYear(

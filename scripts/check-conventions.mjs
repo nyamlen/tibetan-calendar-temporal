@@ -375,6 +375,33 @@ for (const fixture of tracked("test/fixtures/*.ts")) {
 }
 
 // ---------------------------------------------------------------------------------------
+// Rule 8 — every TCT_ code named in src/ is a real one
+//
+// Codes are contract and message text is not, so a code is the one string in an error a
+// consumer is told to branch on. A typo in a `@throws` sends them branching on a code that is
+// never thrown, and a typo in a `codedError` call throws one they were never told about.
+// Neither is a type error: both are string literals in prose or in an argument.
+// ---------------------------------------------------------------------------------------
+
+const CODE_UNION = new Set(
+	[...read("src/errors.ts").matchAll(/\|\s*"(TCT_[A-Z_]+)"/g)].map(([, code]) => code),
+);
+
+for (const file of sources) {
+	for (const line of codeLines(read(file))) {
+		for (const [, code] of `${line.code}${line.comment}`.matchAll(/\b(TCT_[A-Z_]+)\b/g)) {
+			if (!CODE_UNION.has(code)) {
+				fail(
+					"error codes are real",
+					`${file}:${line.number}`,
+					`\`${code}\` is not a member of TibetanCalendarErrorCode. A code is the one part of an error consumers branch on, so a typo in a @throws or a codedError call is a broken contract that no type check catches.`,
+				);
+			}
+		}
+	}
+}
+
+// ---------------------------------------------------------------------------------------
 
 if (failures.length > 0) {
 	const byRule = new Map();
