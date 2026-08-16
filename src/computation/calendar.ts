@@ -243,7 +243,22 @@ export function hasLeapTwin(config: TraditionConfig, year: number, month: number
  * a configurable rule is a silent inconsistency. Subtracting one for a leap month is what gives
  * the two months sharing a number their consecutive counts.
  *
- * `n` is zero at the epoch and increases by exactly one per month, leap months included.
+ * `n` is zero at the epoch and increases by exactly one per month, leap months included. That
+ * property is not decoration — it is what *determines* the adjustment below, and the test suite
+ * sweeps two centuries to hold it.
+ *
+ * **Which month of a twinned pair takes the adjustment depends on
+ * {@link ../traditions/types.TraditionConfig.leapMonthPosition}, and it is not a sign flip.** The
+ * pair always occupies the counts `rounded − 1` and `rounded`; all that changes is which of them is
+ * the leap month. Under `"before"` the leap month is the earlier, so it takes `rounded − 1` and the
+ * regular month keeps `rounded`. Under `"after"` the leap month is the later, so it keeps `rounded`
+ * and the **regular** month takes `rounded − 1`.
+ *
+ * The consequence is easy to get wrong, and an early draft of this did: under `"after"` the
+ * adjustment applies to a regular month **only when it has a twin**. An untwinned month keeps
+ * `rounded` under both positions. Writing it as `+1` for the leap month instead leaves a gap of two
+ * before every pair and a collision after it — a count that is no longer a bijection, which shifts
+ * every date past the first leap month of the epoch.
  *
  * @param isLeap - Pass `true` for the leap month of a pair. Passing `true` for a month that is
  * not a leap month yields a count belonging to a different month; use {@link hasLeapTwin} to
@@ -260,6 +275,9 @@ export function trueMonthCount(
 		67 * solarMonths + config.intercalationIndexAtEpoch + (65 - config.leapIndexThreshold),
 		65,
 	);
+	if (config.leapMonthPosition === "after") {
+		return isLeap ? rounded : rounded - (hasLeapTwin(config, year, month) ? 1 : 0);
+	}
 	return rounded - (isLeap ? 1 : 0);
 }
 
@@ -278,8 +296,15 @@ export function trueMonthCount(
  * one at boundaries and produces a calendar that is plausible and wrong. `amod` in the second is
  * equally load-bearing: `mod` would report month 12 as month 0.
  *
- * A month is leap exactly when it takes the same number as the next one, which is what the
- * remainder test detects.
+ * The remainder test identifies the **earlier** member of a twinned pair, which under `"before"` is
+ * the leap month. Under
+ * {@link ../traditions/types.TraditionConfig.leapMonthPosition} `"after"` the leap month is the
+ * later member, so the test is the mirrored one: `n` is leap exactly when `n − 1` is the earlier
+ * member. Since `scaled(n − 1) = scaled(n) − 65 ≡ scaled(n) + 2 (mod 67)`, that condition is
+ * `remainder ∈ {66, 0}`.
+ *
+ * `x` — and therefore the year and month number — is unaffected by the position. Both members of a
+ * pair yield the same `⌈scaled/67⌉`, which is exactly why they share a number.
  */
 export function monthFromCount(config: TraditionConfig, monthCount: number): MonthIdentity {
 	const scaled = 65 * monthCount + beta(config);
@@ -288,7 +313,10 @@ export function monthFromCount(config: TraditionConfig, monthCount: number): Mon
 	return {
 		year: ceilDiv(x, 12) - 1 + config.epochYear,
 		month: amod(x, 12),
-		isLeap: remainder === 1 || remainder === 2,
+		isLeap:
+			config.leapMonthPosition === "after"
+				? remainder === 66 || remainder === 0
+				: remainder === 1 || remainder === 2,
 	};
 }
 
