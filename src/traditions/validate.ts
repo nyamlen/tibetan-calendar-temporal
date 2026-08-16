@@ -121,6 +121,29 @@ function assertInteger(config: TraditionConfig, path: string, value: number | un
 	}
 }
 
+/**
+ * The leap-month rule matches an intercalation index of `threshold` **or `threshold + 1`**, and the
+ * index is `mod 65`, so both must be attainable: 64 would leave the second value unreachable and
+ * halve the leap months — a calendar that runs, and is wrong. The rule does not wrap; Janson writes
+ * Tsurphu's as 0-or-1, never as 64-or-0.
+ *
+ * Checked separately from {@link assertInteger} rather than folded into it, because `undefined` and
+ * an out-of-range number are different mistakes and deserve different messages. A missing field is
+ * the likelier of the two, since this is the newest member of the interface.
+ */
+function assertLeapIndexThreshold(config: TraditionConfig): void {
+	const value = config.leapIndexThreshold;
+	if (!Number.isSafeInteger(value) || value < 0 || value > 63) {
+		throw invalid(
+			config,
+			`leapIndexThreshold must be an integer in 0…63, received ${describe(value)}. ` +
+				"Janson gives 48 for Phugpa, 0 for Tsurphu, 46 for the Mongolian version and 57 for " +
+				"the Bhutanese; there is no default because 48 would silently give Phugpa's leap " +
+				"months to another tradition",
+		);
+	}
+}
+
 function assertNonEmptyString(config: TraditionConfig, path: string, value: string | undefined) {
 	if (typeof value !== "string" || value === "") {
 		throw invalid(config, `${path} must be a non-empty string, received ${describe(value)}`);
@@ -172,6 +195,7 @@ export function assertTraditionConfig(config: TraditionConfig): void {
 	assertInteger(config, "epochYear", config.epochYear);
 	assertInteger(config, "epochMonth", config.epochMonth);
 	assertInteger(config, "intercalationIndexAtEpoch", config.intercalationIndexAtEpoch);
+	assertLeapIndexThreshold(config);
 
 	for (const motion of MEAN_MOTIONS) {
 		assertMeanMotion(config, motion, config[motion]);

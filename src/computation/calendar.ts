@@ -97,9 +97,9 @@ export function assertClosedFormYear(
  * `assertClosedFormYear` cannot cover this: it is stated in `|year − epochYear|`, and the year is
  * not known until *after* the overflowing multiplication has happened.
  *
- * The bound is **derived from the config at each call**, never a literal. `β = 67·M₀ − β* − 17` is
- * built from injected fields, so a tradition with a different epoch month or intercalation index
- * gets a different limit.
+ * The bound is **derived from the config at each call**, never a literal. `β` is built entirely from
+ * injected fields — `67·M₀ − β* − (65 − threshold)` — so a tradition with a different epoch month,
+ * intercalation index or leap rule gets a different limit.
  */
 export function assertLunation(
 	subject: () => string,
@@ -139,15 +139,28 @@ export interface MonthIdentity {
  * Janson's `β`, derived from the epoch's intercalation index.
  *
  * @remarks
- * Janson writes `β = 184 − β*`, but the 184 is not a constant of nature: it is `67·M₀ − 17` with
- * the traditional `M₀ = 3`. Deriving it keeps the dependence on the epoch month explicit rather
- * than buried in a magic number, and keeps the formula correct if a tradition ever used a
- * different epoch month.
+ * Janson writes `β = 184 − β*`, but neither the 184 nor the 17 inside it is a constant of nature.
+ * The 184 is `67·M₀ − 17` with the traditional `M₀ = 3`, and the 17 is `65 − 48` with Phugpa's
+ * leap-index threshold. Both are derived here, so the formula stays correct for a tradition with
+ * a different epoch month **or** a different leap rule.
  *
- * For Phugpa at E806: `67·3 − 61 − 17 = 123`.
+ * It reproduces every value Janson publishes:
+ *
+ * | Tradition | M₀ | β* | threshold | derived β | Janson |
+ * |-----------|----|----|-----------|-----------|--------|
+ * | Phugpa    | 3  | 61 | 48        | 123       | 123    |
+ * | Mongolian | 3  | 10 | 46        | 172       | 172    |
+ * | Bhutanese | 3  | 2  | 57        | 191       | 191    |
+ * | Tsurphu   | 3  | 59 | 0         | 77        | 142    |
+ *
+ * The Tsurphu row is agreement, not a discrepancy: `142 − 77 = 65`, and β is only ever used
+ * modulo 65, so the two are the same constant. Janson's own text says as much, giving different
+ * β for two Tsurphu epochs that are likewise congruent.
  */
-function beta(config: TraditionConfig): number {
-	return 67 * config.epochMonth - config.intercalationIndexAtEpoch - 17;
+export function beta(config: TraditionConfig): number {
+	return (
+		67 * config.epochMonth - config.intercalationIndexAtEpoch - (65 - config.leapIndexThreshold)
+	);
 }
 
 /**
@@ -196,8 +209,10 @@ export function intercalationIndex(config: TraditionConfig, year: number, month:
  * Whether month `M` of year `Y` is preceded by a leap month with the same number — its *leap twin*.
  *
  * @remarks
- * The traditional Phugpa rule: a leap month is inserted when the intercalation index is
- * **48 or 49**.
+ * A leap month is inserted when the intercalation index is
+ * {@link ../traditions/types.TraditionConfig.leapIndexThreshold} or one more than it — **48 or 49**
+ * for Phugpa, but 0-or-1 for Tsurphu, 46-or-47 for the Mongolian version and 57-or-58 for the
+ * Bhutanese. The threshold is config, never a literal.
  *
  * Named for the twin rather than for the year because the question is per-**month**. The public
  * `hasLeapMonth` asks a per-**year** question — does this year contain a leap month anywhere — and
@@ -206,19 +221,22 @@ export function intercalationIndex(config: TraditionConfig, year: number, month:
  */
 export function hasLeapTwin(config: TraditionConfig, year: number, month: number): boolean {
 	const index = intercalationIndex(config, year, month);
-	return index === 48 || index === 49;
+	return index === config.leapIndexThreshold || index === config.leapIndexThreshold + 1;
 }
 
 /**
  * The true month count `n` for a given month — Janson's *zla-dag*.
  *
  * @remarks
- * `n = ⌊(67·M* + β* + 17)/65⌋ − [isLeap]`.
+ * `n = ⌊(67·M* + β* + (65 − threshold))/65⌋ − [isLeap]`.
  *
- * The `+17` encodes Janson's rounding rule, since `48 = 65 − 17`: the preliminary true month
- * rounds down when the intercalation index is below 48 and up otherwise, except that a leap
- * month always rounds down. Subtracting one for a leap month is what gives the two months
- * sharing a number their consecutive counts.
+ * The added term encodes Janson's rounding rule: the preliminary true month rounds down when the
+ * intercalation index is below the tradition's
+ * {@link ../traditions/types.TraditionConfig.leapIndexThreshold} and up otherwise, except that a
+ * leap month always rounds down. For Phugpa the threshold is 48 and the term is Janson's familiar
+ * `+17`; it is written as `65 − threshold` because the two move together and a literal `17` beside
+ * a configurable rule is a silent inconsistency. Subtracting one for a leap month is what gives
+ * the two months sharing a number their consecutive counts.
  *
  * `n` is zero at the epoch and increases by exactly one per month, leap months included.
  *
@@ -233,7 +251,10 @@ export function trueMonthCount(
 	isLeap = false,
 ): number {
 	const solarMonths = solarMonthsSinceEpoch(config, year, month);
-	const rounded = floorDiv(67 * solarMonths + config.intercalationIndexAtEpoch + 17, 65);
+	const rounded = floorDiv(
+		67 * solarMonths + config.intercalationIndexAtEpoch + (65 - config.leapIndexThreshold),
+		65,
+	);
 	return rounded - (isLeap ? 1 : 0);
 }
 

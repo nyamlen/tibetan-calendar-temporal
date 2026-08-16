@@ -463,8 +463,23 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   too — it would mean sojong belongs in caller-supplied rules permanently, and the docblock in
   `src/observances/default-gelug.ts` should say so rather than leaving it open.
 
-- **Tsurphu tradition** (Karma Kagyu) via a second `TraditionConfig` — the algorithm already
-  supports it; only the constants differ.
+- **Tsurphu tradition** (Karma Kagyu) via a second `TraditionConfig`.
+
+  **Correction, 2026-08-16: "only the constants differ" was wrong**, and stood here for three
+  phases. Janson states a *different leap-month rule* for each version — a leap month is inserted at
+  intercalation index 48-or-49 for Phugpa, but **0-or-1 for Tsurphu**, 46-or-47 for the Mongolian
+  version and 57-or-58 for the Bhutanese. The rule was hardcoded to Phugpa's, so a Tsurphu config
+  built from constants alone would have produced leap months in the wrong years — silently, since
+  nothing about the output looks wrong.
+
+  That is now `TraditionConfig.leapIndexThreshold`, and `β` and the true-month rounding rule are
+  derived from it rather than written as literals. So the algorithm *does* now support Tsurphu and
+  the Mongolian version, and worked configs for both are in [traditions.md](traditions.md) — as
+  data, not exports, because expressing a tradition and validating it are different claims.
+
+  **Bhutan is a further step back**, and no config field expresses the difference: it numbers a leap
+  month from the **preceding** month where every other version numbers it from the following one.
+  See [traditions.md](traditions.md).
 
 - **Navigation and date arithmetic — shipped 2026-08-15**, so this entry records only what became
   of its open questions. `addDays`, `daysBetween`, `addMonths`, `monthsBetween`,
