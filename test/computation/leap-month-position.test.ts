@@ -20,10 +20,15 @@
 
 import { describe, expect, it } from "vitest";
 import {
+	lastDayOfMonth,
+	lastMonthCountOfYear,
+	losarJulianDay,
 	monthFromCount,
 	sharesNumberWithLeapMonth,
 	trueMonthCount,
 } from "../../src/computation/calendar.js";
+import { scalingFor } from "../../src/computation/scaling.js";
+import { monthsFor } from "../../src/months.js";
 import { PHUGPA } from "../../src/traditions/phugpa.js";
 import type { TraditionConfig } from "../../src/traditions/types.js";
 import { assertTraditionConfig } from "../../src/traditions/validate.js";
@@ -215,6 +220,111 @@ describe("monthFromCount inverts trueMonthCount under both positions", () => {
 			if (trueMonthCount(config, month.year, month.month, month.isLeap) !== n) bad.push(n);
 		}
 		expect(bad).toEqual([]);
+	});
+});
+
+describe("where a Tibetan year ends", () => {
+	// Until 2026-08-16 three call sites spelled this `(12, isLeap: false)`, which is only the last
+	// month of the year when leap months precede. Under "after" a year can close with a leap month
+	// 12, and `losarJulianDay` then computed New Year one lunation early — in exactly the year
+	// Bhutan's fixture anchors on.
+	const yearsClosingWithALeapMonth = (config: TraditionConfig) => {
+		const years: number[] = [];
+		for (let year = YEARS.from; year <= YEARS.to; year++) {
+			if (sharesNumberWithLeapMonth(config, year, 12)) years.push(year);
+		}
+		return years;
+	};
+
+	it("has years that close with a leap month 12, so the case is real", () => {
+		// Guards against every assertion below passing vacuously.
+		expect(yearsClosingWithALeapMonth(MIRRORED).length).toBeGreaterThan(0);
+	});
+
+	it.each([
+		["before", PHUGPA],
+		["after", MIRRORED],
+	] as const)("names the chronologically last month under %s", (_position, config) => {
+		const bad: string[] = [];
+		for (let year = YEARS.from; year <= YEARS.to; year++) {
+			const months = monthsInOrder(config, year);
+			const last = months[months.length - 1] as (typeof months)[number];
+			const reported = lastMonthCountOfYear(config, year);
+			if (reported !== last.count) {
+				bad.push(
+					`${year}: reported ${reported}, chronologically last is ` +
+						`${last.month}${last.isLeap ? "L" : ""}=${last.count}`,
+				);
+			}
+		}
+		expect(bad).toEqual([]);
+	});
+
+	it.each([
+		["before", PHUGPA],
+		["after", MIRRORED],
+	] as const)("meets the next year's first month with no gap under %s", (_position, config) => {
+		const bad: string[] = [];
+		for (let year = YEARS.from; year < YEARS.to; year++) {
+			const next = monthsInOrder(config, year + 1)[0] as { count: number };
+			if (lastMonthCountOfYear(config, year) + 1 !== next.count) {
+				bad.push(`${year}→${year + 1}: ${lastMonthCountOfYear(config, year)} then ${next.count}`);
+			}
+		}
+		expect(bad).toEqual([]);
+	});
+
+	it("puts Losar after the closing leap month, not before it", () => {
+		// The consequence, in days rather than counts. MIRRORED carries Phugpa's astronomical
+		// constants, so these are real Julian days — the position is the only thing under test.
+		const scaled = scalingFor(MIRRORED);
+		const bad: string[] = [];
+		for (const year of yearsClosingWithALeapMonth(MIRRORED)) {
+			const losar = losarJulianDay(scaled, MIRRORED, year + 1);
+			const closingLeapMonth = trueMonthCount(MIRRORED, year, 12, true);
+			const expected = lastDayOfMonth(scaled, closingLeapMonth) + 1;
+			if (losar !== expected) bad.push(`${year + 1}: Losar ${losar}, expected ${expected}`);
+		}
+		expect(bad).toEqual([]);
+	});
+});
+
+describe("monthsFor emits a year in chronological order", () => {
+	it.each([
+		["before", PHUGPA],
+		["after", MIRRORED],
+	] as const)("never steps the lunation backwards under %s", (_position, config) => {
+		const bad: string[] = [];
+		for (let year = 2100; year <= 2180; year++) {
+			const months = monthsFor(year, config);
+			for (let i = 1; i < months.length; i++) {
+				const previous = months[i - 1] as (typeof months)[number];
+				const current = months[i] as (typeof months)[number];
+				if (current.lunation !== previous.lunation + 1) {
+					bad.push(
+						`${year}: ${previous.monthCode}=${previous.lunation} → ` +
+							`${current.monthCode}=${current.lunation}`,
+					);
+				}
+			}
+		}
+		expect(bad).toEqual([]);
+	});
+
+	it("puts the leap month after its twin under after, and before it under before", () => {
+		const codesFor = (config: TraditionConfig, year: number) =>
+			monthsFor(year, config).map((month) => month.monthCode);
+		// A year Phugpa gives a leap month, so both configs produce thirteen months.
+		const leapYear = 2151;
+		const before = codesFor(PHUGPA, leapYear);
+		const after = codesFor(MIRRORED, leapYear);
+
+		expect(before).toHaveLength(13);
+		expect(after).toHaveLength(13);
+		expect(before.indexOf("M06L")).toBe(before.indexOf("M06") - 1);
+		expect(after.indexOf("M06L")).toBe(after.indexOf("M06") + 1);
+		// Same thirteen months either way; only the pair's order differs.
+		expect([...before].sort()).toEqual([...after].sort());
 	});
 });
 

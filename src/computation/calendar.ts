@@ -300,6 +300,36 @@ export function trueMonthCount(
 }
 
 /**
+ * The true month count of the **chronologically last** month of Tibetan year `Y`.
+ *
+ * @remarks
+ * Exists because "the last month of the year" is not `(12, isLeap: false)`, and three call sites
+ * spelled it that way until 2026-08-16 — {@link losarJulianDay} and both bounds of `monthsFor`.
+ * That spelling is correct only while leap months precede.
+ *
+ * The two positions are mirror images at the two ends of a year, and the codebase knew about one of
+ * them. Under {@link ../traditions/types.TraditionConfig.leapMonthPosition} `"before"` a year may
+ * **open** with a leap month 1 — Janson's Remark 20, and the year beginning in 2000 did. Under
+ * `"after"` it may instead **close** with a leap month 12, and then `(12, isLeap: false)` names the
+ * second-to-last month: `losarJulianDay` returned the day after *that*, placing New Year one whole
+ * lunation early with nothing about the result looking wrong.
+ *
+ * Not theoretical. `test/validation/bhutan.test.ts` anchors on 2 and 3 March 2003 being day 30 of a
+ * **leap month 12**, with New Year on 4 March — Janson's own Bhutanese anchor is the failing case.
+ *
+ * Stated once here rather than patched at each call site, for the reason
+ * {@link ScaledTradition.searchHalfWidth} is: a bound proved from a config's own values belongs
+ * beside the proof, not inlined three times where the fourth author will miss it.
+ */
+export function lastMonthCountOfYear(config: TraditionConfig, year: number): number {
+	// Only "after" can close a year with a leap month; under "before" the leap twin of month 12 sits
+	// *inside* the year and the regular month 12 still ends it.
+	const closesWithLeapMonth =
+		config.leapMonthPosition === "after" && sharesNumberWithLeapMonth(config, year, 12);
+	return trueMonthCount(config, year, 12, closesWithLeapMonth);
+}
+
+/**
  * Recovers the month `(Y, M, isLeap)` from a true month count — Janson §5, "The inverse problem".
  *
  * @remarks
@@ -523,5 +553,5 @@ export function losarJulianDay(
 	config: TraditionConfig,
 	year: number,
 ): number {
-	return lastDayOfMonth(scaled, trueMonthCount(config, year - 1, 12, false)) + 1;
+	return lastDayOfMonth(scaled, lastMonthCountOfYear(config, year - 1)) + 1;
 }

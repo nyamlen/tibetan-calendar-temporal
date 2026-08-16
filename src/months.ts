@@ -29,6 +29,7 @@ import {
 	firstDayOfMonth,
 	isLeapYear,
 	lastDayOfMonth,
+	lastMonthCountOfYear,
 	leapMonthOfYear as leapMonthOfYearY,
 	sharesNumberWithLeapMonth,
 	trueMonthCount,
@@ -183,19 +184,27 @@ export function monthsFor(year: number, config: TraditionConfig = PHUGPA): Tibet
 	// Bound the whole year up front, against its own two ends, so a year that is partly outside the
 	// exact range is refused rather than answered with a truncated list. The ends are computed
 	// through the same route the entries use, so nothing can be evaluated here that is not bounded.
+	// Both ends go through lastMonthCountOfYear rather than `(12, isLeap: false)`, which names the
+	// last month only while leap months precede — see its remarks.
 	assertExactJulianDay(
 		scaled,
-		firstDayOfMonth(scaled, trueMonthCount(config, y - 1, 12) + 1),
+		firstDayOfMonth(scaled, lastMonthCountOfYear(config, y - 1) + 1),
 		subject,
 	);
-	assertExactJulianDay(scaled, lastDayOfMonth(scaled, trueMonthCount(config, y, 12)), subject);
+	assertExactJulianDay(scaled, lastDayOfMonth(scaled, lastMonthCountOfYear(config, y)), subject);
 
 	const months: TibetanMonth[] = [];
+	const leapFirst = config.leapMonthPosition === "before";
 	for (let month = 1; month <= 12; month++) {
-		if (sharesNumberWithLeapMonth(config, y, month)) {
+		// Chronological order, which is the order this list documents. Emitting the leap month first
+		// unconditionally would put a Bhutanese year's pair the wrong way round — and `lunation` would
+		// then decrease across a boundary a consumer is entitled to walk forwards.
+		const twin = sharesNumberWithLeapMonth(config, y, month);
+		const leap = () =>
 			months.push(describeMonth(scaled, trueMonthCount(config, y, month, true), year, month, true));
-		}
+		if (twin && leapFirst) leap();
 		months.push(describeMonth(scaled, trueMonthCount(config, y, month, false), year, month, false));
+		if (twin && !leapFirst) leap();
 	}
 
 	let byYear = monthCache.get(config);
