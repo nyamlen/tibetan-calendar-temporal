@@ -91,15 +91,15 @@ describe("what the agreement does and does not establish", () => {
 		}
 	});
 
-	it("finds the Bhutanese leap month *number* without modelling its ordering", () => {
+	it("finds the Bhutanese leap month *number*, which is a narrower claim than it looks", () => {
 		// Worth being precise about, because it is easy to over-read. Janson's simplified Bhutanese
 		// rule is stated as "regular month M is *followed* by a leap month if ix = 57 or 58", and the
 		// leap month takes M's number — so the number this engine reports is already the Bhutanese
 		// one, and the agreement above is real.
 		//
-		// What is still unmodelled is the leap month's *position*: in Bhutan it falls after the
-		// regular month sharing its number, everywhere else before. That shifts day-level dates and
-		// the true month count, neither of which this file touches. See docs/traditions.md.
+		// It says nothing about the leap month's *position*, which is what moves dates and is what
+		// `leapMonthPosition` now expresses. This file would pass identically with the position set
+		// wrongly, so it is not evidence for it — `test/validation/bhutan.test.ts` is.
 		const bhutaneseLeapYears = CROSS_VERSION_LEAP.filter((row) => row.bhutanese !== undefined);
 		expect(bhutaneseLeapYears.length).toBeGreaterThan(0);
 		for (const row of bhutaneseLeapYears) {

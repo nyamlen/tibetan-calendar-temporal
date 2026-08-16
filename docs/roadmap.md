@@ -513,29 +513,46 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   the Mongolian version, and worked configs for both are in [traditions.md](traditions.md) — as
   data, not exports, because expressing a tradition and validating it are different claims.
 
-  **Bhutan is a further step back**, and no config field expresses the difference: it numbers a leap
-  month from the **preceding** month where every other version numbers it from the following one.
-  See [traditions.md](traditions.md).
+  **Bhutan's leap-month position closed on 2026-08-16**, as `TraditionConfig.leapMonthPosition`. It
+  numbers a leap month from the **preceding** month where every other version numbers it from the
+  following one, so its leap month falls *after* the regular month sharing its number. The engine's
+  month sequence is validated against `test/fixtures/bhutan.ts` at exactly one offset over 375
+  months, with the position flipped back to `"before"` matching at none — see
+  [traditions.md](traditions.md) for the full account.
 
-  **Its validation data now exists, though — the deferral no longer rests on evidence.**
-  `test/fixtures/bhutan.ts` carries 11,323 day-by-day Bhutanese dates for 2000–2030, from
-  `scripts/fetch-bhutan-fixtures.mjs`, which passed four checks before writing: continuity after
-  sorting, the one-day weekday shift on all 73,442 upstream rows, Janson's 2003 anchor, and
-  agreement with his own leap-month table across every overlapping year.
+  **Two estimates in this entry were wrong, and the shape of the error is the lesson.** It called the
+  work "a convention threaded through four functions". Two of those four were right, one was a rename
+  only, one (`M06L` in `formatTibetanDate`/`parseTibetanDate`) needed no code change at all — and
+  **four others were missed**, all of them consumers rather than definitions: `losarJulianDay` and
+  both `monthsFor` bounds spelled "the last month of the year" as `(12, isLeap: false)`, `monthsFor`
+  emitted the pair in the wrong order, and `getObservances` located a leap twin by probing
+  `monthCount ± 1`. Counting the definitions and forgetting the callers is the error worth
+  remembering.
 
-  What remains is the code, and it is a **convention threaded through four functions**, not new
-  arithmetic: `trueMonthCount` (the leap adjustment's sign), `monthFromCount` (which twin the
-  `mod 67 ∈ {1,2}` test identifies), `sharesNumberWithLeapMonth` (the predicate inverts, and the name likely needs
-  to change with it), and the `M06L` semantics shared by `formatTibetanDate` and `parseTibetanDate`.
-  One genuine question comes with it rather than falling out: **what the observance layer's
-  `leapMonth: "leap" | "regular"` convention selects when the leap month comes second.**
+  The entry also predicted the wrong arithmetic: it said the leap adjustment's **sign** flips. It
+  does not — the regular month of a twinned pair takes the adjustment instead, and only when it has a
+  twin.
 
-  Two things the fixture work turned up that will bite whoever picks this up. The upstream file is
-  **not in date order** — a block of early-2002 rows is interleaved and another sits after
-  2004-02-20 — so anything re-deriving from source must sort first. And Janson records that Bhutan's
-  *government calendar* and the *computed* result disagree about New Year 2003, saying "I have no
-  explanation for this discrepancy"; the fixture follows the computed line, and that is recorded
-  rather than resolved.
+  The one **genuine** question it raised did fall out after all: the observance layer's
+  `leapMonth: "leap" | "regular"` convention needed nothing, because it branches on the semantic flag
+  rather than on position. What did need fixing was how the twin is *found*.
+
+  **Still open for Bhutan: a runnable config.** `m₀`, `s₀` and `a₀` remain unreconciled, so no
+  day-level Bhutanese date is claimed and `BHUTAN` is not exported. The reconciliation
+  `x₀ = table x₀ − x₁` reproduces all three shipped Phugpa constants exactly, which makes it a
+  derivation rather than a guess, but Janson's Bhutanese `moonTab`/`sunTab` have not been checked and
+  must be before any config is written.
+
+  Two things the fixture work turned up. The upstream file is **not in date order** — a block of
+  early-2002 rows is interleaved and another sits after 2004-02-20 — so anything re-deriving from
+  source must sort first. And Janson records that Bhutan's *government calendar* and the *computed*
+  result disagree about New Year 2003, saying "I have no explanation for this discrepancy"; the
+  fixture follows the computed line, and that is recorded rather than resolved.
+
+  A third turned up when the engine was finally held to the data: the fixture carries **one leap
+  month Janson does not list**, at 2030-04-03, because the upstream leaves its leap flag set a month
+  too long. The generator has a fifth check for it now, and **will refuse to rewrite the committed
+  window until the source is fixed**.
 
 - **Navigation and date arithmetic — shipped 2026-08-15**, so this entry records only what became
   of its open questions. `addDays`, `daysBetween`, `addMonths`, `monthsBetween`,

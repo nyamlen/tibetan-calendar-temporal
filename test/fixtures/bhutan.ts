@@ -21,8 +21,14 @@
  * ours to overrule, so the conflict is recorded rather than smoothed.
  *
  * **The leap-month numbering is Bhutanese**, in which a leap month takes the number of the
- * *preceding* month. This package numbers from the following month, so its output is expected to
- * differ until `leapMonthPosition` exists. See `docs/traditions.md`.
+ * *preceding* month and so falls after the regular month sharing it. The engine expresses that as
+ * `TraditionConfig.leapMonthPosition: "after"` and reproduces the month sequence here — see
+ * `test/validation/bhutan.test.ts`, which is what settles the convention.
+ *
+ * **One leap month in this window is the source's own, not Janson's.** A leap month 2 begins
+ * 2030-04-03, straight after the leap month 1 he lists, giving that year two consecutive leap months
+ * and no regular month 2 at all. Validation runs up to it. Check 5 above exists because of it, and
+ * the committed window predates that check.
  */
 
 /** First Gregorian day of the window; rows run consecutively from here, one per day. */

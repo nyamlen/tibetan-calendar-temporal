@@ -7,6 +7,10 @@ It exists because the project's founding promise — that a second tradition is 
 `TraditionConfig` rather than a change to any computation module — was believed rather than tested,
 and because the roadmap carried a claim about Tsurphu that turned out to be false.
 
+The promise has since survived two real tests: the leap-month **rule** became
+`leapIndexThreshold`, and the leap month's **position** became `leapMonthPosition`. Neither was a
+constant, both had been hardcoded to Phugpa's, and neither would have announced itself.
+
 ## The claim that was wrong
 
 `docs/roadmap.md` said for three phases that Tsurphu "differs solely in the constants". It does not.
@@ -118,10 +122,10 @@ yields those indices. The **Bhutanese β\* at E806 is not stated**; 0 is what hi
 implies, and 31 years of agreement is the evidence for it.
 
 **A precision worth keeping.** The Bhutanese column agrees, and it would be easy to read that as
-Bhutan being solved. It is not. Janson's simplified Bhutanese rule identifies the regular month
-*followed by* a leap month, and the leap month takes that number — so the number this engine reports
-is already the Bhutanese one. The leap month's **position** is still unmodelled, and that is what
-moves dates.
+Bhutan being solved. It was not, and this table is not what solved it. Janson's simplified Bhutanese
+rule identifies the regular month *followed by* a leap month, and the leap month takes that number —
+so the number this engine reports was already the Bhutanese one while its **position** was still
+Tibet's. Position is what moves dates, and it is checked below rather than here.
 
 ## What would establish the third claim
 
@@ -130,23 +134,74 @@ New Year dates over a range of years, and every repeated and skipped day in 2012
 check, for a year he picks precisely because no version has a leap month in it. Both need the
 astronomical constants, so both wait on the epoch offset above being reconciled.
 
-## Bhutan is a step further back
+## Bhutan's leap-month position, and how it was closed
 
-No field here expresses the Bhutanese difference: **a leap month takes the number of the preceding
-month**, so it falls *after* the regular month sharing its number. In Phugpa, Tsurphu and the
-Mongolian version it falls before. Janson calls this "an important difference", notes it is the
-Chinese system rather than the Indian, and that it seems to have been the original Kālacakra
-कालचक्र system.
+**A leap month takes the number of the preceding month**, so it falls *after* the regular month
+sharing its number. In Phugpa, Tsurphu and the Mongolian version it falls before. Janson calls this
+"an important difference", notes it is the Chinese system rather than the Indian, and that it seems
+to have been the original Kālacakra कालचक्र system.
 
-"Before" is currently built into the shape of four functions — `trueMonthCount` (which subtracts one
-for a leap month, where Bhutan needs the opposite sign), `monthFromCount` (whose `mod 67 ∈ {1,2}`
-test identifies the earlier twin), `sharesNumberWithLeapMonth` (whose predicate inverts), and the `M06L` semantics
-shared by `formatTibetanDate` and `parseTibetanDate`. The observance layer's `leapMonth` convention
-would also select a different one of the pair.
+This is `TraditionConfig.leapMonthPosition` since 2026-08-16. Two things about the closing are worth
+keeping, because both were got wrong first.
 
-Bhutan additionally names its **weekdays one planet ahead** of Tibet — Saturday is *nyi ma* there
-where Tibet has *spen pa* — which is a naming concern rather than a calendrical one, and does not
-affect any date.
+**The adjustment is not a sign flip.** The obvious reading — `trueMonthCount` subtracts one for a
+leap month, so Bhutan adds one — is wrong, and a draft of this file said it. A twinned pair always
+occupies the counts `rounded − 1` and `rounded`; only the label moves. Under `"after"` the leap month
+keeps `rounded` and it is the **regular** month that takes `rounded − 1`, *and only when it has a
+twin*. The `+1` form leaves a gap of two before every pair and a collision after it, which stops the
+count being a bijection. `test/computation/leap-month-position.test.ts` sweeps 1900–2100 asserting
+the count advances by exactly one per month; the rejected form fails it 222 times.
+
+**"Before" was built into more places than the four this file used to list.** The four were
+`trueMonthCount`, `monthFromCount`, `sharesNumberWithLeapMonth` (then `hasLeapTwin`, whose *name*
+asserted a direction its predicate does not) and the `M06L` semantics — of which the last needed no
+code change at all, since `formatTibetanDate` and `parseTibetanDate` handle the code lexically. The
+four that were missed all mattered more:
+
+- **`losarJulianDay`** and both bounds of `monthsFor` spelled "the last month of the year" as
+  `(12, isLeap: false)`. Under `"after"` a year can *close* with a leap month 12, so New Year came
+  back one lunation early — in exactly the year this file's Bhutanese anchor falls in. Now one
+  derivation, `lastMonthCountOfYear`.
+- **`monthsFor`** emitted the leap month first unconditionally, returning a year whose `lunation`
+  steps backwards mid-list.
+- **`getObservances`** located a leap twin by probing `monthCount ± 1`, which points the wrong way
+  under `"after"`. The failure was a *missed* twin rather than a mirrored one, so the `leapMonth`
+  convention was bypassed and observances fired in **both** months of the pair.
+
+The observance layer's `leapMonth: "leap" | "regular"` convention itself needed nothing: it branches
+on the semantic flag, so "leap" means the leap month wherever it sits.
+
+### What validates it
+
+`test/validation/bhutan.test.ts`, against `test/fixtures/bhutan.ts` — day-by-day Bhutanese dates
+descending from Henning's software, reduced to a month sequence. The engine reproduces it at
+**exactly one** offset across 375 months, and flipping the position back to `"before"` matches at
+**no** offset, which is the control that makes the first number mean something.
+
+The check is deliberately about **months, not dates**, and that is what let it run now: the sequence
+depends on the epoch, the threshold and the position alone. Bhutan's `m₀`, `s₀` and `a₀` are still
+unreconciled, so no day-level Bhutanese date is claimed here.
+
+### A defect in the fixture, recorded not smoothed
+
+Its leap months reproduce Janson's four-version table exactly for twelve of thirteen, then carry a
+thirteenth he does not list: a leap month 2 from 2030-04-03, directly after the leap month 1 he does.
+That year would hold regular 1, leap 1, leap 2, regular 3 — two consecutive leap months and no
+regular month 2. The upstream leaves its leap flag set one month too long, once.
+
+`scripts/fetch-bhutan-fixtures.mjs` now carries a fifth check requiring every leap month to be paired
+with a regular month of the same number immediately before it. Validation runs up to the anomaly and
+the anomaly is pinned exactly, so a corrected re-fetch fails the test and reopens the window rather
+than leaving a narrower check than the data supports.
+
+**One consequence to know before re-running that script: it will now refuse to write this window.**
+The committed fixture predates the fifth check and does not satisfy it.
+
+### Still Bhutan's, and still not modelled
+
+Bhutan names its **weekdays one planet ahead** of Tibet — Saturday is *nyi ma* there where Tibet has
+*spen pa*. That is `TraditionNaming.weekdayOffset`, a naming concern rather than a calendrical one,
+and it affects no date.
 
 ## Who uses which
 
