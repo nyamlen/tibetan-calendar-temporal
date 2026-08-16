@@ -193,6 +193,19 @@ derivation; in `docs/` they are just noise.
   asserts every `@example` in `src/` that states a value — docblocks compile into `dist/*.d.ts`, so
   a stale one ships as contract. A failure in the first means the surface
   changed, so decide whether that was intended before editing the list.
+
+  **A `TraditionConfig` is judged by a different rule, because it is a different kind of claim.**
+  That record is about API design; a config asserts that dates computed with it are a real
+  tradition's real dates. So it is exported only once the engine has been tiled against an
+  **external** calendar for that tradition, day by day —
+  [docs/decisions/2026-08-16-exported-means-validated.md](docs/decisions/2026-08-16-exported-means-validated.md),
+  enforced by `check:conventions`. Expressing a tradition, validating its leap months and validating
+  its dates are three claims, not one: **Tsurphu and the Mongolian version are fully expressible and
+  their leap months are checked against Janson, and both stay unexported**, because nothing checks a
+  Tsurphu date. Self-consistency is not a substitute — the Bhutan work's inverse-pair round trip
+  passed under a labelling that was consistently wrong, and only external data caught it. Record the
+  window in `docs/testing.md`; agreement cited without its window is what that file exists to
+  prevent.
 - **Errors carry codes; do not add an error class.** Throw through `rangeError`/`codedError` in
   `src/errors.ts`, never a bare `new RangeError` — the code is the part consumers branch on, and a
   bare construction silently omits it. `SkippedDayError` is the only class and stays the only one.

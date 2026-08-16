@@ -469,6 +469,41 @@ for (const file of testFiles) {
 }
 
 // ---------------------------------------------------------------------------------------
+// Rule 10 — an exported tradition config is exercised by a validation suite
+//
+// Exporting a TraditionConfig asserts that dates computed with it are that tradition's real
+// dates. Expressing a tradition, validating its leap months and validating its dates are three
+// separate claims, and only the third earns an export — see
+// docs/decisions/2026-08-16-exported-means-validated.md.
+//
+// The check is deliberately weaker than the rule: it cannot tell whether a suite validates much,
+// only that one references the config. That is the part a machine can see, and it fails on the
+// mistake the rule is about — adding an export without adding evidence. Tsurphu and the Mongolian
+// version are the live case: both are fully expressible and their leap months are checked, and
+// both must stay unexported until something checks a date.
+// ---------------------------------------------------------------------------------------
+
+const CONFIG_EXPORT = /^export \{([^}]*)\} from "\.\/traditions\/[\w-]+\.js";$/gm;
+const validationSuites = tracked("test/validation")
+	.filter((file) => file.endsWith(".test.ts"))
+	.map((file) => read(file))
+	.join("\n");
+
+for (const [, names] of read("src/index.ts").matchAll(CONFIG_EXPORT)) {
+	for (const name of names.split(",").map((part) => part.trim())) {
+		// Type-only exports carry no dates and nothing to validate.
+		if (name === "" || name.startsWith("type ") || !/^[A-Z][A-Z0-9_]*$/.test(name)) continue;
+		if (!new RegExp(`\\b${name}\\b`).test(validationSuites)) {
+			fail(
+				"exported configs are validated",
+				"src/index.ts",
+				`exports the tradition config \`${name}\`, which no suite in test/validation/ references. Exporting a config asserts its dates are that tradition's real dates, which self-consistency cannot establish — a round trip proves the arithmetic inverts itself and cannot catch a shared misreading of the paper. Tile it against an external calendar day by day, record the window in docs/testing.md, and keep it in docs/traditions.md as data until then.`,
+			);
+		}
+	}
+}
+
+// ---------------------------------------------------------------------------------------
 
 if (failures.length > 0) {
 	const byRule = new Map();
