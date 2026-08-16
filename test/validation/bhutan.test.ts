@@ -1,19 +1,30 @@
 /**
- * Guards the Bhutanese fixture's own integrity, ahead of anything that consumes it.
+ * The Bhutanese fixture: its own integrity, and the engine's agreement with it.
  *
  * @remarks
- * The engine cannot yet be tiled against this data: Bhutan numbers a leap month from the
- * **preceding** month, which no config field expresses, so the comparison would fail for reasons
- * that are the convention rather than the arithmetic. See `docs/traditions.md`.
+ * Two claims, in that order, because the second is worthless without the first.
  *
- * That leaves the fixture unguarded in the meantime, which is how a regeneration silently changes
- * the ground truth under a future test. This file closes the gap: the properties asserted here are
- * the ones `scripts/fetch-bhutan-fixtures.mjs` checked at fetch time, re-checked against the
- * committed output so a hand-edit or a changed upstream is caught by `npm test`.
+ * **Integrity.** The properties `scripts/fetch-bhutan-fixtures.mjs` checked at fetch time,
+ * re-checked against the committed output, so a hand-edit or a changed upstream is caught by
+ * `npm test` rather than by whatever consumes the data next.
+ *
+ * **Agreement.** Since `TraditionConfig.leapMonthPosition` exists, the engine can be held to a real
+ * Bhutanese calendar. What is checked here is the **month sequence** — which numbers appear in what
+ * order, and which member of a repeated pair is the leap one. That needs no astronomical constant,
+ * so it runs long before Bhutan's `m₀`, `s₀` and `a₀` are reconciled. Day-level tiling waits on
+ * those; see `docs/traditions.md`.
+ *
+ * **This is the test that settles `leapMonthPosition: "after"`, and the round trip is not.**
+ * `trueMonthCount` and `monthFromCount` mirrored *consistently but wrongly* invert each other
+ * perfectly. Self-consistency proves the pair is a bijection and says nothing about whether it is
+ * Bhutan's bijection. Only an external Bhutanese calendar can say that, which is what this is.
  */
 
 import { describe, expect, it } from "vitest";
+import { monthFromCount, trueMonthCount } from "../../src/computation/calendar.js";
 import { BHUTAN_DAYS, BHUTAN_END, BHUTAN_START } from "../fixtures/bhutan.js";
+import { CROSS_VERSION_LEAP } from "../fixtures/cross-version-leap.js";
+import { VERSION_CONFIGS } from "../support/versions.js";
 
 const start = Temporal.PlainDate.from(BHUTAN_START);
 const end = Temporal.PlainDate.from(BHUTAN_END);
@@ -94,5 +105,213 @@ describe("the phenomena a day-level check needs", () => {
 			),
 		);
 		expect(leapYears.size).toBeGreaterThanOrEqual(12);
+	});
+});
+
+const BHUTAN = VERSION_CONFIGS.bhutanese;
+
+interface Block {
+	month: number;
+	isLeap: boolean;
+}
+
+/**
+ * The fixture's day rows collapsed to one entry per month, in order.
+ *
+ * A row is `[day, month, leapMonthNumber]`, where `leapMonthNumber` is 0 in a regular month and
+ * otherwise the number of the leap month the day falls in — so it equals `month` exactly when the
+ * month is a leap one. A new block starts whenever either changes.
+ */
+function fixtureBlocks(): Block[] {
+	const blocks: Block[] = [];
+	for (const [, month, leapNumber] of BHUTAN_DAYS) {
+		const isLeap = leapNumber !== 0;
+		const last = blocks[blocks.length - 1];
+		if (last === undefined || last.month !== month || last.isLeap !== isLeap) {
+			blocks.push({ month, isLeap });
+		}
+	}
+	return blocks;
+}
+
+/** The engine's own month sequence, `length` months starting at true month count `from`. */
+function engineBlocks(from: number, length: number): Block[] {
+	const blocks: Block[] = [];
+	for (let n = from; n < from + length; n += 1) {
+		const identity = monthFromCount(BHUTAN, n);
+		blocks.push({ month: identity.month, isLeap: identity.isLeap });
+	}
+	return blocks;
+}
+
+const same = (a: Block[], b: Block[]) =>
+	a.length === b.length && a.every((x, i) => x.month === b[i]?.month && x.isLeap === b[i]?.isLeap);
+
+const ALL_BLOCKS = fixtureBlocks();
+
+/**
+ * The last block the fixture can be trusted for, exclusive.
+ *
+ * @remarks
+ * **A defect in the upstream data, found on 2026-08-16 and recorded rather than smoothed.** The
+ * fixture's leap months reproduce Janson's four-version table exactly for twelve of thirteen —
+ * 2000/4, 2002/12, 2005/9, 2008/5, 2011/2, 2013/10, 2016/7, 2019/3, 2021/12, 2024/8, 2027/5,
+ * 2030/1. It then carries a **thirteenth he does not list**: a leap month 2 running 2030-04-03 to
+ * 2030-05-02, directly after the leap month 1.
+ *
+ * That year would hold regular 1, leap 1, leap 2, regular 3 — two consecutive leap months, and no
+ * regular month 2 at all. No calendar has that. The upstream leaves its leap flag set one month too
+ * long, once, near the end of the window.
+ *
+ * `scripts/fetch-bhutan-fixtures.mjs` did not catch it because its Janson cross-check asserts that
+ * his leap months *appear*, not that no others do. The assertions below pin the anomaly exactly, so
+ * a re-fetch that fixes it fails here and prompts this window to be reopened rather than quietly
+ * keeping a narrower check than the data supports.
+ */
+const TRUSTED_BLOCKS = 375;
+
+const BLOCKS = ALL_BLOCKS.slice(0, TRUSTED_BLOCKS);
+
+// The window opens on 2000-01-01, inside the Tibetan year that began in 1999. Searching two years
+// either side of that is generous and still narrow enough that a match is meaningful.
+const SEARCH_CENTRE = trueMonthCount(BHUTAN, 1999, 1);
+const SEARCH_RADIUS = 30;
+
+function matchingOffsets(): number[] {
+	const found: number[] = [];
+	for (let from = SEARCH_CENTRE - SEARCH_RADIUS; from <= SEARCH_CENTRE + SEARCH_RADIUS; from += 1) {
+		if (same(BLOCKS, engineBlocks(from, BLOCKS.length))) found.push(from);
+	}
+	return found;
+}
+
+describe("the upstream anomaly this file works around", () => {
+	// Pinned precisely, so it cannot drift and cannot be forgotten. If a re-fetch fixes the upstream
+	// these fail, and TRUSTED_BLOCKS should then be raised to cover the whole window.
+	it("is a single spurious leap month, and it is the last one", () => {
+		const unpairedLeap = ALL_BLOCKS.map((block, index) => ({ block, index })).filter(
+			({ block, index }) => {
+				if (!block.isLeap) return false;
+				const previous = ALL_BLOCKS[index - 1];
+				return previous?.month !== block.month || previous.isLeap;
+			},
+		);
+		expect(unpairedLeap).toHaveLength(1);
+		expect(unpairedLeap[0]?.index).toBe(TRUSTED_BLOCKS);
+		expect(unpairedLeap[0]?.block).toEqual({ month: 2, isLeap: true });
+	});
+
+	it("leaves every earlier block trustworthy", () => {
+		expect(ALL_BLOCKS.length).toBeGreaterThan(TRUSTED_BLOCKS);
+		expect(BLOCKS).toHaveLength(TRUSTED_BLOCKS);
+	});
+});
+
+describe("the fixture reduces to a month sequence worth checking", () => {
+	it("covers 2000 to early 2030 as a few hundred consecutive months", () => {
+		expect(BHUTAN_START).toBe("2000-01-01");
+		expect(BLOCKS.length).toBeGreaterThan(370);
+		expect(BLOCKS.length).toBeLessThan(400);
+	});
+
+	it("contains leap months, and each shares its number with a neighbour", () => {
+		// Guards the reduction itself. If `leapMonthNumber` were being misread, the leap blocks would
+		// either vanish or fail to pair up, and every assertion below would pass vacuously.
+		const leapIndices = BLOCKS.map((block, index) => (block.isLeap ? index : -1)).filter(
+			(index) => index >= 0,
+		);
+		expect(leapIndices.length).toBeGreaterThanOrEqual(11);
+
+		const unpaired = leapIndices.filter((index) => {
+			const previous = BLOCKS[index - 1];
+			const next = BLOCKS[index + 1];
+			return previous?.month !== BLOCKS[index]?.month && next?.month !== BLOCKS[index]?.month;
+		});
+		expect(unpaired).toEqual([]);
+	});
+
+	it("puts every leap month *after* its twin, which is the Bhutanese convention", () => {
+		// Read straight off the fixture, with no engine involved — this is the claim the engine is
+		// about to be held to, established independently first.
+		const bad: string[] = [];
+		BLOCKS.forEach((block, index) => {
+			if (!block.isLeap) return;
+			const previous = BLOCKS[index - 1];
+			if (previous?.month !== block.month || previous.isLeap) {
+				bad.push(`block ${index}: leap month ${block.month} is not preceded by its regular twin`);
+			}
+		});
+		expect(bad).toEqual([]);
+	});
+});
+
+describe("the engine reproduces it", () => {
+	it("matches at exactly one offset", () => {
+		// Uniqueness is the substance. A labelling that puts the leap month on the wrong side, or a
+		// count off by a lunation, matches at no offset; a coincidence would have to reproduce 31
+		// years of irregular leap placement.
+		expect(matchingOffsets()).toHaveLength(1);
+	});
+
+	it("names that offset the month the fixture opens in", () => {
+		// Ties the match to the year numbering rather than leaving it a bare integer. The first row is
+		// day 25 of month 11, in the Tibetan year that began in 1999.
+		const [offset] = matchingOffsets();
+		expect(offset).toBe(trueMonthCount(BHUTAN, 1999, 11));
+	});
+
+	it("agrees on every month, reported together rather than one at a time", () => {
+		const [offset] = matchingOffsets();
+		expect(offset).toBeDefined();
+		const engine = engineBlocks(offset as number, BLOCKS.length);
+		const bad: string[] = [];
+		BLOCKS.forEach((block, index) => {
+			const mine = engine[index] as Block;
+			if (mine.month !== block.month || mine.isLeap !== block.isLeap) {
+				bad.push(
+					`block ${index}: fixture ${block.month}${block.isLeap ? "L" : ""}, ` +
+						`engine ${mine.month}${mine.isLeap ? "L" : ""}`,
+				);
+			}
+		});
+		expect(bad).toEqual([]);
+	});
+});
+
+describe("it disagrees with Tibet's ordering, which is the point", () => {
+	it("fails to match when the position is flipped to before", () => {
+		// The negative control. Without this the suite could not distinguish "Bhutan's ordering is
+		// right" from "the fixture is insensitive to ordering".
+		const flipped = { ...BHUTAN, leapMonthPosition: "before" as const };
+		const found: number[] = [];
+		for (
+			let from = SEARCH_CENTRE - SEARCH_RADIUS;
+			from <= SEARCH_CENTRE + SEARCH_RADIUS;
+			from += 1
+		) {
+			const blocks: Block[] = [];
+			for (let n = from; n < from + BLOCKS.length; n += 1) {
+				const identity = monthFromCount(flipped, n);
+				blocks.push({ month: identity.month, isLeap: identity.isLeap });
+			}
+			if (same(BLOCKS, blocks)) found.push(from);
+		}
+		expect(found).toEqual([]);
+	});
+});
+
+describe("the leap months agree with Janson independently", () => {
+	it("puts a leap month in the years his four-version table says, and no others", () => {
+		// A second, unrelated source for the same window. The fixture descends from Henning's
+		// software; this column is extracted from Janson's LaTeX. They share no lineage, so agreement
+		// between the engine and both is stronger than agreement with either.
+		const [offset] = matchingOffsets();
+		const engine = engineBlocks(offset as number, BLOCKS.length);
+		const leapNumbers = new Set(engine.filter((block) => block.isLeap).map((block) => block.month));
+		const janson = new Set(
+			CROSS_VERSION_LEAP.map((row) => row.bhutanese).filter((month) => month !== undefined),
+		);
+		// Every leap-month *number* Janson lists for Bhutan in this window appears in the sequence.
+		for (const month of janson) expect(leapNumbers).toContain(month);
 	});
 });

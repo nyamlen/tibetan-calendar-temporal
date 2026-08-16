@@ -25,7 +25,7 @@
  * (id, 'weekday', bhutaneseDay, bhutaneseMonth, leapMonth, 'year-name', gregDay, gregMonth, gregYear)
  * ```
  *
- * Four assertions, any of which aborts the run:
+ * Five assertions, any of which aborts the run:
  *
  * 1. **Continuity** — one row per Gregorian day, no gaps, no duplicates, **after sorting**. File
  *    order is *not* date order: a block of early-2002 rows is interleaved out of sequence and
@@ -36,6 +36,12 @@
  * 3. **Janson's anchor** — see below.
  * 4. **Agreement with Janson's own leap-month table**, over the years the two overlap. Two sources
  *    with entirely separate lineages, checked against each other.
+ * 5. **Every leap month is paired** with a regular month of the same number immediately before it.
+ *    Added after check 4 passed on data carrying a leap month Janson does *not* list — check 4 asks
+ *    whether his leap months appear and cannot see an extra one. The committed 2000–2030 window
+ *    still contains that defect, at 2030-04-03; `test/validation/bhutan-month-sequence.test.ts`
+ *    pins it and validates up to it. Re-running this script will now refuse to write until the
+ *    source is fixed or the window is narrowed.
  *
  * ## The anchor, and the trap it avoids
  *
@@ -181,6 +187,38 @@ for (const [year, expected] of JANSON_BHUTAN_LEAP) {
 	const found = leapByYear.get(year);
 	if (found !== expected) {
 		fail(`Janson gives Bhutan leap month ${expected} in ${year}; the dataset gives ${found}`);
+	}
+}
+
+// 5. Every leap month is paired with a regular month of the same number, immediately before it.
+//
+// Added 2026-08-16, after check 4 passed on data carrying a leap month Janson does not list. That
+// check asks whether *his* leap months appear; it cannot see an extra one. The 2000-2030 window
+// held a leap month 2 running 2030-04-03 to 2030-05-02, straight after the leap month 1 he does
+// list — so that year had regular 1, leap 1, leap 2, regular 3, with no regular month 2 at all.
+// The upstream leaves its leap flag set one month too long there.
+//
+// Stated as pairing rather than as "one leap month per year", because the pairing is what the
+// Bhutanese convention actually claims: a leap month takes the number of the month *preceding* it.
+const months = [];
+for (const row of all) {
+	const last = months[months.length - 1];
+	if (!last || last.month !== row.bhutaneseMonth || last.leapMonth !== row.leapMonth) {
+		months.push({ month: row.bhutaneseMonth, leapMonth: row.leapMonth, iso: row.iso });
+	}
+}
+for (const [index, entry] of months.entries()) {
+	if (entry.leapMonth === 0) continue;
+	const previous = months[index - 1];
+	if (previous === undefined) continue;
+	if (previous.month !== entry.month || previous.leapMonth !== 0) {
+		fail(
+			`leap month ${entry.month} beginning ${entry.iso.toString()} is not preceded by a regular ` +
+				`month ${entry.month}; the month before it is ${previous.month}` +
+				`${previous.leapMonth === 0 ? "" : " (also leap)"}. In the Bhutanese convention a leap ` +
+				"month takes the number of the month preceding it, so an unpaired one means the source's " +
+				"leap flag is set on the wrong rows",
+		);
 	}
 }
 

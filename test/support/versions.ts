@@ -1,0 +1,62 @@
+/**
+ * Janson's four versions, expressed as far as `TraditionConfig` can honestly express them.
+ *
+ * @remarks
+ * A helper rather than part of a test file because more than one suite needs them and Biome rightly
+ * refuses exports from a test file.
+ *
+ * **These are not runnable calendars, and must not be copied into `src/` as though they were.**
+ * Each is `PHUGPA` with three fields replaced — the epoch's intercalation index, the leap-index
+ * threshold, and the leap month's position. Everything astronomical is still Phugpa's, because
+ * `docs/traditions.md` records why the other versions' `m₀`, `s₀` and `a₀` are not yet safe to
+ * transcribe.
+ *
+ * That substitution is legitimate for exactly the questions these configs are used to ask.
+ * **Leap months, month numbering and the true month count depend on nothing astronomical** — they
+ * come from the epoch year, the epoch month, the threshold and the position alone. Any question
+ * about a *date* is Phugpa's answer wearing another version's name, and asking one here would be a
+ * misuse.
+ *
+ * β\* at the common epoch E806 is 61 for Phugpa, **0 for Tsurphu** and **46 for the Mongolian**
+ * version, all of which Janson states — counting back to the Kālacakra कालचक्र epoch *nag pa* 806
+ * yields those indices. The **Bhutanese β\* at E806 is not stated**; 0 is what his E1754 value of 2
+ * implies, and the leap-month agreement across 2000–2030 is the evidence for it.
+ */
+
+import { PHUGPA } from "../../src/traditions/phugpa.js";
+import type { TraditionConfig } from "../../src/traditions/types.js";
+
+/** The four version names Janson gives, in the order his comparison tables use. */
+export const VERSIONS = ["phugpa", "tsurphu", "mongolian", "bhutanese"] as const;
+
+export type Version = (typeof VERSIONS)[number];
+
+export const VERSION_CONFIGS: Record<Version, TraditionConfig> = {
+	phugpa: PHUGPA,
+	tsurphu: {
+		...PHUGPA,
+		intercalationIndexAtEpoch: 0,
+		leapIndexThreshold: 0,
+		leapMonthPosition: "before",
+	},
+	mongolian: {
+		...PHUGPA,
+		intercalationIndexAtEpoch: 46,
+		leapIndexThreshold: 46,
+		leapMonthPosition: "before",
+	},
+	/**
+	 * The simplified intercalation index, 57 — not the traditional 59 an almanac prints. Janson gives
+	 * the rule both ways and they differ by two; this package computes the simplified one.
+	 *
+	 * `leapMonthPosition: "after"` is the whole reason this config differs in kind from the two
+	 * above. Bhutan numbers a leap month from the **preceding** month, which places it after the
+	 * regular month sharing its number.
+	 */
+	bhutanese: {
+		...PHUGPA,
+		intercalationIndexAtEpoch: 0,
+		leapIndexThreshold: 57,
+		leapMonthPosition: "after",
+	},
+};

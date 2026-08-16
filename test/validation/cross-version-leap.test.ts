@@ -16,11 +16,11 @@
  * - **Not validated:** any day-level date for anything but Phugpa. That needs `m₀`, `s₀`, `a₀`, and
  *   `docs/traditions.md` records why those are not yet safe to transcribe.
  *
- * The configs below are `PHUGPA` with three fields replaced, which is legitimate precisely because
- * nothing else participates. `leapMonthPosition` is the third and does not affect anything this file
- * asserts — a leap month's *number* is the same whichever side of its twin it falls — but it is
- * required, and stating Bhutan's `"after"` here keeps these configs honest for the files that reuse
- * them. They are **not** runnable calendars and must not be copied into `src/` as though they were.
+ * The configs come from `test/support/versions.ts` — `PHUGPA` with three fields replaced, which is
+ * legitimate precisely because nothing else participates. `leapMonthPosition` is the third and does
+ * not affect anything this file asserts — a leap month's *number* is the same whichever side of its
+ * twin it falls — but `test/validation/bhutan-month-sequence.test.ts` turns on it, which is why the
+ * four now live in one place rather than being restated per suite.
  */
 
 import { describe, expect, it } from "vitest";
@@ -28,39 +28,7 @@ import { sharesNumberWithLeapMonth } from "../../src/computation/calendar.js";
 import { PHUGPA } from "../../src/traditions/phugpa.js";
 import type { TraditionConfig } from "../../src/traditions/types.js";
 import { CROSS_VERSION_LEAP } from "../fixtures/cross-version-leap.js";
-
-/**
- * β\* and the leap-index threshold at the common epoch E806, per Janson.
- *
- * He states the Tsurphu and Mongolian values directly — counting back to the Kālacakra epoch
- * *nag pa* 806 yields intercalation index 0 for Tsurphu and 46 for the Mongolian version. The
- * Bhutanese β\* at E806 is not stated; 0 is what his E1754 value of 2 implies, and the agreement
- * below over 31 years is the evidence for it.
- */
-const CONFIGS: Record<string, TraditionConfig> = {
-	phugpa: PHUGPA,
-	tsurphu: {
-		...PHUGPA,
-		intercalationIndexAtEpoch: 0,
-		leapIndexThreshold: 0,
-		leapMonthPosition: "before",
-	},
-	mongolian: {
-		...PHUGPA,
-		intercalationIndexAtEpoch: 46,
-		leapIndexThreshold: 46,
-		leapMonthPosition: "before",
-	},
-	bhutanese: {
-		...PHUGPA,
-		intercalationIndexAtEpoch: 0,
-		leapIndexThreshold: 57,
-		leapMonthPosition: "after",
-	},
-};
-
-type Version = "phugpa" | "tsurphu" | "mongolian" | "bhutanese";
-const VERSIONS: readonly Version[] = ["phugpa", "tsurphu", "mongolian", "bhutanese"];
+import { VERSION_CONFIGS as CONFIGS, VERSIONS } from "../support/versions.js";
 
 /** The leap month of a year, or `undefined` — the shape Janson's table is in. */
 function leapMonthOf(config: TraditionConfig, year: number): number | undefined {

@@ -446,14 +446,25 @@ for (const file of testFiles) {
 	if (NOT_NAMED_FOR_ITS_FIXTURES.has(basename(file))) continue;
 
 	const suite = basename(file, ".test.ts");
-	for (const [, fixture] of read(file).matchAll(FIXTURE_IMPORT)) {
-		if (!fixture.startsWith(suite)) {
-			fail(
-				"validation suites are named for their fixtures",
-				file,
-				`validates test/fixtures/${fixture}.ts, whose name does not start with "${suite}". Name the suite for the fixture, or for the prefix it shares with the others it covers — fpmt.test.ts covers both fpmt-*, crosscheck.test.ts all three crosscheck-*. If the suite's real subject is a module rather than a source, it belongs beside that module instead.`,
-			);
-		}
+	const fixtures = [...read(file).matchAll(FIXTURE_IMPORT)].map(([, fixture]) => fixture);
+	if (fixtures.length === 0) continue;
+
+	// **At least one**, not every one, and the distinction is load-bearing in both directions.
+	//
+	// Requiring every import to match would forbid a suite consulting a *second, independent*
+	// source — which is the cross-checking this project is built on: bhutan.test.ts holds the
+	// Bhutanese day data to Janson's leap-month table as well as to itself, and those fixtures
+	// share no prefix by construction, because they share no lineage.
+	//
+	// Requiring only that the names be prefix-*related* in either direction would be too weak: it
+	// would accept bhutan-fixture.test.ts, the exact drift this rule exists to catch, since
+	// "bhutan-fixture" does start with "bhutan". The direction is what carries the rule.
+	if (!fixtures.some((fixture) => fixture.startsWith(suite))) {
+		fail(
+			"validation suites are named for their fixtures",
+			file,
+			`validates ${fixtures.map((fixture) => `test/fixtures/${fixture}.ts`).join(", ")}, and none of those names starts with "${suite}". Name the suite for the fixture it validates, or for the prefix it shares with the others it covers — fpmt.test.ts covers both fpmt-*, crosscheck.test.ts all three crosscheck-*. A suite may consult further fixtures as independent cross-checks, but its name has to identify the one it is about. If the suite's real subject is a module rather than a source, it belongs beside that module instead.`,
+		);
 	}
 }
 
