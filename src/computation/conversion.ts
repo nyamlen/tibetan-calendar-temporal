@@ -574,6 +574,10 @@ export function isoToTibetan(
 
 	// Invert the mean date over the linear lunar day count l = 30n + d.
 	const { den, perDay, atEpoch } = scaled.meanDate;
+	// exact: this is a *search seed*, not a result. The loop below walks ±searchHalfWidth around it
+	// and every candidate is then tested with integer-only arithmetic, so a seed off by one changes
+	// which candidate is found first and nothing else. `assertExactJulianDay` above has already
+	// bounded `target · den` inside the safe range.
 	const estimate = Math.round((target * den - atEpoch) / perDay);
 
 	// Collect every lunar day in the window that ends on the target calendar day, plus the

@@ -163,11 +163,13 @@ export function deriveScaling(config: TraditionConfig): ScaledTradition {
 
 	// moon_tab takes 28 · anomaly_moon. Multiplying a rational over `den` by 28 reduces the
 	// denominator by gcd(28, den) — for Phugpa 28 divides 3528 exactly, giving 126.
+	// exact: a gcd divides its argument, so this quotient is a whole number with no rounding at all.
 	const moonTabArgDen = lunarAnomaly.den / gcd(28, lunarAnomaly.den);
 
 	// sun_tab takes 12 · (mean_sun − 1/4). The subtraction needs 4 to divide the denominator,
 	// which it does for every tradition Janson gives; the multiplication then reduces by 12.
 	const sunAnomalyDen = lcm(meanSun.den, 4);
+	// exact: a gcd divides its argument, as above.
 	const sunTabArgDen = sunAnomalyDen / gcd(12, sunAnomalyDen);
 
 	// true_date = mean_date + moon_equ/60 − sun_equ/60, so D must absorb all three.
@@ -192,6 +194,7 @@ export function deriveScaling(config: TraditionConfig): ScaledTradition {
 		sunTabArgDen,
 		quarterCircle: scaleTo(1, 4, meanSun.den),
 		commonDenominator,
+		// exact: a safe-integer quotient floored to a bound, not a calendar quantity.
 		exactToJulianDay: Math.floor(Number.MAX_SAFE_INTEGER / commonDenominator),
 		searchHalfWidth,
 	};
