@@ -24,6 +24,7 @@ import {
 	classifyDay,
 	firstDayOfMonth,
 	monthFromCount,
+	sharesNumberWithLeapMonth,
 	trueMonthCount,
 } from "../computation/calendar.js";
 import {
@@ -456,12 +457,17 @@ export function getObservances(
 	for (let monthCount = firstMonth; monthCount <= lastMonth; monthCount++) {
 		const month = monthFromCount(tradition, monthCount);
 		// Whether this year holds two months of this number, which is what makes the leap-month
-		// convention bite. Cheap to answer from the neighbouring month.
-		const neighbour = monthFromCount(tradition, monthCount + (month.isLeap ? 1 : -1));
-		const yearHasLeapOfThisNumber =
-			neighbour.month === month.month &&
-			neighbour.year === month.year &&
-			neighbour.isLeap !== month.isLeap;
+		// convention bite.
+		//
+		// Asked of the month directly rather than by probing the neighbour at `monthCount ± 1`, which
+		// is what this did until 2026-08-16. That probe assumed a leap month's twin sits at `+1` and a
+		// regular month's at `−1` — true only while leap months precede, and exactly inverted under
+		// `leapMonthPosition: "after"`. The failure was not a mirrored answer but a missed one: the
+		// probe found no twin, `yearHasLeapOfThisNumber` went false, `appliesToMonth` returned early,
+		// and the `leapMonth` convention was bypassed altogether — firing the observance in *both*
+		// months rather than the selected one. `sharesNumberWithLeapMonth` is directionless and
+		// answers the same question without knowing where to look.
+		const yearHasLeapOfThisNumber = sharesNumberWithLeapMonth(tradition, month.year, month.month);
 
 		for (const rule of config.rules) {
 			if (!appliesToMonth(rule, config, month, yearHasLeapOfThisNumber)) continue;

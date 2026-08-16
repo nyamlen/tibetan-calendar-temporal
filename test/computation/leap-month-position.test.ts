@@ -29,6 +29,8 @@ import {
 } from "../../src/computation/calendar.js";
 import { scalingFor } from "../../src/computation/scaling.js";
 import { monthsFor } from "../../src/months.js";
+import { getObservances } from "../../src/observances/index.js";
+import type { ObservanceConfig } from "../../src/observances/types.js";
 import { PHUGPA } from "../../src/traditions/phugpa.js";
 import type { TraditionConfig } from "../../src/traditions/types.js";
 import { assertTraditionConfig } from "../../src/traditions/validate.js";
@@ -325,6 +327,65 @@ describe("monthsFor emits a year in chronological order", () => {
 		expect(after.indexOf("M06L")).toBe(after.indexOf("M06") + 1);
 		// Same thirteen months either way; only the pair's order differs.
 		expect([...before].sort()).toEqual([...after].sort());
+	});
+});
+
+describe("the observance layer selects the right one of a twinned pair", () => {
+	// The convention itself is semantic and needed no change: it branches on `month.isLeap`, so
+	// "leap" means the leap month wherever it sits. What did need changing is how `getObservances`
+	// *locates* the twin. It probed `monthCount ± 1`, which is inverted under "after", and the
+	// failure was a missed twin rather than a mirrored one: the leapMonth convention was skipped and
+	// the observance fired in both months. These tests would pass on the old code for "before" and
+	// fail for "after" by returning two hits instead of one.
+	const ruleIn = (month: number, leapMonth: "leap" | "regular") => ({
+		id: "probe",
+		name: "Probe",
+		kind: "duchen" as const,
+		tier: 1 as const,
+		when: { month, day: 15 },
+		leapMonth,
+		source: "https://example.invalid/test-only",
+	});
+
+	const configWith = (leapMonth: "leap" | "regular"): ObservanceConfig => ({
+		id: "probe",
+		name: "Probe",
+		doubledDay: "second",
+		skippedDay: "preceding",
+		leapMonth,
+		rules: [ruleIn(6, leapMonth)],
+	});
+
+	// Royal-era 2151 — the Tibetan year beginning in Gregorian 2024 — has a leap month 6 under
+	// Phugpa's threshold, which both configs share, so the pair exists either way and only its order
+	// differs. It is the year of the Chokhor Duchen that FPMT prints in the leap month.
+	const window = {
+		from: Temporal.PlainDate.from("2024-03-01"),
+		to: Temporal.PlainDate.from("2024-12-31"),
+	};
+
+	it.each([
+		["before", PHUGPA],
+		["after", MIRRORED],
+	] as const)("fires once, not in both months, under %s", (_position, tradition) => {
+		for (const choice of ["leap", "regular"] as const) {
+			const hits = getObservances(window.from, window.to, configWith(choice), tradition);
+			expect(hits.filter((hit) => hit.rule.id === "probe")).toHaveLength(1);
+		}
+	});
+
+	it("picks the earlier month for regular under after, and the later under before", () => {
+		const dayOf = (tradition: TraditionConfig, choice: "leap" | "regular") => {
+			const [hit] = getObservances(window.from, window.to, configWith(choice), tradition);
+			return hit?.date.isoDate.toString();
+		};
+		// Same physical pair of lunations either way, so the two configs must disagree about which
+		// one "regular" names — that disagreement is the whole feature.
+		expect(dayOf(PHUGPA, "regular")).not.toBe(dayOf(MIRRORED, "regular"));
+		// And "regular" under "after" must be the *earlier* of the two, which is "leap" under
+		// "before" — the pair's members are the same lunations, only relabelled.
+		expect(dayOf(MIRRORED, "regular")).toBe(dayOf(PHUGPA, "leap"));
+		expect(dayOf(MIRRORED, "leap")).toBe(dayOf(PHUGPA, "regular"));
 	});
 });
 
