@@ -38,6 +38,10 @@ one commit.
 
 ## Development environment
 
+The project-wide coding rules are in [docs/coding-standards.md](docs/coding-standards.md), which
+also states, for each rule, whether a machine will catch a violation or whether it depends on
+somebody noticing. Read the enforcement column before assuming CI has your back.
+
 - **Node.js 26 required for development** — Temporal ships enabled by default from 26.0.0
   (released May 2026). It is *Current*, not LTS, until roughly October 2026
 - Node 24 can expose Temporal via `node --harmony-temporal`, but that is V8's **in-progress**
@@ -55,8 +59,13 @@ npm install
 npm test
 ```
 
-CI runs `lint`, `check:links`, `typecheck`, `build`, `test`, `check:publish` and `test:pack`. All
-seven run locally with the same commands.
+CI runs `lint`, `lint:md`, `check:links`, `check:conventions`, `typecheck`, `build`, `test`,
+`check:publish` and `test:pack`. All nine run locally with the same commands.
+
+`check:conventions` covers the rules that lint, typecheck and the suite cannot see — the
+zero-dependency claim, integer-only arithmetic, coded errors, `{@link}` targets, the
+decision-record format and fixture provenance. Each of those fails *silently* rather than loudly,
+which is why it needed its own gate; before it existed, nothing checked any of them.
 
 The last two check the *published* package rather than the source. Everything else imports from
 `src/`, which means nothing else can see a broken `exports` map, a file missing from `files`, or a

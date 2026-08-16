@@ -9,7 +9,7 @@
 | 2 | Validation: FPMT fixtures, cross-check against reference implementations — **done** | 12h |
 | 3 | Observances: config-driven rules, Gelug default config — **done** | 8h |
 | 4 | TypeDoc + release workflow + publish v1.0.0 (docblock audit split out — see Phase 4a) | 6h |
-| 4a | Docblock audit: verify 300 docblocks against actual behaviour — see the [Pre-v1.0.0 checklist](#pre-v100-checklist) | 10h |
+| 4a | Code review: 300 docblocks verified against behaviour, plus convention and derivation conformance across all of `src/` — see the [Pre-v1.0.0 checklist](#pre-v100-checklist) | 14h |
 
 **Safe timeline: 3 weeks** (accounts for debugging edge cases in doubled/skipped day logic —
 predates Phase 4a's addition below and has not been revisited against its extra 10h)
@@ -273,6 +273,18 @@ through this before publishing v1.0.0 — several are one-way doors once publish
       but cannot be tightened. `tryParseTibetanDate` was considered and dropped for the same reason:
       additive later.
 
+- [x] **Conventions are enforced rather than remembered** — done 2026-08-16.
+      `scripts/check-conventions.mjs` gates seven rules nothing previously checked, Biome bans the
+      `Date` global in `src/`, and markdownlint finally runs in CI against the config that had
+      existed for weeks unread. CI is nine commands. Every rule and its enforcement status is in
+      [coding-standards.md](coding-standards.md), which the guard also validates against reality so
+      it cannot drift.
+
+      Three violations existed when the guard first ran: a bare `new Error` in `epoch.ts`, the same
+      constraint discharged by a cast in `names.ts`, and seven divisions carrying no statement of
+      why they stay exact. All three are fixed; `assertInternal` is now the single idiom for
+      discharging a `noUncheckedIndexedAccess` widening.
+
 - [ ] **Audit and correct all 300 docblocks against actual behaviour** — see
       [Phase 4a](#implementation-phases) for the effort estimate. `src/types.ts` (56),
       `src/computation/calendar.ts` (30), `src/observances/types.ts` (28),
@@ -299,7 +311,8 @@ through this before publishing v1.0.0 — several are one-way doors once publish
          throws and with which code, what is accepted and what is refused.
       2. Every `@throws` matches the codes actually thrown, including any this plan's Part 1 added.
       3. Every `@example` runs and produces the stated output.
-      4. Every `{@link}` resolves.
+      4. Every `{@link}` resolves. **Now automated** — `check:conventions` checks all 199 of them
+         on every push, so this item is permanently closed rather than closed once.
       5. Citations follow the clean-room rule: by section and content, never by a rendered equation
          or table number.
       6. Only then, prose quality and consistency of voice.

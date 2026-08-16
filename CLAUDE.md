@@ -3,6 +3,8 @@
 Tibetan calendar (Phugpa tradition) computation engine. Pure TypeScript, zero runtime
 dependencies, built on Temporal.
 
+- Every rule, and **what fails when you break it**: [docs/coding-standards.md](docs/coding-standards.md) —
+  the enforcement map. This file says *why* a rule exists; that one says whether a machine catches it
 - Architecture, API design, core types: [docs/architecture.md](docs/architecture.md)
 - Testing strategy and validation sources: [docs/testing.md](docs/testing.md)
 - What differs between traditions, and the two source traps found while working it out:
@@ -179,6 +181,11 @@ derivation; in `docs/` they are just noise.
 - **Errors carry codes; do not add an error class.** Throw through `rangeError`/`codedError` in
   `src/errors.ts`, never a bare `new RangeError` — the code is the part consumers branch on, and a
   bare construction silently omits it. `SkippedDayError` is the only class and stays the only one.
+  `check:conventions` now enforces this; the one bare `new Error` that predated it sat in
+  `epoch.ts` discharging a `noUncheckedIndexedAccess` widening. That is what `assertInternal` is
+  for, and it is the required idiom — the alternative, a cast, lets a bad index return `undefined`
+  wearing the element type, which is how the same constraint was discharged two different ways in
+  the same codebase.
   Codes are contract and message text is not, so assert on the code in tests and never tell a
   consumer to match wording. `tibetanDateExists` swallows errors by **allowlist** — three codes
   answer `false`, everything else rethrows — and must not go back to a denylist: as one, a single
@@ -232,8 +239,19 @@ the structure the `./observances` subpath export needs. Do not add tsup or simil
 
 ## Commands
 
-`npm run lint`, `check:links`, `typecheck`, `build`, `test`, `check:publish`, `test:pack` — CI runs
-all seven in that order.
+`npm run lint`, `lint:md`, `check:links`, `check:conventions`, `typecheck`, `build`, `test`,
+`check:publish`, `test:pack` — CI runs all nine in that order.
+
+**`check:conventions` enforces the rules in this file that lint, typecheck and the suite cannot
+see**, which before it existed was all of them: the zero-dependency claim, integer-only arithmetic,
+coded errors, `{@link}` targets, the decision-record format, fixture provenance, and whether
+[docs/coding-standards.md](docs/coding-standards.md) still names real commands and paths. Each of
+those fails silently rather than loudly. When you add a rule here, check whether
+`scripts/check-conventions.mjs` can hold it, and write the failing case before the check — a guard
+that has never failed proves nothing.
+
+`lint:md` runs markdownlint against `.markdownlint.jsonc`. It does **not** check semantic line
+breaks; markdownlint has no such rule, and `MD013` is off because it fights the convention.
 
 The last two are the only checks that see the **published** package. Every test imports from
 `src/`, so a broken `exports` map, a file missing from `files`, or a `dist/` layout that does not
@@ -253,7 +271,7 @@ outside the repo, so it cannot gate a push — what gates a push is its committe
 `test/fixtures/names.ts`, which the suite reads. Provenance is checked before a release; integrity
 is checked on every push.
 
-**`npm run coverage` is not one of the seven, so nothing gates it.** It was broken on `main` for an
+**`npm run coverage` is not one of the nine, so nothing gates it.** It was broken on `main` for an
 unknown stretch and nobody noticed: the 200-year moon-phase sweep runs in well under a second bare
 but takes 5–8 seconds under v8 instrumentation, against Vitest's 5s default, so `test` passed while
 `coverage` failed. The long sweeps now carry explicit timeouts. Run it before a release, and give
