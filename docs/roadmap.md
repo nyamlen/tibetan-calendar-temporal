@@ -379,11 +379,29 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
 ## Beyond v1
 
 - **The 60 rabjung cycle names**, landing at `rabjung.name` — additive, so not a breaking change.
-  Deferred because it is a sourcing problem rather than a coding one: Janson's ASCII list
-  collides three distinct Sanskrit names onto `pramadi`, the Hindu saṃvatsara list diverges from
-  the Tibetan one in content, and no source has been found giving all 60 in Tibetan script with
-  Lhasa phonetics. See
+  Deferred as a sourcing problem rather than a coding one. See
   [architecture.md](architecture.md#why-the-60-rabjung-names-are-not-included).
+
+  **Two of the three stated blockers fell on 2026-08-16, and the entry should be re-argued rather
+  than re-deferred.** The naming work proved out machinery that did not exist when this was written:
+
+  - *"No source gives all 60 in Tibetan script"* — two independent EWTS implementations (`jsewts`
+    and `tibetan-ewts-converter`) agree on all 27 vocabulary terms and round-trip every one back to
+    its Wylie, and THL's converter supplies THL Simplified phonetics for any Wylie. Both are wired
+    into `scripts/verify-name-sources.mjs` already. The script column is no longer a search for a
+    source; it is a run of that harness over 60 more rows.
+  - *"Janson's ASCII collides three names onto `pramadi`"* — an artefact of using **his** Sanskrit.
+    The Indic IAST already tabulated in [rabjung-names.md](rabjung-names.md) is collision-free.
+
+  What genuinely remains is the **content divergence** at rows 20, 29, 52 and 60, where the Tibetan
+  and Indic lists carry different names rather than different spellings. The plan's proposal was to
+  stop choosing between them: make `rabjung.name` an object carrying **both**, each attributed, so
+  the divergence becomes recorded data rather than a blocker. That is unargued and unbuilt.
+
+  One unverified premise if it is picked up: English glosses may be sourceable for the **Sanskrit**
+  names from Sewell & Fleet (1924) and Rao (2000) — the same literature the IAST comes from. Nobody
+  has checked whether those books print meanings. If they do not, English stays authored and must be
+  labelled as such.
 
   **All 60 are now tabulated side by side in [rabjung-names.md](rabjung-names.md)** — Wylie,
   Tibetan script, Lhasa phonetics, IAST, Devanāgarī, Janson's Sanskrit and an English gloss, with
@@ -481,6 +499,26 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   month from the **preceding** month where every other version numbers it from the following one.
   See [traditions.md](traditions.md).
 
+  **Its validation data now exists, though — the deferral no longer rests on evidence.**
+  `test/fixtures/bhutan.ts` carries 11,323 day-by-day Bhutanese dates for 2000–2030, from
+  `scripts/fetch-bhutan-fixtures.mjs`, which passed four checks before writing: continuity after
+  sorting, the one-day weekday shift on all 73,442 upstream rows, Janson's 2003 anchor, and
+  agreement with his own leap-month table across every overlapping year.
+
+  What remains is the code, and it is a **convention threaded through four functions**, not new
+  arithmetic: `trueMonthCount` (the leap adjustment's sign), `monthFromCount` (which twin the
+  `mod 67 ∈ {1,2}` test identifies), `hasLeapTwin` (the predicate inverts, and the name likely needs
+  to change with it), and the `M06L` semantics shared by `formatTibetanDate` and `parseTibetanDate`.
+  One genuine question comes with it rather than falling out: **what the observance layer's
+  `leapMonth: "leap" | "regular"` convention selects when the leap month comes second.**
+
+  Two things the fixture work turned up that will bite whoever picks this up. The upstream file is
+  **not in date order** — a block of early-2002 rows is interleaved and another sits after
+  2004-02-20 — so anything re-deriving from source must sort first. And Janson records that Bhutan's
+  *government calendar* and the *computed* result disagree about New Year 2003, saying "I have no
+  explanation for this discrepancy"; the fixture follows the computed line, and that is recorded
+  rather than resolved.
+
 - **Navigation and date arithmetic — shipped 2026-08-15**, so this entry records only what became
   of its open questions. `addDays`, `daysBetween`, `addMonths`, `monthsBetween`,
   `lunationFromMonth`, `monthFromLunation`, `nextFullMoon` and `nextNewMoon` are free functions on
@@ -512,26 +550,32 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   primary attribute. Cosmetic, on a subpath surface, and breaking to change, so it is a note rather
   than a task.
 
-- **Tibetan-language output** — locale-aware rendering of month names, day names, the
-  twelve-animal cycle and five elements, per Janson's Appendix E — deferred and additive. This is
-  **not** the same sourcing problem as the 60 rabjung cycle names above: that entry is blocked on
-  finding a source giving Tibetan-script and Lhasa-phonetic renderings of the Indian saṃvatsara
-  list, while the animal/element/month vocabulary this item needs is Janson's own and already
-  sourced. Open questions:
+- **Tibetan-language output — weekday and year naming shipped 2026-08-16.** `TibetanDate` carries
+  `weekdayName`; `yearName` carries `elementName`, `genderName` and `animalName`; and
+  `weekdayNameFor`, `elementNameFor`, `genderNameFor` and `animalNameFor` are exported. Each name is
+  Tibetan script, Wylie and THL Simplified phonetics — no English field, because the string unions
+  already carry the English identity and are the i18n contract. See
+  [decisions/2026-08-16-names-are-data-not-locales.md](decisions/2026-08-16-names-are-data-not-locales.md).
 
-  - A locale parameter, or a structured object with named fields.
-  - Which scripts ship — Tibetan script, Wylie, Lhasa phonetics, IAST — and whether all four or a
-    subset.
-  - Whether it reaches `formatTibetanDate` as an option, or ships as a separate formatter.
+  The three open questions this entry used to list are answered there: a **structured object**, not a
+  locale parameter; **three renderings**, with IAST reserved for the Sanskrit side of the rabjung
+  names; and **no `formatTibetanDate` mode**, because its round trip with `parseTibetanDate` is an
+  identity that must not acquire one.
 
-  **The weekday names are the readiest piece, and the least blocked.** Janson's day-of-week section
-  already tabulates all seven with their English name, Wylie and planet — `spen ma`/Saturn,
-  `nyi ma`/Sun, `zla ba`/Moon, `mig dmar`/Mars, `lhag pa`/Mercury, `phur bu`/Jupiter,
-  `pa sangs`/Venus — so unlike the 60 rabjung names there is nothing to source. `TibetanDate` now
-  carries the numeric `tibetanWeekday`, and a `weekdayName` would group beside it under the `*Name`
-  rule exactly as `yearName` sits beside `year`. Only the Tibetan script and Lhasa phonetics would
-  need adding to what Janson gives, and those are mechanical from Wylie rather than a search for a
-  source. Do not let this item's harder parts hold that one.
+  Provenance is machine-checked rather than trusted — [name-sources.md](name-sources.md). Janson
+  turned out **not to be self-consistent** here: Saturday is `spen ma` in his day-of-week table and
+  `spen pa` in his Bhutan appendix, and the wrong one had been sitting in a shipped docblock. That
+  is why the harness exists.
+
+  **Still outstanding: month names.** The twelve lunar-mansion names are sourced, unambiguous, and
+  could ship alone on the existing `TibetanName` shape and harness. What blocks the rest is that the
+  animal and seasonal systems are **tradition-dependent** — Phugpa sets month 11 = Tiger against
+  Tsurphu's month 1 = Tiger — and Janson lists **four competing seasonal identifications**, none of
+  which he reports as current usage. Choosing among them is a contested convention, which by the
+  public-surface record belongs in injected config. Four `naming` members would be needed: an animal
+  offset, an element-rule selector, a seasonal-system selector, and a Tsurphu-only number flag. Name
+  any selector for what the rule *does*, as Janson describes them — never for a tradition, which
+  would reintroduce the `config.id` anti-pattern.
 
 - **iCalendar (ICS) export — declined.** `getObservances` returns plain objects; a consumer maps
   them to whatever format they need. Per
