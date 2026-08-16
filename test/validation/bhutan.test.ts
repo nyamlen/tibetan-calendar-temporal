@@ -22,9 +22,10 @@
 
 import { describe, expect, it } from "vitest";
 import { monthFromCount, trueMonthCount } from "../../src/computation/calendar.js";
+import { isoToTibetan, losarFor } from "../../src/computation/conversion.js";
 import { BHUTAN_DAYS, BHUTAN_END, BHUTAN_START } from "../fixtures/bhutan.js";
 import { CROSS_VERSION_LEAP } from "../fixtures/cross-version-leap.js";
-import { VERSION_CONFIGS } from "../support/versions.js";
+import { BHUTAN_CANDIDATE, VERSION_CONFIGS } from "../support/versions.js";
 
 const start = Temporal.PlainDate.from(BHUTAN_START);
 const end = Temporal.PlainDate.from(BHUTAN_END);
@@ -172,6 +173,21 @@ const TRUSTED_BLOCKS = 375;
 
 const BLOCKS = ALL_BLOCKS.slice(0, TRUSTED_BLOCKS);
 
+/** The day index where the anomalous block begins, so the day check stops where the month one does. */
+const TRUSTED_DAYS = (() => {
+	let blocks = 0;
+	let previous: Block | undefined;
+	for (const [index, [, month, leapNumber]] of BHUTAN_DAYS.entries()) {
+		const isLeap = leapNumber !== 0;
+		if (previous === undefined || previous.month !== month || previous.isLeap !== isLeap) {
+			blocks += 1;
+			if (blocks > TRUSTED_BLOCKS) return index;
+			previous = { month, isLeap };
+		}
+	}
+	return BHUTAN_DAYS.length;
+})();
+
 // The window opens on 2000-01-01, inside the Tibetan year that began in 1999. Searching two years
 // either side of that is generous and still narrow enough that a match is meaningful.
 const SEARCH_CENTRE = trueMonthCount(BHUTAN, 1999, 1);
@@ -297,6 +313,39 @@ describe("it disagrees with Tibet's ordering, which is the point", () => {
 			if (same(BLOCKS, blocks)) found.push(from);
 		}
 		expect(found).toEqual([]);
+	});
+});
+
+describe("the runnable Bhutanese config, day by day", () => {
+	// The claim the month sequence above cannot make. That check needs no astronomical constant and
+	// so says nothing about m₀, s₀ or a₀; this one is about nothing else. A failure here is the
+	// epoch data, because the convention is already settled.
+	it("reproduces every day of the fixture", () => {
+		const bad: string[] = [];
+		for (const [index, [day, month, leapNumber]] of BHUTAN_DAYS.entries()) {
+			if (index >= TRUSTED_DAYS) break;
+			const iso = start.add({ days: index });
+			const date = isoToTibetan(iso, BHUTAN_CANDIDATE);
+			const expectedLeap = leapNumber !== 0;
+			if (date.day !== day || date.month !== month || date.isLeapMonth !== expectedLeap) {
+				bad.push(
+					`${iso.toString()}: fixture ${day}/${month}${expectedLeap ? "L" : ""}, ` +
+						`engine ${date.day}/${date.month}${date.isLeapMonth ? "L" : ""}`,
+				);
+			}
+		}
+		// Collected, not asserted per row: eleven thousand rows times three assertions each, with a
+		// message built from a Temporal date, is enough to kill a vitest worker.
+		expect(bad.slice(0, 20)).toEqual([]);
+		expect(bad).toEqual([]);
+	}, 30_000);
+
+	it("puts Losar 2003 on 4 March, after the repeated day 30 of the leap month", () => {
+		// Janson's own Bhutanese anchor, and the case that breaks a year-end computed as
+		// (12, isLeap: false). His government-calendar disagreement is recorded above and not ours to
+		// resolve; this follows the computed line, as the fixture does.
+		const losar = losarFor(2003 - 1096 + 1223, BHUTAN_CANDIDATE);
+		expect(losar.isoDate.toString()).toBe("2003-03-04");
 	});
 });
 
