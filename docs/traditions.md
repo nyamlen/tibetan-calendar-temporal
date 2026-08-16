@@ -100,7 +100,7 @@ validation data would only move the guess. **Three claims must be kept apart:**
 
 ## What is now validated: leap months, all four versions
 
-`test/traditions/cross-version-leap.test.ts` checks all four against Janson's leap-month table,
+`test/validation/cross-version-leap.test.ts` checks all four against Janson's leap-month table,
 extracted mechanically into `test/fixtures/cross-version-leap.ts`.
 
 This is possible because **leap months depend on nothing astronomical**: the intercalation index is

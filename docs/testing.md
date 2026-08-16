@@ -22,6 +22,23 @@ test/
 Tiers 1 and 3 are interleaved with the unit suites rather than kept in separate directories —
 a property and the edge case it generalises belong next to the function they constrain.
 
+**Naming a validation suite.** A test whose subject is the engine's **agreement with an external
+source** is named for the fixture — or the fixture **prefix** — it validates, and lives in
+`test/validation/`. So `janson-epoch.test.ts` covers one fixture, `fpmt.test.ts` covers the two
+`fpmt-*`, `crosscheck.test.ts` covers the three `crosscheck-*`, and `bhutan.test.ts` covers
+`bhutan.ts`. The parity is the point: a reader can find the test for a fixture without opening
+anything.
+
+The exclusion matters as much as the rule. **Using a fixture as input does not make a test a
+validation test.** `test/computation/conversion.test.ts` imports `losar` and
+`test/computation/epoch.test.ts` imports `sixty-year-cycle`, but their subject is a module, so they
+are named for the module and stay where they are. A sweep that moved them would be applying the rule
+to the wrong half of the suite.
+
+One honest edge case: `test/validation/observances.test.ts` imports `fpmt-observances` while its
+subject is the observance engine. It sits in `validation/` for historical reasons and is left there
+rather than moved on a guess — recorded here so the next reader knows it was seen, not missed.
+
 **Fixture provenance.** `test/fixtures/losar.ts`, `sixty-year-cycle.ts` and `janson-epoch.ts` are
 **generated**, not hand-written: run `node scripts/extract-janson-fixtures.mjs <path-to-tibet.tex>`
 to regenerate all three from the paper's LaTeX. Do not edit them by hand. Transcribing 120 dates
@@ -79,7 +96,7 @@ sources and assert the engine matches.
 ### Non-Phugpa traditions: leap months only, and that is not a hedge
 
 Every source above is Phugpa. Since 2026-08-16 there is one external check covering the other three
-versions — `test/traditions/cross-version-leap.test.ts`, against Janson's four-version leap-month
+versions — `test/validation/cross-version-leap.test.ts`, against Janson's four-version leap-month
 table, extracted mechanically into `test/fixtures/cross-version-leap.ts`.
 
 It is possible because **leap months depend on nothing astronomical.** The intercalation index is
