@@ -293,15 +293,26 @@ export function hasLeapMonth(year: number, config: TraditionConfig = PHUGPA): bo
  * Which month number is doubled in `year`, or `undefined` if the year has no leap month.
  *
  * @remarks
- * The leap month carries this number and precedes the regular month sharing it. Exact up to the
- * configured tradition's derivable range, like {@link hasLeapMonth} and for the same reason.
+ * The leap month carries this number. Exact up to the configured tradition's derivable range, like
+ * {@link hasLeapMonth} and for the same reason.
+ *
+ * **Which year has a leap month, and which month it doubles, is tradition-specific** — it falls out
+ * of `leapIndexThreshold`, so the answer changes with the config and the example below is Phugpa's.
+ * For 2151, Phugpa gives 6, Mongolian 5 and Bhutanese 10, while Tsurphu has no leap month that year
+ * at all.
+ *
+ * Where the leap month *sits* relative to its twin is a separate question, and one this engine does
+ * not yet express: it always places the leap month **before** the regular month sharing the number,
+ * which is right for every version Janson gives except Bhutan, where it follows. Until that is
+ * configurable the number here is already the Bhutanese one but the position is not — see
+ * [traditions.md](../docs/traditions.md).
  *
  * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `year` is not a safe integer, or
  * `TCT_OUTSIDE_EXACT_RANGE` if it falls beyond the tradition's derivable range.
  *
  * @example
  * ```ts
- * leapMonthOfYear(2151);   // 6 — the leap month precedes the regular month 6
+ * leapMonthOfYear(2151);   // 6 — Phugpa, the default config
  * leapMonthOfYear(2153);   // undefined — no leap month that year
  * ```
  */

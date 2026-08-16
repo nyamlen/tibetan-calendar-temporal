@@ -21,6 +21,7 @@ import {
 	nextFullMoon,
 } from "../src/navigation.js";
 import { PHUGPA } from "../src/traditions/phugpa.js";
+import type { TibetanAnimal, TibetanElement, TibetanGender } from "../src/types.js";
 
 /**
  * Every docblock `@example` in `src/` that states a concrete result, asserted.
@@ -105,6 +106,19 @@ describe("docblock examples", () => {
 			expect(leapMonthOfYear(2153)).toBeUndefined();
 		});
 
+		it("leapMonthOfYear answers per tradition, so the example is Phugpa's alone", () => {
+			// The docblock claims 2151 gives 6 for Phugpa, 5 for Mongolian, 10 for Bhutanese and
+			// nothing for Tsurphu. Only `leapIndexThreshold` varies here — Janson's 48/0/46/57 — so
+			// this pins the claim that the answer is tradition-specific, not the other constants.
+			const forThreshold = (leapIndexThreshold: number) =>
+				leapMonthOfYear(2151, { ...PHUGPA, leapIndexThreshold });
+
+			expect(forThreshold(48)).toBe(6);
+			expect(forThreshold(46)).toBe(5);
+			expect(forThreshold(57)).toBe(10);
+			expect(forThreshold(0)).toBeUndefined();
+		});
+
 		it("daysInMonth accepts a leap month and a date's own month", () => {
 			expect(daysInMonth({ year: 2151, month: 6, isLeapMonth: true })).toBeTypeOf("number");
 			expect(daysInMonth(isoToTibetan(Temporal.PlainDate.from("2026-08-12")))).toBeTypeOf("number");
@@ -140,6 +154,27 @@ describe("docblock examples", () => {
 			expect(elementNameFor("fire")).toEqual({ tibetan: "མེ", wylie: "me", phonetic: "mé" });
 			expect(animalNameFor("horse")).toEqual({ tibetan: "རྟ", wylie: "rta", phonetic: "ta" });
 			expect(genderNameFor("male")).toEqual({ tibetan: "ཕོ", wylie: "pho", phonetic: "po" });
+		});
+
+		it("rejects a member outside the union as a wrong-kind argument", () => {
+			// TCT_INVALID_ARGUMENT, not TCT_FIELD_OUT_OF_RANGE: "Fire" is a bug in the calling code,
+			// like the string outside parseTibetanDate's grammar, not bad data someone typed.
+			// See docs/decisions/2026-08-15-argument-errors-split.md.
+			for (const call of [
+				() => elementNameFor("Fire" as TibetanElement),
+				() => animalNameFor("rooster" as TibetanAnimal),
+				() => genderNameFor("neuter" as TibetanGender),
+			]) {
+				expect(call).toThrow(expect.objectContaining({ code: "TCT_INVALID_ARGUMENT" }));
+			}
+		});
+
+		it("rejects a weekday outside 0…6 as a field out of range", () => {
+			// This one genuinely is a range, so it keeps the range code — the split is not a blanket
+			// rename of every guard in the module.
+			expect(() => weekdayNameFor(7)).toThrow(
+				expect.objectContaining({ code: "TCT_FIELD_OUT_OF_RANGE" }),
+			);
 		});
 	});
 

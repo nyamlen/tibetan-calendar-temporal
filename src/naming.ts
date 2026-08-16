@@ -170,11 +170,17 @@ export function animalNameFor(animal: TibetanAnimal): TibetanName {
  * The unions are the package's i18n contract — a consumer's message catalogue keys off them — so a
  * caller reaching here with `"Fire"` or `"rooster"` has a real bug that a silent `undefined` would
  * hide until it surfaced as a missing translation.
+ *
+ * `TCT_INVALID_ARGUMENT`, not `TCT_FIELD_OUT_OF_RANGE`, and the distinction is the one
+ * `docs/decisions/2026-08-15-argument-errors-split.md` draws: a month of `13` is bad data worth
+ * surfacing to whoever typed it, while `"Fire"` is a bug in the calling code, exactly like the
+ * string outside `parseTibetanDate`'s grammar that the record already assigns this code. Nobody
+ * types an element name into a form — these members are written by the consumer's own source.
  */
 function requireName(name: TibetanName | undefined, subject: string, member: string): TibetanName {
 	if (name === undefined) {
 		throw rangeError(
-			"TCT_FIELD_OUT_OF_RANGE",
+			"TCT_INVALID_ARGUMENT",
 			`${subject}: unknown member ${JSON.stringify(member)}`,
 		);
 	}
