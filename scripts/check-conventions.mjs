@@ -402,6 +402,62 @@ for (const file of sources) {
 }
 
 // ---------------------------------------------------------------------------------------
+// Rule 9 — validation suites are named for the fixtures they validate
+//
+// A test whose subject is agreement with an external source is named for the fixture — or the
+// fixture prefix — it validates, and lives in test/validation/. That parity is what lets a
+// reader find the test for a fixture without opening anything, and it had already drifted:
+// bhutan-fixture.test.ts carried a redundant suffix, in a directory of its own invention.
+//
+// Two halves, because neither alone would have caught that. The directory set catches a new
+// home appearing; the prefix rule catches a suite in the right home under the wrong name.
+//
+// Deliberately blind to everything outside test/validation/, because the exclusion is the half
+// a later sweep gets wrong: taking a fixture as *input* does not make a test a validation
+// suite. conversion.test.ts imports losar and epoch.test.ts imports sixty-year-cycle, and both
+// are named for their module, correctly.
+// ---------------------------------------------------------------------------------------
+
+const TEST_DIRECTORIES = new Set(["computation", "fixtures", "support", "validation"]);
+const FIXTURE_IMPORT = /from\s+"(?:\.\.\/)+fixtures\/([a-z0-9-]+)\.js"/g;
+
+// observances.test.ts imports fpmt-observances while its subject is the observance engine. It
+// predates the rule and is left in place rather than moved on a guess; docs/testing.md records
+// it as seen rather than missed. Narrower than it looks — do not grow this to silence a name.
+const NOT_NAMED_FOR_ITS_FIXTURES = new Set(["observances.test.ts"]);
+
+const testFiles = tracked("test").filter((file) => file.endsWith(".ts"));
+const reportedDirectories = new Set();
+
+for (const file of testFiles) {
+	const [, directory] = file.split("/");
+	if (file.split("/").length < 3 || TEST_DIRECTORIES.has(directory)) continue;
+	if (reportedDirectories.has(directory)) continue;
+	reportedDirectories.add(directory);
+	fail(
+		"validation suites are named for their fixtures",
+		`test/${directory}/`,
+		`not one of the sanctioned test directories (${[...TEST_DIRECTORIES].join(", ")}). A suite validating the engine against an external source belongs in test/validation/, named for the fixture it validates; a suite whose subject is a module belongs beside that module. A third home means one of those two questions was not answered — see docs/testing.md.`,
+	);
+}
+
+for (const file of testFiles) {
+	if (!file.startsWith("test/validation/") || !file.endsWith(".test.ts")) continue;
+	if (NOT_NAMED_FOR_ITS_FIXTURES.has(basename(file))) continue;
+
+	const suite = basename(file, ".test.ts");
+	for (const [, fixture] of read(file).matchAll(FIXTURE_IMPORT)) {
+		if (!fixture.startsWith(suite)) {
+			fail(
+				"validation suites are named for their fixtures",
+				file,
+				`validates test/fixtures/${fixture}.ts, whose name does not start with "${suite}". Name the suite for the fixture, or for the prefix it shares with the others it covers — fpmt.test.ts covers both fpmt-*, crosscheck.test.ts all three crosscheck-*. If the suite's real subject is a module rather than a source, it belongs beside that module instead.`,
+			);
+		}
+	}
+}
+
+// ---------------------------------------------------------------------------------------
 
 if (failures.length > 0) {
 	const byRule = new Map();
