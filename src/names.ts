@@ -16,6 +16,7 @@
  * @packageDocumentation
  */
 
+import { assertInternal } from "./errors.js";
 import { deepFreeze } from "./freeze.js";
 import type {
 	TibetanAnimal,
@@ -102,8 +103,10 @@ export const NAME_TABLES = freeze({ WEEKDAYS, ELEMENTS, GENDERS, ANIMALS });
  */
 export function weekdayNameOf(weekday: number, offset: number): TibetanWeekdayName {
 	const index = (((weekday + offset) % 7) + 7) % 7;
-	// Non-null: index is forced into 0..6 above, and WEEKDAYS has exactly seven entries.
-	return WEEKDAYS[index] as TibetanWeekdayName;
+	return assertInternal(
+		WEEKDAYS[index],
+		`weekday index ${index} is forced into 0..6 and WEEKDAYS has seven entries`,
+	);
 }
 
 export const elementNameOf = (element: TibetanElement): TibetanName => ELEMENTS[element];

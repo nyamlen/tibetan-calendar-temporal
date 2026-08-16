@@ -23,6 +23,7 @@
  * @packageDocumentation
  */
 
+import { assertInternal } from "../errors.js";
 import { animalNameOf, elementNameOf, genderNameOf } from "../names.js";
 import type { Rabjung, TibetanAnimal, TibetanElement, TibetanYearName } from "../types.js";
 import { amod, ceilDiv } from "./arithmetic.js";
@@ -155,12 +156,14 @@ export function rabjungFromYear(year: number): Rabjung {
 export function yearNameFromYear(year: number): TibetanYearName {
 	const elapsed = year - CHINESE_CYCLE_ORIGIN;
 	const tenYearPosition = amod(elapsed, 10);
-	const element = ELEMENTS[ceilDiv(tenYearPosition, 2) - 1];
-	const animal = ANIMALS[amod(elapsed, 12) - 1];
-	// Both indices are derived from amod results in 1..10 and 1..12, so neither can miss. The
-	// assertion exists only to satisfy noUncheckedIndexedAccess without widening the type.
-	/* c8 ignore next */
-	if (element === undefined || animal === undefined) throw new Error("unreachable");
+	const element = assertInternal(
+		ELEMENTS[ceilDiv(tenYearPosition, 2) - 1],
+		"element index derives from an amod result in 1..10, halved, so it lands in 0..4",
+	);
+	const animal = assertInternal(
+		ANIMALS[amod(elapsed, 12) - 1],
+		"animal index derives from an amod result in 1..12, so it lands in 0..11",
+	);
 	const gender = tenYearPosition % 2 === 1 ? "male" : "female";
 	return {
 		element,

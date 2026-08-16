@@ -101,6 +101,29 @@ export function codedError(code: TibetanCalendarErrorCode, message: string): Cod
 }
 
 /**
+ * Narrows a value this engine has already proved cannot be absent.
+ *
+ * @remarks
+ * `noUncheckedIndexedAccess` widens every array index to `T | undefined`, including the ones a
+ * preceding `amod` or `%` has forced into range. There are two ways to discharge that, and only
+ * one of them is safe: a cast asserts the claim and a bad index then returns `undefined` wearing
+ * the element type, propagating silently into a name or a date; this throws, and the code says the
+ * fault is the engine's rather than the caller's.
+ *
+ * Both idioms were in use — a throw in `epoch.ts`, a cast in `names.ts` — for the same constraint.
+ * This is the one to use. Reach for it only where the index is provably in range and say why at the
+ * call site; where it is *not* provable, the caller's input is involved and the error belongs to
+ * them, so `rangeError` is the right throw.
+ *
+ * @throws A `TCT_INTERNAL` error if the value is absent, which means this engine has a bug.
+ */
+export function assertInternal<T>(value: T | undefined, invariant: string): T {
+	/* c8 ignore next */
+	if (value === undefined) throw codedError("TCT_INTERNAL", `${invariant} — please report this.`);
+	return value;
+}
+
+/**
  * Whether a caught value carries a particular code.
  *
  * @remarks
