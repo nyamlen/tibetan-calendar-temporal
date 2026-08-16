@@ -24,7 +24,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { hasLeapTwin } from "../../src/computation/calendar.js";
+import { sharesNumberWithLeapMonth } from "../../src/computation/calendar.js";
 import { PHUGPA } from "../../src/traditions/phugpa.js";
 import type { TraditionConfig } from "../../src/traditions/types.js";
 import { CROSS_VERSION_LEAP } from "../fixtures/cross-version-leap.js";
@@ -65,7 +65,7 @@ const VERSIONS: readonly Version[] = ["phugpa", "tsurphu", "mongolian", "bhutane
 /** The leap month of a year, or `undefined` — the shape Janson's table is in. */
 function leapMonthOf(config: TraditionConfig, year: number): number | undefined {
 	for (let month = 1; month <= 12; month += 1) {
-		if (hasLeapTwin(config, year, month)) return month;
+		if (sharesNumberWithLeapMonth(config, year, month)) return month;
 	}
 	return undefined;
 }

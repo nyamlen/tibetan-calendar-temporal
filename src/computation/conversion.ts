@@ -21,9 +21,9 @@ import { floorDiv, mod } from "./arithmetic.js";
 import {
 	assertClosedFormYear,
 	classifyDay,
-	hasLeapTwin,
 	losarJulianDay,
 	monthFromCount,
+	sharesNumberWithLeapMonth,
 	trueMonthCount,
 } from "./calendar.js";
 import { julianDayOfLunarDay } from "./corrections.js";
@@ -438,7 +438,7 @@ export function tibetanToIso(
 
 	const year = yearFromRoyalEra(input.year);
 	assertClosedFormYear(subject, year, config);
-	if (isLeapMonth && !hasLeapTwin(config, year, input.month)) {
+	if (isLeapMonth && !sharesNumberWithLeapMonth(config, year, input.month)) {
 		throw rangeError(
 			"TCT_NO_SUCH_LEAP_MONTH",
 			`${subject()}: month ${input.month} of ${input.year} has no leap month. Leap months ` +

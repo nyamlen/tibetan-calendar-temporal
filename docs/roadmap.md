@@ -239,7 +239,7 @@ through this before publishing v1.0.0 — several are one-way doors once publish
         That case was missing from the public-surface rule, which now records it.
       - **`isLeapYear` ships as `hasLeapMonth`.** A Tibetan leap year gains a month, not a day, and
         every other `leap` name here denotes the thing that is duplicated. The internal per-month
-        predicate was renamed to `hasLeapTwin` to free the name. See
+        predicate was renamed to `sharesNumberWithLeapMonth` to free the name. See
         [decisions/2026-08-13-api-vocabulary.md](decisions/2026-08-13-api-vocabulary.md).
       - **`days` is a trap worth documenting loudly.** It counts calendar days, 29 or 30, while the
         date numbering always runs 1–30. Looping `1..days` builds a silently wrong grid, so the
@@ -525,7 +525,7 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
 
   What remains is the code, and it is a **convention threaded through four functions**, not new
   arithmetic: `trueMonthCount` (the leap adjustment's sign), `monthFromCount` (which twin the
-  `mod 67 ∈ {1,2}` test identifies), `hasLeapTwin` (the predicate inverts, and the name likely needs
+  `mod 67 ∈ {1,2}` test identifies), `sharesNumberWithLeapMonth` (the predicate inverts, and the name likely needs
   to change with it), and the `M06L` semantics shared by `formatTibetanDate` and `parseTibetanDate`.
   One genuine question comes with it rather than falling out: **what the observance layer's
   `leapMonth: "leap" | "regular"` convention selects when the leap month comes second.**

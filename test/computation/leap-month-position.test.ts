@@ -20,8 +20,8 @@
 
 import { describe, expect, it } from "vitest";
 import {
-	hasLeapTwin,
 	monthFromCount,
+	sharesNumberWithLeapMonth,
 	trueMonthCount,
 } from "../../src/computation/calendar.js";
 import { PHUGPA } from "../../src/traditions/phugpa.js";
@@ -44,7 +44,7 @@ const YEARS = { from: 1900, to: 2100 };
 function monthsInOrder(config: TraditionConfig, year: number) {
 	const out: { year: number; month: number; isLeap: boolean; count: number }[] = [];
 	for (let month = 1; month <= 12; month++) {
-		const twin = hasLeapTwin(config, year, month);
+		const twin = sharesNumberWithLeapMonth(config, year, month);
 		const emit = (isLeap: boolean) =>
 			out.push({ year, month, isLeap, count: trueMonthCount(config, year, month, isLeap) });
 		if (twin && config.leapMonthPosition === "before") emit(true);
@@ -137,11 +137,12 @@ describe("which side of its twin a leap month falls on", () => {
 		const bad: string[] = [];
 		for (let year = YEARS.from; year <= YEARS.to; year++) {
 			for (let month = 1; month <= 12; month++) {
-				if (!hasLeapTwin(PHUGPA, year, month)) continue;
+				if (!sharesNumberWithLeapMonth(PHUGPA, year, month)) continue;
 				const before =
 					trueMonthCount(PHUGPA, year, month, true) - trueMonthCount(PHUGPA, year, month, false);
 				const after =
-					trueMonthCount(MIRRORED, year, month, true) - trueMonthCount(MIRRORED, year, month, false);
+					trueMonthCount(MIRRORED, year, month, true) -
+					trueMonthCount(MIRRORED, year, month, false);
 				if (before !== -1) bad.push(`before ${year}/${month}: ${before}`);
 				if (after !== 1) bad.push(`after ${year}/${month}: ${after}`);
 			}
@@ -156,7 +157,7 @@ describe("which side of its twin a leap month falls on", () => {
 		const bad: string[] = [];
 		for (let year = YEARS.from; year <= YEARS.to; year++) {
 			for (let month = 1; month <= 12; month++) {
-				if (hasLeapTwin(PHUGPA, year, month)) continue;
+				if (sharesNumberWithLeapMonth(PHUGPA, year, month)) continue;
 				const before = trueMonthCount(PHUGPA, year, month);
 				const after = trueMonthCount(MIRRORED, year, month);
 				if (before !== after) bad.push(`${year}/${month}: ${before} vs ${after}`);
@@ -171,7 +172,7 @@ describe("which side of its twin a leap month falls on", () => {
 		const bad: string[] = [];
 		for (let year = YEARS.from; year <= YEARS.to; year++) {
 			for (let month = 1; month <= 12; month++) {
-				if (!hasLeapTwin(PHUGPA, year, month)) continue;
+				if (!sharesNumberWithLeapMonth(PHUGPA, year, month)) continue;
 				const pairOf = (config: TraditionConfig) =>
 					[
 						trueMonthCount(config, year, month, true),

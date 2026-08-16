@@ -2,7 +2,7 @@
  * The leap-month rule is per-tradition, and `β` is derived from it.
  *
  * @remarks
- * `hasLeapTwin` tested `index === 48 || index === 49` and `trueMonthCount` added a literal `17`
+ * `sharesNumberWithLeapMonth` tested `index === 48 || index === 49` and `trueMonthCount` added a literal `17`
  * until 2026-08-16. Both are Phugpa's, and `docs/roadmap.md` claimed for three phases that Tsurphu
  * "differs solely in these values" — meaning the constants — which Janson contradicts: he states a
  * different leap rule for each version.
@@ -14,7 +14,11 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { beta, hasLeapTwin, intercalationIndex } from "../../src/computation/calendar.js";
+import {
+	beta,
+	intercalationIndex,
+	sharesNumberWithLeapMonth,
+} from "../../src/computation/calendar.js";
 import { PHUGPA } from "../../src/traditions/phugpa.js";
 import type { TraditionConfig } from "../../src/traditions/types.js";
 import { assertTraditionConfig } from "../../src/traditions/validate.js";
@@ -75,7 +79,7 @@ describe("the leap rule follows the threshold", () => {
 				for (let year = 2000; year < 2010; year += 1) {
 					const index = intercalationIndex(config, year, month);
 					const expected = index === threshold || index === threshold + 1;
-					expect(hasLeapTwin(config, year, month)).toBe(expected);
+					expect(sharesNumberWithLeapMonth(config, year, month)).toBe(expected);
 				}
 			}
 		}
@@ -88,7 +92,7 @@ describe("the leap rule follows the threshold", () => {
 		let leapMonths = 0;
 		for (let year = 2000; year < 2065; year += 1) {
 			for (let month = 1; month <= 12; month += 1) {
-				if (hasLeapTwin(PHUGPA, year, month)) leapMonths += 1;
+				if (sharesNumberWithLeapMonth(PHUGPA, year, month)) leapMonths += 1;
 			}
 		}
 		expect(leapMonths).toBe(24);
@@ -102,7 +106,7 @@ describe("the leap rule follows the threshold", () => {
 			let leapMonths = 0;
 			for (let year = 2000; year < 2065; year += 1) {
 				for (let month = 1; month <= 12; month += 1) {
-					if (hasLeapTwin(config, year, month)) leapMonths += 1;
+					if (sharesNumberWithLeapMonth(config, year, month)) leapMonths += 1;
 				}
 			}
 			expect(leapMonths, `threshold ${threshold}`).toBe(24);

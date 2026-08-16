@@ -140,7 +140,7 @@ Chinese system rather than the Indian, and that it seems to have been the origin
 
 "Before" is currently built into the shape of four functions — `trueMonthCount` (which subtracts one
 for a leap month, where Bhutan needs the opposite sign), `monthFromCount` (whose `mod 67 ∈ {1,2}`
-test identifies the earlier twin), `hasLeapTwin` (whose predicate inverts), and the `M06L` semantics
+test identifies the earlier twin), `sharesNumberWithLeapMonth` (whose predicate inverts), and the `M06L` semantics
 shared by `formatTibetanDate` and `parseTibetanDate`. The observance layer's `leapMonth` convention
 would also select a different one of the pair.
 

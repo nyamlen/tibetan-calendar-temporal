@@ -1,13 +1,13 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import {
-	hasLeapTwin,
 	intercalationIndex,
 	isLeapYear,
 	leapMonthOfYear,
 	leapYearsBetween,
 	monthFromCount,
 	monthsInYear,
+	sharesNumberWithLeapMonth,
 	solarMonthsSinceEpoch,
 	trueMonthCount,
 } from "../../src/computation/calendar.js";
@@ -65,7 +65,7 @@ describe("trueMonthCount", () => {
 				// precedes the regular month it shares a number with.
 				const inOrder: number[] = [];
 				for (let m = 1; m <= 12; m++) {
-					if (hasLeapTwin(P, y, m)) inOrder.push(trueMonthCount(P, y, m, true));
+					if (sharesNumberWithLeapMonth(P, y, m)) inOrder.push(trueMonthCount(P, y, m, true));
 					inOrder.push(trueMonthCount(P, y, m, false));
 				}
 				expect(inOrder.length).toBe(monthsInYear(P, y));
@@ -79,7 +79,7 @@ describe("trueMonthCount", () => {
 	it("gives a leap month the count one below its regular twin", () => {
 		fc.assert(
 			fc.property(years, monthNumbers, (y, m) => {
-				fc.pre(hasLeapTwin(P, y, m));
+				fc.pre(sharesNumberWithLeapMonth(P, y, m));
 				expect(trueMonthCount(P, y, m, true)).toBe(trueMonthCount(P, y, m, false) - 1);
 			}),
 		);
@@ -116,7 +116,7 @@ describe("monthFromCount", () => {
 	it("round-trips the other way for every month of a range of years", () => {
 		for (let y = 1900; y <= 2100; y++) {
 			for (let m = 1; m <= 12; m++) {
-				for (const isLeap of hasLeapTwin(P, y, m) ? [true, false] : [false]) {
+				for (const isLeap of sharesNumberWithLeapMonth(P, y, m) ? [true, false] : [false]) {
 					const n = trueMonthCount(P, y, m, isLeap);
 					expect(monthFromCount(P, n)).toEqual({ year: y, month: m, isLeap });
 				}
@@ -152,9 +152,11 @@ describe("monthFromCount", () => {
 // The strongest internal cross-check available: two formulations Janson derives independently,
 // one testing the intercalation index and one a closed form in Y alone, must agree everywhere.
 describe("the two leap-year formulations agree", () => {
-	it("matches hasLeapTwin against the closed form for 3000 years", () => {
+	it("matches sharesNumberWithLeapMonth against the closed form for 3000 years", () => {
 		for (let y = 806; y <= 3806; y++) {
-			const byIndex = [...Array(12).keys()].map((i) => i + 1).find((m) => hasLeapTwin(P, y, m));
+			const byIndex = [...Array(12).keys()]
+				.map((i) => i + 1)
+				.find((m) => sharesNumberWithLeapMonth(P, y, m));
 			expect(isLeapYear(P, y)).toBe(byIndex !== undefined);
 			expect(leapMonthOfYear(P, y)).toBe(byIndex);
 		}
@@ -203,7 +205,7 @@ describe("leap month spacing", () => {
 	it("repeats the whole leap pattern every 65 years", () => {
 		fc.assert(
 			fc.property(years, monthNumbers, (y, m) => {
-				expect(hasLeapTwin(P, y + 65, m)).toBe(hasLeapTwin(P, y, m));
+				expect(sharesNumberWithLeapMonth(P, y + 65, m)).toBe(sharesNumberWithLeapMonth(P, y, m));
 			}),
 		);
 	});
@@ -215,6 +217,6 @@ describe("known leap months", () => {
 	it("finds leap month 1 in 2000", () => {
 		expect(isLeapYear(P, 2000)).toBe(true);
 		expect(leapMonthOfYear(P, 2000)).toBe(1);
-		expect(hasLeapTwin(P, 2000, 1)).toBe(true);
+		expect(sharesNumberWithLeapMonth(P, 2000, 1)).toBe(true);
 	});
 });

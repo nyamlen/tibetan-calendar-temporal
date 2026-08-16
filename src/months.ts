@@ -27,10 +27,10 @@ import {
 	assertClosedFormYear,
 	daysInMonth as daysInMonthCount,
 	firstDayOfMonth,
-	hasLeapTwin,
 	isLeapYear,
 	lastDayOfMonth,
 	leapMonthOfYear as leapMonthOfYearY,
+	sharesNumberWithLeapMonth,
 	trueMonthCount,
 } from "./computation/calendar.js";
 import {
@@ -192,7 +192,7 @@ export function monthsFor(year: number, config: TraditionConfig = PHUGPA): Tibet
 
 	const months: TibetanMonth[] = [];
 	for (let month = 1; month <= 12; month++) {
-		if (hasLeapTwin(config, y, month)) {
+		if (sharesNumberWithLeapMonth(config, y, month)) {
 			months.push(describeMonth(scaled, trueMonthCount(config, y, month, true), year, month, true));
 		}
 		months.push(describeMonth(scaled, trueMonthCount(config, y, month, false), year, month, false));
@@ -252,7 +252,7 @@ export function daysInMonth(month: TibetanMonthFields, config: TraditionConfig =
 
 	const y = yearFromRoyalEra(month.year);
 	assertClosedFormYear(subject, y, config);
-	if (isLeapMonth && !hasLeapTwin(config, y, month.month)) {
+	if (isLeapMonth && !sharesNumberWithLeapMonth(config, y, month.month)) {
 		throw rangeError(
 			"TCT_NO_SUCH_LEAP_MONTH",
 			`${subject()}: month ${month.month} of ${month.year} has no leap month. Leap months ` +
@@ -395,7 +395,7 @@ export function datesFor(
 	const isLeapMonth = month.isLeapMonth ?? false;
 	const subject = () => `datesFor({ year: ${month.year}, month: ${month.month} })`;
 	assertClosedFormYear(subject, y, config);
-	if (isLeapMonth && !hasLeapTwin(config, y, month.month)) {
+	if (isLeapMonth && !sharesNumberWithLeapMonth(config, y, month.month)) {
 		throw rangeError(
 			"TCT_NO_SUCH_LEAP_MONTH",
 			`${subject()}: month ${month.month} of ${month.year} has no leap month. Drop isLeapMonth, ` +

@@ -380,7 +380,7 @@ describe("the scalars agree with the list", () => {
 /**
  * `12·(year − epochYear) + …` overflows `Number.MAX_SAFE_INTEGER` for an absurdly large year, and
  * before this guard existed the flagged and unflagged branches disagreed about it: the flagged one
- * ran `hasLeapTwin` on overflowed arithmetic and reported `TCT_NO_SUCH_LEAP_MONTH`, a confident
+ * ran `sharesNumberWithLeapMonth` on overflowed arithmetic and reported `TCT_NO_SUCH_LEAP_MONTH`, a confident
  * claim about a month that was never actually evaluated, while the unflagged one reached the
  * exactness check further down and correctly refused with `TCT_OUTSIDE_EXACT_RANGE`.
  */
@@ -412,7 +412,7 @@ describe("closed-form overflow guard", () => {
 
 	/**
 	 * `isLeapYear`/`leapMonthOfYear` compute `24·year + γ*` on the *absolute* Janson `Y`, not on
-	 * `year − epochYear` like `hasLeapTwin`'s route does — so the bound has to be the tighter of two
+	 * `year − epochYear` like `sharesNumberWithLeapMonth`'s route does — so the bound has to be the tighter of two
 	 * different overflow points, converted into the same `|year − epochYear|` terms. A version of
 	 * the guard that only accounted for the `12·(year − epochYear)` formula let `hasLeapMonth` answer
 	 * with a wrong boolean throughout the top half of the range it claimed to protect, computed from

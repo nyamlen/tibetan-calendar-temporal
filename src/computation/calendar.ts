@@ -7,10 +7,12 @@
  * alternating gaps of 32 and 33 regular months. It follows that the pattern repeats every 65
  * years, in which each month number 1–12 is the leap month exactly twice.
  *
- * A leap month takes **the same number as the month that follows it**, so a leap year contains
- * two months with one number and the first of them is the leap month. A month is therefore
- * identified by the triple `(Y, M, isLeap)`, and separately by a linear *true month count* `n`
- * that ignores year boundaries and is zero at the epoch.
+ * A leap month **shares its number with an adjacent month**, so a leap year contains two months
+ * carrying one number. Which of the two is the leap month is the tradition's to say, through
+ * {@link ../traditions/types.TraditionConfig.leapMonthPosition}: the first under Phugpa, Tsurphu
+ * and the Mongolian version, the second under the Bhutanese. A month is therefore identified by
+ * the triple `(Y, M, isLeap)`, and separately by a linear *true month count* `n` that ignores year
+ * boundaries and is zero at the epoch.
  *
  * @packageDocumentation
  */
@@ -28,7 +30,7 @@ import type { ScaledTradition } from "./scaling.js";
  * Two different closed forms route through this one guard, and they overflow at two different
  * points because they are stated in two different variables:
  *
- * - {@link solarMonthsSinceEpoch} (reached from {@link hasLeapTwin}, hence `tibetanToIso` and
+ * - {@link solarMonthsSinceEpoch} (reached from {@link sharesNumberWithLeapMonth}, hence `tibetanToIso` and
  *   `daysInMonth`) computes `12·(year − epochYear) + …` — **relative** to the epoch.
  * - {@link isLeapYear} and {@link leapMonthOfYear} compute `24·year + γ*` directly on the
  *   **absolute** Janson *Y* — not relative to the epoch at all, so a year far from the epoch in
@@ -134,9 +136,14 @@ export function assertLunation(
 export interface MonthIdentity {
 	/** Janson's *Y* — the Gregorian year the Tibetan year begins in. */
 	year: number;
-	/** Month number, 1–12. Shared with the following month when `isLeap` is true. */
+	/** Month number, 1–12. Shared with the adjacent month when `isLeap` is true. */
 	month: number;
-	/** Whether this is the leap month — the first of the two sharing this number. */
+	/**
+	 * Whether this is the leap month of the two sharing this number.
+	 *
+	 * Which of the pair that is depends on the tradition — see
+	 * {@link ../traditions/types.TraditionConfig.leapMonthPosition}. Do not read it as "the first".
+	 */
 	isLeap: boolean;
 }
 
@@ -211,7 +218,7 @@ export function intercalationIndex(config: TraditionConfig, year: number, month:
 }
 
 /**
- * Whether month `M` of year `Y` is preceded by a leap month with the same number — its *leap twin*.
+ * Whether regular month `M` of year `Y` shares its number with a leap month — its *twin*.
  *
  * @remarks
  * A leap month is inserted when the intercalation index is
@@ -219,12 +226,23 @@ export function intercalationIndex(config: TraditionConfig, year: number, month:
  * for Phugpa, but 0-or-1 for Tsurphu, 46-or-47 for the Mongolian version and 57-or-58 for the
  * Bhutanese. The threshold is config, never a literal.
  *
- * Named for the twin rather than for the year because the question is per-**month**. The public
+ * **Deliberately says nothing about which side the twin falls on**, and it was named `hasLeapTwin`
+ * with a docblock reading "is *preceded by* a leap month" until 2026-08-16. The predicate is the
+ * same either way — the index test does not change — but the claim was Phugpa's, and false for
+ * Bhutan, which places the leap month after. Direction is
+ * {@link ../traditions/types.TraditionConfig.leapMonthPosition}'s to state; this answers only
+ * whether there are two months of this number at all.
+ *
+ * Named for the month rather than for the year because the question is per-**month**. The public
  * `hasLeapMonth` asks a per-**year** question — does this year contain a leap month anywhere — and
  * the two must not share a name. `TCT_NO_SUCH_LEAP_MONTH` already describes the failure this
  * detects as a month having "no leap twin that year".
  */
-export function hasLeapTwin(config: TraditionConfig, year: number, month: number): boolean {
+export function sharesNumberWithLeapMonth(
+	config: TraditionConfig,
+	year: number,
+	month: number,
+): boolean {
 	const index = intercalationIndex(config, year, month);
 	return index === config.leapIndexThreshold || index === config.leapIndexThreshold + 1;
 }
@@ -261,7 +279,7 @@ export function hasLeapTwin(config: TraditionConfig, year: number, month: number
  * every date past the first leap month of the epoch.
  *
  * @param isLeap - Pass `true` for the leap month of a pair. Passing `true` for a month that is
- * not a leap month yields a count belonging to a different month; use {@link hasLeapTwin} to
+ * not a leap month yields a count belonging to a different month; use {@link sharesNumberWithLeapMonth} to
  * check first.
  */
 export function trueMonthCount(
@@ -276,7 +294,7 @@ export function trueMonthCount(
 		65,
 	);
 	if (config.leapMonthPosition === "after") {
-		return isLeap ? rounded : rounded - (hasLeapTwin(config, year, month) ? 1 : 0);
+		return isLeap ? rounded : rounded - (sharesNumberWithLeapMonth(config, year, month) ? 1 : 0);
 	}
 	return rounded - (isLeap ? 1 : 0);
 }
@@ -330,7 +348,7 @@ export function monthFromCount(config: TraditionConfig, monthCount: number): Mon
  * complementary 41 years of every 65 — a calendar with leap months in all the wrong places, and
  * one that still produces well-formed dates.
  *
- * This is an independent derivation from the {@link hasLeapTwin} route, which tests the
+ * This is an independent derivation from the {@link sharesNumberWithLeapMonth} route, which tests the
  * intercalation index directly. The two must agree for every year, and the test suite asserts
  * that as a cross-check.
  */

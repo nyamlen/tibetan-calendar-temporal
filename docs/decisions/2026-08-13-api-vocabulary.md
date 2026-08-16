@@ -44,9 +44,14 @@ follows a convention rather than inventing one. `monthsInYear` keeps its name be
 
 - Adding `isLeapYear` as an alias "for familiarity". It reintroduces the inconsistency, and an
   alias is as permanent as the name it duplicates.
-- Renaming the internal `hasLeapTwin` back to `hasLeapMonth`. That is the per-**month** predicate —
-  "is month M preceded by a leap twin" — and the export is the per-**year** one. Two functions with
-  one name answering different questions is worse than either naming problem. `test/public-api.test.ts`
-  pins the exported arity for exactly this reason. The phrase "leap twin" is not an invention; it is
-  what `errors.ts` and the README already call it.
+- Renaming the internal per-**month** predicate to `hasLeapMonth`, which is the per-**year** export.
+  Two functions with one name answering different questions is worse than either naming problem.
+  `test/public-api.test.ts` pins the exported arity for exactly this reason. The phrase "leap twin"
+  is not an invention; it is what `errors.ts` and the README already call it.
+
+  That predicate was called `hasLeapTwin` when this was written, and its docblock read "is month M
+  *preceded by* a leap twin". It is `sharesNumberWithLeapMonth` since 2026-08-16: the direction was
+  Phugpa's and false for Bhutan, which places the leap month after. The decision above is unaffected
+  — it is about per-month versus per-year, not about direction — but the old name is recorded here so
+  a reader of this record can find the function.
 - Adding `monthsOfYear` beside `monthsInYear`.

@@ -26,9 +26,9 @@ import {
 	assertClosedFormYear,
 	assertLunation,
 	firstDayOfMonth,
-	hasLeapTwin,
 	lastDayOfMonth,
 	monthFromCount,
+	sharesNumberWithLeapMonth,
 	trueMonthCount,
 } from "./computation/calendar.js";
 import {
@@ -177,7 +177,7 @@ function lunationOf(subject: string, month: TibetanMonthFields, config: Traditio
 	const isLeap = month.isLeapMonth ?? false;
 	// Without this, asking for a leap month that does not exist returns the *previous* month's count
 	// rather than refusing — a wrong answer indistinguishable from a right one.
-	if (isLeap && !hasLeapTwin(config, y, month.month)) {
+	if (isLeap && !sharesNumberWithLeapMonth(config, y, month.month)) {
 		throw rangeError(
 			"TCT_NO_SUCH_LEAP_MONTH",
 			`${describe()}: month ${month.month} of ${month.year} has no leap month. Drop isLeapMonth, ` +

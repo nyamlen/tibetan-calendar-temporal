@@ -283,10 +283,12 @@ export interface TibetanDate {
 	 * Month number, 1–12.
 	 *
 	 * @remarks
-	 * A leap month carries the **same number as the month that follows it**, so in a leap year
-	 * two months share a number and the first of them is the leap month. The number alone is
-	 * therefore not a unique key within a year; pair it with {@link TibetanDate.isLeapMonth}, or
-	 * use {@link TibetanDate.monthCode}.
+	 * A leap month **shares its number with an adjacent month**, so in a leap year two months carry
+	 * one number. The number alone is therefore not a unique key within a year; pair it with
+	 * {@link TibetanDate.isLeapMonth}, or use {@link TibetanDate.monthCode}.
+	 *
+	 * Which of the pair is the leap month is the tradition's to say — first under Phugpa, second
+	 * under the Bhutanese version. Do not assume an order here.
 	 */
 	month: number;
 
@@ -300,7 +302,7 @@ export interface TibetanDate {
 	 */
 	monthCode: string;
 
-	/** Whether this is a leap month — the first of the two months sharing this number. */
+	/** Whether this is the leap month of the two sharing this number — not necessarily the first. */
 	isLeapMonth: boolean;
 
 	/**
@@ -505,10 +507,12 @@ export interface TibetanMonth {
 	 * without a gap. Janson calls it the true month count.
 	 *
 	 * It is the month's identity as a **single sortable integer**, which is what
-	 * `(year, month, isLeapMonth)` cannot be: a leap month precedes the regular month it shares a
-	 * number with, so sorting on the tuple puts them the wrong way round, since `false` sorts before
-	 * `true`. Use this as a database key, a cache key or an array index, and `+ 1` for the next
-	 * month.
+	 * `(year, month, isLeapMonth)` cannot be. Sorting the tuple puts `false` before `true`, and
+	 * whether that is the calendar's order depends on the tradition: under Phugpa the leap month
+	 * comes first, so the tuple sorts the pair backwards; under the Bhutanese version it comes
+	 * second, so the tuple happens to be right. A key whose correctness turns on which config
+	 * produced it is not a key. Use this instead — as a database key, a cache key or an array
+	 * index, and `+ 1` for the next month.
 	 *
 	 * Zero is the epoch, so values are large and negative before it. Do not read it as a month
 	 * number.
@@ -532,8 +536,8 @@ export interface TibetanMonth {
 	 * Month number, 1–12.
 	 *
 	 * @remarks
-	 * A leap month carries the same number as the month that follows it, so in a leap year this
-	 * appears twice and the leap one comes first.
+	 * A leap month shares its number with an adjacent month, so in a leap year this appears twice.
+	 * Which of the two is the leap month depends on the tradition; do not assume an order.
 	 */
 	month: number;
 
@@ -543,7 +547,7 @@ export interface TibetanMonth {
 	 */
 	monthCode: string;
 
-	/** Whether this is the leap month — the first of the two sharing this number. */
+	/** Whether this is the leap month of the two sharing this number — not necessarily the first. */
 	isLeapMonth: boolean;
 
 	/**

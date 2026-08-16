@@ -3,9 +3,9 @@ import { describe, expect, it } from "vitest";
 import {
 	daysInMonth,
 	firstDayOfMonth,
-	hasLeapTwin,
 	lastDayOfMonth,
 	losarJulianDay,
+	sharesNumberWithLeapMonth,
 	trueMonthCount,
 } from "../src/computation/calendar.js";
 import { isoFromJulianDay } from "../src/computation/conversion.js";
@@ -62,7 +62,9 @@ describe("year lengths", () => {
 		for (let y = 1900; y < 2100; y++) {
 			const length = losarJulianDay(scaled, PHUGPA, y + 1) - losarJulianDay(scaled, PHUGPA, y);
 			const isLong = length > 360;
-			const hasLeap = [...Array(12).keys()].some((i) => hasLeapTwin(PHUGPA, y, i + 1));
+			const hasLeap = [...Array(12).keys()].some((i) =>
+				sharesNumberWithLeapMonth(PHUGPA, y, i + 1),
+			);
 			expect(isLong).toBe(hasLeap);
 		}
 	});
@@ -136,8 +138,12 @@ describe("the calendar's period", () => {
 	it("repeats the leap-month pattern after the period, and after 65 years", () => {
 		fc.assert(
 			fc.property(fc.integer({ min: 1000, max: 4000 }), fc.integer({ min: 1, max: 12 }), (y, m) => {
-				expect(hasLeapTwin(PHUGPA, y + 65, m)).toBe(hasLeapTwin(PHUGPA, y, m));
-				expect(hasLeapTwin(PHUGPA, y + PERIOD_YEARS, m)).toBe(hasLeapTwin(PHUGPA, y, m));
+				expect(sharesNumberWithLeapMonth(PHUGPA, y + 65, m)).toBe(
+					sharesNumberWithLeapMonth(PHUGPA, y, m),
+				);
+				expect(sharesNumberWithLeapMonth(PHUGPA, y + PERIOD_YEARS, m)).toBe(
+					sharesNumberWithLeapMonth(PHUGPA, y, m),
+				);
 			}),
 		);
 	});
