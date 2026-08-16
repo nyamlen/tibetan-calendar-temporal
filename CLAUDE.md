@@ -152,6 +152,19 @@ derivation; in `docs/` they are just noise.
   years, with no error and nothing about the output looking wrong. It is now
   `leapIndexThreshold`, and `β` and the true-month rounding term derive from it. When adding a
   tradition, check that the *rules* are injected too, not only the numbers.
+  **It extends to the docblocks as well as the code**, which is subtler and was live until
+  2026-08-16. `leapMonthOfYear` takes a config and its example read `leapMonthOfYear(2151) // 6`
+  — true for Phugpa and for nothing else: Mongolian gives 5, Bhutanese 10, and Tsurphu has no leap
+  month that year at all. The same docblock stated that a leap month "precedes the regular month
+  sharing it", which holds for every version Janson gives **except Bhutan**, where it follows — the
+  position gap [docs/traditions.md](docs/traditions.md) records as unmodelled. So a docblock on a
+  config-taking function was promising something the engine does not do. If a function takes a
+  `TraditionConfig`, its examples state **one** tradition's answer and must say which, and any
+  structural claim has to be checked against Bhutan specifically, which is where the versions
+  diverge most. `test/docblock-examples.test.ts` pins the thresholds; a third instance of the
+  "precedes" claim survives in `src/types.ts` on `lunation`, where it explains tuple sort order,
+  and needs revisiting when `leapMonthPosition` lands.
+
   This extends to anything **derived from** those constants. The `±3` search window in
   `isoToTibetan` was proved from `(25 + 11)/60` — Phugpa's largest `moonTab` and `sunTab` entries —
   and written at the loop as a literal `3`, so a wider table passed validation and then broke the
@@ -176,7 +189,9 @@ derivation; in `docs/` they are just noise.
   Do not cite that record to refuse a convenience — it was misapplied that way and cost the surface
   four functions that had to be added back. Equally, do not cite the second test to expose something
   whose semantics are contested: two defensible answers means it belongs in injected config.
-  `test/public-api.test.ts` pins the list and each name's kind; a failure there means the surface
+  `test/public-api.test.ts` pins the list and each name's kind, and `test/docblock-examples.test.ts`
+  asserts every `@example` in `src/` that states a value — docblocks compile into `dist/*.d.ts`, so
+  a stale one ships as contract. A failure in the first means the surface
   changed, so decide whether that was intended before editing the list.
 - **Errors carry codes; do not add an error class.** Throw through `rangeError`/`codedError` in
   `src/errors.ts`, never a bare `new RangeError` — the code is the part consumers branch on, and a

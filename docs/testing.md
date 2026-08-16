@@ -309,8 +309,8 @@ because "some day this decade is doubled" survives a systematic one-day error an
 
 ## Contract tests
 
-Not a tier — these constrain what the package *promises* rather than what it computes. Both exist
-because the thing they guard is invisible until it has already broken.
+Not a tier — these constrain what the package *promises* rather than what it computes. All three
+exist because the thing they guard is invisible until it has already broken.
 
 **`test/readme.test.ts` asserts every example the README states.** Prose examples rot silently:
 nothing compiles them, and a reader who copies one that no longer works concludes the library is
@@ -329,3 +329,22 @@ tradition configs are identical apart from the lunar anomaly, which is the prope
 
 A failure here is not a bug to fix by editing the expected list. It means the surface changed —
 decide whether that was intended, then update the list *and* the README's API table together.
+
+**`test/docblock-examples.test.ts` asserts every `@example` in `src/` that states a value.** The
+same job `readme.test.ts` does for the README, for the 30 example blocks in the source — and they
+are more exposed than the README's, because docblocks are compiled into `dist/*.d.ts` and are what
+editor hover renders. A stale one is a false contract statement a consumer never had reason to
+doubt.
+
+> It found one on its first run. `leapMonthOfYear` documented `2153 → 6`; 2153 has no leap month at
+> all, and 2151 is the year whose month 6 is doubled. The neighbouring examples in the same file
+> already used 2151 correctly, so it was a stale year rather than a misunderstanding — invisible
+> to lint, typecheck and every other test, and already shipped in the type declarations.
+>
+> The same review found the example was **tradition-blind** in a second way: `leapMonthOfYear`
+> takes a config, and for 2151 Phugpa gives 6, Mongolian 5 and Bhutanese 10, while Tsurphu has no
+> leap month that year. A docblock on a config-taking function states one tradition's answer, so it
+> has to say which. The test now pins all four thresholds.
+
+`{@link}` targets and the reality of every `TCT_` code are checked separately, by
+`npm run check:conventions` — see [coding-standards.md](coding-standards.md).

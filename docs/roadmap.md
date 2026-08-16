@@ -310,7 +310,12 @@ through this before publishing v1.0.0 — several are one-way doors once publish
       1. Every factual claim is true of the code as it now stands — bounds, ranges, totality, what
          throws and with which code, what is accepted and what is refused.
       2. Every `@throws` matches the codes actually thrown, including any this plan's Part 1 added.
-      3. Every `@example` runs and produces the stated output.
+      3. Every `@example` runs and produces the stated output. **Now automated** —
+         `test/docblock-examples.test.ts` asserts all 43 concrete claims across the 30 example
+         blocks, so this item is permanently closed. It found one wrong on its first run
+         (`leapMonthOfYear`, documented `2153 → 6` when 2153 has no leap month), and a second
+         defect of a different kind: the example was tradition-blind on a config-taking function.
+         Check that too — an example states one tradition's answer and must say which.
       4. Every `{@link}` resolves. **Now automated** — `check:conventions` checks all 199 of them
          on every push, so this item is permanently closed rather than closed once.
       5. Citations follow the clean-room rule: by section and content, never by a rendered equation
