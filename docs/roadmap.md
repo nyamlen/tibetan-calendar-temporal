@@ -358,6 +358,13 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
 **Repository**
 
 - [ ] Make the repository **public**
+- [ ] Set **repository topics** to match `package.json#keywords` — `tibetan`, `calendar`,
+      `temporal`, `phugpa`, `buddhist`, `lunisolar`, `losar`, `bhutanese`, `dzongkha`, `mongolian`,
+      `tsagaan-sar`, `tsurphu`, `kalacakra`, `rabjung`. Topics drive GitHub search and the topic
+      pages, a discovery channel entirely separate from npm, and cost one settings change. The
+      keyword list carries the Bhutanese and Mongolian scope that the package *name* deliberately
+      does not — see
+      [2026-08-16-package-name-and-tradition-scope.md](decisions/2026-08-16-package-name-and-tradition-scope.md)
 - [ ] Enable **branch protection** on `main`: require CI to pass, and block force-pushes.
       Force-push protection matters here specifically — the commit history is the clean-room
       evidence of independent derivation, and a rewrite would undermine it

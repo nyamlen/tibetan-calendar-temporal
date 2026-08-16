@@ -9,11 +9,32 @@
 > suite — but it is **not yet published**. Do not depend on this package until v1.0.0.
 
 A TypeScript library that computes Tibetan calendar dates according to the Phugpa tradition
-(Men-Tsee-Khang standard), built on
+(Men-Tsee-Khang standard) — and, because every astronomical constant is injected rather than
+hardcoded, its Tsurphu, Bhutanese and Mongolian variants — built on
 [Temporal](https://tc39.es/proposal-temporal/docs/).
 
 It converts between Western (ISO) and Tibetan dates, handles leap months and skipped/doubled
 days, and determines observances. Open source, MIT licensed, with zero runtime dependencies.
+
+<details>
+<summary><strong>Why the name says "Tibetan" when Bhutan and Mongolia have their own calendars</strong></summary>
+
+Because that is how the field describes the family, not because their calendars are treated as
+lesser. Svante Janson — whose *Tibetan Calendar Mathematics* this engine is derived from — writes
+that "Bhutan and Mongolia also use versions of the Tibetan calendar", opens his Bhutan appendix
+"Bhutan uses a version of the Tibetan calendar as an official calendar", and opens his Mongolia
+appendix "The Mongolian calendar is a version of the Tibetan."
+
+All of them descend from the Kālacakra कालचक्र system, which is the honest name for the family;
+"Tibetan calendar" is the name people search for. Bhutan's is an official state calendar in
+Dzongkha with its own eighteenth-century description and its own leap-month and weekday
+conventions; Mongolia's carries two national holidays and dates its constitution by the sixty-year
+cycle. Neither is a dialect of the other.
+
+Traditions here are **data, not packages** — a variant is a `TraditionConfig`, never a separate
+install.
+
+</details>
 
 ## Contents
 
