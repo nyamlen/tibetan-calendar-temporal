@@ -76,6 +76,43 @@ sources and assert the engine matches.
 > about which number is doubled or skipped, never about where a month boundary falls. Only a
 > day-by-day grid printing the doubled number is evidence.
 
+### Non-Phugpa traditions: leap months only, and that is not a hedge
+
+Every source above is Phugpa. Since 2026-08-16 there is one external check covering the other three
+versions — `test/traditions/cross-version-leap.test.ts`, against Janson's four-version leap-month
+table, extracted mechanically into `test/fixtures/cross-version-leap.ts`.
+
+It is possible because **leap months depend on nothing astronomical.** The intercalation index is
+built from the epoch year, the epoch month and the tradition's `leapIndexThreshold` alone, so a
+tradition's leap months can be checked without any of its mean-motion constants — which are exactly
+what this project cannot yet safely transcribe for them.
+
+| | Window | Result |
+|---|---|---|
+| Phugpa, Tsurphu, Mongolian, Bhutanese | **2000–2020**, the years Janson prints | All four reproduced exactly, 21 years |
+| The same four | **2021–2030**, present only in his LaTeX comments | All four reproduced exactly, 10 years |
+
+The second tier is kept separate on purpose: those rows are Janson's own computed values but are
+not in the rendered paper, so a claim resting on them must say so and must never be described as
+published.
+
+**What this establishes:** which month number is the leap month, and in which years, for all four
+versions across 2000–2030. It also reproduces from first principles his prose statement that
+Tsurphu and the Mongolian version share leap months — from two configs differing in *both* β\* and
+threshold, which is a stronger check than reading one column.
+
+**What it does not establish:** any day-level date for any tradition but Phugpa. The three
+non-Phugpa configs in that test carry Phugpa's `m₀`, `s₀` and `a₀`, so any date they produce is
+Phugpa's. The test asserts that explicitly, so the file cannot quietly be cited for more than it
+shows.
+
+**Bhutan needs one more caveat**, because the agreement is easy to over-read. Janson's simplified
+Bhutanese rule identifies the regular month *followed by* a leap month, and the leap month takes
+that number — so the number this engine reports is already the Bhutanese one. What remains
+unmodelled is the leap month's **position**: in Bhutan it falls after the regular month sharing its
+number, everywhere else before. That shifts day-level dates and the true month count. See
+[traditions.md](traditions.md).
+
 ### Results
 
 | Source | Range | Agreement |

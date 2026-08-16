@@ -91,22 +91,44 @@ shifted by a month — the exact failure this package exists to prevent, arrived
 that looks like it was made for the purpose.
 
 Reconciling that offset is required before any of these becomes a config, and doing it *without*
-validation data would only move the guess. **Two claims must be kept apart:**
+validation data would only move the guess. **Three claims must be kept apart:**
 
-- *This tradition is expressible in `TraditionConfig`* — now true for Tsurphu and the Mongolian
-  version, since the leap rule is the only thing that was missing.
-- *This tradition's dates are right* — not established for any tradition but Phugpa.
+- *This tradition is expressible in `TraditionConfig`* — true for Tsurphu and the Mongolian version,
+  since the leap rule was the only thing missing.
+- *Its **leap months** are right* — **now established** for all four versions. See below.
+- *Its **dates** are right* — not established for any tradition but Phugpa.
 
-## What would establish the second claim
+## What is now validated: leap months, all four versions
 
-Janson's versions-comparison section carries **four cross-version tables** covering all four
-versions together: the epoch data above, leap months over a range of years, New Year dates over a
-range of years, and every repeated and skipped day in 2012 — a day-level check, for a year he picks
-precisely because no version has a leap month in it.
+`test/traditions/cross-version-leap.test.ts` checks all four against Janson's leap-month table,
+extracted mechanically into `test/fixtures/cross-version-leap.ts`.
 
-Those extract from the LaTeX by the mechanism `scripts/extract-janson-fixtures.mjs` already uses for
-`losar.ts` and `sixty-year-cycle.ts`. They are the natural next step, and they would both pin the
-epoch offset above and validate the result.
+This is possible because **leap months depend on nothing astronomical**: the intercalation index is
+built from the epoch year, the epoch month and the threshold alone. So the part of a tradition that
+cannot yet be safely transcribed — `m₀`, `s₀`, `a₀` — is not needed to check the part that can.
+
+| Window | Standing | Result |
+|---|---|---|
+| 2000–2020 | printed in the paper | all four reproduced exactly |
+| 2021–2030 | present only in his LaTeX comments | all four reproduced exactly |
+
+β\* at the common epoch E806 is 61 for Phugpa, **0 for Tsurphu** and **46 for the Mongolian**
+version — both of which Janson states, since counting back to the Kālacakra epoch *nag pa* 806
+yields those indices. The **Bhutanese β\* at E806 is not stated**; 0 is what his E1754 value of 2
+implies, and 31 years of agreement is the evidence for it.
+
+**A precision worth keeping.** The Bhutanese column agrees, and it would be easy to read that as
+Bhutan being solved. It is not. Janson's simplified Bhutanese rule identifies the regular month
+*followed by* a leap month, and the leap month takes that number — so the number this engine reports
+is already the Bhutanese one. The leap month's **position** is still unmodelled, and that is what
+moves dates.
+
+## What would establish the third claim
+
+Janson's versions-comparison section carries two further cross-version tables not yet extracted:
+New Year dates over a range of years, and every repeated and skipped day in 2012 — a day-level
+check, for a year he picks precisely because no version has a leap month in it. Both need the
+astronomical constants, so both wait on the epoch offset above being reconciled.
 
 ## Bhutan is a step further back
 
