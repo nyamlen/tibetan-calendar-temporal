@@ -46,7 +46,14 @@ describe("README usage examples", () => {
 			year: 2153,
 			yearStartsIn: 2026,
 			rabjung: { cycle: 17, year: 40 },
-			yearName: { element: "fire", animal: "horse", gender: "male" },
+			yearName: {
+				element: "fire",
+				animal: "horse",
+				gender: "male",
+				elementName: { tibetan: "མེ", wylie: "me", phonetic: "mé" },
+				genderName: { tibetan: "ཕོ", wylie: "pho", phonetic: "po" },
+				animalName: { tibetan: "རྟ", wylie: "rta", phonetic: "ta" },
+			},
 			month: 6,
 			monthCode: "M06",
 			isLeapMonth: false,
@@ -58,6 +65,13 @@ describe("README usage examples", () => {
 			isoDate: "2026-08-12",
 			dayOfWeek: 3,
 			tibetanWeekday: 4,
+			weekdayName: {
+				tibetan: "ལྷག་པ",
+				wylie: "lhag pa",
+				phonetic: "lhak pa",
+				planet: "mercury",
+				element: "water",
+			},
 			lunation: 15_094,
 		});
 	});
@@ -96,7 +110,7 @@ describe("README usage examples", () => {
 
 		const month = monthsFor(2153)[0];
 		expect(month?.year).toBe(2153);
-		expect(month?.yearName).toEqual({ element: "fire", animal: "horse", gender: "male" });
+		expect(month?.yearName).toMatchObject({ element: "fire", animal: "horse", gender: "male" });
 		expect(month?.monthCode).toBe("M01");
 		expect(month?.days).toBe(29);
 		expect(month?.firstDay.toString()).toBe("2026-02-18");
@@ -194,7 +208,7 @@ describe("README usage examples", () => {
 	it("names the year as documented", () => {
 		const losar = isoToTibetan(iso("2026-02-18"));
 		expect(formatTibetanDate(losar)).toBe("2153-M01-01");
-		expect(losar.yearName).toEqual({ element: "fire", animal: "horse", gender: "male" });
+		expect(losar.yearName).toMatchObject({ element: "fire", animal: "horse", gender: "male" });
 		expect(losar.rabjung).toEqual({ cycle: 17, year: 40 });
 	});
 
@@ -362,7 +376,7 @@ describe("README navigation examples", () => {
 			years.push({ year: y, name: yearNameFor(y), rabjung: rabjungFor(y), leap: hasLeapMonth(y) });
 		}
 		expect(years).toHaveLength(21);
-		expect(years[13]).toEqual({
+		expect(years[13]).toMatchObject({
 			year: 2153,
 			name: { element: "fire", animal: "horse", gender: "male" },
 			rabjung: { cycle: 17, year: 40 },

@@ -149,4 +149,50 @@ export interface TraditionConfig {
 	 * linear interpolation.
 	 */
 	readonly sunTab: readonly number[];
+
+	/**
+	 * How this tradition *names* things, as distinct from how it computes them.
+	 *
+	 * @remarks
+	 * Optional; omitting it means the Tibetan conventions, which is right for every version but the
+	 * Bhutanese.
+	 *
+	 * Nested rather than flat, deliberately. Nothing in here is read by the algorithm, so a flat
+	 * field would sit among the constants claiming to be one. Nesting keeps the boundary visible at
+	 * the call site — `config.naming.weekdayOffset` reads as a naming concern — and gives the known
+	 * future members somewhere to go: month naming is also tradition-dependent, and needs four more
+	 * (an animal offset, an element-rule selector, a seasonal-system selector, and a Tsurphu-only
+	 * number flag).
+	 *
+	 * A separate top-level config was considered and rejected: `weekdayName` is populated inside the
+	 * conversion, which receives only a `TraditionConfig`, so separating it would mean passing two
+	 * configs to fill one field.
+	 */
+	readonly naming?: TraditionNaming;
+}
+
+/**
+ * The naming conventions of a tradition.
+ *
+ * @remarks
+ * When a second member is added, name it for what the rule **does**, never for a tradition — a
+ * `"phugpa" | "tsurphu"` selector inside a tradition-agnostic config is the same anti-pattern as
+ * branching on `config.id`, which is consumer-settable and must not decide "is this Phugpa".
+ * Janson describes the month-element rules functionally, as the *son* of the year's element against
+ * a continuous cycle, so `"son-of-year" | "continuous"` is available and honest.
+ */
+export interface TraditionNaming {
+	/**
+	 * How far this tradition's weekday **names** are shifted from Tibet's, in whole days.
+	 *
+	 * @remarks
+	 * 0 for every Tibetan version. **1 for Bhutan**, where day 0 is *nyi ma* rather than *spen pa* —
+	 * Janson calls it "a unique feature of the Bhutanese calendar", and Unicode CLDR agrees: its
+	 * `bo` and `dz` locales give names one planet apart for the same date.
+	 *
+	 * Applies to the **name only**. The weekday *number* is `mod(julianDay + 2, 7)` for every
+	 * tradition and the Western weekday is correct in both, which is why the difference is invisible
+	 * when dates are written in English.
+	 */
+	readonly weekdayOffset: number;
 }

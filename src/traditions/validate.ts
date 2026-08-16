@@ -144,6 +144,30 @@ function assertLeapIndexThreshold(config: TraditionConfig): void {
 	}
 }
 
+/**
+ * `naming` is optional, so absence is fine — but a present-and-wrong value is not.
+ *
+ * @remarks
+ * The asymmetry matters. A required field is checked for absence because `undefined` is the likelier
+ * mistake; an optional one is checked for *shape*, because a consumer who supplied it meant
+ * something by it and a silently ignored typo is worse than a throw.
+ */
+function assertNaming(config: TraditionConfig): void {
+	const naming = config.naming;
+	if (naming === undefined) return;
+	if (typeof naming !== "object" || naming === null) {
+		throw invalid(config, `naming must be an object when present, received ${describe(naming)}`);
+	}
+	const offset = naming.weekdayOffset;
+	if (!Number.isSafeInteger(offset) || offset < 0 || offset > 6) {
+		throw invalid(
+			config,
+			`naming.weekdayOffset must be an integer in 0…6, received ${describe(offset)}. ` +
+				"It is 0 for every Tibetan version and 1 for Bhutan",
+		);
+	}
+}
+
 function assertNonEmptyString(config: TraditionConfig, path: string, value: string | undefined) {
 	if (typeof value !== "string" || value === "") {
 		throw invalid(config, `${path} must be a non-empty string, received ${describe(value)}`);
@@ -196,6 +220,7 @@ export function assertTraditionConfig(config: TraditionConfig): void {
 	assertInteger(config, "epochMonth", config.epochMonth);
 	assertInteger(config, "intercalationIndexAtEpoch", config.intercalationIndexAtEpoch);
 	assertLeapIndexThreshold(config);
+	assertNaming(config);
 
 	for (const motion of MEAN_MOTIONS) {
 		assertMeanMotion(config, motion, config[motion]);

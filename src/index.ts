@@ -64,7 +64,14 @@ export {
 	monthsFor,
 	monthsInYear,
 } from "./months.js";
-export { rabjungFor, yearNameFor } from "./naming.js";
+export {
+	animalNameFor,
+	elementNameFor,
+	genderNameFor,
+	rabjungFor,
+	weekdayNameFor,
+	yearNameFor,
+} from "./naming.js";
 export {
 	addDays,
 	addMonths,
@@ -77,7 +84,12 @@ export {
 } from "./navigation.js";
 export { parseTibetanDate } from "./parse.js";
 export { PHUGPA, PHUGPA_HENNING } from "./traditions/phugpa.js";
-export type { MeanMotion, Rational, TraditionConfig } from "./traditions/types.js";
+export type {
+	MeanMotion,
+	Rational,
+	TraditionConfig,
+	TraditionNaming,
+} from "./traditions/types.js";
 export type {
 	Rabjung,
 	TibetanAnimal,
@@ -87,6 +99,10 @@ export type {
 	TibetanGender,
 	TibetanMonth,
 	TibetanMonthFields,
+	TibetanName,
+	TibetanPlanet,
+	TibetanWeekdayElement,
+	TibetanWeekdayName,
 	TibetanYearName,
 } from "./types.js";
 export { SkippedDayError } from "./types.js";

@@ -53,6 +53,7 @@ install.
   - [Observances](#observances)
   - [Two kinds of config](#two-kinds-of-config)
 - [API](#api)
+- [Internationalisation](#internationalisation)
 - [Why this exists](#why-this-exists)
 - [Provenance](#provenance)
 - [Project identity](#project-identity)
@@ -162,7 +163,14 @@ The full object:
   "year": 2153,
   "yearStartsIn": 2026,
   "rabjung": { "cycle": 17, "year": 40 },
-  "yearName": { "element": "fire", "animal": "horse", "gender": "male" },
+  "yearName": {
+    "element": "fire",
+    "animal": "horse",
+    "gender": "male",
+    "elementName": { "tibetan": "མེ", "wylie": "me", "phonetic": "mé" },
+    "genderName": { "tibetan": "ཕོ", "wylie": "pho", "phonetic": "po" },
+    "animalName": { "tibetan": "རྟ", "wylie": "rta", "phonetic": "ta" }
+  },
   "month": 6,
   "monthCode": "M06",
   "isLeapMonth": false,
@@ -174,6 +182,13 @@ The full object:
   "isoDate": "2026-08-12",
   "dayOfWeek": 3,
   "tibetanWeekday": 4,
+  "weekdayName": {
+    "tibetan": "ལྷག་པ",
+    "wylie": "lhag pa",
+    "phonetic": "lhak pa",
+    "planet": "mercury",
+    "element": "water"
+  },
   "lunation": 15094
 }
 ```
@@ -679,6 +694,10 @@ year, including ones where `losarFor` must refuse.
 |---|---|---|
 | `yearNameFor` | `(year: number) => TibetanYearName` | `{ element, animal, gender }`. Element and gender repeat every ten years, the animal every twelve, the whole name every sixty |
 | `rabjungFor` | `(year: number) => Rabjung` | `{ cycle, year }`, the sixty-year numbering from 1027 CE. A *numbering*, not a name — the two cycles sit three apart |
+| `weekdayNameFor` | `(weekday: number, config?) => TibetanWeekdayName` | Tibetan name of a weekday. Takes the **Tibetan** numbering, 0 = Saturday. The only naming lookup taking a config, because Bhutan names its days one planet ahead |
+| `elementNameFor` | `(element: TibetanElement) => TibetanName` | ཤིང *shing* for wood, མེ *me* for fire, and so on |
+| `genderNameFor` | `(gender: TibetanGender) => TibetanName` | ཕོ *pho* and མོ *mo* |
+| `animalNameFor` | `(animal: TibetanAnimal) => TibetanName` | རྟ *rta* for horse, སྟག *stag* for tiger, and so on |
 
 A year picker is a loop over these plus `hasLeapMonth`; there is no range function, because building
 the list is the consumer's business and nothing about it can go wrong.
@@ -779,6 +798,66 @@ Note that `SkippedDayError` is exported from the **root** only. Nothing in this 
 a skipped day is handled by the `skippedDay` convention instead.
 
 Full detail: [docs/architecture.md](docs/architecture.md).
+
+## Internationalisation
+
+**What ships:** the *Tibetan* name of a thing — Tibetan script, Wylie, and THL Simplified Phonetic
+Transcription. `TibetanDate.weekdayName`, and `elementName` / `genderName` / `animalName` on
+`yearName`.
+
+**What deliberately does not ship:** translations into any other language. Authoring them would mean
+writing content in languages nobody on this project reads, which is the failure mode the sourcing
+rules exist to prevent. What ships instead is a stable key your own i18n layer maps from.
+
+### Weekday names in a Western language come from `Intl`
+
+The Tibetan weekday is the same seven-day cycle as the Western one, so `isoDate` covers every locale
+CLDR carries — no work from this package, and no translations to maintain:
+
+```ts
+const date = isoToTibetan(Temporal.PlainDate.from("2026-02-18"));
+
+date.isoDate.toLocaleString("fr", { weekday: "long" }); // "mercredi"
+date.isoDate.toLocaleString("ru", { weekday: "long" }); // "среда"
+date.weekdayName.wylie;                                 // "lhag pa"
+date.weekdayName.planet;                                // "mercury"
+```
+
+Two curiosities worth knowing. CLDR's Mongolian weekday is *Лхагва* — the Tibetan *lhakpa*,
+borrowed. And its `bo` and `dz` locales give names **one planet apart** for the same date, because
+the Bhutanese week is named one ahead; that is the same shift `TraditionNaming.weekdayOffset`
+models.
+
+CLDR is a convenience, not this package's authority: it gives the script form only, with a trailing
+tsheg, from whatever ICU build the host happens to have.
+
+### Everything else localises through stable keys
+
+`TibetanElement`, `TibetanGender`, `TibetanAnimal` and `TibetanPlanet` are lowercase stable
+identifiers, and they are **contract** — a message catalogue keys off them:
+
+```ts
+const fr = { fire: "feu", horse: "cheval", male: "mâle" };
+fr[date.yearName.element]; // "feu"
+```
+
+Twenty-six identifiers in total: five elements, two genders, twelve animals, seven planets.
+
+### Observance labels
+
+`GELUG` ships English labels. `ObservanceConfig` is a documented extension point, so a consumer
+supplies their own rules with their own labels — see [Observances](#observances). They are not
+English-only by design limitation.
+
+### Where the names come from
+
+Every string was verified before it was written down: two independent EWTS implementations must
+agree on the script, it must read back as the same Wylie, and English Wiktionary must have an entry
+at exactly that title. See [docs/name-sources.md](docs/name-sources.md).
+
+That check earns its keep. Janson gives Saturday as `spen ma` in his day-of-week table and `spen pa`
+in his Bhutan appendix; Wiktionary and CLDR both agree with the appendix, so this package ships
+`spen pa`.
 
 ## Why this exists
 
