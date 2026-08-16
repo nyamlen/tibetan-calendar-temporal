@@ -20,7 +20,7 @@
  * @packageDocumentation
  */
 
-import { codedError } from "../errors.js";
+import { assertInternal } from "../errors.js";
 import { floorDiv, mod, scaleTo } from "./arithmetic.js";
 import { lunarAnomaly, meanDate, solarAnomaly } from "./mean-astronomy.js";
 import type { ScaledTradition } from "./scaling.js";
@@ -51,17 +51,13 @@ function normaliseZero(value: number): number {
  */
 export function moonTabAt(table: readonly number[], index: number): number {
 	const j = mod(index, 28);
-	const value =
-		j <= 7
-			? table[j]
-			: j <= 14
-				? table[14 - j]
-				: j <= 21
-					? -(table[j - 14] ?? 0)
-					: -(table[28 - j] ?? 0);
-	/* c8 ignore next */
-	if (value === undefined) throw codedError("TCT_INTERNAL", "moonTabAt: table must have 8 entries");
-	return normaliseZero(value);
+	// The symmetries fold 0…27 onto the eight listed entries, and flip the sign past 14. Folding
+	// first, then signing, keeps one index expression and one guard: the previous shape indexed in
+	// four places and defended two of them with `?? 0`, so a short table threw for j ≤ 14 and
+	// silently returned 0 above it — a wrong correction, from the branch that fabricated a value.
+	const folded = j <= 7 ? j : j <= 14 ? 14 - j : j <= 21 ? j - 14 : 28 - j;
+	const value = assertInternal(table[folded], "moonTabAt: table must have 8 entries");
+	return normaliseZero(j <= 14 ? value : -value);
 }
 
 /**
@@ -73,17 +69,10 @@ export function moonTabAt(table: readonly number[], index: number): number {
  */
 export function sunTabAt(table: readonly number[], index: number): number {
 	const j = mod(index, 12);
-	const value =
-		j <= 3
-			? table[j]
-			: j <= 6
-				? table[6 - j]
-				: j <= 9
-					? -(table[j - 6] ?? 0)
-					: -(table[12 - j] ?? 0);
-	/* c8 ignore next */
-	if (value === undefined) throw codedError("TCT_INTERNAL", "sunTabAt: table must have 4 entries");
-	return normaliseZero(value);
+	// Folded then signed, as in moonTabAt and for the same reason.
+	const folded = j <= 3 ? j : j <= 6 ? 6 - j : j <= 9 ? j - 6 : 12 - j;
+	const value = assertInternal(table[folded], "sunTabAt: table must have 4 entries");
+	return normaliseZero(j <= 6 ? value : -value);
 }
 
 /**

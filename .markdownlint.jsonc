@@ -15,6 +15,17 @@
   // internal checklist sections in every table of contents.
   "MD036": false,
 
+  // Adjacent blockquotes separated by a blank line. The docs use `>` callouts heavily and
+  // two consecutive ones — a clean-room note followed by a settled-fork note, in
+  // docs/testing.md — are distinct notes, not one quote with a hole in it. GitHub renders
+  // them as two. The rule guards against parsers that merge them; ours does not.
+  "MD028": false,
+
+  // Inline HTML. README.md uses <details>/<summary> for the collapsible asides, which has no
+  // Markdown equivalent and degrades to visible text on renderers that do not support it.
+  // Listed rather than disabled, so unexpected HTML is still caught.
+  "MD033": { "allowed_elements": ["details", "summary", "strong"] },
+
   // Carried over from the user-level VS Code settings so behaviour does not change
   // when this file takes precedence.
   "MD031": false,

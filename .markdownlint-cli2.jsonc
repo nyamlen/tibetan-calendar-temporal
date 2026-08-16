@@ -1,0 +1,15 @@
+// Which files markdownlint sees. The *rules* live in `.markdownlint.jsonc`, which this file
+// deliberately does not duplicate — cli2 reads both, and keeping them apart means the rule
+// exclusions stay next to the reasoning that justifies them.
+//
+// What this check does NOT do: **semantic line breaks**. Markdownlint has no rule for them,
+// and MD013 — the closest thing, a hard column limit — is switched off precisely because it
+// fights the convention. Semantic line breaks are review-only, and docs/coding-standards.md
+// says so rather than implying this command covers them.
+{
+	// Respects .gitignore, so node_modules, dist/ and the untracked working files stay out
+	// without listing them here. Same reasoning as check-links.mjs enumerating through git:
+	// a file the check should skip belongs in .gitignore, not in a second exclusion list.
+	"gitignore": true,
+	"globs": ["**/*.md"]
+}

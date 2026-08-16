@@ -33,7 +33,15 @@ jobs:
       - run: npm ci
 
       - run: npm run lint
+      - run: npm run lint:md
+
+      # The rules lint, typecheck and the suite cannot see: the zero-dependency claim, the
+      # integer-only arithmetic, coded errors, {@link} targets, the decision-record format,
+      # fixture provenance, and whether docs/coding-standards.md still names real commands.
+      # Each of those fails silently rather than loudly, which is why it needs its own gate.
       - run: npm run check:links
+      - run: npm run check:conventions
+
       - run: npm run typecheck
       - run: npm run build
       - run: npm test

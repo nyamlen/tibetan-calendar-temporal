@@ -3,6 +3,8 @@
 Tibetan calendar (Phugpa tradition) computation engine. Pure TypeScript, zero runtime
 dependencies, built on Temporal.
 
+- Every rule, and **what fails when you break it**: [docs/coding-standards.md](docs/coding-standards.md) —
+  the enforcement map. This file says *why* a rule exists; that one says whether a machine catches it
 - Architecture, API design, core types: [docs/architecture.md](docs/architecture.md)
 - Testing strategy and validation sources: [docs/testing.md](docs/testing.md)
 - What differs between traditions, and the two source traps found while working it out:
@@ -150,6 +152,19 @@ derivation; in `docs/` they are just noise.
   years, with no error and nothing about the output looking wrong. It is now
   `leapIndexThreshold`, and `β` and the true-month rounding term derive from it. When adding a
   tradition, check that the *rules* are injected too, not only the numbers.
+  **It extends to the docblocks as well as the code**, which is subtler and was live until
+  2026-08-16. `leapMonthOfYear` takes a config and its example read `leapMonthOfYear(2151) // 6`
+  — true for Phugpa and for nothing else: Mongolian gives 5, Bhutanese 10, and Tsurphu has no leap
+  month that year at all. The same docblock stated that a leap month "precedes the regular month
+  sharing it", which holds for every version Janson gives **except Bhutan**, where it follows — the
+  position gap [docs/traditions.md](docs/traditions.md) records as unmodelled. So a docblock on a
+  config-taking function was promising something the engine does not do. If a function takes a
+  `TraditionConfig`, its examples state **one** tradition's answer and must say which, and any
+  structural claim has to be checked against Bhutan specifically, which is where the versions
+  diverge most. `test/docblock-examples.test.ts` pins the thresholds; a third instance of the
+  "precedes" claim survives in `src/types.ts` on `lunation`, where it explains tuple sort order,
+  and needs revisiting when `leapMonthPosition` lands.
+
   This extends to anything **derived from** those constants. The `±3` search window in
   `isoToTibetan` was proved from `(25 + 11)/60` — Phugpa's largest `moonTab` and `sunTab` entries —
   and written at the loop as a literal `3`, so a wider table passed validation and then broke the
@@ -174,11 +189,18 @@ derivation; in `docs/` they are just noise.
   Do not cite that record to refuse a convenience — it was misapplied that way and cost the surface
   four functions that had to be added back. Equally, do not cite the second test to expose something
   whose semantics are contested: two defensible answers means it belongs in injected config.
-  `test/public-api.test.ts` pins the list and each name's kind; a failure there means the surface
+  `test/public-api.test.ts` pins the list and each name's kind, and `test/docblock-examples.test.ts`
+  asserts every `@example` in `src/` that states a value — docblocks compile into `dist/*.d.ts`, so
+  a stale one ships as contract. A failure in the first means the surface
   changed, so decide whether that was intended before editing the list.
 - **Errors carry codes; do not add an error class.** Throw through `rangeError`/`codedError` in
   `src/errors.ts`, never a bare `new RangeError` — the code is the part consumers branch on, and a
   bare construction silently omits it. `SkippedDayError` is the only class and stays the only one.
+  `check:conventions` now enforces this; the one bare `new Error` that predated it sat in
+  `epoch.ts` discharging a `noUncheckedIndexedAccess` widening. That is what `assertInternal` is
+  for, and it is the required idiom — the alternative, a cast, lets a bad index return `undefined`
+  wearing the element type, which is how the same constraint was discharged two different ways in
+  the same codebase.
   Codes are contract and message text is not, so assert on the code in tests and never tell a
   consumer to match wording. `tibetanDateExists` swallows errors by **allowlist** — three codes
   answer `false`, everything else rethrows — and must not go back to a denylist: as one, a single
@@ -232,8 +254,20 @@ the structure the `./observances` subpath export needs. Do not add tsup or simil
 
 ## Commands
 
-`npm run lint`, `check:links`, `typecheck`, `build`, `test`, `check:publish`, `test:pack` — CI runs
-all seven in that order.
+`npm run lint`, `lint:md`, `check:links`, `check:conventions`, `typecheck`, `build`, `test`,
+`check:publish`, `test:pack` — CI runs all nine in that order.
+
+**`check:conventions` enforces the rules in this file that lint, typecheck and the suite cannot
+see**, which before it existed was all of them: the zero-dependency claim, integer-only arithmetic,
+coded errors, `{@link}` targets, the reality of every `TCT_` code named in a `@throws`, the
+decision-record format, fixture provenance, and whether
+[docs/coding-standards.md](docs/coding-standards.md) still names real commands and paths. Each of
+those fails silently rather than loudly. When you add a rule here, check whether
+`scripts/check-conventions.mjs` can hold it, and write the failing case before the check — a guard
+that has never failed proves nothing.
+
+`lint:md` runs markdownlint against `.markdownlint.jsonc`. It does **not** check semantic line
+breaks; markdownlint has no such rule, and `MD013` is off because it fights the convention.
 
 The last two are the only checks that see the **published** package. Every test imports from
 `src/`, so a broken `exports` map, a file missing from `files`, or a `dist/` layout that does not
@@ -253,7 +287,7 @@ outside the repo, so it cannot gate a push — what gates a push is its committe
 `test/fixtures/names.ts`, which the suite reads. Provenance is checked before a release; integrity
 is checked on every push.
 
-**`npm run coverage` is not one of the seven, so nothing gates it.** It was broken on `main` for an
+**`npm run coverage` is not one of the nine, so nothing gates it.** It was broken on `main` for an
 unknown stretch and nobody noticed: the 200-year moon-phase sweep runs in well under a second bare
 but takes 5–8 seconds under v8 instrumentation, against Vitest's 5s default, so `test` passed while
 `coverage` failed. The long sweeps now carry explicit timeouts. Run it before a release, and give

@@ -60,6 +60,9 @@ export function assertClosedFormYear(
 	// solarMonthsSinceEpoch: 12·(year − epochYear) + month − epochMonth must stay safe. `12` is a
 	// generous margin for the trailing `+ month − epochMonth`, which is at most 11 in magnitude
 	// (month and epochMonth each range 1..12, so their difference is at most 11).
+	// exact: both operands are safe integers, so the IEEE quotient is within one ulp of the true
+	// value and Math.floor lands on the right integer. This computes a *bound*, never a calendar
+	// quantity — a bound one off would only narrow the accepted range, not shift a date.
 	const relativeLimit = Math.floor((Number.MAX_SAFE_INTEGER - 12) / 12);
 	// isLeapYear / leapMonthOfYear: 24·year + γ* must stay safe, on the *absolute* year. γ* is
 	// `mod(…, 65)`, so at most 64; `65` is a generous margin. Converted to the same
@@ -67,6 +70,7 @@ export function assertClosedFormYear(
 	// then |year| ≤ |epochYear| + limit ≤ floor((MAX_SAFE_INTEGER − 65) / 24), which is what
 	// 24·year needs — the right-hand side here is that raw quantity, not `absoluteLimit` itself,
 	// since `absoluteLimit` is that quantity already reduced by `|epochYear|`.
+	// exact: as above — a safe-integer quotient floored to a bound, not a calendar quantity.
 	const absoluteLimit =
 		Math.floor((Number.MAX_SAFE_INTEGER - 65) / 24) - Math.abs(config.epochYear);
 	// absoluteLimit is always the binding constraint here, for any config, not merely realistic
@@ -108,6 +112,7 @@ export function assertLunation(
 ): void {
 	// 65·monthCount + β must stay inside the safe range. Subtracting |β| rather than β covers the
 	// negative direction with the same limit.
+	// exact: a safe-integer quotient floored to a bound. `beta(config)` is itself integer-only.
 	const limit = Math.floor((Number.MAX_SAFE_INTEGER - Math.abs(beta(config))) / 65);
 	if (Math.abs(monthCount) > limit) {
 		throw rangeError(
