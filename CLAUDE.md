@@ -1,12 +1,20 @@
 # tibetan-calendar-temporal
 
-Tibetan calendar (Phugpa tradition) computation engine. Pure TypeScript, zero runtime
+Tibetan calendar computation engine — Phugpa and Bhutanese traditions. Pure TypeScript, zero runtime
 dependencies, built on Temporal.
 
 - Every rule, and **what fails when you break it**: [docs/coding-standards.md](docs/coding-standards.md) —
   the enforcement map. This file says *why* a rule exists; that one says whether a machine catches it
+- **How the calendar works, for anyone who has not met it**:
+  [docs/how-it-is-calculated.md](docs/how-it-is-calculated.md) — leap months, doubled and skipped
+  days, and what `a₂` is. Read it before touching the arithmetic or arguing about a divergent date
 - Architecture, API design, core types: [docs/architecture.md](docs/architecture.md)
-- Testing strategy and validation sources: [docs/testing.md](docs/testing.md)
+- Testing strategy: [docs/testing.md](docs/testing.md)
+- **Every source checked against, and its lineage**:
+  [docs/validation-sources.md](docs/validation-sources.md) — read this **before** treating any new
+  source as corroboration. Agreement is only evidence if the source did not reach its answer the way
+  we did, and two sources in one lineage agreeing tells you nothing. It also lists what has been
+  tried and rejected, with reasons, so the same dead ends are not re-walked
 - What differs between traditions, and the two source traps found while working it out:
   [docs/traditions.md](docs/traditions.md)
 - Provenance of every Tibetan name string: [docs/name-sources.md](docs/name-sources.md)
