@@ -64,33 +64,48 @@ is evidence.
 non-Henning check on Bhutanese day numbers here. Its rows were chosen for the doubled and skipped
 days, which is where Janson §8 warns published tables go wrong.
 
-**`a₂` is NOT settled for Bhutan.** `BHUTAN` and `BHUTAN_HENNING` agree on all 25 government-published
-days, and the 11,323-day fixture validates `BHUTAN_HENNING` only because it descends from Henning —
-which is circular. Settling it needs a Bhutanese day-by-day grid covering **2001-12-10, 2004-04-10 or
-2020-04-23**, the three days in the fixture window where the two values disagree.
+**`a₂` is NOT settled for Bhutan, and no known source can settle it.** `BHUTAN` and `BHUTAN_HENNING`
+agree on all 25 government-published days, and the 11,323-day fixture validates `BHUTAN_HENNING` only
+because it descends from Henning — which is circular. Settling it needs a **Bhutanese state** day-by-day
+grid covering **2001-12-10, 2004-04-10 or 2020-04-23**, the three days in the fixture window where the
+two values disagree. The Ministry publishes 2025 and 2026 only, neither of which contains one, and the
+Drukpa app is a different calendar (below). The question is open and may stay open.
 
-### The Drukpa Kagyu app — unresolved, and possibly a different calendar
+Note what this does *not* undermine: everything except `a₂` is validated for Bhutan, including against
+the government's own calendar. The open question is a choice between two values that differ on about
+one day in 4,100, and `BHUTAN` resolves it the same way Phugpa's evidence does — toward almanac
+practice.
 
-Day numbers from a Drukpa Calendar App were checked on 2026-08-17 against all three divergence dates.
-The result does not fit either config, and the file records it rather than forcing it:
+### The Drukpa Kagyu app is a different calendar — and it nearly produced a wrong answer
 
-- Where our two configs **agree**, the app agrees with them.
-- On two divergence dates it matches **`BHUTAN_HENNING`** — 2001-12-10 as day 26, 2004-04-10 as day
-  21, where `1/28` gives 25 and 20.
-- But its **doubled days sit one number higher and one day later** than either config produces: it
-  doubles day 2 across 24–25 April 2020 where we double day 1 across 23–24, and day 7 across 21–22
-  December 2001 where we double day 6 across 20–21.
+Resolved 2026-08-17. **A Drukpa Calendar App is not Bhutan's state calendar**, and must not be used
+as Bhutanese evidence. The overlap test settles it, on a date the Royal Government also publishes:
 
-Neither `a₂` value produces that pattern, so the likeliest explanation is that this is **not Bhutan's
-state calendar**. Janson, citing Berzin in a passage present only as a LaTeX comment, records that
-Drukpa Kagyu follows *Cahtuḥpīṭha-Kālacakra* चतुःपीठ-कालचक्र, a Tsurphu derivative begun by Drugchen
-Pemakarpo in the late 16th century — potentially a fourth system, distinct from the calendar the
-Ministry of Home Affairs publishes.
+| Date | Royal Government | `BHUTAN` and `BHUTAN_HENNING` | Drukpa app |
+|---|---|---|---|
+| 2026-02-18 | day 1 | 1/1 | 1/1 |
+| 2025-01-19 | day 21 | 11/21, doubled | day 21 |
+| **2025-01-20** | **day 21** | **11/21** | **day 22** |
+| 2025-01-21 | — | 11/22 | day 22, doubled |
 
-**The test that would resolve it** is app data for a date the Royal Government also publishes: if the
-app doubles day 21 across 19–20 January 2025, it is the state calendar and `a₂` for Bhutan is settled
-in Henning's favour; if it doubles day 22, it is a different system and cannot be used for Bhutan.
-Until then, no conclusion is drawn.
+The app doubles day 22 across 20–21 January where the state calendar doubles day 21 across 19–20 —
+one number higher and one day later, the same offset it shows in 2001, 2004 and 2020. Both our configs
+agree with the government; the app agrees with neither.
+
+The difference is **narrow and specific**: Losar and the month structure match, so the divergence is
+in the day-level corrections rather than the month arithmetic. That is consistent with Janson's note,
+citing Berzin in a passage present only as a LaTeX comment, that Drukpa Kagyu follows
+*Cahtuḥpīṭha-Kālacakra* चतुःपीठ-कालचक्र, a Tsurphu derivative begun by Drugchen Pemakarpo in the late
+16th century. Modelling it is out of scope; recognising it is not.
+
+**Why this entry is the most useful one in the file.** Before the overlap test, the app matched
+`BHUTAN_HENNING` on two of the three `a₂` divergence dates — 2001-12-10 as day 26 and 2004-04-10 as
+day 21, where `1/28` gives 25 and 20. Taken at face value that was evidence that Bhutan follows
+Dharmashri's exact value, and it would have justified changing a shipped default. It was
+**coincidence**: a systematic one-day offset landing on Henning's number twice.
+
+Two sources agreeing on a handful of dates is not evidence that they are the same calendar. Ask what
+system a source computes *before* asking what it says, and test it where a known authority overlaps.
 
 ## Tsurphu — nothing day-level
 

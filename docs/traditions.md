@@ -246,8 +246,22 @@ Janson, citing Berzin:
 
 - **Tibet** — Phugpa is the most widely used, and the one the Dalai Lama follows. Tsurphu is the
   Karma Kagyu system.
-- **Bhutan** — its own version, as an official state calendar, in Dzongkha.
+- **Bhutan** — its own version, as an official state calendar, in Dzongkha. This is what `BHUTAN`
+  models, validated against the Ministry of Home Affairs' published calendar.
 - **Mongolia** — the New Genden version. Also followed by the **Buryats and Tuvinians** of Siberia.
 - **Russia** — the **Kalmyks** follow **Phugpa**, so they are served by what ships today.
 - **Inner Mongolia**, in China, uses the Chinese "yellow system" instead, which is not a version of
   the Tibetan calendar and is out of scope here.
+
+**Three traps in this list, all of them the same shape: a school's name is not a version's name.**
+
+- **Drukpa Kagyu is not Tsurphu**, despite being a Kagyu school. Janson, citing Berzin in a LaTeX
+  comment, records that it follows *Cahtuḥpīṭha-Kālacakra* चतुःपीठ-कालचक्र, a Tsurphu derivative begun
+  by Drugchen Pemakarpo in the late 16th century.
+- **Drukpa Kagyu is not Bhutan's state calendar either**, even though it is Bhutan's state school. A
+  Drukpa calendar checked in 2026-08 disagrees with the Royal Government's own publication about which
+  day is doubled — see [validation-sources.md](validation-sources.md). Neither is modelled here.
+- **Drikung Kagyu** follows a Tsurphu/Phugpa hybrid, per Berzin. Also not modelled.
+
+So a source is not evidence for a version because its community sounds related. Establish which
+*system* it computes first.
