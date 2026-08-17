@@ -511,6 +511,40 @@ for (const [, names] of read("src/index.ts").matchAll(CONFIG_EXPORT)) {
 }
 
 // ---------------------------------------------------------------------------------------
+// Rule 11 — a suite in test/computation/ is named for a src/computation/ module
+//
+// docs/testing.md states the directory is "one suite per src/computation module", and seven of
+// nine files honoured it while two were named for a *concept* instead — leap-index-threshold and
+// leap-month-position, neither of which is a module. A concept name in a module-parity directory
+// is the same false promise Rule 9 catches one directory over: it tells a reader the file's
+// subject is something the tree cannot confirm.
+//
+// The predicate is longest-prefix, deliberately, and getting this wrong is easy: a
+// first-`-`-segment rule looks equivalent and rejects mean-astronomy.test.ts, the one hyphenated
+// module in src/computation/ and a file that was already correct. Splitting on "-" answers a
+// different question than the one being asked.
+//
+// A focused suite may narrow a module — calendar-leap-index-threshold.test.ts is a calendar.ts
+// suite about one rule — but the module it narrows has to lead the name. A suite whose subject
+// spans several modules is not a computation suite at all and belongs at test/ root, beside
+// invariants.test.ts and regression.test.ts.
+// ---------------------------------------------------------------------------------------
+
+const computationModules = tracked("src/computation/*.ts").map((file) => basename(file, ".ts"));
+
+for (const file of tracked("test/computation/*.test.ts")) {
+	const suite = basename(file, ".test.ts");
+	if (computationModules.some((module) => suite === module || suite.startsWith(`${module}-`))) {
+		continue;
+	}
+	fail(
+		"computation suites are named for their module",
+		file,
+		`is not named for any module in src/computation/ (${computationModules.join(", ")}). Name it for the module it tests, optionally narrowed — calendar-leap-index-threshold.test.ts is a calendar.ts suite about one rule. If its subject spans several modules it is not a computation suite: move it to test/ root, where invariants.test.ts and regression.test.ts already live. See docs/testing.md.`,
+	);
+}
+
+// ---------------------------------------------------------------------------------------
 
 if (failures.length > 0) {
 	const byRule = new Map();

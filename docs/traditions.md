@@ -43,7 +43,7 @@ Two quantities, neither of which may be written as a literal:
 - **β** is `67·M₀ − β* − (65 − threshold)`.
 
 This reproduces every value Janson publishes, which is what makes it his formula rather than a
-plausible one. Checked in `test/computation/leap-index-threshold.test.ts`:
+plausible one. Checked in `test/computation/calendar-leap-index-threshold.test.ts`:
 
 | Tradition | β\* | threshold | derived β | Janson's β | γ\* derived | Janson's γ\* |
 |---|---|---|---|---|---|---|
@@ -162,7 +162,7 @@ leap month, so Bhutan adds one — is wrong, and a draft of this file said it. A
 occupies the counts `rounded − 1` and `rounded`; only the label moves. Under `"after"` the leap month
 keeps `rounded` and it is the **regular** month that takes `rounded − 1`, *and only when it has a
 twin*. The `+1` form leaves a gap of two before every pair and a collision after it, which stops the
-count being a bijection. `test/computation/leap-month-position.test.ts` sweeps 1900–2100 asserting
+count being a bijection. `test/leap-month-position.test.ts` sweeps 1900–2100 asserting
 the count advances by exactly one per month; the rejected form fails it 222 times.
 
 **"Before" was built into more places than the four this file used to list.** The four were
