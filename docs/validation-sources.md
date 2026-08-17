@@ -64,12 +64,44 @@ is evidence.
 non-Henning check on Bhutanese day numbers here. Its rows were chosen for the doubled and skipped
 days, which is where Janson §8 warns published tables go wrong.
 
-**`a₂` is NOT settled for Bhutan, and no known source can settle it.** `BHUTAN` and `BHUTAN_HENNING`
-agree on all 25 government-published days, and the 11,323-day fixture validates `BHUTAN_HENNING` only
-because it descends from Henning — which is circular. Settling it needs a **Bhutanese state** day-by-day
-grid covering **2001-12-10, 2004-04-10 or 2020-04-23**, the three days in the fixture window where the
-two values disagree. The Ministry publishes 2025 and 2026 only, neither of which contains one, and the
-Drukpa app is a different calendar (below). The question is open and may stay open.
+**`a₂` is NOT settled for Bhutan, and no source available today can settle it.** `BHUTAN` and
+`BHUTAN_HENNING` agree on all 25 government-published days, and the 11,323-day fixture validates
+`BHUTAN_HENNING` only because it descends from Henning — which is circular. Settling it needs a
+**Bhutanese state** day-by-day grid covering a date where the two values disagree. The Ministry
+publishes 2025 and 2026 only, neither of which contains one, and the Drukpa calendar is a different
+system (below).
+
+### The dates that would settle it
+
+Computed from the two configs, so this list is exact rather than a search hint. Within the fixture
+window there are three, all now in the past:
+
+| Date | `BHUTAN` (`1/28`) | `BHUTAN_HENNING` |
+|---|---|---|
+| 2001-12-10 | 10/25 | 10/26 |
+| 2004-04-10 | 2/20 | 2/21 |
+| 2020-04-23 | 3/1, doubled | 2/30 |
+
+**The first future one is 2047-07-02**, and there are only two before 2075 — the other is 2049-03-27
+(1/23 against 1/24). The rate is nominally about one day in 4,100, but Janson notes it is not uniform,
+and this stretch is unusually quiet.
+
+2047 is a **good** test to read off a printed grid, because the disagreement is about *which day is
+skipped* rather than a bare number:
+
+```text
+2047-07-01    day 8     day 8
+2047-07-02    day 9     day 10     <-- the test
+2047-07-03    day 11    day 11
+```
+
+So `BHUTAN` skips day 10 that month and Henning's value skips day 9. Either the printed calendar has
+no day 10 or it has no day 9, and that settles it outright.
+
+**Twenty-one years is a long wait, which makes the historic dates the better target.** A printed
+Bhutanese calendar for 2001, 2004 or 2020 — from an archive, a library, a monastery, or anyone who
+kept one — resolves the question now. The Ministry's website does not go back that far and the Wayback
+Machine has nothing, so this is a paper-archive question rather than a web one.
 
 Note what this does *not* undermine: everything except `a₂` is validated for Bhutan, including against
 the government's own calendar. The open question is a choice between two values that differ on about

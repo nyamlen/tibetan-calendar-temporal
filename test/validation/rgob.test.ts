@@ -107,6 +107,38 @@ describe("BHUTAN reproduces it", () => {
 	});
 });
 
+describe("the dates that would settle the a₂ fork", () => {
+	// Pinned for the same reason Phugpa's three are — see
+	// docs/decisions/2026-08-12-lunar-anomaly-a2-default.md. If a future change flips one of these,
+	// the shipped Bhutanese calendar has silently become Henning's line, and that must not happen by
+	// accident. They also tell anyone holding a printed Bhutanese calendar exactly which day to look
+	// at, which is the only way this question now gets answered.
+	it.each([
+		["2001-12-10", 10, 25, 26],
+		["2004-04-10", 2, 20, 21],
+		["2020-04-23", 3, 1, 30],
+		// The first future one, and the only other before 2075 is 2049-03-27.
+		["2047-07-02", 5, 9, 10],
+	])("%s: BHUTAN gives day %i/%i where Henning gives %i", (iso, month, almanacDay, henningDay) => {
+		const date = Temporal.PlainDate.from(iso as string);
+		const a = isoToTibetan(date, BHUTAN);
+		const h = isoToTibetan(date, BHUTAN_HENNING);
+		expect(a.month).toBe(month);
+		expect(a.day).toBe(almanacDay);
+		expect(h.day).toBe(henningDay);
+	});
+
+	it("skips a different day either side of 2047-07-02, which is what makes it readable in print", () => {
+		// The disagreement is about which number is missing from the month, not about a bare day
+		// number — so a printed grid settles it outright: either day 10 is absent or day 9 is.
+		const day = (n: number) => Temporal.PlainDate.from({ year: 2047, month: 7, day: n });
+		const almanac = [1, 2, 3].map((n) => isoToTibetan(day(n), BHUTAN).day);
+		const henning = [1, 2, 3].map((n) => isoToTibetan(day(n), BHUTAN_HENNING).day);
+		expect(almanac).toEqual([8, 9, 11]);
+		expect(henning).toEqual([8, 10, 11]);
+	});
+});
+
 describe("what this cannot settle", () => {
 	it("does not discriminate the a₂ fork, and says so rather than implying otherwise", () => {
 		// Stated as an assertion so it cannot rot. If a future row ever *does* separate the two
