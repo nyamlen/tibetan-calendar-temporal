@@ -98,6 +98,195 @@ function codeLines(source) {
 	return out;
 }
 
+/** Every line's code, comments stripped, rejoined — the form most rules actually want. */
+const codeOf = (source) =>
+	codeLines(source)
+		.map((line) => line.code)
+		.join("\n");
+
+// ---------------------------------------------------------------------------------------
+// The predicates, and the proof that they hold
+//
+// The rules below are mostly git plumbing wrapped around a handful of small textual decisions.
+// The plumbing is not where the bugs are. The decisions are, and one of them was wrong for a
+// while: Rule 11 was first written to match a suite's **first `-`-delimited segment** against the
+// module list, which rejects `mean-astronomy.test.ts` — a file that was already correct. Nothing
+// caught it; it was noticed by reading. That is the failure this section exists to prevent.
+//
+// So the predicates are pure functions, and `selfTest` proves them **before any rule runs**. It
+// runs on every invocation rather than behind a flag, which is the point: a proof that only runs
+// when someone remembers to run it is the same proof that was missing.
+//
+// **Two kinds of check, catching disjoint failures. This is a partition, not a ranking.**
+//
+//   An *invariant* derived from the repository catches mistakes nobody thought of. The Rule 11
+//   invariant — every module's own name must be an acceptable suite name — fails on the
+//   segment-splitting predicate immediately, and nothing in it mentions `mean-astronomy`. That is
+//   its whole value: it did not need the answer in advance.
+//
+//   A *literal example* catches what the invariant is blind to. An equality-only predicate
+//   satisfies the Rule 11 invariant perfectly while rejecting `calendar-leap-index-threshold`.
+//   Only a stated case sees that.
+//
+// Neither subsumes the other, and for one rule only the example is available at all — see
+// `validatesFixture`, which can have no useful invariant because the obvious one is vacuous.
+//
+// Nothing proves `selfTest`. The regress stops here deliberately: each predicate was mutated by
+// hand once, during implementation, and observed failing. That evidence is in the commit message.
+// ---------------------------------------------------------------------------------------
+
+/**
+ * Rule 11 — is `suite` named for one of `modules`, optionally narrowed as `<module>-<concept>`?
+ *
+ * Longest-prefix, **not** first-`-`-segment. Splitting on "-" answers a different question, and
+ * answers it wrongly for the one hyphenated module in `src/computation/`.
+ */
+const namedForModule = (suite, modules) =>
+	modules.some((module) => suite === module || suite.startsWith(`${module}-`));
+
+/**
+ * Rule 9 — does `suite` name one of the fixtures it imports, or their shared prefix?
+ *
+ * The direction is the entire rule: a *fixture* name starts with the *suite* name, never the
+ * reverse. `bhutan.test.ts` validating `bhutan.ts` passes; `bhutan-fixture.test.ts` validating
+ * `bhutan.ts` must not, and that drift is what the rule was written for.
+ */
+const validatesFixture = (suite, fixtures) => fixtures.some((fixture) => fixture.startsWith(suite));
+
+/** Rule 7 — a module declaring only types: no `export const`, `function`, `class`, `let` or `var`. */
+const carriesNoData = (source) =>
+	!codeLines(source).some(({ code }) =>
+		/^export\s+(?:const|let|var|function|class|default)\b/.test(code.trim()),
+	);
+
+function selfTest() {
+	const broken = [];
+	const check = (predicate, actual, expected, reason) => {
+		if (actual !== expected) {
+			broken.push(`${predicate}\n      expected ${expected}, got ${actual}\n      ${reason}`);
+		}
+	};
+
+	// --- Rule 11, the invariant. Derived from the tree, so it needs no foresight. ---
+	const modules = tracked("src/computation/*.ts").map((file) => basename(file, ".ts"));
+	for (const module of modules) {
+		check(
+			"namedForModule invariant",
+			namedForModule(module, modules),
+			true,
+			`a module's own name must be an acceptable suite name; "${module}" was rejected. A first-\`-\`-segment predicate fails exactly here, on the hyphenated module, with no case naming it.`,
+		);
+	}
+
+	// --- Rule 11, the cases the invariant cannot see. ---
+	check(
+		"namedForModule",
+		namedForModule("calendar-leap-index-threshold", ["calendar"]),
+		true,
+		"a focused suite narrows its module. An equality-only predicate satisfies the invariant above and still fails this.",
+	);
+	check(
+		"namedForModule",
+		namedForModule("leap-index-threshold", ["calendar"]),
+		false,
+		"a concept name is not a module name — the drift Rule 11 exists to catch.",
+	);
+	check(
+		"namedForModule",
+		namedForModule("calendarX", ["calendar"]),
+		false,
+		"a prefix that is not a segment boundary must not match, or every module claims its neighbours.",
+	);
+
+	// --- Rule 9. No invariant, deliberately. ---
+	//
+	// The obvious one — `validatesFixture(f, [f])` for every fixture — is **vacuous**. It is
+	// symmetric in its arguments, so `f.startsWith(f)` is true under the correct predicate and
+	// under a reversed one alike. Direction reversal is the only interesting way this breaks, so
+	// the assertion cannot see the single thing worth seeing, while reading as coverage. The case
+	// below is the whole proof.
+	check(
+		"validatesFixture",
+		validatesFixture("bhutan-fixture", ["bhutan"]),
+		false,
+		"LOAD-BEARING: the only check that detects a reversed comparison. A fixture name starts with the suite name, never the reverse.",
+	);
+	check(
+		"validatesFixture",
+		validatesFixture("crosscheck", ["crosscheck-eszthoff"]),
+		true,
+		"a suite may be named for the prefix it shares with the fixtures it covers.",
+	);
+
+	// --- Rule 7. ---
+	check(
+		"carriesNoData",
+		carriesNoData("export interface Row {\n\tiso: string;\n}"),
+		true,
+		"a type-only module has nothing to transcribe, which is why it is exempt from provenance.",
+	);
+	check(
+		"carriesNoData",
+		carriesNoData('export const ROWS = [{ iso: "2026-01-01" }];'),
+		false,
+		"a fixture declaring data must still name its generator — the whole point of Rule 7.",
+	);
+	check(
+		"carriesNoData",
+		carriesNoData("export default { iso: 1 };"),
+		false,
+		"a default export is data too; only types are exempt.",
+	);
+	check(
+		"carriesNoData",
+		carriesNoData("// export const ROWS = [];\nexport type Row = { iso: string };"),
+		true,
+		"the words in a comment must not count as a declaration. Cross-checks codeLines.",
+	);
+
+	// --- codeLines, which several rules depend on and none would notice breaking. ---
+	check(
+		"codeLines",
+		codeOf("/**\n * throws new Error when asked\n */\nconst a = 1;").includes("new Error"),
+		false,
+		"a docblock describing a construct must not be mistaken for the construct. Rule 2 reports a bare throw on this alone.",
+	);
+	check(
+		"codeLines",
+		codeOf("const a = 1; /* aside */ const b = 2;").includes("aside"),
+		false,
+		"an inline block comment is a comment.",
+	);
+	check(
+		"codeLines",
+		codeOf("const a = 1; // note").trim(),
+		"const a = 1;",
+		"code preceding a line comment survives.",
+	);
+	check(
+		"codeLines",
+		codeOf('const s = "// not a comment";').includes("not a comment"),
+		false,
+		"KNOWN LIMIT, not a guarantee: string literals are not tracked, so this is misparsed as a comment. Recorded so a later fix changes this case deliberately rather than being blocked by it.",
+	);
+
+	if (broken.length > 0) {
+		console.error("The checker itself is broken.\n");
+		console.error(
+			"This is not a convention violation, and no rule was run. A predicate below no longer\nbehaves as specified, so every rule resting on it is unreliable.\n",
+		);
+		for (const failure of broken) {
+			console.error(`  ${failure}\n`);
+		}
+		console.error(
+			"Fix the predicate, not the expectation. Each case states why it must hold; if a case is\ngenuinely wrong, change it deliberately and say so.\n",
+		);
+		process.exit(1);
+	}
+}
+
+selfTest();
+
 // ---------------------------------------------------------------------------------------
 // Rule 1 — zero runtime dependencies
 //
@@ -379,16 +568,10 @@ if (existsSync(resolve(root, MAP))) {
 const HAND_CURATED = new Set(["fpmt-holy-days.ts", "rgob.ts"]);
 const generators = tracked("scripts/*.mjs").map((file) => ({ file, source: read(file) }));
 
-/** A module declaring only types: no `export const`, `function`, `class`, `let` or `var`. */
-const carriesNoData = (fixture) =>
-	!codeLines(read(fixture)).some(({ code }) =>
-		/^export\s+(?:const|let|var|function|class|default)\b/.test(code.trim()),
-	);
-
 for (const fixture of tracked("test/fixtures/*.ts")) {
 	const name = basename(fixture, ".ts");
 	if (HAND_CURATED.has(`${name}.ts`)) continue;
-	if (carriesNoData(fixture)) continue;
+	if (carriesNoData(read(fixture))) continue;
 	if (!generators.some(({ source }) => source.includes(name))) {
 		fail(
 			"fixture provenance",
@@ -483,7 +666,7 @@ for (const file of testFiles) {
 	// Requiring only that the names be prefix-*related* in either direction would be too weak: it
 	// would accept bhutan-fixture.test.ts, the exact drift this rule exists to catch, since
 	// "bhutan-fixture" does start with "bhutan". The direction is what carries the rule.
-	if (!fixtures.some((fixture) => fixture.startsWith(suite))) {
+	if (!validatesFixture(suite, fixtures)) {
 		fail(
 			"validation suites are named for their fixtures",
 			file,
@@ -551,9 +734,7 @@ const computationModules = tracked("src/computation/*.ts").map((file) => basenam
 
 for (const file of tracked("test/computation/*.test.ts")) {
 	const suite = basename(file, ".test.ts");
-	if (computationModules.some((module) => suite === module || suite.startsWith(`${module}-`))) {
-		continue;
-	}
+	if (namedForModule(suite, computationModules)) continue;
 	fail(
 		"computation suites are named for their module",
 		file,
