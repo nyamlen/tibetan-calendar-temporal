@@ -108,5 +108,26 @@ tested and ruled out, and they do not bear on this decision: `1/28` is closer on
   rather than assumed.
 - The three divergence dates are pinned as regression tests against the almanac line. If a future
   change flips them, the calendar has silently become Henning's.
-- `PHUGPA_HENNING` stays exported. It is a real tradition followed by real calendars, and keeping
-  it visible is what makes the fork discoverable when a user's source disagrees.
+- `PHUGPA_HENNING` stays exported, but **the two configs make different kinds of claim**, and an
+  earlier version of this line got that wrong. It said the Henning variant "is a real tradition
+  followed by real calendars". That claims more than the evidence supports: we know Henning's
+  *software* uses the exact value and that Dharmashri *proposed* it, and we have no evidence that any
+  community's almanac prints it. Under this project's own rule — exported means validated — that
+  sentence was unearned.
+
+  What each config actually asserts, and what validates it:
+
+  | Config | Claim | Evidence |
+  |---|---|---|
+  | `PHUGPA` | **these are the dates Tibetans use** | Men-Tsee-Khang via FPMT's grids, plus two independent implementations |
+  | `PHUGPA_HENNING` | **these are the dates Henning's line produces** | Henning's published archives, and the three divergence dates |
+
+  Both are true and both are checkable; they are simply not the same statement. The variant is
+  exported as the **diagnostic** for reconciling against a Henning-derived source — which is most
+  public Tibetan calendar data — not as a rival answer to "what calendar does my community use". A
+  consumer who does not know about the fork uses `PHUGPA` and is right.
+
+  Deleting it would hide the fork rather than resolve it: the three divergence dates would still be
+  there, and a user whose source disagreed on one day in 4,100 would have no way to find out why.
+  `BHUTAN_HENNING` additionally carries the whole 11,323-day Bhutan tiling, since that fixture
+  descends from Henning — removing the variants would delete the main Bhutanese gate.

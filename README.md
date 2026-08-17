@@ -895,8 +895,10 @@ search, and discoverability is this package's job. Everything else in the suite 
 
 | | |
 |---|---|
+| [docs/how-it-is-calculated.md](docs/how-it-is-calculated.md) | **Start here if the calendar is new to you.** What a lunisolar calendar has to solve, leap months, why days are doubled and skipped, and what `a₂` is |
 | [docs/architecture.md](docs/architecture.md) | Layered model, API design, package structure, core types, tooling |
 | [docs/testing.md](docs/testing.md) | Three-tier testing strategy and validation sources |
+| [docs/validation-sources.md](docs/validation-sources.md) | Every source checked against, its **lineage**, what it settles, and what has been tried and rejected |
 | [docs/roadmap.md](docs/roadmap.md) | Implementation phases and release status |
 | [docs/rabjung-names.md](docs/rabjung-names.md) | The 60 rabjung year names, with the provenance of every column |
 | [docs/decisions/](docs/decisions/) | Decision records |

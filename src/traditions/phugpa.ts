@@ -123,13 +123,23 @@ export const PHUGPA: TraditionConfig = deepFreeze({
  *
  * @remarks
  * Identical to {@link PHUGPA} except for the lunar anomaly's per-day increment, which uses the
- * exact `(1 + a₁)/30 = 3781/105840` rather than the rounded `1/28`. Provided so that the fork
- * is visible and testable rather than a mystery when a fixture disagrees.
+ * exact `(1 + a₁)/30 = 3781/105840` rather than the rounded `1/28`. The exact value was proposed by
+ * Minling Lochen Dharmashri ལྷ་མིང་བློ་གྲོས (1654–1717); Edward Henning uses it in his computed
+ * calendars.
  *
- * Sources descended from Henning's calculations — including several public Tibetan calendar
- * archives — follow this variant. Almanac practice follows {@link PHUGPA}.
+ * **This is a diagnostic, not a rival answer to "what calendar does my community use."** The two
+ * configs make different claims, and the distinction is the whole reason both are exported:
  *
- * @see {@link PHUGPA} for the divergence dates and frequency.
+ * - {@link PHUGPA} claims *these are the dates Tibetans use*, and is validated against the
+ *   Men-Tsee-Khang line.
+ * - This claims *these are the dates Henning's line produces*, which is what most public Tibetan
+ *   calendar data descends from.
+ *
+ * So reach for it when a source disagrees with {@link PHUGPA} on about one day in 4,100 — that is
+ * the fork, and this identifies it. If you do not know which you want, you want {@link PHUGPA}.
+ *
+ * @see {@link PHUGPA} for the divergence dates and frequency, and `docs/how-it-is-calculated.md`
+ * for what `a₂` is and why a difference of one part in 105,840 moves a date at all.
  */
 export const PHUGPA_HENNING: TraditionConfig = deepFreeze({
 	...PHUGPA,
