@@ -34,6 +34,23 @@ beside `invariants.test.ts`. `leap-month-position.test.ts` is the case: it reach
 `scaling`, `months` and `observances`, so naming it for any one of them would promise a subject it
 does not have — the same false promise the validation-suite rule catches one directory over.
 
+**Before renaming or moving a suite, capture the inventory.** Not the count — the inventory:
+
+```sh
+npx vitest list --json > tests-before.json
+```
+
+A renamed file that stops being collected is silent, and this suite's count has quietly inflated
+once already, reporting 669 tests where 641 existed. But a bare count catches only *loss*. It cannot
+see **misplacement** — a file that moved somewhere unintended and is still collected keeps the total
+identical. Diff the per-file inventory afterwards and expect exactly the moves you made: the
+2026-08-17 sweep moved four files and the diff showed four, each with its test count carried across.
+
+One trap worth knowing: **`--reporter=json` is accepted here and silently emits plain text.** It
+appears in `vitest list --help` because `list` inherits the shared option set, but `list` has its own
+`--json`, which is the flag that works. Nothing warns you; you simply get text where you expected
+JSON.
+
 **Naming a validation suite.** A test whose subject is the engine's **agreement with an external
 source** is named for the fixture — or the fixture **prefix** — it validates, and lives in
 `test/validation/`. So `janson-epoch.test.ts` covers one fixture, `fpmt.test.ts` covers the two

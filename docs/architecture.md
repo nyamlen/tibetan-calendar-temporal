@@ -131,9 +131,10 @@ tibetan-calendar-temporal/
 │   ├── months.ts             # monthsFor, datesFor, daysInMonth, the three closed-form scalars
 │   ├── navigation.ts         # the lunation coordinate, day and month arithmetic, the phases
 │   ├── cycles.ts             # the cyclic names: year, rabjung, weekday, element, gender, animal
+│   ├── names.ts              # the frozen name vocabulary cycles.ts reads — internal
 │   └── types.ts              # TibetanDate, TibetanMonth, their field shapes, SkippedDayError
 ├── test/
-│   ├── computation/          # One suite per computation module
+│   ├── computation/          # named for a computation module, or <module>-<concept>
 │   ├── fixtures/             # Janson's tables, then FPMT data in Phase 2
 │   └── invariants.test.ts    # Year lengths, safe-integer bound, §13 period
 ├── package.json

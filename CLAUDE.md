@@ -74,8 +74,9 @@ a calendar that runs and is wrong. His six-decimal column is the guard against t
 
 **Fixtures are generated, not transcribed.** `test/fixtures/losar.ts`, `sixty-year-cycle.ts`,
 `janson-epoch.ts` and `cross-version-leap.ts` come from `scripts/extract-janson-fixtures.mjs`, which
-parses the LaTeX; the three `crosscheck-*.ts` files come from their own
-`scripts/fetch-*-fixtures.mjs`; `names.ts` from `scripts/verify-name-sources.mjs`; `bhutan.ts` from
+parses the LaTeX; the three `crosscheck-*.ts` **data** files come from their own
+`scripts/fetch-*-fixtures.mjs` — `crosscheck-row.ts` is not one of them, and is covered below;
+`names.ts` from `scripts/verify-name-sources.mjs`; `bhutan.ts` from
 `scripts/fetch-bhutan-fixtures.mjs`. Re-run those rather than editing the output. Hand-copying 120 dates is how a silent one-day error reaches the primary
 correctness gate — and an early draft of `docs/testing.md` did exactly that, dating Losar 2026 to
 17 February instead of 18.
@@ -104,6 +105,23 @@ from his "Open Source Bhutanese Calendar" software, and so does every other one 
 were read by a human on purpose** — a machine reading of the same document misread three cells in
 nineteen, all `༠` against `༤` or `༥` against `༆`. Do not regenerate it, and do not extend it from a
 machine reading.
+
+**A third provenance category, which is not a third exception.** A file in `test/fixtures/` that
+declares **no data at all** — only types — is exempt, because there is nothing to transcribe and so
+the error the rule prevents cannot occur in it. `test/fixtures/crosscheck-row.ts` is the only one:
+the row type its three sibling fixtures share. `check:conventions` tests this **before** the
+generator lookup, deliberately, because the three generators emit an import naming that file and the
+provenance check cannot tell an import line from a generator's output — so it would otherwise pass
+by coincidence, and a provenance rule that passes for the wrong reason is worse than one that fails.
+Do not widen the category to a file that declares a `const`.
+
+It lives in `test/fixtures/` rather than `test/support/` for a reason that is easy to undo: **every
+file in `test/fixtures/` imports only from `test/fixtures/`**, and that closure is what lets
+"fixtures do not depend on the engine" be true by inspection rather than by audit.
+`test/support/versions.ts` imports from `src/`, so moving a shared fixture type there would quietly
+end that. The independence is load-bearing —
+[docs/decisions/2026-08-16-exported-means-validated.md](docs/decisions/2026-08-16-exported-means-validated.md)
+rests on it.
 
 Neither justification extends to the calendars above. Do not "fix" either by trying to generate it,
 and do not delete either for breaking the rule. See `docs/testing.md`, which also states the window
@@ -223,7 +241,10 @@ derivation; in `docs/` they are just noise.
   tradition's real dates. So it is exported only once the engine has been tiled against an
   **external** calendar for that tradition, day by day —
   [docs/decisions/2026-08-16-exported-means-validated.md](docs/decisions/2026-08-16-exported-means-validated.md),
-  enforced by `check:conventions`. Expressing a tradition, validating its leap months and validating
+  enforced by `check:conventions`, which requires a suite in `test/validation/` to **import** the
+  config. Naming it in a comment or a `describe` title does not count — that grep-shaped version of
+  the rule stayed green when a suite's assertions were deleted and its prose left behind.
+  Expressing a tradition, validating its leap months and validating
   its dates are three claims, not one: **Tsurphu and the Mongolian version are fully expressible and
   their leap months are checked against Janson, and both stay unexported**, because nothing checks a
   Tsurphu date. Self-consistency is not a substitute — the Bhutan work's inverse-pair round trip
@@ -297,11 +318,28 @@ the structure the `./observances` subpath export needs. Do not add tsup or simil
 **`check:conventions` enforces the rules in this file that lint, typecheck and the suite cannot
 see**, which before it existed was all of them: the zero-dependency claim, integer-only arithmetic,
 coded errors, `{@link}` targets, the reality of every `TCT_` code named in a `@throws`, the
-decision-record format, fixture provenance, and whether
-[docs/coding-standards.md](docs/coding-standards.md) still names real commands and paths. Each of
-those fails silently rather than loudly. When you add a rule here, check whether
-`scripts/check-conventions.mjs` can hold it, and write the failing case before the check — a guard
-that has never failed proves nothing.
+decision-record format, fixture provenance, whether
+[docs/coding-standards.md](docs/coding-standards.md) still names real commands and paths, that a
+validation suite is named for the fixture it validates, that an exported config is imported by one,
+and that a suite in `test/computation/` is named for a module there. Each of those fails silently
+rather than loudly. When you add a rule here, check whether `scripts/check-conventions.mjs` can hold
+it, and write the failing case before the check — a guard that has never failed proves nothing.
+
+**The script now proves its own predicates on every run**, before any rule, reporting "the checker
+itself is broken" rather than a violation. That is not decoration: the `test/computation/` naming
+rule was first written to split a suite name on its first `-`, which rejects
+`mean-astronomy.test.ts` — a file that was already correct — and only reading caught it. Two kinds
+of check, catching **disjoint** failures, so write both. An **invariant derived from the tree**
+catches what nobody thought of: "every module's own name is an acceptable suite name" fails the
+segment-splitting predicate immediately and mentions no filename. A **literal case** catches what
+the invariant cannot see: an equality-only predicate satisfies that invariant and still rejects
+`calendar-leap-index-threshold`. When this was demonstrated by mutation, the invariant caught the
+real bug and all three literal cases passed.
+
+Not every predicate can have an invariant, and a vacuous one is worse than none because it reads as
+coverage. The validation-suite rule deliberately has no invariant: the obvious one is symmetric in
+its arguments, so it holds under the correct comparison and a reversed one alike, and reversal is
+the only interesting way that rule breaks.
 
 `lint:md` runs markdownlint against `.markdownlint.jsonc`. It does **not** check semantic line
 breaks; markdownlint has no such rule, and `MD013` is off because it fights the convention.
