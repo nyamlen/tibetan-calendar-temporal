@@ -3,7 +3,8 @@ import { isoToTibetan, tibetanDateExists } from "../../src/computation/conversio
 import { PHUGPA_HENNING } from "../../src/traditions/phugpa.js";
 import { ESZTHOFF_DATES } from "../fixtures/crosscheck-eszthoff.js";
 import { LOTSAWA_DATES } from "../fixtures/crosscheck-lotsawa.js";
-import { type CrosscheckRow, STEINERT_DATES } from "../fixtures/crosscheck-steinert.js";
+import type { CrosscheckRow } from "../fixtures/crosscheck-row.js";
+import { STEINERT_DATES } from "../fixtures/crosscheck-steinert.js";
 
 const iso = (s: string) => Temporal.PlainDate.from(s);
 

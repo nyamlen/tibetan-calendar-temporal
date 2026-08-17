@@ -101,7 +101,7 @@ const out = `/**
  * Covers ${rows.length} consecutive days, of which ${doubled} are doubled and ${leapMonthDays}
  * fall in a leap month.
  */
-import type { CrosscheckRow } from "./crosscheck-steinert.js";
+import type { CrosscheckRow } from "./crosscheck-row.js";
 
 export const ESZTHOFF_DATES: readonly CrosscheckRow[] = [
 ${body}

@@ -3,7 +3,6 @@ import { isoToTibetan, losarFor, tibetanToIso } from "../src/computation/convers
 import { rabjungFromYear, royalEraFromYear, yearNameFromYear } from "../src/computation/epoch.js";
 import { meanDate } from "../src/computation/mean-astronomy.js";
 import { deriveScaling } from "../src/computation/scaling.js";
-import { daysInMonth, leapMonthOfYear, monthsFor } from "../src/months.js";
 import {
 	animalNameFor,
 	elementNameFor,
@@ -11,7 +10,8 @@ import {
 	rabjungFor,
 	weekdayNameFor,
 	yearNameFor,
-} from "../src/naming.js";
+} from "../src/cycles.js";
+import { daysInMonth, leapMonthOfYear, monthsFor } from "../src/months.js";
 import {
 	addDays,
 	addMonths,
@@ -125,7 +125,7 @@ describe("docblock examples", () => {
 		});
 	});
 
-	describe("naming.ts", () => {
+	describe("cycles.ts", () => {
 		it("yearNameFor names 2153 the male fire horse, returning the animal every twelfth year", () => {
 			const name = yearNameFor(2153);
 			expect({ element: name.element, animal: name.animal, gender: name.gender }).toEqual({
@@ -150,7 +150,7 @@ describe("docblock examples", () => {
 
 		it("the three vocabulary lookups return their documented names", () => {
 			// These four functions are on the public surface and, before this suite, were called by
-			// nothing but the export-shape test — `naming.ts` sat at 37% function coverage.
+			// nothing but the export-shape test — `cycles.ts` sat at 37% function coverage.
 			expect(elementNameFor("fire")).toEqual({ tibetan: "མེ", wylie: "me", phonetic: "mé" });
 			expect(animalNameFor("horse")).toEqual({ tibetan: "རྟ", wylie: "rta", phonetic: "ta" });
 			expect(genderNameFor("male")).toEqual({ tibetan: "ཕོ", wylie: "pho", phonetic: "po" });

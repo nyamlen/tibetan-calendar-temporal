@@ -1,13 +1,18 @@
 /**
- * Naming a Tibetan year: the element–animal cycle and the rabjung numbering.
+ * The cyclic names of Tibetan time, and the public way to reach them.
  *
  * @remarks
- * Both are **closed forms over the year alone** — three modulos, no lunar arithmetic, no config.
- * That is what makes them worth exporting rather than reachable: they answer for years where
- * evaluating the calendar must refuse, and they cost nothing to call in bulk, which is what a year
- * picker rendering a century does.
+ * Every export here names a position in a cycle: the sixty-year element–animal cycle and the
+ * rabjung count that numbers it, the seven-day week, and the five elements, two genders and twelve
+ * animals the year name is built from. The module is the public face of `names.ts`, which holds the
+ * frozen vocabulary itself and stays internal.
  *
- * They take the **royal era**, like every other public function here, not Janson's *Y*. The
+ * `yearNameFor` and `rabjungFor` are **closed forms over the year alone** — three modulos, no lunar
+ * arithmetic, no config. That is what makes them worth exporting rather than reachable: they answer
+ * for years where evaluating the calendar must refuse, and they cost nothing to call in bulk, which
+ * is what a year picker rendering a century does.
+ *
+ * Those two take the **royal era**, like every other public function here, not Janson's *Y*. The
  * internals take *Y*, which is 127 lower; publishing those directly would have put two functions on
  * the surface whose year argument silently differed from every neighbour, returning a confident
  * answer about the wrong century rather than throwing.

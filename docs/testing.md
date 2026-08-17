@@ -7,13 +7,14 @@ trust the dates. Three tiers, all run in CI.
 
 ```text
 test/
-├── computation/          # one suite per src/computation module
+├── computation/          # named for a src/computation module, or <module>-<concept>
 ├── validation/           # Tier 2, cross-checks against external sources
 ├── fixtures/             # generated — from Janson, and from external implementations
 ├── invariants.test.ts    # year lengths, safe-integer bound, §13 period
 ├── regression.test.ts    # Tier 3, named instances of each edge case
 ├── navigation.test.ts    # arithmetic, the coordinate, the phases — and the naive versions
-├── naming.test.ts        # the year-name closed forms, including outside the exact range
+├── cycles.test.ts        # the year-name closed forms, including outside the exact range
+├── leap-month-position.test.ts  # cross-cutting: calendar, scaling, months, observances
 ├── public-api.test.ts    # the export surface, pinned
 ├── readme.test.ts        # every example the README states
 └── smoke.test.ts         # Temporal reachable as a global
@@ -22,12 +23,31 @@ test/
 Tiers 1 and 3 are interleaved with the unit suites rather than kept in separate directories —
 a property and the edge case it generalises belong next to the function they constrain.
 
+**Naming a computation suite.** A file in `test/computation/` is named for the `src/computation/`
+module it tests, optionally narrowed to a concept as `<module>-<concept>` — so
+`calendar-leap-index-threshold.test.ts` is a `calendar.ts` suite about one rule. The match is on the
+longest module prefix, **not** the first `-`-delimited segment: `mean-astronomy.ts` is the one
+hyphenated module, and a segment rule rejects `mean-astronomy.test.ts`, which is already correct.
+
+A suite whose subject spans several modules is not a computation suite and belongs at `test/` root
+beside `invariants.test.ts`. `leap-month-position.test.ts` is the case: it reaches into `calendar`,
+`scaling`, `months` and `observances`, so naming it for any one of them would promise a subject it
+does not have — the same false promise the validation-suite rule catches one directory over.
+
 **Naming a validation suite.** A test whose subject is the engine's **agreement with an external
 source** is named for the fixture — or the fixture **prefix** — it validates, and lives in
 `test/validation/`. So `janson-epoch.test.ts` covers one fixture, `fpmt.test.ts` covers the two
 `fpmt-*`, `crosscheck.test.ts` covers the three `crosscheck-*`, and `bhutan.test.ts` covers
 `bhutan.ts`. The parity is the point: a reader can find the test for a fixture without opening
 anything.
+
+**A validation suite is never named for a tradition**, and `bhutan.test.ts` is the trap. It looks
+tradition-named, but it is named for `test/fixtures/bhutan.ts` — Bhutan is simply the one tradition
+whose fixture happens to carry its name. So the absence of a `phugpa.test.ts` is the rule working,
+not a gap: Phugpa has no eponymous fixture, and its day-by-day evidence arrives as `fpmt-*` and
+`crosscheck-*`. What holds an exported config to its evidence is the separate rule that every
+config exported from the barrel must be *referenced* by some suite in `test/validation/` — `PHUGPA`
+is named in five of them.
 
 The exclusion matters as much as the rule. **Using a fixture as input does not make a test a
 validation test.** `test/computation/conversion.test.ts` imports `losar` and

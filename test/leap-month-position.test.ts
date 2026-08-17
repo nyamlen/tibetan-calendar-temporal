@@ -26,14 +26,14 @@ import {
 	monthFromCount,
 	sharesNumberWithLeapMonth,
 	trueMonthCount,
-} from "../../src/computation/calendar.js";
-import { scalingFor } from "../../src/computation/scaling.js";
-import { monthsFor } from "../../src/months.js";
-import { getObservances } from "../../src/observances/index.js";
-import type { ObservanceConfig } from "../../src/observances/types.js";
-import { PHUGPA } from "../../src/traditions/phugpa.js";
-import type { TraditionConfig } from "../../src/traditions/types.js";
-import { assertTraditionConfig } from "../../src/traditions/validate.js";
+} from "../src/computation/calendar.js";
+import { scalingFor } from "../src/computation/scaling.js";
+import { monthsFor } from "../src/months.js";
+import { getObservances } from "../src/observances/index.js";
+import type { ObservanceConfig } from "../src/observances/types.js";
+import { PHUGPA } from "../src/traditions/phugpa.js";
+import type { TraditionConfig } from "../src/traditions/types.js";
+import { assertTraditionConfig } from "../src/traditions/validate.js";
 
 /**
  * Phugpa with the ordering reversed and nothing else touched.

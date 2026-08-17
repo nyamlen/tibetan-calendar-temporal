@@ -29,7 +29,7 @@ import {
 	WEEKDAY_ATTRIBUTES,
 	WEEKDAY_NAMES,
 } from "./fixtures/names.js";
-import { assertNoDiscouragedCodepoints } from "./support/tibetan-unicode.js";
+import { assertNoDiscouragedCodepoints } from "./support/unicode-tibetan.js";
 
 describe("src/names.ts matches the verified fixture", () => {
 	it.each(WEEKDAY_NAMES)("weekday $key is $wylie", (row) => {

@@ -9,9 +9,9 @@ import {
 	tibetanToIso,
 	tibetanWeekday,
 } from "../src/computation/conversion.js";
+import { rabjungFor, yearNameFor } from "../src/cycles.js";
 import { formatTibetanDate } from "../src/format.js";
 import { datesFor, daysInMonth, hasLeapMonth, leapMonthOfYear, monthsFor } from "../src/months.js";
-import { rabjungFor, yearNameFor } from "../src/naming.js";
 import { addMonths, monthsBetween, nextFullMoon } from "../src/navigation.js";
 import { GELUG, getObservances, observancesOn } from "../src/observances/index.js";
 import { parseTibetanDate } from "../src/parse.js";
