@@ -364,19 +364,36 @@ if (existsSync(resolve(root, MAP))) {
 // Tibetan numeral is a plausible wrong date, which is the failure this package exists to prevent.
 //
 // "Parsing it is inconvenient" is not the test. Both of these have no markup whatsoever.
+//
+// A third category, and it is a category rather than a grown exception: a file that **carries no
+// data at all**. crosscheck-row.ts holds the row type its three sibling fixtures share and declares
+// no value, so the transcription error this rule exists to prevent cannot occur in it — there is
+// nothing to transcribe.
+//
+// It is checked first, deliberately. A type-only module would otherwise pass by *accident*, since
+// the three generators emit an import naming it and `source.includes(name)` cannot tell an import
+// line from a generator's output. A provenance rule that passes for the wrong reason is worse than
+// one that fails, so the category is stated rather than left to coincidence.
 // ---------------------------------------------------------------------------------------
 
 const HAND_CURATED = new Set(["fpmt-holy-days.ts", "rgob.ts"]);
 const generators = tracked("scripts/*.mjs").map((file) => ({ file, source: read(file) }));
 
+/** A module declaring only types: no `export const`, `function`, `class`, `let` or `var`. */
+const carriesNoData = (fixture) =>
+	!codeLines(read(fixture)).some(({ code }) =>
+		/^export\s+(?:const|let|var|function|class|default)\b/.test(code.trim()),
+	);
+
 for (const fixture of tracked("test/fixtures/*.ts")) {
 	const name = basename(fixture, ".ts");
 	if (HAND_CURATED.has(`${name}.ts`)) continue;
+	if (carriesNoData(fixture)) continue;
 	if (!generators.some(({ source }) => source.includes(name))) {
 		fail(
 			"fixture provenance",
 			fixture,
-			`no script in scripts/ names this fixture. Fixtures are generated, not transcribed — add the generator and commit it alongside the output. The only exceptions are ${[...HAND_CURATED].join(" and ")}, and both earn it the same narrow way: their source has no markup at all, so a generator could only wrap a lossy reading. "Parsing it is inconvenient" is not the test.`,
+			`no script in scripts/ names this fixture, and it declares data. Fixtures are generated, not transcribed — add the generator and commit it alongside the output. The only exceptions are ${[...HAND_CURATED].join(" and ")}, and both earn it the same narrow way: their source has no markup at all, so a generator could only wrap a lossy reading. "Parsing it is inconvenient" is not the test. A file declaring only types is exempt, having nothing to transcribe.`,
 		);
 	}
 }

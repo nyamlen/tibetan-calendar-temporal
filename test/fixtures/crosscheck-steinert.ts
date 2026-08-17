@@ -16,20 +16,7 @@
  * fall in a leap month. Skipped dates are absent by construction: they name no calendar day, so
  * the API has no row to return for them.
  */
-export interface CrosscheckRow {
-	/** ISO date. */
-	iso: string;
-	/** Tibetan month number, 1-12. */
-	month: number;
-	/** Tibetan day number, 1-30. */
-	day: number;
-	/** Whether this day falls in a leap month. Omitted where false. */
-	isLeapMonth?: boolean;
-	/** Whether this day's number is shared with an adjacent calendar day. Omitted where false. */
-	isDoubledDay?: boolean;
-	/** Whether this is the first day of a doubled pair. Omitted where false. */
-	isLeapDay?: boolean;
-}
+import type { CrosscheckRow } from "./crosscheck-row.js";
 
 export const STEINERT_DATES: readonly CrosscheckRow[] = [
 	{ iso: "2024-01-01", month: 11, day: 20 },

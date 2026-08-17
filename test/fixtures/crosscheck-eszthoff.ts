@@ -15,7 +15,7 @@
  * Covers 1826 consecutive days, of which 78 are doubled and 59
  * fall in a leap month.
  */
-import type { CrosscheckRow } from "./crosscheck-steinert.js";
+import type { CrosscheckRow } from "./crosscheck-row.js";
 
 export const ESZTHOFF_DATES: readonly CrosscheckRow[] = [
 	{ iso: "2023-01-01", month: 11, day: 10 },

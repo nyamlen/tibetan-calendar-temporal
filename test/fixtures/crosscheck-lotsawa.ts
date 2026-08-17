@@ -16,7 +16,7 @@
  * 59 fall in a leap month. Skipped dates are absent by construction: they name no
  * calendar day, so the calculator prints no row for them.
  */
-import type { CrosscheckRow } from "./crosscheck-steinert.js";
+import type { CrosscheckRow } from "./crosscheck-row.js";
 
 export const LOTSAWA_DATES: readonly CrosscheckRow[] = [
 	{ iso: "2023-02-21", month: 1, day: 1 },
