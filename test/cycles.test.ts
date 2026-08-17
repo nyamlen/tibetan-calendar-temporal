@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { losarFor } from "../src/computation/conversion.js";
-import { rabjungFor, yearNameFor } from "../src/naming.js";
+import { rabjungFor, yearNameFor } from "../src/cycles.js";
 import { PHUGPA_HENNING } from "../src/traditions/phugpa.js";
 
 const codeOf = (call: () => unknown): string | undefined => {

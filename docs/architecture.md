@@ -130,7 +130,7 @@ tibetan-calendar-temporal/
 │   ├── parse.ts              # parseTibetanDate — its inverse
 │   ├── months.ts             # monthsFor, datesFor, daysInMonth, the three closed-form scalars
 │   ├── navigation.ts         # the lunation coordinate, day and month arithmetic, the phases
-│   ├── naming.ts             # yearNameFor, rabjungFor — closed forms over the year alone
+│   ├── cycles.ts             # yearNameFor, rabjungFor — closed forms over the year alone
 │   └── types.ts              # TibetanDate, TibetanMonth, their field shapes, SkippedDayError
 ├── test/
 │   ├── computation/          # One suite per computation module

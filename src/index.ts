@@ -54,6 +54,14 @@ export {
 	tibetanToIso,
 	tibetanWeekday,
 } from "./computation/conversion.js";
+export {
+	animalNameFor,
+	elementNameFor,
+	genderNameFor,
+	rabjungFor,
+	weekdayNameFor,
+	yearNameFor,
+} from "./cycles.js";
 export type { TibetanCalendarErrorCode } from "./errors.js";
 export { formatTibetanDate } from "./format.js";
 export {
@@ -64,14 +72,6 @@ export {
 	monthsFor,
 	monthsInYear,
 } from "./months.js";
-export {
-	animalNameFor,
-	elementNameFor,
-	genderNameFor,
-	rabjungFor,
-	weekdayNameFor,
-	yearNameFor,
-} from "./naming.js";
 export {
 	addDays,
 	addMonths,

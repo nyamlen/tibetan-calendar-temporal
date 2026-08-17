@@ -13,7 +13,7 @@ test/
 ├── invariants.test.ts    # year lengths, safe-integer bound, §13 period
 ├── regression.test.ts    # Tier 3, named instances of each edge case
 ├── navigation.test.ts    # arithmetic, the coordinate, the phases — and the naive versions
-├── naming.test.ts        # the year-name closed forms, including outside the exact range
+├── cycles.test.ts        # the year-name closed forms, including outside the exact range
 ├── public-api.test.ts    # the export surface, pinned
 ├── readme.test.ts        # every example the README states
 └── smoke.test.ts         # Temporal reachable as a global
