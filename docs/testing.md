@@ -41,6 +41,14 @@ source** is named for the fixture — or the fixture **prefix** — it validates
 `bhutan.ts`. The parity is the point: a reader can find the test for a fixture without opening
 anything.
 
+**A validation suite is never named for a tradition**, and `bhutan.test.ts` is the trap. It looks
+tradition-named, but it is named for `test/fixtures/bhutan.ts` — Bhutan is simply the one tradition
+whose fixture happens to carry its name. So the absence of a `phugpa.test.ts` is the rule working,
+not a gap: Phugpa has no eponymous fixture, and its day-by-day evidence arrives as `fpmt-*` and
+`crosscheck-*`. What holds an exported config to its evidence is the separate rule that every
+config exported from the barrel must be *referenced* by some suite in `test/validation/` — `PHUGPA`
+is named in five of them.
+
 The exclusion matters as much as the rule. **Using a fixture as input does not make a test a
 validation test.** `test/computation/conversion.test.ts` imports `losar` and
 `test/computation/epoch.test.ts` imports `sixty-year-cycle`, but their subject is a module, so they
