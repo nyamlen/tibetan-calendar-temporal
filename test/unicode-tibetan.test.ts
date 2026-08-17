@@ -30,7 +30,7 @@ import { describe, expect, it } from "vitest";
 import {
 	assertNoDiscouragedCodepoints,
 	DISCOURAGED_TIBETAN_CODEPOINTS,
-} from "./support/tibetan-unicode.js";
+} from "./support/unicode-tibetan.js";
 
 /** Representative syllables, chosen for the hazards rather than for coverage of the vocabulary. */
 const SYLLABLES: ReadonlyArray<readonly [string, string]> = [
