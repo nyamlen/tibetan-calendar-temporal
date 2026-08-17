@@ -65,8 +65,8 @@ install.
 - **Temporal-native** — `Temporal.PlainDate` throughout, no legacy `Date`
 - **Zero runtime dependencies** — Temporal is a language built-in
 - **Integer arithmetic only** — deterministic, cross-platform-identical results
-- **Tradition-agnostic** — astronomical constants injected via config. v1 ships Phugpa only;
-  Tsurphu is addable as data rather than as a code change
+- **Tradition-agnostic** — astronomical constants and conventions injected via config. v1 ships the
+  **Phugpa** and **Bhutanese** calendars; Tsurphu is addable as data rather than as a code change
 - **Pure stateless functions** — memoizable, safe to offload to a worker
 - **ESM only**
 

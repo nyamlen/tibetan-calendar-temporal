@@ -156,8 +156,10 @@ derivation; in `docs/` they are just noise.
   pass nearly every test, since `PHUGPA` and `PHUGPA_HENNING` diverge at month level in only four
   years between 1500 and 2500. And **never hand out shared mutable state**: return a fresh array, or
   one consumer's `sort()` corrupts the next consumer's.
-- **Tradition constants are injected** via `TraditionConfig`, never hardcoded. v1 ships
-  `PHUGPA` only, but Tsurphu must remain addable without touching the algorithm.
+- **Tradition constants are injected** via `TraditionConfig`, never hardcoded. v1 ships `PHUGPA`,
+  `PHUGPA_HENNING`, `BHUTAN` and `BHUTAN_HENNING`; Tsurphu and the Mongolian version must remain
+  addable without touching the algorithm, and the promise is no longer theoretical — Bhutan was added
+  that way on 2026-08-16, and it took two new config fields and no change to any formula.
 
   **That promise was false until 2026-08-16, and the way it was false is the lesson.** Every
   *constant* was injected, but the **leap-month rule itself** was hardcoded to Phugpa's — Janson

@@ -3,8 +3,14 @@
  *
  * @remarks
  * Everything that varies by tradition lives here, so that a second tradition is a new
- * {@link TraditionConfig} rather than a change to any computation module. v1 ships
- * {@link ../traditions/phugpa.PHUGPA} only.
+ * {@link TraditionConfig} rather than a change to any computation module. That held when tested:
+ * {@link ../traditions/bhutan.BHUTAN} was added on 2026-08-16 and needed two new fields on this
+ * interface and no change to any formula.
+ *
+ * Shipped: {@link ../traditions/phugpa.PHUGPA}, `PHUGPA_HENNING`,
+ * {@link ../traditions/bhutan.BHUTAN} and `BHUTAN_HENNING`. Tsurphu and the Mongolian version are
+ * expressible and documented in `docs/traditions.md`, and deliberately not exported — nothing
+ * validates a date for either.
  *
  * Note that this is **not** the same claim as "only the constants differ", which an earlier
  * version of this docblock made about Tsurphu and which is false: Tsurphu, the Mongolian and the
