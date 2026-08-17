@@ -153,6 +153,36 @@ const namedForModule = (suite, modules) =>
  */
 const validatesFixture = (suite, fixtures) => fixtures.some((fixture) => fixture.startsWith(suite));
 
+/**
+ * Rule 10 — the names a module imports through a braced import list.
+ *
+ * Runs over `codeOf`, so a commented-out import does not count. Two things it deliberately does
+ * not match, both stated in Rule 10's own comment: namespace imports (`import * as t`) and default
+ * imports. No suite uses either, and the resulting failure would be loud rather than silent.
+ *
+ * The `[^}]*` spans newlines, which is not incidental — `test/validation/` already contains
+ * multi-line `import {` blocks, and a line-oriented pattern would under-match and fail a suite
+ * that is perfectly correct.
+ */
+const IMPORT_LIST = /import\s+(?:type\s+)?\{([^}]*)\}\s+from\s+["'][^"']+["']/g;
+
+const importedNames = (source) => {
+	const names = new Set();
+	for (const [, list] of codeOf(source).matchAll(IMPORT_LIST)) {
+		for (const part of list.split(",")) {
+			// `{ type CrosscheckRow, STEINERT_DATES }` and `{ PHUGPA as P }` both reduce to the
+			// name as the exporting module spells it, which is what Rule 10 asks about.
+			const name = part
+				.trim()
+				.replace(/^type\s+/, "")
+				.split(/\s+as\s+/)[0]
+				.trim();
+			if (name !== "") names.add(name);
+		}
+	}
+	return names;
+};
+
 /** Rule 7 — a module declaring only types: no `export const`, `function`, `class`, `let` or `var`. */
 const carriesNoData = (source) =>
 	!codeLines(source).some(({ code }) =>
@@ -242,6 +272,36 @@ function selfTest() {
 		carriesNoData("// export const ROWS = [];\nexport type Row = { iso: string };"),
 		true,
 		"the words in a comment must not count as a declaration. Cross-checks codeLines.",
+	);
+
+	// --- Rule 10. ---
+	check(
+		"importedNames",
+		importedNames('import {\n\tPHUGPA,\n\tPHUGPA_HENNING,\n} from "../../src/x.js";').has(
+			"PHUGPA_HENNING",
+		),
+		true,
+		"REQUIRED, not incidental: test/validation/ already holds multi-line import blocks. A line-oriented pattern under-matches and fails a suite that is perfectly correct — and it would fire on someone's reformatting, not on the change that introduced it.",
+	);
+	check(
+		"importedNames",
+		importedNames('describe("PHUGPA dates", () => {});\n// PHUGPA is checked in fpmt.test.ts').has(
+			"PHUGPA",
+		),
+		false,
+		"a comment and a describe title are exactly what satisfied the old grep. Closing that is the point of the rule change.",
+	);
+	check(
+		"importedNames",
+		importedNames('// import { TSURPHU } from "../../src/traditions/tsurphu.js";').has("TSURPHU"),
+		false,
+		"a commented-out import is not an import; importedNames runs over codeOf for this reason.",
+	);
+	check(
+		"importedNames",
+		importedNames('import { PHUGPA as PHUGPA_DEFAULT } from "../../src/x.js";').has("PHUGPA"),
+		true,
+		"an alias still imports the name the exporting module spells, which is what Rule 10 asks about.",
 	);
 
 	// --- codeLines, which several rules depend on and none would notice breaking. ---
@@ -684,27 +744,38 @@ for (const file of testFiles) {
 // docs/decisions/2026-08-16-exported-means-validated.md.
 //
 // The check is deliberately weaker than the rule: it cannot tell whether a suite validates much,
-// only that one references the config. That is the part a machine can see, and it fails on the
+// only that one **imports** the config. That is the part a machine can see, and it fails on the
 // mistake the rule is about — adding an export without adding evidence. Tsurphu and the Mongolian
 // version are the live case: both are fully expressible and their leap months are checked, and
 // both must stay unexported until something checks a date.
+//
+// Imported, not merely mentioned. Until 2026-08-17 this concatenated every suite and grepped for
+// `\bPHUGPA\b`, which a **comment** satisfied as readily as an assertion — so deleting a suite's
+// assertions while leaving the prose behind kept the rule green. Stripping comments would not have
+// been enough either: `describe("BHUTAN dates", …)` is a string literal, and `codeLines` does not
+// track those. An import is the smallest thing that cannot be faked by writing about it.
+//
+// Two deliberate blind spots, so the next person to hit one does not read it as a bug in their own
+// code: **namespace imports** (`import * as t`) and default imports are not matched. No suite uses
+// either. The failure would be a loud false positive rather than a silent pass, which is the right
+// direction for a rule whose job is to refuse an unevidenced export.
 // ---------------------------------------------------------------------------------------
 
 const CONFIG_EXPORT = /^export \{([^}]*)\} from "\.\/traditions\/[\w-]+\.js";$/gm;
-const validationSuites = tracked("test/validation")
-	.filter((file) => file.endsWith(".test.ts"))
-	.map((file) => read(file))
-	.join("\n");
+const validationImports = new Set();
+for (const file of tracked("test/validation").filter((file) => file.endsWith(".test.ts"))) {
+	for (const name of importedNames(read(file))) validationImports.add(name);
+}
 
 for (const [, names] of read("src/index.ts").matchAll(CONFIG_EXPORT)) {
 	for (const name of names.split(",").map((part) => part.trim())) {
 		// Type-only exports carry no dates and nothing to validate.
 		if (name === "" || name.startsWith("type ") || !/^[A-Z][A-Z0-9_]*$/.test(name)) continue;
-		if (!new RegExp(`\\b${name}\\b`).test(validationSuites)) {
+		if (!validationImports.has(name)) {
 			fail(
 				"exported configs are validated",
 				"src/index.ts",
-				`exports the tradition config \`${name}\`, which no suite in test/validation/ references. Exporting a config asserts its dates are that tradition's real dates, which self-consistency cannot establish — a round trip proves the arithmetic inverts itself and cannot catch a shared misreading of the paper. Tile it against an external calendar day by day, record the window in docs/testing.md, and keep it in docs/traditions.md as data until then.`,
+				`exports the tradition config \`${name}\`, which no suite in test/validation/ imports. Exporting a config asserts its dates are that tradition's real dates, which self-consistency cannot establish — a round trip proves the arithmetic inverts itself and cannot catch a shared misreading of the paper. Tile it against an external calendar day by day, record the window in docs/testing.md, and keep it in docs/traditions.md as data until then. Naming it in a comment or a describe title does not count, and a namespace import is not matched.`,
 			);
 		}
 	}
