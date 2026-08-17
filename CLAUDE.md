@@ -101,7 +101,7 @@ Neither justification extends to the calendars above. Do not "fix" either by try
 and do not delete either for breaking the rule. See `docs/testing.md`, which also states the window
 each agreement actually covers — Phugpa's day-by-day external validation spans 2022–2027 against a
 documented range starting 1447, and Bhutan's spans 2000 to early 2030 against one lineage plus
-fourteen government-published days — so cite the window whenever citing the agreement.
+twenty-five government-published days — so cite the window whenever citing the agreement.
 
 `scripts/rabjung-names.data.json` is **not** a second exception, because it is not a fixture: no
 test reads it, and nothing in `src/` depends on it. It holds the hand-written Lhasa-phonetic and

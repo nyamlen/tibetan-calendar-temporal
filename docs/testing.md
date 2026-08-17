@@ -165,7 +165,7 @@ Those are all **Phugpa**. Bhutan has a window of its own, and a wider one:
 | Month sequence, at one unique offset | 2000 – early 2030 | the same, reduced to months |
 | Leap months | 2000–2030 | Janson's four-version table — a separate lineage |
 | Losar 2003 | 2003 | Janson's Bhutan appendix |
-| `BHUTAN`, fourteen days | 2026 | **the Royal Government of Bhutan's own calendar**, via `test/fixtures/rgob.ts` |
+| `BHUTAN`, twenty-five days | 2025-2026 | **the Royal Government of Bhutan's own calendar**, via `test/fixtures/rgob.ts` |
 
 Three things to keep straight about that window. It ends in **early 2030**, not at the end of 2030,
 because the source carries one leap month Janson does not list — see the remarks in
@@ -176,12 +176,12 @@ independent, but everything checking Bhutanese *day numbers* traces to Henning's
 
 The last row is the exception, and it is why it exists. `test/fixtures/rgob.ts` is the Royal
 Government's own published calendar, so it is the only non-Henning check on Bhutanese day numbers
-here. Fourteen rows against eleven thousand — breadth is not the contribution, independence is — and
+here. Twenty-five rows against eleven thousand — breadth is not the contribution, independence is — and
 it deliberately includes Losar and a **skipped day**, which a wrong epoch would not survive.
 
 It also bears on Janson's unexplained 2003 divergence between Bhutan's government calendar and the
 computed line: nothing in 2026 reproduces it. State that as "isolated on this evidence", not as
-resolved. And note what it cannot do — `BHUTAN` and `BHUTAN_HENNING` agree on all fourteen days, so
+resolved. And note what it cannot do — `BHUTAN` and `BHUTAN_HENNING` agree on all twenty-five days, so
 it does not discriminate the `a₂` fork. That needs a year holding 2001-12-10, 2004-04-10 or
 2020-04-23; the Ministry publishes only 2025 and 2026, and the Wayback Machine holds only 2026.
 

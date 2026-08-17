@@ -23,7 +23,7 @@
  * "I have no explanation for this discrepancy." Nothing here reproduces that divergence: the rows
  * below agree with the engine throughout, including a skipped day. On this evidence the 2003
  * disagreement is isolated rather than systematic — which is a narrower claim than "explained", and
- * is all that should be drawn from fourteen rows of one year.
+ * is all that should be drawn from twenty-five rows across two years.
  *
  * **What it does not establish.** `BHUTAN` and `BHUTAN_HENNING` agree on every date below, so this
  * says nothing about the `a₂` fork. Settling that needs a year containing one of its divergence
@@ -34,9 +34,14 @@
  * a human deliberately: an earlier machine reading of the same document misread three cells in
  * nineteen, all of them `༠` against `༤` or `༥` against `༦`.
  *
- * Source: {@link https://www.moha.gov.bt/wp-content/uploads/2025/11/calender-2026.pdf}
- * — Royal Government of Bhutan, Ministry of Home Affairs, Tashichhodzong, calendar for 2026.
- * Linked from {@link https://www.moha.gov.bt/?page_id=5611}.
+ * Sources, both Royal Government of Bhutan, Ministry of Home Affairs, Tashichhodzong, and both
+ * linked from {@link https://www.moha.gov.bt/?page_id=5611} — the only two years the Ministry
+ * publishes:
+ *
+ * - 2026: {@link https://www.moha.gov.bt/wp-content/uploads/2025/11/calender-2026.pdf}
+ * - 2025: {@link https://www.moha.gov.bt/wp-content/uploads/2024/11/Calendar_2025.pdf}
+ *
+ * In both, pages 5–16 are the twelve monthly grids and page 5 is January.
  */
 
 /** One day as the Royal Government's calendar prints it. */
@@ -76,3 +81,35 @@ export const RGOB_2026: readonly RgobDay[] = [
 	{ iso: "2026-06-20", day: 6, page: 10, holiday: false },
 	{ iso: "2026-06-24", day: 10, page: 10, holiday: true },
 ];
+
+/**
+ * The 2025 calendar, chosen for its **irregularities** rather than its holidays.
+ *
+ * Two skipped days and two doubled days, each read as a pair of adjacent cells so the irregularity
+ * is visible in the data rather than asserted about it: `2025-01-10` is day 11 and `2025-01-11` is
+ * day 13, so day 12 is in no cell; `2025-01-19` and `2025-01-20` both print day 21.
+ *
+ * These are the rows that carry the weight. A run of ordinary consecutive days agrees under almost
+ * any epoch error; a doubled day is where Janson's §8 warns that published tables go wrong, because
+ * it depends on the lunar-day classification rather than on the month arithmetic.
+ *
+ * The Royal Government's grid simply prints the number twice for a doubled day and does not mark
+ * which member is the intercalated one, so nothing here claims it does. The engine's own
+ * `isLeapDay` convention is checked in the suite against the *ordering*, not against this source.
+ */
+export const RGOB_2025: readonly RgobDay[] = [
+	{ iso: "2025-01-02", day: 3, page: 5, holiday: true },
+	{ iso: "2025-01-10", day: 11, page: 5, holiday: false },
+	{ iso: "2025-01-11", day: 13, page: 5, holiday: false, note: "day 12 skipped" },
+	{ iso: "2025-01-19", day: 21, page: 5, holiday: false, note: "day 21 doubled, first cell" },
+	{ iso: "2025-01-20", day: 21, page: 5, holiday: false, note: "day 21 doubled, second cell" },
+	{ iso: "2025-01-30", day: 1, page: 5, holiday: true, note: "first day of month 12" },
+	{ iso: "2025-02-03", day: 5, page: 6, holiday: false },
+	{ iso: "2025-02-04", day: 7, page: 6, holiday: false, note: "day 6 skipped" },
+	{ iso: "2025-02-21", day: 24, page: 6, holiday: true, note: "day 24 doubled, first cell" },
+	{ iso: "2025-02-22", day: 24, page: 6, holiday: true, note: "day 24 doubled, second cell" },
+	{ iso: "2025-02-23", day: 25, page: 6, holiday: true },
+];
+
+/** Every government-published day here, both years, in date order. */
+export const RGOB_DAYS: readonly RgobDay[] = [...RGOB_2025, ...RGOB_2026];
