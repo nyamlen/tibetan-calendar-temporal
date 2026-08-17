@@ -80,14 +80,28 @@ list of observance dates cannot. Parse the markup, never a summarised rendering:
 fetch got the month-span caption wrong, reading the range `Tibetan Months 9-11` as two months
 rather than three. This is the same failure the LaTeX rule exists to prevent.
 
-The one deliberate exception to the generated rule is `test/fixtures/fpmt-holy-days.ts`, which is
-hand-curated because FPMT publishes *those* dates in prose announcements with no feed to parse.
-That justification is narrower than it looks and does not extend to the calendars above. Do not
-"fix" it by trying to generate it, and do not delete it for breaking the rule. Its safeguards are
-that it is short enough to check by eye, every row carries its source URL, and every row was
-confirmed against three independent implementations first. See `docs/testing.md`, which also states
-the window that agreement actually covers — day-by-day external validation spans 2022–2027, against
-a documented range starting 1447, so cite the window whenever citing the agreement.
+There are **two** deliberate exceptions to the generated rule, and the test for both is narrow: the
+authority publishes the data with **nothing to parse**, so a generator could only wrap a lossy
+reading. "Parsing it is inconvenient" is not the test.
+
+`test/fixtures/fpmt-holy-days.ts` is hand-curated because FPMT publishes *those* dates in prose
+announcements with no feed. Its safeguards are that it is short enough to check by eye, every row
+carries its source URL, and every row was confirmed against three independent implementations first.
+
+`test/fixtures/rgob.ts` is hand-curated because the Royal Government of Bhutan publishes its calendar
+as a **scanned PDF with no text layer** — `pdftotext` returns nothing — so a generator would be OCR,
+and an OCR misread of a Tibetan numeral is a plausible wrong date. It earns the exception by being
+the only Bhutanese source here that is *not* Henning's lineage: `test/fixtures/bhutan.ts` descends
+from his "Open Source Bhutanese Calendar" software, and so does every other one found. **Its numerals
+were read by a human on purpose** — a machine reading of the same document misread three cells in
+nineteen, all `༠` against `༤` or `༥` against `༆`. Do not regenerate it, and do not extend it from a
+machine reading.
+
+Neither justification extends to the calendars above. Do not "fix" either by trying to generate it,
+and do not delete either for breaking the rule. See `docs/testing.md`, which also states the window
+each agreement actually covers — Phugpa's day-by-day external validation spans 2022–2027 against a
+documented range starting 1447, and Bhutan's spans 2000 to early 2030 against one lineage plus
+fourteen government-published days — so cite the window whenever citing the agreement.
 
 `scripts/rabjung-names.data.json` is **not** a second exception, because it is not a fixture: no
 test reads it, and nothing in `src/` depends on it. It holds the hand-written Lhasa-phonetic and

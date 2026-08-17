@@ -355,11 +355,18 @@ if (existsSync(resolve(root, MAP))) {
 //
 // Fixtures are generated and the generator is committed beside them; that pairing is the
 // provenance record. Hand-transcription is how a silent one-day error reaches the primary
-// correctness gate, which has happened. fpmt-holy-days.ts is the one deliberate exception,
-// because FPMT publishes those dates in prose with no feed to parse.
+// correctness gate, which has happened.
+//
+// Two deliberate exceptions, and the test for one is narrow: the authority publishes the data in
+// a form with nothing to parse, so a generator could only wrap a lossy reading. FPMT publishes its
+// holy days in prose announcements. The Royal Government of Bhutan publishes its calendar as a
+// scanned PDF with no text layer at all, where a generator would be OCR — and an OCR misread of a
+// Tibetan numeral is a plausible wrong date, which is the failure this package exists to prevent.
+//
+// "Parsing it is inconvenient" is not the test. Both of these have no markup whatsoever.
 // ---------------------------------------------------------------------------------------
 
-const HAND_CURATED = new Set(["fpmt-holy-days.ts"]);
+const HAND_CURATED = new Set(["fpmt-holy-days.ts", "rgob.ts"]);
 const generators = tracked("scripts/*.mjs").map((file) => ({ file, source: read(file) }));
 
 for (const fixture of tracked("test/fixtures/*.ts")) {
@@ -369,7 +376,7 @@ for (const fixture of tracked("test/fixtures/*.ts")) {
 		fail(
 			"fixture provenance",
 			fixture,
-			`no script in scripts/ names this fixture. Fixtures are generated, not transcribed — add the generator and commit it alongside the output. The sole exception is ${[...HAND_CURATED].join(", ")}, and that justification is narrower than it looks.`,
+			`no script in scripts/ names this fixture. Fixtures are generated, not transcribed — add the generator and commit it alongside the output. The only exceptions are ${[...HAND_CURATED].join(" and ")}, and both earn it the same narrow way: their source has no markup at all, so a generator could only wrap a lossy reading. "Parsing it is inconvenient" is not the test.`,
 		);
 	}
 }
