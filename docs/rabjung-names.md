@@ -90,63 +90,63 @@ that remains.
 
 | # | Wylie | Tibetan | Lhasa | IAST | Devanāgarī | Sanskrit (Janson) | English | Years |
 |---|-------|---------|-------|------|------------|-------------------|---------|-------|
-| 1 | `rab byung` | རབ་བྱུང་ | *rabjung* | Prabhava | प्रभव | `prabhava` | Arising | 1927, 1987 |
-| 2 | `rnam byung` | རྣམ་བྱུང་ | *namjung* | Vibhava | विभव | `vibhava` | Full arising | 1928, 1988 |
-| 3 | `dkar po` | དཀར་པོ་ | *karpo* | Śukla | शुक्ल | `suklata` | White | 1929, 1989 |
-| 4 | `rab myos` | རབ་མྱོས་ | *rabnyö* | Pramodūta | प्रमोदूत | `pramadi` | Elated | 1930, 1990 |
-| 5 | `skyes bdag` | སྐྱེས་བདག་ | *kyedak* | Prajāpati | प्रजापति | `prajapati` | Lord of creatures | 1931, 1991 |
-| 6 | `anggi ra` | ཨང་གི་ར་ | *angira* | Āṅgirasa | आङ्गिरस | `ankira` | Aṅgirasa — a ṛṣi's name, transliterated not translated | 1932, 1992 |
-| 7 | `dpal gdong` | དཔལ་གདོང་ | *paldong* | Śrīmukha | श्रीमुख | `srimukha` | Glorious face | 1933, 1993 |
-| 8 | `dngos po` | དངོས་པོ་ | *ngöpo* | Bhāva | भाव | `bhava` | Entity | 1934, 1994 |
-| 9 | `na tshod ldan` | ན་ཚོད་ལྡན་ | *natsöden* | Yuva | युव | `yuvika` | Youthful | 1935, 1995 |
-| 10 | `'dzin byed` | འཛིན་བྱེད་ | *dzinjé* | Dhātṛ | धातृ | `dhritu` | Holder | 1936, 1996 |
-| 11 | `dbang phyug` | དབང་ཕྱུག་ | *wangchuk* | Īśvara | ईश्वर | `isvara` | Mighty lord | 1937, 1997 |
-| 12 | `'bru mang po` | འབྲུ་མང་པོ་ | *drumangpo* | Bahudhānya | बहुधान्य | `vahudhvanya` | Much grain | 1938, 1998 |
-| 13 | `myos ldan` | མྱོས་ལྡན་ | *nyöden* | Pramāthi | प्रमाथी | `pramadi` | Intoxicated | 1939, 1999 |
-| 14 | `rnam gnon` | རྣམ་གནོན་ | *namnön* | Vikrama | विक्रम | `vikrama` | Overcoming | 1940, 2000 |
-| 15 | `khyu mchog` | ཁྱུ་མཆོག་ | *khyuchok* | Vṛṣaprajā | वृषप्रजा | `brisabha` | Chief bull | 1941, 2001 |
-| 16 | `sna tshogs` | སྣ་ཚོགས་ | *natsok* | Citrabhānu | चित्रभानु | `citra` | Variegated | 1942, 2002 |
-| 17 | `nyi ma` | ཉི་མ་ | *nyima* | Svabhānu | स्वभानु | `bhanu` | Sun | 1943, 2003 |
-| 18 | `nyi sgrol byed` | ཉི་སྒྲོལ་བྱེད་ | *nyidröljé* | Tāraṇa | तारण | `bhanutara` | Sun-freeing | 1944, 2004 |
-| 19 | `sa skyong` | ས་སྐྱོང་ | *sakyong* | Pārthiva | पार्थिव | `virthapa` | Earth-protector | 1945, 2005 |
-| 20 | `mi zad` | མི་ཟད་ | *mizé* | Avyaya/Vyaya | अव्यय/व्यय | `aksaya` | Inexhaustible | 1946, 2006 |
-| 21 | `thams cad 'dul` | ཐམས་ཅད་འདུལ་ | *tamché dül* | Sarvajit | सर्वजित् | `sarvajit` | All-taming | 1947, 2007 |
-| 22 | `kun 'dzin` | ཀུན་འཛིན་ | *kündzin* | Sarvadhārī | सर्वधारी | `sarvadhari` | All-holding | 1948, 2008 |
-| 23 | `'gal ba` | འགལ་བ་ | *galwa* | Virodhī | विरोधी | `virodhi` | Opposition | 1949, 2009 |
-| 24 | `rnam 'gyur` | རྣམ་འགྱུར་ | *namgyur* | Vikṛti | विकृति | `vikrita` | Transformed | 1950, 2010 |
-| 25 | `bong bu` | བོང་བུ་ | *bongbu* | Khara | खर | `khara` | Donkey | 1951, 2011 |
-| 26 | `dga' ba` | དགའ་བ་ | *gawa* | Nandana | नन्दन | `nanda` | Joy | 1952, 2012 |
-| 27 | `rnam rgyal` | རྣམ་རྒྱལ་ | *namgyal* | Vijaya | विजय | `vijaya` | Complete victory | 1953, 2013 |
-| 28 | `rgyal ba` | རྒྱལ་བ་ | *gyalwa* | Jaya | जय | `jaya` | Victory | 1954, 2014 |
-| 29 | `myos byed` | མྱོས་བྱེད་ | *nyöjé* | Manmatha | मन्मथ | `mada` | Intoxicating | 1955, 2015 |
-| 30 | `gdong ngan` | གདོང་ངན་ | *dongngen* | Durmukha | दुर्मुख | `durmukha` | Ill-faced | 1956, 2016 |
-| 31 | `gser 'phyang` | གསེར་འཕྱང་ | *serchang* | Hevilambi | हेविळम्बि | `hemalambha` | Hanging gold | 1957, 2017 |
-| 32 | `rnam 'phyang` | རྣམ་འཕྱང་ | *namchang* | Vilambi | विळम्बि | `vilambhi` | Hanging down | 1958, 2018 |
-| 33 | `sgyur byed` | སྒྱུར་བྱེད་ | *gyurjé* | Vikāri | विकारि | `vikari` | Transforming | 1959, 2019 |
-| 34 | `kun ldan` | ཀུན་ལྡན་ | *künden* | Śārvarī | शार्वरी | `sarvavati` | All-possessing | 1960, 2020 |
-| 35 | `'phar ba` | འཕར་བ་ | *pharwa* | Plava | प्लव | `slava` | Leaping | 1961, 2021 |
-| 36 | `dge byed` | དགེ་བྱེད་ | *gejé* | Śubhakṛt | शुभकृत् | `subhakrita` | Virtue-making | 1962, 2022 |
-| 37 | `mdzes byed` | མཛེས་བྱེད་ | *dzejé* | Śobhakṛt | शोभकृत् | `sobhana` | Beautifying | 1963, 2023 |
-| 38 | `khro mo` | ཁྲོ་མོ་ | *thromo* | Krodhī | क्रोधी | `krodhi` | Wrathful — feminine, against 59 | 1964, 2024 |
-| 39 | `sna tshogs dbyig` | སྣ་ཚོགས་དབྱིག་ | *natsok yik* | Viśvāvasu | विश्वावसु | `visvabandhu` | Manifold wealth | 1965, 2025 |
-| 40 | `zil gnon` | ཟིལ་གནོན་ | *zilnön* | '''Parābhava''' | '''पराभव''' | `parabhava` | Overwhelming | 1966, 2026 |
-| 41 | `spre'u` | སྤྲེའུ་ | *treu* | Plavaṅga | प्लवङ्ग | `pravamga` | Monkey | 1967, 2027 |
-| 42 | `phur bu` | ཕུར་བུ་ | *phurbu* | Kīlaka | कीलक | `kilaka` | Peg | 1968, 2028 |
-| 43 | `zhi ba` | ཞི་བ་ | *shiwa* | Saumya | सौम्य | `saumya` | Peaceful | 1969, 2029 |
-| 44 | `thun mong` | ཐུན་མོང་ | *thünmong* | Sādhāraṇa | साधारण | `sadharana` | Common | 1970, 2030 |
-| 45 | `'gal byed` | འགལ་བྱེད་ | *galjé* | Virodhakṛta | विरोधकृत | `virobhakrita` | Opposition-making | 1971, 2031 |
-| 46 | `yongs 'dzin` | ཡོངས་འཛིན་ | *yongdzin* | Paridhāvi | परिधावी | `paradhari` | Wholly-holding | 1972, 2032 |
-| 47 | `bag med` | བག་མེད་ | *bakmé* | Pramādi | प्रमादी | `pramadi` | Heedless | 1973, 2033 |
-| 48 | `kun dga'` | ཀུན་དགའ་ | *künga* | Ānanda | आनंद | `ananda` | Complete joy | 1974, 2034 |
-| 49 | `srin bu` | སྲིན་བུ་ | *sinbu* | Rākṣasa | राक्षस | `raksasa` | Demon | 1975, 2035 |
-| 50 | `me` | མེ་ | *me* | Nala/Anala | नल/अनल | `anala` | Fire | 1976, 2036 |
-| 51 | `dmar ser can` | དམར་སེར་ཅན་ | *marserchen* | Piṅgala | पिंगल | `vingala` | Tawny — reddish-yellow | 1977, 2037 |
-| 52 | `dus kyi pho nya` | དུས་ཀྱི་ཕོ་ཉ་ | *tükyi ponya* | Kālayukta | कालयुक्त | `kaladuti` | Messenger of time | 1978, 2038 |
-| 53 | `don grub` | དོན་གྲུབ་ | *döndrub* | Siddhārthi | सिद्धार्थी | `siddhartha` | Aim accomplished | 1979, 2039 |
-| 54 | `drag po` | དྲག་པོ་ | *trakpo* | Raudri | रौद्र | `rudra` | Fierce | 1980, 2040 |
-| 55 | `blo ngan` | བློ་ངན་ | *longen* | Durmati | दुर्मति | `durmati` | Ill-minded | 1981, 2041 |
-| 56 | `rnga chen` | རྔ་ཆེན་ | *ngachen* | Dundubhi | दुन्दुभी | `dundubhi` | Great drum | 1982, 2042 |
-| 57 | `khrag skyug` | ཁྲག་སྐྱུག་ | *thrakkyuk* | Rudhirodgāri | रूधिरोद्गारी | `rudhirura` | Blood-spitting | 1983, 2043 |
-| 58 | `mig dmar` | མིག་དམར་ | *mikmar* | Raktākṣi | रक्ताक्षि | `raktaksi` | Red-eyed | 1984, 2044 |
-| 59 | `khro bo` | ཁྲོ་བོ་ | *throwo* | Krodhana/Manyu | क्रोधन | `krodhana` | Wrathful — masculine, against 38 | 1985, 2045 |
-| 60 | `zad pa` | ཟད་པ་ | *zepa* | Akshaya | अक्षय | `ksayaka` | Exhaustion | 1986, 2046 |
+| 1 | `rab byung` | རབ་བྱུང | *rabjung* | Prabhava | प्रभव | `prabhava` | Arising | 1927, 1987 |
+| 2 | `rnam byung` | རྣམ་བྱུང | *namjung* | Vibhava | विभव | `vibhava` | Full arising | 1928, 1988 |
+| 3 | `dkar po` | དཀར་པོ | *karpo* | Śukla | शुक्ल | `suklata` | White | 1929, 1989 |
+| 4 | `rab myos` | རབ་མྱོས | *rabnyö* | Pramodūta | प्रमोदूत | `pramadi` | Elated | 1930, 1990 |
+| 5 | `skyes bdag` | སྐྱེས་བདག | *kyedak* | Prajāpati | प्रजापति | `prajapati` | Lord of creatures | 1931, 1991 |
+| 6 | `anggi ra` | ཨང་གི་ར | *angira* | Āṅgirasa | आङ्गिरस | `ankira` | Aṅgirasa — a ṛṣi's name, transliterated not translated | 1932, 1992 |
+| 7 | `dpal gdong` | དཔལ་གདོང | *paldong* | Śrīmukha | श्रीमुख | `srimukha` | Glorious face | 1933, 1993 |
+| 8 | `dngos po` | དངོས་པོ | *ngöpo* | Bhāva | भाव | `bhava` | Entity | 1934, 1994 |
+| 9 | `na tshod ldan` | ན་ཚོད་ལྡན | *natsöden* | Yuva | युव | `yuvika` | Youthful | 1935, 1995 |
+| 10 | `'dzin byed` | འཛིན་བྱེད | *dzinjé* | Dhātṛ | धातृ | `dhritu` | Holder | 1936, 1996 |
+| 11 | `dbang phyug` | དབང་ཕྱུག | *wangchuk* | Īśvara | ईश्वर | `isvara` | Mighty lord | 1937, 1997 |
+| 12 | `'bru mang po` | འབྲུ་མང་པོ | *drumangpo* | Bahudhānya | बहुधान्य | `vahudhvanya` | Much grain | 1938, 1998 |
+| 13 | `myos ldan` | མྱོས་ལྡན | *nyöden* | Pramāthi | प्रमाथी | `pramadi` | Intoxicated | 1939, 1999 |
+| 14 | `rnam gnon` | རྣམ་གནོན | *namnön* | Vikrama | विक्रम | `vikrama` | Overcoming | 1940, 2000 |
+| 15 | `khyu mchog` | ཁྱུ་མཆོག | *khyuchok* | Vṛṣaprajā | वृषप्रजा | `brisabha` | Chief bull | 1941, 2001 |
+| 16 | `sna tshogs` | སྣ་ཚོགས | *natsok* | Citrabhānu | चित्रभानु | `citra` | Variegated | 1942, 2002 |
+| 17 | `nyi ma` | ཉི་མ | *nyima* | Svabhānu | स्वभानु | `bhanu` | Sun | 1943, 2003 |
+| 18 | `nyi sgrol byed` | ཉི་སྒྲོལ་བྱེད | *nyidröljé* | Tāraṇa | तारण | `bhanutara` | Sun-freeing | 1944, 2004 |
+| 19 | `sa skyong` | ས་སྐྱོང | *sakyong* | Pārthiva | पार्थिव | `virthapa` | Earth-protector | 1945, 2005 |
+| 20 | `mi zad` | མི་ཟད | *mizé* | Avyaya/Vyaya | अव्यय/व्यय | `aksaya` | Inexhaustible | 1946, 2006 |
+| 21 | `thams cad 'dul` | ཐམས་ཅད་འདུལ | *tamché dül* | Sarvajit | सर्वजित् | `sarvajit` | All-taming | 1947, 2007 |
+| 22 | `kun 'dzin` | ཀུན་འཛིན | *kündzin* | Sarvadhārī | सर्वधारी | `sarvadhari` | All-holding | 1948, 2008 |
+| 23 | `'gal ba` | འགལ་བ | *galwa* | Virodhī | विरोधी | `virodhi` | Opposition | 1949, 2009 |
+| 24 | `rnam 'gyur` | རྣམ་འགྱུར | *namgyur* | Vikṛti | विकृति | `vikrita` | Transformed | 1950, 2010 |
+| 25 | `bong bu` | བོང་བུ | *bongbu* | Khara | खर | `khara` | Donkey | 1951, 2011 |
+| 26 | `dga' ba` | དགའ་བ | *gawa* | Nandana | नन्दन | `nanda` | Joy | 1952, 2012 |
+| 27 | `rnam rgyal` | རྣམ་རྒྱལ | *namgyal* | Vijaya | विजय | `vijaya` | Complete victory | 1953, 2013 |
+| 28 | `rgyal ba` | རྒྱལ་བ | *gyalwa* | Jaya | जय | `jaya` | Victory | 1954, 2014 |
+| 29 | `myos byed` | མྱོས་བྱེད | *nyöjé* | Manmatha | मन्मथ | `mada` | Intoxicating | 1955, 2015 |
+| 30 | `gdong ngan` | གདོང་ངན | *dongngen* | Durmukha | दुर्मुख | `durmukha` | Ill-faced | 1956, 2016 |
+| 31 | `gser 'phyang` | གསེར་འཕྱང | *serchang* | Hevilambi | हेविळम्बि | `hemalambha` | Hanging gold | 1957, 2017 |
+| 32 | `rnam 'phyang` | རྣམ་འཕྱང | *namchang* | Vilambi | विळम्बि | `vilambhi` | Hanging down | 1958, 2018 |
+| 33 | `sgyur byed` | སྒྱུར་བྱེད | *gyurjé* | Vikāri | विकारि | `vikari` | Transforming | 1959, 2019 |
+| 34 | `kun ldan` | ཀུན་ལྡན | *künden* | Śārvarī | शार्वरी | `sarvavati` | All-possessing | 1960, 2020 |
+| 35 | `'phar ba` | འཕར་བ | *pharwa* | Plava | प्लव | `slava` | Leaping | 1961, 2021 |
+| 36 | `dge byed` | དགེ་བྱེད | *gejé* | Śubhakṛt | शुभकृत् | `subhakrita` | Virtue-making | 1962, 2022 |
+| 37 | `mdzes byed` | མཛེས་བྱེད | *dzejé* | Śobhakṛt | शोभकृत् | `sobhana` | Beautifying | 1963, 2023 |
+| 38 | `khro mo` | ཁྲོ་མོ | *thromo* | Krodhī | क्रोधी | `krodhi` | Wrathful — feminine, against 59 | 1964, 2024 |
+| 39 | `sna tshogs dbyig` | སྣ་ཚོགས་དབྱིག | *natsok yik* | Viśvāvasu | विश्वावसु | `visvabandhu` | Manifold wealth | 1965, 2025 |
+| 40 | `zil gnon` | ཟིལ་གནོན | *zilnön* | Parābhava | पराभव | `parabhava` | Overwhelming | 1966, 2026 |
+| 41 | `spre'u` | སྤྲེའུ | *treu* | Plavaṅga | प्लवङ्ग | `pravamga` | Monkey | 1967, 2027 |
+| 42 | `phur bu` | ཕུར་བུ | *phurbu* | Kīlaka | कीलक | `kilaka` | Peg | 1968, 2028 |
+| 43 | `zhi ba` | ཞི་བ | *shiwa* | Saumya | सौम्य | `saumya` | Peaceful | 1969, 2029 |
+| 44 | `thun mong` | ཐུན་མོང | *thünmong* | Sādhāraṇa | साधारण | `sadharana` | Common | 1970, 2030 |
+| 45 | `'gal byed` | འགལ་བྱེད | *galjé* | Virodhakṛta | विरोधकृत | `virobhakrita` | Opposition-making | 1971, 2031 |
+| 46 | `yongs 'dzin` | ཡོངས་འཛིན | *yongdzin* | Paridhāvi | परिधावी | `paradhari` | Wholly-holding | 1972, 2032 |
+| 47 | `bag med` | བག་མེད | *bakmé* | Pramādi | प्रमादी | `pramadi` | Heedless | 1973, 2033 |
+| 48 | `kun dga'` | ཀུན་དགའ | *künga* | Ānanda | आनंद | `ananda` | Complete joy | 1974, 2034 |
+| 49 | `srin bu` | སྲིན་བུ | *sinbu* | Rākṣasa | राक्षस | `raksasa` | Demon | 1975, 2035 |
+| 50 | `me` | མེ | *me* | Nala/Anala | नल/अनल | `anala` | Fire | 1976, 2036 |
+| 51 | `dmar ser can` | དམར་སེར་ཅན | *marserchen* | Piṅgala | पिंगल | `vingala` | Tawny — reddish-yellow | 1977, 2037 |
+| 52 | `dus kyi pho nya` | དུས་ཀྱི་ཕོ་ཉ | *tükyi ponya* | Kālayukta | कालयुक्त | `kaladuti` | Messenger of time | 1978, 2038 |
+| 53 | `don grub` | དོན་གྲུབ | *döndrub* | Siddhārthi | सिद्धार्थी | `siddhartha` | Aim accomplished | 1979, 2039 |
+| 54 | `drag po` | དྲག་པོ | *trakpo* | Raudri | रौद्र | `rudra` | Fierce | 1980, 2040 |
+| 55 | `blo ngan` | བློ་ངན | *longen* | Durmati | दुर्मति | `durmati` | Ill-minded | 1981, 2041 |
+| 56 | `rnga chen` | རྔ་ཆེན | *ngachen* | Dundubhi | दुन्दुभी | `dundubhi` | Great drum | 1982, 2042 |
+| 57 | `khrag skyug` | ཁྲག་སྐྱུག | *thrakkyuk* | Rudhirodgāri | रूधिरोद्गारी | `rudhirura` | Blood-spitting | 1983, 2043 |
+| 58 | `mig dmar` | མིག་དམར | *mikmar* | Raktākṣi | रक्ताक्षि | `raktaksi` | Red-eyed | 1984, 2044 |
+| 59 | `khro bo` | ཁྲོ་བོ | *throwo* | Krodhana/Manyu | क्रोधन | `krodhana` | Wrathful — masculine, against 38 | 1985, 2045 |
+| 60 | `zad pa` | ཟད་པ | *zepa* | Akshaya | अक्षय | `ksayaka` | Exhaustion | 1986, 2046 |

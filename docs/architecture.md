@@ -131,7 +131,8 @@ tibetan-calendar-temporal/
 │   ├── months.ts             # monthsFor, datesFor, daysInMonth, the three closed-form scalars
 │   ├── navigation.ts         # the lunation coordinate, day and month arithmetic, the phases
 │   ├── cycles.ts             # the cyclic names: year, rabjung, weekday, element, gender, animal
-│   ├── names.ts              # the frozen name vocabulary cycles.ts reads — internal
+│   ├── names.ts              # the frozen name vocabulary — internal; cycles.ts, epoch.ts,
+│   │                         #   conversion.ts all read it
 │   └── types.ts              # TibetanDate, TibetanMonth, their field shapes, SkippedDayError
 ├── test/
 │   ├── computation/          # named for a computation module, or <module>-<concept>

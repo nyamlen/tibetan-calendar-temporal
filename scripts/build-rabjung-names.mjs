@@ -7,8 +7,11 @@
  *   node scripts/build-rabjung-names.mjs <path-to-tibet.tex> <path-to-samvatsara.wiki>
  *
  * Obtain the two sources with:
- *   curl -o 1401.6285.gz https://arxiv.org/e-print/1401.6285 && gzip -dc 1401.6285.gz > tibet.tex
- *   curl -o samvatsara.wiki "https://en.wikipedia.org/w/index.php?title=Samvatsara&action=raw"
+ *   curl -L -o 1401.6285.gz https://arxiv.org/e-print/1401.6285 && gzip -dc 1401.6285.gz > tibet.tex
+ *   curl -L -o samvatsara.wiki "https://en.wikipedia.org/w/index.php?title=Samvatsara&action=raw"
+ *
+ * `-L` is required: arXiv redirects /e-print/ to /src/, and without it curl saves the redirect page,
+ * leaving an empty tibet.tex that fails later as "T60 not found" rather than as a download error.
  *
  * Keep both OUTSIDE this repository, for the licence reason in CLAUDE.md.
  *
@@ -63,9 +66,26 @@ if (janson.length !== 60) throw new Error(`expected 60 Janson rows, got ${janson
 // ---------------------------------------------------------------------------------------------
 const wiki = readFileSync(wikiPath, "utf8");
 const wikiTable = wiki.slice(wiki.indexOf('{| class="wikitable sortable"'));
+
+/**
+ * Strips wiki inline markup from a cell.
+ *
+ * Wikipedia bolds the whole row for the *current* samvatsara, so this markup is not a fixed
+ * property of the source -- it moves one row every year. Row 40 reached the committed table as
+ * `'''Parabhava'''` for exactly that reason, which means the extraction was time-dependent: the
+ * same command on the same table yields different data in different years. Stripping markup
+ * generally is what makes it reproducible; special-casing the affected row would be wrong by the
+ * next new year.
+ */
+const unmarkup = (cell) =>
+	cell
+		.replace(/'{2,}/g, "")
+		.replace(/\[\[(?:[^\]|]*\|)?([^\]]*)\]\]/g, "$1")
+		.trim();
+
 const indic = [];
 for (const row of wikiTable.split("\n|-\n").slice(1)) {
-	const cells = row.split("\n|").map((c) => c.trim());
+	const cells = row.split("\n|").map((c) => unmarkup(c));
 	if (cells.length < 10) continue;
 	// The number cell carries an inline style, so the value is whatever follows the last pipe.
 	const num = (cells[0].split("|").pop() ?? "")
@@ -234,10 +254,17 @@ const IRREGULAR = {
 	"spre'u": "སྤྲེའུ",
 };
 
+/**
+ * Syllables joined by tsheg, with **no trailing tsheg**.
+ *
+ * CLAUDE.md: "Omit the final tsheg on isolated terms", and a table cell is an isolated term. This
+ * table used to append one while `src/names.ts` omits it and `jsewts` emits it that way, so the two
+ * name sets disagreed by a codepoint that carries no meaning -- which would read as 60 genuine
+ * disagreements the moment anything compared them.
+ */
 function toTibetan(wylie) {
-	if (IRREGULAR[wylie]) return `${IRREGULAR[wylie]}་`;
-	const syllables = wylie.split(/\s+/).map(convertSyllable);
-	return `${syllables.join("་")}་`;
+	if (IRREGULAR[wylie]) return IRREGULAR[wylie];
+	return wylie.split(/\s+/).map(convertSyllable).join("་");
 }
 
 // ---------------------------------------------------------------------------------------------

@@ -537,11 +537,21 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   `leapMonth: "leap" | "regular"` convention needed nothing, because it branches on the semantic flag
   rather than on position. What did need fixing was how the twin is *found*.
 
-  **Still open for Bhutan: a runnable config.** `m₀`, `s₀` and `a₀` remain unreconciled, so no
-  day-level Bhutanese date is claimed and `BHUTAN` is not exported. The reconciliation
-  `x₀ = table x₀ − x₁` reproduces all three shipped Phugpa constants exactly, which makes it a
-  derivation rather than a guess, but Janson's Bhutanese `moonTab`/`sunTab` have not been checked and
-  must be before any config is written.
+  **Closed, and the way it closed is worth keeping.** This entry read "Still open for Bhutan: a
+  runnable config — `m₀`, `s₀` and `a₀` remain unreconciled, so no day-level Bhutanese date is
+  claimed and `BHUTAN` is not exported" until 2026-08-21, by which time every clause of it was
+  false. `BHUTAN` and `BHUTAN_HENNING` are both exported and deeply frozen, and the config is
+  validated day by day against Bhutanese calendar data for 2000–2030 — see
+  [../src/traditions/bhutan.ts](../src/traditions/bhutan.ts) and
+  [testing.md](testing.md) for the window.
+
+  The reconciliation the entry was waiting on turned out not to be needed. It assumed Bhutan's
+  epoch had to be recovered from the four-version comparison table by `x₀ = table x₀ − x₁`; in fact
+  Janson's Bhutan appendix gives the epoch data directly and states that `m₀` is already "modified
+  to yield the JD", the same form `PHUGPA`'s constant takes. So the one-mean-lunar-month trap does
+  not arise for Bhutan at all — it still does for Tsurphu and Mongolia, whose epoch data he gives
+  *only* in that table. The `moonTab`/`sunTab` worry dissolved the same way: the correction tables
+  are defined once, in his astronomical section, and no version appendix restates them.
 
   Two things the fixture work turned up. The upstream file is **not in date order** — a block of
   early-2002 rows is interleaved and another sits after 2004-02-20 — so anything re-deriving from
