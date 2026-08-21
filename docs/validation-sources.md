@@ -42,6 +42,31 @@ own column being wrong.
 So a provenance note naming a book is a claim about lineage, not evidence of it. Open the book. If
 it cannot be opened, say the column came from the intermediary, because that is what is true.
 
+**The same lesson, one level up: English Wiktionary's Sanskrit senses *are* Monier-Williams.** They
+were used as the rabjung table's sense column on the strength of being "a third lineage independent
+of both Janson and Sewell", which is true of them — and says nothing about MW. Pulling खर from
+Wiktionary and from the Cologne scan gives the same gloss sequence, verbatim. So corroborating that
+column with any MW-derived source would have been Monier-Williams agreeing with itself. The column
+now comes from Cologne directly, which is the authority rather than an unattributed copy of it, and
+corroboration is counted only from lexicons that are **not** MW — Shabda-Sagara, Benfey, Yates, Apte,
+Edgerton.
+
+Two sources were added on 2026-08-21 and are worth stating separately, because they answer different
+questions:
+
+| Source | Lineage | What it answers | Standing |
+|---|---|---|---|
+| Cologne Digital Sanskrit Dictionaries (Monier-Williams 1899) | The lexicon itself | Sanskrit senses, uncapped, with a printed page number, a stable per-sense record ID, and MW's own homonym grouping | **Sourced.** MW is public domain; the scan is a digitisation of it |
+| wisdomlib | Bṛhat Saṃhitā of Varāhamihira, plus per-source lexicon attribution | The cycle position, named in words beside the Devanāgarī; and which non-MW lexicons carry a headword | **Sourced, where present.** About a quarter of rows carry no position. Only the ordinal is taken, never the prose — a position is a fact, and the surrounding translation is not ours to copy |
+
+**wisdomlib rate-limits, and this is a property of the source rather than of a bad run.** A full
+sixty-row pass tripped it, after which it answered `403` to every User-Agent alike, a browser string
+included. Changing the User-Agent is not the fix, and would be the same working-around of a site's
+access decision this file already records declining for Rangjung Yeshe Wiki. The generator now sends
+one request before sixty and aborts the whole run if the source is down, because an empty
+corroboration column would otherwise be written into the document as a finding about Sanskrit
+lexicography when it is a fact about our request volume.
+
 **And check what the cited source can actually answer.** Sewell carries **no IAST diacritics at
 all** — he prints `Sukla`, `Vrisha`, `Kshaya` in 1924 romanisation — so he can settle *which name
 sits at which position* and can never settle a spelling. Re-sourcing the column from him would have

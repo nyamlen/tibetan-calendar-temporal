@@ -376,10 +376,18 @@ integrity is checked on every push.
 **Both verifiers carry corrections to their sources as data, and a correction must self-invalidate.**
 It states the value it expects to find and refuses to run if the source no longer says it, so a
 correction that stops being needed fails loudly instead of silently patching a source that has since
-been fixed. There are three: `spen ma` → `spen pa` in the vocabulary, and in the rabjung names
-`Akshaya` → `Kshaya` at position 60 and `Hevilambi` → `Hemalamba` at 31, both of which were found by
-consulting Sewell & Fleet directly and discovering that a column *cited* to Sewell disagreed with
-Sewell. Do not patch a name by editing the output.
+been fixed. There is one in the vocabulary — `spen ma` → `spen pa` — and eight in the rabjung names,
+resting on three different kinds of evidence: Sewell & Fleet read directly (60 अक्षय → क्षय, 31
+हेविळम्बि → हेमलम्ब), attestation (15, 37), Monier-Williams resolving a headword the table's spelling
+does not reach (4 प्रमोदूत → प्रमोद), a homograph caught by reading the *sense* rather than the
+presence of an entry (9 युव, the dual pronoun, → युवन्; 56 दुन्दुभी, a Gandharvī's name, → दुन्दुभि), and a
+typo the source contradicts itself about (57 रूधिर → रुधिर). Do not patch a name by editing the output.
+
+**A correction is not a lookup rung, and conflating them inflates both.** A correction changes what
+the table *prints* and needs authored evidence; a rung of the ladder in `scripts/indic.ts` changes
+only what is *queried* and states a rule of Sanskrit — the `-in` stems printed in the nominative, the
+anusvāra spellings, a missing virāma. Eleven of the sixty rows resolve only through a rung, and an
+earlier draft was going to write all of them up as editorial judgements.
 
 **`npm run coverage` is not one of the nine, so nothing gates it.** It was broken on `main` for an
 unknown stretch and nobody noticed: the 200-year moon-phase sweep runs in well under a second bare

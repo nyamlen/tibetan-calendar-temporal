@@ -411,10 +411,32 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   - *"Janson's ASCII collides three names onto `pramadi`"* — an artefact of using **his** Sanskrit.
     The Indic IAST already tabulated in [rabjung-names.md](rabjung-names.md) is collision-free.
 
-  What genuinely remains is the **content divergence** at rows 20, 29, 52 and 60, where the Tibetan
-  and Indic lists carry different names rather than different spellings. The plan's proposal was to
-  stop choosing between them: make `rabjung.name` an object carrying **both**, each attributed, so
-  the divergence becomes recorded data rather than a blocker. That is unargued and unbuilt.
+  The **content divergence** was long recorded as rows 20, 29, 52 and 60, where the Tibetan and Indic
+  lists were said to carry different names rather than different spellings. **Re-derived on
+  2026-08-21, that set is wrong in three of its four entries**, and the corrected table with its
+  evidence lives in [rabjung-names.md](rabjung-names.md):
+
+  - **60 dissolved.** It was the clearest case — `zad pa`, exhaustion, against *Akshaya*,
+    imperishable — and the correction of the saṃvatsara table's अक्षय to क्षय removed it. Both are
+    kṣaya. Janson, Sewell and the Tibetan all agreed against the Indic cell, which was simply wrong.
+  - **20 reclassified.** Janson's `aksaya` matches the *first* alternative of the compound cell
+    अव्यय/व्यय, which is also the reading `mi zad` takes. That is a within-cell selection question,
+    not two traditions naming different things.
+  - **29 and 52 confirmed**, and they are the whole of it: *mada* against मन्मथ, and *kāla-dūtī*
+    against कालयुक्त. The Tibetan sides with Janson at both.
+  - **39 is a new candidate nobody had considered** — *visvabandhu* against विश्वावसु, where `dbyig`
+    (wealth) sides with the *Indic*, suggesting Janson's ASCII is corrupt rather than divergent.
+    Recorded as open.
+
+  The proposal was to stop choosing between them: make `rabjung.name` carry **both**, each
+  attributed, so the divergence becomes recorded data rather than a blocker. That remains the plan,
+  now against two confirmed rows rather than four.
+
+  **The evidence for this nearly went missing, and how is the lesson.** Janson's ASCII Sanskrit is
+  the only mechanical detector of the divergence, and dropping it from the shipped table also dropped
+  it from the document, leaving the four-row claim alive here with no way to re-derive it — for long
+  enough that its position-60 half became false without anything noticing. It is now extracted by the
+  generator for the divergence table alone, and never written to the fixture or to `src/`.
 
   **That premise was checked on 2026-08-21 and it fails.** Sewell & Fleet, *The Siddhāntas and the
   Indian Calendar* (1924), prints the sixty saṃvatsaras as **bare names against numeric columns** —
@@ -425,9 +447,17 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   (2000) is in copyright and was not reachable, but it is cited for the same list in the same
   literature, so the premise is treated as answered rather than half-open.
 
-  **So English for the Sanskrit names is not sourceable either**, and the question is no longer
-  "find the source" but the public-surface one: ship an authored-and-labelled `meaning`, or omit
-  English entirely. Two defensible answers, so it belongs to whoever owns the surface.
+  **That conclusion — "English for the Sanskrit names is not sourceable" — was overturned on
+  2026-08-21.** It was true of Sewell and of Rao, which is what had been checked; it was never true
+  of the lexicographers. Monier-Williams glosses every one of the sixty headwords, and the Cologne
+  scan serves them with a printed page citation. The rabjung table now carries 764 sourced senses
+  across the sixty rows.
+
+  What remains is not "find the source" but the narrower editorial question, and it now has an
+  answer with a machine-checked shape: **which** of many senses is the name's meaning is authored,
+  because no source makes that choice, but the choice can only ever be a verbatim span of a sourced
+  sense, pinned to its record ID and limited to two gloss units. So `meaning` ships as an authored
+  selection from sourced candidates, labelled as such — not as free text, and not omitted.
 
   One thing the check turned up for free: Sewell gives **Vyaya at 20 and Parābhava at 40**,
   corroborating the Indic side of the divergence rows from a source outside the Wikipedia
@@ -462,10 +492,13 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   standard with one that passes the exact form the repo threw out. A nonsense Tibetan string scores
   0, so the check does discriminate — it just does not discriminate for the property that matters.
 
-  **All 60 are now tabulated side by side in [rabjung-names.md](rabjung-names.md)** — Wylie,
-  Tibetan script, Lhasa phonetics, IAST, Devanāgarī, Janson's Sanskrit and an English gloss, with
-  the provenance and standing of each column stated. Read that before deciding; the columns are
-  not of equal weight, and three of the seven are unverified.
+  **All 60 are now tabulated side by side in [rabjung-names.md](rabjung-names.md)** — Wylie, Tibetan
+  script, THL phonetics, Devanāgarī, a derived IAST, an authored English gloss of the Tibetan, and
+  the Monier-Williams senses with an authored selection from them. Read that before deciding. Every
+  column states its provenance, and each **row** now states its own evidence tier — which rung of the
+  lookup ladder reached its entry, whether a non-MW lexicon corroborates it, and whether Wiktionary
+  or the Bṛhat Saṃhitā confirms its position — because one standing claimed for all sixty was
+  exactly what let three artefacts of a truncated fetch be written up as findings.
 
   **Sourcing re-checked 2026-08-12.** Four findings, none of which unblocks this on its own:
 

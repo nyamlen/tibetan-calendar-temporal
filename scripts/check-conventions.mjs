@@ -144,6 +144,17 @@ const codeOf = (source) =>
 const namedForModule = (suite, modules) =>
 	modules.some((module) => suite === module || suite.startsWith(`${module}-`));
 
+const HARDCODED_COUNT =
+	/\b(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty)\b[^$`.\n]{0,80}\$\{/gi;
+
+/** The markdown template a generator writes, from its `writeFileSync` for a docs/*.md. */
+const documentTemplates = (source) =>
+	[
+		...source.matchAll(
+			/writeFileSync\(\s*join\(root, "docs", "[^"]+\.md"\),\s*`([\s\S]*?)`,\s*\);/g,
+		),
+	].map((match) => match[1]);
+
 /**
  * Rule 9 — does `suite` name one of the fixtures it imports, or their shared prefix?
  *
@@ -246,6 +257,42 @@ function selfTest() {
 		validatesFixture("crosscheck", ["crosscheck-eszthoff"]),
 		true,
 		"a suite may be named for the prefix it shares with the fixtures it covers.",
+	);
+
+	// --- Rule 12, the cases. ---
+	//
+	// The rule reads a generator's own template rather than the document it produces, because the
+	// document has already lost the distinction between a literal and an interpolated value.
+	const hardcodesCount = (template) => {
+		HARDCODED_COUNT.lastIndex = 0;
+		return HARDCODED_COUNT.test(template);
+	};
+	check(
+		"hardcodesCount",
+		// biome-ignore lint/suspicious/noTemplateCurlyInString: the interpolation is the specimen — this rule reads a generator's template source, so its cases must carry a literal ${}.
+		hardcodesCount("Four values are marked, at positions ${list}."),
+		true,
+		"LOAD-BEARING: the exact sentence that was wrong for three commits. A rule that cannot catch its own motivating case is decoration.",
+	);
+	check(
+		"hardcodesCount",
+		// biome-ignore lint/suspicious/noTemplateCurlyInString: the interpolation is the specimen — this rule reads a generator's template source, so its cases must carry a literal ${}.
+		hardcodesCount("${n} of the 60 have no Sanskrit entry"),
+		false,
+		"digits are not counts of generated things — 60 is a fact about the cycle, and flagging it would make the rule unusable.",
+	);
+	check(
+		"hardcodesCount",
+		// biome-ignore lint/suspicious/noTemplateCurlyInString: the interpolation is the specimen — this rule reads a generator's template source, so its cases must carry a literal ${}.
+		hardcodesCount("choosing one would manufacture authority.\n\n${x}"),
+		false,
+		"LOAD-BEARING: without the sentence boundary this fires on a pronoun two sentences away, which is a false positive measured against the real generator.",
+	);
+	check(
+		"hardcodesCount",
+		hardcodesCount("Two independent implementations must agree."),
+		false,
+		"prose with no interpolation states nothing the generator computed.",
 	);
 
 	// --- Rule 7. ---
@@ -628,6 +675,25 @@ if (existsSync(resolve(root, MAP))) {
 const HAND_CURATED = new Set(["fpmt-holy-days.ts", "rgob.ts"]);
 const generators = tracked("scripts/*.mjs").map((file) => ({ file, source: read(file) }));
 
+// --- Rule 12, the invariant. ---
+//
+// A template parser that silently matches nothing passes every document, and reads as coverage
+// while proving nothing. Derived from the tree so it needs no foresight: every generator that
+// writes a docs/*.md must yield at least one template, and at least one of those must contain an
+// interpolation — otherwise there was nothing for the rule to examine in the first place.
+for (const { file, source } of generators) {
+	if (!/writeFileSync\(\s*join\(root, "docs", "[^"]+\.md"\)/.test(source)) continue;
+	const templates = documentTemplates(source);
+	if (templates.length === 0 || !templates.some((template) => template.includes("${"))) {
+		console.error(
+			`the checker itself is broken: ${file} writes a document, but no interpolated template was ` +
+				"recovered from it. Rule 12 would then pass vacuously for every generator, which reads as " +
+				"coverage while proving nothing.",
+		);
+		process.exit(1);
+	}
+}
+
 for (const fixture of tracked("test/fixtures/*.ts")) {
 	const name = basename(fixture, ".ts");
 	if (HAND_CURATED.has(`${name}.ts`)) continue;
@@ -638,6 +704,34 @@ for (const fixture of tracked("test/fixtures/*.ts")) {
 			fixture,
 			`no script in scripts/ names this fixture, and it declares data. Fixtures are generated, not transcribed — add the generator and commit it alongside the output. The only exceptions are ${[...HAND_CURATED].join(" and ")}, and both earn it the same narrow way: their source has no markup at all, so a generator could only wrap a lossy reading. "Parsing it is inconvenient" is not the test. A file declaring only types is exempt, having nothing to transcribe.`,
 		);
+	}
+}
+
+// ---------------------------------------------------------------------------------------
+// Rule 12 — a generated document may not hardcode a count the generator computes
+//
+// `docs/rabjung-names.md` carried the sentence "Four values are marked, at positions 6, 15, 31,
+// 37, 60" for three commits. The list is interpolated from the correction records; the word
+// "Four" is a literal beside it. There were five positions and nine marked cells, and the
+// sentence had been wrong since the moment a fifth correction was added.
+//
+// A generator can always emit a computed digit, so a literal number-word next to an
+// interpolation is never necessary — which is what makes this checkable without judgement.
+// Digits are NOT flagged: `${n} of the 60` is legitimate, because 60 is a fact about the cycle
+// rather than a count of anything the generator produced.
+//
+// The window stops at a sentence boundary. Without that, the rule fires on
+// "choosing one would manufacture authority rather than source it.\n\n${...}", where "one" is a
+// pronoun two sentences away — a false positive measured against the real generator.
+for (const { file, source } of generators) {
+	for (const template of documentTemplates(source)) {
+		for (const match of template.matchAll(HARDCODED_COUNT)) {
+			fail(
+				"generated documents state computed counts",
+				file,
+				`the emitted markdown reads ${JSON.stringify(match[0].slice(0, 70))} — a literal number-word in the same sentence as an interpolated value. Emit the count instead: it is the shape of "Four values are marked, at positions \${...}", which was wrong for three commits because the list grew and the word did not.`,
+			);
+		}
 	}
 }
 
