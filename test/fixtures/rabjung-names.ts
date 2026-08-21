@@ -27,6 +27,16 @@ export interface RabjungNameFixtureRow {
 	years: [number, number];
 	/** English Wiktionary has a Sanskrit entry at `devanagari`. */
 	attested: boolean;
+	/** Every sense that entry lists, in its order. **Sourced**; empty when there is no entry. */
+	senses: readonly string[];
+	/**
+	 * The sense taken as this name's meaning.
+	 *
+	 * **An authored selection from sourced candidates**, never free text: the generator refuses to
+	 * emit unless this string appears verbatim in `senses`. Null where no entry exists, or where no
+	 * sense is clearly the intended one.
+	 */
+	selected: string | null;
 }
 
 export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
@@ -39,6 +49,14 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Prabhava",
 		years: [1927, 1987],
 		attested: true,
+		senses: [
+			"prominent, excelling, distinguished",
+			"production, source, origin, cause of existence (as father or mother, also ‘the Creator’), birthplace (often ifc., with f( आ)., springing or rising or derived from, belonging to)",
+			"name of Vishnu",
+			"name of the first or 35th year in a 60 years' cycle of Jupiter",
+		],
+		selected:
+			"production, source, origin, cause of existence (as father or mother, also ‘the Creator’), birthplace (often ifc., with f( आ)., springing or rising or derived from, belonging to)",
 	},
 	{
 		position: 2,
@@ -49,6 +67,15 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Vibhava",
 		years: [1928, 1988],
 		attested: true,
+		senses: [
+			"powerful, rich",
+			"being everywhere, omnipresence",
+			"development, evolution (with वैष्णवs ‘the evolution of the Supreme Being into secondary forms’)",
+			"power, might, greatness, exalted position, rank, dignity, majesty, dominion",
+			"name of the 2nd year in Jupiter's cycle of 60 years",
+		],
+		selected:
+			"development, evolution (with वैष्णवs ‘the evolution of the Supreme Being into secondary forms’)",
 	},
 	{
 		position: 3,
@@ -59,6 +86,17 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Śukla",
 		years: [1929, 1989],
 		attested: true,
+		senses: [
+			"the bright half of a lunar month or any day in it",
+			"the month वैशाख",
+			"white (the colour)",
+			"mucus, saliva ( शुक्लं-√कृ, to spit at)",
+			"ricinus or white ricinus",
+			"the 37th (or 3rd) year of Jupiter's cycle of 60 years",
+			"the 24th of the astronomical Yogas",
+			"white or candied sugar",
+		],
+		selected: "white (the colour)",
 	},
 	{
 		position: 4,
@@ -69,6 +107,8 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Pramodūta",
 		years: [1930, 1990],
 		attested: false,
+		senses: [],
+		selected: null,
 	},
 	{
 		position: 5,
@@ -79,6 +119,8 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Prajāpati",
 		years: [1931, 1991],
 		attested: true,
+		senses: ["a deity later identified with Brahma", "a creator god", "father", "king"],
+		selected: "a creator god",
 	},
 	{
 		position: 6,
@@ -89,6 +131,8 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Āṅgirasa",
 		years: [1932, 1992],
 		attested: false,
+		senses: [],
+		selected: null,
 	},
 	{
 		position: 7,
@@ -99,6 +143,12 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Śrīmukha",
 		years: [1933, 1993],
 		attested: true,
+		senses: [
+			"a beautiful face",
+			"the word written on the back of a letter",
+			"name of the 7th (or 41st) year of Jupiter's cycle of 60 years",
+		],
+		selected: "a beautiful face",
 	},
 	{
 		position: 8,
@@ -109,6 +159,17 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Bhāva",
 		years: [1934, 1994],
 		attested: true,
+		senses: [
+			"becoming; being, existing, occurring, appearance",
+			"turning or transition into",
+			"continuance",
+			"state; condition; rank",
+			"true condition or state; truth; reality",
+			"manner of being; nature; temperament; character",
+			"manner of acting; conduct; behaviour",
+			"any state of mind or body; way of thinking or feeling; sentiment; opinion; disposition; intention",
+		],
+		selected: "becoming; being, existing, occurring, appearance",
 	},
 	{
 		position: 9,
@@ -119,6 +180,8 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Yuva",
 		years: [1935, 1995],
 		attested: true,
+		senses: ["you both"],
+		selected: null,
 	},
 	{
 		position: 10,
@@ -129,6 +192,12 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Dhātṛ",
 		years: [1936, 1996],
 		attested: true,
+		senses: [
+			"creator, founder",
+			"maintainer, supporter",
+			"the god who is responsible for the creation and maintenance of existence",
+		],
+		selected: "maintainer, supporter",
 	},
 	{
 		position: 11,
@@ -139,6 +208,16 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Īśvara",
 		years: [1937, 1997],
 		attested: true,
+		senses: [
+			"able to do, capable of",
+			"liable, exposed to",
+			"master, lord, prince, king q|feminine",
+			"a husband",
+			"God, the Supreme Being",
+			"an epithet of Shiva",
+			"an epithet of Vishnu",
+		],
+		selected: null,
 	},
 	{
 		position: 12,
@@ -149,6 +228,11 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Bahudhānya",
 		years: [1938, 1998],
 		attested: true,
+		senses: [
+			"‘abounding in corn’",
+			"name of the 12th or 46th year in a 60 years' cycle of Jupiter",
+		],
+		selected: "‘abounding in corn’",
 	},
 	{
 		position: 13,
@@ -159,6 +243,8 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Pramāthi",
 		years: [1939, 1999],
 		attested: false,
+		senses: [],
+		selected: null,
 	},
 	{
 		position: 14,
@@ -169,16 +255,36 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Vikrama",
 		years: [1940, 2000],
 		attested: true,
+		senses: [
+			"a step, stride, pace",
+			"going, proceeding, walking, motion, gait",
+			"course, way, manner ( अनुक्रम-विक्रमेण = अनुक्रमेण, in regular order)",
+			"valour, courage, heroism, power, strength",
+			"intensity, high degree",
+			"stability, duration (opp. to ‘cessation’)",
+			"a kind of grave accent",
+			"non-change of the विसर्ग into an ऊष्मन्",
+		],
+		selected: "valour, courage, heroism, power, strength",
 	},
 	{
 		position: 15,
 		tibetan: "ཁྱུ་མཆོག",
 		wylie: "khyu mchog",
 		phonetic: "khyu chok",
-		devanagari: "वृषप्रजा",
-		iast: "Vṛṣaprajā",
+		devanagari: "वृषभ",
+		iast: "Vṛṣabha",
 		years: [1941, 2001],
-		attested: false,
+		attested: true,
+		senses: [
+			"a bull",
+			"the chief, most excellent or eminent, lord or best among (in later language mostly at the end of a compound, or with genitive)",
+			"the zodiacal sign Taurus",
+			"a particular drug (described as a root brought from the Himalaya mountains, resembling the horn of a bull, of cooling and tonic properties, and serviceable in catarrh and consumption)",
+			"manly, mighty, vigorous, strong",
+		],
+		selected:
+			"the chief, most excellent or eminent, lord or best among (in later language mostly at the end of a compound, or with genitive)",
 	},
 	{
 		position: 16,
@@ -189,6 +295,12 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Citrabhānu",
 		years: [1942, 2002],
 		attested: true,
+		senses: [
+			"of variegated lustre, shining with light",
+			"name of fire",
+			"the 16th year in the 60 years' cycle of Jupiter",
+		],
+		selected: "of variegated lustre, shining with light",
 	},
 	{
 		position: 17,
@@ -199,6 +311,8 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Svabhānu",
 		years: [1943, 2003],
 		attested: false,
+		senses: [],
+		selected: null,
 	},
 	{
 		position: 18,
@@ -209,6 +323,13 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Tāraṇa",
 		years: [1944, 2004],
 		attested: true,
+		senses: [
+			"crossing, safe passage",
+			"conquering (difficulties)",
+			"carrying across, liberating, saving",
+			"the 3rd year of the 4th Jupiter cycle",
+		],
+		selected: "carrying across, liberating, saving",
 	},
 	{
 		position: 19,
@@ -219,6 +340,8 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Pārthiva",
 		years: [1945, 2005],
 		attested: true,
+		senses: ["earthly, earthen; of the earth"],
+		selected: "earthly, earthen; of the earth",
 	},
 	{
 		position: 20,
@@ -229,6 +352,8 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Avyaya/Vyaya",
 		years: [1946, 2006],
 		attested: false,
+		senses: [],
+		selected: null,
 	},
 	{
 		position: 21,
@@ -239,6 +364,14 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Sarvajit",
 		years: [1947, 2007],
 		attested: true,
+		senses: [
+			"all-conquering",
+			"conquering all (three) humours",
+			"all-surpassing, excellent",
+			"a particular (, , )",
+			"the 21st year of Jupiter's cycle of 60 years",
+		],
+		selected: null,
 	},
 	{
 		position: 22,
@@ -249,6 +382,8 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Sarvadhārī",
 		years: [1948, 2008],
 		attested: true,
+		senses: ["Name of the 22nd year of the Jovian cycle"],
+		selected: null,
 	},
 	{
 		position: 23,
@@ -259,6 +394,8 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Virodhī",
 		years: [1949, 2009],
 		attested: false,
+		senses: [],
+		selected: null,
 	},
 	{
 		position: 24,
@@ -269,6 +406,11 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Vikṛti",
 		years: [1950, 2010],
 		attested: true,
+		senses: [
+			"transformation; alteration; change; modification; variation; changed condition",
+			"apparition; spectre",
+		],
+		selected: "transformation; alteration; change; modification; variation; changed condition",
 	},
 	{
 		position: 25,
@@ -279,6 +421,17 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Khara",
 		years: [1951, 2011],
 		attested: true,
+		senses: [
+			"hard, harsh, rough, sharp, pungent, acid",
+			"solid",
+			"dense (clouds)",
+			"sharp, hot (wind)",
+			"hurtful, injurious, cutting (as speech or word)",
+			"sharp-edged",
+			"cruel",
+			"osprey",
+		],
+		selected: null,
 	},
 	{
 		position: 26,
@@ -289,6 +442,8 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Nandana",
 		years: [1952, 2012],
 		attested: false,
+		senses: [],
+		selected: null,
 	},
 	{
 		position: 27,
@@ -299,6 +454,15 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Vijaya",
 		years: [1953, 2013],
 		attested: true,
+		senses: [
+			"leading to victory, proclaiming victory",
+			"contest for victory, conquest, triumph, superiority, etc. (fig. applied to the ‘sword’ and to ‘punishment’)",
+			"the prize of victory, booty",
+			"a kind of flute",
+			"Vijaya, one of the two gatekeepers of Vishnu, cursed to be born as Hiranyakashipu in the Satya Yuga, Kumbhakarna in the Treta Yuga and Dantavakra im the Dvapara Yuga",
+		],
+		selected:
+			"contest for victory, conquest, triumph, superiority, etc. (fig. applied to the ‘sword’ and to ‘punishment’)",
 	},
 	{
 		position: 28,
@@ -309,6 +473,18 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Jaya",
 		years: [1954, 2014],
 		attested: true,
+		senses: [
+			"conquest, victory, triumph, winning, being victorious (in battle or in playing with dice or in a lawsuit)",
+			"name of particular verses causing victory (personified as deities)",
+			"or",
+			"a yellow variety of ( <= )",
+			"name of the 3rd year of the 6th lustrum of the bṛhaspati cycle",
+			"a kind of flute",
+			"a kind of measure",
+			"the sun",
+		],
+		selected:
+			"conquest, victory, triumph, winning, being victorious (in battle or in playing with dice or in a lawsuit)",
 	},
 	{
 		position: 29,
@@ -319,6 +495,13 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Manmatha",
 		years: [1955, 2015],
 		attested: true,
+		senses: [
+			"love or the god of love, amorous passion or desire",
+			"wood apple (Limonia acidissima L.)",
+			"the 29th (3rd) year in a 60-year cycle of Jupiter",
+			"name of a physician and various other men",
+		],
+		selected: "love or the god of love, amorous passion or desire",
 	},
 	{
 		position: 30,
@@ -329,6 +512,8 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Durmukha",
 		years: [1956, 2016],
 		attested: false,
+		senses: [],
+		selected: null,
 	},
 	{
 		position: 31,
@@ -339,6 +524,8 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Hemalamba",
 		years: [1957, 2017],
 		attested: true,
+		senses: ["Name of the 31st year of Jupiter's cycle of 60 years"],
+		selected: null,
 	},
 	{
 		position: 32,
@@ -349,6 +536,8 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Vilambi",
 		years: [1958, 2018],
 		attested: false,
+		senses: [],
+		selected: null,
 	},
 	{
 		position: 33,
@@ -359,6 +548,8 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Vikāri",
 		years: [1959, 2019],
 		attested: false,
+		senses: [],
+		selected: null,
 	},
 	{
 		position: 34,
@@ -369,6 +560,8 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Śārvarī",
 		years: [1960, 2020],
 		attested: false,
+		senses: [],
+		selected: null,
 	},
 	{
 		position: 35,
@@ -379,6 +572,17 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Plava",
 		years: [1961, 2021],
 		attested: true,
+		senses: [
+			"swimming, floating ṠāṅkhGṛ. Suṡr",
+			"sloping towards, inclined Hariv. Var. Hcat. (in astrol. applied to a constellation situated in the quarter ruled by its planetary regent Var. Sch.)",
+			"transient MuṇḍUp",
+			"a float, raft, boat, small ship RV. &c",
+			"a kind of aquatic bird (= गात्र-सम्प्लव, कारण्डव, जल-वायस, जल-काक or जल-कुक्कुट L.)",
+			"a snare or basket of wicker-work for catching fish",
+			"the 35th (or 9th) year in a cycle of Jupiter",
+			"swimming; bathing",
+		],
+		selected: null,
 	},
 	{
 		position: 36,
@@ -389,16 +593,20 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Śubhakṛt",
 		years: [1962, 2022],
 		attested: false,
+		senses: [],
+		selected: null,
 	},
 	{
 		position: 37,
 		tibetan: "མཛེས་བྱེད",
 		wylie: "mdzes byed",
 		phonetic: "dzé jé",
-		devanagari: "शोभकृत्",
-		iast: "Śobhakṛt",
+		devanagari: "शोभन",
+		iast: "Śobhana",
 		years: [1963, 2023],
-		attested: false,
+		attested: true,
+		senses: ["brilliant, beautiful"],
+		selected: "brilliant, beautiful",
 	},
 	{
 		position: 38,
@@ -409,6 +617,8 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Krodhī",
 		years: [1964, 2024],
 		attested: false,
+		senses: [],
+		selected: null,
 	},
 	{
 		position: 39,
@@ -419,6 +629,8 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Viśvāvasu",
 		years: [1965, 2025],
 		attested: false,
+		senses: [],
+		selected: null,
 	},
 	{
 		position: 40,
@@ -429,6 +641,12 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Parābhava",
 		years: [1966, 2026],
 		attested: true,
+		senses: [
+			"vanishing, disappearance, dissolution, separation",
+			"overthrow, defeat, humiliation, mortification, contempt, injury, destruction, ruin",
+			"name of the 40th (or 14th) year in Jupiter's cycle of 60 years",
+		],
+		selected: "overthrow, defeat, humiliation, mortification, contempt, injury, destruction, ruin",
 	},
 	{
 		position: 41,
@@ -439,6 +657,8 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Plavaṅga",
 		years: [1967, 2027],
 		attested: false,
+		senses: [],
+		selected: null,
 	},
 	{
 		position: 42,
@@ -449,6 +669,15 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Kīlaka",
 		years: [1968, 2028],
 		attested: true,
+		senses: [
+			"a pin, bolt, wedge",
+			"a splint (for confining a broken bone)",
+			"a kind of tumour (having the form of a pin)",
+			"a kind of pillar for cows &c. to rub themselves against, or one to which they are tied",
+			"name of the forty-second year of the sixty years' cycle of Jupiter",
+			"name of the inner syllables of a mantra",
+		],
+		selected: "a pin, bolt, wedge",
 	},
 	{
 		position: 43,
@@ -459,6 +688,15 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Saumya",
 		years: [1969, 2029],
 		attested: true,
+		senses: [
+			"related or pertaining to Soma",
+			"cool and moist",
+			"northern",
+			"resembling the moon",
+			"auspicious",
+			"happy, pleasant, cheerful",
+		],
+		selected: null,
 	},
 	{
 		position: 44,
@@ -469,6 +707,17 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Sādhāraṇa",
 		years: [1970, 2030],
 		attested: true,
+		senses: [
+			"common, ordinary",
+			'"having or resting on the same support or basis", belonging or applicable to many or all, general, common to all, universal, common to (genitive, dative, instrumental with and without , or compound)',
+			"like, equal or similar to (instrumental or compound)",
+			"behaving alike",
+			'having something of two opposite properties, occupying a middle position, mean (between two extremes e.g. "neither too dry nor too wet", "neither too cool nor too hot")',
+			"belonging to more than the one instance alleged (one of the three divisions of the fallacy called )",
+			"generic",
+			"name of the 44th (or 18th) year of Jupiter's cycle of 60 years",
+		],
+		selected: "common, ordinary",
 	},
 	{
 		position: 45,
@@ -479,6 +728,8 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Virodhakṛta",
 		years: [1971, 2031],
 		attested: false,
+		senses: [],
+		selected: null,
 	},
 	{
 		position: 46,
@@ -489,6 +740,8 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Paridhāvi",
 		years: [1972, 2032],
 		attested: false,
+		senses: [],
+		selected: null,
 	},
 	{
 		position: 47,
@@ -499,6 +752,8 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Pramādi",
 		years: [1973, 2033],
 		attested: false,
+		senses: [],
+		selected: null,
 	},
 	{
 		position: 48,
@@ -509,6 +764,8 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Ānanda",
 		years: [1974, 2034],
 		attested: false,
+		senses: [],
+		selected: null,
 	},
 	{
 		position: 49,
@@ -519,6 +776,11 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Rākṣasa",
 		years: [1975, 2035],
 		attested: true,
+		senses: [
+			"pertaining to, characteristic of, or produced by a demon, demoniacal",
+			"a demon in general, an evil or malignant demon",
+		],
+		selected: "a demon in general, an evil or malignant demon",
 	},
 	{
 		position: 50,
@@ -529,6 +791,8 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Nala/Anala",
 		years: [1976, 2036],
 		attested: false,
+		senses: [],
+		selected: null,
 	},
 	{
 		position: 51,
@@ -539,6 +803,8 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Piṅgala",
 		years: [1977, 2037],
 		attested: false,
+		senses: [],
+		selected: null,
 	},
 	{
 		position: 52,
@@ -549,6 +815,11 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Kālayukta",
 		years: [1978, 2038],
 		attested: true,
+		senses: [
+			"fit for the (present) time, seasonable",
+			"Name of the 52nd year in the sixty years' cycle of Jupiter",
+		],
+		selected: "fit for the (present) time, seasonable",
 	},
 	{
 		position: 53,
@@ -559,6 +830,8 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Siddhārthi",
 		years: [1979, 2039],
 		attested: false,
+		senses: [],
+		selected: null,
 	},
 	{
 		position: 54,
@@ -569,6 +842,17 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Raudri",
 		years: [1980, 2040],
 		attested: true,
+		senses: [
+			"relating or belonging to or coming from Rudra or the Rudras, Rudra-like, violent, impetuous, fierce, wild",
+			"bringing or betokening misfortune, inauspicious R. Var",
+			"a descendant of Rudra",
+			"a worshipper of Rudra",
+			"(pl., or sg. with गण) a class of evil spirits Hariv",
+			"(scil. रस) the sentiment of wrath or fury Sāh. Pratāp",
+			"the cold season of the year, winter L",
+			"name of the 54th year of the Jupiter cycle of 60 years ib",
+		],
+		selected: null,
 	},
 	{
 		position: 55,
@@ -579,6 +863,14 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Durmati",
 		years: [1981, 2041],
 		attested: true,
+		senses: [
+			"weak-minded, silly, ignorant (rarely ‘malicious’, ‘wicked’)",
+			"bad disposition of mind, envy, hatred RV. VS. AV",
+			"false opinion or notions Cāṇ",
+			"fool, blockhead (rarely ‘scoundrel’, ‘villain’) Mn. MBh. &c",
+			"name of the 55th year of the cycle of Jupiter (lasting 60 years) Var. Sūryas",
+		],
+		selected: "weak-minded, silly, ignorant (rarely ‘malicious’, ‘wicked’)",
 	},
 	{
 		position: 56,
@@ -589,6 +881,8 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Dundubhi",
 		years: [1982, 2042],
 		attested: true,
+		senses: ["name of a Gandharvī", "a particular throw of the dice in gambling"],
+		selected: null,
 	},
 	{
 		position: 57,
@@ -599,6 +893,8 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Rudhirodgāri",
 		years: [1983, 2043],
 		attested: false,
+		senses: [],
+		selected: null,
 	},
 	{
 		position: 58,
@@ -609,6 +905,8 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Raktākṣi",
 		years: [1984, 2044],
 		attested: false,
+		senses: [],
+		selected: null,
 	},
 	{
 		position: 59,
@@ -619,6 +917,17 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Krodhana/Manyu",
 		years: [1985, 2045],
 		attested: true,
+		senses: [
+			"inclined to wrath, passionate, angry",
+			"the 59th year in the sixty years' बृहस्पति cycle",
+			"name of a son of कौशिक and pupil of गर्ग",
+			"name of a son of अ-युत and father of देवातिथि",
+			"name of a शाक्त author of मन्त्रs",
+			"name of one of the mothers in स्कन्द's retinue",
+			"name of a योगिनी",
+			"‘the being angry, anger’, only ifc. स-क्र्° (q.v.)",
+		],
+		selected: "inclined to wrath, passionate, angry",
 	},
 	{
 		position: 60,
@@ -629,5 +938,16 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		iast: "Kshaya",
 		years: [1986, 2046],
 		attested: true,
+		senses: [
+			"dominion",
+			"place of abode, seat, house",
+			"dwelling, residing",
+			"decay, corrosion",
+			"ruin, destruction",
+			"diminution, decline, wasting away",
+			"fall (as of prices, opposed to वृद्धि)",
+			"removal",
+		],
+		selected: "decay, corrosion",
 	},
 ];

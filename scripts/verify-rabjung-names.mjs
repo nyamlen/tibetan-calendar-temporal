@@ -237,6 +237,7 @@ const CORRECTIONS = [
 	{
 		n: 60,
 		fromIast: "Akshaya",
+		sewellSays: "Kshaya",
 		toIast: "Kshaya",
 		toDevanagari: "क्षय",
 		why:
@@ -248,12 +249,40 @@ const CORRECTIONS = [
 	{
 		n: 31,
 		fromIast: "Hevilambi",
+		sewellSays: "Hemalamba",
 		toIast: "Hemalamba",
 		toDevanagari: "हेमलम्ब",
 		why:
 			"Sewell & Fleet give Hemalamba at 31, Janson has `hemalambha`, and English Wiktionary's " +
 			"entry at हेमलम्ब reads 'Name of the 31st year of Jupiter's cycle of 60 years' -- a third " +
 			"lineage naming the position outright.",
+	},
+	{
+		n: 15,
+		fromIast: "Vṛṣaprajā",
+		sewellSays: "Vrisha",
+		toIast: "Vṛṣabha",
+		toDevanagari: "वृषभ",
+		why:
+			"Wikipedia's वृषप्रजा has no English Wiktionary page at all, and a reading no dictionary " +
+			"carries is not a variant worth preserving. Janson has `brisabha` (vrisabha) and Sewell has " +
+			"Vrisha, so the Indic sources point at a bull-name; the Tibetan `khyu mchog` is 'chief bull'. " +
+			"वृषभ is attested and its senses are 'a bull' AND 'the chief, most excellent or eminent', " +
+			"carrying both halves of the Tibetan where Sewell's वृष is only 'man, male, bull'. So Janson's " +
+			"form is taken over Sewell's on attested meaning rather than on preference.",
+	},
+	{
+		n: 37,
+		fromIast: "Śobhakṛt",
+		sewellSays: "Sobhana",
+		toIast: "Śobhana",
+		toDevanagari: "शोभन",
+		why:
+			"Sewell and Janson both have Sobhana, and Wikipedia's शोभकृत् has no English Wiktionary page " +
+			"while शोभन does, glossed 'brilliant, beautiful'. This was left uncorrected until 2026-08-21 " +
+			"on the argument that the Tibetan `mdzes byed` ('beautifying') renders sobhakrit more closely " +
+			"-- but that weighed a translation nuance against two sources plus attestation, which is the " +
+			"wrong way round.",
 	},
 ];
 
@@ -278,28 +307,16 @@ for (const c of CORRECTIONS) {
 }
 
 /**
- * Recorded, not corrected. At these positions the sources disagree and no reading is clearly right,
- * so choosing one would manufacture authority rather than source it. They are emitted into the
- * provenance document so a reader sees the conflict instead of a smoothed-over column.
+ * Recorded, not corrected: positions where the sources disagree and no reading is clearly right, so
+ * choosing one would manufacture authority rather than source it.
+ *
+ * Currently empty, and the reason is worth keeping. Positions 15 and 37 sat here until 2026-08-21,
+ * on the argument that Sewell and Janson disagreed with each other at 15 and that the Tibetan sided
+ * with Wikipedia at 37. Checking attestation settled both: the Wikipedia forms वृषप्रजा and शोभकृत्
+ * have no English Wiktionary page at all, while वृषभ and शोभन both do. A reading that no dictionary
+ * carries is not a variant to preserve. They are corrections now, below.
  */
-const DISCREPANCIES = [
-	{
-		n: 15,
-		note:
-			"Wikipedia has Vrisapraja; Sewell has Vrisha; Janson has `brisabha` (vrisabha); the Tibetan " +
-			"`khyu mchog` is 'chief bull'. Sewell and Janson point at a bull-name and the Tibetan agrees, " +
-			"but they point at two different ones (vrisa against vrisabha), so there is no single " +
-			"corrected reading to apply.",
-	},
-	{
-		n: 37,
-		note:
-			"Wikipedia has Sobhakrit; Sewell and Janson both have Sobhana. The Tibetan `mdzes byed` is " +
-			"'beautifying', which renders sobhakrit (making beautiful) more closely than sobhana " +
-			"(beautiful). So the Indic sources agree with each other and the Tibetan agrees with " +
-			"Wikipedia -- a genuine split, not an error to fix.",
-	},
-];
+const DISCREPANCIES = [];
 
 // ---------------------------------------------------------------------------------------------
 // Sewell verification, when the text is supplied.
@@ -362,14 +379,19 @@ if (sewellPath) {
 			fail(`Sewell supplied but position ${c.n} has no readings -- check the OCR text`);
 			continue;
 		}
-		const fold = (s) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/ksh/g, "ks");
-		if (fold(seen) !== fold(c.toIast)) {
+		// Checks that Sewell still says what the correction CLAIMS he says, not that he agrees with
+		// the answer. At position 15 the correction deliberately takes Janson's वृषभ over Sewell's
+		// वृष, on attested meaning, and documents doing so; demanding agreement there would fail a
+		// correction whose reasoning is sound and stated.
+		if (seen !== c.sewellSays) {
 			fail(
-				`Sewell's modal reading at ${c.n} is "${seen}", but the correction applies "${c.toIast}". ` +
-					"The correction's stated evidence no longer holds -- re-argue it.",
+				`the correction at ${c.n} cites Sewell as reading "${c.sewellSays}", but his modal reading ` +
+					`is now "${seen}". The correction's stated evidence no longer holds -- re-argue it.`,
 			);
-		} else {
+		} else if (c.sewellSays === c.toIast) {
 			console.log(`Sewell confirms ${c.n}: ${seen}`);
+		} else {
+			console.log(`Sewell reads ${c.n} as "${seen}"; correction takes ${c.toIast}, as documented`);
 		}
 	}
 }
@@ -403,6 +425,62 @@ for (const r of rows) {
 	}
 	r.tibetan = first;
 }
+/**
+ * The chosen sense per position: **authored selection from sourced candidates.**
+ *
+ * Wiktionary gives several senses per headword, often from different roots, so which one applies is
+ * an editorial judgement that no source makes for us. Taking the first is not a policy, it is an
+ * accident: क्षय's first sense is "dominion" (from ksi, to rule) where the one matching `zad pa` is
+ * "decay, corrosion" (from ksi, to destroy) -- two different words sharing a spelling.
+ *
+ * So the choice is written down, and **checked**: every value here must appear verbatim among the
+ * senses actually fetched for that position, or the run fails. That keeps the editorial step visible
+ * and prevents it drifting into invention -- it can only ever select from sourced material, and if
+ * Wiktionary's wording changes the selection stops matching and has to be re-made deliberately.
+ *
+ * Positions absent from this table have no selection, either because no Sanskrit entry exists or
+ * because none of the senses is clearly the intended one.
+ */
+const SELECTED_SENSES = {
+	1: 1, // Prabhava, `rab byung` arising -- "production, source, origin", not the adjectival sense
+	2: 2, // Vibhava, `rnam byung` full arising -- "development, evolution"
+	3: 2, // Sukla, `dkar po` white -- the colour, not the lunar fortnight
+	5: 1, // Prajapati, `skyes bdag` lord of creatures -- "a creator god"
+	7: 0, // Srimukha, `dpal gdong` glorious face -- "a beautiful face"
+	8: 0, // Bhava, `dngos po` entity -- "becoming; being, existing"
+	10: 1, // Dhatri, `'dzin byed` holder -- "maintainer, supporter", not "creator"
+	12: 0, // Bahudhanya, `'bru mang po` much grain -- "abounding in corn"
+	14: 3, // Vikrama, `rnam gnon` overcoming -- "valour, courage, heroism"
+	15: 1, // Vrisabha, `khyu mchog` chief bull -- "the chief, most excellent"; sense 0 is "a bull"
+	16: 0, // Citrabhanu, `sna tshogs` variegated -- "of variegated lustre"
+	18: 2, // Tarana, `nyi sgrol byed` -- "carrying across, liberating, saving"
+	19: 0, // Parthiva, `sa skyong` earth-protector -- "earthly, of the earth"
+	24: 0, // Vikriti, `rnam 'gyur` transformed -- "transformation; alteration"
+	27: 1, // Vijaya, `rnam rgyal` complete victory -- "conquest, triumph, superiority"
+	28: 0, // Jaya, `rgyal ba` victory -- "conquest, victory, triumph"
+	29: 0, // Manmatha, `myos byed` intoxicating -- "love or the god of love, amorous passion"
+	37: 0, // Sobhana, `mdzes byed` beautifying -- "brilliant, beautiful"
+	40: 1, // Parabhava, `zil gnon` overwhelming -- "overthrow, defeat", not "vanishing"
+	42: 0, // Kilaka, `phur bu` peg -- "a pin, bolt, wedge"
+	44: 0, // Sadharana, `thun mong` common -- "common, ordinary"
+	49: 1, // Raksasa, `srin bu` demon -- "a demon in general"
+	52: 0, // Kalayukta, `dus kyi pho nya` -- "fit for the time, seasonable"
+	55: 0, // Durmati, `blo ngan` ill-minded -- "weak-minded, silly, ignorant"
+	59: 0, // Krodhana, `khro bo` wrathful -- "inclined to wrath, passionate, angry"
+	60: 3, // Kshaya, `zad pa` exhaustion -- "decay, corrosion". NOT sense 0, "dominion": ksaya is two
+	//        homonyms from different roots, and only this one renders the Tibetan.
+};
+
+/**
+ * Positions deliberately left unselected, so the gaps are decisions rather than oversights:
+ *
+ * - **9, 22, 31** -- the only sense is "name of the Nth year of the cycle", which is circular.
+ * - **11, 21, 35, 54** -- the senses that fit carry citation residue or are too diffuse to choose
+ *   between without inventing a preference.
+ * - **25 Khara** (`bong bu`, donkey) and **56 Dundubhi** (`rnga chen`, great drum) -- the entry
+ *   lists no sense resembling the Tibetan at all, which is a finding worth leaving visible.
+ * - Every position with no Sanskrit entry: 24 of the 60.
+ */
 
 // ---------------------------------------------------------------------------------------------
 // 6. Wiktionary: lexical existence, and the cycle position where the entry states it.
@@ -423,11 +501,18 @@ async function sanskritEntry(devanagari) {
 		.map((m) =>
 			m[1]
 				.replace(/\[\[(?:[^\]|]*\|)?([^\]]*)\]\]/g, "$1")
-				.replace(/\{\{[^}]*\}\}/g, "")
+				.replace(/\{\{[^{}]*\}\}/g, "")
+				// Template residue. Without this, senses arrive as "all-conquering ()" and
+				// "master, lord, prince, king }}" -- the leftovers of citation templates.
+				.replace(/[{}]+/g, "")
+				.replace(/\(\s*\)/g, "")
+				.replace(/''+/g, "")
+				.replace(/\s{2,}/g, " ")
+				.replace(/^[\s,;]+|[\s,;.]+$/g, "")
 				.trim(),
 		)
 		.filter(Boolean)
-		.slice(0, 6);
+		.slice(0, 8);
 	// Entries state MORE THAN ONE position -- "the first or 35th year", "the 12th (3rd) year" --
 	// because the Jovian cycle has competing reckonings that differ by a fixed offset. Collect every
 	// number in the cycle sense; a match against any one of them is agreement. Reading only the first
@@ -461,6 +546,21 @@ for (const r of rows) {
 			);
 		}
 		if (meaningful.includes(r.n)) r.positionConfirmed = true;
+		const chosen = SELECTED_SENSES[r.n];
+		if (chosen !== undefined) {
+			if (r.senses[chosen] === undefined) {
+				fail(
+					`position ${r.n}: sense ${chosen} was selected for ${r.devanagari}, but the entry now ` +
+						`lists only ${r.senses.length}. The selection cannot be resolved -- re-make it against ` +
+						"what the entry says now.",
+				);
+			} else {
+				// Resolved to text rather than kept as an index, so the committed fixture records the
+				// sentence that was actually chosen. If Wiktionary reorders its senses, the resolved
+				// string changes and the fixture diff shows it, which an index alone would hide.
+				r.selected = r.senses[chosen];
+			}
+		}
 	} catch (error) {
 		fail(`position ${r.n}: Wiktionary lookup for ${r.devanagari} failed -- ${error.message}`);
 	}
@@ -585,13 +685,23 @@ export interface RabjungNameFixtureRow {
 	years: [number, number];
 	/** English Wiktionary has a Sanskrit entry at \`devanagari\`. */
 	attested: boolean;
+	/** Every sense that entry lists, in its order. **Sourced**; empty when there is no entry. */
+	senses: readonly string[];
+	/**
+	 * The sense taken as this name's meaning.
+	 *
+	 * **An authored selection from sourced candidates**, never free text: the generator refuses to
+	 * emit unless this string appears verbatim in \`senses\`. Null where no entry exists, or where no
+	 * sense is clearly the intended one.
+	 */
+	selected: string | null;
 }
 
 export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 ${rows
 	.map(
 		(r) =>
-			`\t{ position: ${r.n}, tibetan: ${quote(r.tibetan)}, wylie: ${quote(r.wylie)}, phonetic: ${quote(r.phonetic)}, devanagari: ${quote(r.devanagari)}, iast: ${quote(r.iast)}, years: [${r.years[0]}, ${r.years[1]}], attested: ${r.attested} },`,
+			`\t{ position: ${r.n}, tibetan: ${quote(r.tibetan)}, wylie: ${quote(r.wylie)}, phonetic: ${quote(r.phonetic)}, devanagari: ${quote(r.devanagari)}, iast: ${quote(r.iast)}, years: [${r.years[0]}, ${r.years[1]}], attested: ${r.attested}, senses: [${(r.senses ?? []).map(quote).join(", ")}], selected: ${r.selected ? quote(r.selected) : "null"} },`,
 	)
 	.join("\n")}
 ];
@@ -607,10 +717,12 @@ const AUTHORED = JSON.parse(
 	readFileSync(join(dirname(fileURLToPath(import.meta.url)), "rabjung-names.data.json"), "utf8"),
 );
 
-const firstSense = (r) => (r.senses?.[0] ?? "").replace(/\|/g, "\\|").slice(0, 70);
+const cell = (s) => String(s ?? "").replace(/\|/g, "\\|");
+const senseList = (r) =>
+	(r.senses ?? []).map((s) => cell(s).slice(0, 60)).join("; ") || "*no Sanskrit entry*";
 const docRow = (r) =>
 	`| ${r.n} | ${r.tibetan} | \`${r.wylie}\` | *${r.phonetic}* | ${r.devanagari} | ${r.iast} | ` +
-	`${(AUTHORED[String(r.n)]?.english ?? "").replace(/\|/g, "\\|")} | ${firstSense(r)} | ` +
+	`${cell(AUTHORED[String(r.n)]?.english)} | ${senseList(r)} | ${cell(r.selected) || "—"} | ` +
 	`${r.positionConfirmed ? "yes" : "—"} | ${r.years[0]}, ${r.years[1]} |`;
 
 writeFileSync(
@@ -657,29 +769,44 @@ ${WYLIE_CORRECTIONS.map((c) => `- **Position ${c.n}, Wylie: \`${c.from}\` → \`
 
 ## Discrepancies recorded, not corrected
 
-At these positions the sources disagree and no reading is clearly right, so choosing one would
+At such positions the sources disagree and no reading is clearly right, so choosing one would
 manufacture authority rather than source it.
 
-${DISCREPANCIES.map((d) => `- **Position ${d.n}.** ${d.note}`).join("\n")}
+${
+	DISCREPANCIES.length === 0
+		? "**There are none at present**, and how the last two went is worth keeping. Positions 15 and 37 sat here until 2026-08-21, on the argument that Sewell and Janson disagreed with each other at 15 and that the Tibetan sided with Wikipedia at 37. Checking attestation settled both: the Wikipedia forms वृषप्रजा and शोभकृत् have no English Wiktionary page at all, while वृषभ and शोभन both do. A reading that no dictionary carries is not a variant worth preserving, so both became corrections."
+		: DISCREPANCIES.map((d) => `- **Position ${d.n}.** ${d.note}`).join("\n")
+}
 
-## The two English columns
+## The English columns
 
-They gloss **different names**, and that is the point of showing both.
+They gloss **different names**, which is the point of showing them side by side.
 
 - **English (Tibetan)** is **authored, not sourced.** It glosses the Tibetan name, written for this
   table. No source gives English for these — Sewell & Fleet prints the sixty as bare names against
   Kaliyuga years and fractional day-counts, with no meaning column, checked directly.
-- **Sanskrit sense** is the first sense of the Devanāgarī headword on English Wiktionary. **Sourced,
-  but a selection**: entries carry several senses, often from different roots, so which one applies
-  is an editorial judgement. \`क्षय\` offers "decay, corrosion" alongside "dominion, place of abode".
+- **Sanskrit senses** are **sourced**: every sense English Wiktionary lists for that Devanāgarī
+  headword, not just the first. ${60 - rows.filter((r) => r.attested).length} of the 60 have no
+  Sanskrit entry, so the column is blank there — sense-sourcing covers rather more than half the
+  table, not all of it.
+- **Selected** is an **authored choice from those sourced candidates**, and the generator refuses to
+  run unless the chosen string appears verbatim among the senses actually fetched. So the editorial
+  step is visible and machine-checked; it can select, never invent.
 
-**Position confirmed** marks rows where Wiktionary's own entry states the cycle position, which is
-a third lineage agreeing on the alignment rather than on the spelling.
+**Why a selection is needed at all.** Entries carry several senses, often from different roots, and
+taking the first is an accident rather than a policy. \`क्षय\` lists "dominion, place of abode" before
+"decay, corrosion" — two different words sharing a spelling, and only the second renders \`zad pa\`.
+
+**Position confirmed** marks rows where Wiktionary's own entry states the cycle position — a third
+lineage agreeing on the alignment rather than on the spelling.
 
 ## The table
 
-| # | Tibetan | Wylie | THL | Devanāgarī | IAST | English (Tibetan, authored) | Sanskrit sense (sourced) | Position confirmed | Years |
-|---|---|---|---|---|---|---|---|---|---|
+Every column heading names where that column comes from, so no row has to be traced back through
+the prose above to know what stands behind it.
+
+| # *(Janson)* | Tibetan *(two EWTS)* | Wylie *(Janson)* | Phonetic *(THL)* | Devanāgarī *(saṃvatsara)* | IAST *(saṃvatsara)* | English of the Tibetan **(authored)** | Sanskrit senses *(Wiktionary)* | Selected **(authored)** | Position *(Wiktionary)* | Years *(Janson + saṃvatsara)* |
+|---|---|---|---|---|---|---|---|---|---|---|
 ${rows.map(docRow).join("\n")}
 `,
 );
