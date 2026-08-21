@@ -130,11 +130,16 @@ documented range starting 1447, and Bhutan's spans 2000 to early 2030 against on
 twenty-five government-published days — so cite the window whenever citing the agreement.
 
 `scripts/rabjung-names.data.json` is **not** a second exception, because it is not a fixture: no
-test reads it, and nothing in `src/` depends on it. It holds the hand-written Lhasa-phonetic and
-English columns of `docs/rabjung-names.md`, a reference table built to decide what `rabjung.name`
-should carry. Keep it out of `test/fixtures/`, and keep the generated columns of that document
-generated — the whole value of the table is that a reader can tell sourced columns from authored
-ones at a glance.
+test reads it, and nothing in `src/` depends on it. It holds the one **authored** column of
+`docs/rabjung-names.md` — English glosses of the Tibetan names. Keep it out of `test/fixtures/`, and
+keep every other column of that document generated: the whole value of the table is that a reader
+can tell sourced columns from authored ones at a glance, and it now prints both an authored English
+gloss of the Tibetan and a sourced Sanskrit sense side by side precisely so the difference is
+visible rather than asserted.
+
+Its Lhasa-phonetic column was retired on 2026-08-21 when THL Simplified phonetics replaced it. That
+is the general rule, not a one-off: **house conventions govern prose, a published standard governs a
+shipped or tabulated data column**, because house style cannot be verified against anything.
 
 Permitted: running those libraries locally and comparing *computed dates* against ours. Dates
 are facts, not copyrightable expression. Reading their public README for API-design ideas is
@@ -355,12 +360,22 @@ tree would be picked up by Biome, the link checker and Vitest — and imports bo
 design, not defects: there is no `main` field and no CJS build. Do not add `main` to make a row
 green.
 
-**Two commands are deliberately outside CI, and both are release-time checks.** `npm run coverage`
-(below) and `npm run verify:names`, which re-derives the whole Tibetan name vocabulary from Janson
-and re-checks it against Wiktionary, THL and CLDR. It needs the network and two converters installed
-outside the repo, so it cannot gate a push — what gates a push is its committed output,
-`test/fixtures/names.ts`, which the suite reads. Provenance is checked before a release; integrity
-is checked on every push.
+**Three commands are deliberately outside CI, and all are release-time checks.** `npm run coverage`
+(below), `npm run verify:names`, which re-derives the whole Tibetan name vocabulary from Janson and
+re-checks it against Wiktionary, THL and CLDR, and `npm run verify:rabjung-names`, which does the
+same for the sixty rabjung year names against Janson, the Indic saṃvatsara list, Sewell & Fleet and
+Wiktionary. Both need the network and two converters installed outside the repo, so neither can gate
+a push — what gates a push is their committed output, `test/fixtures/names.ts` and
+`test/fixtures/rabjung-names.ts`, which the suite reads. Provenance is checked before a release;
+integrity is checked on every push.
+
+**Both verifiers carry corrections to their sources as data, and a correction must self-invalidate.**
+It states the value it expects to find and refuses to run if the source no longer says it, so a
+correction that stops being needed fails loudly instead of silently patching a source that has since
+been fixed. There are three: `spen ma` → `spen pa` in the vocabulary, and in the rabjung names
+`Akshaya` → `Kshaya` at position 60 and `Hevilambi` → `Hemalamba` at 31, both of which were found by
+consulting Sewell & Fleet directly and discovering that a column *cited* to Sewell disagreed with
+Sewell. Do not patch a name by editing the output.
 
 **`npm run coverage` is not one of the nine, so nothing gates it.** It was broken on `main` for an
 unknown stretch and nobody noticed: the 200-year moon-phase sweep runs in well under a second bare
