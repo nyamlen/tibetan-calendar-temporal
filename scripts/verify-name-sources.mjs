@@ -8,8 +8,12 @@
  *   node /path/to/repo/scripts/verify-name-sources.mjs /path/to/tibet.tex
  *
  * Obtain the paper's source with:
- *   curl -o 1401.6285.gz https://arxiv.org/e-print/1401.6285
+ *   curl -L -o 1401.6285.gz https://arxiv.org/e-print/1401.6285
  *   gzip -dc 1401.6285.gz > tibet.tex
+ *
+ * `-L` is required, not cosmetic: arXiv redirects /e-print/ to /src/, and without it curl saves the
+ * 215-byte redirect page. `gzip -dc` then fails and leaves an empty tibet.tex, so the failure
+ * surfaces as "label T7 not found" rather than as a download error.
  *
  * Keep `tibet.tex` outside this repository too — see CLAUDE.md.
  *

@@ -86,12 +86,14 @@ const ANIMALS: Readonly<Record<TibetanAnimal, TibetanName>> = freeze({
 export const NAME_TABLES = freeze({ WEEKDAYS, ELEMENTS, GENDERS, ANIMALS });
 
 /**
- * The Tibetan name of a weekday, by Tibetan weekday number and tradition.
+ * The Tibetan name of a weekday, by Tibetan weekday number and a naming offset.
  *
  * @remarks
- * Takes the config because **Bhutan names its weekdays one planet ahead of Tibet**: day 0 is
+ * Takes a resolved offset rather than a `TraditionConfig`: `weekdayNameFor` in `cycles.ts` is the
+ * public entry point, and it reads `config.naming?.weekdayOffset ?? 0` before calling here. The
+ * offset exists because **Bhutan names its weekdays one planet ahead of Tibet** — day 0 is
  * *spen pa* in Tibet and *nyi ma* in Bhutan. Janson calls this "a unique feature of the Bhutanese
- * calendar", and Unicode CLDR agrees — its `bo` and `dz` locales differ by exactly one planet for
+ * calendar", and Unicode CLDR agrees: its `bo` and `dz` locales differ by exactly one planet for
  * the same date.
  *
  * The offset applies to the **name only**. `tibetanWeekday` is `mod(julianDay + 2, 7)` for every
@@ -99,7 +101,7 @@ export const NAME_TABLES = freeze({ WEEKDAYS, ELEMENTS, GENDERS, ANIMALS });
  * when dates are written in English, as Janson notes.
  *
  * @param weekday - Tibetan weekday, 0 = Saturday through 6 = Friday.
- * @param config - The tradition; its optional `naming.weekdayOffset` shifts the name.
+ * @param offset - Planets to shift the name by: 0 for every Tibetan version, 1 for Bhutan.
  */
 export function weekdayNameOf(weekday: number, offset: number): TibetanWeekdayName {
 	const index = (((weekday + offset) % 7) + 7) % 7;

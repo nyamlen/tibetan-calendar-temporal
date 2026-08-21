@@ -411,20 +411,94 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   - *"Janson's ASCII collides three names onto `pramadi`"* — an artefact of using **his** Sanskrit.
     The Indic IAST already tabulated in [rabjung-names.md](rabjung-names.md) is collision-free.
 
-  What genuinely remains is the **content divergence** at rows 20, 29, 52 and 60, where the Tibetan
-  and Indic lists carry different names rather than different spellings. The plan's proposal was to
-  stop choosing between them: make `rabjung.name` an object carrying **both**, each attributed, so
-  the divergence becomes recorded data rather than a blocker. That is unargued and unbuilt.
+  The **content divergence** was long recorded as rows 20, 29, 52 and 60, where the Tibetan and Indic
+  lists were said to carry different names rather than different spellings. **Re-derived on
+  2026-08-21, that set is wrong in three of its four entries**, and the corrected table with its
+  evidence lives in [rabjung-names.md](rabjung-names.md):
 
-  One unverified premise if it is picked up: English glosses may be sourceable for the **Sanskrit**
-  names from Sewell & Fleet (1924) and Rao (2000) — the same literature the IAST comes from. Nobody
-  has checked whether those books print meanings. If they do not, English stays authored and must be
-  labelled as such.
+  - **60 dissolved.** It was the clearest case — `zad pa`, exhaustion, against *Akshaya*,
+    imperishable — and the correction of the saṃvatsara table's अक्षय to क्षय removed it. Both are
+    kṣaya. Janson, Sewell and the Tibetan all agreed against the Indic cell, which was simply wrong.
+  - **20 reclassified.** Janson's `aksaya` matches the *first* alternative of the compound cell
+    अव्यय/व्यय, which is also the reading `mi zad` takes. That is a within-cell selection question,
+    not two traditions naming different things.
+  - **29 and 52 confirmed**, and they are the whole of it: *mada* against मन्मथ, and *kāla-dūtī*
+    against कालयुक्त. The Tibetan sides with Janson at both.
+  - **39 is a new candidate nobody had considered** — *visvabandhu* against विश्वावसु, where `dbyig`
+    (wealth) sides with the *Indic*, suggesting Janson's ASCII is corrupt rather than divergent.
+    Recorded as open.
 
-  **All 60 are now tabulated side by side in [rabjung-names.md](rabjung-names.md)** — Wylie,
-  Tibetan script, Lhasa phonetics, IAST, Devanāgarī, Janson's Sanskrit and an English gloss, with
-  the provenance and standing of each column stated. Read that before deciding; the columns are
-  not of equal weight, and three of the seven are unverified.
+  The proposal was to stop choosing between them: make `rabjung.name` carry **both**, each
+  attributed, so the divergence becomes recorded data rather than a blocker. That remains the plan,
+  now against two confirmed rows rather than four.
+
+  **The evidence for this nearly went missing, and how is the lesson.** Janson's ASCII Sanskrit is
+  the only mechanical detector of the divergence, and dropping it from the shipped table also dropped
+  it from the document, leaving the four-row claim alive here with no way to re-derive it — for long
+  enough that its position-60 half became false without anything noticing. It is now extracted by the
+  generator for the divergence table alone, and never written to the fixture or to `src/`.
+
+  **That premise was checked on 2026-08-21 and it fails.** Sewell & Fleet, *The Siddhāntas and the
+  Indian Calendar* (1924), prints the sixty saṃvatsaras as **bare names against numeric columns** —
+  Kaliyuga years and fractional day-counts — in its tables of the sixty-saṃvatsara cycle of Jupiter.
+  There is no meaning column, and no gloss vocabulary anywhere near the names; every occurrence of
+  "translation" in the book refers to translations of Siddhānta texts. That fits what the work is:
+  a book about *computing* which saṃvatsara a year falls in, not about what the names mean. Rao
+  (2000) is in copyright and was not reachable, but it is cited for the same list in the same
+  literature, so the premise is treated as answered rather than half-open.
+
+  **That conclusion — "English for the Sanskrit names is not sourceable" — was overturned on
+  2026-08-21.** It was true of Sewell and of Rao, which is what had been checked; it was never true
+  of the lexicographers. Monier-Williams glosses every one of the sixty headwords, and the Cologne
+  scan serves them with a printed page citation. The rabjung table now carries 764 sourced senses
+  across the sixty rows.
+
+  What remains is not "find the source" but the narrower editorial question, and it now has an
+  answer with a machine-checked shape: **which** of many senses is the name's meaning is authored,
+  because no source makes that choice, but the choice can only ever be a verbatim span of a sourced
+  sense, pinned to its record ID and limited to two gloss units. So `meaning` ships as an authored
+  selection from sourced candidates, labelled as such — not as free text, and not omitted.
+
+  One thing the check turned up for free: Sewell gives **Vyaya at 20 and Parābhava at 40**,
+  corroborating the Indic side of the divergence rows from a source outside the Wikipedia
+  saṃvatsara table that [rabjung-names.md](rabjung-names.md) draws on.
+
+  **A search for an independent Tibetan-language witness, 2026-08-21. Recorded so it is not
+  repeated.** Everything in the table descends from Henning's Appendix I through Janson, so a second
+  lineage would have to be Tibetan-language and not calendrical software. Three leads, no witness:
+
+  - **Rangjung Yeshe Wiki** (`rywiki.tsadra.org`) — **unavailable, and this is settled rather than
+    untested.** It sits behind a Cloudflare interstitial that returns 403 to any programmatic
+    request, with a declared User-Agent or a browser one alike. An earlier note calling it
+    "machine-fetchable" was wrong. Do not try to work around the challenge; it is a deliberate
+    access decision by the site.
+  - **BDRC** (`ldspdi.bdrc.io`) — **a live lead, unrealised.** It exposes a full-text search over
+    open-access Unicode Tibetan etexts, filtered in the query itself to `AccessOpen` and
+    `StatusReleased`. `Etexts_count` works; **ten chunks contain both དུས་ཀྱི་ཕོ་ཉ (52) and
+    ཁྲག་སྐྱུག (57)**, two names distinctive enough that co-occurrence implies a list of the sixty. So
+    a machine-readable Tibetan witness very likely exists. What blocked it was retrieval, not
+    access: `Etexts_chunks` returned its parameter metadata and no result rows for any pagination
+    spelling tried. **The concrete next step is that one API call**, not another search.
+  - **THL** (`thlib.org`) — not reached inside the time box. Its calendar converter renders script
+    as images, and its calendrical lineage is unstated, so it may fail the not-downstream-of-Henning
+    test anyway. Its Tibetan-language reference collections are the part worth trying.
+
+  **BDRC chunk counts were considered as an attestation check and rejected, on a negative control.**
+  They tempt, because they work on the multi-word names — `དུས་ཀྱི་ཕོ་ཉ` scores 232,
+  `སྣ་ཚོགས་དབྱིག` 68 — where an exact-title Wiktionary lookup cannot. But **སྤེན་མ scores 108**,
+  and that is the Saturday form this project *rejected* in the naming work on lexical grounds. A
+  corpus count measures string occurrence, not lexical existence: a string can appear inside a longer
+  construction, as a variant, or as a name. Adopting it as a gate would have quietly replaced the
+  standard with one that passes the exact form the repo threw out. A nonsense Tibetan string scores
+  0, so the check does discriminate — it just does not discriminate for the property that matters.
+
+  **All 60 are now tabulated side by side in [rabjung-names.md](rabjung-names.md)** — Wylie, Tibetan
+  script, THL phonetics, Devanāgarī, a derived IAST, an authored English gloss of the Tibetan, and
+  the Monier-Williams senses with an authored selection from them. Read that before deciding. Every
+  column states its provenance, and each **row** now states its own evidence tier — which rung of the
+  lookup ladder reached its entry, whether a non-MW lexicon corroborates it, and whether Wiktionary
+  or the Bṛhat Saṃhitā confirms its position — because one standing claimed for all sixty was
+  exactly what let three artefacts of a truncated fetch be written up as findings.
 
   **Sourcing re-checked 2026-08-12.** Four findings, none of which unblocks this on its own:
 
@@ -537,11 +611,21 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   `leapMonth: "leap" | "regular"` convention needed nothing, because it branches on the semantic flag
   rather than on position. What did need fixing was how the twin is *found*.
 
-  **Still open for Bhutan: a runnable config.** `m₀`, `s₀` and `a₀` remain unreconciled, so no
-  day-level Bhutanese date is claimed and `BHUTAN` is not exported. The reconciliation
-  `x₀ = table x₀ − x₁` reproduces all three shipped Phugpa constants exactly, which makes it a
-  derivation rather than a guess, but Janson's Bhutanese `moonTab`/`sunTab` have not been checked and
-  must be before any config is written.
+  **Closed, and the way it closed is worth keeping.** This entry read "Still open for Bhutan: a
+  runnable config — `m₀`, `s₀` and `a₀` remain unreconciled, so no day-level Bhutanese date is
+  claimed and `BHUTAN` is not exported" until 2026-08-21, by which time every clause of it was
+  false. `BHUTAN` and `BHUTAN_HENNING` are both exported and deeply frozen, and the config is
+  validated day by day against Bhutanese calendar data for 2000–2030 — see
+  [../src/traditions/bhutan.ts](../src/traditions/bhutan.ts) and
+  [testing.md](testing.md) for the window.
+
+  The reconciliation the entry was waiting on turned out not to be needed. It assumed Bhutan's
+  epoch had to be recovered from the four-version comparison table by `x₀ = table x₀ − x₁`; in fact
+  Janson's Bhutan appendix gives the epoch data directly and states that `m₀` is already "modified
+  to yield the JD", the same form `PHUGPA`'s constant takes. So the one-mean-lunar-month trap does
+  not arise for Bhutan at all — it still does for Tsurphu and Mongolia, whose epoch data he gives
+  *only* in that table. The `moonTab`/`sunTab` worry dissolved the same way: the correction tables
+  are defined once, in his astronomical section, and no version appendix restates them.
 
   Two things the fixture work turned up. The upstream file is **not in date order** — a block of
   early-2002 rows is interleaved and another sits after 2004-02-20 — so anything re-deriving from

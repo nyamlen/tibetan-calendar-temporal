@@ -32,7 +32,11 @@ all-rights-reserved. Any code derived from them would poison this project's MIT 
 Implement solely from Svante Janson, "Tibetan Calendar Mathematics" (arXiv:1401.6285).
 
 **Read the LaTeX source, never PDF-extracted text.**
-Fetch `https://arxiv.org/e-print/1401.6285` — a gzipped `tibet.tex` — and read it with `gzip -dc`.
+Fetch it with `curl -L -o 1401.6285.gz https://arxiv.org/e-print/1401.6285`, then `gzip -dc` it to
+`tibet.tex`. **`-L` is not optional**: arXiv redirects `/e-print/` to `/src/`, so without it curl
+saves a 215-byte redirect page, `gzip -dc` produces an empty file, and the failure surfaces much
+later as "label not found" rather than as a download error. Found by following these instructions on
+2026-08-21 and getting an empty file.
 Keep it outside the repository: arXiv's default submission licence grants arXiv distribution
 rights, not third-party redistribution, so vendoring a copy here would raise exactly the licence
 question this project exists to avoid.
@@ -130,11 +134,16 @@ documented range starting 1447, and Bhutan's spans 2000 to early 2030 against on
 twenty-five government-published days — so cite the window whenever citing the agreement.
 
 `scripts/rabjung-names.data.json` is **not** a second exception, because it is not a fixture: no
-test reads it, and nothing in `src/` depends on it. It holds the hand-written Lhasa-phonetic and
-English columns of `docs/rabjung-names.md`, a reference table built to decide what `rabjung.name`
-should carry. Keep it out of `test/fixtures/`, and keep the generated columns of that document
-generated — the whole value of the table is that a reader can tell sourced columns from authored
-ones at a glance.
+test reads it, and nothing in `src/` depends on it. It holds the one **authored** column of
+`docs/rabjung-names.md` — English glosses of the Tibetan names. Keep it out of `test/fixtures/`, and
+keep every other column of that document generated: the whole value of the table is that a reader
+can tell sourced columns from authored ones at a glance, and it now prints both an authored English
+gloss of the Tibetan and a sourced Sanskrit sense side by side precisely so the difference is
+visible rather than asserted.
+
+Its Lhasa-phonetic column was retired on 2026-08-21 when THL Simplified phonetics replaced it. That
+is the general rule, not a one-off: **house conventions govern prose, a published standard governs a
+shipped or tabulated data column**, because house style cannot be verified against anything.
 
 Permitted: running those libraries locally and comparing *computed dates* against ours. Dates
 are facts, not copyrightable expression. Reading their public README for API-design ideas is
@@ -355,12 +364,30 @@ tree would be picked up by Biome, the link checker and Vitest — and imports bo
 design, not defects: there is no `main` field and no CJS build. Do not add `main` to make a row
 green.
 
-**Two commands are deliberately outside CI, and both are release-time checks.** `npm run coverage`
-(below) and `npm run verify:names`, which re-derives the whole Tibetan name vocabulary from Janson
-and re-checks it against Wiktionary, THL and CLDR. It needs the network and two converters installed
-outside the repo, so it cannot gate a push — what gates a push is its committed output,
-`test/fixtures/names.ts`, which the suite reads. Provenance is checked before a release; integrity
-is checked on every push.
+**Three commands are deliberately outside CI, and all are release-time checks.** `npm run coverage`
+(below), `npm run verify:names`, which re-derives the whole Tibetan name vocabulary from Janson and
+re-checks it against Wiktionary, THL and CLDR, and `npm run verify:rabjung-names`, which does the
+same for the sixty rabjung year names against Janson, the Indic saṃvatsara list, Sewell & Fleet and
+Wiktionary. Both need the network and two converters installed outside the repo, so neither can gate
+a push — what gates a push is their committed output, `test/fixtures/names.ts` and
+`test/fixtures/rabjung-names.ts`, which the suite reads. Provenance is checked before a release;
+integrity is checked on every push.
+
+**Both verifiers carry corrections to their sources as data, and a correction must self-invalidate.**
+It states the value it expects to find and refuses to run if the source no longer says it, so a
+correction that stops being needed fails loudly instead of silently patching a source that has since
+been fixed. There is one in the vocabulary — `spen ma` → `spen pa` — and eight in the rabjung names,
+resting on three different kinds of evidence: Sewell & Fleet read directly (60 अक्षय → क्षय, 31
+हेविळम्बि → हेमलम्ब), attestation (15, 37), Monier-Williams resolving a headword the table's spelling
+does not reach (4 प्रमोदूत → प्रमोद), a homograph caught by reading the *sense* rather than the
+presence of an entry (9 युव, the dual pronoun, → युवन्; 56 दुन्दुभी, a Gandharvī's name, → दुन्दुभि), and a
+typo the source contradicts itself about (57 रूधिर → रुधिर). Do not patch a name by editing the output.
+
+**A correction is not a lookup rung, and conflating them inflates both.** A correction changes what
+the table *prints* and needs authored evidence; a rung of the ladder in `scripts/indic.ts` changes
+only what is *queried* and states a rule of Sanskrit — the `-in` stems printed in the nominative, the
+anusvāra spellings, a missing virāma. Eleven of the sixty rows resolve only through a rung, and an
+earlier draft was going to write all of them up as editorial judgements.
 
 **`npm run coverage` is not one of the nine, so nothing gates it.** It was broken on `main` for an
 unknown stretch and nobody noticed: the 200-year moon-phase sweep runs in well under a second bare

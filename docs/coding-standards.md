@@ -75,6 +75,7 @@ A rule with a command beside it will stop a push. A rule marked **review** will 
 | A validation suite is named for the fixture, or fixture prefix, it validates, and lives in `test/validation/` | `npm run check:conventions` (`test/validation/observances.test.ts` allowlisted by name) | Parity is what lets a reader find the test for a fixture without opening anything. It drifted: a suite called `bhutan-fixture.test.ts` sat under a third test directory of its own invention |
 | Taking a fixture as *input* does not make a test a validation suite | `npm run check:conventions` — the rule is deliberately blind outside `test/validation/` | `test/computation/conversion.test.ts` imports `losar` and is named for its module, correctly. This is the half a later sweep gets wrong |
 | A suite in `test/computation/` is named for a `src/computation/` module, optionally narrowed as `<module>-<concept>` | `npm run check:conventions` (longest-prefix, **not** first `-` segment — that rejects `mean-astronomy.test.ts`, which is already correct) | Two suites were named for a *concept* instead. A suite spanning several modules is not a computation suite: `leap-month-position.test.ts` touches four and belongs at `test/` root |
+| A generated document may not hardcode a count the generator computes | `npm run check:conventions` — a literal English number-word in the same **sentence** as a `${}` interpolation, in the markdown template a generator emits | `docs/rabjung-names.md` read "Four values are marked, at positions 6, 15, 31, 37, 60" for three commits: the list is interpolated, the word is a literal, and there were five positions and nine marked cells. Digits are not flagged — `${n} of the 60` is legitimate — and the sentence boundary is load-bearing, or the rule fires on a pronoun two sentences away |
 | The checker's own predicates are proved before any rule runs | `npm run check:conventions` — `selfTest()`, on every invocation, reporting "the checker itself is broken" rather than a violation | Eleven rules and nothing proved any fired. The Rule 11 predicate was wrong once and was caught by reading. Invariants derived from the tree and literal cases catch **disjoint** failures: the first-segment bug fails the invariant and passes all three literal cases |
 | In a sweep over thousands of rows, collect violations and assert once | **review** | Eleven thousand rows times six assertions killed a vitest worker, reported only as `Worker exited unexpectedly` |
 | Any multi-century test carries an explicit timeout | **review** | The 200-year moon-phase sweep runs in under a second bare and 5–8 seconds under v8 instrumentation, against vitest's 5s default — `test` passed while `coverage` failed, for an unknown stretch |
@@ -95,8 +96,12 @@ A rule with a command beside it will stop a push. A rule marked **review** will 
 
 ### Sanskrit and Tibetan terminology
 
-These govern the prose in `docs/` and `README.md`, and the phonetic columns of `docs/rabjung-names.md`.
-All **review**.
+These govern the **prose** in `docs/` and `README.md`. All **review**.
+
+They do **not** govern a tabulated or shipped data column. Those follow a published standard —
+THL Simplified for phonetics — because house style cannot be verified against anything, and a
+column nothing can check is a column nothing can defend. `docs/rabjung-names.md`'s phonetic column
+was house style until 2026-08-21 and is now THL, generated rather than written.
 
 - Sanskrit terms carry full IAST diacritics plus Devanāgarī, with no comma between them.
 - Tibetan terms are formatted `English term (IAST Devanāgarī; Tibetan script pronunciation)`.

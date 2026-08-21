@@ -30,6 +30,48 @@ appear here, and two sources in the same lineage agreeing tells you nothing you 
 | **Almanac** | Traceable to a printed almanac produced by a traditional authority — Men-Tsee-Khang for Tibet, the Ministry of Home Affairs for Bhutan. The strongest kind. |
 | **Independent implementation** | Someone else's code from the same or similar sources. Catches our bugs; cannot catch a shared misreading. |
 
+### A citation is not a lineage — check that the source says what it is cited for
+
+The rabjung table's IAST column was cited to Sewell & Fleet (1924) and *reached us through the
+Wikipedia saṃvatsara table*. Nobody had opened Sewell. When someone did, on 2026-08-21, he
+disagreed at four positions — and at position 60 the disagreement was total: he gives `Kshaya`,
+the string `Akshaya` appears **nowhere in his book**, and Janson and the Tibetan `zad pa` both
+agree with him. What had been recorded for months as a Tibetan-versus-Indic *divergence* was our
+own column being wrong.
+
+So a provenance note naming a book is a claim about lineage, not evidence of it. Open the book. If
+it cannot be opened, say the column came from the intermediary, because that is what is true.
+
+**The same lesson, one level up: English Wiktionary's Sanskrit senses *are* Monier-Williams.** They
+were used as the rabjung table's sense column on the strength of being "a third lineage independent
+of both Janson and Sewell", which is true of them — and says nothing about MW. Pulling खर from
+Wiktionary and from the Cologne scan gives the same gloss sequence, verbatim. So corroborating that
+column with any MW-derived source would have been Monier-Williams agreeing with itself. The column
+now comes from Cologne directly, which is the authority rather than an unattributed copy of it, and
+corroboration is counted only from lexicons that are **not** MW — Shabda-Sagara, Benfey, Yates, Apte,
+Edgerton.
+
+Two sources were added on 2026-08-21 and are worth stating separately, because they answer different
+questions:
+
+| Source | Lineage | What it answers | Standing |
+|---|---|---|---|
+| Cologne Digital Sanskrit Dictionaries (Monier-Williams 1899) | The lexicon itself | Sanskrit senses, uncapped, with a printed page number, a stable per-sense record ID, and MW's own homonym grouping | **Sourced.** MW is public domain; the scan is a digitisation of it |
+| wisdomlib | Bṛhat Saṃhitā of Varāhamihira, plus per-source lexicon attribution | The cycle position, named in words beside the Devanāgarī; and which non-MW lexicons carry a headword | **Sourced, where present.** About a quarter of rows carry no position. Only the ordinal is taken, never the prose — a position is a fact, and the surrounding translation is not ours to copy |
+
+**wisdomlib rate-limits, and this is a property of the source rather than of a bad run.** A full
+sixty-row pass tripped it, after which it answered `403` to every User-Agent alike, a browser string
+included. Changing the User-Agent is not the fix, and would be the same working-around of a site's
+access decision this file already records declining for Rangjung Yeshe Wiki. The generator now sends
+one request before sixty and aborts the whole run if the source is down, because an empty
+corroboration column would otherwise be written into the document as a finding about Sanskrit
+lexicography when it is a fact about our request volume.
+
+**And check what the cited source can actually answer.** Sewell carries **no IAST diacritics at
+all** — he prints `Sukla`, `Vrisha`, `Kshaya` in 1924 romanisation — so he can settle *which name
+sits at which position* and can never settle a spelling. Re-sourcing the column from him would have
+replaced diacritics with their absence while appearing to strengthen the provenance.
+
 ## Phugpa
 
 | Source | Lineage | Format | Coverage | Settles |
@@ -175,6 +217,24 @@ Recorded so nobody spends the effort twice.
 | zhemgang.gov.bt | HTTP 403, a WordPress security block, unchanged with a browser user-agent. Not retried further. |
 | MoHA calendars before 2025 | Do not exist online. The Ministry publishes 2025 and 2026 only; filenames differ between years (`Calendar_2025.pdf`, `calender-2026.pdf`), so guessing URL patterns fails. The Wayback Machine holds only the 2026 PDF and has no MoHA snapshots for 2019–2021. 2001 and 2004 predate the site. |
 | `lscalendars/tibcalendar` | Deferred, not rejected. A fourth implementation of the same paper, needing a C toolchain, adding no independent lineage. |
+| Rangjung Yeshe Wiki (`rywiki.tsadra.org`) | **Unavailable, settled.** Behind a Cloudflare interstitial returning 403 to any programmatic request, with a declared User-Agent or a browser one alike. An earlier note calling it "machine-fetchable" was wrong. Do not work around the challenge; it is a deliberate access decision by the site. |
+| BDRC etext search (`ldspdi.bdrc.io`) | **A live lead, unrealised.** Full-text search over open-access Unicode Tibetan etexts, filtered in the query to `AccessOpen`/`StatusReleased`. `Etexts_count` works — ten chunks contain two rabjung names distinctive enough that co-occurrence implies a list of the sixty, so a machine-readable Tibetan witness very likely exists. `Etexts_chunks` returned parameter metadata and no rows for every pagination spelling tried. The next step is that one API call, not another search. |
+| THL (`thlib.org`) as a *witness* | Reachable and un-blocked, but the dictionary is a React SPA with no server-rendered endpoint, the legacy `translate.php` ignores query parameters, and the Mandala backend returns bot-interstitial `202`s. Its **phonetics converter** remains fully usable and is what `verify:names` and `verify:rabjung-names` depend on. |
+| Sanskrit meanings from Sewell & Fleet | **Not there.** He prints the sixty saṃvatsaras as bare names against Kaliyuga years and fractional day-counts. No meaning column, and every occurrence of "translation" in the book refers to translating Siddhānta texts. It is a book about *computing* which saṃvatsara a year falls in. |
+
+### Corpus occurrence is not lexical existence
+
+BDRC's chunk counts look like a better attestation check than an exact-title dictionary lookup,
+because they work on multi-word names where a headword lookup cannot — `དུས་ཀྱི་ཕོ་ཉ` scores 232.
+They were **rejected on a negative control**: `སྤེན་མ` scores 108, and that is the Saturday form
+this project rejected on lexical grounds in the naming work. A count measures how often a string
+appears in a corpus, which a string can do inside a longer construction, as a variant, or as a
+name. A nonsense Tibetan string scores 0, so the check discriminates — just not for the property
+that matters.
+
+Any attestation check needs an **anchor that can fail**. A lookup returning "not attested" for every
+row is indistinguishable from a broken HTTP client, and would be recorded as a fact about the
+language rather than about our code.
 
 ## Practical notes for anyone adding a source
 
