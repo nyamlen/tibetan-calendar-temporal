@@ -32,7 +32,11 @@ all-rights-reserved. Any code derived from them would poison this project's MIT 
 Implement solely from Svante Janson, "Tibetan Calendar Mathematics" (arXiv:1401.6285).
 
 **Read the LaTeX source, never PDF-extracted text.**
-Fetch `https://arxiv.org/e-print/1401.6285` — a gzipped `tibet.tex` — and read it with `gzip -dc`.
+Fetch it with `curl -L -o 1401.6285.gz https://arxiv.org/e-print/1401.6285`, then `gzip -dc` it to
+`tibet.tex`. **`-L` is not optional**: arXiv redirects `/e-print/` to `/src/`, so without it curl
+saves a 215-byte redirect page, `gzip -dc` produces an empty file, and the failure surfaces much
+later as "label not found" rather than as a download error. Found by following these instructions on
+2026-08-21 and getting an empty file.
 Keep it outside the repository: arXiv's default submission licence grants arXiv distribution
 rights, not third-party redistribution, so vendoring a copy here would raise exactly the licence
 question this project exists to avoid.

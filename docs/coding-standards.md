@@ -95,8 +95,12 @@ A rule with a command beside it will stop a push. A rule marked **review** will 
 
 ### Sanskrit and Tibetan terminology
 
-These govern the prose in `docs/` and `README.md`, and the phonetic columns of `docs/rabjung-names.md`.
-All **review**.
+These govern the **prose** in `docs/` and `README.md`. All **review**.
+
+They do **not** govern a tabulated or shipped data column. Those follow a published standard —
+THL Simplified for phonetics — because house style cannot be verified against anything, and a
+column nothing can check is a column nothing can defend. `docs/rabjung-names.md`'s phonetic column
+was house style until 2026-08-21 and is now THL, generated rather than written.
 
 - Sanskrit terms carry full IAST diacritics plus Devanāgarī, with no comma between them.
 - Tibetan terms are formatted `English term (IAST Devanāgarī; Tibetan script pronunciation)`.
