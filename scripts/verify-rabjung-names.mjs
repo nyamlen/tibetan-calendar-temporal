@@ -469,22 +469,53 @@ const SELECTED_SENSES = {
 	59: 0, // Krodhana, `khro bo` wrathful -- "inclined to wrath, passionate, angry"
 	60: 3, // Kshaya, `zad pa` exhaustion -- "decay, corrosion". NOT sense 0, "dominion": ksaya is two
 	//        homonyms from different roots, and only this one renders the Tibetan.
+	11: 2, // Isvara, `dbang phyug` mighty lord -- "master, lord, prince, king"
+	20: 0, // Avyaya, `mi zad` inexhaustible -- "not liable to change, imperishable, undecaying".
+	//        Reachable only once compound cells were split: the table offers "अव्यय/व्यय", and it is
+	//        the FIRST reading that matches the Tibetan, which is the reading Sewell does not give.
+	21: 0, // Sarvajit, `thams cad 'dul` all-taming -- "all-conquering"
+	43: 5, // Saumya, `zhi ba` peaceful -- "happy, pleasant, cheerful"; the entry omits "gentle, mild",
+	//        which is the sense that would match exactly, so this is the nearest listed.
+	54: 0, // Raudri, `drag po` fierce -- "Rudra-like, violent, impetuous"
 };
 
 /**
- * Positions deliberately left unselected, so the gaps are decisions rather than oversights:
+ * Positions deliberately left unselected, so the gaps read as decisions rather than oversights.
  *
- * - **9, 22, 31** -- the only sense is "name of the Nth year of the cycle", which is circular.
- * - **11, 21, 35, 54** -- the senses that fit carry citation residue or are too diffuse to choose
- *   between without inventing a preference.
+ * - **9 Yuva, 22 Sarvadhārī, 31 Hemalamba, 56 Dundubhi** -- the entry exists but yields no usable
+ *   sense: either nothing survives cleaning, or the only sense is "name of the Nth year of the
+ *   cycle", which is circular and says nothing about what the name means.
  * - **25 Khara** (`bong bu`, donkey) and **56 Dundubhi** (`rnga chen`, great drum) -- the entry
- *   lists no sense resembling the Tibetan at all, which is a finding worth leaving visible.
- * - Every position with no Sanskrit entry: 24 of the 60.
+ *   lists no sense resembling the Tibetan at all. Khara offers "hard, harsh, pungent" and "osprey";
+ *   neither is a donkey. That is a finding worth leaving visible rather than forcing a choice.
+ * - **35 Plava** (`'phar ba`, leaping) -- the senses are "swimming, floating", "a raft", "a kind of
+ *   aquatic bird". None says leaping, and picking the nearest would assert a match the entry does
+ *   not make.
+ * - **50 Nala/Anala** (`me`, fire) -- and this one is a caution about the compound-cell split. The
+ *   cell offers two readings and the lookup takes the first that resolves, which is नल, "a species
+ *   of reed". The Tibetan is fire, which is अनल, the second. Both are attested and नल's own entry
+ *   claims position 50, so neither is wrong; but the sense list on file is the reed's, so no
+ *   selection is made from it. Splitting compound cells solved attestation and did not solve
+ *   *which* alternative a position means.
+ * - Every position with no Sanskrit entry at all.
  */
 
 // ---------------------------------------------------------------------------------------------
 // 6. Wiktionary: lexical existence, and the cycle position where the entry states it.
 // ---------------------------------------------------------------------------------------------
+
+/**
+ * A cell may offer alternatives -- "अव्यय/व्यय", "नल/अनल" -- where the samvatsara table records two
+ * readings for one position. No page title contains a slash, so sending the cell whole reports the
+ * name as unattested when both alternatives are perfectly ordinary Sanskrit words.
+ */
+async function sanskritEntryForCell(cell) {
+	for (const alternative of cell.split("/").map((s) => s.trim())) {
+		const entry = await sanskritEntry(alternative);
+		if (entry) return { ...entry, headword: alternative };
+	}
+	return null;
+}
 
 async function sanskritEntry(devanagari) {
 	const url =
@@ -505,6 +536,8 @@ async function sanskritEntry(devanagari) {
 				// Template residue. Without this, senses arrive as "all-conquering ()" and
 				// "master, lord, prince, king }}" -- the leftovers of citation templates.
 				.replace(/[{}]+/g, "")
+				// Residue of a template whose braces went before its body: "master, lord, king q|feminine".
+				.replace(/\s*\b[a-z]{1,4}\|[a-zA-Z|_-]+/g, "")
 				.replace(/\(\s*\)/g, "")
 				.replace(/''+/g, "")
 				.replace(/\s{2,}/g, " ")
@@ -532,7 +565,7 @@ async function sanskritEntry(devanagari) {
 
 for (const r of rows) {
 	try {
-		const entry = await sanskritEntry(r.devanagari);
+		const entry = await sanskritEntryForCell(r.devanagari);
 		r.attested = entry !== null;
 		r.senses = entry?.senses ?? [];
 		r.statedPositions = entry?.statedPositions ?? [];
@@ -720,8 +753,13 @@ const AUTHORED = JSON.parse(
 const cell = (s) => String(s ?? "").replace(/\|/g, "\\|");
 const senseList = (r) =>
 	(r.senses ?? []).map((s) => cell(s).slice(0, 60)).join("; ") || "*no Sanskrit entry*";
+// A corrected value did NOT come from the source its column heading names, so it is marked. Without
+// this the heading over-claims: position 60 reads "Kshaya" under a column headed *(saṃvatsara)*,
+// when that value is Sewell's and the saṃvatsara table says "Akshaya".
+const mark = (value, corrected) => (corrected ? `${value} †` : value);
 const docRow = (r) =>
-	`| ${r.n} | ${r.tibetan} | \`${r.wylie}\` | *${r.phonetic}* | ${r.devanagari} | ${r.iast} | ` +
+	`| ${r.n} | ${r.tibetan} | \`${mark(r.wylie, r.wylieCorrectedFrom)}\` | *${r.phonetic}* | ` +
+	`${mark(r.devanagari, r.iastCorrectedFrom)} | ${mark(r.iast, r.iastCorrectedFrom)} | ` +
 	`${cell(AUTHORED[String(r.n)]?.english)} | ${senseList(r)} | ${cell(r.selected) || "—"} | ` +
 	`${r.positionConfirmed ? "yes" : "—"} | ${r.years[0]}, ${r.years[1]} |`;
 
@@ -804,6 +842,14 @@ lineage agreeing on the alignment rather than on the spelling.
 
 Every column heading names where that column comes from, so no row has to be traced back through
 the prose above to know what stands behind it.
+
+**† marks a value that did *not* come from the source its heading names** — it came from a
+correction above, with its evidence. Position 60 is the case to have in mind: it reads \`Kshaya\`
+under a column headed *saṃvatsara*, when the saṃvatsara table says *Akshaya* and \`Kshaya\` is
+Sewell's reading. Four values are marked, at positions ${[...CORRECTIONS, ...WYLIE_CORRECTIONS]
+		.map((c) => c.n)
+		.sort((a, b) => a - b)
+		.join(", ")}.
 
 | # *(Janson)* | Tibetan *(two EWTS)* | Wylie *(Janson)* | Phonetic *(THL)* | Devanāgarī *(saṃvatsara)* | IAST *(saṃvatsara)* | English of the Tibetan **(authored)** | Sanskrit senses *(Wiktionary)* | Selected **(authored)** | Position *(Wiktionary)* | Years *(Janson + saṃvatsara)* |
 |---|---|---|---|---|---|---|---|---|---|---|

@@ -211,13 +211,13 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		senses: [
 			"able to do, capable of",
 			"liable, exposed to",
-			"master, lord, prince, king q|feminine",
+			"master, lord, prince, king",
 			"a husband",
 			"God, the Supreme Being",
 			"an epithet of Shiva",
 			"an epithet of Vishnu",
 		],
-		selected: null,
+		selected: "master, lord, prince, king",
 	},
 	{
 		position: 12,
@@ -351,9 +351,15 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		devanagari: "अव्यय/व्यय",
 		iast: "Avyaya/Vyaya",
 		years: [1946, 2006],
-		attested: false,
-		senses: [],
-		selected: null,
+		attested: true,
+		senses: [
+			"not liable to change, imperishable, undecaying (, etc.)",
+			"‘not spending’, parsimonious",
+			"non-spending, parsimony",
+			"an indeclinable word, particle",
+			"coming from sheep",
+		],
+		selected: "not liable to change, imperishable, undecaying (, etc.)",
 	},
 	{
 		position: 21,
@@ -371,7 +377,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 			"a particular (, , )",
 			"the 21st year of Jupiter's cycle of 60 years",
 		],
-		selected: null,
+		selected: "all-conquering",
 	},
 	{
 		position: 22,
@@ -696,7 +702,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 			"auspicious",
 			"happy, pleasant, cheerful",
 		],
-		selected: null,
+		selected: "happy, pleasant, cheerful",
 	},
 	{
 		position: 44,
@@ -790,8 +796,17 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		devanagari: "नल/अनल",
 		iast: "Nala/Anala",
 		years: [1976, 2036],
-		attested: false,
-		senses: [],
+		attested: true,
+		senses: [
+			"(cf. नड, नळ) a species of reed, Amphidonax Karka (8-12 feet high) Gobh. MBh. &c",
+			"a measure of length MBh. (v.l. तल)",
+			"a partic. form of constellation in which all the planets or stars are grouped in double mansions Var",
+			"the 50th year of the cycle of Jupiter which lasts 60 years Cat",
+			"name of a divine being mentioned with यम Karmapr. (= पितृ-देव, or -दैव L. ; a deified progenitor W.)",
+			"name of a दैत्य BrahmaP",
+			"name of a king of the निषधs (son of वीर-सेन and husband of दमयन्ती) MBh. Pur",
+			"name of a son of निषध and father of नभ or नभस् Hariv. Ragh. VP",
+		],
 		selected: null,
 	},
 	{
@@ -852,7 +867,8 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 			"the cold season of the year, winter L",
 			"name of the 54th year of the Jupiter cycle of 60 years ib",
 		],
-		selected: null,
+		selected:
+			"relating or belonging to or coming from Rudra or the Rudras, Rudra-like, violent, impetuous, fierce, wild",
 	},
 	{
 		position: 55,
