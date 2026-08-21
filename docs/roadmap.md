@@ -416,10 +416,51 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   stop choosing between them: make `rabjung.name` an object carrying **both**, each attributed, so
   the divergence becomes recorded data rather than a blocker. That is unargued and unbuilt.
 
-  One unverified premise if it is picked up: English glosses may be sourceable for the **Sanskrit**
-  names from Sewell & Fleet (1924) and Rao (2000) — the same literature the IAST comes from. Nobody
-  has checked whether those books print meanings. If they do not, English stays authored and must be
-  labelled as such.
+  **That premise was checked on 2026-08-21 and it fails.** Sewell & Fleet, *The Siddhāntas and the
+  Indian Calendar* (1924), prints the sixty saṃvatsaras as **bare names against numeric columns** —
+  Kaliyuga years and fractional day-counts — in its tables of the sixty-saṃvatsara cycle of Jupiter.
+  There is no meaning column, and no gloss vocabulary anywhere near the names; every occurrence of
+  "translation" in the book refers to translations of Siddhānta texts. That fits what the work is:
+  a book about *computing* which saṃvatsara a year falls in, not about what the names mean. Rao
+  (2000) is in copyright and was not reachable, but it is cited for the same list in the same
+  literature, so the premise is treated as answered rather than half-open.
+
+  **So English for the Sanskrit names is not sourceable either**, and the question is no longer
+  "find the source" but the public-surface one: ship an authored-and-labelled `meaning`, or omit
+  English entirely. Two defensible answers, so it belongs to whoever owns the surface.
+
+  One thing the check turned up for free: Sewell gives **Vyaya at 20 and Parābhava at 40**,
+  corroborating the Indic side of the divergence rows from a source outside the Wikipedia
+  saṃvatsara table that [rabjung-names.md](rabjung-names.md) draws on.
+
+  **A search for an independent Tibetan-language witness, 2026-08-21. Recorded so it is not
+  repeated.** Everything in the table descends from Henning's Appendix I through Janson, so a second
+  lineage would have to be Tibetan-language and not calendrical software. Three leads, no witness:
+
+  - **Rangjung Yeshe Wiki** (`rywiki.tsadra.org`) — **unavailable, and this is settled rather than
+    untested.** It sits behind a Cloudflare interstitial that returns 403 to any programmatic
+    request, with a declared User-Agent or a browser one alike. An earlier note calling it
+    "machine-fetchable" was wrong. Do not try to work around the challenge; it is a deliberate
+    access decision by the site.
+  - **BDRC** (`ldspdi.bdrc.io`) — **a live lead, unrealised.** It exposes a full-text search over
+    open-access Unicode Tibetan etexts, filtered in the query itself to `AccessOpen` and
+    `StatusReleased`. `Etexts_count` works; **ten chunks contain both དུས་ཀྱི་ཕོ་ཉ (52) and
+    ཁྲག་སྐྱུག (57)**, two names distinctive enough that co-occurrence implies a list of the sixty. So
+    a machine-readable Tibetan witness very likely exists. What blocked it was retrieval, not
+    access: `Etexts_chunks` returned its parameter metadata and no result rows for any pagination
+    spelling tried. **The concrete next step is that one API call**, not another search.
+  - **THL** (`thlib.org`) — not reached inside the time box. Its calendar converter renders script
+    as images, and its calendrical lineage is unstated, so it may fail the not-downstream-of-Henning
+    test anyway. Its Tibetan-language reference collections are the part worth trying.
+
+  **BDRC chunk counts were considered as an attestation check and rejected, on a negative control.**
+  They tempt, because they work on the multi-word names — `དུས་ཀྱི་ཕོ་ཉ` scores 232,
+  `སྣ་ཚོགས་དབྱིག` 68 — where an exact-title Wiktionary lookup cannot. But **སྤེན་མ scores 108**,
+  and that is the Saturday form this project *rejected* in the naming work on lexical grounds. A
+  corpus count measures string occurrence, not lexical existence: a string can appear inside a longer
+  construction, as a variant, or as a name. Adopting it as a gate would have quietly replaced the
+  standard with one that passes the exact form the repo threw out. A nonsense Tibetan string scores
+  0, so the check does discriminate — it just does not discriminate for the property that matters.
 
   **All 60 are now tabulated side by side in [rabjung-names.md](rabjung-names.md)** — Wylie,
   Tibetan script, Lhasa phonetics, IAST, Devanāgarī, Janson's Sanskrit and an English gloss, with
