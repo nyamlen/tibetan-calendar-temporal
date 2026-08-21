@@ -16,10 +16,14 @@
 
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
+    // scripts/indic.ts is imported by an .mjs generator under Node's erase-only type stripping, which
+    // rejects parameter properties, enums and namespaces at import time. This turns that into a
+    // typecheck error instead of a runtime one the next contributor discovers.
+    "erasableSyntaxOnly": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
 
     "noEmit": true
   },
-  "include": ["src/**/*.ts", "test/**/*.ts", "*.config.ts"]
+  "include": ["src/**/*.ts", "test/**/*.ts", "scripts/**/*.ts", "*.config.ts"]
 }
