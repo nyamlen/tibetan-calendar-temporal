@@ -125,7 +125,9 @@ export function yearFromRoyalEra(royalEraYear: number): number {
  *
  * @example
  * ```ts
- * rabjungFromYear(2007); // { cycle: 17, year: 21 } — Janson's worked example
+ * // Janson's worked example, §4.
+ * rabjungFromYear(2007).cycle;   // 17
+ * rabjungFromYear(2007).year;    // 21
  * ```
  */
 export function rabjungFromYear(year: number): Rabjung {

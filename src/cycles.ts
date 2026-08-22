@@ -105,8 +105,15 @@ export function yearNameFor(year: number): TibetanYearName {
  *
  * @example
  * ```ts
- * rabjungFor(2153);        // { cycle: 17, year: 40 }
- * rabjungFor(2153 + 60);   // { cycle: 18, year: 40 } — one cycle on, same position
+ * rabjungFor(2153).cycle;            // 17
+ * rabjungFor(2153).year;             // 40
+ * rabjungFor(2153 + 60).cycle;       // 18 — one cycle on, same position
+ * rabjungFor(2153 + 60).year;        // 40
+ *
+ * // name.sanskrit.meaning is an authored selection from Monier-Williams, not a gloss of the
+ * // Tibetan — see RabjungName's own docblock for where the two traditions diverge.
+ * rabjungFor(2153).name.tibetan;             // ཟིལ་གནོན
+ * rabjungFor(2153).name.sanskrit.meaning;    // "overthrow, defeat"
  * ```
  */
 export function rabjungFor(year: number): Rabjung {
