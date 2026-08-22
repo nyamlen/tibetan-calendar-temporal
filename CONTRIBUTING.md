@@ -36,6 +36,27 @@ The commit history is this project's evidence of independent derivation. Keep co
 incremental and tied to the paper's sections rather than squashing large amounts of work into
 one commit.
 
+## Branching for work that cannot stay green commit-by-commit
+
+**`main` must be green at every commit.** Most changes fit that directly — write the code, run
+the nine checks, commit. Some do not: adding a required field to a shipped type breaks every
+exact-equality assertion against the old shape until they are migrated, and the migration is
+worth its own commit rather than being buried in the type change's diff. That is a real,
+recurring shape in this project — the rabjung-names, conventions-enforcement,
+conventions-hardening and rabjung-name-surface branches all hit it.
+
+When you can see in advance that a commit boundary you want will leave tests red until a later
+commit in the same piece of work, **open a feature branch rather than committing the red state to
+`main`.** Land the sequence there, each commit still incremental and tied to what it does; only
+the requirement that *this specific commit* passes CI is relaxed, and only on the branch. Merge to
+`main` with `--no-ff` once the whole branch is green — run all nine checks against the merge
+result before pushing, since a clean merge does not guarantee that. `git branch -d` the branch
+locally and `git push origin --delete` it remotely once it is merged; there is no reason to keep
+a fully-merged branch around.
+
+This does not relax the commit-history rule above. The branch's commits are still the evidence of
+incremental derivation; only their individual CI status is deferred to the merge.
+
 ## Development environment
 
 The project-wide coding rules are in [docs/coding-standards.md](docs/coding-standards.md), which
