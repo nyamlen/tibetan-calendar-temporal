@@ -151,9 +151,11 @@ describe("the generated rabjung name table", () => {
  *
  * @remarks
  * `src/rabjung-names.ts` carries only the public subset of each fixture row — `tibetan`, `wylie`,
- * `phonetic` and `sanskrit: { devanagari, iast, meaning: selected, composedMeaning: composed }` —
- * never the evidence fields (`senses`, `mwPage`, `brihatSamhitaPosition`, and so on), which are
- * provenance, not calendar data. This suite is what stops the two drifting apart.
+ * `phonetic` and `sanskrit: { devanagari, iast, meaning }` — never the evidence fields (`senses`,
+ * `mwPage`, `brihatSamhitaPosition`, and so on), which are provenance, not calendar data.
+ * `meaning` merges the fixture's `selected` (verbatim, on 58 of 60 rows) and `composed` (assembled
+ * from a compound's parts, on the other 2) into one field: a consumer wants "the English gloss",
+ * not to know which of two mechanisms produced it. This suite is what stops the two drifting apart.
  */
 describe("src/rabjung-names.ts matches the verified fixture", () => {
 	it.each(RABJUNG_NAMES)("position $position ($wylie) matches the shipped table", (row) => {
@@ -165,8 +167,7 @@ describe("src/rabjung-names.ts matches the verified fixture", () => {
 			sanskrit: {
 				devanagari: row.devanagari,
 				iast: row.iast,
-				meaning: row.selected,
-				composedMeaning: row.composed,
+				meaning: row.selected ?? row.composed,
 			},
 		});
 	});

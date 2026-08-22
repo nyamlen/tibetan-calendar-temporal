@@ -419,13 +419,23 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   would save none of the 14 assertions while costing permanent narrowing under
   `exactOptionalPropertyTypes`.
 
-  **A decision taken on 2026-08-22, for whoever shapes `SanskritName`.** Where Monier-Williams has
-  no entry for a whole compound but glosses both halves, the meaning is **composed** and labelled,
-  not left null — returning null says "this name has no meaning", which for an ordinary transparent
-  compound is false. Three conditions, all load-bearing: a distinct provenance tier that never fills
-  the verbatim field; citation of the element entries; and the Tibetan as the disambiguator between
-  a compound's possible readings. A compound the Tibetan does not render has no disambiguator, and
-  composing one would be inventing.
+  **A decision taken on 2026-08-22.** Where Monier-Williams has no entry for a whole compound but
+  glosses both halves, the meaning is **composed** rather than left null — returning null says "this
+  name has no meaning," which for an ordinary transparent compound is false. Three conditions, all
+  load-bearing at the fixture and generator level, where `selected` and `composed` stay two fields:
+  citation of the element entries; the Tibetan as the disambiguator between a compound's possible
+  readings, so a compound it does not render has no disambiguator and composing one would be
+  inventing; and a distinct field so `selected`'s guarantee — always a verbatim quote — is never
+  diluted by a composed value silently occupying it.
+
+  **`SanskritName.meaning` merges the two, decided against the shipped shape rather than in the
+  abstract.** A first pass shipped `meaning` and `composedMeaning` as separate fields, carrying the
+  fixture's distinction straight into the public type. Andreas reversed it: a consumer wants "the
+  English gloss for this name," not to learn which of two sourcing mechanisms produced it, and two
+  nullable fields for a distinction that affects 2 of 60 rows is public surface earned by our
+  editorial process, not by the calendar. `meaning` is null only where nothing in Monier-Williams
+  renders the Tibetan name at all; docs/names/rabjung.md still shows which rows are composed, for
+  anyone who wants that provenance.
 
 - **Mutation testing with Stryker.** Open question, not a commitment. The argument for it is that
   this project's real risk is semantic — a misread constant, `⌈⌉` for `⌊⌋`, a flipped comparison —

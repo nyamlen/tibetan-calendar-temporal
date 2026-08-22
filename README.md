@@ -172,8 +172,7 @@ The full object:
       "sanskrit": {
         "devanagari": "पराभव",
         "iast": "Parābhava",
-        "meaning": "overthrow, defeat",
-        "composedMeaning": null
+        "meaning": "overthrow, defeat"
       }
     }
   },

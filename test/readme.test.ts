@@ -56,7 +56,6 @@ describe("README usage examples", () => {
 						devanagari: "पराभव",
 						iast: "Parābhava",
 						meaning: "overthrow, defeat",
-						composedMeaning: null,
 					},
 				},
 			},

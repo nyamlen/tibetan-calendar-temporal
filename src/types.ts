@@ -136,24 +136,17 @@ export interface SanskritName {
 	iast: string;
 
 	/**
-	 * A gloss, quoted **verbatim** from a printed Monier-Williams sense — never assembled or
-	 * paraphrased. Null where no sense renders the Tibetan name.
+	 * An English gloss for the Sanskrit name, sourced from Monier-Williams. Null where nothing in
+	 * his dictionary renders the Tibetan name.
 	 *
 	 * @remarks
-	 * See {@link SanskritName.composedMeaning} for the weaker, separately tiered case.
+	 * On all but two of the sixty rows this is a **verbatim** quote of one printed sense. On two —
+	 * where Monier-Williams glosses no entry for the whole word but does gloss both halves of the
+	 * compound, and the Tibetan disambiguates which reading is meant — it is **composed** from his
+	 * entries for the two parts instead. Either way this is a sourced, checked gloss, never invented
+	 * free text; see `docs/names/rabjung.md` for which rows are composed and why.
 	 */
 	meaning: string | null;
-
-	/**
-	 * A meaning **composed** from Monier-Williams' entries for a compound's two parts, where he
-	 * glosses no entry for the whole word but does gloss both halves.
-	 *
-	 * @remarks
-	 * A weaker tier than {@link SanskritName.meaning}, and deliberately a separate field: `meaning`
-	 * is always a verbatim quote of one printed sense, and mixing the two would end that guarantee.
-	 * Non-null on only a few of the sixty rows, and null wherever `meaning` is not.
-	 */
-	composedMeaning: string | null;
 }
 
 /**
@@ -242,9 +235,9 @@ export interface TibetanYearName {
  * Every value was verified before being written down. For the weekday, element, gender and animal
  * vocabulary: two independent EWTS implementations must agree on the script, it must read back as
  * the same Wylie, and English Wiktionary must have an entry at exactly that title — see
- * `docs/names/vocabulary.md`. The sixty rabjung names carry a different, weaker evidence tier: MW
- * via the Cologne scan and a stated normalisation ladder, not English Wiktionary — see
- * `docs/names/rabjung.md` and `docs/names/rabjung-sourcing.md`.
+ * `docs/names/vocabulary.md`. The sixty rabjung names carry a different, weaker evidence tier:
+ * Monier-Williams' Sanskrit dictionary, via the Cologne scan and a stated normalisation ladder, not
+ * English Wiktionary — see `docs/names/rabjung.md` and `docs/names/rabjung-sourcing.md`.
  *
  * These objects are **shared and frozen**. A `TibetanDate` holds a pointer, not a copy, so building
  * a year of dates costs pointer fields rather than thousands of strings — and freezing is what keeps
