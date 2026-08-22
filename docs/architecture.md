@@ -133,6 +133,8 @@ tibetan-calendar-temporal/
 │   ├── cycles.ts             # the cyclic names: year, rabjung, weekday, element, gender, animal
 │   ├── names.ts              # the frozen name vocabulary — internal; cycles.ts, epoch.ts,
 │   │                         #   conversion.ts all read it
+│   ├── rabjung-names.ts      # the 60 rabjung names, RabjungName + SanskritName — a weaker
+│   │                         #   evidence tier than names.ts, so its own module
 │   └── types.ts              # TibetanDate, TibetanMonth, their field shapes, SkippedDayError
 ├── test/
 │   ├── computation/          # named for a computation module, or <module>-<concept>
@@ -205,7 +207,7 @@ interface TraditionConfig {
 interface TibetanDate {
   year: number;           // Royal era, 127 BC epoch (e.g. 2153)
   yearStartsIn: number;   // Janson's Y — Gregorian year this Tibetan year begins in (2026)
-  rabjung: Rabjung;       // Indian cycle — a numbering
+  rabjung: Rabjung;       // Indian cycle — a numbering, plus its name
   yearName: TibetanYearName;  // Chinese cycle — a name
   month: number;          // Month number (1-12); a leap month repeats the following month's
   monthCode: string;      // "M06" or "M06L" for leap month
@@ -237,6 +239,17 @@ interface TibetanMonthFields {
 interface Rabjung {
   cycle: number;          // 17 for 1987-2046
   year: number;           // 1-60 position within the cycle
+  name: RabjungName;      // the Tibetan and Sanskrit name at that position
+}
+
+interface SanskritName {
+  devanagari: string;
+  iast: string;                  // derived from devanagari, not taken from the Indic list
+  meaning: string | null;        // sourced from Monier-Williams; null on ~2 of 60 rows
+}
+
+interface RabjungName extends TibetanName {
+  sanskrit: SanskritName;        // NOT a gloss of the Tibetan name at two divergent positions
 }
 
 interface TibetanYearName {
@@ -312,16 +325,24 @@ makes the mistake unbuildable.
 together — unlike `year` and `yearStartsIn`, each of which stands alone — and because it is where
 the Indian cycle names will go if they are ever added.
 
-### Why the 60 rabjung names are not included
+### Why `rabjung.name` carries both traditions, and what it does not promise
 
-`rabjung.year` is a position in a list of 60 Tibetan and Sanskrit names, and v1 exposes the
-position without the name. **The sourcing that made this a research task is now done** — see
-[names/rabjung.md](names/rabjung.md) for the table and
-[names/rabjung-sourcing.md](names/rabjung-sourcing.md) for how it was arrived at. What remains is a
-public-surface decision, not a data problem.
+`rabjung.year` is a position in two 60-year Sanskrit lists — Janson's Tibetan-lineage one and the
+Indic saṃvatsara list — and `rabjung.name` exposes both, as a `RabjungName` whose `tibetan` fields
+are the Tibetan tradition's name and whose `sanskrit` field is the Indic list's name at the same
+position. See [names/rabjung.md](names/rabjung.md) for the sourced table,
+[names/rabjung-sourcing.md](names/rabjung-sourcing.md) for how it was arrived at, and
+[decisions/2026-08-21-rabjung-names-carry-both.md](decisions/2026-08-21-rabjung-names-carry-both.md)
+for the shape decisions and their trade-offs.
 
-Three of the reasons originally recorded here have since been answered, and the way two of them
-were wrong is worth keeping:
+**`sanskrit` is not a gloss of the Tibetan name.** The two lists mostly translate each other, but at
+positions 29 and 52 they genuinely diverge — the Sanskrit there names a *different* thing that
+happens to share the index. `RabjungName`'s own docblock carries the worked example; do not
+reconcile the two fields into one meaning.
+
+This section used to be titled "why the 60 rabjung names are not included," and recorded three
+reasons for deferring them. Two turned out to be wrong, and the third was resolved by sourcing work
+rather than by a design change, which is why none of them constrain the shipped shape:
 
 - *"No source carries all 60 in Tibetan script with Lhasa phonetics."* Two independent EWTS
   implementations agree on the script for all sixty and round-trip every one back to its Wylie, and
@@ -338,9 +359,7 @@ were wrong is worth keeping:
   29 and 52, and they are tabulated with their evidence.
 
 Henning's book has transliterations but is a copyrighted secondary source, which is why the script
-column is derived rather than transcribed. Adding the names at `rabjung.name` is additive and breaks
-nothing, which is what makes deferring legitimate rather than merely convenient — but the reason to
-defer is now the required-field question on `Rabjung`, recorded in the roadmap, rather than sourcing.
+column is derived rather than transcribed.
 
 ### Why `gender` is kept although it is derivable
 
