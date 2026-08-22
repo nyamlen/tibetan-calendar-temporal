@@ -45,7 +45,20 @@ describe("README usage examples", () => {
 		expect(JSON.parse(JSON.stringify(date))).toEqual({
 			year: 2153,
 			yearStartsIn: 2026,
-			rabjung: { cycle: 17, year: 40 },
+			rabjung: {
+				cycle: 17,
+				year: 40,
+				name: {
+					tibetan: "ཟིལ་གནོན",
+					wylie: "zil gnon",
+					phonetic: "zil nön",
+					sanskrit: {
+						devanagari: "पराभव",
+						iast: "Parābhava",
+						meaning: "overthrow, defeat",
+					},
+				},
+			},
 			yearName: {
 				element: "fire",
 				animal: "horse",
@@ -135,6 +148,11 @@ describe("README usage examples", () => {
 		expect(leap?.lunation).toBe((regular?.lunation ?? Number.NaN) - 1);
 	});
 
+	it("builds a whole year from monthsFor and datesFor", () => {
+		const year = monthsFor(2153).flatMap((month) => datesFor(month));
+		expect(year.length).toBe(354);
+	});
+
 	it("reads the documented dates back, including a skipped one", () => {
 		expect(parseTibetanDate("2153-M12-08")).toEqual({
 			year: 2153,
@@ -209,7 +227,7 @@ describe("README usage examples", () => {
 		const losar = isoToTibetan(iso("2026-02-18"));
 		expect(formatTibetanDate(losar)).toBe("2153-M01-01");
 		expect(losar.yearName).toMatchObject({ element: "fire", animal: "horse", gender: "male" });
-		expect(losar.rabjung).toEqual({ cycle: 17, year: 40 });
+		expect(losar.rabjung).toMatchObject({ cycle: 17, year: 40 });
 	});
 
 	it("shows the documented difference between the two traditions", () => {

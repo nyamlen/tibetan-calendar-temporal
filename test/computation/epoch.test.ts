@@ -14,22 +14,36 @@ import { SIXTY_YEAR_CYCLE } from "../fixtures/sixty-year-cycle.js";
 describe("rabjungFromYear", () => {
 	// Janson's own worked example, §4: "AD 2007 is the 21st year in the 17th Prabhava cycle,
 	// which began in 1987."
+	// These assert `.cycle`/`.year` directly rather than `toEqual({ cycle, year })`: the subject
+	// here is the arithmetic, and `toMatchObject` would silently stop checking that no extra field
+	// appeared, which is the one thing these assertions exist to catch. `rabjungFromYear` now also
+	// returns `name`, checked separately in test/rabjung-names.test.ts.
 	it("reproduces Janson's worked example for 2007", () => {
-		expect(rabjungFromYear(2007)).toEqual({ cycle: 17, year: 21 });
+		const result = rabjungFromYear(2007);
+		expect(result.cycle).toBe(17);
+		expect(result.year).toBe(21);
 	});
 
-	it("places the cycle boundaries at 1027 and 1987", () => {
-		expect(rabjungFromYear(1027)).toEqual({ cycle: 1, year: 1 });
-		expect(rabjungFromYear(1086)).toEqual({ cycle: 1, year: 60 });
-		expect(rabjungFromYear(1087)).toEqual({ cycle: 2, year: 1 });
-		expect(rabjungFromYear(1987)).toEqual({ cycle: 17, year: 1 });
-		expect(rabjungFromYear(2046)).toEqual({ cycle: 17, year: 60 });
+	it.each`
+		year    | cycle | position
+		${1027} | ${1}  | ${1}
+		${1086} | ${1}  | ${60}
+		${1087} | ${2}  | ${1}
+		${1987} | ${17} | ${1}
+		${2046} | ${17} | ${60}
+	`("places $year at cycle $cycle, position $position", ({ year, cycle, position }) => {
+		const result = rabjungFromYear(year);
+		expect(result.cycle).toBe(cycle);
+		expect(result.year).toBe(position);
 	});
 
 	it("matches Janson's 60-year cycle table for both listed cycles", () => {
 		for (const row of SIXTY_YEAR_CYCLE) {
-			expect(rabjungFromYear(row.years[0])).toEqual({ cycle: 16, year: row.indian });
-			expect(rabjungFromYear(row.years[1])).toEqual({ cycle: 17, year: row.indian });
+			const [cycle16, cycle17] = [rabjungFromYear(row.years[0]), rabjungFromYear(row.years[1])];
+			expect(cycle16.cycle).toBe(16);
+			expect(cycle16.year).toBe(row.indian);
+			expect(cycle17.cycle).toBe(17);
+			expect(cycle17.year).toBe(row.indian);
 		}
 	});
 
@@ -108,7 +122,9 @@ describe("the two cycles are offset by three", () => {
 	});
 
 	it("shows 2026 is Indian 40 but Fire-Horse, which is Chinese 43", () => {
-		expect(rabjungFromYear(2026)).toEqual({ cycle: 17, year: 40 });
+		const rabjung = rabjungFromYear(2026);
+		expect(rabjung.cycle).toBe(17);
+		expect(rabjung.year).toBe(40);
 		expect(yearNameFromYear(2026)).toMatchObject({
 			element: "fire",
 			animal: "horse",

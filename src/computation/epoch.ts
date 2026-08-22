@@ -25,6 +25,7 @@
 
 import { assertInternal } from "../errors.js";
 import { animalNameOf, elementNameOf, genderNameOf } from "../names.js";
+import { rabjungNameOf } from "../rabjung-names.js";
 import type { Rabjung, TibetanAnimal, TibetanElement, TibetanYearName } from "../types.js";
 import { amod, ceilDiv } from "./arithmetic.js";
 
@@ -124,12 +125,15 @@ export function yearFromRoyalEra(royalEraYear: number): number {
  *
  * @example
  * ```ts
- * rabjungFromYear(2007); // { cycle: 17, year: 21 } — Janson's worked example
+ * // Janson's worked example, §4.
+ * rabjungFromYear(2007).cycle;   // 17
+ * rabjungFromYear(2007).year;    // 21
  * ```
  */
 export function rabjungFromYear(year: number): Rabjung {
 	const elapsed = year - (FIRST_RABJUNG_YEAR - 1);
-	return { cycle: ceilDiv(elapsed, 60), year: amod(elapsed, 60) };
+	const position = amod(elapsed, 60);
+	return { cycle: ceilDiv(elapsed, 60), year: position, name: rabjungNameOf(position) };
 }
 
 /**

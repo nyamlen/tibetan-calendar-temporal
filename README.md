@@ -162,7 +162,20 @@ The full object:
 {
   "year": 2153,
   "yearStartsIn": 2026,
-  "rabjung": { "cycle": 17, "year": 40 },
+  "rabjung": {
+    "cycle": 17,
+    "year": 40,
+    "name": {
+      "tibetan": "ཟིལ་གནོན",
+      "wylie": "zil gnon",
+      "phonetic": "zil nön",
+      "sanskrit": {
+        "devanagari": "पराभव",
+        "iast": "Parābhava",
+        "meaning": "overthrow, defeat"
+      }
+    }
+  },
   "yearName": {
     "element": "fire",
     "animal": "horse",
@@ -327,6 +340,24 @@ monthsFor(2151).map((m) => m.lunation);
 `hasLeapMonth`, `leapMonthOfYear` and `monthsInYear` are closed forms over the year and never touch
 lunar arithmetic, so reach for them rather than for `monthsFor(y).length` when the months themselves
 are not wanted.
+
+`datesFor` lays out one month's calendar days; combine it with `monthsFor` to build a whole year:
+
+```js
+import { datesFor } from 'tibetan-calendar-temporal';
+
+const year = monthsFor(2153).flatMap((month) => datesFor(month));
+year.length;   // 354
+```
+
+**A year of dates, serialised, is about 293 KB** (354 days, ordinary year 2153) or **324 KB** for a
+thirteen-month leap year like 2151 — measured, not assumed, in `test/serialisation.test.ts`. Every
+`TibetanDate` in that array holds a *pointer* to a shared, frozen name object rather than a copy —
+there are only seven weekday names, five elements, two genders, twelve animals and sixty rabjung
+names in the whole process — so the in-memory cost of a year is those pointer fields, not thousands
+of string copies. `JSON.stringify` cannot see that sharing, and expands every pointer to its full
+object; the figures above are what a consumer actually pays to persist or transmit a year, not what
+the engine holds in memory.
 
 ### Reading a date back
 
@@ -693,7 +724,7 @@ year, including ones where `losarFor` must refuse.
 | Export | Signature | Notes |
 |---|---|---|
 | `yearNameFor` | `(year: number) => TibetanYearName` | `{ element, animal, gender }`. Element and gender repeat every ten years, the animal every twelve, the whole name every sixty |
-| `rabjungFor` | `(year: number) => Rabjung` | `{ cycle, year }`, the sixty-year numbering from 1027 CE. A *numbering*, not a name — the two cycles sit three apart |
+| `rabjungFor` | `(year: number) => Rabjung` | `{ cycle, year, name }` — `cycle`/`year` are the sixty-year numbering from 1027 CE, a *numbering* rather than a name (the two cycles sit three apart), and `name` is the Tibetan and Sanskrit name at that position |
 | `weekdayNameFor` | `(weekday: number, config?) => TibetanWeekdayName` | Tibetan name of a weekday. Takes the **Tibetan** numbering, 0 = Saturday. The only naming lookup taking a config, because Bhutan names its days one planet ahead |
 | `elementNameFor` | `(element: TibetanElement) => TibetanName` | ཤིང *shing* for wood, མེ *me* for fire, and so on |
 | `genderNameFor` | `(gender: TibetanGender) => TibetanName` | ཕོ *pho* and མོ *mo* |

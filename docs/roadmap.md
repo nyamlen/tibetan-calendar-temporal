@@ -322,6 +322,15 @@ through this before publishing v1.0.0 — several are one-way doors once publish
          or table number.
       6. Only then, prose quality and consistency of voice.
 
+- [x] **Decided: `name` is a required field on `Rabjung`.** Free now at `0.0.1`, a breaking change
+      after `1.0.0`, and approved on its own against the real, fully-sourced table rather than as a
+      rider on the generator work that produced it — see
+      [decisions/2026-08-21-rabjung-names-carry-both.md](decisions/2026-08-21-rabjung-names-carry-both.md).
+      Optionality was investigated and rejected on evidence: `toEqual` fails on an extra *runtime*
+      property regardless of the type, so `name?:` would have saved none of the 14 migrated
+      assertion sites while costing permanent narrowing under `exactOptionalPropertyTypes` for a
+      field that is total over 1–60.
+
 **Publishing**
 
 - [ ] Publish from **GitHub Actions with npm provenance**, not locally — provenance ties each
@@ -396,36 +405,20 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
 
 ## Beyond v1
 
-- **The 60 rabjung cycle names**, landing at `rabjung.name` — additive, so not a breaking change.
-  See [architecture.md](architecture.md#why-the-60-rabjung-names-are-not-included) for why they were
-  deferred, and **[names/rabjung-sourcing.md](names/rabjung-sourcing.md) for how the sourcing was
-  actually done** — every source tried, what each could and could not answer, the dead ends with
-  their evidence, and the two findings that changed the method. That history lived here until
-  2026-08-22 and had grown to 221 lines, a quarter of this file; a roadmap should say what remains.
+- **The 60 rabjung cycle names — SHIPPED.** `rabjung.name` carries a `RabjungName` at every
+  position: the Tibetan tradition's name, plus the Indic saṃvatsara list's name in `sanskrit`, whose
+  `meaning` is sourced from Monier-Williams (58 of 60 rows verbatim, 2 composed from his entries for
+  a compound's parts) and null only where nothing in his dictionary renders the Tibetan name at all.
+  `name` is a **required** field, decided against the completed, fully-sourced table.
 
-  **The table is built and complete.** [names/rabjung.md](names/rabjung.md) carries all sixty rows
-  with the provenance of every column and a per-row evidence tier, and **all 60 of 60 have a Sanskrit
-  meaning** — 58 quoted verbatim from Monier-Williams and two composed from his entries for the
-  parts. Position 38 was the last gap, closed on 2026-08-22: its only adjectival gloss is MW's bare
-  *idem*, "the same as the word printed immediately above," which the Cologne API cannot resolve —
-  it returns only the queried headword's own entry — but MW's own scanned page shows the antecedent
-  directly, क्रोधालु, "passionate, violent."
-
-  **What remains is the public surface, not the data.** `rabjung.name` needs `RabjungName` and
-  `SanskritName`, a frozen table in `src/rabjung-names.ts`, and the assertion migration at the 14
-  `toEqual({ cycle, year })` sites. `name` on `Rabjung` is **required**, decided on 2026-08-22 against
-  the real table — free at `0.0.1`, a breaking change after `1.0.0`. Optionality was investigated and
-  rejected on evidence: `toEqual` fails on an extra *runtime* property regardless of the type, so it
-  would save none of the 14 assertions while costing permanent narrowing under
-  `exactOptionalPropertyTypes`.
-
-  **A decision taken on 2026-08-22, for whoever shapes `SanskritName`.** Where Monier-Williams has
-  no entry for a whole compound but glosses both halves, the meaning is **composed** and labelled,
-  not left null — returning null says "this name has no meaning", which for an ordinary transparent
-  compound is false. Three conditions, all load-bearing: a distinct provenance tier that never fills
-  the verbatim field; citation of the element entries; and the Tibetan as the disambiguator between
-  a compound's possible readings. A compound the Tibetan does not render has no disambiguator, and
-  composing one would be inventing.
+  Additive, so not a breaking change. See
+  [architecture.md](architecture.md#why-rabjungname-carries-both-traditions-and-what-it-does-not-promise)
+  for the shape and what it does and does not promise,
+  [names/rabjung-sourcing.md](names/rabjung-sourcing.md) for the sourcing hunt — every source tried,
+  the dead ends with their evidence, and the findings that changed the method — and
+  [decisions/2026-08-21-rabjung-names-carry-both.md](decisions/2026-08-21-rabjung-names-carry-both.md)
+  for the design decisions and their trade-offs, including why `meaning` is one field rather than
+  two despite the fixture distinguishing a verbatim quote from a composed one.
 
 - **Mutation testing with Stryker.** Open question, not a commitment. The argument for it is that
   this project's real risk is semantic — a misread constant, `⌈⌉` for `⌊⌋`, a flipped comparison —

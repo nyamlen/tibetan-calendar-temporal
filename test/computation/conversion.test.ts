@@ -305,7 +305,7 @@ describe("isoToTibetan", () => {
 		expect(date.yearStartsIn).toBe(2026);
 		expect(date.month).toBe(12);
 		expect(date.day).toBe(8);
-		expect(date.rabjung).toEqual({ cycle: 17, year: 40 });
+		expect(date.rabjung).toMatchObject({ cycle: 17, year: 40 });
 		expect(date.yearName).toMatchObject({ element: "fire", animal: "horse", gender: "male" });
 		expect(date.isoDate.toString()).toBe("2027-01-15");
 	});

@@ -49,7 +49,8 @@ describe("docblock examples", () => {
 	describe("epoch.ts", () => {
 		it("royalEraFromYear and rabjungFromYear match Janson's worked example", () => {
 			expect(royalEraFromYear(2026)).toBe(2153);
-			expect(rabjungFromYear(2007)).toEqual({ cycle: 17, year: 21 });
+			expect(rabjungFromYear(2007).cycle).toBe(17);
+			expect(rabjungFromYear(2007).year).toBe(21);
 		});
 
 		it("yearNameFromYear names 2007 the female fire pig", () => {
@@ -137,8 +138,16 @@ describe("docblock examples", () => {
 		});
 
 		it("rabjungFor holds position across a full cycle", () => {
-			expect(rabjungFor(2153)).toEqual({ cycle: 17, year: 40 });
-			expect(rabjungFor(2153 + 60)).toEqual({ cycle: 18, year: 40 });
+			expect(rabjungFor(2153).cycle).toBe(17);
+			expect(rabjungFor(2153).year).toBe(40);
+			expect(rabjungFor(2153 + 60).cycle).toBe(18);
+			expect(rabjungFor(2153 + 60).year).toBe(40);
+		});
+
+		it("rabjungFor(2153).name states the Tibetan and Sanskrit name at position 40", () => {
+			const { name } = rabjungFor(2153);
+			expect(name.tibetan).toBe("ཟིལ་གནོན");
+			expect(name.sanskrit.meaning).toBe("overthrow, defeat");
 		});
 
 		it("weekdayNameFor gives Saturday as spen pa, the Saturn day", () => {
