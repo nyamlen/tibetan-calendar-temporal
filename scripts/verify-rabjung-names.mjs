@@ -607,6 +607,11 @@ const SELECTED_SENSES = {
 	3: { id: "219029", text: "white (the colour)" }, // Sukla, `dkar po` -- the colour, not the fortnight
 	4: { id: "136015", text: "excessive joy, delight" }, // Pramoda, `rab myos` elated
 	5: { id: "130885", text: "lord of creatures" }, // Prajapati, `skyes bdag`
+	// Angirasa, `ang gi ra`. A patronymic DOES have a meaning, and this is it -- an earlier pass
+	// wrote the row off as "a proper name, so no meaning" without reading the entry. Taken from
+	// the SECOND sense, which names the referent: "descended from" alone dangles, and the first
+	// sense offers no contiguous span that says descended from whom.
+	6: { id: "22844", text: "a descendant of Aṅgiras" },
 	7: { id: "223180", text: "a beautiful face" }, // Srimukha, `dpal gdong` glorious face
 	8: { id: "150178", text: "becoming, being" }, // Bhava, `dngos po` entity
 	9: { id: "172161", text: "young, youthful" }, // Yuvan, `na tshod ldan` youthful
@@ -621,7 +626,10 @@ const SELECTED_SENSES = {
 	19: { id: "122897", text: "a lord of the earth" }, // Parthiva, `sa skyong` earth-protector
 	20: { id: "19308", text: "not liable to change, imperishable" }, // Avyaya, `mi zad` inexhaustible
 	21: { id: "238261", text: "all-conquering" }, // Sarvajit, `thams cad 'dul` all-taming
-	23: { id: "199402", text: "opposition, hostility" }, // Virodhi, `'gal ba` opposition
+	// Virodhin, `'gal ba` opposition. Taken from the ADJECTIVE's own entry. It read
+	// "opposition, hostility" until 2026-08-22, which is विरोध the noun -- the lookup had been
+	// landing on a neighbouring headword's page, and the headword check now rejects that.
+	23: { id: "199449", text: "opposing, hindering" },
 	24: { id: "194023", text: "change, alteration" }, // Vikriti, `rnam 'gyur` transformed
 	25: { id: "61348", text: "a donkey" }, // Khara, `bong bu` donkey
 	26: { id: "103509", text: "rejoicing, gladdening" }, // Nandana, `dga' ba` joy
@@ -781,7 +789,30 @@ function parseMonierWilliams(html) {
  * The rung that succeeded is recorded on the row, so the document can state per-row how the entry
  * was reached rather than claim one evidence tier for all sixty.
  */
+/**
+ * Is this entry actually HEADED by the word asked for, rather than merely mentioning it?
+ *
+ * Cologne answers a near-miss with a neighbouring headword's page. क्रोधी returns क्रोध's entry --
+ * the noun "anger" -- on which क्रोधी appears only as the name of a musical śruti, so accepting it
+ * attributed a noun's senses to an adjective. Monier-Williams prints his headword at the start of a
+ * sense and hyphenates or spaces compounds ("सर्व —धारी"), so both sides are stripped of spacing
+ * and joiners before comparing.
+ */
+const headedBy = (parsed, devanagari) => {
+	const bare = (text) => text.replace(/[\s—–―-]/g, "");
+	// Only the FIRST sense, which is the entry's own headword. Asking whether ANY sense begins with
+	// the word is too weak and accepted exactly the case this exists to reject: क्रोधी does head a
+	// sense on क्रोध's page -- the name of a musical śruti -- while the entry is the noun's.
+	//
+	// Monier-Williams numbers homonyms in front of the headword ("1. अव्यय"), so that is stripped
+	// first, or every numbered entry would be rejected.
+	const first = parsed.senses[0];
+	if (!first) return false;
+	return bare(first.text.replace(/^\s*\d+\.\s*/, "")).startsWith(bare(devanagari));
+};
+
 async function monierWilliamsEntry(devanagari) {
+	let fallback = null;
 	for (const candidate of lookupCandidates(devanagari)) {
 		const key = devanagariToSlp1(candidate.devanagari);
 		const html = await fetchWithRetry(
@@ -792,9 +823,15 @@ async function monierWilliamsEntry(devanagari) {
 		if (/not found:/.test(html)) continue;
 		const parsed = parseMonierWilliams(html);
 		if (parsed.senses.length === 0) continue;
-		return { ...candidate, key, ...parsed };
+		const resolved = { ...candidate, key, ...parsed };
+		// Prefer a rung whose entry is headed by the form queried. Taking the first that returns ANY
+		// entry is how position 38 landed on क्रोध's page and position 50 on the reed; keep looking, and
+		// fall back to the first only if no rung does better, so a near-miss is still recorded rather
+		// than discarded.
+		if (headedBy(parsed, candidate.devanagari)) return resolved;
+		fallback ??= resolved;
 	}
-	return null;
+	return fallback;
 }
 
 /** A cell may offer alternatives -- "अव्यय/व्यय", "नल/अनल". No headword contains a slash. */
@@ -1326,6 +1363,15 @@ const anchorFor = (r) => `sanskrit-senses-at-position-${r.n}`;
  * claim that a selection must appear verbatim among the senses. The full list now lives in a detail
  * section, so that claim is true of the rendered document and not only of the fixture.
  */
+/**
+ * Monier-Williams' bare cross-references, which are apparatus rather than senses.
+ *
+ * Three spellings, and the third was missed for a release: "See under", "See col." and **"See \u221a"**,
+ * which points at a verbal root. Position 60 -- the table's flagship correction -- therefore printed
+ * its cross-reference as the headline sense instead of "destruction, decay".
+ */
+const CROSS_REFERENCE = /\bSee\s+(under|col\.|\u221a)/i;
+
 const senseCell = (r) => {
 	const senses = r.senses ?? [];
 	if (senses.length === 0) return "*no Monier-Williams entry*";
@@ -1333,7 +1379,7 @@ const senseCell = (r) => {
 	// प्र-√भू" — which is his apparatus rather than a sense. Showing that as the row's representative
 	// gloss tells a reader nothing, so the first SUBSTANTIVE sense is shown, falling back to the first
 	// if an entry is nothing but cross-references.
-	const substantive = senses.find((sense) => !/\bSee (under|col\.)/i.test(sense.text)) ?? senses[0];
+	const substantive = senses.find((sense) => !CROSS_REFERENCE.test(sense.text)) ?? senses[0];
 	const rest = senses.length - 1;
 	// No inline <br>: MD033 forbids it, and the link reads fine on one line.
 	return rest > 0

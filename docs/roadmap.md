@@ -492,12 +492,28 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   standard with one that passes the exact form the repo threw out. A nonsense Tibetan string scores
   0, so the check does discriminate — it just does not discriminate for the property that matters.
 
-  **Ten rows carry no selected Sanskrit meaning, and four of them could.** Checked against Cologne on
-  2026-08-22 and recorded rather than applied, because two of the four need new generator behaviour
-  rather than a data record:
+  **Nine rows carry no selected Sanskrit meaning, and three of them could.** Fifty-one of the sixty
+  now carry one, after a pass on 2026-08-22 that closed two rows and found a defect behind a third:
+
+  - **6** is done. It had been written off as "a proper name, so no meaning", which was simply not
+    reading the entry — Monier-Williams glosses आङ्गिरस, and the row now takes his second sense,
+    "a descendant of Aṅgiras", which names the referent where the first sense's "descended from"
+    dangles.
+  - **23 was wrong rather than missing**, and only a structural fix exposed it. It read
+    "opposition, hostility", which is विरोध — the *noun* — because the lookup had landed on a
+    neighbouring headword's page. It now reads "opposing, hindering" from विरोधिन्'s own entry.
+
+  **The ladder now requires an entry to be headed by the form queried.** It used to accept the first
+  rung returning *any* entry, so क्रोधी resolved to क्रोध's page, where it appears only as the name of
+  a musical *śruti*. The check tests the entry's **first** sense, homonym numbers stripped: asking
+  whether *any* sense begins with the word is too weak, and accepted exactly the case it exists to
+  reject. Rows reached through a rung went from eleven to thirteen.
+
+  What remains:
 
   - **50** `me`, fire — the compound cell offers नल/अनल and the lookup takes the first that resolves,
-    which is नल, "a species of reed". अनल is "fire", which is what the Tibetan says. A correction.
+    which is नल, "a species of reed". अनल is "fire", which is what the Tibetan says. The headword
+    check cannot help here: both are legitimate entries, so choosing between them is a correction.
   - **58** `mig dmar`, red-eyed — रक्ताक्षि is a stub in MW ("m., Cat."), while रक्ताक्ष reads
     "red-eyed, having red or blood-shot eyes". A correction, and one the IAST check cannot find,
     because both columns agree on the wrong form — the shared-error case that only attestation sees.
@@ -507,27 +523,21 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
     first element. Expanding it gives "emitting blood". Needs abbreviation expansion, which is a small
     act of interpretation and should be argued before it is built.
 
-  **6 was wrongly written off here as "a proper name has no meaning", and it is selectable today.**
-  Monier-Williams glosses आङ्गिरस as "**descended from** or belonging or referring to the Aṅgirases" —
-  a patronymic does have a meaning, and that is it. It needs no new mechanism, only a selection.
-  **Pending a decision** rather than applied.
-
   Of the rest: **13** is a real semantic mismatch between the traditions and is itself a finding;
   **22**, **31** and **53** carry only "N. of the Nth year of Jupiter's cycle", which would restate
   the position column rather than say what the name means — the gloss a reader wants for those three
   ("All-holding", "Hanging gold", "Aim accomplished") is already in the authored English-of-the-Tibetan
-  column, because composing it from the compound's parts is analysis rather than sourcing. **38** is
-  two problems at once: the query resolves to क्रोध's page, where क्रोधी appears only as the name of a
-  musical *śruti*, and the stem क्रोधिन् reads "mfn. **id.**" — MW's *idem*, a pointer with no text.
-  Taking क्रोध's "anger, wrath" would attribute a noun's gloss to an adjective, which is the homograph
-  error that put "you both" on position 9.
+  column, because composing it from the compound's parts is analysis rather than sourcing. **38** is now half
+  solved: the headword check moved it to क्रोधिन्, whose entry states the 38th year outright, so the
+  position gains a witness — but its adjective sense is a bare "**id.**", MW's *idem*, a pointer with
+  no text of its own, and its noun senses are "a buffalo", "a dog", "a rhinoceros". Taking क्रोध's
+  "anger, wrath" would attribute a noun's gloss to an adjective, which is the homograph error that put
+  "you both" on position 9, so the meaning stays null.
 
-  **One display defect, found in the 2026-08-22 sweep and not yet fixed.** The table shows each row's
-  first *substantive* sense, skipping Monier-Williams' bare cross-references — but the filter matches
-  only "See under" and "See col.", not "See √". So position 60, the table's flagship correction, shows
-  `क्षय See √ 1. 2. and 4. क्षि` where it should show "destruction, decay". Widening the pattern is a
-  one-line change in `senseCell`; it is recorded rather than applied because changing the generator
-  without regenerating would leave the two disagreeing.
+  **The cross-reference display defect is fixed.** `senseCell` skips Monier-Williams' bare
+  cross-references so a row's headline gloss is substantive, but the filter matched only "See under"
+  and "See col." — not "See √", which points at a verbal root. Position 60, the table's flagship
+  correction, was printing its cross-reference as its headline sense.
 
   **Behind 50 and 38 sits one weakness worth fixing first.** The lookup ladder accepts the first form
   that returns *any* entry, rather than one whose entry actually glosses the word — which is how 50

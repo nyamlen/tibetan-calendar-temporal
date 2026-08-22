@@ -79,8 +79,8 @@ anusvāra spellings, and those are grammar rather than judgement.
 
 Monier-Williams is a dictionary, so finding a word means naming the **headword form** he files it
 under — and that is not always how the saṃvatsara list spells the name. Sent to Cologne exactly as
-printed, 49 of the 60 headwords resolve.
-The other 11 do not, and none of them is missing from Monier-Williams:
+printed, 47 of the 60 headwords resolve.
+The other 13 do not, and none of them is missing from Monier-Williams:
 he has every one, under a different form of the same word.
 
 So the lookup walks a **ladder**: the printed spelling first, then each transformation below, then
@@ -88,11 +88,11 @@ the pairs that compose. Every rung states a rule of Sanskrit orthography or morp
 separates it from a correction — **a rung changes only what is *queried*, while a correction changes
 what this table *prints* and carries authored evidence**. The Devanāgarī column still shows the
 source's own spelling at every one of these rows; the ladder simply knows where Monier-Williams keeps
-it. Collapsing the two would turn 11 points of grammar into 11 editorial judgements.
+it. Collapsing the two would turn 13 points of grammar into 13 editorial judgements.
 
 | Rung | Rows | Why it is a rule rather than a judgement | Where it applied |
 |---|---|---|---|
-| `-in stem` | 6 | The list prints the nominative singular; Monier-Williams lemmatises the stem. | 13 प्रमाथी → प्रमाथिन्; 33 विकारि → विकारिन्; 46 परिधावी → परिधाविन्; 47 प्रमादी → प्रमादिन्; 53 सिद्धार्थी → सिद्धार्थिन्; 57 रुधिरोद्गारी → रुधिरोद्गारिन् |
+| `-in stem` | 8 | The list prints the nominative singular; Monier-Williams lemmatises the stem. | 13 प्रमाथी → प्रमाथिन्; 23 विरोधी → विरोधिन्; 33 विकारि → विकारिन्; 38 क्रोधी → क्रोधिन्; 46 परिधावी → परिधाविन्; 47 प्रमादी → प्रमादिन्; 53 सिद्धार्थी → सिद्धार्थिन्; 57 रुधिरोद्गारी → रुधिरोद्गारिन् |
 | `ḷ → l + -in stem` | 1 | ळ is Vedic and Marathi rather than standard Sanskrit, and this row needs the stem rule on top of it — the rungs compose. | 32 विळम्बि → विलम्बिन् |
 | `cluster → anusvāra` | 1 | The same rule in reverse — he files this one under the anusvāra, so the ladder tries both directions. | 41 प्लवङ्ग → प्लवंग |
 | `final virāma` | 1 | A missing virāma leaves a spurious inherent *a*, so the word queried is not the word meant. | 45 विरोधकृत → विरोधकृत् |
@@ -121,12 +121,12 @@ They gloss **different names**, which is the point of showing them side by side.
   this table. No source gives English for these — Sewell & Fleet prints the sixty as bare names
   against Kaliyuga years and fractional day-counts, with no meaning column, checked directly.
 - **Sanskrit senses** are **sourced**: every sense Monier-Williams lists for that headword, uncapped
-  — 764 of them across the sixty rows.
+  — 762 of them across the sixty rows.
   The table shows the first; the rest are in the detail section below, untruncated.
 - **Selected** is an **authored choice from those sourced candidates**, and the generator refuses to
   run unless the chosen gloss appears verbatim inside the sense carrying its recorded Cologne ID, and
   unless it carries at most two gloss units. So the editorial step is visible and machine-checked; it
-  can select, never invent. 50 of the 60 carry one.
+  can select, never invent. 51 of the 60 carry one.
 
 **Why a selection is needed at all.** Entries carry many senses, often from different roots, and
 taking the first is an accident rather than a policy. `क्षय` opens with a cross-reference and then
@@ -152,7 +152,7 @@ at 9 positions: 4, 6, 9, 15, 31, 37, 56, 57, 60.
 | 3 | དཀར་པོ | `dkar po` | *kar po* | शुक्ल | Śukla | White | शुक्ल mf( आ )n. (later form of शुक्र , for which it is sometimes w.r. ) bright, light (with पक्ष = शुक्ल-प् ॰ , q.v. ), KātyŚr. ; Mn. ; MBh. &c. ([+30 more](#sanskrit-senses-at-position-3)) | white (the colour) | MW as printed; Wiktionary; 4 other lexicon(s); position: Wiktionary + Bṛhat Saṃhitā | 1929, 1989 |
 | 4 | རབ་མྱོས | `rab myos` | *rap nyö* | प्रमोद † | Pramoda † | Elated | प्र-मोद m. (also pl. ; ifc. f( आ ). ) excessive joy, delight, gladness, VS. ; Up. ; MBh. &c. ([+11 more](#sanskrit-senses-at-position-4)) | excessive joy, delight | MW as printed; Wiktionary; 5 other lexicon(s); position: Wiktionary | 1930, 1990 |
 | 5 | སྐྱེས་བདག | `skyes bdag` | *kyé dak* | प्रजापति | Prajāpati | Lord of creatures | प्रजा —पति ( ॰जा- ), m. ‘lord of creatures’, N. of Savitṛ , Soma , Agni , Indra &c., RV. ; AV. ([+11 more](#sanskrit-senses-at-position-5)) | lord of creatures | MW as printed; Wiktionary; 4 other lexicon(s); position: Bṛhat Saṃhitā | 1931, 1991 |
-| 6 | ཨང་གི་ར | `ang gi ra †` | *ang gi ra* | आङ्गिरस | Āṅgirasa | Aṅgirasa — a ṛṣi's name, transliterated not translated | आङ्गिरस mf( ई )n. descended from or belonging or referring to the Aṅgirases or to Aṅgiras , AV. ; VS. &c. ([+5 more](#sanskrit-senses-at-position-6)) | — | MW as printed; 5 other lexicon(s); position: Bṛhat Saṃhitā | 1932, 1992 |
+| 6 | ཨང་གི་ར | `ang gi ra †` | *ang gi ra* | आङ्गिरस | Āṅgirasa | Aṅgirasa — a ṛṣi's name, transliterated not translated | आङ्गिरस mf( ई )n. descended from or belonging or referring to the Aṅgirases or to Aṅgiras , AV. ; VS. &c. ([+5 more](#sanskrit-senses-at-position-6)) | a descendant of Aṅgiras | MW as printed; 5 other lexicon(s); position: Bṛhat Saṃhitā | 1932, 1992 |
 | 7 | དཔལ་གདོང | `dpal gdong` | *pel dong* | श्रीमुख | Śrīmukha | Glorious face | श्री —मुख n. a beautiful face, MW. ([+4 more](#sanskrit-senses-at-position-7)) | a beautiful face | MW as printed; Wiktionary; 2 other lexicon(s); position: Wiktionary + Bṛhat Saṃhitā | 1933, 1993 |
 | 8 | དངོས་པོ | `dngos po` | *ngö po* | भाव | Bhāva | Entity | भाव m. (√ भू ) becoming, being, existing, occurring, appearance, ŚvetUp. ; KātyŚr. &c. ([+31 more](#sanskrit-senses-at-position-8)) | becoming, being | MW as printed; Wiktionary; 5 other lexicon(s); position: Wiktionary + Bṛhat Saṃhitā | 1934, 1994 |
 | 9 | ན་ཚོད་ལྡན | `na tshod ldan` | *na tsö den* | युवन् † | Yuvan † | Youthful | युवन् mf( यूनी , or युवती or युवति , q.v. )n. ( prob. fr. √ 2. यु ) young, youthful, adult (applied to men and animals), strong, good, healthy, RV. &c. &c. ([+4 more](#sanskrit-senses-at-position-9)) | young, youthful | MW as printed; Wiktionary; 4 other lexicon(s); position: Wiktionary + Bṛhat Saṃhitā | 1935, 1995 |
@@ -169,7 +169,7 @@ at 9 positions: 4, 6, 9, 15, 31, 37, 56, 57, 60.
 | 20 | མི་ཟད | `mi zad` | *mi zé* | अव्यय/व्यय | Avyaya/Vyaya | Inexhaustible | 1. अव्यय or rarely अव्यय [only RV. viii, 97, 2 and ix, 86, 34 ] mfn. ( अवि ) made of sheep's skin (as the woollen Soma strainer), RV. ([+9 more](#sanskrit-senses-at-position-20)) | not liable to change, imperishable | MW as printed; Wiktionary; 4 other lexicon(s); position: unstated | 1946, 2006 |
 | 21 | ཐམས་ཅད་འདུལ | `thams cad 'dul` | *tam ché dül* | सर्वजित् | Sarvajit | All-taming | सर्व —जित् mfn. all-conquering, L. ([+6 more](#sanskrit-senses-at-position-21)) | all-conquering | MW as printed; Wiktionary; 4 other lexicon(s); position: Wiktionary + Bṛhat Saṃhitā | 1947, 2007 |
 | 22 | ཀུན་འཛིན | `kun 'dzin` | *kün dzin* | सर्वधारी | Sarvadhārī | All-holding | सर्व —धारी f. N. of the 22nd year of Jupiter's cycle of 60 years, accord. to some ([+1 more](#sanskrit-senses-at-position-22)) | — | MW as printed; Wiktionary; 3 other lexicon(s); position: Wiktionary | 1948, 2008 |
-| 23 | འགལ་བ | `'gal ba` | *gel ba* | विरोधी | Virodhī | Opposition | वि-रोध m. opposition, hostility, quarrel, strife between ( gen. , rarely instr. , or comp. ) or with ( instr. with or without सह , or comp. ), MBh. ; Kāv. &c. ([+10 more](#sanskrit-senses-at-position-23)) | opposition, hostility | MW as printed; 4 other lexicon(s); position: Bṛhat Saṃhitā | 1949, 2009 |
+| 23 | འགལ་བ | `'gal ba` | *gel ba* | विरोधी | Virodhī | Opposition | वि-रोधिन् mfn. opposing, hindering, preventing, obstructing, excluding, disturbing, Gobh. ; Mn. &c. ([+10 more](#sanskrit-senses-at-position-23)) | opposing, hindering | MW via -in stem; 4 other lexicon(s); position: Bṛhat Saṃhitā | 1949, 2009 |
 | 24 | རྣམ་འགྱུར | `rnam 'gyur` | *nam gyur* | विकृति | Vikṛti | Transformed | वि-कृति f. change, alteration, modification, variation, changed condition (of body or mind; acc. with √ गम् , या , व्रज् , or प्र- √पद् , to undergo a change, be changed), MBh. ; Kāv. &c. ([+14 more](#sanskrit-senses-at-position-24)) | change, alteration | MW as printed; Wiktionary; 3 other lexicon(s); position: Bṛhat Saṃhitā | 1950, 2010 |
 | 25 | བོང་བུ | `bong bu` | *bong bu* | खर | Khara | Donkey | खर mf( आ )n. hard, harsh, rough, sharp, pungent, acid (opposed to मृदु and श्लक्ष्ण ), MBh. ; R. &c. ([+26 more](#sanskrit-senses-at-position-25)) | a donkey | MW as printed; Wiktionary; 5 other lexicon(s); position: Wiktionary + Bṛhat Saṃhitā | 1951, 2011 |
 | 26 | དགའ་བ | `dga' ba` | *ga ba* | नन्दन | Nandana | Joy | नन्दन mf( आ )n. (the initial न् is not changeable to ण् , g. क्षुभ्ना दि ) rejoicing, gladdening ( cf. ॰दक ), MBh. ; Var. ; Pañc. ([+17 more](#sanskrit-senses-at-position-26)) | rejoicing, gladdening | MW as printed; 4 other lexicon(s); position: Bṛhat Saṃhitā | 1952, 2012 |
@@ -184,7 +184,7 @@ at 9 positions: 4, 6, 9, 15, 31, 37, 56, 57, 60.
 | 35 | འཕར་བ | `'phar ba` | *par ba* | प्लव | Plava | Leaping | प्लव mf( आ )n. swimming, floating, ŚāṅkhGṛ. ; Suśr. ([+25 more](#sanskrit-senses-at-position-35)) | jumping, leaping | MW as printed; Wiktionary; 4 other lexicon(s); position: Wiktionary + Bṛhat Saṃhitā | 1961, 2021 |
 | 36 | དགེ་བྱེད | `dge byed` | *gé jé* | शुभकृत् | Śubhakṛt | Virtue-making | शुभ —कृत् mfn. = -कर , VarBṛS. ([+1 more](#sanskrit-senses-at-position-36)) | — | MW as printed; 1 other lexicon(s); position: unstated | 1962, 2022 |
 | 37 | མཛེས་བྱེད | `mdzes byed` | *dzé jé* | शोभन † | Śobhana † | Beautifying | शोभन mf( आ or ई )n. brilliant, splendid, beautiful (at end of comp. = ‘beautiful by reason of’), ŚBr. ; Kauś. ; MBh. &c. ([+21 more](#sanskrit-senses-at-position-37)) | brilliant, splendid | MW as printed; Wiktionary; 5 other lexicon(s); position: Bṛhat Saṃhitā | 1963, 2023 |
-| 38 | ཁྲོ་མོ | `khro mo` | *tro mo* | क्रोधी | Krodhī | Wrathful — feminine, against 59 | क्रोध m. anger, wrath, passion, VS. xxx, 14 ; AV. ; ŚBr. &c. ([+7 more](#sanskrit-senses-at-position-38)) | — | MW as printed; 2 other lexicon(s); position: Bṛhat Saṃhitā | 1964, 2024 |
+| 38 | ཁྲོ་མོ | `khro mo` | *tro mo* | क्रोधी | Krodhī | Wrathful — feminine, against 59 | क्रोधिन् mfn. id. , iii, 4, 62 ([+5 more](#sanskrit-senses-at-position-38)) | — | MW via -in stem; 2 other lexicon(s); position: Bṛhat Saṃhitā | 1964, 2024 |
 | 39 | སྣ་ཚོགས་དབྱིག | `sna tshogs dbyig` | *na tsok yik* | विश्वावसु | Viśvāvasu | Manifold wealth | विश्वा —वसु ( विश्वा- ), mfn. beneficent to all (said of Viṣṇu ), MBh. ([+12 more](#sanskrit-senses-at-position-39)) | beneficent to all | MW as printed; 4 other lexicon(s); position: Bṛhat Saṃhitā | 1965, 2025 |
 | 40 | ཟིལ་གནོན | `zil gnon` | *zil nön* | पराभव | Parābhava | Overwhelming | परा-भव m. vanishing, disappearance, dissolution, separation, R. ([+2 more](#sanskrit-senses-at-position-40)) | overthrow, defeat | MW as printed; Wiktionary; 3 other lexicon(s); position: Wiktionary + Bṛhat Saṃhitā | 1966, 2026 |
 | 41 | སྤྲེའུ | `spre'u` | *treu* | प्लवङ्ग | Plavaṅga | Monkey | प्लव —ं-ग mfn. ‘moving by jumps’, flickering (said of fire), MBh. ([+4 more](#sanskrit-senses-at-position-41)) | a monkey | MW via cluster → anusvāra; 3 other lexicon(s); position: Bṛhat Saṃhitā | 1967, 2027 |
@@ -206,7 +206,7 @@ at 9 positions: 4, 6, 9, 15, 31, 37, 56, 57, 60.
 | 57 | ཁྲག་སྐྱུག | `khrag skyug` | *trak kyuk* | रुधिरोद्गारी † | Rudhirodgārī † | Blood-spitting | रुधिरो द्गारिन् mf( इणी )n. ‘emitting b˚ ’, N. of the 57th year in Jupiter's cycle of 60 years, Cat. | — | MW via -in stem; position: unstated | 1983, 2043 |
 | 58 | མིག་དམར | `mig dmar` | *mik mar* | रक्ताक्षि | Raktākṣi | Red-eyed | रक्ता क्षि m. , Cat. | — | MW as printed; position: Bṛhat Saṃhitā | 1984, 2044 |
 | 59 | ཁྲོ་བོ | `khro bo` | *tro bo* | क्रोधन | Krodhana | Wrathful — masculine, against 38 | क्रोधन mf( आ )n. ( Pāṇ. iii, 2, 151 ) inclined to wrath, passionate, angry (with loc. Yājñ. i, 333 ), MBh. &c. ([+9 more](#sanskrit-senses-at-position-59)) | inclined to wrath, passionate | MW as printed; Wiktionary; 4 other lexicon(s); position: Wiktionary + Bṛhat Saṃhitā | 1985, 2045 |
-| 60 | ཟད་པ | `zad pa` | *zé pa* | क्षय † | Kṣaya † | Exhaustion | क्षय See √ 1. 2. and 4. क्षि . ([+19 more](#sanskrit-senses-at-position-60)) | destruction, decay | MW as printed; Wiktionary; 5 other lexicon(s); position: unstated | 1986, 2046 |
+| 60 | ཟད་པ | `zad pa` | *zé pa* | क्षय † | Kṣaya † | Exhaustion | 1. क्षय m. ‘dominion’, Sāy. (on, RV. vii, 46, 2 ). ([+19 more](#sanskrit-senses-at-position-60)) | destruction, decay | MW as printed; Wiktionary; 5 other lexicon(s); position: unstated | 1986, 2046 |
 
 ## The senses in full
 
@@ -332,7 +332,7 @@ Monier-Williams, printed page 658, queried as `प्रजापति` (as pri
 Monier-Williams, printed page 131, queried as `आङ्गिरस` (as printed). Also carried by Shabda-Sagara, Benfey, Yates, Edgerton, Wilson.
 
 - आङ्गिरस mf( ई )n. descended from or belonging or referring to the Aṅgirases or to Aṅgiras , AV. ; VS. &c. *(H1 · 22843)*
-- आङ्गिरस ( अस् ), m. a descendant of Aṅgiras (as Bṛhatsāman [ AV. ], Cyavana [ ŚBr. iv ], Ayāsya [ ŚBr. xiv ], &c.), RV. ; AV. &c. *(H1 · 22844)*
+- **आङ्गिरस ( अस् ), m. a descendant of Aṅgiras (as Bṛhatsāman [ AV. ], Cyavana [ ŚBr. iv ], Ayāsya [ ŚBr. xiv ], &c.), RV. ; AV. &c.** *(H1 · 22844)*
 - especially N. of Bṛhaspati , RV. ; AV. &c. *(H1 · 22845)*
 - the planet Bṛhaspati i.e. Jupiter *(H1 · 22846)*
 - (also) m. a partic. magical implement, Kauś. *(H1 · 22846)*
@@ -621,19 +621,19 @@ Monier-Williams, printed page 1186, queried as `सर्वधारी` (as pr
 
 विरोधी Virodhī
 
-Monier-Williams, printed page 983, queried as `विरोधी` (as printed). Also carried by Shabda-Sagara, Benfey, Yates, Wilson.
+Monier-Williams, printed page 984, queried as `विरोधिन्` (-in stem). Also carried by Shabda-Sagara, Benfey, Yates, Wilson.
 
-- **वि-रोध m. opposition, hostility, quarrel, strife between ( gen. , rarely instr. , or comp. ) or with ( instr. with or without सह , or comp. ), MBh. ; Kāv. &c.** *(H2 · 199402)*
-- hostile contact of inanimate objects (as of planets &c.), VarBṛS. *(H2 · 199403)*
-- (logical) contradiction, contrariety, antithesis, inconsistency, incompatibility, KātyŚr. ; Kaṇ. Kap. &c. *(H2 · 199404)*
-- ( ifc. ) conflict with, injury of ( instr. = at the cost or to the detriment of), Yājñ. ; MBh. *(H2 · 199405)*
-- hindrance, prevention, Gaut. *(H2 · 199406)*
-- blockade, siege, W. *(H2 · 199407)*
-- adversity, calamity, misfortune, Sāh. *(H2 · 199408)*
-- perversity, Kathās. *(H2 · 199409)*
-- (in rhet. ) an apparent contradiction or incongruity ( e.g. भरतो ऽपि शत्रु-घ्नः ), Kpr. *(H2 · 199410)*
-- (in dram. ) impediment to the successful progress of a plot, W. *(H2 · 199411)*
-- वि-रोधी ( ई ), f. fixed rule, ordinance (?), W. *(H2B · 199412)*
+- **वि-रोधिन् mfn. opposing, hindering, preventing, obstructing, excluding, disturbing, Gobh. ; Mn. &c.** *(H2 · 199449)*
+- obstructive (see अ-व् ॰ ), besieging, blockading, W. *(H2 · 199450)*
+- dispelling, removing, Śak. ( v.l. ) *(H2 · 199451)*
+- adverse, hostile, inimical (often ifc. = foe or enemy of), MBh. ; Kāv. &c. *(H2 · 199452)*
+- disagreeing (as food), Bhpr. *(H2 · 199453)*
+- opposed, contradictory, inconsistent, Kaṇ. ; MBh. ; Rājat. *(H2 · 199454)*
+- rivalling with, equalling, Kāvyād. *(H2 · 199455)*
+- contentious, quarrelsome, W. *(H2 · 199456)*
+- वि-रोधिन् m. N. of the 25th year of Jupiter's cycle of 60 years, VarBṛS. *(H2 · 199457)*
+- वि-रोधिनी ( ई ), f. a woman who causes enmity or promotes quarrel (between husband and wife &c.), MW. *(H2B · 199458)*
+- N. of a female demon (daughter of Duḥsaha ), MārkP. *(H2B · 199459)*
 
 ### Sanskrit senses at position 24
 
@@ -981,16 +981,14 @@ Monier-Williams, printed page 1092, queried as `शोभन` (as printed). Also
 
 क्रोधी Krodhī
 
-Monier-Williams, printed page 322, queried as `क्रोधी` (as printed). Also carried by Shabda-Sagara, Yates.
+Monier-Williams, printed page 322, queried as `क्रोधिन्` (-in stem). Also carried by Shabda-Sagara, Yates.
 
-- क्रोध m. anger, wrath, passion, VS. xxx, 14 ; AV. ; ŚBr. &c. *(H2 · 58241)*
-- ( ifc. f( आ ). ), Amar. *(H2 · 58242)*
-- Anger (personified as a child of Lobha and Nikṛti ; or of Death; or of Brahmā ), VP. *(H2 · 58243)*
-- N. of a Dānava , MBh. i, 2543 ; Hariv. *(H2 · 58244)*
-- of the mystic syllable हुम् or ह्रूं , RāmatUp. *(H2 · 58245)*
-- क्रोधा f. N. of one of the thirteen daughters of Dakṣa and wife of Kaśyapa , MBh. i, 2520 ; Hariv. *(H2B · 58246)*
-- क्रोधी f. (in music) N. of a Śruti *(H2B · 58247)*
-- क्रोध n. N. of the fifty-ninth year of the sixty years' Bṛhaspati cycle, VarBṛS. *(H2B · 58248)*
+- क्रोधिन् mfn. id. , iii, 4, 62 *(H2 · 58287)*
+- क्रोधिन् m. a buffalo, L. *(H2 · 58288)*
+- a dog, L. *(H2 · 58289)*
+- a rhinoceros, L. *(H2 · 58290)*
+- the 38th year of the sixty years' Bṛhaspati cycle, VarBṛS. viii, 41 ; Romakas. *(H2 · 58291)*
+- क्रोधिनी f. a mystical N. of the letter र् . *(H2B · 58292)*
 
 ### Sanskrit senses at position 39
 
