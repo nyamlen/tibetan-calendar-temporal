@@ -2,6 +2,9 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "noEmit": false,
+    // Only legal under noEmit, and unnecessary here: this config covers src/ alone, which never
+    // imports scripts/. See the base config for why the typecheck pass needs it.
+    "allowImportingTsExtensions": false,
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,

@@ -16,6 +16,14 @@
  * redirect page, leaving an empty tibet.tex that fails later as "T60 not found" rather than as a
  * download error. Keep all three outside this repository, per CLAUDE.md.
  *
+ * **Then format the fixture**, from the repository:
+ *   npx biome check --write test/fixtures/rabjung-names.ts
+ *
+ * This script emits one row per line, which Biome reflows to one field per line. The step has always
+ * been required and was never written down, so a re-run left `npm run lint` failing for reasons that
+ * looked nothing like formatting -- `biome check .` reports the diff without saying which file, and
+ * the obvious suspects are the files you just edited rather than the one the generator rewrote.
+ *
  * ## The sources, and why each one
  *
  * Five, and each is here because it is the only thing that can answer a particular question. Where
@@ -74,7 +82,7 @@ import {
 	lookupCandidates,
 	ordinalWordToNumber,
 	proveIndicPredicates,
-	stripDiacritics,
+	slugVariants,
 } from "./indic.ts";
 
 const [texPath, wikiPath, sewellPath] = process.argv.slice(2);
@@ -707,10 +715,15 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
  * routes it into `fail()`, so a source that goes down mid-run aborts instead of writing a table
  * where half the rows are sourced and half are silently empty.
  */
-async function fetchWithRetry(url, label) {
+async function fetchWithRetry(url, label, { nullOn404 = false } = {}) {
 	for (let attempt = 0; attempt < 3; attempt++) {
 		try {
 			const response = await fetch(url, { headers: { "User-Agent": UA } });
+			// A 404 is the source saying it has no such page, which for a corroborating source is an
+			// answer rather than a failure. Distinguishing it matters: treating absence as an outage
+			// failed the whole run over positions 10 and 45, whose slugs simply do not exist -- while a
+			// 403 or a 5xx genuinely is an outage and must still abort.
+			if (response.status === 404 && nullOn404) return null;
 			if (!response.ok) throw new Error(`${label} returned ${response.status}`);
 			return await response.text();
 		} catch (error) {
@@ -1019,9 +1032,11 @@ async function wisdomlibEntry(slug, devanagari) {
 	const html = await fetchWithRetry(
 		`https://www.wisdomlib.org/definition/${encodeURIComponent(slug)}`,
 		"wisdomlib",
+		{ nullOn404: true },
 	);
 	// Slower than the others on purpose: this is the one source that rate-limited a full run.
 	await sleep(600);
+	if (html === null) return null;
 	// Stripped to text BEFORE any phrase is matched. The phrase runs across markup -- the Devanagari
 	// sits in its own span -- so matching the raw HTML finds nothing and reports the page as carrying
 	// no position. That is how a first survey concluded wisdomlib had no coverage at all, which is
@@ -1057,8 +1072,10 @@ async function wisdomlibEntry(slug, devanagari) {
  */
 async function wisdomlibForRow(r) {
 	const slugs = new Set();
-	for (const part of r.iast.split("/")) slugs.add(stripDiacritics(part.trim()));
-	if (r.mwQueriedAs) slugs.add(stripDiacritics(devanagariToIast(r.mwQueriedAs)));
+	for (const part of r.iast.split("/"))
+		for (const slug of slugVariants(part.trim())) slugs.add(slug);
+	if (r.mwQueriedAs)
+		for (const slug of slugVariants(devanagariToIast(r.mwQueriedAs))) slugs.add(slug);
 	for (const slug of slugs) {
 		if (!slug) continue;
 		for (const part of r.devanagari.split("/").map((s) => s.trim())) {
@@ -1312,9 +1329,16 @@ const anchorFor = (r) => `sanskrit-senses-at-position-${r.n}`;
 const senseCell = (r) => {
 	const senses = r.senses ?? [];
 	if (senses.length === 0) return "*no Monier-Williams entry*";
-	const first = cell(senses[0].text);
+	// Monier-Williams opens several entries with a bare cross-reference — "प्र-भव &c. See under
+	// प्र-√भू" — which is his apparatus rather than a sense. Showing that as the row's representative
+	// gloss tells a reader nothing, so the first SUBSTANTIVE sense is shown, falling back to the first
+	// if an entry is nothing but cross-references.
+	const substantive = senses.find((sense) => !/\bSee (under|col\.)/i.test(sense.text)) ?? senses[0];
 	const rest = senses.length - 1;
-	return rest > 0 ? `${first} <br>([+${rest} more](#${anchorFor(r)}))` : first;
+	// No inline <br>: MD033 forbids it, and the link reads fine on one line.
+	return rest > 0
+		? `${cell(substantive.text)} ([+${rest} more](#${anchorFor(r)}))`
+		: cell(substantive.text);
 };
 
 /** The per-row evidence tier, so no single standing is claimed for all sixty rows. */
@@ -1352,16 +1376,25 @@ const docRow = (r) =>
 const detailBlock = (r) => {
 	const senses = r.senses ?? [];
 	if (senses.length === 0) return "";
-	const heading = `#### ${r.n}. ${r.devanagari} ${r.iast} {#${anchorFor(r)}}`;
+	// The heading text IS the anchor. check-links mirrors GitHub's slugger — lowercase, punctuation
+	// dropped, spaces to hyphens — so "Sanskrit senses at position 25" slugifies to exactly the
+	// fragment the table links to. Naming the headword in the heading instead would drag Devanāgarī
+	// and an em dash into the slug and break every link in the table.
+	const heading = `### Sanskrit senses at position ${r.n}\n\n${r.devanagari} ${r.iast}`;
 	const provenance =
 		`Monier-Williams, printed page ${r.mwPage ?? "?"}, queried as \`${r.mwQueriedAs}\`` +
 		` (${r.mwRung})${r.corroborators?.length ? `. Also carried by ${r.corroborators.join(", ")}` : ""}.`;
+	// No inline HTML: markdownlint's MD033 forbids it, and a generated document has no business
+	// being the one file that needs an exception.
 	const list = senses
-		.map(
-			(s) =>
-				`${s.id === r.selectedSenseId ? "- **" : "- "}${cell(s.text)}${s.id === r.selectedSenseId ? "**" : ""}` +
-				` <sub>${s.group ?? "—"} · ${s.id}</sub>`,
-		)
+		.map((s) => {
+			// Monier-Williams numbers his homonyms "1. क्षय", "2. क्षय". A list item whose content opens
+			// with that is parsed as a NESTED ORDERED LIST, so the second one fails MD029 for starting at
+			// 2. Escaping the period keeps his numbering visible and stops markdown claiming it.
+			const escaped = cell(s.text).replace(/^(\d+)\./, "$1\\.");
+			const text = s.id === r.selectedSenseId ? `**${escaped}**` : escaped;
+			return `- ${text} *(${s.group ?? "—"} · ${s.id})*`;
+		})
 		.join("\n");
 	return `${heading}\n\n${provenance}\n\n${list}\n`;
 };
@@ -1564,7 +1597,7 @@ Every sense Monier-Williams gives, with its Cologne record ID and homonym group,
 the entry sits on. **The selected gloss is bolded** in its sense, so the editorial choice can be
 checked against everything it was chosen from rather than taken on trust.
 
-${rows.map(detailBlock).filter(Boolean).join("\n")}
+${rows.map(detailBlock).filter(Boolean).join("\n").trimEnd()}
 `,
 );
 

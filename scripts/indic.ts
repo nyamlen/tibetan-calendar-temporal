@@ -226,6 +226,22 @@ export function stripDiacritics(iast: string): string {
 	return iast.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 }
 
+/**
+ * The romanised slugs a name could live under, most literal first.
+ *
+ * Stripping diacritics turns the vocalic ṛ into a bare `r`, giving `dhatr` and `virodhakrt` — which
+ * are not romanisations anybody writes. wisdomlib uses the older convention that spells it `ri`, so
+ * धातृ is `dhatri` and विरोधकृत् is `virodhakrit`; both 404 under the strict form and resolve under
+ * this one. The same convention writes vocalic ḷ as `li`.
+ */
+export function slugVariants(iast: string): string[] {
+	const strict = stripDiacritics(iast);
+	const vocalic = stripDiacritics(
+		iast.normalize("NFC").replace(/[ṛṝ]/gi, "ri").replace(/[ḷḹ]/gi, "li"),
+	);
+	return strict === vocalic ? [strict] : [strict, vocalic];
+}
+
 const ORDINAL_UNITS: Readonly<Record<string, number>> = {
 	first: 1,
 	second: 2,
@@ -468,6 +484,14 @@ export function proveIndicPredicates(corpus: readonly string[]): void {
 	check('devanagariToSlp1("क्षय")', devanagariToSlp1("क्षय"), "kzaya");
 	check('devanagariToSlp1("प्रमाथिन्")', devanagariToSlp1("प्रमाथिन्"), "pramATin");
 	check('stripDiacritics("Vṛṣabha")', stripDiacritics("Vṛṣabha"), "vrsabha");
+	check('slugVariants("Dhātṛ")', slugVariants("Dhātṛ").join("|"), "dhatr|dhatri");
+	check(
+		'slugVariants("Virodhakṛt")',
+		slugVariants("Virodhakṛt").join("|"),
+		"virodhakrt|virodhakrit",
+	);
+	// A name with no vocalic r yields ONE slug, not a duplicate pair — the caller iterates these.
+	check('slugVariants("Khara")', slugVariants("Khara").join("|"), "khara");
 	check('ordinalWordToNumber("first")', ordinalWordToNumber("first"), 1);
 	check('ordinalWordToNumber("forty-second")', ordinalWordToNumber("forty-second"), 42);
 	check('ordinalWordToNumber("twenty-fifth")', ordinalWordToNumber("twenty-fifth"), 25);

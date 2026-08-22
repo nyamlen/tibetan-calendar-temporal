@@ -20,6 +20,11 @@
     // rejects parameter properties, enums and namespaces at import time. This turns that into a
     // typecheck error instead of a runtime one the next contributor discovers.
     "erasableSyntaxOnly": true,
+    // The same module is imported by test/rabjung-names.test.ts, which must name it as "indic.ts":
+    // Node resolves the real filename, and there is no .js to point at because nothing compiles
+    // scripts/. Legal only because this config is noEmit; tsconfig.build.json turns it back off,
+    // since that one emits and covers src/ alone, which never imports scripts/.
+    "allowImportingTsExtensions": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
 
