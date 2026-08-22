@@ -404,17 +404,19 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   2026-08-22 and had grown to 221 lines, a quarter of this file; a roadmap should say what remains.
 
   **The table is built and complete.** [names/rabjung.md](names/rabjung.md) carries all sixty rows
-  with the provenance of every column and a per-row evidence tier, and 59 of the 60 have a Sanskrit
-  meaning — 57 quoted verbatim from Monier-Williams and two composed from his entries for the parts.
-  Position 38 is the exception and is closed rather than unfinished: its only adjectival gloss is
-  MW's bare *idem*, and the route to resolving that was tested and does not exist.
+  with the provenance of every column and a per-row evidence tier, and **all 60 of 60 have a Sanskrit
+  meaning** — 58 quoted verbatim from Monier-Williams and two composed from his entries for the
+  parts. Position 38 was the last gap, closed on 2026-08-22: its only adjectival gloss is MW's bare
+  *idem*, "the same as the word printed immediately above," which the Cologne API cannot resolve —
+  it returns only the queried headword's own entry — but MW's own scanned page shows the antecedent
+  directly, क्रोधालु, "passionate, violent."
 
   **What remains is the public surface, not the data.** `rabjung.name` needs `RabjungName` and
   `SanskritName`, a frozen table in `src/rabjung-names.ts`, and the assertion migration at the 14
-  `toEqual({ cycle, year })` sites. The one decision still open is whether `name` is a **required**
-  field on `Rabjung` — free now at `0.0.1` and a breaking change after `1.0.0`. Optionality was
-  investigated and rejected on evidence: `toEqual` fails on an extra *runtime* property regardless
-  of the type, so it would save none of the 14 assertions while costing permanent narrowing under
+  `toEqual({ cycle, year })` sites. `name` on `Rabjung` is **required**, decided on 2026-08-22 against
+  the real table — free at `0.0.1`, a breaking change after `1.0.0`. Optionality was investigated and
+  rejected on evidence: `toEqual` fails on an extra *runtime* property regardless of the type, so it
+  would save none of the 14 assertions while costing permanent narrowing under
   `exactOptionalPropertyTypes`.
 
   **A decision taken on 2026-08-22, for whoever shapes `SanskritName`.** Where Monier-Williams has

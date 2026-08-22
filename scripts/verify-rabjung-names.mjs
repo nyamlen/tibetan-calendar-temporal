@@ -760,39 +760,15 @@ const COMPOSED_MEANINGS = {
 };
 
 /**
- * Positions deliberately left unselected, so the gaps read as decisions rather than oversights.
- *
- * Every one of these was re-derived on 2026-08-21 against the full Monier-Williams entry. Three
- * earlier notes here did not survive that: they described **the 8-sense cap of the old Wiktionary
- * extractor** as a fact about Sanskrit lexicography. खर was said to list "no sense resembling the
- * Tibetan at all... neither is a donkey"; it lists 27, of which one is "a donkey". प्लव was said to
- * offer nothing meaning leaping; it offers "jumping, leaping, plunging". सौम्य was said to omit
- * "gentle, mild"; MW carries "placid, gentle, mild". All three are now selected.
- *
- * **38 Krodhi was resolved on 2026-08-22, by the same route as 36 and 53**: its entry is only "id.",
- * Monier-Williams' notation for "the same as the word printed immediately above" -- checked against
- * the scanned page rather than assumed, since the earlier note here guessed the antecedent was
- * क्रोध, the root noun, and the scan shows it is actually क्रोधालु, "passionate, violent". See
+ * Nothing is genuinely left unresolved -- this note used to list positions that were, and stayed
+ * unread after each was closed by a later mechanism, so it claimed gaps that had not existed for
+ * days. All 60 positions now carry a meaning: 58 quoted verbatim (`SELECTED_SENSES`, including via
+ * a lookup rung, a preferred alternative, or a sense cross-reference) and 2 composed from an entry's
+ * parts (`COMPOSED_MEANINGS` at 31, `ABBREVIATION_EXPANSIONS` at 57) -- the weaker tier, which never
+ * fills `selected` and is held in its own field. What each position's resolution actually is, and
+ * why, is recorded once, at that mechanism's own table, rather than duplicated here where it can
+ * drift out of date again. 38 was the last position closed, on 2026-08-22 -- see
  * `SENSE_CROSS_REFERENCES`.
- *
- * What genuinely remains:
- *
- * - **6 Angirasa** -- a rishi's name, transliterated rather than translated. MW glosses it as
- *   "descended from or belonging to the Angirases", which is a patronymic and not a meaning.
- * - **13 Pramathin** (`myos ldan`, intoxicated) -- MW gives "stirring about, tearing, rending,
- *   troubling, harassing, destroying". The Sanskrit is agitation and the Tibetan is intoxication;
- *   picking the nearest would assert a match the entry does not make.
- * - **22 Sarvadhari, 31 Hemalamba, 53 Siddharthin, 58 Raktakshi** -- the entry exists and its only
- *   senses are "name of the Nth year of the cycle", which is circular.
- * - **36 Subhakrit** -- MW defers the headword to शुभ-कर without glossing it here.
- * - **50 Nala/Anala** (`me`, fire) -- a caution about the compound cell. The cell offers two
- *   readings and the lookup takes the first that resolves, which is नल, "a species of reed". The
- *   Tibetan is fire, which is अनल, the second. Both are attested and नल's own entry claims position
- *   50, so neither is wrong; but the sense list on file is the reed's, so no selection is made from
- *   it. Splitting compound cells solved attestation and did not solve *which* alternative a position
- *   means.
- * - **57 Rudhirodgarin** -- its one sense is MW's abbreviation "emitting b˚", and selecting an
- *   abbreviation would ship a gloss no reader can read.
  */
 
 // ---------------------------------------------------------------------------------------------
