@@ -1,4 +1,12 @@
 {
+  // Names a schema that knows TypeScript 7, for editors that honour an in-file $schema. VS Code does
+  // not here — its TypeScript extension contributes an association that wins — so the same schema is
+  // also set in .vscode/settings.json, which explains the four false errors in detail.
+  //
+  // Do not "fix" this config to satisfy a stale schema. tsc 7.0.2 accepts every value in it, and
+  // "ESNext.Temporal" is what makes Temporal resolve as a global; downgrading it is what CLAUDE.md
+  // forbids.
+  "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
     "target": "ES2024",
     "lib": ["ES2024", "ESNext.Temporal"],

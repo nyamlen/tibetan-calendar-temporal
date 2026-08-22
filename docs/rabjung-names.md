@@ -75,6 +75,29 @@ anusvāra spellings, and those are grammar rather than judgement.
 - **Position 57: रूधिरोद्गारी → रुधिरोद्गारी** *(typo)*. रूधिर with a long u is not a word; blood is रुधिर, short. The table's own IAST says so -- it prints `Rudhirodgāri`, which transliterates the short vowel -- so this is a typo the source contradicts itself about, not a variant. Corrected here, and the `-in` stem that Cologne lemmatises under (रुधिरोद्गारिन्) is then reached by the ladder rather than by a second correction.
 - **Position 6, Wylie: `anggi ra` → `ang gi ra`.** Janson's `anggi ra` does not survive the EWTS round trip: it converts to ཨངགི་ར, which reads back as `angagi ra` -- not a word. `ang gi ra` converts to ཨང་གི་ར and round-trips exactly, both converters agree on it, and THL returns a clean phonetic for it where `anggi ra` returns the `(?)` marker meaning it could not analyse the string. It is also the form the retired bespoke converter hard-coded for this row, and it matches the syllable structure of the Sanskrit it transliterates, Angirasa आङ्गिरस. The likeliest reading is a missing space in the source.
 
+## How a headword is looked up
+
+Monier-Williams is a dictionary, so finding a word means naming the **headword form** he files it
+under — and that is not always how the saṃvatsara list spells the name. Sent to Cologne exactly as
+printed, 49 of the 60 headwords resolve.
+The other 11 do not, and none of them is missing from Monier-Williams:
+he has every one, under a different form of the same word.
+
+So the lookup walks a **ladder**: the printed spelling first, then each transformation below, then
+the pairs that compose. Every rung states a rule of Sanskrit orthography or morphology, which is what
+separates it from a correction — **a rung changes only what is *queried*, while a correction changes
+what this table *prints* and carries authored evidence**. The Devanāgarī column still shows the
+source's own spelling at every one of these rows; the ladder simply knows where Monier-Williams keeps
+it. Collapsing the two would turn 11 points of grammar into 11 editorial judgements.
+
+| Rung | Rows | Why it is a rule rather than a judgement | Where it applied |
+|---|---|---|---|
+| `-in stem` | 6 | The list prints the nominative singular; Monier-Williams lemmatises the stem. | 13 प्रमाथी → प्रमाथिन्; 33 विकारि → विकारिन्; 46 परिधावी → परिधाविन्; 47 प्रमादी → प्रमादिन्; 53 सिद्धार्थी → सिद्धार्थिन्; 57 रुधिरोद्गारी → रुधिरोद्गारिन् |
+| `ḷ → l + -in stem` | 1 | ळ is Vedic and Marathi rather than standard Sanskrit, and this row needs the stem rule on top of it — the rungs compose. | 32 विळम्बि → विलम्बिन् |
+| `cluster → anusvāra` | 1 | The same rule in reverse — he files this one under the anusvāra, so the ladder tries both directions. | 41 प्लवङ्ग → प्लवंग |
+| `final virāma` | 1 | A missing virāma leaves a spurious inherent *a*, so the word queried is not the word meant. | 45 विरोधकृत → विरोधकृत् |
+| `anusvāra → cluster` | 2 | One word, two conventions for the same nasal. Monier-Williams files these under the cluster. | 48 आनंद → आनन्द; 51 पिंगल → पिङ्गल |
+
 ## Where the two traditions name different things
 
 The Tibetan names are mostly translations of the Sanskrit, but not everywhere. These are the

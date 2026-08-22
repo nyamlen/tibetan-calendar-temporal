@@ -1400,6 +1400,58 @@ const detailBlock = (r) => {
 };
 
 /**
+ * The "How a headword is looked up" section, generated from the rows so it cannot drift.
+ *
+ * The Evidence column says things like "MW via -in stem" on eleven rows, and nothing else in the
+ * document explains what that means or why a lookup needed help at all.
+ */
+const ladderSection = () => {
+	const byRung = new Map();
+	for (const r of rows) {
+		if (r.mwRung === "as printed") continue;
+		if (!byRung.has(r.mwRung)) byRung.set(r.mwRung, []);
+		byRung.get(r.mwRung).push(r);
+	}
+	const asPrinted = rows.filter((r) => r.mwRung === "as printed").length;
+	const viaRung = rows.length - asPrinted;
+	const explanation = {
+		"-in stem": "The list prints the nominative singular; Monier-Williams lemmatises the stem.",
+		"anusvāra → cluster":
+			"One word, two conventions for the same nasal. Monier-Williams files these under the cluster.",
+		"cluster → anusvāra":
+			"The same rule in reverse — he files this one under the anusvāra, so the ladder tries both directions.",
+		"final virāma":
+			"A missing virāma leaves a spurious inherent *a*, so the word queried is not the word meant.",
+		"ḷ → l + -in stem":
+			"ळ is Vedic and Marathi rather than standard Sanskrit, and this row needs the stem rule on top of it — the rungs compose.",
+	};
+	const body = [...byRung.entries()]
+		.map(([rung, group]) => {
+			const examples = group.map((r) => `${r.n} ${r.devanagari} → ${r.mwQueriedAs}`).join("; ");
+			return `| \`${rung}\` | ${group.length} | ${explanation[rung] ?? ""} | ${examples} |`;
+		})
+		.join("\n");
+	return `## How a headword is looked up
+
+Monier-Williams is a dictionary, so finding a word means naming the **headword form** he files it
+under — and that is not always how the saṃvatsara list spells the name. Sent to Cologne exactly as
+printed, ${asPrinted} of the ${rows.length} headwords resolve.
+The other ${viaRung} do not, and none of them is missing from Monier-Williams:
+he has every one, under a different form of the same word.
+
+So the lookup walks a **ladder**: the printed spelling first, then each transformation below, then
+the pairs that compose. Every rung states a rule of Sanskrit orthography or morphology, which is what
+separates it from a correction — **a rung changes only what is *queried*, while a correction changes
+what this table *prints* and carries authored evidence**. The Devanāgarī column still shows the
+source's own spelling at every one of these rows; the ladder simply knows where Monier-Williams keeps
+it. Collapsing the two would turn ${viaRung} points of grammar into ${viaRung} editorial judgements.
+
+| Rung | Rows | Why it is a rule rather than a judgement | Where it applied |
+|---|---|---|---|
+${body}`;
+};
+
+/**
  * The divergence table: where the Tibetan tradition and the Indic list put DIFFERENT names at one
  * position, rather than different spellings of one name.
  *
@@ -1543,6 +1595,8 @@ anusvāra spellings, and those are grammar rather than judgement.
 
 ${CORRECTIONS.map((c) => `- **Position ${c.n}: ${c.fromDevanagari} → ${c.toDevanagari}** *(${c.evidence})*. ${c.why}`).join("\n")}
 ${WYLIE_CORRECTIONS.map((c) => `- **Position ${c.n}, Wylie: \`${c.from}\` → \`${c.to}\`.** ${c.why}`).join("\n")}
+
+${ladderSection()}
 
 ## Where the two traditions name different things
 

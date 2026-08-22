@@ -315,6 +315,21 @@ as a global. Do **not** downgrade TypeScript, and do **not** install `temporal-s
 zero-dependency claim runs through the published `.d.ts`, which references the global. TypeScript
 5.9 and `@types/node` carry no Temporal declarations at all.
 
+**VS Code reports four false errors in `tsconfig.json` and `tsconfig.build.json`, and they are the
+editor's fault.** Its bundled JSON schema predates TypeScript 7, so it rejects `ES2024` as a target,
+`ES2024` and `ESNext.Temporal` as libs, and `nodenext` as a module — the last through a plain bug in
+its own pattern, which spells NodeNext with a fourth character class of `[Ed]`, so neither casing can
+match. `tsc` accepts all four. Both configs name schemastore's schema, which knows them, and
+`.vscode/settings.json` (gitignored, so local) points the editor there. **Do not edit the configs to
+satisfy a stale schema** — the lib is what makes `Temporal` resolve as a global.
+
+**`scripts/indic.ts` may use only erasable TypeScript syntax.** It is shared between an `.mjs`
+generator, which loads it under Node's **erase-only** type stripping, and a `.ts` test; a parameter
+property, an enum or a namespace fails at import with `ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX`.
+`erasableSyntaxOnly` in `tsconfig.json` makes that a typecheck error instead of a runtime one, and
+`allowImportingTsExtensions` is what lets the test name the module by its real filename — legal only
+under `noEmit`, which is why `tsconfig.build.json` turns it back off.
+
 **No bundler.** `tsc` alone emits ESM and declarations, which keeps `dist/` mirroring `src/` —
 the structure the `./observances` subpath export needs. Do not add tsup or similar. Both decisions:
 [docs/decisions/2026-08-11-build-tooling.md](docs/decisions/2026-08-11-build-tooling.md).
@@ -330,7 +345,10 @@ coded errors, `{@link}` targets, the reality of every `TCT_` code named in a `@t
 decision-record format, fixture provenance, whether
 [docs/coding-standards.md](docs/coding-standards.md) still names real commands and paths, that a
 validation suite is named for the fixture it validates, that an exported config is imported by one,
-and that a suite in `test/computation/` is named for a module there. Each of those fails silently
+that a suite in `test/computation/` is named for a module there, and that **a generated document does
+not hardcode a count its generator computes** — `docs/rabjung-names.md` read "Four values are marked,
+at positions …" beside an interpolated list for three commits, and there were five positions and nine
+cells. Each of those fails silently
 rather than loudly. When you add a rule here, check whether `scripts/check-conventions.mjs` can hold
 it, and write the failing case before the check — a guard that has never failed proves nothing.
 
@@ -367,10 +385,20 @@ green.
 **Three commands are deliberately outside CI, and all are release-time checks.** `npm run coverage`
 (below), `npm run verify:names`, which re-derives the whole Tibetan name vocabulary from Janson and
 re-checks it against Wiktionary, THL and CLDR, and `npm run verify:rabjung-names`, which does the
-same for the sixty rabjung year names against Janson, the Indic saṃvatsara list, Sewell & Fleet and
-Wiktionary. Both need the network and two converters installed outside the repo, so neither can gate
-a push — what gates a push is their committed output, `test/fixtures/names.ts` and
-`test/fixtures/rabjung-names.ts`, which the suite reads. Provenance is checked before a release;
+same for the sixty rabjung year names against Janson, the Indic saṃvatsara list, Sewell & Fleet,
+**Monier-Williams via the Cologne scan** (the Sanskrit senses, uncapped and citing a printed page),
+**wisdomlib** (the Bṛhat Saṃhitā's cycle position, and which non-MW lexicons carry a headword) and
+Wiktionary — which is now only a second attestation, never the sense source, because its Sanskrit
+senses **are** Monier-Williams verbatim and corroborating it with anything MW-derived would be MW
+agreeing with itself. Both need the network and two converters installed outside the repo, so neither
+can gate a push — what gates a push is their committed output, `test/fixtures/names.ts` and
+`test/fixtures/rabjung-names.ts`, which the suite reads.
+
+**`verify:rabjung-names` emits one row per line and Biome reflows it, so run
+`npx biome check --write test/fixtures/rabjung-names.ts` after every run.** This has always been
+required and was never written down, and it surfaces as an unattributed formatting diff — `biome
+check .` reports it without naming the file, and the obvious suspects are the files you just edited
+rather than the one the generator rewrote. Provenance is checked before a release;
 integrity is checked on every push.
 
 **Both verifiers carry corrections to their sources as data, and a correction must self-invalidate.**

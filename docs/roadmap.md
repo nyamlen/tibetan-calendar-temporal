@@ -492,6 +492,30 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   standard with one that passes the exact form the repo threw out. A nonsense Tibetan string scores
   0, so the check does discriminate — it just does not discriminate for the property that matters.
 
+  **Ten rows carry no selected Sanskrit meaning, and four of them could.** Checked against Cologne on
+  2026-08-22 and recorded rather than applied, because two of the four need new generator behaviour
+  rather than a data record:
+
+  - **50** `me`, fire — the compound cell offers नल/अनल and the lookup takes the first that resolves,
+    which is नल, "a species of reed". अनल is "fire", which is what the Tibetan says. A correction.
+  - **58** `mig dmar`, red-eyed — रक्ताक्षि is a stub in MW ("m., Cat."), while रक्ताक्ष reads
+    "red-eyed, having red or blood-shot eyes". A correction, and one the IAST check cannot find,
+    because both columns agree on the wrong form — the shared-error case that only attestation sees.
+  - **36** `dge byed` — MW writes only "= -कर", so following **his own explicit cross-reference** to
+    शुभकर gives "causing welfare, auspicious". Needs a cross-reference-following step.
+  - **57** `khrag skyug` — the single sense reads "'emitting b˚'", where `˚` stands for the headword's
+    first element. Expanding it gives "emitting blood". Needs abbreviation expansion, which is a small
+    act of interpretation and should be argued before it is built.
+
+  The remaining six are genuinely not glossed: **6** is a patronymic, so a proper name correctly has
+  no meaning; **13** is a real semantic mismatch between the traditions and is itself a finding; and
+  **22**, **31**, **38** and **53** carry only a circular "name of the Nth year" or a bare "id."
+
+  **Behind 50 and 38 sits one weakness worth fixing first.** The lookup ladder accepts the first form
+  that returns *any* entry, rather than one whose entry actually glosses the word — which is how 50
+  landed on the reed and 38 landed on क्रोध's page via क्रोधी. Preferring a form that yields a usable
+  sense would fix both without a single authored correction.
+
   **All 60 are now tabulated side by side in [rabjung-names.md](rabjung-names.md)** — Wylie, Tibetan
   script, THL phonetics, Devanāgarī, a derived IAST, an authored English gloss of the Tibetan, and
   the Monier-Williams senses with an authored selection from them. Read that before deciding. Every
