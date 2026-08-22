@@ -643,6 +643,9 @@ const SELECTED_SENSES = {
 	// "opposition, hostility" until 2026-08-22, which is विरोध the noun -- the lookup had been
 	// landing on a neighbouring headword's page, and the headword check now rejects that.
 	23: { id: "199449", text: "opposing, hindering" },
+	// Sarvadharin, `kun 'dzin` all-holding. MW knows the printed सर्वधारी only as a year-name;
+	// the stem one entry away glosses it outright.
+	22: { id: "238402", text: "all-holder" },
 	24: { id: "194023", text: "change, alteration" }, // Vikriti, `rnam 'gyur` transformed
 	25: { id: "61348", text: "a donkey" }, // Khara, `bong bu` donkey
 	26: { id: "103509", text: "rejoicing, gladdening" }, // Nandana, `dga' ba` joy
@@ -674,6 +677,9 @@ const SELECTED_SENSES = {
 	50: { id: "5252", text: "fire" },
 	51: { id: "123605", text: "reddish-brown, tawny" }, // Pingala, `dmar ser can` tawny
 	52: { id: "49496", text: "fit for the (present) time" }, // Kalayukta, `dus kyi pho nya`
+	// Siddharthin, `don grub` aim-accomplished. Reached through the base compound सिद्धार्थ,
+	// since the -in suffix means "possessing" and MW glosses only the base.
+	53: { id: "244502", text: "one who has accomplished an aim" },
 	54: { id: "180197", text: "savageness, fierceness" }, // Raudra, `drag po` fierce
 	55: { id: "94158", text: "weak-minded, silly" }, // Durmati, `blo ngan` ill-minded
 	56: { id: "93585", text: "a sort of large kettledrum" }, // Dundubhi, `rnga chen` great drum
@@ -681,6 +687,39 @@ const SELECTED_SENSES = {
 	58: { id: "173666", text: "red-eyed" },
 	59: { id: "58274", text: "inclined to wrath, passionate" }, // Krodhana, `khro bo` wrathful
 	60: { id: "59377", text: "destruction, decay" }, // Kshaya, `zad pa` exhaustion -- NOT "dominion"
+};
+
+/**
+ * Meanings **composed** from the entries for a compound's parts, which is a weaker tier than a
+ * verbatim selection and is kept separate from it.
+ *
+ * Some of these names are ordinary transparent compounds that Monier-Williams simply has no entry
+ * for, though he glosses both halves. Returning nothing there says "this name has no meaning", which
+ * is false; हेमलम्ब is हेमन् + लम्ब and both are in the dictionary. So a composed gloss is
+ * offered instead of a blank -- but never in `selected`, whose whole guarantee is that it is a
+ * verbatim span of one printed sense.
+ *
+ * Three conditions, and the generator enforces the first two. Each part must **resolve in
+ * Monier-Williams**, and each part's stated gloss must appear **verbatim** in the sense it cites, so
+ * the composition is traceable to sourced entries rather than asserted. The third is editorial and
+ * stated in the `why`: **the Tibetan disambiguates the compound**, since हेमलम्ब could be read
+ * several ways and `gser 'phyang` says which one the tradition took.
+ *
+ * Deliberately small. A compound the Tibetan does not render would have no disambiguator, and this
+ * mechanism would then be inventing rather than composing.
+ */
+const COMPOSED_MEANINGS = {
+	31: {
+		text: "hanging gold",
+		parts: [
+			{ devanagari: "हेमन्", id: "264121", gloss: "gold" },
+			{ devanagari: "लम्ब", id: "181489", gloss: "hanging down" },
+		],
+		why:
+			"Monier-Williams carries हेमलम्ब and हेमलम्बक only as the name of this year, but glosses " +
+			'both halves: 3. हेमन् is "gold" and लम्ब is "hanging down". The Tibetan `gser \'phyang` is ' +
+			"gold-hanging, which is what fixes the reading.",
+	},
 };
 
 /**
@@ -819,6 +858,28 @@ function parseMonierWilliams(html) {
  * sense and hyphenates or spaces compounds ("सर्व —धारी"), so both sides are stripped of spacing
  * and joiners before comparing.
  */
+/**
+ * Monier-Williams' bare cross-references, which are apparatus rather than senses.
+ *
+ * Three spellings, and the third was missed for a release: "See under", "See col." and **"See \u221a"**,
+ * which points at a verbal root. Position 60 -- the table's flagship correction -- therefore printed
+ * its cross-reference as the headline sense instead of "destruction, decay".
+ */
+const CROSS_REFERENCE = /\bSee\s+(under|col\.|\u221a)/i;
+
+/**
+ * Does this entry say anything about the word, beyond naming the year it labels?
+ *
+ * Several of these headwords are known to Monier-Williams ONLY as "N. of the Nth year of Jupiter's
+ * cycle", which restates the position column and says nothing about the name. An entry made entirely
+ * of those, or of bare cross-references, is not worth stopping the ladder for.
+ */
+const YEAR_NAME_ONLY = /\d{1,2}(?:st|nd|rd|th)\s+year|\byear\s+(?:in|of)\b[^.]*cycle/i;
+const glossesTheWord = (parsed) =>
+	parsed.senses.some(
+		(sense) => !YEAR_NAME_ONLY.test(sense.text) && !CROSS_REFERENCE.test(sense.text),
+	);
+
 const headedBy = (parsed, devanagari) => {
 	const bare = (text) => text.replace(/[\s—–―-]/g, "");
 	// Only the FIRST sense, which is the entry's own headword. Asking whether ANY sense begins with
@@ -857,10 +918,23 @@ const SENSE_CROSS_REFERENCES = [
 			'"identical with शुभ-कर". That entry reads "causing welfare, auspicious, fortunate", which is ' +
 			"the Tibetan `dge byed`, virtue-making.",
 	},
+	{
+		n: 53,
+		from: "सिद्धार्थिन्",
+		expects: "53rd year",
+		to: "सिद्धार्थ",
+		why:
+			"Monier-Williams knows सिद्धार्थिन् only as the year-name, but the compound it is formed " +
+			'from, सिद्धार्थ, reads "one who has accomplished an aim or object" -- and the -in suffix ' +
+			'means "possessing", so the base carries the sense the derivative inherits. The Tibetan ' +
+			"`don grub`, aim-accomplished, says the same thing. One entry, quoted verbatim, rather than a " +
+			"gloss assembled out of parts.",
+	},
 ];
 
 async function monierWilliamsEntry(devanagari) {
 	let fallback = null;
+	let headedFallback = null;
 	for (const candidate of lookupCandidates(devanagari)) {
 		const key = devanagariToSlp1(candidate.devanagari);
 		const html = await fetchWithRetry(
@@ -872,14 +946,20 @@ async function monierWilliamsEntry(devanagari) {
 		const parsed = parseMonierWilliams(html);
 		if (parsed.senses.length === 0) continue;
 		const resolved = { ...candidate, key, ...parsed };
-		// Prefer a rung whose entry is headed by the form queried. Taking the first that returns ANY
-		// entry is how position 38 landed on क्रोध's page and position 50 on the reed; keep looking, and
-		// fall back to the first only if no rung does better, so a near-miss is still recorded rather
-		// than discarded.
-		if (headedBy(parsed, candidate.devanagari)) return resolved;
+		// Prefer a rung whose entry is headed by the form queried AND actually glosses it. Taking the
+		// first that returns ANY entry is how position 38 landed on क्रोध's page; taking the first
+		// *headed* entry is how position 22 stopped at सर्वधारी, which Monier-Williams knows only
+		// as a year-name, when the stem सर्वधारिन् one entry away reads "'all-holder'".
+		//
+		// Both weaker forms are kept as fallbacks, in that order, so a near miss still yields something
+		// rather than nothing.
+		if (headedBy(parsed, candidate.devanagari)) {
+			if (glossesTheWord(parsed)) return resolved;
+			headedFallback ??= resolved;
+		}
 		fallback ??= resolved;
 	}
-	return fallback;
+	return headedFallback ?? fallback;
 }
 
 /**
@@ -1139,6 +1219,46 @@ for (const r of rows) {
 	}
 	r.selected = choice.text;
 	r.selectedSenseId = choice.id;
+}
+
+// Composed meanings, checked against the entries they cite. A composition that cannot be traced to
+// two sourced glosses is an invention, so each part must resolve and each stated gloss must appear
+// verbatim in the sense whose ID it names.
+for (const r of rows) {
+	const composed = COMPOSED_MEANINGS[r.n];
+	if (composed === undefined) continue;
+	if (r.selected) {
+		fail(
+			`position ${r.n} has both a verbatim selection and a composed meaning. Composition is the ` +
+				"weaker tier and exists only where Monier-Williams glosses no entry for the whole word.",
+		);
+		continue;
+	}
+	const parts = [];
+	for (const part of composed.parts) {
+		const entry = await monierWilliamsEntry(part.devanagari);
+		const sense = entry?.senses.find((candidate) => candidate.id === part.id);
+		if (!sense) {
+			fail(
+				`position ${r.n}: the composed meaning cites ${part.devanagari} sense ${part.id}, which ` +
+					"does not resolve. A composition has to be traceable to entries that exist.",
+			);
+			continue;
+		}
+		if (!sense.text.includes(part.gloss)) {
+			fail(
+				`position ${r.n}: the composed meaning reads "${part.gloss}" for ${part.devanagari}, but ` +
+					`sense ${part.id} now says "${sense.text.slice(0, 90)}". Re-make the composition against ` +
+					"what the entry says.",
+			);
+			continue;
+		}
+		parts.push({ ...part, page: entry.page });
+	}
+	if (parts.length === composed.parts.length) {
+		r.composed = composed.text;
+		r.composedFrom = parts;
+	}
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -1408,6 +1528,17 @@ export interface RabjungNameFixtureRow {
 	selected: string | null;
 	/** The Cologne record ID \`selected\` was taken from. */
 	selectedSenseId: string | null;
+	/**
+	 * A meaning **composed** from the entries for the compound's parts.
+	 *
+	 * A weaker tier than \`selected\`, and deliberately a separate field: \`selected\` is always a
+	 * verbatim span of one printed sense, and mixing the two would end that guarantee. Set only where
+	 * Monier-Williams glosses no entry for the whole word but does gloss both halves, and only where
+	 * the Tibetan name disambiguates the compound. Null everywhere else.
+	 */
+	composed: string | null;
+	/** The entries a \`composed\` meaning was built from, so it can be checked rather than trusted. */
+	composedFrom: readonly { devanagari: string; gloss: string; id: string; page: string | null }[];
 	/** Monier-Williams' printed book page, so a reader can check the scan. */
 	mwPage: string | null;
 	/** The headword actually queried, which is not always the one printed -- see the lookup ladder. */
@@ -1435,6 +1566,12 @@ ${rows
 			`phonetic: ${quote(r.phonetic)}, devanagari: ${quote(r.devanagari)}, iast: ${quote(r.iast)}, ` +
 			`years: [${r.years[0]}, ${r.years[1]}], attested: ${r.attested}, senses: [${senses}], ` +
 			`selected: ${optional(r.selected)}, selectedSenseId: ${optional(r.selectedSenseId)}, ` +
+			`composed: ${optional(r.composed)}, composedFrom: [${(r.composedFrom ?? [])
+				.map(
+					(part) =>
+						`{ devanagari: ${quote(part.devanagari)}, gloss: ${quote(part.gloss)}, id: ${quote(part.id)}, page: ${part.page ? quote(part.page) : "null"} }`,
+				)
+				.join(", ")}], ` +
 			`mwPage: ${optional(r.mwPage)}, mwQueriedAs: ${optional(r.mwQueriedAs)}, ` +
 			`mwRung: ${optional(r.mwRung)}, brihatSamhitaPosition: ${r.brihatSamhitaPosition ?? "null"}, ` +
 			`corroborators: [${(r.corroborators ?? []).map(quote).join(", ")}] },`
@@ -1466,15 +1603,6 @@ const anchorFor = (r) => `sanskrit-senses-at-position-${r.n}`;
  * claim that a selection must appear verbatim among the senses. The full list now lives in a detail
  * section, so that claim is true of the rendered document and not only of the fixture.
  */
-/**
- * Monier-Williams' bare cross-references, which are apparatus rather than senses.
- *
- * Three spellings, and the third was missed for a release: "See under", "See col." and **"See \u221a"**,
- * which points at a verbal root. Position 60 -- the table's flagship correction -- therefore printed
- * its cross-reference as the headline sense instead of "destruction, decay".
- */
-const CROSS_REFERENCE = /\bSee\s+(under|col\.|\u221a)/i;
-
 const senseCell = (r) => {
 	const senses = r.senses ?? [];
 	if (senses.length === 0) return "*no Monier-Williams entry*";
@@ -1515,10 +1643,25 @@ const markedPositions = rows
 	.filter((r) => r.devanagariCorrectedFrom || r.wylieCorrectedFrom)
 	.map((r) => r.n);
 
+/**
+ * The meaning cell: a verbatim selection, or a composed gloss marked with a double dagger, or a
+ * short reason for the blank.
+ *
+ * A bare dash says only that the cell is empty. Naming the reason costs nothing and is the
+ * difference between "Monier-Williams is silent" and "Monier-Williams knows this word only as the
+ * label for this year", which are different facts about the name.
+ */
+const meaningCell = (r) => {
+	if (r.selected) return cell(r.selected);
+	if (r.composed) return `${cell(r.composed)} ‡`;
+	if ((r.senses ?? []).length === 0) return "—";
+	return glossesTheWord({ senses: r.senses }) ? "—" : "*MW: year-name only*";
+};
+
 const docRow = (r) =>
 	`| ${r.n} | ${r.tibetan} | \`${mark(r.wylie, r.wylieCorrectedFrom)}\` | *${r.phonetic}* | ` +
 	`${mark(r.devanagari, r.devanagariCorrectedFrom)} | ${mark(r.iast, r.devanagariCorrectedFrom)} | ` +
-	`${cell(AUTHORED[String(r.n)]?.english)} | ${senseCell(r)} | ${cell(r.selected) || "—"} | ` +
+	`${cell(AUTHORED[String(r.n)]?.english)} | ${senseCell(r)} | ${meaningCell(r)} | ` +
 	`${evidenceTier(r)} | ${r.years[0]}, ${r.years[1]} |`;
 
 /** One block per row that resolved, carrying the full sense list untruncated. */
@@ -1530,6 +1673,13 @@ const detailBlock = (r) => {
 	// fragment the table links to. Naming the headword in the heading instead would drag Devanāgarī
 	// and an em dash into the slug and break every link in the table.
 	const heading = `### Sanskrit senses at position ${r.n}\n\n${r.devanagari} ${r.iast}`;
+	const composedNote = r.composed
+		? `
+
+**Composed meaning ‡** — "${cell(r.composed)}", from ${r.composedFrom
+				.map((part) => `${part.devanagari} "${part.gloss}" (page ${part.page ?? "?"}, ${part.id})`)
+				.join(" + ")}. Monier-Williams has no entry for the whole word.`
+		: "";
 	const provenance =
 		`Monier-Williams, printed page ${r.mwPage ?? "?"}, queried as \`${r.mwQueriedAs}\`` +
 		` (${r.mwRung})${r.corroborators?.length ? `. Also carried by ${r.corroborators.join(", ")}` : ""}.`;
@@ -1545,7 +1695,7 @@ const detailBlock = (r) => {
 			return `- ${text} *(${s.group ?? "—"} · ${s.id})*`;
 		})
 		.join("\n");
-	return `${heading}\n\n${provenance}\n\n${list}\n`;
+	return `${heading}\n\n${provenance}${composedNote}\n\n${list}\n`;
 };
 
 /**
@@ -1784,6 +1934,11 @@ headwords, which is one of the reasons the sense column comes from him.
 Every column heading names where that column comes from, so no row has to be traced back through
 the prose above to know what stands behind it. **Evidence** states the standing of that row in
 particular, rather than one claim standing for all sixty.
+
+**‡ marks a meaning **composed** from the entries for a compound's parts** rather than quoted from
+one printed sense. It is a weaker tier, kept visibly separate: Monier-Williams has no entry for the
+whole word but glosses both halves, and the Tibetan name is what fixes which reading of the compound
+is meant. The parts and the senses they were taken from are listed in the detail section below.
 
 **† marks a value that did *not* come from the source its heading names** — it came from a
 correction above, with its evidence. Position 60 is the case to have in mind: it reads क्षय under a

@@ -80,8 +80,8 @@ anusvāra spellings, and those are grammar rather than judgement.
 
 Monier-Williams is a dictionary, so finding a word means naming the **headword form** he files it
 under — and that is not always how the saṃvatsara list spells the name. Sent to Cologne exactly as
-printed, 46 of the 60 headwords resolve.
-The other 14 do not, and none of them is missing from Monier-Williams:
+printed, 45 of the 60 headwords resolve.
+The other 15 do not, and none of them is missing from Monier-Williams:
 he has every one, under a different form of the same word.
 
 So the lookup walks a **ladder**: the printed spelling first, then each transformation below, then
@@ -89,16 +89,17 @@ the pairs that compose. Every rung states a rule of Sanskrit orthography or morp
 separates it from a correction — **a rung changes only what is *queried*, while a correction changes
 what this table *prints* and carries authored evidence**. The Devanāgarī column still shows the
 source's own spelling at every one of these rows; the ladder simply knows where Monier-Williams keeps
-it. Collapsing the two would turn 14 points of grammar into 14 editorial judgements.
+it. Collapsing the two would turn 15 points of grammar into 15 editorial judgements.
 
 | Rung | Rows | Why it is a rule rather than a judgement | Where it applied |
 |---|---|---|---|
-| `-in stem` | 8 | The list prints the nominative singular; Monier-Williams lemmatises the stem. | 13 प्रमाथी → प्रमाथिन्; 23 विरोधी → विरोधिन्; 33 विकारि → विकारिन्; 38 क्रोधी → क्रोधिन्; 46 परिधावी → परिधाविन्; 47 प्रमादी → प्रमादिन्; 53 सिद्धार्थी → सिद्धार्थिन्; 57 रुधिरोद्गारी → रुधिरोद्गारिन् |
+| `-in stem` | 8 | The list prints the nominative singular; Monier-Williams lemmatises the stem. | 13 प्रमाथी → प्रमाथिन्; 22 सर्वधारी → सर्वधारिन्; 23 विरोधी → विरोधिन्; 33 विकारि → विकारिन्; 38 क्रोधी → क्रोधिन्; 46 परिधावी → परिधाविन्; 47 प्रमादी → प्रमादिन्; 57 रुधिरोद्गारी → रुधिरोद्गारिन् |
 | `ḷ → l + -in stem` | 1 | ळ is Vedic and Marathi rather than standard Sanskrit, and this row needs the stem rule on top of it — the rungs compose. | 32 विळम्बि → विलम्बिन् |
 | `cross-reference from शुभकृत्` | 1 |  | 36 शुभकृत् → शुभकर |
 | `cluster → anusvāra` | 1 | The same rule in reverse — he files this one under the anusvāra, so the ladder tries both directions. | 41 प्लवङ्ग → प्लवंग |
 | `final virāma` | 1 | A missing virāma leaves a spurious inherent *a*, so the word queried is not the word meant. | 45 विरोधकृत → विरोधकृत् |
 | `anusvāra → cluster` | 2 | One word, two conventions for the same nasal. Monier-Williams files these under the cluster. | 48 आनंद → आनन्द; 51 पिंगल → पिङ्गल |
+| `cross-reference from सिद्धार्थिन्` | 1 |  | 53 सिद्धार्थी → सिद्धार्थ |
 
 ## Where the two traditions name different things
 
@@ -123,12 +124,12 @@ They gloss **different names**, which is the point of showing them side by side.
   this table. No source gives English for these — Sewell & Fleet prints the sixty as bare names
   against Kaliyuga years and fractional day-counts, with no meaning column, checked directly.
 - **Sanskrit senses** are **sourced**: every sense Monier-Williams lists for that headword, uncapped
-  — 770 of them across the sixty rows.
+  — 786 of them across the sixty rows.
   The table shows the first; the rest are in the detail section below, untruncated.
 - **Selected** is an **authored choice from those sourced candidates**, and the generator refuses to
   run unless the chosen gloss appears verbatim inside the sense carrying its recorded Cologne ID, and
   unless it carries at most two gloss units. So the editorial step is visible and machine-checked; it
-  can select, never invent. 54 of the 60 carry one.
+  can select, never invent. 56 of the 60 carry one.
 
 **Why a selection is needed at all.** Entries carry many senses, often from different roots, and
 taking the first is an accident rather than a policy. `क्षय` opens with a cross-reference and then
@@ -141,6 +142,11 @@ headwords, which is one of the reasons the sense column comes from him.
 Every column heading names where that column comes from, so no row has to be traced back through
 the prose above to know what stands behind it. **Evidence** states the standing of that row in
 particular, rather than one claim standing for all sixty.
+
+**‡ marks a meaning **composed** from the entries for a compound's parts** rather than quoted from
+one printed sense. It is a weaker tier, kept visibly separate: Monier-Williams has no entry for the
+whole word but glosses both halves, and the Tibetan name is what fixes which reading of the compound
+is meant. The parts and the senses they were taken from are listed in the detail section below.
 
 **† marks a value that did *not* come from the source its heading names** — it came from a
 correction above, with its evidence. Position 60 is the case to have in mind: it reads क्षय under a
@@ -170,7 +176,7 @@ at 10 positions: 4, 6, 9, 15, 31, 37, 56, 57, 58, 60.
 | 19 | ས་སྐྱོང | `sa skyong` | *sa kyong* | पार्थिव | Pārthiva | Earth-protector | पार्थिव mf( ई or आ ; cf. Pāṇ. iv, 1, 85 , Vārtt. 2)n. ( fr. पृथिवी f. of पृथु ) earthen, earthy, earthly, being in or relating to or coming from the earth, terrestrial, RV. &c. &c. ([+13 more](#sanskrit-senses-at-position-19)) | a lord of the earth | MW as printed; Wiktionary; 4 other lexicon(s); position: Bṛhat Saṃhitā | 1945, 2005 |
 | 20 | མི་ཟད | `mi zad` | *mi zé* | अव्यय/व्यय | Avyaya/Vyaya | Inexhaustible | 1. अव्यय or rarely अव्यय [only RV. viii, 97, 2 and ix, 86, 34 ] mfn. ( अवि ) made of sheep's skin (as the woollen Soma strainer), RV. ([+9 more](#sanskrit-senses-at-position-20)) | not liable to change, imperishable | MW as printed; Wiktionary; 4 other lexicon(s); position: unstated | 1946, 2006 |
 | 21 | ཐམས་ཅད་འདུལ | `thams cad 'dul` | *tam ché dül* | सर्वजित् | Sarvajit | All-taming | सर्व —जित् mfn. all-conquering, L. ([+6 more](#sanskrit-senses-at-position-21)) | all-conquering | MW as printed; Wiktionary; 4 other lexicon(s); position: Wiktionary + Bṛhat Saṃhitā | 1947, 2007 |
-| 22 | ཀུན་འཛིན | `kun 'dzin` | *kün dzin* | सर्वधारी | Sarvadhārī | All-holding | सर्व —धारी f. N. of the 22nd year of Jupiter's cycle of 60 years, accord. to some ([+1 more](#sanskrit-senses-at-position-22)) | — | MW as printed; Wiktionary; 3 other lexicon(s); position: Wiktionary | 1948, 2008 |
+| 22 | ཀུན་འཛིན | `kun 'dzin` | *kün dzin* | सर्वधारी | Sarvadhārī | All-holding | सर्व —धारिन् m. ‘all-holder’, N. of Śiva , MBh. ([+1 more](#sanskrit-senses-at-position-22)) | all-holder | MW via -in stem; Wiktionary; 3 other lexicon(s); position: Wiktionary | 1948, 2008 |
 | 23 | འགལ་བ | `'gal ba` | *gel ba* | विरोधी | Virodhī | Opposition | वि-रोधिन् mfn. opposing, hindering, preventing, obstructing, excluding, disturbing, Gobh. ; Mn. &c. ([+10 more](#sanskrit-senses-at-position-23)) | opposing, hindering | MW via -in stem; 4 other lexicon(s); position: Bṛhat Saṃhitā | 1949, 2009 |
 | 24 | རྣམ་འགྱུར | `rnam 'gyur` | *nam gyur* | विकृति | Vikṛti | Transformed | वि-कृति f. change, alteration, modification, variation, changed condition (of body or mind; acc. with √ गम् , या , व्रज् , or प्र- √पद् , to undergo a change, be changed), MBh. ; Kāv. &c. ([+14 more](#sanskrit-senses-at-position-24)) | change, alteration | MW as printed; Wiktionary; 3 other lexicon(s); position: Bṛhat Saṃhitā | 1950, 2010 |
 | 25 | བོང་བུ | `bong bu` | *bong bu* | खर | Khara | Donkey | खर mf( आ )n. hard, harsh, rough, sharp, pungent, acid (opposed to मृदु and श्लक्ष्ण ), MBh. ; R. &c. ([+26 more](#sanskrit-senses-at-position-25)) | a donkey | MW as printed; Wiktionary; 5 other lexicon(s); position: Wiktionary + Bṛhat Saṃhitā | 1951, 2011 |
@@ -179,7 +185,7 @@ at 10 positions: 4, 6, 9, 15, 31, 37, 56, 57, 58, 60.
 | 28 | རྒྱལ་བ | `rgyal ba` | *gyel ba* | जय | Jaya | Victory | जय mfn. (√ जि ) ifc. conquering, winning See ऋतं- , कृतं- , धनं-जय , पुरं- , शत्रुं- ([+38 more](#sanskrit-senses-at-position-28)) | conquest, victory | MW as printed; Wiktionary; 5 other lexicon(s); position: Wiktionary + Bṛhat Saṃhitā | 1954, 2014 |
 | 29 | མྱོས་བྱེད | `myos byed` | *nyö jé* | मन्मथ | Manmatha | Intoxicating | मन्मथ m. (either an Intens. form fr. √ मथ् , or fr. मन् = मनस् + मथ , ‘agitating’; cf. मन्देह and मन्धातृ ) love or the god of love, amorous passion or desire ( ifc. f( आ ). ), MBh. ; Kāv. &c. ([+4 more](#sanskrit-senses-at-position-29)) | love or the god of love | MW as printed; Wiktionary; 3 other lexicon(s); position: Wiktionary + Bṛhat Saṃhitā | 1955, 2015 |
 | 30 | གདོང་ངན | `gdong ngan` | *dong ngen* | दुर्मुख | Durmukha | Ill-faced | दुर् —मुख mf( ई )n. ugly-faced, MBh. ; R. &c. ([+12 more](#sanskrit-senses-at-position-30)) | ugly-faced | MW as printed; 4 other lexicon(s); position: Bṛhat Saṃhitā | 1956, 2016 |
-| 31 | གསེར་འཕྱང | `gser 'phyang` | *ser chang* | हेमलम्ब † | Hemalamba † | Hanging gold | हेम —लम्ब or हेम —लम्॰बक , m. N. of the 31st (or 5th) year of Jupiter's cycle of 60 years, VarBṛS. | — | MW as printed; Wiktionary; position: Wiktionary | 1957, 2017 |
+| 31 | གསེར་འཕྱང | `gser 'phyang` | *ser chang* | हेमलम्ब † | Hemalamba † | Hanging gold | हेम —लम्ब or हेम —लम्॰बक , m. N. of the 31st (or 5th) year of Jupiter's cycle of 60 years, VarBṛS. | hanging gold ‡ | MW as printed; Wiktionary; position: Wiktionary | 1957, 2017 |
 | 32 | རྣམ་འཕྱང | `rnam 'phyang` | *nam chang* | विळम्बि | Viḷambi | Hanging down | वि- ॰लम्बिन् mfn. hanging down, pendulous, hanging to or from, leaning against ( loc. or comp. ), Kāv. ; VarBṛS. ; Suśr. &c. ([+3 more](#sanskrit-senses-at-position-32)) | hanging down, pendulous | MW via ḷ → l + -in stem; position: unstated | 1958, 2018 |
 | 33 | སྒྱུར་བྱེད | `sgyur byed` | *gyur jé* | विकारि | Vikāri | Transforming | वि- ॰कारिन् mfn. liable to change, changeable, variable, VPrāt. ; MBh. ; Suśr. ([+6 more](#sanskrit-senses-at-position-33)) | liable to change, changeable | MW via -in stem; 4 other lexicon(s); position: Bṛhat Saṃhitā | 1959, 2019 |
 | 34 | ཀུན་ལྡན | `kun ldan` | *kün den* | शार्वरी | Śārvarī | All-possessing | शार्वरी mf( ई )n. ( fr. शर्वरी ) belonging to night, nocturnal, Kād. ; Hcar. ; Vās. ([+3 more](#sanskrit-senses-at-position-34)) | belonging to night, nocturnal | MW as printed; 4 other lexicon(s); position: unstated | 1960, 2020 |
@@ -201,11 +207,11 @@ at 10 positions: 4, 6, 9, 15, 31, 37, 56, 57, 58, 60.
 | 50 | མེ | `me` | *mé* | नल/अनल | Nala/Anala | Fire | 1. अनल m. (√ अन् ), fire ([+13 more](#sanskrit-senses-at-position-50)) | fire | MW as printed; Wiktionary; 5 other lexicon(s); position: Wiktionary + Bṛhat Saṃhitā | 1976, 2036 |
 | 51 | དམར་སེར་ཅན | `dmar ser can` | *mar ser chen* | पिंगल | Piṃgala | Tawny — reddish-yellow | पिङ्गल mf( आ and ई )n. ( cf. g. गौरा दि and कडारा दि ), reddish-brown, tawny, yellow, gold-coloured, AV. &c. &c., ([+35 more](#sanskrit-senses-at-position-51)) | reddish-brown, tawny | MW via anusvāra → cluster; 5 other lexicon(s); position: Bṛhat Saṃhitā | 1977, 2037 |
 | 52 | དུས་ཀྱི་ཕོ་ཉ | `dus kyi pho nya` | *dü kyi po nya* | कालयुक्त | Kālayukta | Messenger of time | काल —युक्त m. n. the fifty-second year in the sixty years' cycle of Jupiter, VarBṛS. ([+1 more](#sanskrit-senses-at-position-52)) | fit for the (present) time | MW as printed; Wiktionary; position: Wiktionary + Bṛhat Saṃhitā | 1978, 2038 |
-| 53 | དོན་གྲུབ | `don grub` | *dön drup* | सिद्धार्थी | Siddhārthī | Aim accomplished | सिद्धा र्थिन् m. the 53rd year in Jupiter's cycle of 60 years, Cat. | — | MW via -in stem; position: unstated | 1979, 2039 |
+| 53 | དོན་གྲུབ | `don grub` | *dön drup* | सिद्धार्थी | Siddhārthī | Aim accomplished | सिद्धा र्थ mf( आ )n. one who has accomplished an aim or object, successful, prosperous, MBh. ; Kāv. &c. ([+16 more](#sanskrit-senses-at-position-53)) | one who has accomplished an aim | MW via cross-reference from सिद्धार्थिन्; position: unstated | 1979, 2039 |
 | 54 | དྲག་པོ | `drag po` | *drak po* | रौद्र | Raudra | Fierce | रौद्र or रौद्र , mf( आ or ई )n. ( fr. रुद्र ) relating or belonging to or coming from Rudra or the Rudra s, Rudra -like, violent, impetuous, fierce, wild ( अम् ind. ), RV. &c. &c. ([+24 more](#sanskrit-senses-at-position-54)) | savageness, fierceness | MW as printed; Wiktionary; 5 other lexicon(s); position: Wiktionary + Bṛhat Saṃhitā | 1980, 2040 |
 | 55 | བློ་ངན | `blo ngan` | *lo ngen* | दुर्मति | Durmati | Ill-minded | दुर् —मति f. bad disposition of mind, envy, hatred, RV. ; VS. ; AV. ([+6 more](#sanskrit-senses-at-position-55)) | weak-minded, silly | MW as printed; Wiktionary; 5 other lexicon(s); position: Wiktionary + Bṛhat Saṃhitā | 1981, 2041 |
 | 56 | རྔ་ཆེན | `rnga chen` | *nga chen* | दुन्दुभि † | Dundubhi † | Great drum | दुन्दुभि m. f. a sort of large kettledrum, RV. ; Br. ; MBh. ; Kāv. &c. ([+10 more](#sanskrit-senses-at-position-56)) | a sort of large kettledrum | MW as printed; Wiktionary; 5 other lexicon(s); position: Bṛhat Saṃhitā | 1982, 2042 |
-| 57 | ཁྲག་སྐྱུག | `khrag skyug` | *trak kyuk* | रुधिरोद्गारी † | Rudhirodgārī † | Blood-spitting | रुधिरो द्गारिन् mf( इणी )n. ‘emitting b˚ ’, N. of the 57th year in Jupiter's cycle of 60 years, Cat. | — | MW via -in stem; position: unstated | 1983, 2043 |
+| 57 | ཁྲག་སྐྱུག | `khrag skyug` | *trak kyuk* | रुधिरोद्गारी † | Rudhirodgārī † | Blood-spitting | रुधिरो द्गारिन् mf( इणी )n. ‘emitting b˚ ’, N. of the 57th year in Jupiter's cycle of 60 years, Cat. | *MW: year-name only* | MW via -in stem; position: unstated | 1983, 2043 |
 | 58 | མིག་དམར | `mig dmar` | *mik mar* | रक्ताक्ष † | Raktākṣa † | Red-eyed | रक्ता क्ष mf( ई )n. red-eyed, having red or blood-shot eyes, R. ; BhP. ( -ता f. , Dharmaś. ) ([+9 more](#sanskrit-senses-at-position-58)) | red-eyed | MW as printed; Wiktionary; 3 other lexicon(s); position: Wiktionary | 1984, 2044 |
 | 59 | ཁྲོ་བོ | `khro bo` | *tro bo* | क्रोधन | Krodhana | Wrathful — masculine, against 38 | क्रोधन mf( आ )n. ( Pāṇ. iii, 2, 151 ) inclined to wrath, passionate, angry (with loc. Yājñ. i, 333 ), MBh. &c. ([+9 more](#sanskrit-senses-at-position-59)) | inclined to wrath, passionate | MW as printed; Wiktionary; 4 other lexicon(s); position: Wiktionary + Bṛhat Saṃhitā | 1985, 2045 |
 | 60 | ཟད་པ | `zad pa` | *zé pa* | क्षय † | Kṣaya † | Exhaustion | 1. क्षय m. ‘dominion’, Sāy. (on, RV. vii, 46, 2 ). ([+19 more](#sanskrit-senses-at-position-60)) | destruction, decay | MW as printed; Wiktionary; 5 other lexicon(s); position: unstated | 1986, 2046 |
@@ -614,10 +620,10 @@ Monier-Williams, printed page 1185, queried as `सर्वजित्` (as pr
 
 सर्वधारी Sarvadhārī
 
-Monier-Williams, printed page 1186, queried as `सर्वधारी` (as printed). Also carried by Shabda-Sagara, Yates, Wilson.
+Monier-Williams, printed page 1186, queried as `सर्वधारिन्` (-in stem). Also carried by Shabda-Sagara, Yates, Wilson.
 
-- सर्व —धारी f. N. of the 22nd year of Jupiter's cycle of 60 years, accord. to some *(H4 · 238403)*
-- सर्व —धारी the 22nd year of the cycle ( accord. to some; cf. prec. ), W. *(H3 · 238404)*
+- **सर्व —धारिन् m. ‘all-holder’, N. of Śiva , MBh.** *(H3 · 238402)*
+- of the 22nd year of Jupiter's cycle of 60 years (also ॰धारी f. accord. to some), VarBṛS. *(H3 · 238403)*
 
 ### Sanskrit senses at position 23
 
@@ -869,6 +875,8 @@ Monier-Williams, printed page 486, queried as `दुर्मुख` (as printe
 हेमलम्ब Hemalamba
 
 Monier-Williams, printed page 1304, queried as `हेमलम्ब` (as printed).
+
+**Composed meaning ‡** — "hanging gold", from हेमन् "gold" (page 1299, 264121) + लम्ब "hanging down" (page 897, 181489). Monier-Williams has no entry for the whole word.
 
 - हेम —लम्ब or हेम —लम्॰बक , m. N. of the 31st (or 5th) year of Jupiter's cycle of 60 years, VarBṛS. *(H3 · 264236)*
 
@@ -1269,9 +1277,25 @@ Monier-Williams, printed page 278, queried as `कालयुक्त` (as pri
 
 सिद्धार्थी Siddhārthī
 
-Monier-Williams, printed page 1216, queried as `सिद्धार्थिन्` (-in stem).
+Monier-Williams, printed page 1215, queried as `सिद्धार्थ` (cross-reference from सिद्धार्थिन्).
 
-- सिद्धा र्थिन् m. the 53rd year in Jupiter's cycle of 60 years, Cat. *(H3 · 244527)*
+- सिद्धा र्थ . See col. 3 . *(H1 · 244296)*
+- **सिद्धा र्थ mf( आ )n. one who has accomplished an aim or object, successful, prosperous, MBh. ; Kāv. &c.** *(H3 · 244502)*
+- leading to the goal, efficient, efficacious, Hariv. ; R. *(H3 · 244503)*
+- one whose aim or intention is known, L. *(H3 · 244504)*
+- सिद्धा र्थ m. ‘he who has fulfilled the object (of his coming)’, N. of the great Buddha (Gautama or Śākya-muni , founder of Buddhism), MWB. 43 *(H3 · 244505)*
+- of a Māra-putra , Lalit. *(H3 · 244506)*
+- of a Dānava , Kathās. *(H3 · 244507)*
+- of one of Skanda 's attendants, MBh. *(H3 · 244508)*
+- of a king, ib. *(H3 · 244509)*
+- of a councillor of Daśa-ratha , R. *(H3 · 244510)*
+- of the father of Mahā-vīra (the 24th Arhat of the present Avasarpiṇī ), Kathās. *(H3 · 244511)*
+- of a poet, Subh. *(H3 · 244512)*
+- सिद्धा र्था ( आ ), f. N. of the mother of the 4th Arhat of the present Avasarpiṇī , L. *(H3B · 244513)*
+- white mustard, Suśr. ; VarBṛS. &c. *(H3B · 244514)*
+- the Indian fig-tree, L. *(H3B · 244515)*
+- the 53rd year in Jupiter's cycle of 60 years, VarBṛS. *(H3B · 244516)*
+- सिद्धा र्थ n. ( scil. वास्तु ) a building with two halls (one to the west, and one to the south), VarBṛS. *(H3B · 244517)*
 
 ### Sanskrit senses at position 54
 

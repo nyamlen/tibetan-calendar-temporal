@@ -525,40 +525,31 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
     also have to handle "id.", "q.v." and bare see-references, and a parser wrong about any of them
     invents a meaning silently.
 
-  **Six remain: 13, 22, 31, 38, 53, 57.**
+  **Three remain: 13, 38 and 57**, and 57 of the 60 now carry a meaning.
 
-  - **57** `khrag skyug` — the single sense reads "'emitting b˚'", where `˚` stands for the headword's
-    first element. Expanding it gives "emitting blood". Needs abbreviation expansion, which is a small
-    act of interpretation and should be argued before it is built.
-  - **22, 31, 53** are the compound cases, and the direction for them is decided — see below.
+  Two of the three compound rows turned out not to need composition at all, which is the better
+  outcome — a verbatim gloss beats a composed one:
 
-  Of the rest: **13** is a real semantic mismatch between the traditions and is itself a finding.
+  - **22** `kun 'dzin` — Monier-Williams knows the printed सर्वधारी only as a year-name, but the stem
+    one entry away, सर्वधारिन्, reads "'**all-holder**', N. of Śiva". Reached by a further ladder rule:
+    prefer an entry that actually *glosses* the word over one that merely names the year it labels.
+  - **53** `don grub` — सिद्धार्थिन् is likewise year-name-only, but the compound it is formed from,
+    सिद्धार्थ, reads "**one who has accomplished an aim** or object". The `-in` suffix means
+    "possessing", so the base carries the sense the derivative inherits; taken through the same
+    self-invalidating cross-reference mechanism as 36.
+  - **31** `gser 'phyang` is the one genuine composition. MW carries neither हेमलम्ब nor हेमलम्बक beyond
+    the year-name, but glosses both halves — 3. हेमन् is "gold", लम्ब is "hanging down" — so the row
+    reads **"hanging gold ‡"**, marked as a weaker tier and never placed in `selected`.
 
-  **22, 31 and 53 get a composed gloss, and that is a decision taken on 2026-08-22.** Monier-Williams
-  carries only "N. of the Nth year of Jupiter's cycle" for these, which would restate the position
-  column rather than say what the name means. The earlier plan was to return `null`, on the grounds
-  that composing a gloss from a compound's parts is analysis rather than sourcing. **That was the
-  wrong trade**: these are ordinary transparent compounds whose parts MW *does* gloss, so the word
-  genuinely has a meaning and `null` asserts something false about it. A labelled composed gloss is
-  more truthful than a blank.
+  **The composed tier is enforced, not asserted.** Each part must resolve in Monier-Williams and each
+  stated gloss must appear verbatim in the sense whose ID it cites, so the composition is traceable to
+  sourced entries. The third condition is editorial and stated in the record: the Tibetan
+  disambiguates the compound, and a compound the Tibetan does not render would have no disambiguator
+  and so no business being composed.
 
-  Three conditions make it sound, and all three are load-bearing:
-
-  1. It is a **distinct provenance tier**, never mixed into the verbatim selections. The guarantee
-     that a selection is a verbatim span of a printed sense must survive intact, so a composed gloss
-     is marked as such in the table and carries its own field rather than filling `selected`.
-  2. It **cites the element entries**. सर्वधारी is सर्व + धारिन्, and both have MW entries — one of them
-     already in this table at position 10. A composition traceable to two sourced entries is a
-     different thing from an invented gloss.
-  3. **The Tibetan disambiguates the compound.** सर्वधारी could read "holding all" or "held by all";
-     `kun 'dzin` says which one the tradition took. That is what stops the analysis being free-floating,
-     and it is why the composition is defensible here and would not be for a compound the Tibetan
-     does not render. **38** is now half
-  solved: the headword check moved it to क्रोधिन्, whose entry states the 38th year outright, so the
-  position gains a witness — but its adjective sense is a bare "**id.**", MW's *idem*, a pointer with
-  no text of its own, and its noun senses are "a buffalo", "a dog", "a rhinoceros". Taking क्रोध's
-  "anger, wrath" would attribute a noun's gloss to an adjective, which is the homograph error that put
-  "you both" on position 9, so the meaning stays null.
+  **Empty cells now name their reason.** A row whose entry exists but glosses nothing reads
+  *"MW: year-name only"* rather than a bare dash — the difference between "Monier-Williams is silent"
+  and "Monier-Williams knows this word only as the label for this year" is a fact about the name.
 
   **The cross-reference display defect is fixed.** `senseCell` skips Monier-Williams' bare
   cross-references so a row's headline gloss is substantive, but the filter matched only "See under"
