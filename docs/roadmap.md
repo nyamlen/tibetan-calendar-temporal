@@ -509,25 +509,51 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   whether *any* sense begins with the word is too weak, and accepted exactly the case it exists to
   reject. Rows reached through a rung went from eleven to thirteen.
 
-  What remains:
+  Three more were closed on the same day, taking it to **54 of 60**:
 
-  - **50** `me`, fire — the compound cell offers नल/अनल and the lookup takes the first that resolves,
-    which is नल, "a species of reed". अनल is "fire", which is what the Tibetan says. The headword
-    check cannot help here: both are legitimate entries, so choosing between them is a correction.
-  - **58** `mig dmar`, red-eyed — रक्ताक्षि is a stub in MW ("m., Cat."), while रक्ताक्ष reads
-    "red-eyed, having red or blood-shot eyes". A correction, and one the IAST check cannot find,
-    because both columns agree on the wrong form — the shared-error case that only attestation sees.
-  - **36** `dge byed` — MW writes only "= -कर", so following **his own explicit cross-reference** to
-    शुभकर gives "causing welfare, auspicious". Needs a cross-reference-following step.
+  - **50** `me`, fire — the cell offers नल/अनल and the lookup took the first that resolved, which is
+    नल, "a species of reed". Both are attested and नल's own entry claims position 50, so neither is
+    *wrong*; the Tibetan is what decides, and that judgement is now written down as a preferred
+    alternative. It is **not** a correction: the table still prints the cell as the source gives it.
+  - **58** `mig dmar`, red-eyed — रक्ताक्षि is a stub in MW, the whole entry reading "m., Cat.", while
+    रक्ताक्ष reads "red-eyed, having red or blood-shot eyes". A correction, and one the IAST check
+    cannot reach: both columns agree on Raktākṣi, so nothing internal contradicts anything and only
+    attestation shows the printed form is wrong.
+  - **36** `dge byed` — MW gives शुभकृत् no gloss of its own, only "= -कर". Following that is reading
+    the dictionary as it asks to be read, and शुभकर gives "causing welfare, auspicious". The
+    cross-reference is a small self-invalidating table rather than a parser: the general form would
+    also have to handle "id.", "q.v." and bare see-references, and a parser wrong about any of them
+    invents a meaning silently.
+
+  **Six remain: 13, 22, 31, 38, 53, 57.**
+
   - **57** `khrag skyug` — the single sense reads "'emitting b˚'", where `˚` stands for the headword's
     first element. Expanding it gives "emitting blood". Needs abbreviation expansion, which is a small
     act of interpretation and should be argued before it is built.
+  - **22, 31, 53** are the compound cases, and the direction for them is decided — see below.
 
-  Of the rest: **13** is a real semantic mismatch between the traditions and is itself a finding;
-  **22**, **31** and **53** carry only "N. of the Nth year of Jupiter's cycle", which would restate
-  the position column rather than say what the name means — the gloss a reader wants for those three
-  ("All-holding", "Hanging gold", "Aim accomplished") is already in the authored English-of-the-Tibetan
-  column, because composing it from the compound's parts is analysis rather than sourcing. **38** is now half
+  Of the rest: **13** is a real semantic mismatch between the traditions and is itself a finding.
+
+  **22, 31 and 53 get a composed gloss, and that is a decision taken on 2026-08-22.** Monier-Williams
+  carries only "N. of the Nth year of Jupiter's cycle" for these, which would restate the position
+  column rather than say what the name means. The earlier plan was to return `null`, on the grounds
+  that composing a gloss from a compound's parts is analysis rather than sourcing. **That was the
+  wrong trade**: these are ordinary transparent compounds whose parts MW *does* gloss, so the word
+  genuinely has a meaning and `null` asserts something false about it. A labelled composed gloss is
+  more truthful than a blank.
+
+  Three conditions make it sound, and all three are load-bearing:
+
+  1. It is a **distinct provenance tier**, never mixed into the verbatim selections. The guarantee
+     that a selection is a verbatim span of a printed sense must survive intact, so a composed gloss
+     is marked as such in the table and carries its own field rather than filling `selected`.
+  2. It **cites the element entries**. सर्वधारी is सर्व + धारिन्, and both have MW entries — one of them
+     already in this table at position 10. A composition traceable to two sourced entries is a
+     different thing from an invented gloss.
+  3. **The Tibetan disambiguates the compound.** सर्वधारी could read "holding all" or "held by all";
+     `kun 'dzin` says which one the tradition took. That is what stops the analysis being free-floating,
+     and it is why the composition is defensible here and would not be for a compound the Tibetan
+     does not render. **38** is now half
   solved: the headword check moved it to क्रोधिन्, whose entry states the 38th year outright, so the
   position gains a witness — but its adjective sense is a bare "**id.**", MW's *idem*, a pointer with
   no text of its own, and its noun senses are "a buffalo", "a dog", "a rhinoceros". Taking क्रोध's

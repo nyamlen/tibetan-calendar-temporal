@@ -72,6 +72,7 @@ anusvāra spellings, and those are grammar rather than judgement.
 - **Position 4: प्रमोदूत → प्रमोद** *(monier-williams)*. प्रमोदूत resolves nowhere. प्रमोद does, and its entry states 'the 4th year in a 60 years' cycle of Jupiter' outright, glossing it 'excessive joy, delight, gladness' -- which is the Tibetan `rab myos`. The lengthened -uta is not a rung of the ladder, because no rule of Sanskrit derives it; it is a variant of the name, and the attested one is taken.
 - **Position 9: युव → युवन्** *(homograph)*. युव resolves, but to the wrong word: it is the base of the second-person dual pronoun, and the sense that came back was 'you both'. That is the homograph trap this table already documents at क्षय, caught here by reading the sense rather than the presence of an entry. The samvatsara is युवन्, 'young', which the Tibetan `na tshod ldan` renders.
 - **Position 56: दुन्दुभी → दुन्दुभि** *(homograph)*. The feminine दुन्दुभी is a Gandharvi's name and a throw of the dice -- neither is a drum. The masculine दुन्दुभि is the kettledrum, which is the Tibetan `rnga chen`, 'great drum'. The printed IAST `Dundubhi` transliterates the masculine, so the table's own two columns disagreed here before the Devanagari became the source of the IAST.
+- **Position 58: रक्ताक्षि → रक्ताक्ष** *(monier-williams)*. रक्ताक्षि is a stub in Monier-Williams -- the whole entry reads "m. , Cat.", a headword with no gloss at all -- while रक्ताक्ष reads "red-eyed, having red or blood-shot eyes", which is the Tibetan `mig dmar` exactly. This is the case the IAST check cannot reach: both columns agree on Raktākṣi, so nothing internal contradicts anything, and only attestation shows the printed form is the wrong one.
 - **Position 57: रूधिरोद्गारी → रुधिरोद्गारी** *(typo)*. रूधिर with a long u is not a word; blood is रुधिर, short. The table's own IAST says so -- it prints `Rudhirodgāri`, which transliterates the short vowel -- so this is a typo the source contradicts itself about, not a variant. Corrected here, and the `-in` stem that Cologne lemmatises under (रुधिरोद्गारिन्) is then reached by the ladder rather than by a second correction.
 - **Position 6, Wylie: `anggi ra` → `ang gi ra`.** Janson's `anggi ra` does not survive the EWTS round trip: it converts to ཨངགི་ར, which reads back as `angagi ra` -- not a word. `ang gi ra` converts to ཨང་གི་ར and round-trips exactly, both converters agree on it, and THL returns a clean phonetic for it where `anggi ra` returns the `(?)` marker meaning it could not analyse the string. It is also the form the retired bespoke converter hard-coded for this row, and it matches the syllable structure of the Sanskrit it transliterates, Angirasa आङ्गिरस. The likeliest reading is a missing space in the source.
 
@@ -79,8 +80,8 @@ anusvāra spellings, and those are grammar rather than judgement.
 
 Monier-Williams is a dictionary, so finding a word means naming the **headword form** he files it
 under — and that is not always how the saṃvatsara list spells the name. Sent to Cologne exactly as
-printed, 47 of the 60 headwords resolve.
-The other 13 do not, and none of them is missing from Monier-Williams:
+printed, 46 of the 60 headwords resolve.
+The other 14 do not, and none of them is missing from Monier-Williams:
 he has every one, under a different form of the same word.
 
 So the lookup walks a **ladder**: the printed spelling first, then each transformation below, then
@@ -88,12 +89,13 @@ the pairs that compose. Every rung states a rule of Sanskrit orthography or morp
 separates it from a correction — **a rung changes only what is *queried*, while a correction changes
 what this table *prints* and carries authored evidence**. The Devanāgarī column still shows the
 source's own spelling at every one of these rows; the ladder simply knows where Monier-Williams keeps
-it. Collapsing the two would turn 13 points of grammar into 13 editorial judgements.
+it. Collapsing the two would turn 14 points of grammar into 14 editorial judgements.
 
 | Rung | Rows | Why it is a rule rather than a judgement | Where it applied |
 |---|---|---|---|
 | `-in stem` | 8 | The list prints the nominative singular; Monier-Williams lemmatises the stem. | 13 प्रमाथी → प्रमाथिन्; 23 विरोधी → विरोधिन्; 33 विकारि → विकारिन्; 38 क्रोधी → क्रोधिन्; 46 परिधावी → परिधाविन्; 47 प्रमादी → प्रमादिन्; 53 सिद्धार्थी → सिद्धार्थिन्; 57 रुधिरोद्गारी → रुधिरोद्गारिन् |
 | `ḷ → l + -in stem` | 1 | ळ is Vedic and Marathi rather than standard Sanskrit, and this row needs the stem rule on top of it — the rungs compose. | 32 विळम्बि → विलम्बिन् |
+| `cross-reference from शुभकृत्` | 1 |  | 36 शुभकृत् → शुभकर |
 | `cluster → anusvāra` | 1 | The same rule in reverse — he files this one under the anusvāra, so the ladder tries both directions. | 41 प्लवङ्ग → प्लवंग |
 | `final virāma` | 1 | A missing virāma leaves a spurious inherent *a*, so the word queried is not the word meant. | 45 विरोधकृत → विरोधकृत् |
 | `anusvāra → cluster` | 2 | One word, two conventions for the same nasal. Monier-Williams files these under the cluster. | 48 आनंद → आनन्द; 51 पिंगल → पिङ्गल |
@@ -121,12 +123,12 @@ They gloss **different names**, which is the point of showing them side by side.
   this table. No source gives English for these — Sewell & Fleet prints the sixty as bare names
   against Kaliyuga years and fractional day-counts, with no meaning column, checked directly.
 - **Sanskrit senses** are **sourced**: every sense Monier-Williams lists for that headword, uncapped
-  — 762 of them across the sixty rows.
+  — 770 of them across the sixty rows.
   The table shows the first; the rest are in the detail section below, untruncated.
 - **Selected** is an **authored choice from those sourced candidates**, and the generator refuses to
   run unless the chosen gloss appears verbatim inside the sense carrying its recorded Cologne ID, and
   unless it carries at most two gloss units. So the editorial step is visible and machine-checked; it
-  can select, never invent. 51 of the 60 carry one.
+  can select, never invent. 54 of the 60 carry one.
 
 **Why a selection is needed at all.** Entries carry many senses, often from different roots, and
 taking the first is an accident rather than a policy. `क्षय` opens with a cross-reference and then
@@ -142,8 +144,8 @@ particular, rather than one claim standing for all sixty.
 
 **† marks a value that did *not* come from the source its heading names** — it came from a
 correction above, with its evidence. Position 60 is the case to have in mind: it reads क्षय under a
-column headed *saṃvatsara*, when the saṃvatsara table says अक्षय. 17 cells are marked,
-at 9 positions: 4, 6, 9, 15, 31, 37, 56, 57, 60.
+column headed *saṃvatsara*, when the saṃvatsara table says अक्षय. 19 cells are marked,
+at 10 positions: 4, 6, 9, 15, 31, 37, 56, 57, 58, 60.
 
 | # *(Janson)* | Tibetan *(two EWTS)* | Wylie *(Janson)* | Phonetic *(THL)* | Devanāgarī *(saṃvatsara)* | IAST *(derived)* | English of the Tibetan **(authored)** | Sanskrit senses *(Monier-Williams)* | Selected **(authored)** | Evidence | Years *(Janson + saṃvatsara)* |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -182,7 +184,7 @@ at 9 positions: 4, 6, 9, 15, 31, 37, 56, 57, 60.
 | 33 | སྒྱུར་བྱེད | `sgyur byed` | *gyur jé* | विकारि | Vikāri | Transforming | वि- ॰कारिन् mfn. liable to change, changeable, variable, VPrāt. ; MBh. ; Suśr. ([+6 more](#sanskrit-senses-at-position-33)) | liable to change, changeable | MW via -in stem; 4 other lexicon(s); position: Bṛhat Saṃhitā | 1959, 2019 |
 | 34 | ཀུན་ལྡན | `kun ldan` | *kün den* | शार्वरी | Śārvarī | All-possessing | शार्वरी mf( ई )n. ( fr. शर्वरी ) belonging to night, nocturnal, Kād. ; Hcar. ; Vās. ([+3 more](#sanskrit-senses-at-position-34)) | belonging to night, nocturnal | MW as printed; 4 other lexicon(s); position: unstated | 1960, 2020 |
 | 35 | འཕར་བ | `'phar ba` | *par ba* | प्लव | Plava | Leaping | प्लव mf( आ )n. swimming, floating, ŚāṅkhGṛ. ; Suśr. ([+25 more](#sanskrit-senses-at-position-35)) | jumping, leaping | MW as printed; Wiktionary; 4 other lexicon(s); position: Wiktionary + Bṛhat Saṃhitā | 1961, 2021 |
-| 36 | དགེ་བྱེད | `dge byed` | *gé jé* | शुभकृत् | Śubhakṛt | Virtue-making | शुभ —कृत् mfn. = -कर , VarBṛS. ([+1 more](#sanskrit-senses-at-position-36)) | — | MW as printed; 1 other lexicon(s); position: unstated | 1962, 2022 |
+| 36 | དགེ་བྱེད | `dge byed` | *gé jé* | शुभकृत् | Śubhakṛt | Virtue-making | शुभ —कर mfn. causing welfare, auspicious, fortunate, VarBṛS. ([+1 more](#sanskrit-senses-at-position-36)) | causing welfare, auspicious | MW via cross-reference from शुभकृत्; 1 other lexicon(s); position: unstated | 1962, 2022 |
 | 37 | མཛེས་བྱེད | `mdzes byed` | *dzé jé* | शोभन † | Śobhana † | Beautifying | शोभन mf( आ or ई )n. brilliant, splendid, beautiful (at end of comp. = ‘beautiful by reason of’), ŚBr. ; Kauś. ; MBh. &c. ([+21 more](#sanskrit-senses-at-position-37)) | brilliant, splendid | MW as printed; Wiktionary; 5 other lexicon(s); position: Bṛhat Saṃhitā | 1963, 2023 |
 | 38 | ཁྲོ་མོ | `khro mo` | *tro mo* | क्रोधी | Krodhī | Wrathful — feminine, against 59 | क्रोधिन् mfn. id. , iii, 4, 62 ([+5 more](#sanskrit-senses-at-position-38)) | — | MW via -in stem; 2 other lexicon(s); position: Bṛhat Saṃhitā | 1964, 2024 |
 | 39 | སྣ་ཚོགས་དབྱིག | `sna tshogs dbyig` | *na tsok yik* | विश्वावसु | Viśvāvasu | Manifold wealth | विश्वा —वसु ( विश्वा- ), mfn. beneficent to all (said of Viṣṇu ), MBh. ([+12 more](#sanskrit-senses-at-position-39)) | beneficent to all | MW as printed; 4 other lexicon(s); position: Bṛhat Saṃhitā | 1965, 2025 |
@@ -196,7 +198,7 @@ at 9 positions: 4, 6, 9, 15, 31, 37, 56, 57, 60.
 | 47 | བག་མེད | `bag med` | *bak mé* | प्रमादी | Pramādī | Heedless | प्र- ॰मादिन् mfn. negligent, careless, incautious, indifferent, MBh. ; Kāv. &c. ([+4 more](#sanskrit-senses-at-position-47)) | negligent, careless | MW via -in stem; 4 other lexicon(s); position: Bṛhat Saṃhitā | 1973, 2033 |
 | 48 | ཀུན་དགའ | `kun dga'` | *kün ga* | आनंद | Ānaṃda | Complete joy | आ-नन्द अस् , m. happiness, joy, enjoyment, sensual pleasure, RV. ; AV. ; VS. ; R. ; Ragh. &c. ([+17 more](#sanskrit-senses-at-position-48)) | happiness, joy | MW via anusvāra → cluster; 5 other lexicon(s); position: Bṛhat Saṃhitā | 1974, 2034 |
 | 49 | སྲིན་བུ | `srin bu` | *sin bu* | राक्षस | Rākṣasa | Demon | राक्षस mf( ई )n. ( fr. रक्षस् ) belonging to or like a Rakṣas , demoniacal, infested by demons, AitBr. &c. &c. (with विवाह , or धर्म or विधि m. ‘one of the 8 forms of marriage’, the violent seizure or rape of a girl after the defeat or destruction of her relatives, see Mn. iii, 33 ) ([+15 more](#sanskrit-senses-at-position-49)) | an evil or malignant demon | MW as printed; Wiktionary; 5 other lexicon(s); position: Bṛhat Saṃhitā | 1975, 2035 |
-| 50 | མེ | `me` | *mé* | नल/अनल | Nala/Anala | Fire | नल m. ( cf. नड , नळ ) a species of reed, Amphidonax Karka (8-12 feet high), Gobh. ; MBh. &c. ([+14 more](#sanskrit-senses-at-position-50)) | — | MW as printed; Wiktionary; 5 other lexicon(s); position: Wiktionary + Bṛhat Saṃhitā | 1976, 2036 |
+| 50 | མེ | `me` | *mé* | नल/अनल | Nala/Anala | Fire | 1. अनल m. (√ अन् ), fire ([+13 more](#sanskrit-senses-at-position-50)) | fire | MW as printed; Wiktionary; 5 other lexicon(s); position: Wiktionary + Bṛhat Saṃhitā | 1976, 2036 |
 | 51 | དམར་སེར་ཅན | `dmar ser can` | *mar ser chen* | पिंगल | Piṃgala | Tawny — reddish-yellow | पिङ्गल mf( आ and ई )n. ( cf. g. गौरा दि and कडारा दि ), reddish-brown, tawny, yellow, gold-coloured, AV. &c. &c., ([+35 more](#sanskrit-senses-at-position-51)) | reddish-brown, tawny | MW via anusvāra → cluster; 5 other lexicon(s); position: Bṛhat Saṃhitā | 1977, 2037 |
 | 52 | དུས་ཀྱི་ཕོ་ཉ | `dus kyi pho nya` | *dü kyi po nya* | कालयुक्त | Kālayukta | Messenger of time | काल —युक्त m. n. the fifty-second year in the sixty years' cycle of Jupiter, VarBṛS. ([+1 more](#sanskrit-senses-at-position-52)) | fit for the (present) time | MW as printed; Wiktionary; position: Wiktionary + Bṛhat Saṃhitā | 1978, 2038 |
 | 53 | དོན་གྲུབ | `don grub` | *dön drup* | सिद्धार्थी | Siddhārthī | Aim accomplished | सिद्धा र्थिन् m. the 53rd year in Jupiter's cycle of 60 years, Cat. | — | MW via -in stem; position: unstated | 1979, 2039 |
@@ -204,7 +206,7 @@ at 9 positions: 4, 6, 9, 15, 31, 37, 56, 57, 60.
 | 55 | བློ་ངན | `blo ngan` | *lo ngen* | दुर्मति | Durmati | Ill-minded | दुर् —मति f. bad disposition of mind, envy, hatred, RV. ; VS. ; AV. ([+6 more](#sanskrit-senses-at-position-55)) | weak-minded, silly | MW as printed; Wiktionary; 5 other lexicon(s); position: Wiktionary + Bṛhat Saṃhitā | 1981, 2041 |
 | 56 | རྔ་ཆེན | `rnga chen` | *nga chen* | दुन्दुभि † | Dundubhi † | Great drum | दुन्दुभि m. f. a sort of large kettledrum, RV. ; Br. ; MBh. ; Kāv. &c. ([+10 more](#sanskrit-senses-at-position-56)) | a sort of large kettledrum | MW as printed; Wiktionary; 5 other lexicon(s); position: Bṛhat Saṃhitā | 1982, 2042 |
 | 57 | ཁྲག་སྐྱུག | `khrag skyug` | *trak kyuk* | रुधिरोद्गारी † | Rudhirodgārī † | Blood-spitting | रुधिरो द्गारिन् mf( इणी )n. ‘emitting b˚ ’, N. of the 57th year in Jupiter's cycle of 60 years, Cat. | — | MW via -in stem; position: unstated | 1983, 2043 |
-| 58 | མིག་དམར | `mig dmar` | *mik mar* | रक्ताक्षि | Raktākṣi | Red-eyed | रक्ता क्षि m. , Cat. | — | MW as printed; position: Bṛhat Saṃhitā | 1984, 2044 |
+| 58 | མིག་དམར | `mig dmar` | *mik mar* | रक्ताक्ष † | Raktākṣa † | Red-eyed | रक्ता क्ष mf( ई )n. red-eyed, having red or blood-shot eyes, R. ; BhP. ( -ता f. , Dharmaś. ) ([+9 more](#sanskrit-senses-at-position-58)) | red-eyed | MW as printed; Wiktionary; 3 other lexicon(s); position: Wiktionary | 1984, 2044 |
 | 59 | ཁྲོ་བོ | `khro bo` | *tro bo* | क्रोधन | Krodhana | Wrathful — masculine, against 38 | क्रोधन mf( आ )n. ( Pāṇ. iii, 2, 151 ) inclined to wrath, passionate, angry (with loc. Yājñ. i, 333 ), MBh. &c. ([+9 more](#sanskrit-senses-at-position-59)) | inclined to wrath, passionate | MW as printed; Wiktionary; 4 other lexicon(s); position: Wiktionary + Bṛhat Saṃhitā | 1985, 2045 |
 | 60 | ཟད་པ | `zad pa` | *zé pa* | क्षय † | Kṣaya † | Exhaustion | 1. क्षय m. ‘dominion’, Sāy. (on, RV. vii, 46, 2 ). ([+19 more](#sanskrit-senses-at-position-60)) | destruction, decay | MW as printed; Wiktionary; 5 other lexicon(s); position: unstated | 1986, 2046 |
 
@@ -943,10 +945,10 @@ Monier-Williams, printed page 715, queried as `प्लव` (as printed). Also 
 
 शुभकृत् Śubhakṛt
 
-Monier-Williams, printed page 1083, queried as `शुभकृत्` (as printed). Also carried by Yates.
+Monier-Williams, printed page 1083, queried as `शुभकर` (cross-reference from शुभकृत्). Also carried by Yates.
 
-- शुभ —कृत् mfn. = -कर , VarBṛS. *(H3 · 219659)*
-- N. of the 37th (or 36th) year of Jupiter's cycle of 60 years, ib. *(H3 · 219660)*
+- **शुभ —कर mfn. causing welfare, auspicious, fortunate, VarBṛS.** *(H3 · 219651)*
+- शुभ —करी ( ई ), f. Prosopis Spicigera , L. *(H3B · 219652)*
 
 ### Sanskrit senses at position 37
 
@@ -1194,23 +1196,22 @@ Monier-Williams, printed page 871, queried as `राक्षस` (as printed).
 
 नल/अनल Nala/Anala
 
-Monier-Williams, printed page 530, queried as `नल` (as printed). Also carried by Shabda-Sagara, Benfey, Yates, Edgerton, Wilson.
+Monier-Williams, printed page 26, queried as `अनल` (as printed). Also carried by Shabda-Sagara, Benfey, Yates, Edgerton, Wilson.
 
-- नल m. ( cf. नड , नळ ) a species of reed, Amphidonax Karka (8-12 feet high), Gobh. ; MBh. &c. *(H1 · 104380)*
-- a measure of length, MBh. ( v.l. तल ) *(H1 · 104381)*
-- a partic. form of constellation in which all the planets or stars are grouped in double mansions, Var. *(H1 · 104382)*
-- the 50th year of the cycle of Jupiter which lasts 60 years, Cat. *(H1 · 104383)*
-- N. of a divine being mentioned with Yama , Karmapr. (= पितृ-देव , or -दैव , L. ; a deified progenitor, W. ) *(H1 · 104384)*
-- of a Daitya , BrahmaP. *(H1 · 104385)*
-- of a king of the Niṣadha s (son of Vīra-sena and husband of Damayantī ), MBh. ; Pur. *(H1 · 104386)*
-- of a son of Niṣadha and father of Nabha or Nabhas , Hariv. ; Ragh. ; VP. *(H1 · 104387)*
-- of a descendant of the latter Nala ( s˚ of Su-dhanvan and f˚ of Uktha ), Hariv. ; VP. *(H1 · 104388)*
-- of a son of Yadu , Pur. *(H1 · 104389)*
-- of a monkey-chief (son of Tvaṣṭṛ or Viśva-karman ; cf. -सेतु ), MBh. ; R. *(H1 · 104390)*
-- of a medic. author, Cat. *(H1 · 104391)*
-- नली f. a kind of perfume or red arsenic, L. ( cf. नटी ) *(H1B · 104392)*
-- नल n. the blossom of Nelumbium Speciosum , L. ( cf. नलिन , ॰नी ) *(H1B · 104393)*
-- smell, odour, L. ( cf. √ नल् ). *(H1B · 104394)*
+- **1\. अनल m. (√ अन् ), fire** *(H1 · 5252)*
+- the god of fire, digestive power, gastric juice *(H1 · 5253)*
+- bile, L. *(H1 · 5254)*
+- wind, L. *(H1 · 5255)*
+- N. of Vasudeva *(H1 · 5256)*
+- of a Muni *(H1 · 5257)*
+- of one of the eight Vasu s *(H1 · 5258)*
+- of a monkey *(H1 · 5259)*
+- of various plants ( Plumbago Zeylanica and Rosea ; Semecarpus Anacardium ) *(H1 · 5260)*
+- the letter र् *(H1 · 5261)*
+- the number three *(H1 · 5262)*
+- (in astron. ) the fiftieth year of Bṛhaspati 's cycle *(H1 · 5263)*
+- the third lunar mansion or Kṛttikā (?). *(H1 · 5264)*
+- 2\. अनल Nom. P. ॰लति , to become fire, Subh. *(H1 · 5271)*
 
 ### Sanskrit senses at position 51
 
@@ -1346,11 +1347,20 @@ Monier-Williams, printed page 884, queried as `रुधिरोद्गार
 
 ### Sanskrit senses at position 58
 
-रक्ताक्षि Raktākṣi
+रक्ताक्ष Raktākṣa
 
-Monier-Williams, printed page 862, queried as `रक्ताक्षि` (as printed).
+Monier-Williams, printed page 862, queried as `रक्ताक्ष` (as printed). Also carried by Shabda-Sagara, Yates, Edgerton.
 
-- रक्ता क्षि m. , Cat. *(H3 · 173675)*
+- **रक्ता क्ष mf( ई )n. red-eyed, having red or blood-shot eyes, R. ; BhP. ( -ता f. , Dharmaś. )** *(H3 · 173666)*
+- fearful, dreadful, L. *(H3 · 173667)*
+- रक्ता क्ष m. a buffalo, L. *(H3 · 173668)*
+- Perdix Rufa , L. *(H3 · 173669)*
+- a pigeon, L. *(H3 · 173670)*
+- the Indian crane, L. *(H3 · 173671)*
+- N. of a sorcerer, Buddh. *(H3 · 173672)*
+- N. of the minister of an owl-king, Kathās. ; Pañcat. *(H3 · 173673)*
+- रक्ता क्ष n. N. of the fifty-eighth year in a Jupiter's cycle of sixty years, VarBṛS. (also ॰क्षि m. or ॰क्षिन् m. , Cat. ) *(H3 · 173674)*
+- रक्ता क्षी f. N. of a Yoginī , Hcat. *(H3B · 173675)*
 
 ### Sanskrit senses at position 59
 

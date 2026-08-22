@@ -362,6 +362,19 @@ const CORRECTIONS = [
 			"disagreed here before the Devanagari became the source of the IAST.",
 	},
 	{
+		n: 58,
+		fromIast: "Raktākṣi",
+		fromDevanagari: "रक्ताक्षि",
+		toDevanagari: "रक्ताक्ष",
+		evidence: "monier-williams",
+		why:
+			'रक्ताक्षि is a stub in Monier-Williams -- the whole entry reads "m. , Cat.", a headword with no ' +
+			'gloss at all -- while रक्ताक्ष reads "red-eyed, having red or blood-shot eyes", which is the Tibetan ' +
+			"`mig dmar` exactly. This is the case the IAST check cannot reach: both columns agree on " +
+			"Raktākṣi, so nothing internal contradicts anything, and only attestation shows the printed " +
+			"form is the wrong one.",
+	},
+	{
 		n: 57,
 		fromIast: "Rudhirodgāri",
 		fromDevanagari: "रूधिरोद्गारी",
@@ -641,6 +654,9 @@ const SELECTED_SENSES = {
 	33: { id: "193975", text: "liable to change, changeable" }, // Vikarin, `sgyur byed` transforming
 	34: { id: "215920", text: "belonging to night, nocturnal" }, // Sarvari -- the Sanskrit, not `kun ldan`
 	35: { id: "141490", text: "jumping, leaping" }, // Plava, `'phar ba` leaping
+	// Subhakara, `dge byed` virtue-making. Reached by following Monier-Williams' own "= -कर";
+	// शुभकृत् has no gloss of its own.
+	36: { id: "219651", text: "causing welfare, auspicious" },
 	37: { id: "221607", text: "brilliant, splendid" }, // Sobhana, `mdzes byed` beautifying
 	39: { id: "201536", text: "beneficent to all" }, // Visvavasu -- the Sanskrit; see the divergence table
 	40: { id: "116878", text: "overthrow, defeat" }, // Parabhava, `zil gnon` overwhelming
@@ -653,11 +669,16 @@ const SELECTED_SENSES = {
 	47: { id: "135768", text: "negligent, careless" }, // Pramadin, `bag med` heedless
 	48: { id: "24352", text: "happiness, joy" }, // Ananda, `kun dga'` complete joy
 	49: { id: "176054", text: "an evil or malignant demon" }, // Raksasa, `srin bu` demon
+	// Anala, `me` fire. The compound cell's SECOND reading, chosen by the Tibetan rather than by
+	// which alternative happened to resolve first.
+	50: { id: "5252", text: "fire" },
 	51: { id: "123605", text: "reddish-brown, tawny" }, // Pingala, `dmar ser can` tawny
 	52: { id: "49496", text: "fit for the (present) time" }, // Kalayukta, `dus kyi pho nya`
 	54: { id: "180197", text: "savageness, fierceness" }, // Raudra, `drag po` fierce
 	55: { id: "94158", text: "weak-minded, silly" }, // Durmati, `blo ngan` ill-minded
 	56: { id: "93585", text: "a sort of large kettledrum" }, // Dundubhi, `rnga chen` great drum
+	// Raktaksha, `mig dmar` red-eyed. The printed रक्ताक्षि is an MW stub with no gloss.
+	58: { id: "173666", text: "red-eyed" },
 	59: { id: "58274", text: "inclined to wrath, passionate" }, // Krodhana, `khro bo` wrathful
 	60: { id: "59377", text: "destruction, decay" }, // Kshaya, `zad pa` exhaustion -- NOT "dominion"
 };
@@ -811,6 +832,33 @@ const headedBy = (parsed, devanagari) => {
 	return bare(first.text.replace(/^\s*\d+\.\s*/, "")).startsWith(bare(devanagari));
 };
 
+/**
+ * Entries Monier-Williams defines only by pointing at another headword.
+ *
+ * शुभकृत्'s whole entry is "mfn. = -कर" -- he defines it as identical to शुभ-कर and glosses
+ * it nowhere else. Following that is reading the dictionary as it asks to be read, not inventing a
+ * meaning; but which headword "-कर" resolves to is a judgement about his abbreviation, so it is
+ * written down with the text it was read from and **re-checked before it is followed**. If he ever
+ * glosses the headword directly, the expected text stops matching and the run says so.
+ *
+ * Deliberately a small table rather than a parser. The general form -- expand "= -X" against the
+ * compound's first element -- would also have to handle "id.", "q.v." and bare see-references, and a
+ * parser that is wrong about any of them invents a meaning silently, which is the one failure this
+ * whole column is built to avoid.
+ */
+const SENSE_CROSS_REFERENCES = [
+	{
+		n: 36,
+		from: "शुभकृत्",
+		expects: "= -कर",
+		to: "शुभकर",
+		why:
+			'Monier-Williams gives शुभकृत् no gloss of its own, only "= -कर", which is his notation for ' +
+			'"identical with शुभ-कर". That entry reads "causing welfare, auspicious, fortunate", which is ' +
+			"the Tibetan `dge byed`, virtue-making.",
+	},
+];
+
 async function monierWilliamsEntry(devanagari) {
 	let fallback = null;
 	for (const candidate of lookupCandidates(devanagari)) {
@@ -834,9 +882,42 @@ async function monierWilliamsEntry(devanagari) {
 	return fallback;
 }
 
+/**
+ * Which alternative a compound cell means, where the first that resolves is the wrong one.
+ *
+ * The samvatsara table records two readings at some positions, and taking the first that resolves is
+ * a coin toss dressed as a rule. At 50 it lands on नल, "a species of reed", where the Tibetan `me`
+ * is fire -- which is अनल, the second. Both are attested and नल's own entry claims position 50, so
+ * neither is *wrong*; the Tibetan is what decides which one this position means, and that is a
+ * judgement, so it is written down with its evidence rather than left to ordering.
+ *
+ * This is not a correction: the table still prints the cell as the source gives it, both readings
+ * and all. It changes only which one is looked up.
+ */
+const PREFERRED_ALTERNATIVE = {
+	50: {
+		devanagari: "अनल",
+		why: "the Tibetan `me` is fire, which is अनल; नल is a reed",
+	},
+};
+
 /** A cell may offer alternatives -- "अव्यय/व्यय", "नल/अनल". No headword contains a slash. */
-async function monierWilliamsForCell(cell) {
-	for (const alternative of cell.split("/").map((s) => s.trim())) {
+async function monierWilliamsForCell(cell, position) {
+	const alternatives = cell.split("/").map((part) => part.trim());
+	const preferred = PREFERRED_ALTERNATIVE[position];
+	if (preferred) {
+		if (!alternatives.includes(preferred.devanagari)) {
+			fail(
+				`position ${position} prefers the reading ${preferred.devanagari}, but the cell now offers ` +
+					`${alternatives.join(" / ")}. Re-check the preference rather than adjusting it.`,
+			);
+		} else {
+			alternatives.sort((a, b) =>
+				a === preferred.devanagari ? -1 : b === preferred.devanagari ? 1 : 0,
+			);
+		}
+	}
+	for (const alternative of alternatives) {
 		const entry = await monierWilliamsEntry(alternative);
 		if (entry) return { ...entry, headword: alternative };
 	}
@@ -927,7 +1008,7 @@ async function wiktionaryForCell(cell) {
 
 for (const r of rows) {
 	try {
-		const mw = await monierWilliamsForCell(r.devanagari);
+		const mw = await monierWilliamsForCell(r.devanagari, r.n);
 		if (!mw) {
 			fail(
 				`position ${r.n}: no Monier-Williams entry for ${r.devanagari} on any rung of the ladder. ` +
@@ -941,6 +1022,28 @@ for (const r of rows) {
 			r.mwQueriedAs = mw.devanagari;
 			r.mwRung = mw.rung;
 			r.mwKey = mw.key;
+
+			const xref = SENSE_CROSS_REFERENCES.find((entry) => entry.n === r.n);
+			if (xref) {
+				if (mw.devanagari !== xref.from || !mw.senses.some((s) => s.text.includes(xref.expects))) {
+					fail(
+						`position ${r.n} follows a cross-reference on the strength of ${xref.from} reading ` +
+							`"${xref.expects}", which its entry no longer says. Re-read it rather than adjusting ` +
+							"the expected text.",
+					);
+				} else {
+					const target = await monierWilliamsEntry(xref.to);
+					if (!target) {
+						fail(`position ${r.n}: the cross-reference target ${xref.to} does not resolve`);
+					} else {
+						r.senses = target.senses;
+						r.mwPage = target.page;
+						r.mwQueriedAs = target.devanagari;
+						r.mwRung = `cross-reference from ${xref.from}`;
+						r.mwKey = target.key;
+					}
+				}
+			}
 		}
 
 		const wiktionary = await wiktionaryForCell(r.devanagari);
