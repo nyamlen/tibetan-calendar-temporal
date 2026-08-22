@@ -806,8 +806,10 @@ Codes are stable and part of the API. Message text is not — match on the code.
 #### Types
 
 Type-only exports, erased at runtime: `TibetanDate`, `TibetanDateFields`, `TibetanMonth`,
-`TibetanMonthFields`, `TibetanYearName`, `Rabjung`, `TibetanElement`, `TibetanAnimal`,
-`TibetanGender`, `TraditionConfig`, `MeanMotion`, `Rational`, `TibetanCalendarErrorCode`.
+`TibetanMonthFields`, `TibetanYearName`, `Rabjung`, `RabjungName`, `SanskritName`, `TibetanName`,
+`TibetanWeekdayName`, `TibetanWeekdayElement`, `TibetanPlanet`, `TibetanElement`, `TibetanAnimal`,
+`TibetanGender`, `TraditionConfig`, `TraditionNaming`, `MeanMotion`, `Rational`,
+`TibetanCalendarErrorCode`.
 
 ### `tibetan-calendar-temporal/observances`
 
