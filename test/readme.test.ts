@@ -148,6 +148,11 @@ describe("README usage examples", () => {
 		expect(leap?.lunation).toBe((regular?.lunation ?? Number.NaN) - 1);
 	});
 
+	it("builds a whole year from monthsFor and datesFor", () => {
+		const year = monthsFor(2153).flatMap((month) => datesFor(month));
+		expect(year.length).toBe(354);
+	});
+
 	it("reads the documented dates back, including a skipped one", () => {
 		expect(parseTibetanDate("2153-M12-08")).toEqual({
 			year: 2153,

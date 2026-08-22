@@ -341,6 +341,24 @@ monthsFor(2151).map((m) => m.lunation);
 lunar arithmetic, so reach for them rather than for `monthsFor(y).length` when the months themselves
 are not wanted.
 
+`datesFor` lays out one month's calendar days; combine it with `monthsFor` to build a whole year:
+
+```js
+import { datesFor } from 'tibetan-calendar-temporal';
+
+const year = monthsFor(2153).flatMap((month) => datesFor(month));
+year.length;   // 354
+```
+
+**A year of dates, serialised, is about 293 KB** (354 days, ordinary year 2153) or **324 KB** for a
+thirteen-month leap year like 2151 — measured, not assumed, in `test/serialisation.test.ts`. Every
+`TibetanDate` in that array holds a *pointer* to a shared, frozen name object rather than a copy —
+there are only seven weekday names, five elements, two genders, twelve animals and sixty rabjung
+names in the whole process — so the in-memory cost of a year is those pointer fields, not thousands
+of string copies. `JSON.stringify` cannot see that sharing, and expands every pointer to its full
+object; the figures above are what a consumer actually pays to persist or transmit a year, not what
+the engine holds in memory.
+
 ### Reading a date back
 
 `parseTibetanDate` is the inverse of `formatTibetanDate`, and an exact one.
