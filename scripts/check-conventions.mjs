@@ -147,13 +147,22 @@ const namedForModule = (suite, modules) =>
 const HARDCODED_COUNT =
 	/\b(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty)\b[^$`.\n]{0,80}\$\{/gi;
 
-/** The markdown template a generator writes, from its `writeFileSync` for a docs/*.md. */
+/**
+/**
+ * The markdown template a generator writes, for a document anywhere under docs/.
+ *
+ * The path part allows intermediate directory arguments, so a document that moves into
+ * docs/names/ is still matched. Rule 12's guard below deliberately does NOT reuse this pattern:
+ * they were one regex until 2026-08-22, which meant a change to where documents live would stop
+ * both matching at the same moment — the rule checking nothing while the invariant meant to catch
+ * exactly that reported nothing wrong. A guard that goes quiet together with the thing it guards
+ * is the vacuous case this file's own preamble warns about.
+ */
+const DOCUMENT_TEMPLATE =
+	/writeFileSync\(\s*join\(root, "docs",(?:\s*"[^"]+",)*\s*"[^"]+\.md"\),\s*`([\s\S]*?)`,\s*\);/g;
+
 const documentTemplates = (source) =>
-	[
-		...source.matchAll(
-			/writeFileSync\(\s*join\(root, "docs", "[^"]+\.md"\),\s*`([\s\S]*?)`,\s*\);/g,
-		),
-	].map((match) => match[1]);
+	[...source.matchAll(DOCUMENT_TEMPLATE)].map((match) => match[1]);
 
 /**
  * Rule 9 — does `suite` name one of the fixtures it imports, or their shared prefix?
@@ -682,7 +691,15 @@ const generators = tracked("scripts/*.mjs").map((file) => ({ file, source: read(
 // writes a docs/*.md must yield at least one template, and at least one of those must contain an
 // interpolation — otherwise there was nothing for the rule to examine in the first place.
 for (const { file, source } of generators) {
-	if (!/writeFileSync\(\s*join\(root, "docs", "[^"]+\.md"\)/.test(source)) continue;
+	// A cruder, independent signal than DOCUMENT_TEMPLATE, on purpose: if that pattern ever stops
+	// matching, this still fires and the invariant reports it instead of both falling silent.
+	// This checker is not a generator, but its source quotes the pattern above, so a plain textual
+	// signal cannot tell the description from the thing described. Excluded by name for that reason
+	// alone -- it holds no writeFileSync call at all.
+	if (file.endsWith("check-conventions.mjs")) continue;
+	// A cruder, independent signal than DOCUMENT_TEMPLATE, on purpose: if that pattern ever stops
+	// matching, this still fires and the invariant reports it rather than both falling silent.
+	if (!source.includes('join(root, "docs"')) continue;
 	const templates = documentTemplates(source);
 	if (templates.length === 0 || !templates.some((template) => template.includes("${"))) {
 		console.error(
@@ -710,7 +727,7 @@ for (const fixture of tracked("test/fixtures/*.ts")) {
 // ---------------------------------------------------------------------------------------
 // Rule 12 — a generated document may not hardcode a count the generator computes
 //
-// `docs/rabjung-names.md` carried the sentence "Four values are marked, at positions 6, 15, 31,
+// `docs/names/rabjung.md` carried the sentence "Four values are marked, at positions 6, 15, 31,
 // 37, 60" for three commits. The list is interpolated from the correction records; the word
 // "Four" is a literal beside it. There were five positions and nine marked cells, and the
 // sentence had been wrong since the moment a fifth correction was added.

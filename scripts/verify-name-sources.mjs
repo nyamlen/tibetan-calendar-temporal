@@ -426,7 +426,7 @@ ${weekdays.map((d) => `\t{ key: ${quote(d.key)}, english: ${quote(d.english)}, p
 
 const docRow = (t) => `| \`${t.key}\` | ${t.tibetan} | \`${t.wylie}\` | *${t.phonetic}* |`;
 writeFileSync(
-	join(root, "docs", "name-sources.md"),
+	join(root, "docs", "names", "vocabulary.md"),
 	`# Name sources
 
 **Status: generated.** Produced by \`scripts/verify-name-sources.mjs\`; re-run it rather than editing
@@ -486,5 +486,5 @@ ${byKind("animal").map(docRow).join("\n")}
 );
 
 console.log(
-	`\nall ${terms.length} terms passed; wrote test/fixtures/names.ts and docs/name-sources.md`,
+	`\nall ${terms.length} terms passed; wrote test/fixtures/names.ts and docs/names/vocabulary.md`,
 );

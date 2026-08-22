@@ -1919,7 +1919,7 @@ const divergenceRow = (d) => {
 };
 
 writeFileSync(
-	join(root, "docs", "rabjung-names.md"),
+	join(root, "docs", "names", "rabjung.md"),
 	`# The 60 rabjung year names
 
 **Status: generated.** Produced by \`scripts/verify-rabjung-names.mjs\`; re-run it rather than
@@ -2047,5 +2047,5 @@ ${rows.map(detailBlock).filter(Boolean).join("\n").trimEnd()}
 );
 
 console.log(
-	`\nall ${rows.length} rows passed; wrote test/fixtures/rabjung-names.ts and docs/rabjung-names.md`,
+	`\nall ${rows.length} rows passed; wrote test/fixtures/rabjung-names.ts and docs/names/rabjung.md`,
 );

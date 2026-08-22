@@ -174,7 +174,7 @@ export interface TibetanYearName {
  *
  * Every value was verified before being written down — two independent EWTS implementations must
  * agree on the script, it must read back as the same Wylie, and English Wiktionary must have an
- * entry at exactly that title. See `docs/name-sources.md`.
+ * entry at exactly that title. See `docs/names/vocabulary.md`.
  *
  * These objects are **shared and frozen**. A `TibetanDate` holds a pointer, not a copy, so building
  * a year of dates costs pointer fields rather than thousands of strings — and freezing is what keeps
@@ -408,7 +408,7 @@ export interface TibetanDate {
 	 * to Roman astrology, which is why it matches the Latin and English weekday names.
 	 *
 	 * Saturday is *spen pa*, not the *spen ma* Janson's table prints — his own Bhutan appendix uses
-	 * *spen pa*, and Wiktionary and CLDR both agree with the appendix. See `docs/name-sources.md`.
+	 * *spen pa*, and Wiktionary and CLDR both agree with the appendix. See `docs/names/vocabulary.md`.
 	 *
 	 * This is not a display convenience. Janson notes that the date and the day of week are usually
 	 * given together because that *resolves the ambiguity when days are repeated*: both halves of a

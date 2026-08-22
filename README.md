@@ -853,7 +853,7 @@ English-only by design limitation.
 
 Every string was verified before it was written down: two independent EWTS implementations must
 agree on the script, it must read back as the same Wylie, and English Wiktionary must have an entry
-at exactly that title. See [docs/name-sources.md](docs/name-sources.md).
+at exactly that title. See [docs/names/vocabulary.md](docs/names/vocabulary.md).
 
 That check earns its keep. Janson gives Saturday as `spen ma` in his day-of-week table and `spen pa`
 in his Bhutan appendix; Wiktionary and CLDR both agree with the appendix, so this package ships
@@ -900,7 +900,7 @@ search, and discoverability is this package's job. Everything else in the suite 
 | [docs/testing.md](docs/testing.md) | Three-tier testing strategy and validation sources |
 | [docs/validation-sources.md](docs/validation-sources.md) | Every source checked against, its **lineage**, what it settles, and what has been tried and rejected |
 | [docs/roadmap.md](docs/roadmap.md) | Implementation phases and release status |
-| [docs/rabjung-names.md](docs/rabjung-names.md) | The 60 rabjung year names, with the provenance of every column |
+| [docs/names/rabjung.md](docs/names/rabjung.md) | The 60 rabjung year names, with the provenance of every column |
 | [docs/decisions/](docs/decisions/) | Decision records |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Clean-room constraint, dev setup, how to add validation data |
 

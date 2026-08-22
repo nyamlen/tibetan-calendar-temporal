@@ -17,7 +17,7 @@ dependencies, built on Temporal.
   tried and rejected, with reasons, so the same dead ends are not re-walked
 - What differs between traditions, and the two source traps found while working it out:
   [docs/traditions.md](docs/traditions.md)
-- Provenance of every Tibetan name string: [docs/name-sources.md](docs/name-sources.md)
+- Provenance of every Tibetan name string: [docs/names/vocabulary.md](docs/names/vocabulary.md)
 - Implementation phases and the **pre-v1.0.0 checklist**: [docs/roadmap.md](docs/roadmap.md) —
   check it before any release; it holds deliberately deferred decisions
 - Contributor rules, dev setup: [CONTRIBUTING.md](CONTRIBUTING.md)
@@ -135,7 +135,7 @@ twenty-five government-published days — so cite the window whenever citing the
 
 `scripts/rabjung-names.data.json` is **not** a second exception, because it is not a fixture: no
 test reads it, and nothing in `src/` depends on it. It holds the one **authored** column of
-`docs/rabjung-names.md` — English glosses of the Tibetan names. Keep it out of `test/fixtures/`, and
+`docs/names/rabjung.md` — English glosses of the Tibetan names. Keep it out of `test/fixtures/`, and
 keep every other column of that document generated: the whole value of the table is that a reader
 can tell sourced columns from authored ones at a glance, and it now prints both an authored English
 gloss of the Tibetan and a sourced Sanskrit sense side by side precisely so the difference is
@@ -346,7 +346,7 @@ decision-record format, fixture provenance, whether
 [docs/coding-standards.md](docs/coding-standards.md) still names real commands and paths, that a
 validation suite is named for the fixture it validates, that an exported config is imported by one,
 that a suite in `test/computation/` is named for a module there, and that **a generated document does
-not hardcode a count its generator computes** — `docs/rabjung-names.md` read "Four values are marked,
+not hardcode a count its generator computes** — `docs/names/rabjung.md` read "Four values are marked,
 at positions …" beside an interpolated list for three commits, and there were five positions and nine
 cells. Each of those fails silently
 rather than loudly. When you add a rule here, check whether `scripts/check-conventions.mjs` can hold

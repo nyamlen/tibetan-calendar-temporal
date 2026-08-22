@@ -409,12 +409,12 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
     into `scripts/verify-name-sources.mjs` already. The script column is no longer a search for a
     source; it is a run of that harness over 60 more rows.
   - *"Janson's ASCII collides three names onto `pramadi`"* — an artefact of using **his** Sanskrit.
-    The Indic IAST already tabulated in [rabjung-names.md](rabjung-names.md) is collision-free.
+    The Indic IAST already tabulated in [names/rabjung.md](names/rabjung.md) is collision-free.
 
   The **content divergence** was long recorded as rows 20, 29, 52 and 60, where the Tibetan and Indic
   lists were said to carry different names rather than different spellings. **Re-derived on
   2026-08-21, that set is wrong in three of its four entries**, and the corrected table with its
-  evidence lives in [rabjung-names.md](rabjung-names.md):
+  evidence lives in [names/rabjung.md](names/rabjung.md):
 
   - **60 dissolved.** It was the clearest case — `zad pa`, exhaustion, against *Akshaya*,
     imperishable — and the correction of the saṃvatsara table's अक्षय to क्षय removed it. Both are
@@ -461,7 +461,7 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
 
   One thing the check turned up for free: Sewell gives **Vyaya at 20 and Parābhava at 40**,
   corroborating the Indic side of the divergence rows from a source outside the Wikipedia
-  saṃvatsara table that [rabjung-names.md](rabjung-names.md) draws on.
+  saṃvatsara table that [names/rabjung.md](names/rabjung.md) draws on.
 
   **A search for an independent Tibetan-language witness, 2026-08-21. Recorded so it is not
   repeated.** Everything in the table descends from Henning's Appendix I through Janson, so a second
@@ -579,7 +579,7 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   landed on the reed and 38 landed on क्रोध's page via क्रोधी. Preferring a form that yields a usable
   sense would fix both without a single authored correction.
 
-  **All 60 are now tabulated side by side in [rabjung-names.md](rabjung-names.md)** — Wylie, Tibetan
+  **All 60 are now tabulated side by side in [names/rabjung.md](names/rabjung.md)** — Wylie, Tibetan
   script, THL phonetics, Devanāgarī, a derived IAST, an authored English gloss of the Tibetan, and
   the Monier-Williams senses with an authored selection from them. Read that before deciding. Every
   column states its provenance, and each **row** now states its own evidence tier — which rung of the
@@ -768,7 +768,7 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   names; and **no `formatTibetanDate` mode**, because its round trip with `parseTibetanDate` is an
   identity that must not acquire one.
 
-  Provenance is machine-checked rather than trusted — [name-sources.md](name-sources.md). Janson
+  Provenance is machine-checked rather than trusted — [names/vocabulary.md](names/vocabulary.md). Janson
   turned out **not to be self-consistent** here: Saturday is `spen ma` in his day-of-week table and
   `spen pa` in his Bhutan appendix, and the wrong one had been sitting in a shipped docblock. That
   is why the harness exists.

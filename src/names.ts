@@ -3,7 +3,7 @@
  *
  * @remarks
  * Every string here was verified by `scripts/verify-name-sources.mjs` before it was written down,
- * against five independent checks — see `docs/name-sources.md`. `test/fixtures/names.ts` holds the
+ * against five independent checks — see `docs/names/vocabulary.md`. `test/fixtures/names.ts` holds the
  * generated copy and the suite asserts this file matches it, so a hand-edit here fails `npm test`
  * even though the generating script needs the network and is not on the CI path.
  *
