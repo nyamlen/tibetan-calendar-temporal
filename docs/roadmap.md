@@ -397,225 +397,33 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
 ## Beyond v1
 
 - **The 60 rabjung cycle names**, landing at `rabjung.name` — additive, so not a breaking change.
-  Deferred as a sourcing problem rather than a coding one. See
-  [architecture.md](architecture.md#why-the-60-rabjung-names-are-not-included).
+  See [architecture.md](architecture.md#why-the-60-rabjung-names-are-not-included) for why they were
+  deferred, and **[names/rabjung-sourcing.md](names/rabjung-sourcing.md) for how the sourcing was
+  actually done** — every source tried, what each could and could not answer, the dead ends with
+  their evidence, and the two findings that changed the method. That history lived here until
+  2026-08-22 and had grown to 221 lines, a quarter of this file; a roadmap should say what remains.
 
-  **Two of the three stated blockers fell on 2026-08-16, and the entry should be re-argued rather
-  than re-deferred.** The naming work proved out machinery that did not exist when this was written:
+  **The table is built and complete.** [names/rabjung.md](names/rabjung.md) carries all sixty rows
+  with the provenance of every column and a per-row evidence tier, and 59 of the 60 have a Sanskrit
+  meaning — 57 quoted verbatim from Monier-Williams and two composed from his entries for the parts.
+  Position 38 is the exception and is closed rather than unfinished: its only adjectival gloss is
+  MW's bare *idem*, and the route to resolving that was tested and does not exist.
 
-  - *"No source gives all 60 in Tibetan script"* — two independent EWTS implementations (`jsewts`
-    and `tibetan-ewts-converter`) agree on all 27 vocabulary terms and round-trip every one back to
-    its Wylie, and THL's converter supplies THL Simplified phonetics for any Wylie. Both are wired
-    into `scripts/verify-name-sources.mjs` already. The script column is no longer a search for a
-    source; it is a run of that harness over 60 more rows.
-  - *"Janson's ASCII collides three names onto `pramadi`"* — an artefact of using **his** Sanskrit.
-    The Indic IAST already tabulated in [names/rabjung.md](names/rabjung.md) is collision-free.
+  **What remains is the public surface, not the data.** `rabjung.name` needs `RabjungName` and
+  `SanskritName`, a frozen table in `src/rabjung-names.ts`, and the assertion migration at the 14
+  `toEqual({ cycle, year })` sites. The one decision still open is whether `name` is a **required**
+  field on `Rabjung` — free now at `0.0.1` and a breaking change after `1.0.0`. Optionality was
+  investigated and rejected on evidence: `toEqual` fails on an extra *runtime* property regardless
+  of the type, so it would save none of the 14 assertions while costing permanent narrowing under
+  `exactOptionalPropertyTypes`.
 
-  The **content divergence** was long recorded as rows 20, 29, 52 and 60, where the Tibetan and Indic
-  lists were said to carry different names rather than different spellings. **Re-derived on
-  2026-08-21, that set is wrong in three of its four entries**, and the corrected table with its
-  evidence lives in [names/rabjung.md](names/rabjung.md):
-
-  - **60 dissolved.** It was the clearest case — `zad pa`, exhaustion, against *Akshaya*,
-    imperishable — and the correction of the saṃvatsara table's अक्षय to क्षय removed it. Both are
-    kṣaya. Janson, Sewell and the Tibetan all agreed against the Indic cell, which was simply wrong.
-  - **20 reclassified.** Janson's `aksaya` matches the *first* alternative of the compound cell
-    अव्यय/व्यय, which is also the reading `mi zad` takes. That is a within-cell selection question,
-    not two traditions naming different things.
-  - **29 and 52 confirmed**, and they are the whole of it: *mada* against मन्मथ, and *kāla-dūtī*
-    against कालयुक्त. The Tibetan sides with Janson at both.
-  - **39 is a new candidate nobody had considered** — *visvabandhu* against विश्वावसु, where `dbyig`
-    (wealth) sides with the *Indic*, suggesting Janson's ASCII is corrupt rather than divergent.
-    Recorded as open.
-
-  The proposal was to stop choosing between them: make `rabjung.name` carry **both**, each
-  attributed, so the divergence becomes recorded data rather than a blocker. That remains the plan,
-  now against two confirmed rows rather than four.
-
-  **The evidence for this nearly went missing, and how is the lesson.** Janson's ASCII Sanskrit is
-  the only mechanical detector of the divergence, and dropping it from the shipped table also dropped
-  it from the document, leaving the four-row claim alive here with no way to re-derive it — for long
-  enough that its position-60 half became false without anything noticing. It is now extracted by the
-  generator for the divergence table alone, and never written to the fixture or to `src/`.
-
-  **That premise was checked on 2026-08-21 and it fails.** Sewell & Fleet, *The Siddhāntas and the
-  Indian Calendar* (1924), prints the sixty saṃvatsaras as **bare names against numeric columns** —
-  Kaliyuga years and fractional day-counts — in its tables of the sixty-saṃvatsara cycle of Jupiter.
-  There is no meaning column, and no gloss vocabulary anywhere near the names; every occurrence of
-  "translation" in the book refers to translations of Siddhānta texts. That fits what the work is:
-  a book about *computing* which saṃvatsara a year falls in, not about what the names mean. Rao
-  (2000) is in copyright and was not reachable, but it is cited for the same list in the same
-  literature, so the premise is treated as answered rather than half-open.
-
-  **That conclusion — "English for the Sanskrit names is not sourceable" — was overturned on
-  2026-08-21.** It was true of Sewell and of Rao, which is what had been checked; it was never true
-  of the lexicographers. Monier-Williams glosses every one of the sixty headwords, and the Cologne
-  scan serves them with a printed page citation. The rabjung table now carries 764 sourced senses
-  across the sixty rows.
-
-  What remains is not "find the source" but the narrower editorial question, and it now has an
-  answer with a machine-checked shape: **which** of many senses is the name's meaning is authored,
-  because no source makes that choice, but the choice can only ever be a verbatim span of a sourced
-  sense, pinned to its record ID and limited to two gloss units. So `meaning` ships as an authored
-  selection from sourced candidates, labelled as such — not as free text, and not omitted.
-
-  One thing the check turned up for free: Sewell gives **Vyaya at 20 and Parābhava at 40**,
-  corroborating the Indic side of the divergence rows from a source outside the Wikipedia
-  saṃvatsara table that [names/rabjung.md](names/rabjung.md) draws on.
-
-  **A search for an independent Tibetan-language witness, 2026-08-21. Recorded so it is not
-  repeated.** Everything in the table descends from Henning's Appendix I through Janson, so a second
-  lineage would have to be Tibetan-language and not calendrical software. Three leads, no witness:
-
-  - **Rangjung Yeshe Wiki** (`rywiki.tsadra.org`) — **unavailable, and this is settled rather than
-    untested.** It sits behind a Cloudflare interstitial that returns 403 to any programmatic
-    request, with a declared User-Agent or a browser one alike. An earlier note calling it
-    "machine-fetchable" was wrong. Do not try to work around the challenge; it is a deliberate
-    access decision by the site.
-  - **BDRC** (`ldspdi.bdrc.io`) — **a live lead, unrealised.** It exposes a full-text search over
-    open-access Unicode Tibetan etexts, filtered in the query itself to `AccessOpen` and
-    `StatusReleased`. `Etexts_count` works; **ten chunks contain both དུས་ཀྱི་ཕོ་ཉ (52) and
-    ཁྲག་སྐྱུག (57)**, two names distinctive enough that co-occurrence implies a list of the sixty. So
-    a machine-readable Tibetan witness very likely exists. What blocked it was retrieval, not
-    access: `Etexts_chunks` returned its parameter metadata and no result rows for any pagination
-    spelling tried. **The concrete next step is that one API call**, not another search.
-  - **THL** (`thlib.org`) — not reached inside the time box. Its calendar converter renders script
-    as images, and its calendrical lineage is unstated, so it may fail the not-downstream-of-Henning
-    test anyway. Its Tibetan-language reference collections are the part worth trying.
-
-  **BDRC chunk counts were considered as an attestation check and rejected, on a negative control.**
-  They tempt, because they work on the multi-word names — `དུས་ཀྱི་ཕོ་ཉ` scores 232,
-  `སྣ་ཚོགས་དབྱིག` 68 — where an exact-title Wiktionary lookup cannot. But **སྤེན་མ scores 108**,
-  and that is the Saturday form this project *rejected* in the naming work on lexical grounds. A
-  corpus count measures string occurrence, not lexical existence: a string can appear inside a longer
-  construction, as a variant, or as a name. Adopting it as a gate would have quietly replaced the
-  standard with one that passes the exact form the repo threw out. A nonsense Tibetan string scores
-  0, so the check does discriminate — it just does not discriminate for the property that matters.
-
-  **Nine rows carry no selected Sanskrit meaning, and three of them could.** Fifty-one of the sixty
-  now carry one, after a pass on 2026-08-22 that closed two rows and found a defect behind a third:
-
-  - **6** is done. It had been written off as "a proper name, so no meaning", which was simply not
-    reading the entry — Monier-Williams glosses आङ्गिरस, and the row now takes his second sense,
-    "a descendant of Aṅgiras", which names the referent where the first sense's "descended from"
-    dangles.
-  - **23 was wrong rather than missing**, and only a structural fix exposed it. It read
-    "opposition, hostility", which is विरोध — the *noun* — because the lookup had landed on a
-    neighbouring headword's page. It now reads "opposing, hindering" from विरोधिन्'s own entry.
-
-  **The ladder now requires an entry to be headed by the form queried.** It used to accept the first
-  rung returning *any* entry, so क्रोधी resolved to क्रोध's page, where it appears only as the name of
-  a musical *śruti*. The check tests the entry's **first** sense, homonym numbers stripped: asking
-  whether *any* sense begins with the word is too weak, and accepted exactly the case it exists to
-  reject. Rows reached through a rung went from eleven to thirteen.
-
-  Three more were closed on the same day, taking it to **54 of 60**:
-
-  - **50** `me`, fire — the cell offers नल/अनल and the lookup took the first that resolved, which is
-    नल, "a species of reed". Both are attested and नल's own entry claims position 50, so neither is
-    *wrong*; the Tibetan is what decides, and that judgement is now written down as a preferred
-    alternative. It is **not** a correction: the table still prints the cell as the source gives it.
-  - **58** `mig dmar`, red-eyed — रक्ताक्षि is a stub in MW, the whole entry reading "m., Cat.", while
-    रक्ताक्ष reads "red-eyed, having red or blood-shot eyes". A correction, and one the IAST check
-    cannot reach: both columns agree on Raktākṣi, so nothing internal contradicts anything and only
-    attestation shows the printed form is wrong.
-  - **36** `dge byed` — MW gives शुभकृत् no gloss of its own, only "= -कर". Following that is reading
-    the dictionary as it asks to be read, and शुभकर gives "causing welfare, auspicious". The
-    cross-reference is a small self-invalidating table rather than a parser: the general form would
-    also have to handle "id.", "q.v." and bare see-references, and a parser wrong about any of them
-    invents a meaning silently.
-
-  **One remains: 38.** Fifty-nine of the sixty now carry a meaning — 57 quoted verbatim from
-  Monier-Williams and two composed from his entries for the parts.
-
-  Two of the three compound rows turned out not to need composition at all, which is the better
-  outcome — a verbatim gloss beats a composed one:
-
-  - **22** `kun 'dzin` — MW knows the printed सर्वधारी only as a year-name, but the stem one entry
-    away, सर्वधारिन्, reads "'**all-holder**', N. of Śiva". Reached by a further ladder rule: prefer an
-    entry that actually *glosses* the word over one that merely names the year it labels.
-  - **53** `don grub` — सिद्धार्थिन् is likewise year-name-only, but the compound it is formed from,
-    सिद्धार्थ, reads "**one who has accomplished an aim** or object". The `-in` suffix means
-    "possessing", so the base carries the sense the derivative inherits.
-  - **31** `gser 'phyang` is the one genuine composition: 3. हेमन् "gold" + लम्ब "hanging down" gives
-    **"hanging gold ‡"**, marked as the weaker tier and never placed in `selected`.
-  - **57** `khrag skyug` — MW's only sense reads "'emitting b˚'", where ˚ stands for the headword's
-    first element. That element is रुधिर, which he glosses "blood", so the row reads **"emitting
-    blood ‡"**. The convention is fixed and the element is a word he glosses elsewhere, so this is
-    expansion rather than interpretation — but the result appears nowhere in his text, so it is the
-    composed tier, not a selection.
-  - **13** `myos ldan` — selected as the **Sanskrit's own** sense, "stirring about", which does not
-    render the Tibetan. That is deliberate and consistent: 29, 34, 39 and 52 already do the same, and
-    the two English columns gloss different names, which is the point of showing them side by side.
-    Recorded in the divergence table as a new kind of entry — the two lists agree on the *name* here
-    and disagree on its *sense*, and Janson's ASCII cannot corroborate either way because `pramadi`
-    is the form he collides onto 4, 13 and 47 alike.
-
-  **38 is the last, and it is genuinely closed rather than merely unfinished.** Its adjective sense is
-  a bare "**id.**" — MW's *idem*, "same as the entry above" — with no text of its own, and its noun
-  senses are "a buffalo", "a dog", "a rhinoceros". Resolving the pointer was tested and is not
-  available: Cologne's `getword.php` is keyed by headword only, there is no lookup by record ID, and
-  none of the plausible preceding headwords (क्रोधित, क्रोधवत्, क्रोधाग्नि) exists. Borrowing position 59's
-  "inclined to wrath" is rejected — क्रोधन is a different headword, and that is the error that put
-  "you both" on position 9 and "opposition, hostility" on 23.
-
-  **The composed tier is enforced, not asserted.** Each part must resolve in Monier-Williams and each
-  stated gloss must appear verbatim in the sense whose ID it cites, so the composition is traceable to
-  sourced entries. The third condition is editorial and stated in the record: the Tibetan
-  disambiguates the compound, and a compound the Tibetan does not render would have no disambiguator
-  and so no business being composed.
-
-  **Empty cells now name their reason.** A row whose entry exists but glosses nothing reads
-  *"MW: year-name only"* rather than a bare dash — the difference between "Monier-Williams is silent"
-  and "Monier-Williams knows this word only as the label for this year" is a fact about the name.
-
-  **The cross-reference display defect is fixed.** `senseCell` skips Monier-Williams' bare
-  cross-references so a row's headline gloss is substantive, but the filter matched only "See under"
-  and "See col." — not "See √", which points at a verbal root. Position 60, the table's flagship
-  correction, was printing its cross-reference as its headline sense.
-
-  **Behind 50 and 38 sits one weakness worth fixing first.** The lookup ladder accepts the first form
-  that returns *any* entry, rather than one whose entry actually glosses the word — which is how 50
-  landed on the reed and 38 landed on क्रोध's page via क्रोधी. Preferring a form that yields a usable
-  sense would fix both without a single authored correction.
-
-  **All 60 are now tabulated side by side in [names/rabjung.md](names/rabjung.md)** — Wylie, Tibetan
-  script, THL phonetics, Devanāgarī, a derived IAST, an authored English gloss of the Tibetan, and
-  the Monier-Williams senses with an authored selection from them. Read that before deciding. Every
-  column states its provenance, and each **row** now states its own evidence tier — which rung of the
-  lookup ladder reached its entry, whether a non-MW lexicon corroborates it, and whether Wiktionary
-  or the Bṛhat Saṃhitā confirms its position — because one standing claimed for all sixty was
-  exactly what let three artefacts of a truncated fetch be written up as findings.
-
-  **Sourcing re-checked 2026-08-12.** Four findings, none of which unblocks this on its own:
-
-  - **Janson's 60-year-cycle name table already carries a Tibetan (Wylie) column and a Sanskrit
-    column, and
-    `extract-janson-fixtures.mjs` discards both** — its row regex swallows them in a `.*&`.
-    Capturing them is a one-regex change needing no new source and raising no clean-room
-    question, since a name list is a fact like the dates.
-  - **The Wylie column is a usable key; Janson's Sanskrit is not.** Verified against the source:
-    60 rows, 60 distinct Wylie names, no duplicates — while `pramadi` covers `rab myos` (4),
-    `myos ldan` (13) and `bag med` (47). Any keying or round-tripping must go through the
-    Tibetan, not the Sanskrit.
-  - **Devanāgarī and IAST exist for the *Indian* list**, complete for all 60 (Wikipedia's
-    saṃvatsara table carries IAST plus Devanāgarī, Tamil, Telugu and Kannada). This does not
-    dissolve the divergence above — it is the Indic canonical form, so `śukla`, `pramoda`,
-    `āṅgirasa`, `bahudhānya` against Janson's `suklata`, `pramadi`, `ankira`, `vahudhvanya`.
-    Choosing it means shipping names a Tibetan almanac does not print; choosing Janson's means
-    bare ASCII with no Devanāgarī and spellings he himself flags as varying by source.
-  - **The authority is Henning, *Kālacakra and the Tibetan Calendar*, Appendix I: The Sixty-Year
-    Cycles** — the source Janson cites for that table. A Columbia UP book, so not fetchable and not
-    generatable; consulting it is the way to settle the Tibetan-script and phonetics gap.
-
-  **On English names, which were asked about directly:** no source found gives them, including
-  Janson, the saṃvatsara tables and the Tibetan references. But the Tibetan names are mostly
-  *semantic translations* rather than transliterations, so they encode the meaning already —
-  `dkar po` = "white" for *śukla*, `'bru mang po` = "much grain" for *bahudhānya*, `dpal gdong`
-  = "glorious face" for *śrīmukha*, `skyes bdag` = "lord of beings" for *prajāpati*. A few are
-  transliterations of proper names instead (`aṃ gi ra` for *aṅgiras*) and have no meaning to
-  give. So English is derivable from the Tibetan by translation — which is editorial work, not
-  extraction, and would be the first fixture content this project authored rather than sourced.
+  **A decision taken on 2026-08-22, for whoever shapes `SanskritName`.** Where Monier-Williams has
+  no entry for a whole compound but glosses both halves, the meaning is **composed** and labelled,
+  not left null — returning null says "this name has no meaning", which for an ordinary transparent
+  compound is false. Three conditions, all load-bearing: a distinct provenance tier that never fills
+  the verbatim field; citation of the element entries; and the Tibetan as the disambiguator between
+  a compound's possible readings. A compound the Tibetan does not render has no disambiguator, and
+  composing one would be inventing.
 
 - **Mutation testing with Stryker.** Open question, not a commitment. The argument for it is that
   this project's real risk is semantic — a misread constant, `⌈⌉` for `⌊⌋`, a flipped comparison —

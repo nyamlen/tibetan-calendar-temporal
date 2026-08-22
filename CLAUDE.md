@@ -17,7 +17,12 @@ dependencies, built on Temporal.
   tried and rejected, with reasons, so the same dead ends are not re-walked
 - What differs between traditions, and the two source traps found while working it out:
   [docs/traditions.md](docs/traditions.md)
-- Provenance of every Tibetan name string: [docs/names/vocabulary.md](docs/names/vocabulary.md)
+- Provenance of every name string, grouped in [docs/names/](docs/names/):
+  [vocabulary.md](docs/names/vocabulary.md) for the 27 shipped terms,
+  [rabjung.md](docs/names/rabjung.md) for the 60-name table, and
+  **[rabjung-sourcing.md](docs/names/rabjung-sourcing.md) for the hunt behind it** — every source
+  tried, the dead ends with their evidence, and the two findings that changed the method. Read the
+  last one before treating any new source as corroboration for a name
 - Implementation phases and the **pre-v1.0.0 checklist**: [docs/roadmap.md](docs/roadmap.md) —
   check it before any release; it holds deliberately deferred decisions
 - Contributor rules, dev setup: [CONTRIBUTING.md](CONTRIBUTING.md)
