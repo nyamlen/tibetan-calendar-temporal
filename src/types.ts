@@ -75,23 +75,24 @@ export type TibetanAnimal =
 export type TibetanGender = "male" | "female";
 
 /**
- * Position in the rabjung (*rab byung*), the Indian 60-year cycle.
+ * Position in the rabjung (*rab byung*), the Indian 60-year cycle — a **numbering** that also
+ * carries the cycle's own name.
  *
  * @remarks
- * This is a **numbering**, not a name — the distinction that keeps it separate from
- * {@link TibetanYearName}. Janson §4 is explicit: the Indian cycles are numbered, so cycle plus
- * position identifies a year unambiguously, whereas "the Chinese cycles are not numbered in the
- * Tibetan calendar" and are used only as names.
+ * `cycle` and `year` are the numbering. Janson §4 is explicit: the Indian cycles are numbered, so
+ * cycle plus position identifies a year unambiguously, whereas "the Chinese cycles are not numbered
+ * in the Tibetan calendar" and are used only as names. That is the distinction that keeps this
+ * separate from {@link TibetanYearName}, and it survives `name` being added: the cycles assign a
+ * year **different positions** — 2026 is year 40 of the Indian cycle but year 43 of the Chinese one
+ * (Janson App. B) — so indexing one cycle's name table with the other's number would be wrong for
+ * 57 of every 60 years, and wrong quietly.
  *
- * Keeping the two apart is not tidiness. The cycles assign a year **different positions**:
- * 2026 is year 40 of the Indian cycle but year 43 of the Chinese one (Janson App. B, the 60-year cycle table). Held in
- * one object, the number 40 would sit directly beside `fire`/`horse` without indexing it —
- * position 40 indexes *parābhava*. A 60-entry lookup keyed on that number is wrong for 57 of
- * every 60 years, and wrong quietly.
+ * `name` is the name attached to the position — see {@link RabjungName}, whose own docblock
+ * records where the Tibetan and Sanskrit lists genuinely diverge.
  *
- * The two fields are grouped rather than flattened to `rabjungCycle` / `rabjungYear` because
- * they are only meaningful together — unlike `year` and `yearStartsIn`, each of which stands
- * alone — and because this object is where the cycle's names will go if they are added later.
+ * The two numbering fields are grouped rather than flattened to `rabjungCycle` / `rabjungYear`
+ * because they are only meaningful together — unlike `year` and `yearStartsIn`, each of which
+ * stands alone.
  *
  * @see {@link TibetanYearName} for the element–animal name, which is what practitioners
  * normally use.
@@ -110,15 +111,78 @@ export interface Rabjung {
 	 * Position within the cycle, 1–60, where 1 is *rab byung* (Prabhava) itself.
 	 *
 	 * @remarks
-	 * Computed as `(Y − 1026) amod 60`. This is an index into a list of 60 Tibetan and Sanskrit
-	 * names which this package does **not** currently expose, because Janson's transliterations
-	 * collide (three distinct names render as `pramadi`) and the Hindu saṃvatsara list diverges
-	 * from the Tibetan one in content rather than only spelling. See "Why the 60 rabjung names
-	 * are not included" in `docs/architecture.md`.
-	 *
-	 * Do not assume this indexes the element–animal name — it does not, and the offset is three.
+	 * Computed as `(Y − 1026) amod 60`. Do not assume this indexes the element–animal name — it
+	 * does not, and the offset is three.
 	 */
 	year: number;
+
+	/** The Tibetan and Sanskrit name at this position. */
+	name: RabjungName;
+}
+
+/**
+ * The Sanskrit half of a rabjung name, from the Indic saṃvatsara list.
+ *
+ * @remarks
+ * Script before transliteration, matching {@link TibetanName.tibetan} — first, because it is the
+ * name; `iast` is a way of reaching it, derived from `devanagari` rather than taken from the Indic
+ * list, whose own printed romanisation disagrees with its own script at twelve of the sixty rows.
+ */
+export interface SanskritName {
+	/** Devanāgarī script. */
+	devanagari: string;
+
+	/** IAST, derived from {@link SanskritName.devanagari}. */
+	iast: string;
+
+	/**
+	 * A gloss, quoted **verbatim** from a printed Monier-Williams sense — never assembled or
+	 * paraphrased. Null where no sense renders the Tibetan name.
+	 *
+	 * @remarks
+	 * See {@link SanskritName.composedMeaning} for the weaker, separately tiered case.
+	 */
+	meaning: string | null;
+
+	/**
+	 * A meaning **composed** from Monier-Williams' entries for a compound's two parts, where he
+	 * glosses no entry for the whole word but does gloss both halves.
+	 *
+	 * @remarks
+	 * A weaker tier than {@link SanskritName.meaning}, and deliberately a separate field: `meaning`
+	 * is always a verbatim quote of one printed sense, and mixing the two would end that guarantee.
+	 * Non-null on only a few of the sixty rows, and null wherever `meaning` is not.
+	 */
+	composedMeaning: string | null;
+}
+
+/**
+ * The Tibetan tradition's name at a rabjung position, plus the Indic saṃvatsara list's name at the
+ * same position.
+ *
+ * @remarks
+ * The two lists mostly translate each other, but not everywhere, and **`sanskrit` is not a gloss of
+ * the Tibetan name** — at a divergent position the Sanskrit belongs to a different name that
+ * happens to share the index. Position **52** (`dus kyi pho nya`, kāla-dūtī, "messenger of time")
+ * is the worked example: the Tibetan sides with Janson's Tibetan-lineage Sanskrit against the Indic
+ * list's कालयुक्त, "joined to time" — two different names at one index. Position **29**
+ * (`myos byed`, "intoxicating") is the other confirmed divergence, against मन्मथ, the god of love.
+ * Beside them, position **40** (`zil gnon`, parābhava, "overwhelming") is the ordinary case, where
+ * the two agree, shown so a reader can see what divergence is being distinguished from.
+ *
+ * Two further positions are recorded rather than resolved, deliberately not reconciled. **20**
+ * looks like a divergence but is not: Janson's ASCII matches the *first* alternative of a compound
+ * cell, the same reading the Tibetan takes, so it is a within-cell selection question, not two
+ * traditions naming different things. **39** is an open candidate: the Tibetan sides with the Indic
+ * list against Janson, suggesting his ASCII is corrupt here rather than that the traditions
+ * diverge.
+ *
+ * See `docs/names/rabjung.md` for the full sixty-row table, its per-row evidence tier, and the
+ * complete divergence table.
+ */
+export interface RabjungName extends TibetanName {
+	/** The Indic saṃvatsara list's name at this position — see the divergence note above. */
+	sanskrit: SanskritName;
 }
 
 /**
@@ -165,16 +229,22 @@ export interface TibetanYearName {
  * A Tibetan name, in the three renderings this package ships.
  *
  * @remarks
- * **There is deliberately no English field.** For an element or an animal the English identity is
- * already carried by the sibling union — `TibetanYearName.element` *is* `"fire"` — so a gloss here
- * would duplicate it. Those unions are the i18n contract: they are stable lowercase identifiers, and
- * a consumer's message catalogue keys off them to produce French, Russian or anything else. This
- * package ships no translations, because authoring them would mean writing content in languages
- * nobody here reads.
+ * **There is deliberately no English field, for every subtype but one.** For an element or an
+ * animal the English identity is already carried by the sibling union — `TibetanYearName.element`
+ * *is* `"fire"` — so a gloss here would duplicate it. Those unions are the i18n contract: they are
+ * stable lowercase identifiers, and a consumer's message catalogue keys off them to produce French,
+ * Russian or anything else. This package ships no translations, because authoring them would mean
+ * writing content in languages nobody here reads. {@link RabjungName} is the exception: a rabjung
+ * position is a bare integer 1–60, with no sibling union to carry an English identity, so the
+ * English question is answered where the English is *sourced* — {@link SanskritName.meaning} —
+ * rather than on this base type.
  *
- * Every value was verified before being written down — two independent EWTS implementations must
- * agree on the script, it must read back as the same Wylie, and English Wiktionary must have an
- * entry at exactly that title. See `docs/names/vocabulary.md`.
+ * Every value was verified before being written down. For the weekday, element, gender and animal
+ * vocabulary: two independent EWTS implementations must agree on the script, it must read back as
+ * the same Wylie, and English Wiktionary must have an entry at exactly that title — see
+ * `docs/names/vocabulary.md`. The sixty rabjung names carry a different, weaker evidence tier: MW
+ * via the Cologne scan and a stated normalisation ladder, not English Wiktionary — see
+ * `docs/names/rabjung.md` and `docs/names/rabjung-sourcing.md`.
  *
  * These objects are **shared and frozen**. A `TibetanDate` holds a pointer, not a copy, so building
  * a year of dates costs pointer fields rather than thousands of strings — and freezing is what keeps

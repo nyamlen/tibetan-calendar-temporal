@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { devanagariToIast } from "../scripts/indic.ts";
+import { RABJUNG_NAMES as SHIPPED_RABJUNG_NAMES } from "../src/rabjung-names.js";
 import { RABJUNG_NAMES } from "./fixtures/rabjung-names.js";
 
 /**
@@ -31,8 +32,9 @@ function glossUnits(text: string): number {
  * It deliberately does **not** re-derive anything. Re-running a converter here would test the
  * converter, not the table, and would put a generation-time dependency on the CI path.
  *
- * Nothing in `src/` reads this table yet — `rabjung.name` is unbuilt. Until it does, this suite is
- * what stops a hand-edit to the committed data going unnoticed.
+ * The second `describe` below checks `src/rabjung-names.ts` against this same fixture, the same
+ * division `test/names.test.ts` uses for `src/names.ts`: provenance is checked before a release,
+ * integrity on every push.
  */
 describe("the generated rabjung name table", () => {
 	it("covers all sixty positions exactly once", () => {
@@ -141,5 +143,41 @@ describe("the generated rabjung name table", () => {
 		// and the one the README's serialisation example prints.
 		expect(RABJUNG_NAMES[39]?.years[1]).toBe(2026);
 		expect(RABJUNG_NAMES[0]?.years[1]).toBe(1987);
+	});
+});
+
+/**
+ * The shipped rabjung names must match what the verification harness produced.
+ *
+ * @remarks
+ * `src/rabjung-names.ts` carries only the public subset of each fixture row — `tibetan`, `wylie`,
+ * `phonetic` and `sanskrit: { devanagari, iast, meaning: selected, composedMeaning: composed }` —
+ * never the evidence fields (`senses`, `mwPage`, `brihatSamhitaPosition`, and so on), which are
+ * provenance, not calendar data. This suite is what stops the two drifting apart.
+ */
+describe("src/rabjung-names.ts matches the verified fixture", () => {
+	it.each(RABJUNG_NAMES)("position $position ($wylie) matches the shipped table", (row) => {
+		const shipped = SHIPPED_RABJUNG_NAMES[row.position - 1];
+		expect(shipped).toEqual({
+			tibetan: row.tibetan,
+			wylie: row.wylie,
+			phonetic: row.phonetic,
+			sanskrit: {
+				devanagari: row.devanagari,
+				iast: row.iast,
+				meaning: row.selected,
+				composedMeaning: row.composed,
+			},
+		});
+	});
+
+	it("carries exactly sixty entries", () => {
+		expect(SHIPPED_RABJUNG_NAMES.length).toBe(60);
+	});
+
+	it("is frozen at every level, so a consumer cannot mutate a shared name object", () => {
+		expect(Object.isFrozen(SHIPPED_RABJUNG_NAMES)).toBe(true);
+		expect(Object.isFrozen(SHIPPED_RABJUNG_NAMES[0])).toBe(true);
+		expect(Object.isFrozen(SHIPPED_RABJUNG_NAMES[0]?.sanskrit)).toBe(true);
 	});
 });
