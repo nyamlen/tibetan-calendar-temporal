@@ -45,6 +45,9 @@ later as "label not found" rather than as a download error. Found by following t
 Keep it outside the repository: arXiv's default submission licence grants arXiv distribution
 rights, not third-party redistribution, so vendoring a copy here would raise exactly the licence
 question this project exists to avoid.
+**`.gitignore` therefore ignores `*.tgz` but deliberately not `*.gz`** — a stray copy of the source
+must stay visible in `git status` as the licence problem it is, and an ignore rule would turn it
+into an invisible one. Do not "tidy" the two together.
 
 `pdftotext` silently drops `⌊⌋`, `⌈⌉`, `≤`, `≥` and Greek constants, and it has already produced
 three wrong formulas in this project: `⌊⌋` where Janson has `⌈⌉` in the month inversion, `≤ 41`

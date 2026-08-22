@@ -6,11 +6,19 @@
 Thumbs.db
 
 # Agent tooling. Personal, machine-specific, and this repository goes public at
-# v1.0.0 — `.mcp.json` records absolute local paths, and settings.local.json is
-# per-machine permission overrides. Shared `.claude/settings.json` stays tracked
-# so any project-wide agent config can still be reviewed in a PR.
+# v1.0.0 — `.mcp.json` records absolute local paths.
+#
+# `.claude/` is deny-by-default because the tooling keeps adding machine-specific
+# files there without asking: `settings.local.json` (per-machine permission
+# overrides), `scheduled_tasks.lock` and `worktrees/` are the ones seen so far, and
+# an exception list silently exposes whatever it has not heard of yet. Only a
+# shared, reviewable project config is re-included.
+#
+# It must be `.claude/*`, not `.claude/`: git cannot re-include a file whose parent
+# directory is excluded, so the directory form makes the negation below do nothing.
 .mcp.json
-.claude/settings.local.json
+.claude/*
+!.claude/settings.json
 
 # Playwright MCP drops page snapshots here, in whatever directory the session
 # was started from. Transient agent scratch output, never project artifacts.
@@ -20,6 +28,16 @@ Thumbs.db
 dist/
 build/
 out/
+
+# Packed tarballs. `scripts/check-pack.mjs` already packs into an OS-temp scratch
+# directory, so this covers a *manual* `npm pack`, which writes to the current
+# directory by default. Prefer `--pack-destination` outside the repo anyway: `main`
+# gets force-push protection because the commit history is the clean-room evidence
+# of independent derivation, so a binary committed by accident is effectively
+# permanent. `*.gz` is deliberately NOT ignored — CLAUDE.md requires the arXiv
+# LaTeX source to live outside this repository, and hiding a stray copy would turn
+# a visible licence problem into an invisible one.
+*.tgz
 
 # Dependency Directories
 node_modules/

@@ -122,10 +122,46 @@ question of a Tibetan calendar had no correct public answer.
 
 | Version | State |
 |---------|-------|
-| 0.0.1 | Published placeholder — reserves the npm name, exports nothing |
-| 1.0.0 | Target: full Phugpa implementation, published from CI with npm provenance |
+| 0.0.1 | Published placeholder — reserves the npm name, exports nothing. **Stays `latest` deliberately**; see below |
+| 1.0.0 | Target: full Phugpa implementation, published from CI with npm provenance. **Gated on a client**; see below |
 
 The repository stays private under the `nyamlen` org until v1.0.0, then goes public.
+
+**The next publish is 1.0.0. There is no intermediate `0.x`**, so `0.0.1` remains what npm serves
+until then, and its metadata is frozen at what was published on 2026-08-11 — `engines: ">=22"` and
+`exports: "./index.js"`, both long since wrong.
+That is harmless only because the version exports nothing executable, and its README banner errs in
+the conservative direction by telling readers to stay away.
+Do not treat the stale page as neglect, and do not try to correct it in isolation: npmjs.com renders
+the README of whichever version holds the `latest` dist-tag, so **the banner can only change in a
+release that moves `latest`** — a prerelease published on a `next` tag would leave the page exactly
+as it is.
+
+### 1.0.0 is gated on a client, not on the implementation
+
+**No 1.0.0 until a consumer outside this repository has exercised the public API.**
+The gate exists because two different risks are being retired, and only one of them is already
+covered:
+
+| Risk | Retired by |
+|------|-----------|
+| Does the published artifact work — installs, resolves through `exports`, both subpaths import? | Largely `scripts/check-pack.mjs`, in CI |
+| **Is the API shape right?** | Nothing yet. Only code that has to *make decisions* surfaces it |
+
+The second is the one 1.0.0 freezes permanently, and no test in this repository can see it: every
+suite imports from `src/`, so none of them meets the package the way a consumer does.
+
+This **relaxes** the release rather than adding to it.
+The 300-docblock audit below does not have to precede the client — docblocks reach the shipped
+`.d.ts` and are what editor hover shows, so a consumer reading them in an editor is a better audit
+signal than reading 300 blocks in sequence, and the client should therefore run first and inform it.
+
+The gate closes when every item on the client's friction list carries a verdict — **change the API**
+(free now, breaking forever after), **fix the documentation**, or **accept and record** — not when
+the list merely exists.
+Note what a first client will *not* reach: `addDays`/`addMonths`/`nextFullMoon`, `parseTibetanDate`,
+and tradition switching. Those surfaces are being frozen on lighter evidence, which is a choice
+rather than an oversight.
 
 ## Outstanding — near term
 
@@ -164,7 +200,13 @@ through this before publishing v1.0.0 — several are one-way doors once publish
 
 - [x] Remove the `STATUS` export from `index.js` — done in Phase 0; `index.js` is gone entirely,
       replaced by `src/index.ts` compiled to `dist/`
-- [ ] Remove the placeholder banner from `README.md`
+- [ ] Remove the placeholder banner from `README.md`, **in the same release that publishes 1.0.0**,
+      not as tidy-up beforehand. This is a file edit with a publishing precondition: npmjs.com serves
+      the README from the tarball of whichever version holds the `latest` dist-tag, so editing the
+      file alone changes nothing a consumer sees. Until that publish the banner is *accurate* — the
+      published version really does export nothing — so removing it early would make the repository
+      state the false half of the pair. The `description` in `package.json`, which still reads
+      "Pre-release placeholder — implementation in development", changes in the same commit
 - [x] Revisit `engines: ">=22"` — resolved to `">=26"`, plus a runtime guard.
 
       The old declaration said Node 22 was supported, so a Node 22 consumer installed the package
@@ -274,7 +316,8 @@ through this before publishing v1.0.0 — several are one-way doors once publish
       additive later.
 
 - [x] **Conventions are enforced rather than remembered** — done 2026-08-16.
-      `scripts/check-conventions.mjs` gates seven rules nothing previously checked, Biome bans the
+      `scripts/check-conventions.mjs` gates seven rules nothing previously checked — twelve as of
+      2026-08-22, the later five added as the conventions they enforce were written — Biome bans the
       `Date` global in `src/`, and markdownlint finally runs in CI against the config that had
       existed for weeks unread. CI is nine commands. Every rule and its enforcement status is in
       [coding-standards.md](coding-standards.md), which the guard also validates against reality so
@@ -345,6 +388,10 @@ through this before publishing v1.0.0 — several are one-way doors once publish
       an expiry. npm tokens are always issued by a *user*, never by an org — create it as an
       account with write access. Store it as a GitHub **organisation-level** secret so sibling
       packages can reuse it
+- [ ] **After 1.0.0 ships**, `npm deprecate tibetan-calendar-temporal@0.0.1 "placeholder; use
+      1.0.0"`. One command, and it puts a warning in front of anyone who pinned the placeholder.
+      Pointless before there is a version to point them at, which is why it is sequenced here
+      rather than with the other publishing setup
 
 **Release workflow (Phase 4)**
 
@@ -357,6 +404,14 @@ through this before publishing v1.0.0 — several are one-way doors once publish
       `publint` and `attw` check the manifest; only `test:pack` proves the built JavaScript runs.
       Writing it immediately found that `./package.json` is not in the `exports` map — correct, as
       it happens, but nothing had established that either way
+- [ ] **Nothing builds before packing.** There is no `prepack`, `prepare` or `prepublishOnly`
+      script, so `npm pack` and `npm publish` both package whatever happens to be sitting in
+      `dist/`. CI is covered by accident rather than by design — `check:publish` and `test:pack`
+      each run `npm run build` first — but a bare `npm publish` would ship a stale build, silently,
+      at the one moment that is expensive to get wrong. Add `"prepack": "npm run build"` rather than
+      only building inside `release.yml`: the script protects a local publish too, and the local
+      publish is the case with no other guard. Note it also makes `npm pack` slower, which is
+      correct — a fast pack of the wrong bytes is the failure being prevented
 - [ ] `.github/workflows/release.yml` publishing on tag, with `permissions: id-token: write`
       and `actions/setup-node` given `registry-url: 'https://registry.npmjs.org'` — that line
       generates the `.npmrc` that reads `NODE_AUTH_TOKEN`; without it the token is ignored and
@@ -585,6 +640,22 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   offset, an element-rule selector, a seasonal-system selector, and a Tsurphu-only number flag. Name
   any selector for what the rule *does*, as Janson describes them — never for a tradition, which
   would reintroduce the `config.id` anti-pattern.
+
+- **Safari has not shipped Temporal, so a browser consumer needs a polyfill.** Checked 2026-08-22.
+  Temporal ships natively in Chrome 144 (13 January 2026), Firefox 139 and Edge 144, and reached
+  TC39 Stage 4 in March 2026 — but Safari has it only in Technology Preview behind a flag, which is
+  what is holding Temporal out of Baseline.
+
+  The consequence is specific and slightly awkward: this package's zero-dependency claim is true of
+  the package and **not** of a browser consumer on Safari or iOS, who must load
+  `temporal-polyfill/global` before importing it. The README's Requirements section already names
+  that polyfill for old Node; it does not yet say the same thing about browsers.
+
+  Not a task, because nothing here needs changing until a browser client exists — the engine is
+  environment-agnostic and the guard in `conversion.ts` already produces a message naming the
+  polyfill. Re-check Safari's status when the Nyamlen client's target platform is decided; if it is
+  a web app, spike the polyfill path *before* the API is frozen, since that is the only way to find
+  out whether anything in the surface behaves differently under a polyfilled `Temporal`.
 
 - **iCalendar (ICS) export — declined.** `getObservances` returns plain objects; a consumer maps
   them to whatever format they need. Per
