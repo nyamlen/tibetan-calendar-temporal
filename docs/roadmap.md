@@ -507,9 +507,27 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
     first element. Expanding it gives "emitting blood". Needs abbreviation expansion, which is a small
     act of interpretation and should be argued before it is built.
 
-  The remaining six are genuinely not glossed: **6** is a patronymic, so a proper name correctly has
-  no meaning; **13** is a real semantic mismatch between the traditions and is itself a finding; and
-  **22**, **31**, **38** and **53** carry only a circular "name of the Nth year" or a bare "id."
+  **6 was wrongly written off here as "a proper name has no meaning", and it is selectable today.**
+  Monier-Williams glosses आङ्गिरस as "**descended from** or belonging or referring to the Aṅgirases" —
+  a patronymic does have a meaning, and that is it. It needs no new mechanism, only a selection.
+  **Pending a decision** rather than applied.
+
+  Of the rest: **13** is a real semantic mismatch between the traditions and is itself a finding;
+  **22**, **31** and **53** carry only "N. of the Nth year of Jupiter's cycle", which would restate
+  the position column rather than say what the name means — the gloss a reader wants for those three
+  ("All-holding", "Hanging gold", "Aim accomplished") is already in the authored English-of-the-Tibetan
+  column, because composing it from the compound's parts is analysis rather than sourcing. **38** is
+  two problems at once: the query resolves to क्रोध's page, where क्रोधी appears only as the name of a
+  musical *śruti*, and the stem क्रोधिन् reads "mfn. **id.**" — MW's *idem*, a pointer with no text.
+  Taking क्रोध's "anger, wrath" would attribute a noun's gloss to an adjective, which is the homograph
+  error that put "you both" on position 9.
+
+  **One display defect, found in the 2026-08-22 sweep and not yet fixed.** The table shows each row's
+  first *substantive* sense, skipping Monier-Williams' bare cross-references — but the filter matches
+  only "See under" and "See col.", not "See √". So position 60, the table's flagship correction, shows
+  `क्षय See √ 1. 2. and 4. क्षि` where it should show "destruction, decay". Widening the pattern is a
+  one-line change in `senseCell`; it is recorded rather than applied because changing the generator
+  without regenerating would leave the two disagreeing.
 
   **Behind 50 and 38 sits one weakness worth fixing first.** The lookup ladder accepts the first form
   that returns *any* entry, rather than one whose entry actually glosses the word — which is how 50
