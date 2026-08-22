@@ -315,20 +315,32 @@ the Indian cycle names will go if they are ever added.
 ### Why the 60 rabjung names are not included
 
 `rabjung.year` is a position in a list of 60 Tibetan and Sanskrit names, and v1 exposes the
-position without the name. That is deliberate: sourcing the names is a research task, not a data
-entry task.
+position without the name. **The sourcing that made this a research task is now done** — see
+[names/rabjung.md](names/rabjung.md) for the table and
+[names/rabjung-sourcing.md](names/rabjung-sourcing.md) for how it was arrived at. What remains is a
+public-surface decision, not a data problem.
 
-Janson's Table 12 ASCII column is lossy. Positions 4, 13 and 47 all read `pramadi`, where the
-actual names are three different words — *pramodūta* प्रमोदूत, *pramāthi* प्रमाथी and
-*pramādi* प्रमादी. The Hindu saṃvatsara list cannot simply be substituted either: the traditions
-diverge in content, not only spelling, with Tibetan position 20 being *akṣaya* अक्षय where the
-Hindu list has *vyaya* व्यय and puts *akṣaya* at 60. Resolving each entry is a per-item
-scholarly judgement.
+Three of the reasons originally recorded here have since been answered, and the way two of them
+were wrong is worth keeping:
 
-No source has been found carrying all 60 in Tibetan script with Lhasa phonetics, which
-[CLAUDE.md](../CLAUDE.md)'s terminology conventions require; Henning's book has transliterations
-but is a copyrighted secondary source. Adding them later at `rabjung.name` is additive and
-breaks nothing, which is what makes deferring legitimate rather than merely convenient.
+- *"No source carries all 60 in Tibetan script with Lhasa phonetics."* Two independent EWTS
+  implementations agree on the script for all sixty and round-trip every one back to its Wylie, and
+  THL's converter supplies the phonetics. The Lhasa requirement itself was **retired**: house
+  conventions govern prose, a published standard governs a shipped data column.
+- *"Janson's ASCII collides three names onto `pramadi`."* True, and the reason his Sanskrit column
+  is not shipped. It is still read, for one purpose only — it is the sole mechanical detector of the
+  rows where the two traditions carry different *names* rather than different spellings.
+- *"The traditions diverge in content — Tibetan 20 is akṣaya where the Hindu list has vyaya, and
+  akṣaya sits at 60."* **This example was wrong**, and it survived here for months. Position 60's
+  Indic cell said अक्षय; Sewell, Janson and the Tibetan `zad pa` all say क्षय, so the two agree and
+  the divergence dissolves. Position 20 is a compound cell offering two readings, which the Tibetan
+  chooses between — not two traditions naming different things. Two genuine divergences remain, at
+  29 and 52, and they are tabulated with their evidence.
+
+Henning's book has transliterations but is a copyrighted secondary source, which is why the script
+column is derived rather than transcribed. Adding the names at `rabjung.name` is additive and breaks
+nothing, which is what makes deferring legitimate rather than merely convenient — but the reason to
+defer is now the required-field question on `Rabjung`, recorded in the roadmap, rather than sourcing.
 
 ### Why `gender` is kept although it is derivable
 

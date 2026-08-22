@@ -368,6 +368,13 @@ the invariant cannot see: an equality-only predicate satisfies that invariant an
 `calendar-leap-index-threshold`. When this was demonstrated by mutation, the invariant caught the
 real bug and all three literal cases passed.
 
+**A guard must not share its predicate with the thing it guards.** Rule 12 matches the markdown
+template a generator writes, and the invariant proving that rule is not passing vacuously used a
+second copy of the same path pattern. Moving the documents into `docs/names/` would have stopped
+both matching at the same moment — the rule checking nothing, and the invariant written to catch
+exactly that reporting nothing wrong. The guard is now a deliberately cruder, independent signal, so
+a break in the precise pattern still surfaces. Found by making the move, not by reading.
+
 Not every predicate can have an invariant, and a vacuous one is worse than none because it reads as
 coverage. The validation-suite rule deliberately has no invariant: the obvious one is symmetric in
 its arguments, so it holds under the correct comparison and a reversed one alike, and reversal is
@@ -409,18 +416,37 @@ integrity is checked on every push.
 **Both verifiers carry corrections to their sources as data, and a correction must self-invalidate.**
 It states the value it expects to find and refuses to run if the source no longer says it, so a
 correction that stops being needed fails loudly instead of silently patching a source that has since
-been fixed. There is one in the vocabulary — `spen ma` → `spen pa` — and eight in the rabjung names,
+been fixed. There is one in the vocabulary — `spen ma` → `spen pa` — and nine in the rabjung names,
 resting on three different kinds of evidence: Sewell & Fleet read directly (60 अक्षय → क्षय, 31
 हेविळम्बि → हेमलम्ब), attestation (15, 37), Monier-Williams resolving a headword the table's spelling
 does not reach (4 प्रमोदूत → प्रमोद), a homograph caught by reading the *sense* rather than the
 presence of an entry (9 युव, the dual pronoun, → युवन्; 56 दुन्दुभी, a Gandharvī's name, → दुन्दुभि), and a
-typo the source contradicts itself about (57 रूधिर → रुधिर). Do not patch a name by editing the output.
+typo the source contradicts itself about (57 रूधिर → रुधिर), and an entry that is a bare stub where a
+near neighbour is glossed (58 रक्ताक्षि → रक्ताक्ष). Do not patch a name by editing the output.
 
 **A correction is not a lookup rung, and conflating them inflates both.** A correction changes what
 the table *prints* and needs authored evidence; a rung of the ladder in `scripts/indic.ts` changes
 only what is *queried* and states a rule of Sanskrit — the `-in` stems printed in the nominative, the
 anusvāra spellings, a missing virāma. Eleven of the sixty rows resolve only through a rung, and an
 earlier draft was going to write all of them up as editorial judgements.
+
+**There are now six ways a value reaches that table, and they are deliberately separate because they
+carry different weights of evidence.** Collapsing any two inflates the weaker one:
+
+| Mechanism | Changes | Standard it must meet |
+|---|---|---|
+| Correction | what is **printed** | Authored evidence, and the original must still be present |
+| Lookup rung | what is **queried** | A rule of Sanskrit orthography or morphology, true of every row it touches |
+| Preferred alternative | which reading of a compound **cell** is looked up | The Tibetan decides; the cell still prints both |
+| Sense cross-reference | which **entry** is read | Monier-Williams' own pointer — "= -कर" — re-checked before it is followed |
+| Abbreviation expansion | an entry's **text** | His ˚ convention, with the element resolved and its gloss verbatim |
+| Composed meaning | a value **he never prints** | Both halves glossed by him, cited, and the Tibetan disambiguating the compound |
+
+Only the first two change what a reader sees as sourced-verbatim. The last two produce a **weaker
+tier**, marked ‡ in the table and held in its own field, because `selected`'s whole guarantee is that
+it is a verbatim span of one printed sense. A composed gloss is offered rather than a blank because
+returning nothing says "this name has no meaning", which for an ordinary transparent compound is
+false — but it is never allowed to look like a quotation.
 
 **`npm run coverage` is not one of the nine, so nothing gates it.** It was broken on `main` for an
 unknown stretch and nobody noticed: the 200-year moon-phase sweep runs in well under a second bare
