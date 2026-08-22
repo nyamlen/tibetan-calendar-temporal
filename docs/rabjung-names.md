@@ -110,6 +110,7 @@ as one name.
 
 | # | Janson *(Tibetan lineage)* | Indic | English of the Tibetan | Verdict | Why |
 |---|---|---|---|---|---|
+| 13 | `pramadi` | प्रमाथी Pramāthī | Intoxicated | **Senses diverge** | A different kind of divergence from the rest of this table, and worth separating. The two lists agree on the NAME here -- both are Pramāthin -- and disagree on what it means: Monier-Williams glosses it "stirring about, tearing, rending", agitation, while the Tibetan `myos ldan` is intoxication. Janson's ASCII cannot corroborate either way, because `pramadi` is the form he collides onto positions 4, 13 and 47 alike. So the Sanskrit sense is selected as the Sanskrit's own, and the Tibetan gloss stands beside it unreconciled. |
 | 20 | `aksaya` | अव्यय/व्यय Avyaya/Vyaya | Inexhaustible | **Not a divergence** | Janson's `aksaya` matches the FIRST alternative of the compound cell अव्यय/व्यय, which is the reading the Tibetan `mi zad` (inexhaustible) also takes. This is a within-cell selection question, not two traditions naming different things. |
 | 29 | `mada` | मन्मथ Manmatha | Intoxicating | **Divergent** | Intoxication against मन्मथ, the god of love. The Tibetan `myos byed` ('intoxicating') sides with Janson, so the two lists carry different names at this index. |
 | 39 | `visvabandhu` | विश्वावसु Viśvāvasu | Manifold wealth | **Open** | vasu ('wealth') against bandhu ('kinsman'). The Tibetan `sna tshogs dbyig` -- dbyig is wealth -- sides with the INDIC विश्वावसु, not with Janson, which suggests his ASCII is corrupt here rather than that the traditions diverge. Recorded rather than decided. |
@@ -129,7 +130,7 @@ They gloss **different names**, which is the point of showing them side by side.
 - **Selected** is an **authored choice from those sourced candidates**, and the generator refuses to
   run unless the chosen gloss appears verbatim inside the sense carrying its recorded Cologne ID, and
   unless it carries at most two gloss units. So the editorial step is visible and machine-checked; it
-  can select, never invent. 56 of the 60 carry one.
+  can select, never invent. 57 of the 60 carry one.
 
 **Why a selection is needed at all.** Entries carry many senses, often from different roots, and
 taking the first is an accident rather than a policy. `क्षय` opens with a cross-reference and then
@@ -167,7 +168,7 @@ at 10 positions: 4, 6, 9, 15, 31, 37, 56, 57, 58, 60.
 | 10 | འཛིན་བྱེད | `'dzin byed` | *dzin jé* | धातृ | Dhātṛ | Holder | धातृ m. establisher, founder, creator, bearer, supporter ( cf. वसु- ), orderer, arranger, RV. &c. &c. ([+8 more](#sanskrit-senses-at-position-10)) | bearer, supporter | MW as printed; Wiktionary; 4 other lexicon(s); position: Bṛhat Saṃhitā | 1936, 1996 |
 | 11 | དབང་ཕྱུག | `dbang phyug` | *wang chuk* | ईश्वर | Īśvara | Mighty lord | ईश्वर mfn. able to do, capable of (with gen. of Vedic inf. , or with common inf. ), liable, exposed to, AV. ; TS. ; ŚBr. ; AitBr. ; Kum. ; Hit. &c. ([+14 more](#sanskrit-senses-at-position-11)) | master, lord | MW as printed; Wiktionary; 4 other lexicon(s); position: Bṛhat Saṃhitā | 1937, 1997 |
 | 12 | འབྲུ་མང་པོ | `'bru mang po` | *dru mang po* | बहुधान्य | Bahudhānya | Much grain | बहु —धान्य m. ‘abounding in corn’, N. of the 12th or 46th year in a 60 years' cycle of Jupiter, Var. | abounding in corn | MW as printed; Wiktionary; position: Wiktionary + Bṛhat Saṃhitā | 1938, 1998 |
-| 13 | མྱོས་ལྡན | `myos ldan` | *nyö den* | प्रमाथी | Pramāthī | Intoxicated | प्र- ॰माथिन् mfn. stirring about, tearing, rending, troubling, harassing, destroying, MBh. ; Kāv. &c. ([+7 more](#sanskrit-senses-at-position-13)) | — | MW via -in stem; position: Bṛhat Saṃhitā | 1939, 1999 |
+| 13 | མྱོས་ལྡན | `myos ldan` | *nyö den* | प्रमाथी | Pramāthī | Intoxicated | प्र- ॰माथिन् mfn. stirring about, tearing, rending, troubling, harassing, destroying, MBh. ; Kāv. &c. ([+7 more](#sanskrit-senses-at-position-13)) | stirring about | MW via -in stem; position: Bṛhat Saṃhitā | 1939, 1999 |
 | 14 | རྣམ་གནོན | `rnam gnon` | *nam nön* | विक्रम | Vikrama | Overcoming | 1. वि —क्रम m. (for 2. See वि- √क्रम् ) the absence of the Krama-pāṭha ( q.v. ), RPrāt. ([+21 more](#sanskrit-senses-at-position-14)) | valour, courage | MW as printed; Wiktionary; 4 other lexicon(s); position: Wiktionary + Bṛhat Saṃhitā | 1940, 2000 |
 | 15 | ཁྱུ་མཆོག | `khyu mchog` | *khyu chok* | वृषभ † | Vṛṣabha † | Chief bull | वृषभ mfn. ( cf. ऋषभ ) manly, mighty, vigorous, strong (applied like वृषन् to animate and inanimate objects), RV. ; AV. ([+18 more](#sanskrit-senses-at-position-15)) | the chief, most excellent | MW as printed; Wiktionary; 4 other lexicon(s); position: unstated | 1941, 2001 |
 | 16 | སྣ་ཚོགས | `sna tshogs` | *na tsok* | चित्रभानु | Citrabhānu | Variegated | चित्र —भानु ( ॰त्र- ), mfn. of variegated lustre, shining with light, RV. ; AV. iv, 25, 3 ; xiii, 3, 10 ; TBr. ii f. ; Kauś. ; MBh. i, 722 ([+8 more](#sanskrit-senses-at-position-16)) | of variegated lustre | MW as printed; Wiktionary; 5 other lexicon(s); position: Wiktionary + Bṛhat Saṃhitā | 1942, 2002 |
@@ -211,7 +212,7 @@ at 10 positions: 4, 6, 9, 15, 31, 37, 56, 57, 58, 60.
 | 54 | དྲག་པོ | `drag po` | *drak po* | रौद्र | Raudra | Fierce | रौद्र or रौद्र , mf( आ or ई )n. ( fr. रुद्र ) relating or belonging to or coming from Rudra or the Rudra s, Rudra -like, violent, impetuous, fierce, wild ( अम् ind. ), RV. &c. &c. ([+24 more](#sanskrit-senses-at-position-54)) | savageness, fierceness | MW as printed; Wiktionary; 5 other lexicon(s); position: Wiktionary + Bṛhat Saṃhitā | 1980, 2040 |
 | 55 | བློ་ངན | `blo ngan` | *lo ngen* | दुर्मति | Durmati | Ill-minded | दुर् —मति f. bad disposition of mind, envy, hatred, RV. ; VS. ; AV. ([+6 more](#sanskrit-senses-at-position-55)) | weak-minded, silly | MW as printed; Wiktionary; 5 other lexicon(s); position: Wiktionary + Bṛhat Saṃhitā | 1981, 2041 |
 | 56 | རྔ་ཆེན | `rnga chen` | *nga chen* | दुन्दुभि † | Dundubhi † | Great drum | दुन्दुभि m. f. a sort of large kettledrum, RV. ; Br. ; MBh. ; Kāv. &c. ([+10 more](#sanskrit-senses-at-position-56)) | a sort of large kettledrum | MW as printed; Wiktionary; 5 other lexicon(s); position: Bṛhat Saṃhitā | 1982, 2042 |
-| 57 | ཁྲག་སྐྱུག | `khrag skyug` | *trak kyuk* | रुधिरोद्गारी † | Rudhirodgārī † | Blood-spitting | रुधिरो द्गारिन् mf( इणी )n. ‘emitting b˚ ’, N. of the 57th year in Jupiter's cycle of 60 years, Cat. | *MW: year-name only* | MW via -in stem; position: unstated | 1983, 2043 |
+| 57 | ཁྲག་སྐྱུག | `khrag skyug` | *trak kyuk* | रुधिरोद्गारी † | Rudhirodgārī † | Blood-spitting | रुधिरो द्गारिन् mf( इणी )n. ‘emitting b˚ ’, N. of the 57th year in Jupiter's cycle of 60 years, Cat. | emitting blood ‡ | MW via -in stem; position: unstated | 1983, 2043 |
 | 58 | མིག་དམར | `mig dmar` | *mik mar* | रक्ताक्ष † | Raktākṣa † | Red-eyed | रक्ता क्ष mf( ई )n. red-eyed, having red or blood-shot eyes, R. ; BhP. ( -ता f. , Dharmaś. ) ([+9 more](#sanskrit-senses-at-position-58)) | red-eyed | MW as printed; Wiktionary; 3 other lexicon(s); position: Wiktionary | 1984, 2044 |
 | 59 | ཁྲོ་བོ | `khro bo` | *tro bo* | क्रोधन | Krodhana | Wrathful — masculine, against 38 | क्रोधन mf( आ )n. ( Pāṇ. iii, 2, 151 ) inclined to wrath, passionate, angry (with loc. Yājñ. i, 333 ), MBh. &c. ([+9 more](#sanskrit-senses-at-position-59)) | inclined to wrath, passionate | MW as printed; Wiktionary; 4 other lexicon(s); position: Wiktionary + Bṛhat Saṃhitā | 1985, 2045 |
 | 60 | ཟད་པ | `zad pa` | *zé pa* | क्षय † | Kṣaya † | Exhaustion | 1. क्षय m. ‘dominion’, Sāy. (on, RV. vii, 46, 2 ). ([+19 more](#sanskrit-senses-at-position-60)) | destruction, decay | MW as printed; Wiktionary; 5 other lexicon(s); position: unstated | 1986, 2046 |
@@ -461,7 +462,7 @@ Monier-Williams, printed page 725, queried as `बहुधान्य` (as pri
 
 Monier-Williams, printed page 685, queried as `प्रमाथिन्` (-in stem).
 
-- प्र- ॰माथिन् mfn. stirring about, tearing, rending, troubling, harassing, destroying, MBh. ; Kāv. &c. *(H3 · 135703)*
+- **प्र- ॰माथिन् mfn. stirring about, tearing, rending, troubling, harassing, destroying, MBh. ; Kāv. &c.** *(H3 · 135703)*
 - striking off, used for striking off, MBh. *(H3 · 135704)*
 - (in med. ) throwing out i.e. producing secretion of the vessels, Car. ; Bhpr. *(H3 · 135705)*
 - प्र- ॰माथिन् m. N. of the 13th (47th) year of a 60 years' cycle of Jupiter, Var. (also w.r. for प्र-मादिन् ) *(H3 · 135706)*
@@ -1366,6 +1367,8 @@ Monier-Williams, printed page 484, queried as `दुन्दुभि` (as pri
 रुधिरोद्गारी Rudhirodgārī
 
 Monier-Williams, printed page 884, queried as `रुधिरोद्गारिन्` (-in stem).
+
+**Composed meaning ‡** — "emitting blood", from रुधिर "blood" (page 884, 178827). Monier-Williams has no entry for the whole word.
 
 - रुधिरो द्गारिन् mf( इणी )n. ‘emitting b˚ ’, N. of the 57th year in Jupiter's cycle of 60 years, Cat. *(H3 · 178853)*
 

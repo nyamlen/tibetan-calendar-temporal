@@ -631,6 +631,10 @@ const SELECTED_SENSES = {
 	10: { id: "100718", text: "bearer, supporter" }, // Dhatri, `'dzin byed` holder -- not "creator"
 	11: { id: "29882", text: "master, lord" }, // Isvara, `dbang phyug` mighty lord
 	12: { id: "143644", text: "abounding in corn" }, // Bahudhanya, `'bru mang po` much grain
+	// Pramathin, `myos ldan`. The Sanskrit is agitation and the Tibetan is intoxication, so this
+	// selection deliberately does NOT render the Tibetan -- the two columns gloss different names,
+	// which is the point of showing them side by side, and 29, 34, 39 and 52 already do the same.
+	13: { id: "135703", text: "stirring about" },
 	14: { id: "194161", text: "valour, courage" }, // Vikrama, `rnam gnon` overcoming
 	15: { id: "205069", text: "the chief, most excellent" }, // Vrisabha, `khyu mchog` chief bull
 	16: { id: "73817", text: "of variegated lustre" }, // Citrabhanu, `sna tshogs` variegated
@@ -708,6 +712,36 @@ const SELECTED_SENSES = {
  * Deliberately small. A compound the Tibetan does not render would have no disambiguator, and this
  * mechanism would then be inventing rather than composing.
  */
+/**
+ * Monier-Williams' ˚ abbreviation, expanded.
+ *
+ * He writes a compound's repeated element as its initial plus ˚, so रुधिरोद्गारिन् is glossed
+ * "'emitting b˚'" — emitting blood. Shipping that verbatim ships a gloss no reader can read, and the
+ * expansion is not interpretation: the convention is fixed, and the element is a word he glosses
+ * elsewhere in the dictionary.
+ *
+ * Enforced rather than asserted, on three counts: the entry must still carry the abbreviated text,
+ * the element must **resolve in Monier-Williams** with the stated gloss appearing verbatim in it, and
+ * the abbreviated initial must match the first letter of that gloss. An expansion that cannot show
+ * all three is an invention.
+ *
+ * The result is the composed tier, not a selection: "emitting blood" appears nowhere in his text.
+ */
+const ABBREVIATION_EXPANSIONS = [
+	{
+		n: 57,
+		expects: "emitting b˚",
+		element: "रुधिर",
+		elementId: "178827",
+		elementGloss: "blood",
+		text: "emitting blood",
+		why:
+			"रुधिरोद्गारिन्'s only sense reads \"'emitting b˚'\", where ˚ stands for the headword's first " +
+			'element. That element is रुधिर, which Monier-Williams glosses "blood", and the Tibetan ' +
+			"`khrag skyug` is blood-spitting.",
+	},
+];
+
 const COMPOSED_MEANINGS = {
 	31: {
 		text: "hanging gold",
@@ -1261,6 +1295,47 @@ for (const r of rows) {
 	}
 }
 
+for (const expansion of ABBREVIATION_EXPANSIONS) {
+	const r = rows.find((row) => row.n === expansion.n);
+	if (!r) {
+		fail(`abbreviation expansion for position ${expansion.n} has no row`);
+		continue;
+	}
+	if (!(r.senses ?? []).some((sense) => sense.text.includes(expansion.expects))) {
+		fail(
+			`position ${expansion.n} expands "${expansion.expects}", which its entry no longer carries. ` +
+				"Re-read it rather than adjusting the expected text.",
+		);
+		continue;
+	}
+	const abbreviated = expansion.expects.slice(-2, -1);
+	if (!expansion.elementGloss.startsWith(abbreviated)) {
+		fail(
+			`position ${expansion.n} expands "${abbreviated}˚" to "${expansion.elementGloss}", which does ` +
+				"not begin with that letter. The abbreviation stands for the element's initial.",
+		);
+		continue;
+	}
+	const element = await monierWilliamsEntry(expansion.element);
+	const sense = element?.senses.find((candidate) => candidate.id === expansion.elementId);
+	if (!sense?.text.includes(expansion.elementGloss)) {
+		fail(
+			`position ${expansion.n}: the element ${expansion.element} sense ${expansion.elementId} no ` +
+				`longer glosses "${expansion.elementGloss}", so the expansion is unsupported.`,
+		);
+		continue;
+	}
+	r.composed = expansion.text;
+	r.composedFrom = [
+		{
+			devanagari: expansion.element,
+			gloss: expansion.elementGloss,
+			id: expansion.elementId,
+			page: element.page,
+		},
+	];
+}
+
 // ---------------------------------------------------------------------------------------------
 // 6c. wisdomlib: the Brihat Samhita position, and corroboration from outside Monier-Williams.
 //
@@ -1762,6 +1837,18 @@ ${body}`;
  * half had by then become wrong.
  */
 const DIVERGENCES = [
+	{
+		n: 13,
+		janson: "pramadi",
+		verdict: "Senses diverge",
+		note:
+			"A different kind of divergence from the rest of this table, and worth separating. The two " +
+			"lists agree on the NAME here -- both are Pramāthin -- and disagree on what it means: " +
+			'Monier-Williams glosses it "stirring about, tearing, rending", agitation, while the Tibetan ' +
+			"`myos ldan` is intoxication. Janson's ASCII cannot corroborate either way, because " +
+			"`pramadi` is the form he collides onto positions 4, 13 and 47 alike. So the Sanskrit sense " +
+			"is selected as the Sanskrit's own, and the Tibetan gloss stands beside it unreconciled.",
+	},
 	{
 		n: 20,
 		janson: "aksaya",

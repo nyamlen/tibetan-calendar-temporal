@@ -525,21 +525,39 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
     also have to handle "id.", "q.v." and bare see-references, and a parser wrong about any of them
     invents a meaning silently.
 
-  **Three remain: 13, 38 and 57**, and 57 of the 60 now carry a meaning.
+  **One remains: 38.** Fifty-nine of the sixty now carry a meaning — 57 quoted verbatim from
+  Monier-Williams and two composed from his entries for the parts.
 
   Two of the three compound rows turned out not to need composition at all, which is the better
   outcome — a verbatim gloss beats a composed one:
 
-  - **22** `kun 'dzin` — Monier-Williams knows the printed सर्वधारी only as a year-name, but the stem
-    one entry away, सर्वधारिन्, reads "'**all-holder**', N. of Śiva". Reached by a further ladder rule:
-    prefer an entry that actually *glosses* the word over one that merely names the year it labels.
+  - **22** `kun 'dzin` — MW knows the printed सर्वधारी only as a year-name, but the stem one entry
+    away, सर्वधारिन्, reads "'**all-holder**', N. of Śiva". Reached by a further ladder rule: prefer an
+    entry that actually *glosses* the word over one that merely names the year it labels.
   - **53** `don grub` — सिद्धार्थिन् is likewise year-name-only, but the compound it is formed from,
     सिद्धार्थ, reads "**one who has accomplished an aim** or object". The `-in` suffix means
-    "possessing", so the base carries the sense the derivative inherits; taken through the same
-    self-invalidating cross-reference mechanism as 36.
-  - **31** `gser 'phyang` is the one genuine composition. MW carries neither हेमलम्ब nor हेमलम्बक beyond
-    the year-name, but glosses both halves — 3. हेमन् is "gold", लम्ब is "hanging down" — so the row
-    reads **"hanging gold ‡"**, marked as a weaker tier and never placed in `selected`.
+    "possessing", so the base carries the sense the derivative inherits.
+  - **31** `gser 'phyang` is the one genuine composition: 3. हेमन् "gold" + लम्ब "hanging down" gives
+    **"hanging gold ‡"**, marked as the weaker tier and never placed in `selected`.
+  - **57** `khrag skyug` — MW's only sense reads "'emitting b˚'", where ˚ stands for the headword's
+    first element. That element is रुधिर, which he glosses "blood", so the row reads **"emitting
+    blood ‡"**. The convention is fixed and the element is a word he glosses elsewhere, so this is
+    expansion rather than interpretation — but the result appears nowhere in his text, so it is the
+    composed tier, not a selection.
+  - **13** `myos ldan` — selected as the **Sanskrit's own** sense, "stirring about", which does not
+    render the Tibetan. That is deliberate and consistent: 29, 34, 39 and 52 already do the same, and
+    the two English columns gloss different names, which is the point of showing them side by side.
+    Recorded in the divergence table as a new kind of entry — the two lists agree on the *name* here
+    and disagree on its *sense*, and Janson's ASCII cannot corroborate either way because `pramadi`
+    is the form he collides onto 4, 13 and 47 alike.
+
+  **38 is the last, and it is genuinely closed rather than merely unfinished.** Its adjective sense is
+  a bare "**id.**" — MW's *idem*, "same as the entry above" — with no text of its own, and its noun
+  senses are "a buffalo", "a dog", "a rhinoceros". Resolving the pointer was tested and is not
+  available: Cologne's `getword.php` is keyed by headword only, there is no lookup by record ID, and
+  none of the plausible preceding headwords (क्रोधित, क्रोधवत्, क्रोधाग्नि) exists. Borrowing position 59's
+  "inclined to wrath" is rejected — क्रोधन is a different headword, and that is the error that put
+  "you both" on position 9 and "opposition, hostility" on 23.
 
   **The composed tier is enforced, not asserted.** Each part must resolve in Monier-Williams and each
   stated gloss must appear verbatim in the sense whose ID it cites, so the composition is traceable to
