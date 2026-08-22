@@ -689,6 +689,9 @@ const SELECTED_SENSES = {
 	56: { id: "93585", text: "a sort of large kettledrum" }, // Dundubhi, `rnga chen` great drum
 	// Raktaksha, `mig dmar` red-eyed. The printed रक्ताक्षि is an MW stub with no gloss.
 	58: { id: "173666", text: "red-eyed" },
+	// Krodhin, `khro mo` wrathful. Reached through the cross-reference target क्रोधालु, since
+	// क्रोधिन्'s own entry is only "id.".
+	38: { id: "58286", text: "passionate, violent" },
 	59: { id: "58274", text: "inclined to wrath, passionate" }, // Krodhana, `khro bo` wrathful
 	60: { id: "59377", text: "destruction, decay" }, // Kshaya, `zad pa` exhaustion -- NOT "dominion"
 };
@@ -766,6 +769,12 @@ const COMPOSED_MEANINGS = {
  * offer nothing meaning leaping; it offers "jumping, leaping, plunging". सौम्य was said to omit
  * "gentle, mild"; MW carries "placid, gentle, mild". All three are now selected.
  *
+ * **38 Krodhi was resolved on 2026-08-22, by the same route as 36 and 53**: its entry is only "id.",
+ * Monier-Williams' notation for "the same as the word printed immediately above" -- checked against
+ * the scanned page rather than assumed, since the earlier note here guessed the antecedent was
+ * क्रोध, the root noun, and the scan shows it is actually क्रोधालु, "passionate, violent". See
+ * `SENSE_CROSS_REFERENCES`.
+ *
  * What genuinely remains:
  *
  * - **6 Angirasa** -- a rishi's name, transliterated rather than translated. MW glosses it as
@@ -776,9 +785,6 @@ const COMPOSED_MEANINGS = {
  * - **22 Sarvadhari, 31 Hemalamba, 53 Siddharthin, 58 Raktakshi** -- the entry exists and its only
  *   senses are "name of the Nth year of the cycle", which is circular.
  * - **36 Subhakrit** -- MW defers the headword to शुभ-कर without glossing it here.
- * - **38 Krodhi** -- Cologne lemmatises क्रोधी only as the name of a musical Sruti; the page returned
- *   is क्रोध's. Selecting "anger, wrath" from it would attribute the root's meaning to a headword MW
- *   does not gloss that way, which is the homograph error this table exists to avoid.
  * - **50 Nala/Anala** (`me`, fire) -- a caution about the compound cell. The cell offers two
  *   readings and the lookup takes the first that resolves, which is नल, "a species of reed". The
  *   Tibetan is fire, which is अनल, the second. Both are attested and नल's own entry claims position
@@ -963,6 +969,20 @@ const SENSE_CROSS_REFERENCES = [
 			'means "possessing", so the base carries the sense the derivative inherits. The Tibetan ' +
 			"`don grub`, aim-accomplished, says the same thing. One entry, quoted verbatim, rather than a " +
 			"gloss assembled out of parts.",
+	},
+	{
+		n: 38,
+		from: "क्रोधिन्",
+		expects: "id.",
+		to: "क्रोधालु",
+		why:
+			'Monier-Williams glosses क्रोधिन् only "id.", his notation for "the same as the word printed ' +
+			'immediately above" -- not a general abbreviation that any parser can expand, which is why ' +
+			"this is one hand-checked entry rather than a rule. Confirmed against the scanned page " +
+			"(322,2), not assumed: the entry directly above is क्रोधालु, Cologne ID 58286, consecutive " +
+			'with क्रोधिन्\'s own ID 58287, reading "passionate, violent, Suśr. vi." -- not क्रोध the ' +
+			"root noun, which sits several entries earlier on the same page and would have been the " +
+			"wrong guess. That gloss renders the Tibetan `khro mo`, wrathful.",
 	},
 ];
 

@@ -93,9 +93,10 @@ it. Collapsing the two would turn 15 points of grammar into 15 editorial judgeme
 
 | Rung | Rows | Why it is a rule rather than a judgement | Where it applied |
 |---|---|---|---|
-| `-in stem` | 8 | The list prints the nominative singular; Monier-Williams lemmatises the stem. | 13 प्रमाथी → प्रमाथिन्; 22 सर्वधारी → सर्वधारिन्; 23 विरोधी → विरोधिन्; 33 विकारि → विकारिन्; 38 क्रोधी → क्रोधिन्; 46 परिधावी → परिधाविन्; 47 प्रमादी → प्रमादिन्; 57 रुधिरोद्गारी → रुधिरोद्गारिन् |
+| `-in stem` | 7 | The list prints the nominative singular; Monier-Williams lemmatises the stem. | 13 प्रमाथी → प्रमाथिन्; 22 सर्वधारी → सर्वधारिन्; 23 विरोधी → विरोधिन्; 33 विकारि → विकारिन्; 46 परिधावी → परिधाविन्; 47 प्रमादी → प्रमादिन्; 57 रुधिरोद्गारी → रुधिरोद्गारिन् |
 | `ḷ → l + -in stem` | 1 | ळ is Vedic and Marathi rather than standard Sanskrit, and this row needs the stem rule on top of it — the rungs compose. | 32 विळम्बि → विलम्बिन् |
 | `cross-reference from शुभकृत्` | 1 |  | 36 शुभकृत् → शुभकर |
+| `cross-reference from क्रोधिन्` | 1 |  | 38 क्रोधी → क्रोधालु |
 | `cluster → anusvāra` | 1 | The same rule in reverse — he files this one under the anusvāra, so the ladder tries both directions. | 41 प्लवङ्ग → प्लवंग |
 | `final virāma` | 1 | A missing virāma leaves a spurious inherent *a*, so the word queried is not the word meant. | 45 विरोधकृत → विरोधकृत् |
 | `anusvāra → cluster` | 2 | One word, two conventions for the same nasal. Monier-Williams files these under the cluster. | 48 आनंद → आनन्द; 51 पिंगल → पिङ्गल |
@@ -125,12 +126,12 @@ They gloss **different names**, which is the point of showing them side by side.
   this table. No source gives English for these — Sewell & Fleet prints the sixty as bare names
   against Kaliyuga years and fractional day-counts, with no meaning column, checked directly.
 - **Sanskrit senses** are **sourced**: every sense Monier-Williams lists for that headword, uncapped
-  — 786 of them across the sixty rows.
+  — 781 of them across the sixty rows.
   The table shows the first; the rest are in the detail section below, untruncated.
 - **Selected** is an **authored choice from those sourced candidates**, and the generator refuses to
   run unless the chosen gloss appears verbatim inside the sense carrying its recorded Cologne ID, and
   unless it carries at most two gloss units. So the editorial step is visible and machine-checked; it
-  can select, never invent. 57 of the 60 carry one.
+  can select, never invent. 58 of the 60 carry one.
 
 **Why a selection is needed at all.** Entries carry many senses, often from different roots, and
 taking the first is an accident rather than a policy. `क्षय` opens with a cross-reference and then
@@ -193,7 +194,7 @@ at 10 positions: 4, 6, 9, 15, 31, 37, 56, 57, 58, 60.
 | 35 | འཕར་བ | `'phar ba` | *par ba* | प्लव | Plava | Leaping | प्लव mf( आ )n. swimming, floating, ŚāṅkhGṛ. ; Suśr. ([+25 more](#sanskrit-senses-at-position-35)) | jumping, leaping | MW as printed; Wiktionary; 4 other lexicon(s); position: Wiktionary + Bṛhat Saṃhitā | 1961, 2021 |
 | 36 | དགེ་བྱེད | `dge byed` | *gé jé* | शुभकृत् | Śubhakṛt | Virtue-making | शुभ —कर mfn. causing welfare, auspicious, fortunate, VarBṛS. ([+1 more](#sanskrit-senses-at-position-36)) | causing welfare, auspicious | MW via cross-reference from शुभकृत्; 1 other lexicon(s); position: unstated | 1962, 2022 |
 | 37 | མཛེས་བྱེད | `mdzes byed` | *dzé jé* | शोभन † | Śobhana † | Beautifying | शोभन mf( आ or ई )n. brilliant, splendid, beautiful (at end of comp. = ‘beautiful by reason of’), ŚBr. ; Kauś. ; MBh. &c. ([+21 more](#sanskrit-senses-at-position-37)) | brilliant, splendid | MW as printed; Wiktionary; 5 other lexicon(s); position: Bṛhat Saṃhitā | 1963, 2023 |
-| 38 | ཁྲོ་མོ | `khro mo` | *tro mo* | क्रोधी | Krodhī | Wrathful — feminine, against 59 | क्रोधिन् mfn. id. , iii, 4, 62 ([+5 more](#sanskrit-senses-at-position-38)) | — | MW via -in stem; 2 other lexicon(s); position: Bṛhat Saṃhitā | 1964, 2024 |
+| 38 | ཁྲོ་མོ | `khro mo` | *tro mo* | क्रोधी | Krodhī | Wrathful — feminine, against 59 | क्रोधालु mfn. passionate, violent, Suśr. vi. | passionate, violent | MW via cross-reference from क्रोधिन्; 2 other lexicon(s); position: Bṛhat Saṃhitā | 1964, 2024 |
 | 39 | སྣ་ཚོགས་དབྱིག | `sna tshogs dbyig` | *na tsok yik* | विश्वावसु | Viśvāvasu | Manifold wealth | विश्वा —वसु ( विश्वा- ), mfn. beneficent to all (said of Viṣṇu ), MBh. ([+12 more](#sanskrit-senses-at-position-39)) | beneficent to all | MW as printed; 4 other lexicon(s); position: Bṛhat Saṃhitā | 1965, 2025 |
 | 40 | ཟིལ་གནོན | `zil gnon` | *zil nön* | पराभव | Parābhava | Overwhelming | परा-भव m. vanishing, disappearance, dissolution, separation, R. ([+2 more](#sanskrit-senses-at-position-40)) | overthrow, defeat | MW as printed; Wiktionary; 3 other lexicon(s); position: Wiktionary + Bṛhat Saṃhitā | 1966, 2026 |
 | 41 | སྤྲེའུ | `spre'u` | *treu* | प्लवङ्ग | Plavaṅga | Monkey | प्लव —ं-ग mfn. ‘moving by jumps’, flickering (said of fire), MBh. ([+4 more](#sanskrit-senses-at-position-41)) | a monkey | MW via cluster → anusvāra; 3 other lexicon(s); position: Bṛhat Saṃhitā | 1967, 2027 |
@@ -992,14 +993,9 @@ Monier-Williams, printed page 1092, queried as `शोभन` (as printed). Also
 
 क्रोधी Krodhī
 
-Monier-Williams, printed page 322, queried as `क्रोधिन्` (-in stem). Also carried by Shabda-Sagara, Yates.
+Monier-Williams, printed page 322, queried as `क्रोधालु` (cross-reference from क्रोधिन्). Also carried by Shabda-Sagara, Yates.
 
-- क्रोधिन् mfn. id. , iii, 4, 62 *(H2 · 58287)*
-- क्रोधिन् m. a buffalo, L. *(H2 · 58288)*
-- a dog, L. *(H2 · 58289)*
-- a rhinoceros, L. *(H2 · 58290)*
-- the 38th year of the sixty years' Bṛhaspati cycle, VarBṛS. viii, 41 ; Romakas. *(H2 · 58291)*
-- क्रोधिनी f. a mystical N. of the letter र् . *(H2B · 58292)*
+- **क्रोधालु mfn. passionate, violent, Suśr. vi.** *(H2 · 58286)*
 
 ### Sanskrit senses at position 39
 
