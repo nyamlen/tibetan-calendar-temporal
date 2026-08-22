@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { devanagariToIast } from "../scripts/indic.ts";
+import { rabjungFromYear } from "../src/computation/epoch.js";
 import { RABJUNG_NAMES as SHIPPED_RABJUNG_NAMES } from "../src/rabjung-names.js";
 import { RABJUNG_NAMES } from "./fixtures/rabjung-names.js";
+import { SIXTY_YEAR_CYCLE } from "./fixtures/sixty-year-cycle.js";
 
 /**
  * Gloss units in a selection, splitting on `,` and `;` outside parentheses.
@@ -180,5 +182,41 @@ describe("src/rabjung-names.ts matches the verified fixture", () => {
 		expect(Object.isFrozen(SHIPPED_RABJUNG_NAMES)).toBe(true);
 		expect(Object.isFrozen(SHIPPED_RABJUNG_NAMES[0])).toBe(true);
 		expect(Object.isFrozen(SHIPPED_RABJUNG_NAMES[0]?.sanskrit)).toBe(true);
+	});
+});
+
+/**
+ * Position N carries name N — the wiring, not the content.
+ *
+ * @remarks
+ * Neither existing check reaches this. The fixture-integrity suite above pins the committed data;
+ * the parity suite pins `src/rabjung-names.ts` against that same data by indexing both with the
+ * identical `row.position - 1`, so an off-by-one shared by both sides would pass. Neither asks
+ * whether the *engine* -- `rabjungFromYear`, via `rabjungNameOf` -- attaches the right row to the
+ * right year, so a bug in that indexing specifically passes both.
+ *
+ * `SIXTY_YEAR_CYCLE` and `RABJUNG_NAMES` derive from the same Janson-anchored Gregorian-year
+ * pairing but are independent files with independent provenance -- one from
+ * `scripts/extract-janson-fixtures.mjs` parsing the LaTeX, the other from
+ * `scripts/verify-rabjung-names.mjs` querying Cologne and Wiktionary -- so joining on year and
+ * checking agreement is a real cross-check, not two views of one number.
+ *
+ * **State the limit**, since both fixtures ultimately anchor to Janson's own cycle-16/17 table:
+ * this validates *wiring* -- that position N's row reaches year N's `Rabjung.name` -- not the
+ * *content* of any individual row, which the suites above already cover from their own sources.
+ */
+describe("rabjungFromYear(year).name wires the right row to the right year", () => {
+	it("agrees with the independently-sourced sixty-year-cycle fixture at every position", () => {
+		const wrong: unknown[] = [];
+		for (const row of SIXTY_YEAR_CYCLE) {
+			const expected = RABJUNG_NAMES[row.indian - 1];
+			for (const year of row.years) {
+				const { name } = rabjungFromYear(year);
+				if (name.wylie !== expected?.wylie) {
+					wrong.push({ year, position: row.indian, got: name.wylie, expected: expected?.wylie });
+				}
+			}
+		}
+		expect(wrong).toEqual([]);
 	});
 });
