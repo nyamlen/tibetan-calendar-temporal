@@ -266,6 +266,31 @@ Setup work not yet done. None of it blocks Phase 3.
 Decisions deliberately deferred during setup, each with the reason it was deferred. Work
 through this before publishing v1.0.0 — several are one-way doors once published.
 
+**Documentation**
+
+- [x] **Split the README into a landing page and a guide.** Done 2026-08-23. The README carries the
+      pitch, install line and one runnable example in its first 40 rendered lines; `docs/guide.md`
+      takes the long-form material in three sections. Constraint recorded in
+      [decisions/2026-08-23-readme-is-the-landing-page.md](decisions/2026-08-23-readme-is-the-landing-page.md)
+- [x] **`docs/why-trust-these-dates.md`** — the reader-facing account of what has been validated and
+      over which years, written for a non-programmer. It is the only document besides
+      [testing.md](testing.md) permitted to quote a validation window; everything else links to it
+- [x] **`docs/other-implementations.md`** — a survey of the other software that computes Tibetan
+      dates, framed as "when to use which" rather than as a comparison. Every claim from public
+      metadata, with an access date; no competitor source read
+- [x] **Ship the two consumer documents to npm** — `package.json#files` gains `docs/guide.md` and
+      `docs/why-trust-these-dates.md`, so condensing the README costs a consumer nothing
+      structurally. `docs/other-implementations.md` and every contributor document stay repo-only
+- [x] **A benchmark, outside CI.** `npm run bench` joins `coverage`, `verify:names` and
+      `verify:rabjung-names` as a release-time check that gates nothing. It exists because two
+      numbers were already load-bearing and unmeasured: the `getObservances` span cap, which
+      justifies a shipped `TCT_SPAN_TOO_WIDE`, and the `monthsFor` cache. The first turned out to be
+      wrong — about 270 ms, not the 190 ms the docblock claimed — and was corrected. Harness in
+      `bench/RESULTS.md`; **no figure may be quoted without it**
+- [ ] **On the 1.0.0 render, confirm npm rewrites the README's relative links** against
+      `repository`. If it does not, the `docs/` links in the README need absolute URLs — the two
+      shipped documents are unaffected either way, since they are in the tarball
+
 **Package**
 
 - [x] Remove the `STATUS` export from `index.js` — done in Phase 0; `index.js` is gone entirely,
@@ -529,6 +554,22 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
 > are sequenced together deliberately.
 
 ## Beyond v1
+
+- **An interactive almanac page, not a prose docs site.** A prose documentation site would duplicate
+  [guide.md](guide.md), and its examples would sit outside the assertion machinery that makes the
+  README's trustworthy — `test/readme.test.ts` and `test/guide.test.ts` assert every example those
+  documents state, and a hand-written site would assert none. That is the failure this repository is
+  organised against, so a docs site is not the thing to build.
+
+  What a web surface can do that no README can is render a **live month grid** with a tradition
+  switcher and observance toggles. The product claim is "dates you can trust", and a rendered almanac
+  demonstrates it in one screen where prose only asserts it.
+
+  **Precondition: every date or example it shows is generated from, or asserted by, the test suite —
+  never hand-written.** Design it alongside the `tibetan-calendar-story` web publication rather than
+  separately; that document is already being written to be publishable as a webpage, and two
+  unrelated web surfaces for one project is a maintenance surface nobody asked for. TypeDoc stays
+  blocked on TypeScript 7 independently of this.
 
 - **The 60 rabjung cycle names — SHIPPED.** `rabjung.name` carries a `RabjungName` at every
   position: the Tibetan tradition's name, plus the Indic saṃvatsara list's name in `sanskrit`, whose

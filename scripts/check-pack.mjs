@@ -25,7 +25,15 @@
  */
 
 import { execFileSync } from "node:child_process";
-import { copyFileSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import {
+	copyFileSync,
+	existsSync,
+	mkdtempSync,
+	readdirSync,
+	readFileSync,
+	rmSync,
+	writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -77,6 +85,28 @@ try {
 
 	console.log(`Installing ${tarball}...`);
 	runNpm(["install", "--no-package-lock", "--ignore-scripts", `./${tarball}`], scratch);
+
+	// The two consumer documents `package.json#files` ships. They are what makes the README's
+	// condensation safe: the long-form material moved to `docs/guide.md` rather than out of the
+	// package, so an npm consumer loses nothing to the split. Nothing else in this repository sees
+	// the packed file list, so a `files` edit that dropped them would surface only for a consumer.
+	//
+	// Their relative links must resolve inside the tarball, because npmjs.com rewrites relative
+	// links in a README against `repository` but a file read from `node_modules` gets no such
+	// rewriting. Anything repo-only is linked by absolute URL, which is why the only relative
+	// targets here are each other and the README.
+	const shippedDocs = ["docs/guide.md", "docs/why-trust-these-dates.md"];
+	const installed = join(scratch, "node_modules", "tibetan-calendar-temporal");
+	for (const doc of shippedDocs) {
+		const text = readFileSync(join(installed, doc), "utf8");
+		for (const [, target] of text.matchAll(/\]\((?!https?:)([^)#]+)/g)) {
+			const resolved = resolve(dirname(join(installed, doc)), target);
+			if (!existsSync(resolved)) {
+				throw new Error(`${doc} links to ${target}, which is not in the tarball`);
+			}
+		}
+	}
+	console.log(`Shipped docs present, with resolving relative links: ${shippedDocs.join(", ")}`);
 
 	console.log("Importing as a consumer would:");
 	// Run from the scratch directory so bare specifiers resolve through the installed package's

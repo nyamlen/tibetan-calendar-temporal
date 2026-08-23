@@ -41,7 +41,9 @@
   "files": [
     "dist",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "docs/guide.md",
+    "docs/why-trust-these-dates.md"
   ],
   "scripts": {
     "clean": "node --eval \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
@@ -51,6 +53,7 @@
     "test:watch": "vitest",
     "test:pack": "node scripts/check-pack.mjs",
     "coverage": "vitest run --coverage",
+    "bench": "vitest bench --run",
     "lint": "biome check .",
     "lint:md": "markdownlint-cli2",
     "format": "biome check --write .",

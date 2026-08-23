@@ -80,6 +80,9 @@ A rule with a command beside it will stop a push. A rule marked **review** will 
 | In a sweep over thousands of rows, collect violations and assert once | **review** | Eleven thousand rows times six assertions killed a vitest worker, reported only as `Worker exited unexpectedly` |
 | Any multi-century test carries an explicit timeout | **review** | The 200-year moon-phase sweep runs in under a second bare and 5–8 seconds under v8 instrumentation, against vitest's 5s default — `test` passed while `coverage` failed, for an unknown stretch |
 | README examples stay true | `test/readme.test.ts` | Change an example, update the test in the same commit |
+| Guide examples stay true | `test/guide.test.ts` | `docs/guide.md` ships to npm, so its examples are contract exactly as the README's are. A suite named for one document while guarding another is one nobody thinks to update |
+| The README is a landing page: pitch, install line and one runnable example in its first 40 rendered lines | **review**, and [decisions/2026-08-23-readme-is-the-landing-page.md](decisions/2026-08-23-readme-is-the-landing-page.md) | It reached 950 lines by accretion, each addition justified, with the install command at line 103 and the trust argument at 903. Nothing mechanical catches a document getting worse one reasonable commit at a time |
+| A validation window is stated in `docs/testing.md`, quoted only by `docs/why-trust-these-dates.md`, and linked to by everything else | **review** | Five copies of a number is a number that will drift. Deliberately unguarded: every available predicate fires on `docs/validation-sources.md` itself and on any honest limitations section, and a guard that fires wrongly is worse than none |
 
 ## Documentation
 
@@ -114,7 +117,7 @@ The Wylie and Tibetan-script columns of the shipped vocabulary are **not** gover
 
 | Rule | Enforced by | Why |
 |---|---|---|
-| The clean-room constraint — never read `eszthoff/*` source, never add either as a dependency | **review**, and the commit history is the evidence | Neither has a licence file, so both are all-rights-reserved |
+| The clean-room constraint — never read `eszthoff/*` source, never add either as a dependency | **review**, and the commit history is the evidence | The history is the proof of independent derivation, and it is worth what the claim that nobody read the alternative is worth. Not a licence argument: `tibetan-date-calculator` declares MIT in `package.json` and has since 2019, though no repository or tarball carries a `LICENSE` file |
 | Janson's LaTeX source, never PDF-extracted text | **review** | `pdftotext` has already produced three wrong formulas here, none of which crash |
 | Cite by section and content, never by a rendered equation or table number | **review** | `T12` and `T60` are labels, not table numbers |
 | A name needs five independent checks, not one Janson table | `npm run verify:names`, whose committed output `test/fixtures/names.ts` the suite reads | His weekday table gives Saturday as `spen ma`; his own Bhutan appendix gives `spen pa` |
@@ -143,12 +146,15 @@ Every test imports from `src/`, so a broken `exports` map, a file missing from `
 
 `attw` runs under `--profile esm-only`. Its `node10` and `node16-cjs` rows are the deliberate design, not defects — there is no `main` field and no CJS build.
 
-### Two release-time checks, deliberately outside CI
+### Three release-time checks, deliberately outside CI
 
 | Command | Why it cannot gate a push |
 |---|---|
 | `npm run verify:names` | Needs the network and two EWTS converters installed outside the repo. What gates a push is its committed output; provenance is checked before a release, integrity on every push |
 | `npm run coverage` | Not gated by anything, and was broken on `main` for an unknown stretch. Run it before a release, and run it for what it *reports* — an unreachable-line report is how a redundant config check was found |
+| `npm run bench` | Shared runners are noisy enough that a threshold would fire on the runner rather than on the change, and a guard that fires wrongly is worse than none. Run it before a release and record the harness in `bench/RESULTS.md`; it already corrected a shipped figure, the `getObservances` span cap's cost |
+
+**A performance number may be quoted only with its harness.** The project refuses unsourced numbers from its calendar sources, and the rule applies to its own: machine, OS, Node version and date, as `bench/RESULTS.md` records them. `CLAUDE.md`'s `monthsFor` cache figures were asserted for months before anything measured them.
 
 ## Adding a rule
 

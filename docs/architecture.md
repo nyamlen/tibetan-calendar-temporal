@@ -8,8 +8,8 @@ For the testing approach, see [testing.md](testing.md). For build sequencing, se
 
 ## Key Constraints
 
-- **Clean-room implementation** — do NOT reference or copy code from `eszthoff/tibetan-date-calculator`. That library has no license (legally all-rights-reserved). Implement directly from Janson's paper. Full rules in [CONTRIBUTING.md](../CONTRIBUTING.md).
-- **Temporal-native** — use `Temporal.PlainDate` (ES2026 standard) for date representation. No legacy `Date` objects anywhere.
+- **Clean-room implementation** — do NOT reference or copy code from `eszthoff/tibetan-date-calculator`. The commit history is this project's evidence of independent derivation, and reading an alternative implementation cannot be undone or disproved afterwards. Implement directly from Janson's paper. Full rules in [CONTRIBUTING.md](../CONTRIBUTING.md).
+- **Temporal-native** — use `Temporal.PlainDate` for date representation. No legacy `Date` objects anywhere. Temporal is a **finished (stage 4) TC39 proposal**, expected in ES2027 — [tc39/proposals lists it under finished proposals](https://github.com/tc39/proposals/blob/main/finished-proposals.md), with 2027 in the expected-publication column. It was described here as "ES2026 standard" until 2026-08-23, which was wrong. Why Temporal rather than `Date` is argued in [guide.md](guide.md#why-temporalplaindate-and-never-date).
 - **Zero runtime dependencies** — Temporal is a language built-in. The engine depends on nothing.
 - **Integer arithmetic only** — all Phugpa calendar math uses integer division with fixed denominators. No floating point. This ensures deterministic, cross-platform-identical results.
 - **Tradition-agnostic architecture** — astronomical constants are injected via a `TraditionConfig` type, not hardcoded. v1 ships only `PHUGPA` config, but the algorithm supports future addition of Tsurphu (Karma Kagyu) via a different config set.

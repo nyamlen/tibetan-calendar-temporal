@@ -388,9 +388,10 @@ function appliesToMonth(
  * `"both"` the same rule appears twice with different {@link Observance.resolution} values.
  *
  * **The span is capped at {@link MAX_SPAN_YEARS} years.** Cost is linear in the range, and what
- * the cap guards against is not the cap itself — the maximum admissible span runs in about 190 ms
- * — but the range beyond it. `Temporal.PlainDate` reaches from -271821 to +275760, about 547,000
- * years, so a service forwarding user-supplied `from`/`to` straight through would hand its event
+ * the cap guards against is not the cap itself — the maximum admissible span runs in about 270 ms
+ * on the machine recorded in `bench/RESULTS.md`, a 2017 dual-core laptop — but the range beyond
+ * it. `Temporal.PlainDate` reaches from -271821 to +275760, about 547,000 years, so a service
+ * forwarding user-supplied `from`/`to` straight through would hand its event
  * loop three orders of magnitude more than that, synchronously and without yielding.
  *
  * The cap is deliberately far beyond real use: the Phugpa tradition dates from 1447, so 200 years

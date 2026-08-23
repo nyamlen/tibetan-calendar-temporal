@@ -329,8 +329,12 @@ its source and tradition line in a header:
 - `scripts/extract-janson-fixtures.mjs` → `test/fixtures/losar.ts`, `sixty-year-cycle.ts`,
   `janson-epoch.ts`
 
-> **eszthoff is executed, never read, and never installed into this repository.** It has no
-> licence file, so it is all-rights-reserved — the reason `CLAUDE.md` forbids reading it at all.
+> **eszthoff is executed, never read, and never installed into this repository.** Running it and
+> comparing computed dates is fine — dates are facts. Reading it is what `CLAUDE.md` forbids, and
+> the reason is evidence rather than licence: the commit history is this project's proof of
+> independent derivation. (It declares MIT in `package.json`, though no repository or tarball
+> carries a `LICENSE` file. That was misread as all-rights-reserved until 2026-08-23, and the
+> constraint is unchanged either way.)
 > Its generator resolves the package from the *current working directory*, so install it in a
 > scratch directory outside the repo and run the script from there. Do not add it as a
 > devDependency: that puts its code in the tree, which is the thing being avoided. If a

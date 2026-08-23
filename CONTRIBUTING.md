@@ -11,10 +11,17 @@ cannot be fixed after the fact.
 **Do NOT look at or reference the source code of `eszthoff/tibetan-date-calculator` or
 `eszthoff/tibetan-calendar-temporal`.**
 
-These repositories have no licence file, which makes their code legally all-rights-reserved.
-Any contribution derived from them would compromise this project's MIT licence for everyone.
-Our implementation must derive solely from Janson's paper, which is freely available academic
-work.
+The reason is evidence rather than licence risk. This project's commit history is its proof that
+the engine was derived independently from Janson's paper, and that proof is worth exactly as much
+as the claim that nobody here has read the alternative. Reading it cannot be undone, and cannot be
+disproved afterwards. Our implementation must derive solely from Janson's paper, which is freely
+available academic work.
+
+> **Corrected 2026-08-23.** This section used to say the repositories have no licence file and are
+> therefore all-rights-reserved. The first half is true — there is no `LICENSE` file on GitHub, on
+> the current GitLab home, or in the published tarball — but `tibetan-date-calculator` declares
+> `"license": "MIT"` in `package.json`, and has since 1.0.0 in June 2019. A manifest field is a
+> licence grant. The rule did not change; the reason for it did.
 
 **You MAY:**
 
