@@ -274,9 +274,11 @@ year began in (2026, exposed as `yearStartsIn`). The two differ by 127.
 
 ### Building a month grid
 
-`monthsFor` gives a year's months in calendar order, with the leap month sitting immediately before
-the regular month it shares a number with. Reconstructing that ordering yourself is the part most
-easily got wrong.
+`monthsFor` gives a year's months in calendar order, and where a leap month sits depends on the
+tradition: under `PHUGPA` — the default, and the example below — it sits immediately **before** the
+regular month it shares a number with, while `BHUTAN` numbers from the preceding month, so its leap
+month **follows** its twin. Reconstructing that ordering yourself is the part most easily got wrong,
+which is why `monthsFor` and `datesFor` exist; prefer them to a hand-rolled walk.
 
 ```js
 import { monthsFor, hasLeapMonth, leapMonthOfYear } from 'tibetan-calendar-temporal';
@@ -327,13 +329,14 @@ monthsFor(2151).map((m) => m.lunation);
 
 > **`days` counts calendar days, not date numbers.** Date numbers always run 1–30; the span is 29 or
 > 30, because some numbers are skipped and some are carried by two days. So `for (d = 1; d <= days;
-> d++)` builds a **wrong** grid. Walk the calendar days instead — one cell per day, labelled by
-> conversion:
+> d++)` builds a **wrong** grid.
+>
+> **Use `datesFor`.** It walks the month and hands back one `TibetanDate` per calendar day, each
+> carrying both the number to print and the ISO date it falls on, so there is no walk to get wrong:
 >
 > ```js
-> for (let day = month.firstDay; Temporal.PlainDate.compare(day, month.lastDay) <= 0;
->      day = day.add({ days: 1 })) {
->   const date = isoToTibetan(day);   // date.day is the number to print in the cell
+> for (const date of datesFor(month)) {
+>   render(date.day, date.isoDate);   // date.day is the number to print — never the loop index
 > }
 > ```
 
@@ -568,6 +571,11 @@ duchen.map((o) => `${o.rule.name}: ${o.date.isoDate}`);
 // [ "Chotrul Duchen: 2026-03-03", "Saka Dawa Duchen: 2026-05-31",
 //   "Chokhor Duchen: 2026-07-18", "Lhabab Duchen: 2026-11-01" ]
 ```
+
+Each `Observance` is three fields — `date`, the `TibetanDate` it falls on and always a real calendar
+day; `rule`, the rule that produced it, carrying `id`, `name`, `kind` and `tier`; and `resolution`,
+how it landed there. The `rule` is the **same object** the config holds rather than a copy, so for a
+config you supplied, mutating it mutates your own rule table; the shipped `GELUG` is deeply frozen.
 
 It is a separate import for a reason. Everything on the root export makes a **falsifiable** claim:
 a constant checks against Janson, a date against an almanac, and a disagreement is a bug. Nothing

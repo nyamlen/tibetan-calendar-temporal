@@ -163,6 +163,76 @@ Note what a first client will *not* reach: `addDays`/`addMonths`/`nextFullMoon`,
 and tradition switching. Those surfaces are being frozen on lighter evidence, which is a choice
 rather than an oversight.
 
+### What the first client found
+
+A smoke client ran on 2026-08-22 in `nyamlen/spikes/calendar-smoke/`, working only from the
+installed tarball's `README.md` and shipped `.d.ts` files, with the engine's `docs/` and `src/`
+off limits. It printed month grids for three probe months and its output matched every expected
+value, including that day 20 never appears in 2152 M09, that `isLeapDay` marks the **first** of a
+doubled pair, and that Chokhor Duchen falls on the second of 2151 M06L's doubled 4th.
+
+**The headline is that nothing it found requires an API change.** Every item is documentation.
+That is the evidence this gate existed to gather: the shape survived contact with a consumer, and
+the surface can be frozen.
+
+**Fix the documentation — six items.**
+
+1. **`leapMonthOfYear`'s docblock is a false contract, and it ships.** `src/months.ts` says the
+   engine "does not yet express" where a leap month sits, that it "always" places it before the
+   regular month sharing the number, and that "until that is configurable the number here is
+   already the Bhutanese one but the position is not". Every clause has been false since
+   `leapMonthPosition` landed on 2026-08-16: `monthsFor(2151, BHUTAN)` yields `... M08 M08L ...`.
+   It reaches consumers as `dist/months.d.ts`, which is what editor hover shows.
+2. **The same docblock's "Bhutanese 10" is misleading rather than wrong.** It holds only when
+   `leapIndexThreshold` alone is varied, which is what `test/docblock-examples.test.ts` pins and
+   says in a comment — but the shipped `BHUTAN` config gives **8**, and a reader takes "Bhutanese"
+   to mean that config. The same figure appears in `CLAUDE.md`. Correct both together, and say
+   which constant is being varied.
+3. **The README's footgun warning teaches the workaround instead of the API.** The `days` callout
+   shows the hand-rolled `firstDay` to `lastDay` walk prominently; the client copied it into every
+   grid and never called `datesFor` at all, though the README elsewhere calls that its preferred
+   route. A warning that displaces the function it should be recommending.
+4. **The `Observance` object's shape is not in the README**, so the client had to open
+   `dist/observances/*.d.ts` to learn its field names.
+5. **`TibetanDate.weekdayName` is tradition-aware and nothing says so.** The README documents
+   `weekdayNameFor` taking a config, but not that the *field* on a date built with `BHUTAN`
+   inherits the shift. Confirmed only by experiment.
+6. **`formatTibetanDate` does not encode `isDoubledDay`.** True to its stated contract — it is the
+   inverse of `parseTibetanDate`, which returns naming fields — but a consumer comparing two dates
+   by formatted string gets "identical" where one is the second half of a doubled pair and the
+   other an ordinary day. Say so in the docblock; do not widen the format, which would break the
+   round-trip identity.
+
+**Accept and record — six items**, none of them the package's doing: `file:` in `package.json`
+covers both a tarball and a directory, so the install line does not show which happened;
+TypeScript needed an explicit `"types": ["node"]` before `console` resolved; exports were
+cross-checked against `.d.ts` out of caution; two probe dates fell in one month and needed
+deduping; `.toString()` avoids the documented `PlainDate` logging problem; and the client's first
+draft dropped `isFullMoon`/`isNewMoon`, which it recorded as its own mistake.
+
+**Change the API before 1.0.0 — none.**
+
+**All six were fixed on 2026-08-23**, and the gate is closed: every item on the client's list
+carries a verdict, and no verdict was "change the API". What shipped as corrections —
+`leapMonthOfYear`'s docblock and its Bhutan figure, the README's month-grid ordering claim, the
+`days` callout now recommending `datesFor` instead of teaching the walk that displaced it, the
+`Observance` shape, `weekdayName`'s tradition-awareness, and a `@remarks` on `formatTibetanDate`
+saying it is not a complete encoding of a resolved date. The suite stayed at 816 tests throughout,
+which is the point: none of this was behaviour.
+
+**What the exercise cost, and what it bought.** Under an hour of client work found a false contract
+that had been shipping in `dist/months.d.ts` since 2026-08-16 and that three phases of review,
+a 300-docblock audit plan, and `check:conventions` had all missed — because none of them reads prose
+against behaviour, and the audit had not yet run. That is the argument for doing this before
+1.0.0 rather than after, and the argument for the audit being consumer-driven rather than
+sequential.
+
+**What the client did not reach**, which makes the "lighter evidence" note above specific: the
+whole navigation tier (`addDays`, `addMonths`, `daysBetween`, `monthsBetween`, `lunationFromMonth`,
+`monthFromLunation`, `nextFullMoon`, `nextNewMoon`), the reverse path (`tibetanToIso`,
+`tibetanDateExists`, `SkippedDayError` — no error path was exercised at all), `parseTibetanDate`,
+`getObservances` as a range query, the closed-form name lookups, and any custom `ObservanceConfig`.
+
 ## Outstanding — near term
 
 - [x] **`TibetanDate` shape confirmed** before writing `src/types.ts` — done 2026-08-11. Date
@@ -664,3 +734,48 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   merely costs a loop — an ICS export is a loop, not a wrong-or-impossible workaround, and it would
   mean owning RFC 5545 escaping, `VTIMEZONE` and folding, none of which is calendrical. An
   `@nyamlen/icalendar` package remains open if one is requested.
+
+- **A phase-time retrospective, published in the `tibetan-calendar-story` repository.** Requested
+  2026-08-22. Not here: this repository ships a package, and the retrospective is prose, numbers and
+  diagrams — which is exactly what that repository is for. Its diagram rule applies, so every chart
+  is authored Mermaid or hand-written SVG under `diagrams/`, never a bitmap, so one source serves
+  both the webpage and the deck.
+
+  The data lives outside both repositories, in the tracker at
+  `~/.claude/projects/h--repositories-tibetan-calendar-temporal/time-tracking/` — `phases.json`
+  holds one row per work window with a note recording what happened, and `report.mjs` prints the
+  table and an idle-threshold sensitivity breakdown.
+
+  **Insights already found, and worth checking before more are hunted.** These came out of a review
+  of the rows on 2026-08-22 and are the seed, not the whole set:
+
+  - **Responding to reviews cost more than building the calendar.** Adversarial-review remediation
+    totals 7.7h against 7.6h for Phases 1, 2 and 3 combined — the core computation, the validation
+    layer and the observance engine together — and the roadmap budgeted **zero** for it.
+  - **Sourcing names cost more than every budgeted phase put together.** The rabjung names (10.8h)
+    and the naming layer (4.4h) come to 15.2h, against 13.4h for all five estimated phases. The
+    expensive part of this project was provenance, not arithmetic.
+  - **Every estimate was high, and by a consistent factor.** 48h estimated across Phases 0–4 against
+    13.4h measured. That is a statement about the estimating model, not about the work: the
+    estimates were hand-written for human effort and the tracker measures agent-session wall-time,
+    so the honest finding is that the two are not comparable — which is itself the insight.
+  - **Elapsed dwarfs active on the long phases.** Part 5 spans 47.9h of calendar time for 10.8h of
+    active work. Worth pairing with the sensitivity table, which shows the same rows never
+    plateau.
+
+  **Every number must travel with its caveat**, in the same sentence or the one after. Active time
+  is session wall-clock including model latency and reading, gaps over fifteen minutes are dropped,
+  and for the three longest phases the figure never plateaus as the threshold widens — so those are
+  upper bounds, not measurements. A retrospective that prints them bare would assert a precision the
+  data does not have, which is the same failure [testing.md](testing.md) exists to prevent for
+  validation windows.
+
+  **Two data-quality bugs were fixed on 2026-08-22 and both predate the numbers above**, so any
+  chart built from an older export is wrong: commit counts ignored excluded windows entirely (one
+  consolidated row claimed 47 commits against 11), and one row was nested inside another with no
+  exclusion, billing roughly 1.3h and 8 commits twice. A nesting check over all rows now passes.
+
+  Graph candidates: estimate against actual for the five budgeted phases; budgeted against
+  unbudgeted work as a share of the total; a timeline of phases showing where remediation
+  interleaved with delivery; and active against elapsed per phase. The first is the one that carries
+  the argument, and it needs the caveat printed beside it rather than in a footnote.

@@ -307,14 +307,17 @@ export function hasLeapMonth(year: number, config: TraditionConfig = PHUGPA): bo
  *
  * **Which year has a leap month, and which month it doubles, is tradition-specific** — it falls out
  * of `leapIndexThreshold`, so the answer changes with the config and the example below is Phugpa's.
- * For 2151, Phugpa gives 6, Mongolian 5 and Bhutanese 10, while Tsurphu has no leap month that year
- * at all.
+ * Varying that threshold alone over 2151 — Janson's 48, 46, 57 and 0 — gives Phugpa 6, the Mongolian
+ * version 5, the Bhutanese 10, and Tsurphu no leap month that year at all.
  *
- * Where the leap month *sits* relative to its twin is a separate question, and one this engine does
- * not yet express: it always places the leap month **before** the regular month sharing the number,
- * which is right for every version Janson gives except Bhutan, where it follows. Until that is
- * configurable the number here is already the Bhutanese one but the position is not — see
- * [traditions.md](../docs/traditions.md).
+ * **Those are threshold-only figures, and the shipped `BHUTAN` config is not one of them.** It also
+ * sets `leapMonthPosition`, which changes the numbering: `leapMonthOfYear(2151, BHUTAN)` is **8**,
+ * not 10. Quote such a figure with the constant it varies, never as "the Bhutanese answer".
+ *
+ * Where the leap month *sits* relative to its twin is `TraditionConfig.leapMonthPosition`, settled
+ * on 2026-08-16. Phugpa, Tsurphu and the Mongolian version place it **before** the regular month
+ * sharing the number; Bhutan numbers from the **preceding** month, so its leap month follows —
+ * `monthsFor(2151, BHUTAN)` runs `... M08 M08L ...`. See [traditions.md](../docs/traditions.md).
  *
  * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `year` is not a safe integer, or
  * `TCT_OUTSIDE_EXACT_RANGE` if it falls beyond the tradition's derivable range.
