@@ -421,15 +421,15 @@ tree would be picked up by Biome, the link checker and Vitest — and imports bo
 design, not defects: there is no `main` field and no CJS build. Do not add `main` to make a row
 green.
 
-**Three commands are deliberately outside CI, and all are release-time checks.** `npm run coverage`
-(below), `npm run verify:names`, which re-derives the whole Tibetan name vocabulary from Janson and
+**Four commands are deliberately outside CI, and all are release-time checks.** `npm run coverage`
+(below), `npm run bench` (below), `npm run verify:names`, which re-derives the whole Tibetan name vocabulary from Janson and
 re-checks it against Wiktionary, THL and CLDR, and `npm run verify:rabjung-names`, which does the
 same for the sixty rabjung year names against Janson, the Indic saṃvatsara list, Sewell & Fleet,
 **Monier-Williams via the Cologne scan** (the Sanskrit senses, uncapped and citing a printed page),
 **wisdomlib** (the Bṛhat Saṃhitā's cycle position, and which non-MW lexicons carry a headword) and
 Wiktionary — which is now only a second attestation, never the sense source, because its Sanskrit
 senses **are** Monier-Williams verbatim and corroborating it with anything MW-derived would be MW
-agreeing with itself. Both need the network and two converters installed outside the repo, so neither
+agreeing with itself. The two verifiers need the network and two converters installed outside the repo, so neither
 can gate a push — what gates a push is their committed output, `test/fixtures/names.ts` and
 `test/fixtures/rabjung-names.ts`, which the suite reads.
 
@@ -474,6 +474,34 @@ tier**, marked ‡ in the table and held in its own field, because `selected`'s 
 it is a verbatim span of one printed sense. A composed gloss is offered rather than a blank because
 returning nothing says "this name has no meaning", which for an ordinary transparent compound is
 false — but it is never allowed to look like a quotation.
+
+**`npm run bench` lives in `bench/` at the repo root, not under `test/`, and that is not a
+preference.** `check:conventions` sanctions exactly four directories under `test/` — `computation`,
+`fixtures`, `support`, `validation` — and scans **every** `.ts` beneath it, so `test/bench/` is
+rejected outright. Do not widen that set to make room: the rule's own message says a suite is either
+about a module or about an external source, and a benchmark is neither. A benchmark is not a test.
+`package.json#files` already excludes `bench/`, and `tsconfig.json` and `biome.json` include it
+deliberately so it is not an unchecked corner.
+
+It exists because two numbers were load-bearing and unmeasured, and it corrected one on its first
+run: the `getObservances` span cap — which justifies a shipped `TCT_SPAN_TOO_WIDE` — costs about
+**270 ms**, not the 190 ms its docblock claimed. **A performance number may be quoted only with its
+harness**, recorded in `bench/RESULTS.md`: machine, OS, Node version, date. The project refuses
+unsourced numbers from its calendar sources and the same rule applies to its own. Deliberately no
+regression threshold and not in CI — shared runners would fire on the runner rather than on the
+change, and a guard that fires wrongly is worse than none.
+
+**The README is a landing page, and `docs/guide.md` is where new consumer prose goes.** Its first 40
+rendered lines carry the pitch, the install line and one runnable example, and nothing else precedes
+them; the guide takes the long form in three sections. Related and load-bearing: **a validation
+window is stated in `docs/testing.md`, quoted only by `docs/why-trust-these-dates.md`, and linked to
+by everything else** — five copies of a number is a number that will drift. Deliberately unguarded
+by `check:conventions`, because every available predicate fires on `docs/validation-sources.md`
+itself. Both in
+[docs/decisions/2026-08-23-readme-is-the-landing-page.md](docs/decisions/2026-08-23-readme-is-the-landing-page.md).
+`package.json#files` ships `docs/guide.md` and `docs/why-trust-these-dates.md`, so **their examples
+are contract exactly as the README's are**; `test/guide.test.ts` asserts every one that states a
+value.
 
 **`npm run coverage` is not one of the nine, so nothing gates it.** It was broken on `main` for an
 unknown stretch and nobody noticed: the 200-year moon-phase sweep runs in well under a second bare

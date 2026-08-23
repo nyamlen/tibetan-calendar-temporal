@@ -319,8 +319,12 @@ through this before publishing v1.0.0 — several are one-way doors once publish
       The consumer-facing half of this landed later, and separately: the guard's message, the
       polyfill's name, the fact that the failure is at *import* time, and the reason
       `--harmony-temporal` is the wrong answer all lived only in `CLAUDE.md`, `CONTRIBUTING.md`
-      and this checkbox — none of which ship to npm. `README.md` is the only documentation in
-      `package.json#files`, and it now carries all of it under "Requirements"
+      and this checkbox — none of which ship to npm. `README.md` was at the time the only
+      documentation in `package.json#files`, so it took all of it under "Requirements". (That
+      changed on 2026-08-23: `files` now also ships `docs/guide.md` and
+      `docs/why-trust-these-dates.md`, which is what let the README condense without a consumer
+      losing anything. The Requirements material stayed in the README regardless — it is the first
+      thing a reader needs and the last thing to move behind a link.)
 - [x] **Decided: no `main` field.** `exports` supersedes it on every toolchain that can run this
       package at all, and the only consumer it would serve is one resolving by Node 10 rules —
       which by definition predates `exports`, and cannot run an ESM-only package needing Node 26
@@ -642,6 +646,16 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   derived from it rather than written as literals. So the algorithm *does* now support Tsurphu and
   the Mongolian version, and worked configs for both are in [traditions.md](traditions.md) — as
   data, not exports, because expressing a tradition and validating it are different claims.
+
+  **A concrete route for the Mongolian version, scoped 2026-08-23.** `@hnw/date-tibetan` (MIT, npm)
+  ships a `CalendarMongolian` that reproduces Janson's Mongolian leap months for every year checked,
+  so a day-by-day fixture could be generated from it exactly as `crosscheck-eszthoff.ts` is. **That
+  alone does not clear the export gate**: it derives from Janson as this engine does, so agreement
+  establishes the arithmetic rather than the calendar. Bhutan shipped on one implementation lineage
+  **plus** twenty-five government-published days, and Mongolian needs the same shape — published
+  Tsagaan Sar dates being the obvious second source. Testing it also showed the 1997 decree does
+  *not* diverge from computation, which is the obstacle
+  [validation-sources.md](validation-sources.md) had recorded; the details are there.
 
   **Bhutan's leap-month position closed on 2026-08-16**, as `TraditionConfig.leapMonthPosition`. It
   numbers a leap month from the **preceding** month where every other version numbers it from the
