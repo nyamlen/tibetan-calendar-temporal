@@ -67,3 +67,7 @@ coverage/
 
 # Subagent-driven-development scratch workspace (ledgers, briefs, review packages)
 .superpowers/
+
+# Raw benchmark output. The harness and the figures worth keeping are recorded by hand in
+# bench/RESULTS.md, which is committed - a number without its harness is unusable.
+bench/*.json

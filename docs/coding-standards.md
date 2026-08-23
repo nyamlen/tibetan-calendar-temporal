@@ -143,12 +143,15 @@ Every test imports from `src/`, so a broken `exports` map, a file missing from `
 
 `attw` runs under `--profile esm-only`. Its `node10` and `node16-cjs` rows are the deliberate design, not defects — there is no `main` field and no CJS build.
 
-### Two release-time checks, deliberately outside CI
+### Three release-time checks, deliberately outside CI
 
 | Command | Why it cannot gate a push |
 |---|---|
 | `npm run verify:names` | Needs the network and two EWTS converters installed outside the repo. What gates a push is its committed output; provenance is checked before a release, integrity on every push |
 | `npm run coverage` | Not gated by anything, and was broken on `main` for an unknown stretch. Run it before a release, and run it for what it *reports* — an unreachable-line report is how a redundant config check was found |
+| `npm run bench` | Shared runners are noisy enough that a threshold would fire on the runner rather than on the change, and a guard that fires wrongly is worse than none. Run it before a release and record the harness in `bench/RESULTS.md`; it already corrected a shipped figure, the `getObservances` span cap's cost |
+
+**A performance number may be quoted only with its harness.** The project refuses unsourced numbers from its calendar sources, and the rule applies to its own: machine, OS, Node version and date, as `bench/RESULTS.md` records them. `CLAUDE.md`'s `monthsFor` cache figures were asserted for months before anything measured them.
 
 ## Adding a rule
 

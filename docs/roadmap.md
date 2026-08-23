@@ -281,6 +281,12 @@ through this before publishing v1.0.0 — several are one-way doors once publish
 - [x] **Ship the two consumer documents to npm** — `package.json#files` gains `docs/guide.md` and
       `docs/why-trust-these-dates.md`, so condensing the README costs a consumer nothing
       structurally. `docs/other-implementations.md` and every contributor document stay repo-only
+- [x] **A benchmark, outside CI.** `npm run bench` joins `coverage`, `verify:names` and
+      `verify:rabjung-names` as a release-time check that gates nothing. It exists because two
+      numbers were already load-bearing and unmeasured: the `getObservances` span cap, which
+      justifies a shipped `TCT_SPAN_TOO_WIDE`, and the `monthsFor` cache. The first turned out to be
+      wrong — about 270 ms, not the 190 ms the docblock claimed — and was corrected. Harness in
+      `bench/RESULTS.md`; **no figure may be quoted without it**
 - [ ] **On the 1.0.0 render, confirm npm rewrites the README's relative links** against
       `repository`. If it does not, the `docs/` links in the README need absolute URLs — the two
       shipped documents are unaffected either way, since they are in the tarball

@@ -38,5 +38,5 @@
 
     "noEmit": true
   },
-  "include": ["src/**/*.ts", "test/**/*.ts", "scripts/**/*.ts", "*.config.ts"]
+  "include": ["src/**/*.ts", "test/**/*.ts", "scripts/**/*.ts", "bench/**/*.ts", "*.config.ts"]
 }
