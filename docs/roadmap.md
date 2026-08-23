@@ -266,6 +266,12 @@ Setup work not yet done. None of it blocks Phase 3.
 Decisions deliberately deferred during setup, each with the reason it was deferred. Work
 through this before publishing v1.0.0 — several are one-way doors once published.
 
+The list is grouped by subject, not by sequence, and one run of items does have a required order.
+The `RabjungName` shape settles first, because it is free now and breaking later and it changes what
+an API review is looking at. Then the four **Review passes** below, in the order given there. The
+`docs/` folder restructure goes **last of all** — every review before it produces documentation
+edits, and moving files once after they have landed is one link-fixing commit instead of four.
+
 **Documentation**
 
 - [x] **Split the README into a landing page and a guide.** Done 2026-08-23. The README carries the
@@ -290,6 +296,23 @@ through this before publishing v1.0.0 — several are one-way doors once publish
 - [ ] **On the 1.0.0 render, confirm npm rewrites the README's relative links** against
       `repository`. If it does not, the `docs/` links in the README need absolute URLs — the two
       shipped documents are unaffected either way, since they are in the tarball
+- [ ] **Analyse `docs/` for a folder structure, and do it before 1.0.0 fixes the links.** The folder
+      is flat and mixes three audiences: the two consumer documents that ship to npm
+      ([guide.md](guide.md), [why-trust-these-dates.md](why-trust-these-dates.md)), contributor
+      documents ([coding-standards.md](coding-standards.md), [testing.md](testing.md)), and
+      source-and-provenance documents ([validation-sources.md](validation-sources.md),
+      [traditions.md](traditions.md), [other-implementations.md](other-implementations.md),
+      [names/](names/), [decisions/](decisions/)). Open questions to settle, not assume: where
+      [how-it-is-calculated.md](how-it-is-calculated.md) goes — it is read by consumers *and* by
+      anyone touching the arithmetic, which is the argument for leaving it at the top level rather
+      than filing it under either audience; and whether a `docs/contributing/` folder earns itself
+      when `CONTRIBUTING.md` stays at the repo root and would then point sideways into it.
+      Three things make the move cheap now and expensive later: `package.json#files` names the two
+      shipped documents **by path**, so a move is a tarball-layout change; npm's rewriting of the
+      README's relative links is still unconfirmed (item above); and `scripts/check-conventions.mjs`
+      hardcodes `docs/coding-standards.md` and `docs/decisions/*.md`, while rule 12's template
+      pattern is deliberately path-shaped — a move must keep `check:links` and `check:conventions`
+      green **in the same commit**, and CLAUDE.md's own links must move with it
 
 **Package**
 
@@ -472,6 +495,68 @@ through this before publishing v1.0.0 — several are one-way doors once publish
       property regardless of the type, so `name?:` would have saved none of the 14 migrated
       assertion sites while costing permanent narrowing under `exactOptionalPropertyTypes` for a
       field that is total over 1–60.
+- [ ] **Re-open `RabjungName`'s shape: `sanskrit` sits at the same level as `tibetan`, `wylie` and
+      `phonetic`.** This *was* argued when the type was created — see
+      [decisions/2026-08-21-rabjung-names-carry-both.md](decisions/2026-08-21-rabjung-names-carry-both.md),
+      "`extends` rather than nesting the Tibetan half": `RabjungName extends TibetanName` was chosen
+      because the rejected alternative `{ tibetan: TibetanName; sanskrit: SanskritName }` makes the
+      script reachable only as `rabjungFor(2153).name.tibetan.tibetan`, which reads as a typo
+      permanently. The record also states the trade-off it accepts — extending `TibetanName` makes
+      the Tibetan the identity and the Sanskrit an attribute, which runs against the Sanskrit name
+      being historically first. So this item is not "was it discussed" but "does the accepted
+      trade-off still look right at 1.0.0": the three flat siblings are three *renderings of one
+      name* (script, transliteration, transcription) and `sanskrit` is a **different name** at a
+      different level of the tree — at positions 29 and 52 provably naming something else. The
+      alternatives worth weighing are keeping it as shipped, a third shape that nests only the
+      Sanskrit (`{ tibetan, wylie, phonetic, sanskrit: { … } }` is already that — so the question is
+      whether the *docblock* carries the asymmetry loudly enough), and renaming the field to say it
+      is the Indic list's name rather than a translation. Breaking after 1.0.0, free now
+
+**Review passes**
+
+Four full-repository reviews, deliberately ordered: the surface is settled before the code is
+reviewed against it, the code is settled before it is attacked, and the adversarial pass runs last
+so it sees the final state rather than a moving one. The flags recorded here are the ones to use;
+where a command is **diff-shaped** that is noted, because running it on a clean `main` reviews
+nothing and reports success.
+
+- [ ] **Full API surface review.** Subject: every name in `src/index.ts`, judged against
+      [decisions/2026-08-12-public-surface.md](decisions/2026-08-12-public-surface.md) and its
+      2026-08-15 rescoping — the wrong-or-impossible test for computation internals and contested
+      conventions, the "does a calendar library normally provide it, and does it have one obvious
+      correct semantics" test for thin compositions. Check the type shapes too, not only the
+      function list: this is where the `RabjungName` item above gets settled, and the last item that
+      belongs on the pre-1.0.0 surface is the one nobody thought to look for.
+      **Command:** `/code-review max src/index.ts` for the barrel, then
+      `/sc:sc-analyze src --focus architecture --depth deep` for the shapes behind it.
+      `test/public-api.test.ts` pins the list, so any change it prompts fails there first — which is
+      the intended signal, not a nuisance
+- [ ] **Full code review.** Subject: all of `src/`, plus `scripts/` and the fixture generators,
+      which are unreviewed and produce the primary correctness gate. **Command:**
+      `/code-review max src/` for a path-scoped pass — note that plain `/code-review` and
+      `/code-review ultra` are **diff-shaped**: ultra bundles the current branch against `main`, so
+      on a clean `main` there is nothing to review. Either give it a path, or run it from the
+      release branch where the diff is real. `--fix` applies findings to the working tree; take the
+      findings first and apply deliberately, since several rules here are intentional and will read
+      as defects to a reviewer that has not read CLAUDE.md
+- [ ] **Security review.** State the honest scope first, or the pass will invent findings: zero
+      runtime dependencies, no I/O, no network, no filesystem access, no user-supplied strings
+      reaching anything but integer arithmetic. The real attack surface is **supply chain and
+      release**, most of it already itemised under Publishing — provenance, the lockfile, token
+      expiry, the `repository.url` match. **Command:** `/security-review` is **diff-shaped** (it
+      reviews pending changes on the current branch), so for a standing audit use
+      `/sc:sc-analyze . --focus security --depth deep`, and run `/security-review` on the release
+      branch's diff as the second, narrower pass
+- [ ] **Full adversarial review.** Not a code review with a harsher tone: the subject is the
+      **claims**, not the code. Every load-bearing assertion this repository makes about itself —
+      the validation windows and what they actually cover, "exported means validated", the
+      zero-dependency claim through the lockfile and the published `.d.ts`, the clean-room evidence,
+      every benchmark figure against `bench/RESULTS.md`, every sourced name against its source — read
+      by someone trying to prove it false. **Command:** there is no single flag. Dispatch parallel
+      adversarial agents (`superpowers:dispatching-parallel-agents`) with one claim-set each, plus
+      `/sc:sc-spec-panel` over the decision records; `/code-review ultra` from the release branch is
+      the multi-agent code-shaped half of it. The check that matters: a claim nobody can restate
+      from primary evidence is a claim to soften before 1.0.0, not to defend
 
 **Publishing**
 
