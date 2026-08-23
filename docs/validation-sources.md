@@ -207,9 +207,45 @@ placing Tsagaan Sar on 27 February 1998. Where a calendar is settled partly by a
 config may fail to match the official calendar *by construction*, and no choice of constants fixes
 that. Establish how far the official calendar is computed before treating disagreement as a bug.
 
+**Tested 2026-08-23, and the obstacle is softer than that paragraph implies.** `@hnw/date-tibetan`
+(MIT, npm) ships a `CalendarMongolian` derived from the same Janson paper. Run from a scratch
+directory outside this repo, it computes Tsagaan Sar 1998 as **27 February** — the decreed date. So
+at the one point where authority is recorded as having intervened, computation and decree agree.
+That does not prove there is no obstacle; it proves the obstacle is not demonstrated at the only
+place this file cited for it. Two further checks the same day: 2024 comes out at 10 February, and
+2025's month 1 begins on 1 March with **day 1 skipped**, both matching publicly reported Tsagaan Sar
+dates.
+
+**A candidate day-level source, and why it does not close the gate on its own.** That same library
+reproduces Janson's Mongolian leap months for **all 12** of the years in
+[cross-version-leap.ts](../test/fixtures/cross-version-leap.ts) where he gives a value, so it is a
+faithful implementation and a fixture could be generated from it exactly as
+`crosscheck-eszthoff.ts` is. But it is **the same lineage as this engine** — both derive from
+Janson — so agreement would establish that the arithmetic is implemented correctly, not that the
+dates match the calendar Mongolians use. Compare Bhutan, which was exported on one implementation
+lineage **plus** twenty-five days of a government-published almanac.
+
+So the realistic route to exporting a Mongolian config is: tile against `@hnw/date-tibetan` day by
+day for the arithmetic, **and** find a Mongolian equivalent of `rgob.ts` — a run of officially
+published Tsagaan Sar dates would be the obvious candidate, being the Mongolian fact that is
+actually published. One without the other does not meet the bar
+[decisions/2026-08-16-exported-means-validated.md](decisions/2026-08-16-exported-means-validated.md)
+sets.
+
 ## Sources tried and rejected
 
 Recorded so nobody spends the effort twice.
+
+### bhutanesecalendar.com — Henning's lineage, verified rather than assumed
+
+Checked 2026-08-23. The site's own About page states that its "Bhutanese Calendar data sourced from
+Open Source Bhutanese Calendar" — Henning's software. It is a PHP site rendering **data**, not an
+application running a calendar library: the only scripts it loads are jQuery and its own stylesheet.
+
+So it is the **same lineage** as [bhutan.ts](../test/fixtures/bhutan.ts), which reaches Henning
+through the `wp-plugins/bhutanese-calendar` mirror, and adds no independent evidence about Bhutanese
+day numbers. `rgob.ts` remains the only non-Henning check. Worth recording because a site with its
+own domain and no visible attribution looks like a second source until its About page is read.
 
 | Source | Outcome |
 |---|---|

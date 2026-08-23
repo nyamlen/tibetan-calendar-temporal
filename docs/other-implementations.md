@@ -67,7 +67,17 @@ Its three traditions are three fixed classes rather than injectable configuratio
 code change. It depends on `astronomia` for its date conversions, which means floating-point
 arithmetic, where this package is integer-only by design. And it states no validated range.
 
-**If you need a Mongolian date today, use this.** That is not a hedge; it is the honest answer.
+**One concrete API difference, found by running it.** Its calendar tuple has no way to say "the
+first day of the year" when that day is skipped. Mongolian month 1 of 2025 begins on 1 March
+numbered **day 2**, because day 1 is skipped — so a caller scanning for `{month: 1, day: 1}` finds
+nothing and concludes the year has no new year. This package has `losarFor` for exactly that reason.
+The difference is not a defect in either library; it is what a six-element tuple can and cannot
+express.
+
+**If you need a Mongolian date today, use this.** That is not a hedge; it is the honest answer —
+this package can express the Mongolian calendar and deliberately does not ship it, because nothing
+has validated a Mongolian date here. `@hnw/date-tibetan` reproduces Janson's Mongolian leap months
+for every year checked, so it is a faithful implementation of the same paper.
 
 ## Edward Henning's open-source calendar software
 
