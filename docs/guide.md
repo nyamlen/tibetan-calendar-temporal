@@ -71,6 +71,43 @@ The two cases compose, and that is where mistakes live: 4 of leap month 6 is *al
 day, so it needs both flags — `{ month: 6, day: 4, isLeapMonth: true, isLeapDay: true }` is
 9 July 2024, while dropping `isLeapDay` gives the 10th.
 
+### Why `Temporal.PlainDate`, and never `Date`
+
+A JavaScript `Date` is not a date. It is a timestamp — a count of milliseconds — and it always
+carries a time and a UTC offset whether you wanted them or not. `new Date('2026-02-18')` is parsed
+as midnight UTC, so a reader in Los Angeles asking what day that is gets 17 February. The other
+Tibetan calendar library for JavaScript is built on `Date`, and its own README warns that passing
+date strings this way "can create bugs when run in different timezones".
+
+For most Western calendar work that is an annoyance you route around. Here it is a wrong answer,
+and a quiet one, because of what a Tibetan date actually is.
+
+**A Tibetan date labels a whole day.** Its boundary is daybreak, and that offset is already inside
+the epoch constants — see [where a day begins](#where-a-day-begins). The engine therefore has
+exactly one thing to say about any date: which proleptic-Gregorian calendar day it is. It has no
+opinion about instants, and no way to form one, because it never learns a location. A type that
+insists on carrying a time forces every caller to invent an answer to a question the calendar does
+not ask, and different callers invent different ones.
+
+`Temporal.PlainDate` is that type: a calendar day, no time, no zone. The commonest bug in date
+handling cannot be expressed with it.
+
+Three further consequences follow, and each of them is load-bearing rather than incidental:
+
+- **Immutability.** `Date` is mutable, so handing one out means handing out something a caller can
+  alter under everybody else. `PlainDate` cannot be modified, which is what lets this library share
+  frozen name objects across a whole year of dates rather than copying them.
+- **Correct arithmetic.** `date.add({ days: 1 })` means the next calendar day. The `Date` idiom —
+  adding 86,400,000 milliseconds — is wrong twice a year in any zone with daylight saving, and the
+  failure is a one-day calendar error, which is the only kind that matters here.
+- **Zero dependencies.** Temporal is part of the language. Being Temporal-native is precisely what
+  lets this package do calendar arithmetic while depending on nothing — a date library would have
+  been the one runtime dependency it could not avoid.
+
+The cost is the one stated under [running it anywhere](#running-it-anywhere): Temporal needs Node 26
+or a polyfill. That is a real price, and it is the deliberate trade — a dependency you can drop
+later, in exchange for a class of wrong dates that can never occur.
+
 ### Where a day begins
 
 Every result labels a **whole proleptic-Gregorian calendar day**. The package models no instants

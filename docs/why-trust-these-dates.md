@@ -35,6 +35,39 @@ The single most important thing on this page is that **every claim of agreement 
 range of years it covers.**
 Agreement quoted without its window is not evidence; it is advertising.
 
+### How much has actually been checked
+
+Just over **18,000 rows** of published calendar data are committed to this repository and compared
+against the engine on every change. That number is worth breaking down rather than quoting, because
+the shape of it matters more than the size:
+
+| What | Rows | Against |
+|---|---|---|
+| Bhutanese days, 2000 – early 2030 | 11,323 | one lineage (Henning's software) |
+| Phugpa days, 2022–2027 | 6,579 | **four independent sources** |
+| Royal Government of Bhutan days, 2025–2026 | 25 | an independent almanac |
+| Losar, 1927–2046 | 120 | Janson |
+| Leap months across four traditions, 2000–2030 | 124 | Janson |
+
+**Two honest qualifications, and they are the reason the table is here rather than a headline
+number.**
+
+The 6,579 Phugpa rows are **comparisons, not distinct days**: four sources overlap across the same
+period, and between them they cover **2,247 distinct days** — every day from 1 January 2022 to 25
+February 2028. Four independent programs agreeing on the same day is much stronger evidence than
+one program checked on four times as many days, which is exactly why the number is presented this
+way round.
+
+And the 11,323 Bhutanese rows, though far the largest block, descend from **a single lineage**. They
+establish that the engine reproduces Henning's Bhutanese calendar over thirty years. They do not
+independently establish that the calendar is right, because a shared misreading would appear in both.
+The twenty-five Royal Government rows are the only genuinely independent check on Bhutanese day
+numbers, and twenty-five is what it is.
+
+So the useful summary is not "18,000 days verified". It is: **every day of six years agreed by four
+independent Phugpa sources, thirty years of Bhutanese dates against one lineage plus twenty-five
+government-published days, and 120 years of Losar against Janson.**
+
 ### The Tibetan (Phugpa) calendar
 
 Checked **day by day, every day, against four independent sources** over **2022–2027** — Lotsawa

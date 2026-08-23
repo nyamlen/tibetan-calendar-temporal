@@ -67,8 +67,18 @@ see [why you can trust these dates](docs/why-trust-these-dates.md).
 | **Four traditions** | Phugpa and Bhutanese, each in two parameterisations. Constants and rules are injected as data, so a further tradition is a config object rather than a code change |
 | **Date arithmetic** | Add days or months, count between two dates, find the next true full or new moon, and reduce a month to one sortable integer for a database key |
 
-Everything is a pure function over plain objects. No classes, no instances, no hidden state — and
-no legacy `Date` anywhere.
+Everything is a pure function over plain objects. No classes, no instances, no hidden state.
+
+**Why `Temporal.PlainDate`, and never `Date`.** A JavaScript `Date` is not a date — it is a
+timestamp, and it always carries a time and an offset. Ask it for "18 February 2026" and what you
+get is an instant, which lands on a different calendar day depending on where the user is sitting.
+For a Western calendar that is a nuisance; for this one it is a wrong answer, because a Tibetan
+date labels a **whole day** whose boundary is already fixed in the arithmetic. `PlainDate` is
+precisely that type — a calendar day, no time, no zone — so the commonest bug in date handling
+cannot be expressed. It is also immutable, so a date this library hands you cannot be altered
+underneath another caller, and it is a language built-in, which is how the package has zero
+dependencies while still doing calendar arithmetic. [More on the day
+boundary](docs/guide.md#where-a-day-begins).
 
 ## Why you can trust the dates
 
