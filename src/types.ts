@@ -504,6 +504,11 @@ export interface TibetanDate {
 	 *
 	 * This package ships the Tibetan name and no translations; see the README's
 	 * Internationalisation section for why, and for how to localise the rest.
+	 *
+	 * **This field follows the tradition the date was built with.** Bhutan names its days one
+	 * planet ahead of Tibet, so `isoToTibetan(day, BHUTAN).weekdayName` is already the Bhutanese
+	 * name — there is no second lookup to perform, and calling `weekdayNameFor` with a different
+	 * config than the date was built with is how the two get out of step.
 	 */
 	weekdayName: TibetanWeekdayName;
 

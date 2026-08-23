@@ -213,7 +213,9 @@ derivation; in `docs/` they are just noise.
   tradition, check that the *rules* are injected too, not only the numbers.
   **It extends to the docblocks as well as the code**, which is subtler and was live until
   2026-08-16. `leapMonthOfYear` takes a config and its example read `leapMonthOfYear(2151) // 6`
-  — true for Phugpa and for nothing else: Mongolian gives 5, Bhutanese 10, and Tsurphu has no leap
+  — true for Phugpa and for nothing else: varying `leapIndexThreshold` alone gives Mongolian 5 and
+  Bhutanese 10 (the shipped `BHUTAN` config, which also sets `leapMonthPosition`, gives **8** — quote
+  such a figure with the constant it varies), and Tsurphu has no leap
   month that year at all. The same docblock stated that a leap month "precedes the regular month
   sharing it", which holds for every version Janson gives **except Bhutan**, where it follows — the
   position gap [docs/traditions.md](docs/traditions.md) records as unmodelled. So a docblock on a
@@ -222,7 +224,8 @@ derivation; in `docs/` they are just noise.
   structural claim has to be checked against Bhutan specifically, which is where the versions
   diverge most. `test/docblock-examples.test.ts` pins the thresholds; a third instance of the
   "precedes" claim survives in `src/types.ts` on `lunation`, where it explains tuple sort order,
-  and needs revisiting when `leapMonthPosition` lands.
+  and was made tradition-aware when `leapMonthPosition` landed; the stale claim that survived instead
+  was on `leapMonthOfYear`, corrected 2026-08-23 after a smoke client found it shipping in `dist`.
 
   This extends to anything **derived from** those constants. The `±3` search window in
   `isoToTibetan` was proved from `(25 + 11)/60` — Phugpa's largest `moonTab` and `sunTab` entries —

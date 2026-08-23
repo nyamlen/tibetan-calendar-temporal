@@ -52,6 +52,14 @@ export function monthCodeOf(month: number, isLeap: boolean): string {
  * object whose two disagree can no longer produce a string contradicting itself, since
  * {@link monthCodeOf} is the sole producer of that substring.
  *
+ * @remarks
+ * **This is not a complete encoding of a resolved date.** It renders the *naming* fields — the ones
+ * {@link parseTibetanDate} returns — so `isLeapMonth` reaches the string as `M06L` and `isLeapDay`
+ * as the ` (leap)` suffix, while `isDoubledDay`, `isFullMoon`, `isNewMoon` and `isoDate` do not
+ * appear at all. That is exactly right for the round trip and wrong for equality: comparing two
+ * dates by their formatted strings reports "same" where one is the second half of a doubled pair
+ * and the other an ordinary day. Compare the fields you care about, not the rendering.
+ *
  * @example
  * ```ts
  * formatTibetanDate(isoToTibetan(Temporal.PlainDate.from("2027-01-15")));
