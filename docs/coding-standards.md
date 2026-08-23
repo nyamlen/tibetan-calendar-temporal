@@ -117,7 +117,7 @@ The Wylie and Tibetan-script columns of the shipped vocabulary are **not** gover
 
 | Rule | Enforced by | Why |
 |---|---|---|
-| The clean-room constraint — never read `eszthoff/*` source, never add either as a dependency | **review**, and the commit history is the evidence | Neither has a licence file, so both are all-rights-reserved |
+| The clean-room constraint — never read `eszthoff/*` source, never add either as a dependency | **review**, and the commit history is the evidence | The history is the proof of independent derivation, and it is worth what the claim that nobody read the alternative is worth. Not a licence argument: `tibetan-date-calculator` declares MIT in `package.json` and has since 2019, though no repository or tarball carries a `LICENSE` file |
 | Janson's LaTeX source, never PDF-extracted text | **review** | `pdftotext` has already produced three wrong formulas here, none of which crash |
 | Cite by section and content, never by a rendered equation or table number | **review** | `T12` and `T60` are labels, not table numbers |
 | A name needs five independent checks, not one Janson table | `npm run verify:names`, whose committed output `test/fixtures/names.ts` the suite reads | His weekday table gives Saturday as `spen ma`; his own Bhutan appendix gives `spen pa` |

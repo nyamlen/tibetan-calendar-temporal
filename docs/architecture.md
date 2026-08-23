@@ -8,7 +8,7 @@ For the testing approach, see [testing.md](testing.md). For build sequencing, se
 
 ## Key Constraints
 
-- **Clean-room implementation** — do NOT reference or copy code from `eszthoff/tibetan-date-calculator`. That library has no license (legally all-rights-reserved). Implement directly from Janson's paper. Full rules in [CONTRIBUTING.md](../CONTRIBUTING.md).
+- **Clean-room implementation** — do NOT reference or copy code from `eszthoff/tibetan-date-calculator`. The commit history is this project's evidence of independent derivation, and reading an alternative implementation cannot be undone or disproved afterwards. Implement directly from Janson's paper. Full rules in [CONTRIBUTING.md](../CONTRIBUTING.md).
 - **Temporal-native** — use `Temporal.PlainDate` (ES2026 standard) for date representation. No legacy `Date` objects anywhere.
 - **Zero runtime dependencies** — Temporal is a language built-in. The engine depends on nothing.
 - **Integer arithmetic only** — all Phugpa calendar math uses integer division with fixed denominators. No floating point. This ensures deterministic, cross-platform-identical results.

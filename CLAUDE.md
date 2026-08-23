@@ -41,8 +41,18 @@ dependencies, built on Temporal.
 ## Clean-room constraint — read this first
 
 **Do NOT read, open, fetch, or reference the source code of `eszthoff/tibetan-date-calculator`
-or `eszthoff/tibetan-calendar-temporal`.** Neither has a licence file, which makes them legally
-all-rights-reserved. Any code derived from them would poison this project's MIT licence.
+or `eszthoff/tibetan-calendar-temporal`.** The reason is **evidence, not licence risk**: the commit
+history is this project's proof of independent derivation from Janson, and that proof is worth
+exactly as much as the claim that nobody here has read the alternative. Reading it cannot be undone
+and cannot be disproved afterwards.
+
+Do not restate the older rationale, which was wrong and was corrected on 2026-08-23. It ran: neither
+repository carries a `LICENSE` file, therefore the code is all-rights-reserved, therefore reading it
+would poison this project's MIT licence. The premise is checkable and true — there is no `LICENSE`
+file on GitHub, on the current GitLab home, or in the published tarball. The conclusion does not
+follow: `tibetan-date-calculator` declares `"license": "MIT"` in `package.json`, and has on every
+version since 1.0.0 in June 2019, which is a licence grant. The constraint is unchanged; only its
+justification is, and the new one does not depend on anybody's licence.
 
 Implement solely from Svante Janson, "Tibetan Calendar Mathematics" (arXiv:1401.6285).
 
@@ -171,8 +181,9 @@ Not permitted: copying algorithms, variable names, or code structure; forking ei
 referencing their internal implementation decisions.
 
 **Never add one of them as a devDependency**, however convenient it looks for regenerating a
-fixture. That puts all-rights-reserved code in the tree and in the lockfile, which is the exact
-thing being avoided. `scripts/fetch-eszthoff-fixtures.mjs` resolves the package from the
+fixture. That puts a competing implementation's code in the tree and in the lockfile, which is the
+exact thing being avoided — a dependency is read by tooling, diffed in review and vendored into
+caches, so "installed but not read" is not a state anyone can attest to afterwards. `scripts/fetch-eszthoff-fixtures.mjs` resolves the package from the
 *caller's working directory* instead, so it is installed in a scratch directory outside the repo
 and the script is run from there.
 
