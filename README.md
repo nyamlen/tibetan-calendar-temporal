@@ -69,9 +69,18 @@ see [why you can trust these dates](docs/why-trust-these-dates.md).
 
 Everything is a pure function over plain objects. No classes, no instances, no hidden state.
 
-**Why `Temporal.PlainDate`, and never `Date`.** A JavaScript `Date` is not a date — it is a
-timestamp, and it always carries a time and an offset. Ask it for "18 February 2026" and what you
-get is an instant, which lands on a different calendar day depending on where the user is sitting.
+**Why `Temporal.PlainDate`, and never `Date`.** Temporal is the language's replacement for `Date` —
+a finished (stage 4) TC39 proposal, expected in ES2027, already shipping in Node 26, Chrome and
+Firefox. MDN describes it as "designed as a full replacement for the `Date` object", and is blunt
+about why one was needed: `Date` copies `java.util.Date`, a class Java itself replaced in the early
+2010s, and survives only because JavaScript does not break backwards compatibility. So this is not
+an exotic choice; it is the standard one, taken early.
+
+It is also the only workable one here. `Date` can express **only the Gregorian calendar** — and
+this package's entire job is a calendar that is not Gregorian. Beyond that, a `Date` is not a date
+at all: it is a timestamp, and it always carries a time and an offset. Ask it for
+"18 February 2026" and what you get is an instant, which lands on a different calendar day
+depending on where the user is sitting.
 For a Western calendar that is a nuisance; for this one it is a wrong answer, because a Tibetan
 date labels a **whole day** whose boundary is already fixed in the arithmetic. `PlainDate` is
 precisely that type — a calendar day, no time, no zone — so the commonest bug in date handling

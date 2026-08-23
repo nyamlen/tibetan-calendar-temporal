@@ -73,7 +73,21 @@ day, so it needs both flags — `{ month: 6, day: 4, isLeapMonth: true, isLeapDa
 
 ### Why `Temporal.PlainDate`, and never `Date`
 
-A JavaScript `Date` is not a date. It is a timestamp — a count of milliseconds — and it always
+**Temporal is not an alternative to `Date`; it is its replacement.** It is a finished TC39 proposal
+— stage 4, listed among [tc39's finished proposals](https://github.com/tc39/proposals/blob/main/finished-proposals.md)
+with an expected publication year of 2027 — and MDN states plainly that it "is designed as a full
+replacement for the [`Date`] object". MDN is equally plain about why a replacement was wanted: the
+`Date` API "is based on the poorly designed `java.util.Date` class from Java, which was replaced in
+the early 2010s; but, because of JavaScript's goal of backward compatibility, `Date` sticks around
+in the language". Using Temporal is therefore the ordinary choice for new code, made early rather
+than eccentrically; `Date` is the legacy path.
+
+**The disqualifying reason is narrower and decisive.** Among the shortcomings MDN lists for `Date`
+is that "you can only work with the Gregorian calendar model". A library whose entire purpose is a
+non-Gregorian calendar cannot be built on a type that knows only one calendar. Everything below is
+a further reason; that one is on its own sufficient.
+
+**And a `Date` is not a date.** It is a timestamp — a count of milliseconds — and it always
 carries a time and a UTC offset whether you wanted them or not. `new Date('2026-02-18')` is parsed
 as midnight UTC, so a reader in Los Angeles asking what day that is gets 17 February. The other
 Tibetan calendar library for JavaScript is built on `Date`, and its own README warns that passing
@@ -104,9 +118,15 @@ Three further consequences follow, and each of them is load-bearing rather than 
   lets this package do calendar arithmetic while depending on nothing — a date library would have
   been the one runtime dependency it could not avoid.
 
-The cost is the one stated under [running it anywhere](#running-it-anywhere): Temporal needs Node 26
-or a polyfill. That is a real price, and it is the deliberate trade — a dependency you can drop
-later, in exchange for a class of wrong dates that can never occur.
+**The cost, stated honestly.** Temporal is not yet everywhere. MDN still marks it "not Baseline
+because it does not work in some of the most widely-used browsers" — Safari being the one that
+matters — so a web application needs the polyfill today, and Node needs version 26 or the same
+polyfill. See [running it anywhere](#running-it-anywhere).
+
+That is a real price, and it is the deliberate trade: a dependency you can delete once Safari
+ships, in exchange for a class of wrong dates that can never occur. The alternative — building on
+`Date` — would have meant a permanent bug surface in return for a temporary convenience, on a
+type that cannot represent this calendar anyway.
 
 ### Where a day begins
 
