@@ -42,9 +42,10 @@ passing date strings "can create bugs when run in different timezones" — where
 observance layer, and states no range over which its output has been checked against an almanac.
 
 **A note on our relationship to it.** This project runs `tibetan-date-calculator` to generate one of
-its cross-check fixtures, and its dates agree with ours on all 1,826 days of 2023–2027. Computed
-dates are facts rather than copyrightable expression, which is what makes that comparison legitimate
-while reading the code is not.
+its cross-check fixtures, and it is one of the four sources this engine is checked against day by
+day — see [why you can trust these dates](why-trust-these-dates.md) for the window that covers.
+Computed dates are facts rather than copyrightable expression, which is what makes that comparison
+legitimate while reading the code is not.
 
 ## `@hnw/date-tibetan`
 

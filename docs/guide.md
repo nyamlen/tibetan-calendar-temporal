@@ -208,6 +208,125 @@ Calendar export (ICS) is deliberately out of scope: `getObservances` returns pla
 consumer maps to whatever format they need, and an `@nyamlen/icalendar` package remains open if
 one is requested.
 
+### Day of week
+
+`dayOfWeek` is **ISO 8601**: `1` = Monday through `7` = Sunday. So `3` above is Wednesday. This
+matches `Temporal.PlainDate.prototype.dayOfWeek` exactly, so the two never disagree.
+
+No weekday *name* is included, because `Temporal` already gives you one in the right language:
+
+```js
+date.isoDate.toLocaleString('en-GB', { weekday: 'long' });   // "Wednesday"
+```
+
+The Tibetan week is numbered differently — `0` = Saturday through `6` = Friday. It is the same
+seven-day cycle, renumbered, and it is kept in a separate field rather than conflated with the ISO
+one:
+
+```js
+date.tibetanWeekday;   // 4 — Wednesday, in the Tibetan numbering
+```
+
+Each day corresponds to one of the seven planets, and the Tibetan name of the day is essentially the
+planet's: `0` Saturn (*spen ma*), `1` Sun (*nyi ma*), `2` Moon (*zla ba*), `3` Mars (*mig dmar*),
+`4` Mercury (*lhag pa*), `5` Jupiter (*phur bu*), `6` Venus (*pa sangs*). That correspondence
+reached Tibet from India and goes back to Roman astrology, which is why it lines up with the Latin
+and English names.
+
+It is worth more than display. Janson notes that a date and its weekday are usually given together
+because that **resolves the ambiguity when days are repeated** — both halves of a doubled pair carry
+the same `day`, and the weekday is what tells them apart.
+
+The same numbering is available from a Julian day, for callers who have one but no `TibetanDate`:
+
+```js
+import { julianDayFromIso, tibetanWeekday } from 'tibetan-calendar-temporal';
+
+tibetanWeekday(julianDayFromIso(Temporal.PlainDate.from('2026-08-12')));   // 4 (Wednesday)
+```
+
+### Printing a date in a terminal
+
+> **Printing it in a terminal.** Use `JSON.stringify(date, null, 2)`, as above. Plain
+> `console.log` renders `isoDate` as `PlainDate [Temporal.PlainDate] {}` — Temporal exposes its
+> data through prototype getters rather than own properties, and Node's inspector prints only own
+> properties. The value is intact; `JSON.stringify` shows it because Temporal implements
+> `toJSON()`. This affects every Temporal-native library, not just this one.
+
+### A month as one sortable integer
+
+It also carries `lunation`, its position in the unbroken count of lunations since the tradition's
+epoch. Every Tibetan month is one lunation and every month counts once, leap months included, so
+this rises by exactly one per month and continues across Losar without a gap. That makes it the
+month's identity as a **single sortable integer** — useful as a database or cache key, where
+`(year, month, isLeapMonth)` cannot serve, because a leap month comes *before* the regular month it
+shares a number with and `false` sorts before `true`.
+
+```js
+monthsFor(2151).map((m) => m.lunation);
+// consecutive integers — M06L is one less than M06, which is the ordering a tuple sort gets wrong
+```
+
+### The cost of a year
+
+**A year of dates, serialised, is about 293 KB** (354 days, ordinary year 2153) or **324 KB** for a
+thirteen-month leap year like 2151 — measured, not assumed, in `test/serialisation.test.ts`. Every
+`TibetanDate` in that array holds a *pointer* to a shared, frozen name object rather than a copy —
+there are only seven weekday names, five elements, two genders, twelve animals and sixty rabjung
+names in the whole process — so the in-memory cost of a year is those pointer fields, not thousands
+of string copies. `JSON.stringify` cannot see that sharing, and expands every pointer to its full
+object; the figures above are what a consumer actually pays to persist or transmit a year, not what
+the engine holds in memory.
+
+### Handling errors
+
+Two failure kinds, and telling them apart matters because they call for different responses.
+
+**A skipped date is not an error in your code.** It is a fact about the calendar, and the right
+response is usually to show the user something rather than to log a bug. It arrives as
+`SkippedDayError`, the only error class this package exports.
+
+**Everything else is a `RangeError`** carrying a machine-readable `code`. Branch on `error.code`,
+never on the message text — codes are part of the API and never change; wording is not and may
+improve in any release.
+
+```js
+import { tibetanToIso, SkippedDayError } from 'tibetan-calendar-temporal';
+
+try {
+  tibetanToIso(fromUserInput);
+} catch (error) {
+  switch (error.code) {
+    case 'TCT_SKIPPED_DAY':
+      // error instanceof SkippedDayError, and error.requested is the input you passed
+      return `${format(error.requested)} is not a day in this calendar`;
+    case 'TCT_FIELD_OUT_OF_RANGE':
+      // A number is wrong: month 13, day 31, a year that is not an integer.
+    case 'TCT_NO_SUCH_LEAP_MONTH':
+      return 'Please check the date';
+    case 'TCT_INVALID_ARGUMENT':
+      // Not bad data — a bug in the calling code. A Temporal.PlainDate where a Tibetan
+      // date belongs, a non-boolean isLeapMonth, null. Do not show this to a user.
+      throw error;
+    default:
+      throw error;
+  }
+}
+```
+
+If you would rather test than catch, `tibetanDateExists` is the predicate, and it is `false`
+exactly where `tibetanToIso` throws for a reason about the *date*:
+
+```js
+tibetanDateExists({ year: 2150, month: 12, day: 29 });   // false — skipped
+tibetanDateExists({ year: 2153, month: 13, day: 1 });    // false — no such month
+```
+
+It deliberately still throws on a malformed `TraditionConfig`, because that is a bug in your
+program rather than a statement about a date, and answering `false` would hide it.
+
+The full code list is in the [API section](../README.md#errors) below.
+
 ## Running it anywhere
 
 ### Node, and the failure mode worth knowing in advance

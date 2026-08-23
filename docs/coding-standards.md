@@ -80,6 +80,9 @@ A rule with a command beside it will stop a push. A rule marked **review** will 
 | In a sweep over thousands of rows, collect violations and assert once | **review** | Eleven thousand rows times six assertions killed a vitest worker, reported only as `Worker exited unexpectedly` |
 | Any multi-century test carries an explicit timeout | **review** | The 200-year moon-phase sweep runs in under a second bare and 5–8 seconds under v8 instrumentation, against vitest's 5s default — `test` passed while `coverage` failed, for an unknown stretch |
 | README examples stay true | `test/readme.test.ts` | Change an example, update the test in the same commit |
+| Guide examples stay true | `test/guide.test.ts` | `docs/guide.md` ships to npm, so its examples are contract exactly as the README's are. A suite named for one document while guarding another is one nobody thinks to update |
+| The README is a landing page: pitch, install line and one runnable example in its first 40 rendered lines | **review**, and [decisions/2026-08-23-readme-is-the-landing-page.md](decisions/2026-08-23-readme-is-the-landing-page.md) | It reached 950 lines by accretion, each addition justified, with the install command at line 103 and the trust argument at 903. Nothing mechanical catches a document getting worse one reasonable commit at a time |
+| A validation window is stated in `docs/testing.md`, quoted only by `docs/why-trust-these-dates.md`, and linked to by everything else | **review** | Five copies of a number is a number that will drift. Deliberately unguarded: every available predicate fires on `docs/validation-sources.md` itself and on any honest limitations section, and a guard that fires wrongly is worse than none |
 
 ## Documentation
 

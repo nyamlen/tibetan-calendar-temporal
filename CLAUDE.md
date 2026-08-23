@@ -9,6 +9,16 @@ dependencies, built on Temporal.
   [docs/how-it-is-calculated.md](docs/how-it-is-calculated.md) — leap months, doubled and skipped
   days, and what `a₂` is. Read it before touching the arithmetic or arguing about a divergent date
 - Architecture, API design, core types: [docs/architecture.md](docs/architecture.md)
+- **The long-form consumer companion to the README**: [docs/guide.md](docs/guide.md) — the hard
+  cases, where a day begins, the two kinds of config, and running outside Node 26. **It ships to
+  npm**, so its examples are contract; `test/guide.test.ts` asserts every one that states a value
+- **What a reader is owed about correctness**: [docs/why-trust-these-dates.md](docs/why-trust-these-dates.md)
+  — the reader-facing account of what is validated and over which years. **It is the only document
+  besides `docs/testing.md` that may quote a validation window**; the README and any pitch link to
+  it rather than restating a number. It ships to npm too
+- What else computes Tibetan dates, and when to use it instead:
+  [docs/other-implementations.md](docs/other-implementations.md) — every claim from public metadata
+  with an access date, and **no competitor source is ever read**
 - Testing strategy: [docs/testing.md](docs/testing.md)
 - **Every source checked against, and its lineage**:
   [docs/validation-sources.md](docs/validation-sources.md) — read this **before** treating any new
