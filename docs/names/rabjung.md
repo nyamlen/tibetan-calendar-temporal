@@ -14,7 +14,7 @@ agreeing independently is a result.
 |---|---|---|---|
 | Janson, *Tibetan Calendar Mathematics* (LaTeX) | Wylie, cycle position, the two Gregorian years | The Tibetan lineage — he takes the table from Henning's Appendix I — and the only source this package derives from, per the clean-room constraint | **Sourced**, extracted mechanically |
 | Wikipedia saṃvatsara table | Devanāgarī | The only machine-readable source found carrying the script against the cycle positions. Its **IAST is no longer used**: it disagrees with its own Devanāgarī at 9 positions, so the IAST column below is derived instead | **Sourced**, corrected below |
-| Csoma de Kőrös, *A Grammar of the Tibetan Language* (Calcutta 1834) | The list the Tibetan names translate — in Tibetan script (§233) and in his own Roman (§232) | The one witness to that list independent of Janson, whose table his LaTeX says is "taken from [Henning]". Printed 65 years before Monier-Williams and 90 before Sewell, and reached from the Tibetan side | **Sourced**, hand-read from the plates, every row checked against two romanisations |
+| Csoma de Kőrös, *A Grammar of the Tibetan Language* (Calcutta 1834) | The list the Tibetan names translate — in Tibetan script (§233) and in his own Roman (§232) — **and the Tibetan names themselves**, which otherwise rest on Janson alone | The one witness to that list independent of Janson, whose table his LaTeX says is "taken from [Henning]". Printed 65 years before Monier-Williams and 90 before Sewell, and reached from the Tibetan side | **Sourced**, hand-read from the plates, every row checked against two romanisations |
 | Sewell & Fleet, *The Siddhāntas and the Indian Calendar* (1924) | **Name identity only** — which name sits at which position | The authority the Indic column was originally cited to. It cannot check spelling: it prints `Sukla`, `Vrisha`, `Kshaya` in 1924 romanisation with **no IAST diacritics anywhere** | **Sourced**, by majority vote over thousands of OCR reads |
 | Monier-Williams, via the Cologne Digital Sanskrit Dictionaries | The Sanskrit senses | The authority itself, from the scan: uncapped, citing a printed page, and carrying MW's own homonym grouping | **Sourced**, with a page citation per row |
 | wisdomlib | The Bṛhat Saṃhitā's cycle position; which **other** lexicons carry a headword | Varāhamihira names the position in words beside the Devanāgarī — a primary Indic astronomical witness, independent of Janson, Sewell and Wiktionary. Only the position is taken, never the prose | **Sourced**, where present |
@@ -168,6 +168,52 @@ Saṃhitā does **not** settle in this table's favour fails the run instead.
 - **23 Virodhī** — he gives it as "वि-रोधिन् m. N. of the 25th year of Jupiter's cycle of 60 years, VarBṛS."
 - **30 Durmukha** — he gives it as "N. of the 29th year of the cycle of Jupiter (lasting 60 years), Var. ; Sūryas."
 - **37 Śobhana** — he gives it as "the eleventh year of Jupiter's cycle, MW."
+
+## The second witness to the Tibetan names
+
+Every Wylie string in the table below comes from **one** source. Janson's own LaTeX says his
+sixty-year table is "taken from [Henning]", so the Tibetan column has the standing that CLAUDE.md's
+naming rule exists to refuse — and that rule was written after `spen ma` shipped for three phases on
+exactly this footing. The Sanskrit columns acquired independent witnesses; the Tibetan column did
+not.
+
+Csoma supplies one. He prints the Tibetan names twice — §232 (p. 150) in his own Roman, §233
+(pp. 151–152) in Tibetan script — and he reached them from the Tibetan side, 65 years before
+Monier-Williams and 90 before Sewell. **His Roman is what the generator checks against**, and that
+choice is deliberate: it is ordinary Latin type, so reading it carries none of the Tibetan-glyph
+misread risk that `test/fixtures/rgob.ts` exists to warn about. His script is what settles the rows
+where his Roman slips.
+
+His romanisation maps onto Wylie **by rule, not by row**: case marks prefix from root where Wylie
+does not, so case is discarded; `h` is *a-chung* at the start of a syllable and the second half of a
+digraph after a consonant; `v` is b, `ds` is dz, his caron-n is *nga*, `chh` is Wylie `ch` while his
+bare `ch` is Wylie `c`, and acutes mark nothing Wylie records. That rule alone carries **56 of the
+60** rows onto Janson's Wylie exactly.
+
+The other four are declared, each with the reason the rule does not reach it. Every one states both
+readings it stands between, so a change on either side fails the run rather than quietly widening the
+list.
+
+| # | Csoma | Janson | Why the rule does not carry it |
+|---|---|---|---|
+| 2 | `rnam 'byung` | `rnam byung` | **A real variant, recorded rather than corrected.** Both are attested and both name the same year. Rangjung Yeshe carries only `rnam 'byung`; the *tshig mdzod chen mo* carries only `rnam byung`; Ives Waldo carries both. Csoma reads it the same way in his Roman and his script, so it is a misprint on neither side |
+| 6 | `angira` | `ang gi ra` | **Not a Tibetan word.** This row transliterates the ṛṣi's name instead of translating it — §233 confirms it outright by printing the *identical* string in the Sanskrit column and the Tibetan one — so there are no Tibetan syllables for the rule to separate |
+| 8 | `dnos po` | `dngos po` | **A dropped diacritic in his Roman, settled by his script.** §233 writes the nasal; §232 prints a plain capital N. He writes the caron where he means it, at 30 `gDong-ňan` and 56 `rŇa-chhen`, so this is a slip rather than a convention |
+| 38 | `khromo` | `khro mo` | **A dropped hyphen in his Roman, settled by his script.** Every other multi-syllable entry in the column separates its syllables; this one does not, and §233 writes the two plainly |
+
+Note what is **not** on that list. A tolerance was considered for the voicing his *Sanskrit* column
+shows — `pra dza pa di` for *prajāpati* — and rejected. These are Tibetan words rather than
+transliterated Sanskrit, he does not voice them, and all 56 remaining rows match on plain equality. A
+tolerance nobody needs is a tolerance that hides the next real divergence.
+
+### Two further properties of the plate
+
+Recorded rather than corrected, alongside the two already noted above.
+
+- **Two rows are misnumbered, not one.** The sequence runs 47, 48, **59**, 50, **61**, 52 — so row 49
+  is printed "59" and row 51 is printed "61". Both are leading-digit slips, both were read at 5×
+  magnification, and the Sanskrit at each is unambiguous, so rows join by their position in the
+  sequence rather than by the printed numeral. An earlier note here recorded only the first.
 
 ## The English columns
 

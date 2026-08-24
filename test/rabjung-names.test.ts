@@ -220,3 +220,76 @@ describe("rabjungFromYear(year).name wires the right row to the right year", () 
 		expect(wrong).toEqual([]);
 	});
 });
+
+/**
+ * Csoma's Tibetan column, the second witness the Tibetan names have.
+ *
+ * @remarks
+ * Every Wylie string in this table comes from Janson, whose own LaTeX says his sixty-year table is
+ * "taken from [Henning]" -- so without Csoma the Tibetan column rests on one witness, which is the
+ * footing CLAUDE.md's naming rule refuses. `scripts/verify-rabjung-names.mjs` checks the two against
+ * each other, but it needs the network and two converters installed outside the repo, so it cannot
+ * gate a push. This does.
+ *
+ * The normalisation below **reimplements** the generator's rule rather than importing it, for the
+ * same reason `glossUnits` above does: a shared implementation would pass by agreeing with itself.
+ */
+describe("Csoma's Tibetan names corroborate Janson's Wylie", () => {
+	// His romanisation, as rules: case marks prefix from root where Wylie does not; `h` is a-chung
+	// at the start of a syllable or after a vowel and a digraph's second half after a consonant;
+	// `v` is b; `ds` is dz; caron-n is nga; `chh` is Wylie ch while bare `ch` is Wylie c.
+	function csomaToWylie(name: string): string {
+		return name
+			.toLowerCase()
+			.replace(/\u0148/g, "N")
+			.normalize("NFD")
+			.replace(/[\u0300-\u036f]/g, "")
+			.normalize("NFC")
+			.split(/[-\s]+/)
+			.map((syllable) => {
+				let out = "";
+				for (let i = 0; i < syllable.length; i++) {
+					const char = syllable[i] as string;
+					if (char !== "h") {
+						out += char;
+						continue;
+					}
+					const previous = syllable[i - 1];
+					out += previous !== undefined && !"aeiou".includes(previous) ? "h" : "'";
+				}
+				return out
+					.replace(/chh/g, "C")
+					.replace(/ch/g, "c")
+					.replace(/C/g, "ch")
+					.replace(/ds/g, "dz")
+					.replace(/v/g, "b")
+					.replace(/N/g, "ng");
+			})
+			.join(" ");
+	}
+
+	// 2 is a real variant; 6 transliterates rather than translates; 8 and 38 are slips in his Roman
+	// that his script settles. Pinned as a set so a fifth cannot appear without this failing.
+	const DECLARED = [2, 6, 8, 38];
+
+	it("records his reading for every one of the sixty positions", () => {
+		const missing = RABJUNG_NAMES.filter((row) => !row.csomaTibetanName).map((row) => row.position);
+		expect(missing).toEqual([]);
+		expect(RABJUNG_NAMES.length).toBe(60);
+	});
+
+	it("maps onto Janson's Wylie everywhere except the four declared rows", () => {
+		const diverged: number[] = [];
+		for (const row of RABJUNG_NAMES) {
+			if (csomaToWylie(row.csomaTibetanName) !== row.wylie) diverged.push(row.position);
+		}
+		expect(diverged).toEqual(DECLARED);
+	});
+
+	it("still carries both readings at position 2, which is recorded rather than corrected", () => {
+		const row = RABJUNG_NAMES[1];
+		expect(row?.position).toBe(2);
+		expect(row?.wylie).toBe("rnam byung");
+		expect(csomaToWylie(row?.csomaTibetanName ?? "")).toBe("rnam 'byung");
+	});
+});

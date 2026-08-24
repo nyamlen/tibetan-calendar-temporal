@@ -1936,8 +1936,17 @@ for (const r of rows) {
 //
 // Two properties of the source, recorded rather than corrected:
 //
-//   Row 49 is printed "59" on the plate; the sequence runs 48, 59, 50. The Sanskrit there is
-//   unambiguous, so the row is joined by its position in the sequence rather than by the numeral.
+//   Two rows are misnumbered, not one: the sequence runs 47, 48, 59, 50, 61, 52, so row 49 is
+//   printed "59" and row 51 is printed "61". Both are leading-digit slips, and the Sanskrit at
+//   each is unambiguous, so rows are joined by their position in the sequence rather than by the
+//   printed numeral. Read at 5x magnification; the earlier note recorded only the first of them.
+//
+//   His section 232 Roman is defective at two rows, and his section 233 script settles both --
+//   which is the reason for checking one column against the other rather than trusting either.
+//   Row 8 prints `dNos-po` for dngos po, with a plain capital N where the nasal belongs; he does
+//   write the caron where he means it, at 30 `gDong-nan` and 56 `rNa-chhen`, so this is a dropped
+//   diacritic rather than a convention. Row 38 prints `Khromo` for khro mo, without the hyphen
+//   that separates syllables in every other multi-syllable entry in the column.
 //
 //   The script column voices intervocalic stops -- `pra dza pa di` for prajapati, `shu bha kri da`
 //   for subhakrit -- which is Tibetan reading practice, not a different name. The check below
@@ -1945,66 +1954,66 @@ for (const r of rows) {
 // ---------------------------------------------------------------------------------------------
 
 const CSOMA = {
-	1: { tibetan: "པྲབྷབ", roman: "Prabhava" },
-	2: { tibetan: "བིབྷབ", roman: "Vibhava" },
-	3: { tibetan: "ཤུཀླ", roman: "Shukla" },
-	4: { tibetan: "པྲམོདི", roman: "Pramodi" },
-	5: { tibetan: "པྲཛཔདི", roman: "Prajapati" },
-	6: { tibetan: "ཨང་གི་ར", roman: "Angira" },
-	7: { tibetan: "ཤྲཱིམུཁ", roman: "Srimukha" },
-	8: { tibetan: "བྷབ", roman: "Bhava" },
-	9: { tibetan: "ཡུབིག", roman: "Yuvika" },
-	10: { tibetan: "དྷྲིཏུ", roman: "Dhritu|Dhata" },
-	11: { tibetan: "ཨིཤྭར", roman: "Iswara" },
-	12: { tibetan: "བཧུདྷནྱ", roman: "Bahudanya" },
-	13: { tibetan: "པྲམཱཐི", roman: "Pramathi" },
-	14: { tibetan: "བིཀྲམ", roman: "Vikrama" },
-	15: { tibetan: "བྲིཥབྷ", roman: "Vrishabha" },
-	16: { tibetan: "ཙིཏྲ", roman: "Chitra" },
-	17: { tibetan: "བྷནུ", roman: "Bhanu" },
-	18: { tibetan: "བྷནུཏར", roman: "Bhanutara" },
-	19: { tibetan: "པིརྠཔ", roman: "Pirthapa" },
-	20: { tibetan: "ཨཀྵཡ", roman: "Akshaya" },
-	21: { tibetan: "སརྦཛིཏ", roman: "Sarvajit" },
-	22: { tibetan: "སརྦདྷརི", roman: "Sarvadhari" },
-	23: { tibetan: "བིརོདྷི", roman: "Virodhi" },
-	24: { tibetan: "བིཀྲིཏ", roman: "Vikrita" },
-	25: { tibetan: "ཁར", roman: "Khara" },
-	26: { tibetan: "ནནྡ", roman: "Nanda" },
-	27: { tibetan: "བིཛཡ", roman: "Vijaya" },
-	28: { tibetan: "ཇཡ", roman: "Jaya" },
-	29: { tibetan: "མད", roman: "Mada|Manmatha" },
-	30: { tibetan: "དུརྨུཁ", roman: "Durmukha" },
-	31: { tibetan: "ཧེམལམྦི", roman: "Hemalambhi" },
-	32: { tibetan: "བིལམྦི", roman: "Vilambhi" },
-	33: { tibetan: "བིཀརི", roman: "Vicari" },
-	34: { tibetan: "སརྦཔཏི", roman: "Sarvapati" },
-	35: { tibetan: "སླབ", roman: "Plava|Sava" },
-	36: { tibetan: "ཤུབྷཀྲིད", roman: "Shubhakrit" },
-	37: { tibetan: "ཤོབྷན", roman: "Shobhana" },
-	38: { tibetan: "ཁྲོདྷི", roman: "Khrodhi" },
-	39: { tibetan: "བིཤྭབནྡྷུ", roman: "Vishwabandhu|Viswavasu" },
-	40: { tibetan: "པརཱབྷབ", roman: "Parabhava" },
-	41: { tibetan: "པྲབངྒ", roman: "Pravanga|Plavanga" },
-	42: { tibetan: "ཀཱིལཀ", roman: "Kilaka" },
-	43: { tibetan: "སོམྱ", roman: "Saumya" },
-	44: { tibetan: "སཱདྷརཎ", roman: "Sadharana" },
-	45: { tibetan: "བིརོདྷཀྲིད", roman: "Virodhakrit" },
-	46: { tibetan: "པརིདྷརི", roman: "Paridhari" },
-	47: { tibetan: "པྲམཱདི", roman: "Pramadi" },
-	48: { tibetan: "ཨཱནནྡ", roman: "Ananda" },
-	49: { tibetan: "རཀྵས", roman: "Rakshasa" },
-	50: { tibetan: "ཨནལ", roman: "Anala" },
-	51: { tibetan: "པིངྒལ", roman: "Pingala" },
-	52: { tibetan: "ཀལཡུཀྟི", roman: "Kaladuti|Kalayukta" },
-	53: { tibetan: "སིདྡྷརྠི", roman: "Siddharthi" },
-	54: { tibetan: "རུདྲ", roman: "Rudra" },
-	55: { tibetan: "དུརམཏི", roman: "Durmati" },
-	56: { tibetan: "དུནདུབྷི", roman: "Dundubhi" },
-	57: { tibetan: "རུདྷིརུདྒར", roman: "Rudhirura|Rudirodgari" },
-	58: { tibetan: "རཀྟཀྵི", roman: "Raktakshi" },
-	59: { tibetan: "ཀྲོདྷན", roman: "Krodhana" },
-	60: { tibetan: "ཀྵཡ", roman: "Kshaya|Kshayaka" },
+	1: { tibetan: "པྲབྷབ", roman: "Prabhava", tibetanName: "Rab-byung" },
+	2: { tibetan: "བིབྷབ", roman: "Vibhava", tibetanName: "rNam-hbyung" },
+	3: { tibetan: "ཤུཀླ", roman: "Shukla", tibetanName: "dKar-po" },
+	4: { tibetan: "པྲམོདི", roman: "Pramodi", tibetanName: "Rab-myos" },
+	5: { tibetan: "པྲཛཔདི", roman: "Prajapati", tibetanName: "sKyes-bdag" },
+	6: { tibetan: "ཨང་གི་ར", roman: "Angira", tibetanName: "Angira" },
+	7: { tibetan: "ཤྲཱིམུཁ", roman: "Srimukha", tibetanName: "dPal-gdong" },
+	8: { tibetan: "བྷབ", roman: "Bhava", tibetanName: "dNos-po" },
+	9: { tibetan: "ཡུབིག", roman: "Yuvika", tibetanName: "Na-tshod-ldan" },
+	10: { tibetan: "དྷྲིཏུ", roman: "Dhritu|Dhata", tibetanName: "hDsin-byed" },
+	11: { tibetan: "ཨིཤྭར", roman: "Iswara", tibetanName: "dVang-phyug" },
+	12: { tibetan: "བཧུདྷནྱ", roman: "Bahudanya", tibetanName: "hBru-mang-po" },
+	13: { tibetan: "པྲམཱཐི", roman: "Pramathi", tibetanName: "Myos-ldan" },
+	14: { tibetan: "བིཀྲམ", roman: "Vikrama", tibetanName: "rNam-gnon" },
+	15: { tibetan: "བྲིཥབྷ", roman: "Vrishabha", tibetanName: "Khyu-mchhog" },
+	16: { tibetan: "ཙིཏྲ", roman: "Chitra", tibetanName: "sNa-tshogs" },
+	17: { tibetan: "བྷནུ", roman: "Bhanu", tibetanName: "Nyi-ma" },
+	18: { tibetan: "བྷནུཏར", roman: "Bhanutara", tibetanName: "Nyi-sgrol-byed" },
+	19: { tibetan: "པིརྠཔ", roman: "Pirthapa", tibetanName: "Sa-skyong" },
+	20: { tibetan: "ཨཀྵཡ", roman: "Akshaya", tibetanName: "Mi-zad" },
+	21: { tibetan: "སརྦཛིཏ", roman: "Sarvajit", tibetanName: "Thams-chad-hdul" },
+	22: { tibetan: "སརྦདྷརི", roman: "Sarvadhari", tibetanName: "Kun-hdsin" },
+	23: { tibetan: "བིརོདྷི", roman: "Virodhi", tibetanName: "hGal-va" },
+	24: { tibetan: "བིཀྲིཏ", roman: "Vikrita", tibetanName: "rNam-hgyur" },
+	25: { tibetan: "ཁར", roman: "Khara", tibetanName: "Bong-bu" },
+	26: { tibetan: "ནནྡ", roman: "Nanda", tibetanName: "dGah-va" },
+	27: { tibetan: "བིཛཡ", roman: "Vijaya", tibetanName: "rNam-rgyal" },
+	28: { tibetan: "ཇཡ", roman: "Jaya", tibetanName: "rGyal-va" },
+	29: { tibetan: "མད", roman: "Mada|Manmatha", tibetanName: "Myos-byed" },
+	30: { tibetan: "དུརྨུཁ", roman: "Durmukha", tibetanName: "gDong-ňan" },
+	31: { tibetan: "ཧེམལམྦི", roman: "Hemalambhi", tibetanName: "gSer-hphyang" },
+	32: { tibetan: "བིལམྦི", roman: "Vilambhi", tibetanName: "rNam-hphyang" },
+	33: { tibetan: "བིཀརི", roman: "Vicari", tibetanName: "sGyur-byed" },
+	34: { tibetan: "སརྦཔཏི", roman: "Sarvapati", tibetanName: "Kun-ldan" },
+	35: { tibetan: "སླབ", roman: "Plava|Sava", tibetanName: "hPhar-va" },
+	36: { tibetan: "ཤུབྷཀྲིད", roman: "Shubhakrit", tibetanName: "dGé-byed" },
+	37: { tibetan: "ཤོབྷན", roman: "Shobhana", tibetanName: "mDses-byed" },
+	38: { tibetan: "ཁྲོདྷི", roman: "Khrodhi", tibetanName: "Khromo" },
+	39: { tibetan: "བིཤྭབནྡྷུ", roman: "Vishwabandhu|Viswavasu", tibetanName: "sNa-tshogs-dvyig" },
+	40: { tibetan: "པརཱབྷབ", roman: "Parabhava", tibetanName: "Zil-gnon" },
+	41: { tibetan: "པྲབངྒ", roman: "Pravanga|Plavanga", tibetanName: "sPréhu" },
+	42: { tibetan: "ཀཱིལཀ", roman: "Kilaka", tibetanName: "Phur-bu" },
+	43: { tibetan: "སོམྱ", roman: "Saumya", tibetanName: "Zhi-va" },
+	44: { tibetan: "སཱདྷརཎ", roman: "Sadharana", tibetanName: "Thun-mong" },
+	45: { tibetan: "བིརོདྷཀྲིད", roman: "Virodhakrit", tibetanName: "hGal-byed" },
+	46: { tibetan: "པརིདྷརི", roman: "Paridhari", tibetanName: "Yongs-hdsin" },
+	47: { tibetan: "པྲམཱདི", roman: "Pramadi", tibetanName: "Bag-med" },
+	48: { tibetan: "ཨཱནནྡ", roman: "Ananda", tibetanName: "Kun-dGah" },
+	49: { tibetan: "རཀྵས", roman: "Rakshasa", tibetanName: "Srin-bu" },
+	50: { tibetan: "ཨནལ", roman: "Anala", tibetanName: "Mé" },
+	51: { tibetan: "པིངྒལ", roman: "Pingala", tibetanName: "dMar-ser-chan" },
+	52: { tibetan: "ཀལཡུཀྟི", roman: "Kaladuti|Kalayukta", tibetanName: "Dus-kyi pho-nya" },
+	53: { tibetan: "སིདྡྷརྠི", roman: "Siddharthi", tibetanName: "Don-grub" },
+	54: { tibetan: "རུདྲ", roman: "Rudra", tibetanName: "Drag-po" },
+	55: { tibetan: "དུརམཏི", roman: "Durmati", tibetanName: "bLo-ňan" },
+	56: { tibetan: "དུནདུབྷི", roman: "Dundubhi", tibetanName: "rŇa-chhen" },
+	57: { tibetan: "རུདྷིརུདྒར", roman: "Rudhirura|Rudirodgari", tibetanName: "Khrag-skyug" },
+	58: { tibetan: "རཀྟཀྵི", roman: "Raktakshi", tibetanName: "Mig-dmar" },
+	59: { tibetan: "ཀྲོདྷན", roman: "Krodhana", tibetanName: "Khro-vo" },
+	60: { tibetan: "ཀྵཡ", roman: "Kshaya|Kshayaka", tibetanName: "Zad-pa" },
 };
 
 /**
@@ -2135,6 +2144,128 @@ for (const r of rows) {
 	}
 	r.csomaTibetan = entry.tibetan;
 	r.csomaRoman = entry.roman;
+	r.csomaTibetanName = entry.tibetanName;
+}
+
+// ---------------------------------------------------------------------------------------------
+// Csoma's TIBETAN column, section 232 -- the second witness the Tibetan names have never had.
+//
+// Every Wylie string in this table comes from one source: Janson, whose own LaTeX says his table is
+// "taken from [Henning]". CLAUDE.md's rule that a single Janson table is not sufficient evidence for
+// a NAME was written after `spen ma` shipped for three phases, and it applies here with nothing to
+// discharge it -- the Sanskrit columns acquired witnesses and the Tibetan column did not.
+//
+// Csoma discharges it. He prints the Tibetan names twice, in section 232 as Roman and in section 233
+// as script, and he reached them from the Tibetan side 65 years before Monier-Williams. The Roman is
+// what is held here, deliberately: it is ordinary Latin type, so reading it does not risk the
+// Tibetan-glyph misreads that `test/fixtures/rgob.ts` exists to warn about.
+//
+// His romanisation maps onto Wylie by rule, not by row. Case marks prefix from root and Wylie does
+// not, so case is discarded; `h` is a-chung at the start of a syllable or after a vowel and the
+// second half of a digraph after a consonant; `v` is b; `ds` is dz; his caron-n is nga; `chh` is
+// Wylie ch and his bare `ch` is Wylie c; acutes are plain vowels. That rule alone carries 56 of the
+// 60 rows onto Janson's Wylie exactly.
+// ---------------------------------------------------------------------------------------------
+
+const CSOMA_VOWELS = "aeiou";
+
+const csomaTibetanToWylie = (name) =>
+	name
+		.toLowerCase()
+		.replace(/\u0148/g, "N") // his caron-n is nga, marked before diacritics are stripped. The sentinels here and below are uppercase, which the toLowerCase above guarantees the input cannot contain
+		.normalize("NFD")
+		.replace(/[\u0300-\u036f]/g, "") // acutes mark nothing Wylie records
+		.normalize("NFC")
+		.split(/[-\s]+/)
+		.map((syllable) => {
+			let out = "";
+			for (let i = 0; i < syllable.length; i++) {
+				const ch = syllable[i];
+				if (ch !== "h") {
+					out += ch;
+					continue;
+				}
+				const previous = syllable[i - 1];
+				out += previous && !CSOMA_VOWELS.includes(previous) ? "h" : "'";
+			}
+			return out
+				.replace(/chh/g, "C")
+				.replace(/ch/g, "c")
+				.replace(/C/g, "ch")
+				.replace(/ds/g, "dz")
+				.replace(/v/g, "b")
+				.replace(/N/g, "ng");
+		})
+		.join(" ");
+
+// The four rows the rule does not carry, each with the reason it does not and both readings it
+// stands between. Stating both is what makes these self-invalidating: if Janson's table changes, or
+// if a plate reading is revised, the run fails here instead of quietly widening the exception list.
+//
+// Note what is NOT on this list. A tolerance was considered for the voicing his SANSKRIT column
+// shows -- `pra dza pa di` for prajapati -- and rejected: these are Tibetan words rather than
+// transliterated Sanskrit, he does not voice them, and all 56 other rows match on plain equality. A
+// tolerance nobody needs is a tolerance that hides the next real divergence.
+const CSOMA_TIBETAN_EXCEPTIONS = {
+	2: {
+		csoma: "rnam 'byung",
+		janson: "rnam byung",
+		why:
+			"A real variant, recorded rather than corrected. Both spellings are attested and both name " +
+			"the same year: Rangjung Yeshe carries only `rnam 'byung` ('the 2nd year of rab byung, Syn " +
+			"sa pho 'brug'), the tshig mdzod chen mo carries only `rnam byung`, and Ives Waldo carries " +
+			"both. Janson has one, Csoma the other, in his Roman and his script alike -- so this is not " +
+			"a misprint on either side. The asymmetry is attested rather than sloppy: Csoma and Rangjung " +
+			"Yeshe both give position 1 as `rab byung` WITHOUT the a-chung and position 2 as `rnam " +
+			"'byung` with it, though both render the same -bhava.",
+	},
+	6: {
+		csoma: "angira",
+		janson: "ang gi ra",
+		why:
+			"Not a Tibetan word. This row transliterates the rishi's name rather than translating it, " +
+			"which section 233 confirms outright by printing the identical string in the Sanskrit column " +
+			"and the Tibetan one. Csoma leaves it unhyphenated because there are no Tibetan syllables to " +
+			"separate, so the syllable rule has nothing to act on.",
+	},
+	8: {
+		csoma: "dnos po",
+		janson: "dngos po",
+		why:
+			"A dropped diacritic in his Roman, settled by his script. Section 233 writes the nasal; " +
+			"section 232 prints a plain capital N. He does write the caron where he means it -- 30 " +
+			"`gDong-nan`, 56 `rNa-chhen` -- so this is a slip rather than a convention, read at 5x.",
+	},
+	38: {
+		csoma: "khromo",
+		janson: "khro mo",
+		why:
+			"A dropped hyphen in his Roman, settled by his script. Every other multi-syllable entry in " +
+			"the column separates its syllables; this one does not, and section 233 writes the two " +
+			"syllables plainly. Read at 5x.",
+	},
+};
+
+for (const r of rows) {
+	const expected = CSOMA_TIBETAN_EXCEPTIONS[r.n];
+	const derived = csomaTibetanToWylie(r.csomaTibetanName);
+	if (!expected) {
+		if (derived !== r.wylie) {
+			fail(
+				`Csoma's Tibetan name at position ${r.n} ("${r.csomaTibetanName}") maps to "${derived}", ` +
+					`where Janson has "${r.wylie}". Re-read the plate, or record it as a declared exception ` +
+					"with its evidence -- do not widen the normalisation to absorb it.",
+			);
+		}
+		continue;
+	}
+	if (derived !== expected.csoma || r.wylie !== expected.janson) {
+		fail(
+			`the declared exception at position ${r.n} expected Csoma "${expected.csoma}" against Janson ` +
+				`"${expected.janson}", but this run has "${derived}" against "${r.wylie}". Re-argue the ` +
+				"exception rather than adjusting its expected values.",
+		);
+	}
 }
 
 // The difference records were argued from Csoma's Roman, so each states the reading it was argued
@@ -2253,6 +2384,16 @@ export interface RabjungNameFixtureRow {
 	csomaTibetan: string;
 	/** His own romanisation, §232, p. 150; readings he braces to one Tibetan name are joined by "|". */
 	csomaRoman: string;
+	/**
+	 * The **Tibetan** name as Csoma romanises it, §232, p. 150 -- his column, not his Sanskrit one.
+	 *
+	 * The second witness to the Tibetan names, which otherwise rest on Janson alone and so on
+	 * Henning alone. His case marks prefix from root where Wylie does not; the generator maps it onto
+	 * \`wylie\` by rule and refuses to emit unless all sixty rows agree or are declared exceptions.
+	 * Four are: 2 is a real variant, 6 transliterates rather than translates, and 8 and 38 are slips
+	 * in his Roman that his script settles.
+	 */
+	csomaTibetanName: string;
 }
 
 export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
@@ -2279,7 +2420,8 @@ ${rows
 			`mwPage: ${optional(r.mwPage)}, mwQueriedAs: ${optional(r.mwQueriedAs)}, ` +
 			`mwRung: ${optional(r.mwRung)}, brihatSamhitaPosition: ${r.brihatSamhitaPosition ?? "null"}, ` +
 			`corroborators: [${(r.corroborators ?? []).map(quote).join(", ")}], ` +
-			`csomaTibetan: ${quote(r.csomaTibetan)}, csomaRoman: ${quote(r.csomaRoman)} },`
+			`csomaTibetan: ${quote(r.csomaTibetan)}, csomaRoman: ${quote(r.csomaRoman)}, ` +
+			`csomaTibetanName: ${quote(r.csomaTibetanName)} },`
 		);
 	})
 	.join("\n")}
@@ -2489,7 +2631,7 @@ agreeing independently is a result.
 |---|---|---|---|
 | Janson, *Tibetan Calendar Mathematics* (LaTeX) | Wylie, cycle position, the two Gregorian years | The Tibetan lineage — he takes the table from Henning's Appendix I — and the only source this package derives from, per the clean-room constraint | **Sourced**, extracted mechanically |
 | Wikipedia saṃvatsara table | Devanāgarī | The only machine-readable source found carrying the script against the cycle positions. Its **IAST is no longer used**: it disagrees with its own Devanāgarī at ${IAST_DISAGREEMENTS.size} positions, so the IAST column below is derived instead | **Sourced**, corrected below |
-| Csoma de Kőrös, *A Grammar of the Tibetan Language* (Calcutta 1834) | The list the Tibetan names translate — in Tibetan script (§233) and in his own Roman (§232) | The one witness to that list independent of Janson, whose table his LaTeX says is "taken from [Henning]". Printed 65 years before Monier-Williams and 90 before Sewell, and reached from the Tibetan side | **Sourced**, hand-read from the plates, every row checked against two romanisations |
+| Csoma de Kőrös, *A Grammar of the Tibetan Language* (Calcutta 1834) | The list the Tibetan names translate — in Tibetan script (§233) and in his own Roman (§232) — **and the Tibetan names themselves**, which otherwise rest on Janson alone | The one witness to that list independent of Janson, whose table his LaTeX says is "taken from [Henning]". Printed 65 years before Monier-Williams and 90 before Sewell, and reached from the Tibetan side | **Sourced**, hand-read from the plates, every row checked against two romanisations |
 | Sewell & Fleet, *The Siddhāntas and the Indian Calendar* (1924) | **Name identity only** — which name sits at which position | The authority the Indic column was originally cited to. It cannot check spelling: it prints \`Sukla\`, \`Vrisha\`, \`Kshaya\` in 1924 romanisation with **no IAST diacritics anywhere** | **Sourced**, by majority vote over thousands of OCR reads |
 | Monier-Williams, via the Cologne Digital Sanskrit Dictionaries | The Sanskrit senses | The authority itself, from the scan: uncapped, citing a printed page, and carrying MW's own homonym grouping | **Sourced**, with a page citation per row |
 | wisdomlib | The Bṛhat Saṃhitā's cycle position; which **other** lexicons carry a headword | Varāhamihira names the position in words beside the Devanāgarī — a primary Indic astronomical witness, independent of Janson, Sewell and Wiktionary. Only the position is taken, never the prose | **Sourced**, where present |
@@ -2584,6 +2726,52 @@ ${
 				.map((a) => `- **${a.n} ${a.iast}** — he gives it as "${a.sense.replace(/"/g, "'")}"`)
 				.join("\n")
 }
+
+## The second witness to the Tibetan names
+
+Every Wylie string in the table below comes from **one** source. Janson's own LaTeX says his
+sixty-year table is "taken from [Henning]", so the Tibetan column has the standing that CLAUDE.md's
+naming rule exists to refuse — and that rule was written after \`spen ma\` shipped for three phases on
+exactly this footing. The Sanskrit columns acquired independent witnesses; the Tibetan column did
+not.
+
+Csoma supplies one. He prints the Tibetan names twice — §232 (p. 150) in his own Roman, §233
+(pp. 151–152) in Tibetan script — and he reached them from the Tibetan side, 65 years before
+Monier-Williams and 90 before Sewell. **His Roman is what the generator checks against**, and that
+choice is deliberate: it is ordinary Latin type, so reading it carries none of the Tibetan-glyph
+misread risk that \`test/fixtures/rgob.ts\` exists to warn about. His script is what settles the rows
+where his Roman slips.
+
+His romanisation maps onto Wylie **by rule, not by row**: case marks prefix from root where Wylie
+does not, so case is discarded; \`h\` is *a-chung* at the start of a syllable and the second half of a
+digraph after a consonant; \`v\` is b, \`ds\` is dz, his caron-n is *nga*, \`chh\` is Wylie \`ch\` while his
+bare \`ch\` is Wylie \`c\`, and acutes mark nothing Wylie records. That rule alone carries **56 of the
+60** rows onto Janson's Wylie exactly.
+
+The other four are declared, each with the reason the rule does not reach it. Every one states both
+readings it stands between, so a change on either side fails the run rather than quietly widening the
+list.
+
+| # | Csoma | Janson | Why the rule does not carry it |
+|---|---|---|---|
+| 2 | \`rnam 'byung\` | \`rnam byung\` | **A real variant, recorded rather than corrected.** Both are attested and both name the same year. Rangjung Yeshe carries only \`rnam 'byung\`; the *tshig mdzod chen mo* carries only \`rnam byung\`; Ives Waldo carries both. Csoma reads it the same way in his Roman and his script, so it is a misprint on neither side |
+| 6 | \`angira\` | \`ang gi ra\` | **Not a Tibetan word.** This row transliterates the ṛṣi's name instead of translating it — §233 confirms it outright by printing the *identical* string in the Sanskrit column and the Tibetan one — so there are no Tibetan syllables for the rule to separate |
+| 8 | \`dnos po\` | \`dngos po\` | **A dropped diacritic in his Roman, settled by his script.** §233 writes the nasal; §232 prints a plain capital N. He writes the caron where he means it, at 30 \`gDong-ňan\` and 56 \`rŇa-chhen\`, so this is a slip rather than a convention |
+| 38 | \`khromo\` | \`khro mo\` | **A dropped hyphen in his Roman, settled by his script.** Every other multi-syllable entry in the column separates its syllables; this one does not, and §233 writes the two plainly |
+
+Note what is **not** on that list. A tolerance was considered for the voicing his *Sanskrit* column
+shows — \`pra dza pa di\` for *prajāpati* — and rejected. These are Tibetan words rather than
+transliterated Sanskrit, he does not voice them, and all 56 remaining rows match on plain equality. A
+tolerance nobody needs is a tolerance that hides the next real divergence.
+
+### Two further properties of the plate
+
+Recorded rather than corrected, alongside the two already noted above.
+
+- **Two rows are misnumbered, not one.** The sequence runs 47, 48, **59**, 50, **61**, 52 — so row 49
+  is printed "59" and row 51 is printed "61". Both are leading-digit slips, both were read at 5×
+  magnification, and the Sanskrit at each is unambiguous, so rows join by their position in the
+  sequence rather than by the printed numeral. An earlier note here recorded only the first.
 
 ## The English columns
 
