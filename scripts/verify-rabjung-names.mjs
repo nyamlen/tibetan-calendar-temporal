@@ -1526,6 +1526,391 @@ for (const r of rows) {
 	}
 }
 
+/**
+ * Detector A: where Janson's Sanskrit and the Indic list carry DIFFERENT names at one position,
+ * rather than different spellings of one name.
+ *
+ * Janson's ASCII is the only mechanical detector of this, which is why it is extracted at all -- it
+ * is never written to the fixture and never reaches `src/`. It was dropped from this document once
+ * before, on the reasoning that it collides three names onto `pramadi` and so is useless as a name
+ * source. That is true and is why it is not shipped; but it took the evidence with it, and the claim
+ * survived for months in a roadmap sentence whose position-60 half had by then become wrong.
+ *
+ * The comparison runs on a **skeleton**, never on the printed forms. Janson's column reached him
+ * through Tibetan transcription -- `vahudhvanya`, `brisabha`, `slava`, `vingala` -- so a literal
+ * comparison flags half the table. The skeleton deliberately collapses exactly those confusions
+ * (b/v/p, aspirates, sibilants, doubled consonants, final vowel) so that what survives is a
+ * candidate for a genuinely different name. It is a detector and nothing else: no value computed
+ * here is ever printed, shipped, or used to choose a spelling.
+ */
+const SKELETON_DIACRITICS = {
+	ā: "a",
+	ī: "i",
+	ū: "u",
+	ṛ: "ri",
+	ṝ: "ri",
+	ḷ: "l",
+	ḹ: "l",
+	ṅ: "n",
+	ñ: "n",
+	ṭ: "t",
+	ḍ: "d",
+	ṇ: "n",
+	ś: "s",
+	ṣ: "s",
+	ṃ: "m",
+	ṁ: "m",
+	ḥ: "h",
+	ḻ: "l",
+};
+
+const skeleton = (word) => {
+	let s = word.toLowerCase();
+	for (const [from, to] of Object.entries(SKELETON_DIACRITICS)) s = s.split(from).join(to);
+	return s
+		.replace(/sh/g, "s")
+		.replace(/bh/g, "b")
+		.replace(/ph/g, "p")
+		.replace(/dh/g, "d")
+		.replace(/th/g, "t")
+		.replace(/kh/g, "k")
+		.replace(/gh/g, "g")
+		.replace(/jh/g, "j")
+		.replace(/ch/g, "c")
+		.replace(/[wv]/g, "b")
+		.replace(/m(?=[bcdgjkltn])/g, "n")
+		.replace(/p/g, "b")
+		.replace(/([bcdgjkstn])\1+/g, "$1")
+		.replace(/[aiu]+$/g, "")
+		.replace(/[^a-z]/g, "");
+};
+
+/** Whether Janson's name and any reading of the Indic cell reduce to one skeleton. */
+const sameName = (janson, indicIast) =>
+	indicIast.split("/").some((reading) => skeleton(reading) === skeleton(janson));
+
+/**
+ * Detector B: whether Monier-Williams' own year sense for the Indic form names THIS position.
+ *
+ * Disjoint from detector A, and deliberately so. A caught position 18, where Janson has `bhanutara`
+ * against our Tāraṇa; B catches it again from the other side, because Monier-Williams files Tāraṇa
+ * as "the 3rd year of the 4th Jupiter cycle" -- not the 18th. B also catches what A cannot see at
+ * all: a position where Janson and the Indic list agree and Monier-Williams attests neither.
+ *
+ * The second number in his "the 41st (15th) year" is the same year in the Chinese cycle, which sits
+ * three positions away, so any number in the sense counts as a match.
+ */
+const WORD_ORDINALS = {
+	first: 1,
+	second: 2,
+	third: 3,
+	fourth: 4,
+	fifth: 5,
+	sixth: 6,
+	seventh: 7,
+	eighth: 8,
+	ninth: 9,
+	tenth: 10,
+	eleventh: 11,
+	twelfth: 12,
+	thirteenth: 13,
+	fourteenth: 14,
+	fifteenth: 15,
+	sixteenth: 16,
+	seventeenth: 17,
+	eighteenth: 18,
+	nineteenth: 19,
+	twentieth: 20,
+	thirtieth: 30,
+	fortieth: 40,
+	fiftieth: 50,
+	sixtieth: 60,
+	last: 60,
+};
+
+const positionsNamedIn = (sense) => {
+	const found = new Set([...sense.matchAll(/\d{1,2}/g)].map((m) => Number(m[0])));
+	for (const [word, value] of Object.entries(WORD_ORDINALS))
+		if (new RegExp(`\\b${word}\\b`, "i").test(sense)) found.add(value);
+	for (const m of sense.matchAll(/\b(twenty|thirty|forty|fifty)-(\w+)\b/gi)) {
+		const tens = { twenty: 20, thirty: 30, forty: 40, fifty: 50 }[m[1].toLowerCase()];
+		const unit = WORD_ORDINALS[m[2].toLowerCase()];
+		if (tens && unit && unit < 10) found.add(tens + unit);
+	}
+	// Varāhamihira groups the sixty years into twelve lustra of five, and Monier-Williams follows him
+	// on some rows: "the 3rd year of the 6th lustrum" is 28, and "the 3rd year of the 4th Jupiter
+	// cycle" is 18 by the same arithmetic. Read literally, both look like flat contradictions of the
+	// position -- 18 was written up as one here before this was noticed.
+	for (const m of sense.matchAll(
+		/(\d{1,2})\w{0,2}\s+year\s+of\s+the\s+(\d{1,2})\w{0,2}\s+(?:\w+\s+)?(?:lustrum|cycle)/gi,
+	))
+		found.add(5 * (Number(m[2]) - 1) + Number(m[1]));
+	return found;
+};
+
+/** The year sense Monier-Williams gives for a row's own form, if he gives one. */
+const yearSenseOf = (row) =>
+	(row.senses ?? []).find((s) => /year/i.test(s.text) && /cycle|Jupiter|Bṛhaspati/i.test(s.text))
+		?.text ?? null;
+
+/**
+ * Every position where the two lists differ, with the verdict argued for it.
+ *
+ * `type` records WHAT KIND of difference it is, because collapsing the kinds is what made positions
+ * 29 and 52 look unresolvable for months:
+ *
+ * - `transcription` — one name. Janson's ASCII differs by a rule of the Tibetan transcription it
+ *   came through: b/v, a lost aspirate, an anusvāra written as its cluster.
+ * - `collision` — Janson prints `pramadi` at 4, 13 and 47 alike, so his column cannot distinguish
+ *   them. Csoma does: Pramodi, Pramáthi, Pramádi.
+ * - `stem` — one name under a different stem or derivative, where both are attested words.
+ * - `variant` — two readings of one year, printed **as a pair** by Csoma, braced to a single Tibetan
+ *   name. This is the class that dissolved 29 and 52: the pair is attested as a pair, and the only
+ *   question is which reading a tradition took.
+ * - `different-name` — genuinely different names at one position.
+ *
+ * `csoma` is his §232 romanisation (Calcutta 1834, p. 150), read from the plate; alternatives he
+ * braces to one Tibetan name are given in his printed order. He is the witness independent of
+ * Janson, whose own table is "taken from [Henning]" by his own LaTeX.
+ */
+const NAME_DIFFERENCES = [
+	{
+		n: 3,
+		janson: "suklata",
+		csoma: "Shukla",
+		type: "transcription",
+		note: "Janson's trailing `-ta` is in neither other witness; Csoma and the Indic list both read Śukla, and Monier-Williams attests it here. The Tibetan `dkar po` is white.",
+	},
+	{
+		n: 4,
+		janson: "pramadi",
+		csoma: "Pramodi",
+		type: "collision",
+		note: "One of the three positions Janson spells `pramadi`. Csoma separates them, and his Pramodi matches the Indic Pramoda and the Tibetan `rab myos`.",
+	},
+	{
+		n: 6,
+		janson: "ankira",
+		csoma: "Angira",
+		type: "stem",
+		note: "Aṅgira and Āṅgirasa are the same sage; Monier-Williams files अङ्गिर as `= अङ्गिरस्` and attests neither at this position. The Tibetan transliterates rather than translating — `ang gi ra` — so it cannot adjudicate the stem.",
+	},
+	{
+		n: 9,
+		janson: "yuvika",
+		csoma: "Yuvika",
+		type: "stem",
+		note: "Both witnesses of the Tibetan-side list read Yuvika where the Indic list has Yuvan, which Monier-Williams attests here. The Tibetan `na tshod ldan`, possessing age, renders either.",
+	},
+	{
+		n: 10,
+		janson: "dhritu",
+		csoma: "Dhritu|Dhata",
+		type: "variant",
+		note: "Csoma braces both readings to one Tibetan name. Dhātā is the nominative of the Indic list's Dhātṛ, which Monier-Williams attests here; `'dzin byed`, holder, takes that reading.",
+	},
+	{
+		n: 12,
+		janson: "vahudhvanya",
+		csoma: "Bahudanya",
+		type: "transcription",
+		note: "Bahudhānya through Tibetan transcription: b written v, and a cluster where the Indic list has none. `'bru mang po`, much grain, is the same name.",
+	},
+	{
+		n: 13,
+		janson: "pramadi",
+		csoma: "Pramathi",
+		type: "collision",
+		note: "The second of Janson's three `pramadi` rows. Csoma's Pramáthi matches the Indic Pramāthī, which Monier-Williams attests here. His gloss is agitation where the Tibetan `myos ldan` is intoxication — the same reading of mind-agitation as intoxication that position 29 turns on.",
+	},
+	{
+		n: 16,
+		janson: "citra",
+		csoma: "Chitra",
+		type: "different-name",
+		note: "Citra against Citrabhānu — two real names, and here the Indic one carries the attestation: Monier-Williams gives Citrabhānu as the 16th year, and Citra no year sense at all. The Tibetan `sna tshogs`, various, renders the *citra* element, which is what a translator of the compound would leave.",
+	},
+	{
+		n: 17,
+		janson: "bhanu",
+		csoma: "Bhanu",
+		type: "different-name",
+		note: "Bhānu against Svabhānu, and Monier-Williams attests **neither** at this position. The Tibetan `nyi ma` is the sun, which is bhānu bare; the Indic list's sva- has nothing answering to it.",
+	},
+	{
+		n: 18,
+		janson: "bhanutara",
+		csoma: "Bhanutara",
+		type: "different-name",
+		note: "Bhānutāra against Tāraṇa. Monier-Williams does attest the Indic form here, though it reads as a contradiction until his notation is: 'the 3rd year of the 4th Jupiter cycle' is the 18th year, by the lustra of five that Varāhamihira counts in — this row was written up as a flat contradiction here before that was noticed. The Tibetan `nyi sgrol byed`, sun-carrying, renders bhānu-tāra element for element, where Tāraṇa alone leaves `nyi`, the sun, unaccounted for.",
+	},
+	{
+		n: 19,
+		janson: "virthapa",
+		csoma: "Pirthapa",
+		type: "transcription",
+		note: "Pārthiva through transcription, p written v and a metathesised cluster. Monier-Williams attests Pārthiva here, and `sa skyong`, earth-protector, is his 'a lord of the earth'.",
+	},
+	{
+		n: 20,
+		janson: "aksaya",
+		csoma: "Akshaya",
+		type: "different-name",
+		note: "Three names for one year, and Monier-Williams attests two of them at this position: Vyaya, the second reading of the Indic cell, and Akṣaya, which is what both witnesses of the Tibetan-side list carry. The Tibetan `mi zad`, inexhaustible, is akṣaya and equally avyaya — so the cell's first reading, not the attested second.",
+	},
+	{
+		n: 26,
+		janson: "nanda",
+		csoma: "Nanda",
+		type: "stem",
+		note: "Nanda against Nandana, joy against gladdening; Monier-Williams attests Nandana here. `dga' ba` renders either.",
+	},
+	{
+		n: 29,
+		janson: "mada",
+		csoma: "Mada|Manmatha",
+		type: "variant",
+		note: "Csoma prints both, braced to one Tibetan name, so this was never two traditions naming different things. Madana and Manmatha are two epithets of Kāma — Monier-Williams glosses मदन 'passion, love or the god of love' and also 'the act of intoxicating', and derives मन्मथ from man + math, 'agitating' the mind. Csoma's own numerical glossary (p. 157) equates `myos byed` with Madana and Kāma Deva outright. The Indic list carries Manmatha, which he attests here; the Tibetan renders the other reading.",
+	},
+	{
+		n: 34,
+		janson: "sarvavati",
+		csoma: "Sarvapati",
+		type: "different-name",
+		note: "Sarvapati, a lord of everything, against Śārvarī, belonging to night — and Monier-Williams attests neither at this position. The Tibetan `kun ldan`, all-endowed, has nothing to do with night, so the Indic form is the odd one out on every axis except the one that matters least.",
+	},
+	{
+		n: 35,
+		janson: "slava",
+		csoma: "Plava|Sava",
+		type: "variant",
+		note: "Csoma braces both. The Indic list carries Plava, which Monier-Williams attests here, and `'phar ba`, to leap, takes it.",
+	},
+	{
+		n: 39,
+		janson: "visvabandhu",
+		csoma: "Vishwabandhu|Viswavasu",
+		type: "variant",
+		note: "Recorded as open for months on the guess that Janson's ASCII was corrupt here. It is not: Csoma prints both readings braced to one Tibetan name. The Indic list carries Viśvāvasu, attested here, and `sna tshogs dbyig` — dbyig is wealth, vasu — takes that one.",
+	},
+	{
+		n: 41,
+		janson: "pravamga",
+		csoma: "Pravanga|Plavanga",
+		type: "variant",
+		note: "Csoma braces both. Monier-Williams attests Plavaṅga here, and `spre'u` is a monkey.",
+	},
+	{
+		n: 45,
+		janson: "virobhakrita",
+		csoma: "Virodhakrit",
+		type: "transcription",
+		note: "Virodhakṛta with dh written bh; Csoma reads it as the Indic list does, and `'gal byed` is obstruction-making.",
+	},
+	{
+		n: 46,
+		janson: "paradhari",
+		csoma: "Paridhari",
+		type: "transcription",
+		note: "Monier-Williams attests Paridhāvin here, 'running round', and no -dhārin form exists as a headword. Both witnesses of the Tibetan-side list nevertheless read -dhāri, and the Tibetan `yongs 'dzin`, all-holding, is dhārin rather than dhāvin — so the translator read a holder. Recorded rather than resolved: it changes no name, since the attested form is not in doubt.",
+	},
+	{
+		n: 52,
+		janson: "kaladuti",
+		csoma: "Kaladuti|Kalayukta",
+		type: "variant",
+		note: "Csoma prints both, braced to one Tibetan name. The Indic list carries Kālayukta, which Monier-Williams attests here as the 52nd year; Kāladūtī is not a headword of his, though कालदूत, the angel of death, is, on the same printed page. The Tibetan `dus kyi pho nya`, messenger of time, renders the reading the Indic list did not take.",
+	},
+	{
+		n: 54,
+		janson: "rudra",
+		csoma: "Rudra",
+		type: "stem",
+		note: "Rudra against Raudra, the god against what belongs to him; Monier-Williams attests Raudra here. `drag po`, fierce, renders either.",
+	},
+	{
+		n: 57,
+		janson: "rudhirura",
+		csoma: "Rudhirura|Rudirodgari",
+		type: "variant",
+		note: "Csoma braces both. The Indic list carries Rudhirodgārī, attested here, and `khrag skyug`, vomiting blood, takes it.",
+	},
+	{
+		n: 60,
+		janson: "ksayaka",
+		csoma: "Kshaya|Kshayaka",
+		type: "variant",
+		note: "Csoma braces both, which retires the last trace of what was recorded for months as the table's clearest divergence. The Indic cell said अक्षय until Sewell was read directly; Sewell, Janson, Csoma and the Tibetan `zad pa` all say kṣaya.",
+	},
+];
+
+// Detector A must agree with the table in both directions. A candidate with no record is an
+// unexamined difference; a record for a row the detector no longer flags means the ladder or a
+// source moved under it, and either way the verdict was argued about something that is no longer
+// there.
+{
+	const candidates = rows.filter((r) => !sameName(r.jansonSanskrit, r.iast)).map((r) => r.n);
+	const recorded = new Set(NAME_DIFFERENCES.map((d) => d.n));
+	for (const n of candidates)
+		if (!recorded.has(n))
+			fail(
+				`position ${n} differs between Janson ("${rows.find((r) => r.n === n).jansonSanskrit}") and ` +
+					`the Indic list ("${rows.find((r) => r.n === n).iast}") and has no record in NAME_DIFFERENCES. ` +
+					"Argue it as one of the five kinds rather than widening the skeleton to hide it.",
+			);
+	for (const d of NAME_DIFFERENCES)
+		if (!candidates.includes(d.n))
+			fail(
+				`NAME_DIFFERENCES has a record at ${d.n}, but Janson and the Indic list now agree there. ` +
+					"A source or the skeleton moved; re-read the row rather than deleting the record.",
+			);
+}
+
+// Each record states the Janson reading it was argued from, and the run fails if his table no longer
+// says that -- the same self-invalidation the corrections use. A table that silently drifts from its
+// source is worse than none, because it reads as evidence.
+for (const d of NAME_DIFFERENCES) {
+	const r = rows.find((row) => row.n === d.n);
+	if (!r) {
+		fail(`name-difference record for position ${d.n} has no row`);
+	} else if (r.jansonSanskrit !== d.janson) {
+		fail(
+			`the name-difference record at ${d.n} was argued from Janson's "${d.janson}", but his table ` +
+				`now reads "${r.jansonSanskrit}". Re-argue it rather than adjusting the expected value.`,
+		);
+	}
+}
+
+// Detector B, over all sixty rows rather than only the flagged ones: where Monier-Williams gives the
+// Indic form a year sense, it must name THIS position.
+//
+// It fails only on a **contradiction** -- he attests the form, at some other position -- and never on
+// silence. The asymmetry is the point: he does not gloss every year name, so absence is no evidence
+// at all, and a guard that fired on it would report a dozen rows where nothing is wrong. A
+// contradiction is different in kind, and there is exactly one: he files Tāraṇa as the 3rd year of
+// the 4th Jupiter cycle, where the Indic list puts it 18th. Silence is still reported, as a column of
+// the difference table rather than as a failure.
+//
+// The second number in his "the 41st (15th) year" is the same year in the Chinese cycle, which sits
+// three positions away, so any number in the sense counts as naming the position.
+const mwPositionAnomalies = [];
+for (const r of rows) {
+	const sense = yearSenseOf(r);
+	if (sense === null || positionsNamedIn(sense).has(r.n)) continue;
+	// Varāhamihira outranks Monier-Williams on where a name sits, because he is what Monier-Williams
+	// is citing: `VarBṛS`. So a disagreement the Bṛhat Saṃhitā settles in our favour is an anomaly of
+	// his, recorded in the table; one it does not settle is a position this table may have wrong.
+	if (r.brihatSamhitaPosition === r.n) {
+		mwPositionAnomalies.push({ n: r.n, iast: r.iast, sense });
+		continue;
+	}
+	fail(
+		`Monier-Williams attests ${r.iast} as a year of the cycle, but not at position ${r.n}: ` +
+			`"${sense.slice(0, 120)}" -- and the Bṛhat Saṃhitā does not confirm ${r.n} either. ` +
+			"Either the position is wrong or the row needs a verdict.",
+	);
+}
+
 // ---------------------------------------------------------------------------------------------
 // Report, then emit only if everything held.
 // ---------------------------------------------------------------------------------------------
@@ -1821,96 +2206,18 @@ it. Collapsing the two would turn ${viaRung} points of grammar into ${viaRung} e
 ${body}`;
 };
 
-/**
- * The divergence table: where the Tibetan tradition and the Indic list put DIFFERENT names at one
- * position, rather than different spellings of one name.
- *
- * Janson's ASCII Sanskrit is the only mechanical detector of this, and it is extracted here for that
- * purpose alone -- it is never written to the fixture and never reaches `src/`. It was dropped from
- * this document once before, on the reasoning that it collides three names onto `pramadi` and so is
- * useless as a name source. That is true and is why it is not shipped; but it took the evidence for
- * the divergence with it, and the claim survived for months in a roadmap sentence whose position-60
- * half had by then become wrong.
- */
-const DIVERGENCES = [
-	{
-		n: 13,
-		janson: "pramadi",
-		verdict: "Senses diverge",
-		note:
-			"A different kind of divergence from the rest of this table, and worth separating. The two " +
-			"lists agree on the NAME here -- both are Pramāthin -- and disagree on what it means: " +
-			'Monier-Williams glosses it "stirring about, tearing, rending", agitation, while the Tibetan ' +
-			"`myos ldan` is intoxication. Janson's ASCII cannot corroborate either way, because " +
-			"`pramadi` is the form he collides onto positions 4, 13 and 47 alike. So the Sanskrit sense " +
-			"is selected as the Sanskrit's own, and the Tibetan gloss stands beside it unreconciled.",
-	},
-	{
-		n: 20,
-		janson: "aksaya",
-		verdict: "Not a divergence",
-		note:
-			"Janson's `aksaya` matches the FIRST alternative of the compound cell अव्यय/व्यय, which is the " +
-			"reading the Tibetan `mi zad` (inexhaustible) also takes. This is a within-cell selection " +
-			"question, not two traditions naming different things.",
-	},
-	{
-		n: 29,
-		janson: "mada",
-		verdict: "Divergent",
-		note:
-			"Intoxication against मन्मथ, the god of love. The Tibetan `myos byed` ('intoxicating') sides " +
-			"with Janson, so the two lists carry different names at this index.",
-	},
-	{
-		n: 39,
-		janson: "visvabandhu",
-		verdict: "Open",
-		note:
-			"vasu ('wealth') against bandhu ('kinsman'). The Tibetan `sna tshogs dbyig` -- dbyig is " +
-			"wealth -- sides with the INDIC विश्वावसु, not with Janson, which suggests his ASCII is corrupt " +
-			"here rather than that the traditions diverge. Recorded rather than decided.",
-	},
-	{
-		n: 52,
-		janson: "kaladuti",
-		verdict: "Divergent",
-		note:
-			"kāla-dūtī, 'messenger of time', against कालयुक्त, 'joined to time'. The Tibetan " +
-			"`dus kyi pho nya` is the messenger, so it sides with Janson.",
-	},
-	{
-		n: 60,
-		janson: "ksayaka",
-		verdict: "Dissolved",
-		note:
-			"Both are kṣaya. This was recorded for months as the clearest divergence -- `zad pa` " +
-			"(exhaustion) against *Akshaya* (imperishable), two opposite names at one index -- and the " +
-			"correction above removed it. The Indic cell said अक्षय; Sewell, Janson and the Tibetan all " +
-			"say क्षय.",
-	},
-];
-
-// Each record states the Janson reading it was argued from, and the run fails if his table no longer
-// says that -- the same self-invalidation the corrections use. A divergence table that silently
-// drifts from its source is worse than none, because it reads as evidence.
-for (const d of DIVERGENCES) {
+const differenceRow = (d) => {
 	const r = rows.find((row) => row.n === d.n);
-	if (!r) {
-		fail(`divergence record for position ${d.n} has no row`);
-	} else if (r.jansonSanskrit !== d.janson) {
-		fail(
-			`the divergence record at ${d.n} was argued from Janson's "${d.janson}", but his table now ` +
-				`reads "${r.jansonSanskrit}". Re-argue it rather than adjusting the expected value.`,
-		);
-	}
-}
-
-const divergenceRow = (d) => {
-	const r = rows.find((row) => row.n === d.n);
+	const sense = yearSenseOf(r);
+	const attested =
+		sense && positionsNamedIn(sense).has(d.n)
+			? "attested here"
+			: sense
+				? "attested elsewhere"
+				: "no year sense";
 	return (
-		`| ${d.n} | \`${r?.jansonSanskrit}\` | ${r?.devanagari} ${r?.iast} | ` +
-		`${cell(AUTHORED[String(d.n)]?.english)} | **${d.verdict}** | ${d.note} |`
+		`| ${d.n} | \`${r?.jansonSanskrit}\` | ${d.csoma.split("|").join(" or ")} | ${r?.devanagari} ${r?.iast} | ` +
+		`${cell(AUTHORED[String(d.n)]?.english)} | **${d.type}** | ${attested} | ${d.note} |`
 	);
 };
 
@@ -1980,16 +2287,52 @@ ${WYLIE_CORRECTIONS.map((c) => `- **Position ${c.n}, Wylie: \`${c.from}\` → \`
 
 ${ladderSection()}
 
-## Where the two traditions name different things
+## Where the two lists differ, and in how many ways
 
-The Tibetan names are mostly translations of the Sanskrit, but not everywhere. These are the
-positions where Janson's Tibetan-lineage Sanskrit and the Indic list carry **different names** rather
-than different spellings — the distinction that decides whether the two columns of a row can be read
-as one name.
+There are **two Sanskrit name lists for one cycle**, and they are not the same list. The Indic
+saṃvatsara list is what this table's Devanāgarī column holds. The other is the list the Tibetan names
+render, witnessed by Csoma de Kőrös (Calcutta 1834, §232 p. 150, and §233 pp. 151–152 with the
+Sanskrit written in Tibetan script) and by Janson, whose own table is "taken from [Henning]" — so
+Csoma is the witness independent of him.
 
-| # | Janson *(Tibetan lineage)* | Indic | English of the Tibetan | Verdict | Why |
-|---|---|---|---|---|---|
-${DIVERGENCES.map(divergenceRow).join("\n")}
+Two detectors find the rows below, and they catch **disjoint** failures. The first compares Janson's
+Sanskrit with the Indic list on a skeleton that deliberately collapses Tibetan transcription
+confusions, so that what survives is a candidate for a different name. The second asks whether
+Monier-Williams' own year sense for the Indic form names **this** position — which catches what the
+first cannot see: a position where the two lists agree and Monier-Williams puts the name somewhere
+else entirely.
+
+${(() => {
+	const byType = new Map();
+	for (const d of NAME_DIFFERENCES) byType.set(d.type, (byType.get(d.type) ?? 0) + 1);
+	return [...byType.entries()].map(([type, count]) => `- **${type}** — ${count}`).join("\n");
+})()}
+
+The kinds matter more than the count, because collapsing them is what made positions 29 and 52 look
+unresolvable for months. A **variant** is one year whose Sanskrit has a pair of readings that Csoma
+prints *as a pair*, braced to a single Tibetan name; the only question there is which reading a
+tradition took, and at 29 and 52 the answer is simply that the Tibetan took the one the Indic list
+did not. A **different-name** row is one where the lists name different things at a single index, and
+there are ${NAME_DIFFERENCES.filter((d) => d.type === "different-name").length} of them.
+
+| # | Janson | Csoma 1834 | Indic | English of the Tibetan | Kind | Monier-Williams on the Indic form | Why |
+|---|---|---|---|---|---|---|---|
+${NAME_DIFFERENCES.map(differenceRow).join("\n")}
+
+### Where Monier-Williams' own position figure disagrees
+
+He is not the authority on **where** a name sits; Varāhamihira is, and is what he cites. At these
+positions his figure disagrees with the Bṛhat Saṃhitā, which confirms the position this table gives,
+so the row stands and the disagreement is recorded rather than resolved. A disagreement the Bṛhat
+Saṃhitā does **not** settle in this table's favour fails the run instead.
+
+${
+	mwPositionAnomalies.length === 0
+		? "None."
+		: mwPositionAnomalies
+				.map((a) => `- **${a.n} ${a.iast}** — he gives it as "${a.sense.replace(/"/g, "'")}"`)
+				.join("\n")
+}
 
 ## The English columns
 
