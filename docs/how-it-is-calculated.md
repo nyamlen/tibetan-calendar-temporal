@@ -195,7 +195,7 @@ confusing, because three different things are involved and one word gets used fo
 | **Vṛhaspati / Bṛhaspati chakra** | The **cycle**. Jupiter takes almost twelve years to orbit the sun; a twelfth of that is a "Jovian year", and the Indian tradition gives each a name from a list of sixty, so the names repeat over five revolutions. |
 | **saṃvatsara** | **One year** of that cycle. Hence "the saṃvatsara list" for the sixty names. |
 | **jyotiṣa** | The **discipline** — Indian astral science. Not a cycle, and not a name for either list. |
-| **Kālacakra** | Not a cycle either: the **system that carried this one to Tibet** in the 11th century, and the source of the epoch that anchors the count. |
+| **Kālacakra** | Not a cycle either: the **system that carried this one to Tibet**. The rabjung count begins in 1027, but Janson gives that number without the reasoning, and records that 255 and 1027 were both used as era epochs — so "the Kālacakra arrived and the count starts there" is a story this document does not tell. |
 | **rabjung** (*rab byung*) | The same cycle under its **Tibetan name**, taken from the name of its first year — Sanskrit *prabhava*, Tibetan *rab byung* — plus something India does not do: the cycles are **numbered**. |
 
 ### The two reckonings, and why Tibet matches the southern one
@@ -209,10 +209,13 @@ including, the cycle beginning in A.D. 900", after which the southern reckoning 
 rotation. Csoma's own heading says which side Tibet is on — his table gives the years "as they are
 reckoned **south of the river Nermada**, in India, and in Tibet".
 
-That is why the Tibetan and southern Indian answers to "which year is this?" agree rather than merely
-resemble each other. **1027 CE is Prabhava in both.** Tibet did not choose a phase; it inherited one,
-and added the numbering — which is what makes the rabjung an *era* rather than a rotation, since a
-cycle number plus a position names a year unambiguously where a bare name repeats every sixty years.
+So the Tibetan and southern Indian answers to "which year is this?" agree rather than merely resemble
+each other: **1027 CE is Prabhava in both**, which is checkable from this package's own table — 2026
+is position 40, and 2026 − 1027 = 999, which is 39 positions on.
+
+What Tibet adds is the **numbering** of the cycles, which is what makes the rabjung an *era* rather
+than a rotation: a cycle number plus a position names a year unambiguously, where a bare name repeats
+every sixty years.
 
 ### Two Sanskrit name lists, for the one cycle
 
