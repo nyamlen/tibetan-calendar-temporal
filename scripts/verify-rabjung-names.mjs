@@ -1912,6 +1912,244 @@ for (const r of rows) {
 }
 
 // ---------------------------------------------------------------------------------------------
+// 2b. Csoma de Koros 1834: the list the Tibetan names translate, in Tibetan script and in Roman.
+//
+// The one witness to this list that is independent of Janson, whose own table his LaTeX says is
+// "taken from [Henning]". Csoma prints it twice, and the two printings are not identical:
+//
+//   Section 232, page 150 -- his own romanisation, with the readings he treats as alternatives
+//   braced to a single Tibetan name. Held here as `roman`, alternatives separated by `|` in his
+//   printed order.
+//
+//   Section 233, pages 151-152 -- "VRIHASPATI CHAKRA, OR CYCLE OF SIXTY YEARS. As written in the
+//   Tibetan character", columns headed `rgya gar gyi skad` (the Indian language) and `bod kyi skad`
+//   (the Tibetan). Held here as `tibetan`: the Sanskrit as the tradition actually wrote it, which is
+//   the only attested SCRIPT for this list. There is no Devanagari witness for it -- the
+//   Vimalaprabha discusses the sixty-year cycle without ever enumerating it -- so a Devanagari
+//   column here would be a back-transliteration of ours, which is why there is none.
+//
+// This is hand-read from the plates and cannot be otherwise: the scans carry no Tibetan text layer,
+// and the braces in section 232 are typography that no OCR reproduces. It earns the exception the
+// way `test/fixtures/rgob.ts` does, and unlike that file it is not read on trust -- every one of the
+// sixty readings is checked below against two independent romanisations, so a misread glyph fails
+// the run rather than reaching the table.
+//
+// Two properties of the source, recorded rather than corrected:
+//
+//   Row 49 is printed "59" on the plate; the sequence runs 48, 59, 50. The Sanskrit there is
+//   unambiguous, so the row is joined by its position in the sequence rather than by the numeral.
+//
+//   The script column voices intervocalic stops -- `pra dza pa di` for prajapati, `shu bha kri da`
+//   for subhakrit -- which is Tibetan reading practice, not a different name. The check below
+//   tolerates exactly that and nothing else.
+// ---------------------------------------------------------------------------------------------
+
+const CSOMA = {
+	1: { tibetan: "པྲབྷབ", roman: "Prabhava" },
+	2: { tibetan: "བིབྷབ", roman: "Vibhava" },
+	3: { tibetan: "ཤུཀླ", roman: "Shukla" },
+	4: { tibetan: "པྲམོདི", roman: "Pramodi" },
+	5: { tibetan: "པྲཛཔདི", roman: "Prajapati" },
+	6: { tibetan: "ཨང་གི་ར", roman: "Angira" },
+	7: { tibetan: "ཤྲཱིམུཁ", roman: "Srimukha" },
+	8: { tibetan: "བྷབ", roman: "Bhava" },
+	9: { tibetan: "ཡུབིག", roman: "Yuvika" },
+	10: { tibetan: "དྷྲིཏུ", roman: "Dhritu|Dhata" },
+	11: { tibetan: "ཨིཤྭར", roman: "Iswara" },
+	12: { tibetan: "བཧུདྷནྱ", roman: "Bahudanya" },
+	13: { tibetan: "པྲམཱཐི", roman: "Pramathi" },
+	14: { tibetan: "བིཀྲམ", roman: "Vikrama" },
+	15: { tibetan: "བྲིཥབྷ", roman: "Vrishabha" },
+	16: { tibetan: "ཙིཏྲ", roman: "Chitra" },
+	17: { tibetan: "བྷནུ", roman: "Bhanu" },
+	18: { tibetan: "བྷནུཏར", roman: "Bhanutara" },
+	19: { tibetan: "པིརྠཔ", roman: "Pirthapa" },
+	20: { tibetan: "ཨཀྵཡ", roman: "Akshaya" },
+	21: { tibetan: "སརྦཛིཏ", roman: "Sarvajit" },
+	22: { tibetan: "སརྦདྷརི", roman: "Sarvadhari" },
+	23: { tibetan: "བིརོདྷི", roman: "Virodhi" },
+	24: { tibetan: "བིཀྲིཏ", roman: "Vikrita" },
+	25: { tibetan: "ཁར", roman: "Khara" },
+	26: { tibetan: "ནནྡ", roman: "Nanda" },
+	27: { tibetan: "བིཛཡ", roman: "Vijaya" },
+	28: { tibetan: "ཇཡ", roman: "Jaya" },
+	29: { tibetan: "མད", roman: "Mada|Manmatha" },
+	30: { tibetan: "དུརྨུཁ", roman: "Durmukha" },
+	31: { tibetan: "ཧེམལམྦི", roman: "Hemalambhi" },
+	32: { tibetan: "བིལམྦི", roman: "Vilambhi" },
+	33: { tibetan: "བིཀརི", roman: "Vicari" },
+	34: { tibetan: "སརྦཔཏི", roman: "Sarvapati" },
+	35: { tibetan: "སླབ", roman: "Plava|Sava" },
+	36: { tibetan: "ཤུབྷཀྲིད", roman: "Shubhakrit" },
+	37: { tibetan: "ཤོབྷན", roman: "Shobhana" },
+	38: { tibetan: "ཁྲོདྷི", roman: "Khrodhi" },
+	39: { tibetan: "བིཤྭབནྡྷུ", roman: "Vishwabandhu|Viswavasu" },
+	40: { tibetan: "པརཱབྷབ", roman: "Parabhava" },
+	41: { tibetan: "པྲབངྒ", roman: "Pravanga|Plavanga" },
+	42: { tibetan: "ཀཱིལཀ", roman: "Kilaka" },
+	43: { tibetan: "སོམྱ", roman: "Saumya" },
+	44: { tibetan: "སཱདྷརཎ", roman: "Sadharana" },
+	45: { tibetan: "བིརོདྷཀྲིད", roman: "Virodhakrit" },
+	46: { tibetan: "པརིདྷརི", roman: "Paridhari" },
+	47: { tibetan: "པྲམཱདི", roman: "Pramadi" },
+	48: { tibetan: "ཨཱནནྡ", roman: "Ananda" },
+	49: { tibetan: "རཀྵས", roman: "Rakshasa" },
+	50: { tibetan: "ཨནལ", roman: "Anala" },
+	51: { tibetan: "པིངྒལ", roman: "Pingala" },
+	52: { tibetan: "ཀལཡུཀྟི", roman: "Kaladuti|Kalayukta" },
+	53: { tibetan: "སིདྡྷརྠི", roman: "Siddharthi" },
+	54: { tibetan: "རུདྲ", roman: "Rudra" },
+	55: { tibetan: "དུརམཏི", roman: "Durmati" },
+	56: { tibetan: "དུནདུབྷི", roman: "Dundubhi" },
+	57: { tibetan: "རུདྷིརུདྒར", roman: "Rudhirura|Rudirodgari" },
+	58: { tibetan: "རཀྟཀྵི", roman: "Raktakshi" },
+	59: { tibetan: "ཀྲོདྷན", roman: "Krodhana" },
+	60: { tibetan: "ཀྵཡ", roman: "Kshaya|Kshayaka" },
+};
+
+/**
+ * Reads the Tibetan-script column back into letters, for checking only.
+ *
+ * Deliberately not a transliterator: it knows nothing about inherent vowels or stack order, which is
+ * why the comparison below throws the vowels away. Its whole job is to recover the CONSONANT
+ * sequence a reader typed, so that a wrong glyph shows up as a wrong consonant. The shipped Tibetan
+ * script elsewhere in this script goes through two real EWTS implementations required to agree; this
+ * column is not converted, only checked.
+ */
+const TIBETAN_LETTERS = {
+	ཀ: "k",
+	ཁ: "kh",
+	ག: "g",
+	ང: "ng",
+	ཙ: "c",
+	ཆ: "ch",
+	ཛ: "j",
+	ཇ: "j",
+	ཉ: "ny",
+	ཊ: "t",
+	ཋ: "th",
+	ཌ: "d",
+	ཎ: "n",
+	ཏ: "t",
+	ཐ: "th",
+	ད: "d",
+	ན: "n",
+	པ: "p",
+	ཕ: "ph",
+	བ: "b",
+	མ: "m",
+	ཡ: "y",
+	ར: "r",
+	ལ: "l",
+	ཝ: "v",
+	ཤ: "s",
+	ཥ: "s",
+	ས: "s",
+	ཧ: "h",
+	ཨ: "a",
+};
+const TIBETAN_SUBJOINED = {
+	"ྐ": "k",
+	"ྒ": "g",
+	"ྔ": "ng",
+	"ྗ": "j",
+	"ྟ": "t",
+	"ྠ": "th",
+	"ྡ": "d",
+	"ྜ": "d",
+	"ྣ": "n",
+	"ྞ": "n",
+	"ྤ": "p",
+	"ྥ": "ph",
+	"ྦ": "b",
+	"ྨ": "m",
+	"ྱ": "y",
+	"ྲ": "r",
+	"ླ": "l",
+	"ྭ": "v",
+	"ྴ": "s",
+	"ྵ": "s",
+	"ྶ": "s",
+	"ྷ": "h",
+	"ྙ": "ny",
+	"ྩ": "c",
+};
+
+const tibetanConsonants = (script) => {
+	let out = "";
+	for (const ch of script) {
+		if (TIBETAN_LETTERS[ch]) out += TIBETAN_LETTERS[ch];
+		else if (TIBETAN_SUBJOINED[ch]) out += TIBETAN_SUBJOINED[ch];
+	}
+	return out;
+};
+
+/**
+ * The consonant skeleton the plate check compares on.
+ *
+ * Looser than the skeleton the name-difference detector uses, and for a different question: that one
+ * asks whether two lists carry the same NAME, this one asks whether a reader typed the same GLYPHS.
+ * So it drops vowels, which a reader of an 1834 woodblock cannot be trusted on, and it tolerates the
+ * one convention the script column actually uses -- intervocalic stops written voiced.
+ */
+const plateSkeleton = (word) => {
+	let s = word.toLowerCase();
+	for (const [from, to] of Object.entries(SKELETON_DIACRITICS)) s = s.split(from).join(to);
+	return s
+		.replace(/ri/g, "r")
+		.replace(/[aeiou]/g, "")
+		.replace(/sh/g, "s")
+		.replace(/bh/g, "b")
+		.replace(/ph/g, "p")
+		.replace(/dh/g, "d")
+		.replace(/th/g, "t")
+		.replace(/kh/g, "k")
+		.replace(/gh/g, "g")
+		.replace(/ch/g, "c")
+		.replace(/[wv]/g, "b")
+		.replace(/p/g, "b")
+		.replace(/d/g, "t")
+		.replace(/g/g, "k")
+		.replace(/([bcjkltmnrsty])\1+/g, "$1")
+		.replace(/[^a-z]/g, "");
+};
+
+// Every reading of the plate must reduce to the same consonants as Janson's ASCII or as Csoma's own
+// Roman. Neither is derived from the script column, so agreement is a check rather than a tautology,
+// and a row where all three disagree is a row that was misread.
+for (const r of rows) {
+	const entry = CSOMA[r.n];
+	if (!entry) {
+		fail(`no Csoma reading recorded for position ${r.n}`);
+		continue;
+	}
+	const mine = plateSkeleton(tibetanConsonants(entry.tibetan));
+	const janson = plateSkeleton(r.jansonSanskrit);
+	const roman = entry.roman.split("|").map(plateSkeleton);
+	if (mine !== janson && !roman.includes(mine)) {
+		fail(
+			`the Tibetan-script reading at position ${r.n} (${entry.tibetan}) reduces to "${mine}", which ` +
+				`matches neither Janson's "${r.jansonSanskrit}" ("${janson}") nor Csoma's own ` +
+				`"${entry.roman}" ("${roman.join('", "')}"). Re-read the plate rather than adjusting the check.`,
+		);
+	}
+	r.csomaTibetan = entry.tibetan;
+	r.csomaRoman = entry.roman;
+}
+
+// The difference records were argued from Csoma's Roman, so each states the reading it was argued
+// from and fails if this table no longer carries it -- the same self-invalidation the corrections
+// use. Without it the two could drift apart and the verdict would still read as evidence.
+for (const d of NAME_DIFFERENCES) {
+	if (CSOMA[d.n] && d.csoma !== CSOMA[d.n].roman) {
+		fail(
+			`the record at ${d.n} was argued from Csoma's "${d.csoma}", but his table here now reads ` +
+				`"${CSOMA[d.n].roman}". Re-argue it rather than adjusting the expected value.`,
+		);
+	}
+}
+
+// ---------------------------------------------------------------------------------------------
 // Report, then emit only if everything held.
 // ---------------------------------------------------------------------------------------------
 
@@ -2005,6 +2243,16 @@ export interface RabjungNameFixtureRow {
 	brihatSamhitaPosition: number | null;
 	/** Lexicons other than Monier-Williams that carry this headword, from wisdomlib's attribution. */
 	corroborators: readonly string[];
+	/**
+	 * The Sanskrit as Csoma prints it in Tibetan script, §233, pp. 151-152.
+	 *
+	 * The list the Tibetan names translate, in the only script any source attests for it. It is not a
+	 * conversion of the Devanagari above and cannot be converted to it: at five positions the two are
+	 * different names, which is what the difference table in \`docs/names/rabjung.md\` records.
+	 */
+	csomaTibetan: string;
+	/** His own romanisation, §232, p. 150; readings he braces to one Tibetan name are joined by "|". */
+	csomaRoman: string;
 }
 
 export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
@@ -2030,7 +2278,8 @@ ${rows
 				.join(", ")}], ` +
 			`mwPage: ${optional(r.mwPage)}, mwQueriedAs: ${optional(r.mwQueriedAs)}, ` +
 			`mwRung: ${optional(r.mwRung)}, brihatSamhitaPosition: ${r.brihatSamhitaPosition ?? "null"}, ` +
-			`corroborators: [${(r.corroborators ?? []).map(quote).join(", ")}] },`
+			`corroborators: [${(r.corroborators ?? []).map(quote).join(", ")}], ` +
+			`csomaTibetan: ${quote(r.csomaTibetan)}, csomaRoman: ${quote(r.csomaRoman)} },`
 		);
 	})
 	.join("\n")}
@@ -2116,6 +2365,7 @@ const meaningCell = (r) => {
 
 const docRow = (r) =>
 	`| ${r.n} | ${r.tibetan} | \`${mark(r.wylie, r.wylieCorrectedFrom)}\` | *${r.phonetic}* | ` +
+	`${r.csomaTibetan} | ${r.csomaRoman.split("|").join(" or ")} | ` +
 	`${mark(r.devanagari, r.devanagariCorrectedFrom)} | ${mark(r.iast, r.devanagariCorrectedFrom)} | ` +
 	`${cell(AUTHORED[String(r.n)]?.english)} | ${senseCell(r)} | ${meaningCell(r)} | ` +
 	`${evidenceTier(r)} | ${r.years[0]}, ${r.years[1]} |`;
@@ -2216,7 +2466,7 @@ const differenceRow = (d) => {
 				? "attested elsewhere"
 				: "no year sense";
 	return (
-		`| ${d.n} | \`${r?.jansonSanskrit}\` | ${d.csoma.split("|").join(" or ")} | ${r?.devanagari} ${r?.iast} | ` +
+		`| ${d.n} | \`${r?.jansonSanskrit}\` | ${r?.csomaTibetan} ${r?.csomaRoman.split("|").join(" or ")} | ${r?.devanagari} ${r?.iast} | ` +
 		`${cell(AUTHORED[String(d.n)]?.english)} | **${d.type}** | ${attested} | ${d.note} |`
 	);
 };
@@ -2239,6 +2489,7 @@ agreeing independently is a result.
 |---|---|---|---|
 | Janson, *Tibetan Calendar Mathematics* (LaTeX) | Wylie, cycle position, the two Gregorian years | The Tibetan lineage — he takes the table from Henning's Appendix I — and the only source this package derives from, per the clean-room constraint | **Sourced**, extracted mechanically |
 | Wikipedia saṃvatsara table | Devanāgarī | The only machine-readable source found carrying the script against the cycle positions. Its **IAST is no longer used**: it disagrees with its own Devanāgarī at ${IAST_DISAGREEMENTS.size} positions, so the IAST column below is derived instead | **Sourced**, corrected below |
+| Csoma de Kőrös, *A Grammar of the Tibetan Language* (Calcutta 1834) | The list the Tibetan names translate — in Tibetan script (§233) and in his own Roman (§232) | The one witness to that list independent of Janson, whose table his LaTeX says is "taken from [Henning]". Printed 65 years before Monier-Williams and 90 before Sewell, and reached from the Tibetan side | **Sourced**, hand-read from the plates, every row checked against two romanisations |
 | Sewell & Fleet, *The Siddhāntas and the Indian Calendar* (1924) | **Name identity only** — which name sits at which position | The authority the Indic column was originally cited to. It cannot check spelling: it prints \`Sukla\`, \`Vrisha\`, \`Kshaya\` in 1924 romanisation with **no IAST diacritics anywhere** | **Sourced**, by majority vote over thousands of OCR reads |
 | Monier-Williams, via the Cologne Digital Sanskrit Dictionaries | The Sanskrit senses | The authority itself, from the scan: uncapped, citing a printed page, and carrying MW's own homonym grouping | **Sourced**, with a page citation per row |
 | wisdomlib | The Bṛhat Saṃhitā's cycle position; which **other** lexicons carry a headword | Varāhamihira names the position in words beside the Devanāgarī — a primary Indic astronomical witness, independent of Janson, Sewell and Wiktionary. Only the position is taken, never the prose | **Sourced**, where present |
@@ -2371,8 +2622,13 @@ correction above, with its evidence. Position 60 is the case to have in mind: it
 column headed *saṃvatsara*, when the saṃvatsara table says अक्षय. ${markedCells} cells are marked,
 at ${markedPositions.length} positions: ${markedPositions.join(", ")}.
 
-| # *(Janson)* | Tibetan *(two EWTS)* | Wylie *(Janson)* | Phonetic *(THL)* | Devanāgarī *(saṃvatsara)* | IAST *(derived)* | English of the Tibetan **(authored)** | Sanskrit senses *(Monier-Williams)* | Selected **(authored)** | Evidence | Years *(Janson + saṃvatsara)* |
-|---|---|---|---|---|---|---|---|---|---|---|
+**The two Sanskrit columns are two different lists**, not two renderings of one. *Sanskrit in Tibetan
+script* and *Csoma's Roman* are the list the Tibetan names translate; *Devanāgarī* and *IAST* are the
+Indic saṃvatsara list. They agree at most positions and carry different names at five of them — see
+the difference table above, which is where that is argued row by row.
+
+| # *(Janson)* | Tibetan *(two EWTS)* | Wylie *(Janson)* | Phonetic *(THL)* | Sanskrit in Tibetan script *(Csoma §233)* | Csoma's Roman *(§232)* | Devanāgarī *(saṃvatsara)* | IAST *(derived)* | English of the Tibetan **(authored)** | Sanskrit senses *(Monier-Williams)* | Selected **(authored)** | Evidence | Years *(Janson + saṃvatsara)* |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
 ${rows.map(docRow).join("\n")}
 
 ## The senses in full
