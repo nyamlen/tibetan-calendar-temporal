@@ -249,7 +249,7 @@ interface SanskritName {
 }
 
 interface RabjungName extends TibetanName {
-  sanskrit: SanskritName;        // NOT a gloss of the Tibetan name at two divergent positions
+  sanskrit: SanskritName;        // the Indic list's name — a different name at five positions
 }
 
 interface TibetanYearName {
@@ -335,10 +335,11 @@ position. See [names/rabjung.md](names/rabjung.md) for the sourced table,
 [decisions/2026-08-21-rabjung-names-carry-both.md](decisions/2026-08-21-rabjung-names-carry-both.md)
 for the shape decisions and their trade-offs.
 
-**`sanskrit` is not a gloss of the Tibetan name.** The two lists mostly translate each other, but at
-positions 29 and 52 they genuinely diverge — the Sanskrit there names a *different* thing that
-happens to share the index. `RabjungName`'s own docblock carries the worked example; do not
-reconcile the two fields into one meaning.
+**`sanskrit` is not reliably a gloss of the Tibetan name.** The two lists agree at most positions and
+carry **different names** at five — 16, 17, 18, 20 and 34 — where the Tibetan follows the other list
+every time. At 34 the Indic Śārvarī, "belonging to night", stands against *kun ldan*, all-endowed,
+which renders *sarvapati*. `RabjungName`'s own docblock carries the worked example; do not reconcile
+the two fields into one meaning.
 
 This section used to be titled "why the 60 rabjung names are not included," and recorded three
 reasons for deferring them. Two turned out to be wrong, and the third was resolved by sourcing work
@@ -349,14 +350,16 @@ rather than by a design change, which is why none of them constrain the shipped 
   THL's converter supplies the phonetics. The Lhasa requirement itself was **retired**: house
   conventions govern prose, a published standard governs a shipped data column.
 - *"Janson's ASCII collides three names onto `pramadi`."* True, and the reason his Sanskrit column
-  is not shipped. It is still read, for one purpose only — it is the sole mechanical detector of the
-  rows where the two traditions carry different *names* rather than different spellings.
+  is not shipped as a name. It is still read, as one of two detectors of the rows where the lists
+  carry different *names* rather than different spellings — and Csoma separates the three collided
+  rows (Pramodi, Pramáthi, Pramádi), so the collision no longer blocks anything.
 - *"The traditions diverge in content — Tibetan 20 is akṣaya where the Hindu list has vyaya, and
-  akṣaya sits at 60."* **This example was wrong**, and it survived here for months. Position 60's
-  Indic cell said अक्षय; Sewell, Janson and the Tibetan `zad pa` all say क्षय, so the two agree and
-  the divergence dissolves. Position 20 is a compound cell offering two readings, which the Tibetan
-  chooses between — not two traditions naming different things. Two genuine divergences remain, at
-  29 and 52, and they are tabulated with their evidence.
+  akṣaya sits at 60."* **The example was wrong and the framing was too**, and both survived here for
+  months. Position 60's Indic cell said अक्षय; Sewell, Janson, Csoma and the Tibetan `zad pa` all say
+  क्षय. And what looked like traditions diverging is two Sanskrit **lists** for one cycle: they carry
+  different names at 16, 17, 18, 20 and 34, while 29 and 52 — long recorded as the clearest
+  divergences — are one year with a pair of readings that Csoma prints braced together, of which the
+  Tibetan takes the one the Indic list did not.
 
 Henning's book has transliterations but is a copyrighted secondary source, which is why the script
 column is derived rather than transcribed.

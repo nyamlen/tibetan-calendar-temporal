@@ -30,8 +30,20 @@ Six columns, and no single source answers more than two. That is the whole diffi
 **Janson's LaTeX** gives the Wylie, the position and the years. His ASCII Sanskrit column is **not
 shipped**: it collides three names onto `pramadi`, carries no Devanāgarī, and he flags its spellings
 as varying between sources. It is still extracted, for exactly one purpose — it is the only
-mechanical detector of the rows where the two traditions carry *different names* rather than
-different spellings, and dropping it once took that evidence with it.
+mechanical detector of the rows where the two lists carry *different names* rather than different
+spellings, and dropping it once took that evidence with it.
+
+**Csoma de Kőrös, *A Grammar of the Tibetan Language* (Calcutta 1834)** gives the list the Tibetan
+names translate, twice over: §232 (p. 150) in his own romanisation, with the readings he treats as
+alternatives braced to a single Tibetan name, and §233 (pp. 151–152) "as written in the Tibetan
+character" — the only script any source attests for that list. He is the witness independent of
+Janson, whose table is "taken from [Henning]" by Janson's own LaTeX, and he predates Monier-Williams
+by 65 years and Sewell by 90.
+
+He is hand-read from the plates, which cannot be otherwise: the scans carry no Tibetan text layer,
+and the braces are typography no OCR reproduces. Every one of the sixty readings is then checked
+mechanically against Janson's ASCII and against Csoma's own Roman, neither of which derives from the
+script column, so a misread glyph fails the run rather than reaching the table.
 
 **Sewell & Fleet, *The Siddhāntas and the Indian Calendar* (1924)** settles **name identity only** —
 which name sits at which position. It cannot settle a spelling, because it carries no IAST diacritics
@@ -50,7 +62,7 @@ ordinal is taken, never the prose: a position is a fact, and the surrounding tra
 **English Wiktionary** attests that a headword exists and often states the cycle position. It is
 **not** a sense source, and the reason is the central lesson of this file — see below.
 
-## Two findings that changed the method
+## Three findings that changed the method
 
 ### A citation is not a lineage
 
@@ -59,6 +71,24 @@ Nobody had opened Sewell. When someone did, he disagreed at four positions — a
 disagreement was total: he gives `Kshaya`, the string `Akshaya` appears **nowhere in his book**, and
 Janson and the Tibetan `zad pa` both agree with him. What had been recorded for months as a
 Tibetan-versus-Indic *divergence* was our own column being wrong.
+
+### A divergence between traditions was, for the third time, our own reading
+
+Positions 29 and 52 were recorded for months as the two places where the Tibetan and Indic lists
+*genuinely* name different things. They do not. Csoma prints two readings at each, braced to one
+Tibetan name — *Mada or Manmatha*, *Kāladūtī or Kālayukta* — so the pair is attested as a pair, and
+the only question is which reading a tradition took. Six further positions carry such a pair and
+never looked divergent, because there the Indic list happens to hold the reading the Tibetan does.
+
+The same witness then showed where the lists *do* differ, and it was nowhere anybody had looked:
+**16, 17, 18, 20 and 34**. At 34 the Indic Śārvarī, "belonging to night", stands against *kun ldan*,
+all-endowed, which renders *sarvapati* — and nothing had ever flagged it, because the divergence
+table only ever examined rows somebody already suspected. Janson's Sanskrit column had been in the
+input the whole time and was never diffed against the Indic one over all sixty rows.
+
+This has the shape of the two findings above, and it is the third instance: what looked like a fact
+about the sources was a fact about our reading of them. The lesson each time is the same — an
+invariant over the whole table finds what a hand-curated list of suspicions cannot.
 
 ### Wiktionary's Sanskrit senses *are* Monier-Williams
 

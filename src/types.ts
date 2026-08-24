@@ -88,7 +88,7 @@ export type TibetanGender = "male" | "female";
  * 57 of every 60 years, and wrong quietly.
  *
  * `name` is the name attached to the position — see {@link RabjungName}, whose own docblock
- * records where the Tibetan and Sanskrit lists genuinely diverge.
+ * records that two Sanskrit lists exist for this cycle and which one the field carries.
  *
  * The two numbering fields are grouped rather than flattened to `rabjungCycle` / `rabjungYear`
  * because they are only meaningful together — unlike `year` and `yearStartsIn`, each of which
@@ -154,27 +154,28 @@ export interface SanskritName {
  * same position.
  *
  * @remarks
- * The two lists mostly translate each other, but not everywhere, and **`sanskrit` is not a gloss of
- * the Tibetan name** — at a divergent position the Sanskrit belongs to a different name that
- * happens to share the index. Position **52** (`dus kyi pho nya`, kāla-dūtī, "messenger of time")
- * is the worked example: the Tibetan sides with Janson's Tibetan-lineage Sanskrit against the Indic
- * list's कालयुक्त, "joined to time" — two different names at one index. Position **29**
- * (`myos byed`, "intoxicating") is the other confirmed divergence, against मन्मथ, the god of love.
- * Beside them, position **40** (`zil gnon`, parābhava, "overwhelming") is the ordinary case, where
- * the two agree, shown so a reader can see what divergence is being distinguished from.
+ * **There are two Sanskrit name lists for this one cycle, and `sanskrit` holds the Indic one.** The
+ * other is the list the Tibetan names are translations of, witnessed by Csoma de Kőrös (1834) and by
+ * Janson. The two agree at most positions and carry **different names** at five of them — 16, 17,
+ * 18, 20 and 34 — where the Tibetan follows the other list every time. Position **34** is the worked
+ * example: `kun ldan`, all-endowed, renders *sarvapati*, "a lord of everything", while the Indic
+ * list has शार्वरी *Śārvarī*, "belonging to night". Beside it, position **40** (`zil gnon`,
+ * parābhava, "overwhelming") is the ordinary case, where the two agree.
  *
- * Two further positions are recorded rather than resolved, deliberately not reconciled. **20**
- * looks like a divergence but is not: Janson's ASCII matches the *first* alternative of a compound
- * cell, the same reading the Tibetan takes, so it is a within-cell selection question, not two
- * traditions naming different things. **39** is an open candidate: the Tibetan sides with the Indic
- * list against Janson, suggesting his ASCII is corrupt here rather than that the traditions
- * diverge.
+ * So `sanskrit` is **not reliably a gloss of the Tibetan name**, and at those five positions it
+ * names something else.
  *
- * See `docs/names/rabjung.md` for the full sixty-row table, its per-row evidence tier, and the
- * complete divergence table.
+ * Positions **29** and **52** were long recorded here as divergences and are not. Csoma prints two
+ * readings there, braced to one Tibetan name — *Mada or Manmatha*, *Kāladūtī or Kālayukta* — so they
+ * are one year with a pair of attested readings, of which the Tibetan takes the one the Indic list
+ * did not. Six other positions have such a pair and never looked divergent, because there the Indic
+ * list happens to carry the same reading the Tibetan does.
+ *
+ * See `docs/names/rabjung.md` for the full sixty-row table, both lists side by side, and the
+ * difference table that argues each row.
  */
 export interface RabjungName extends TibetanName {
-	/** The Indic saṃvatsara list's name at this position — see the divergence note above. */
+	/** The Indic saṃvatsara list's name at this position — see the two-lists note above. */
 	sanskrit: SanskritName;
 }
 

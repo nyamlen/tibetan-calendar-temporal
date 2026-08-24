@@ -30,6 +30,15 @@ appear here, and two sources in the same lineage agreeing tells you nothing you 
 | **Almanac** | Traceable to a printed almanac produced by a traditional authority — Men-Tsee-Khang for Tibet, the Ministry of Home Affairs for Bhutan. The strongest kind. |
 | **Independent implementation** | Someone else's code from the same or similar sources. Catches our bugs; cannot catch a shared misreading. |
 
+**Janson's sixty-year name table is Henning's lineage, not his own.** His LaTeX says the table is
+"taken from [Henning]", so his Sanskrit column and Henning's are one witness, not two — which mattered
+on 2026-08-24, when the question was whether anything corroborated the Sanskrit names independently.
+What does is **Csoma de Kőrös, *A Grammar of the Tibetan Language* (Calcutta 1834)**, printed 65 years
+before Monier-Williams and 90 before Sewell, and reached from the Tibetan side rather than the Indic
+one. He is a fifth lineage, and the names work is where he is used — see
+[names/rabjung-sourcing.md](names/rabjung-sourcing.md). Access: archive.org item
+`korosi-csoma-a-grammar-of-the-tibetan-language-in-english-1834`, plates read 2026-08-24.
+
 ### A citation is not a lineage — check that the source says what it is cited for
 
 The rabjung table's IAST column was cited to Sewell & Fleet (1924) and *reached us through the

@@ -13,7 +13,8 @@
  * it, so a hand-edit here fails `npm test` even though the generating script needs the network and
  * is not on the CI path.
  *
- * Positions 29 and 52 are where the Tibetan and Sanskrit names genuinely diverge — see
+ * Two Sanskrit lists exist for this cycle, and the `sanskrit` field carries the Indic one; at
+ * positions 16, 17, 18, 20 and 34 that is a different name from the one the Tibetan translates. See
  * {@link RabjungName}'s own docblock, not this one, since that is where a reader meets the field.
  *
  * @packageDocumentation

@@ -22,7 +22,30 @@ anticipated this field but expected it "authored, unsourced" — what shipped is
 sourced from Monier-Williams via the Cologne scan, with an authored *selection* where he offers
 several senses, not an authored *meaning*).
 
-## `sanskrit` is not the Sanskrit of the Tibetan name at 29 and 52 — do not reconcile them
+## `sanskrit` is the Indic list's name, and at five positions that is a different name — do not reconcile them
+
+**Superseded in its detail on 2026-08-24, and the correction is the point.** This section argued
+from Janson's ASCII alone, which is the only mechanical detector it had. Csoma de Kőrös (Calcutta
+1834) supplies a second, independent witness — his §232 Roman and his §233 Tibetan-script columns —
+and it changes the framing rather than a cell or two.
+
+What looked like *two traditions diverging* is **two Sanskrit lists for one cycle**. They carry
+different names at **16, 17, 18, 20 and 34**, none of which this table ever flagged, because nothing
+had diffed the two columns over all sixty rows. And **29 and 52, recorded below as the two confirmed
+divergences, are not divergences at all**: Csoma prints two readings there, braced to one Tibetan
+name — *Mada or Manmatha*, *Kāladūtī or Kālayukta* — so the pair is attested as a pair, and the only
+question is which reading a tradition took. Six other positions carry such a pair and never looked
+divergent, because there the Indic list happens to hold the same reading the Tibetan does. Position
+39, left open below, closes the same way.
+
+The current account, with both detectors and a verdict per row, is the difference table in
+[names/rabjung.md](../names/rabjung.md); the hunt is in
+[names/rabjung-sourcing.md](../names/rabjung-sourcing.md). What stands unchanged is the instruction:
+`sanskrit` is not reliably a gloss of the Tibetan name, and the two are not to be reconciled into
+one meaning.
+
+The original table is kept below, because a record of what the evidence looked like before the
+independent witness arrived is worth more than a tidy one.
 
 The Tibetan tradition's Sanskrit (Janson's ASCII, Tibetan-lineage) and the Indic saṃvatsara list
 mostly translate each other, but not everywhere. Re-derived against the corrected Indic column:
@@ -38,6 +61,9 @@ mostly translate each other, but not everywhere. Re-derived against the correcte
 Two confirmed divergences (29, 52), one dissolved (60), one reclassified (20), one open (39). At 29
 and 52 `RabjungName.sanskrit` genuinely names something other than the Tibetan name at that position,
 and that is the honest state of the sources — do not attempt to pick a winner or average the two.
+
+*(As above: 29, 52 and 39 were resolved on 2026-08-24 by a witness this table did not have, and five
+positions it never examined are where the lists actually differ.)*
 
 **Why this is prose here rather than a `sharesNameWithTibetan` boolean field.** A flag is additive
 later and therefore free to defer; shipping one now would bake in an interpretation — "divergence" as

@@ -506,7 +506,9 @@ edits, and moving files once after they have landed is one link-fixing commit in
       being historically first. So this item is not "was it discussed" but "does the accepted
       trade-off still look right at 1.0.0": the three flat siblings are three *renderings of one
       name* (script, transliteration, transcription) and `sanskrit` is a **different name** at a
-      different level of the tree — at positions 29 and 52 provably naming something else. The
+      different level of the tree — at positions 16, 17, 18, 20 and 34 provably naming something
+      else, since it belongs to a different Sanskrit list (29 and 52, which this item originally
+      cited, turned out to be one year with two attested readings rather than a divergence). The
       alternatives worth weighing are keeping it as shipped, a third shape that nests only the
       Sanskrit (`{ tibetan, wylie, phonetic, sanskrit: { … } }` is already that — so the question is
       whether the *docblock* carries the asymmetry loudly enough), and renaming the field to say it
