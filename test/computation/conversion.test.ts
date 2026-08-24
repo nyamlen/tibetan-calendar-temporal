@@ -18,6 +18,7 @@ import {
 } from "../../src/computation/conversion.js";
 import { meanDate } from "../../src/computation/mean-astronomy.js";
 import { deriveScaling } from "../../src/computation/scaling.js";
+import { rabjungFor, yearNameFor } from "../../src/cycles.js";
 import { PHUGPA, PHUGPA_HENNING } from "../../src/traditions/phugpa.js";
 import { LOSAR_DATES } from "../fixtures/losar.js";
 
@@ -152,7 +153,8 @@ describe("Janson's Losar table, 1927-2046", () => {
 	it("cross-checks the year names against the same table", () => {
 		for (const row of LOSAR_DATES) {
 			const date = isoToTibetan(iso(row.losar));
-			expect(`${date.yearName.element}-${date.yearName.animal}`).toBe(row.name);
+			const name = yearNameFor(date.year);
+			expect(`${name.element}-${name.animal}`).toBe(row.name);
 		}
 	});
 });
@@ -305,8 +307,12 @@ describe("isoToTibetan", () => {
 		expect(date.yearStartsIn).toBe(2026);
 		expect(date.month).toBe(12);
 		expect(date.day).toBe(8);
-		expect(date.rabjung).toMatchObject({ cycle: 17, year: 40 });
-		expect(date.yearName).toMatchObject({ element: "fire", animal: "horse", gender: "male" });
+		expect(rabjungFor(date.year)).toMatchObject({ cycle: 17, year: 40 });
+		expect(yearNameFor(date.year)).toMatchObject({
+			element: "fire",
+			animal: "horse",
+			gender: "male",
+		});
 		expect(date.isoDate.toString()).toBe("2027-01-15");
 	});
 

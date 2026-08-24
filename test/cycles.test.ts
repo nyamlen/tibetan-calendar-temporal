@@ -15,15 +15,23 @@ const codeOf = (call: () => unknown): string | undefined => {
 /**
  * Naming a year, without evaluating the calendar to do it.
  *
- * These are closed forms over the year alone — three modulos — where the only previous route was
- * `losarFor(y).yearName`, which runs a full mean-astronomy pass and is not a route anyone guesses
- * from the name.
+ * These are closed forms over the year alone — three modulos — and since year-level naming came off
+ * `TibetanDate` they are the only route to it, rather than a cheap alternative to
+ * `losarFor(y).yearName`.
+ *
+ * That removal cost this file a test. It used to assert that the closed form agreed with the value
+ * a full mean-astronomy pass had written onto the Losar date; with the field gone the same
+ * comparison reads `yearNameFor(y)` against `yearNameFor(losarFor(y).year)`, which is a tautology
+ * and would pass however wrong both sides were. What is kept below is the part that still bites —
+ * that Losar belongs to the year it opens, which is what made the old comparison meaningful. The
+ * names themselves are cross-checked against Janson's own table in
+ * `test/computation/conversion.test.ts`, where the expected values come from a fixture rather than
+ * from this package.
  */
 describe("yearNameFor and rabjungFor", () => {
-	it("agrees with the value on the year's Losar, across a century", () => {
+	it("names the year its Losar opens, across a century", () => {
 		for (let year = 2100; year <= 2200; year++) {
-			expect(yearNameFor(year), `${year}`).toEqual(losarFor(year).yearName);
-			expect(rabjungFor(year), `${year}`).toEqual(losarFor(year).rabjung);
+			expect(losarFor(year).year, `${year}`).toBe(year);
 		}
 	});
 

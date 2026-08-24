@@ -272,6 +272,16 @@ an API review is looking at. Then the four **Review passes** below, in the order
 `docs/` folder restructure goes **last of all** — every review before it produces documentation
 edits, and moving files once after they have landed is one link-fixing commit instead of four.
 
+**API shape**
+
+- [x] **Year-level naming came off `TibetanDate`.** Done 2026-08-24. `rabjung` and `yearName` are
+      reached through `rabjungFor(date.year)` and `yearNameFor(date.year)`; `weekdayName` stays,
+      because it is the one name a date cannot regenerate from itself — `weekdayNameFor` needs a
+      `TraditionConfig` and a serialised date carries none. A **breaking change** to the primary
+      return type, taken now because the package is pre-v1.0.0. Took a serialised year from 293,009
+      to 126,629 bytes. Constraint and the rule it follows in
+      [decisions/2026-08-24-year-naming-off-the-date.md](decisions/2026-08-24-year-naming-off-the-date.md)
+
 **Documentation**
 
 - [x] **Split the README into a landing page and a guide.** Done 2026-08-23. The README carries the
@@ -673,7 +683,7 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   unrelated web surfaces for one project is a maintenance surface nobody asked for. TypeDoc stays
   blocked on TypeScript 7 independently of this.
 
-- **The 60 rabjung cycle names — SHIPPED.** `rabjung.name` carries a `RabjungName` at every
+- **The 60 rabjung cycle names — SHIPPED.** `rabjungFor(year).name` carries a `RabjungName` at every
   position: the Tibetan tradition's name, plus the Indic saṃvatsara list's name in `sanskrit`, whose
   `meaning` is sourced from Monier-Williams (58 of 60 rows verbatim, 2 composed from his entries for
   a compound's parts) and null only where nothing in his dictionary renders the Tibetan name at all.

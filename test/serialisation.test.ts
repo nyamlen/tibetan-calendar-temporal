@@ -29,18 +29,19 @@ describe("a year of dates, serialised", () => {
 	// 2153 is the year every other README example uses. 2151 has a leap month (M06L, per
 	// CLAUDE.md's cross-version leap example), so it carries a 13th month and is the more expensive
 	// case -- the bound below is checked against it, not against the cheaper ordinary year.
-	it("matches the ordinary-year figure stated in the README", () => {
+	it("matches the ordinary-year figure stated in the guide", () => {
 		const { days, bytes } = serialisedYear(2153);
 		expect(days).toBe(354);
-		expect(bytes).toBe(293_009);
+		expect(bytes).toBe(126_629);
 	});
 
 	it("stays under a generous bound even for a thirteen-month leap year", () => {
 		const { days, bytes } = serialisedYear(2151);
 		expect(days).toBe(384);
-		// Measured at 323,576 bytes (~843 bytes/day). The bound is roughly 1.5x that, so it fails
+		// Measured at 137,336 bytes (~358 bytes/day). The bound is roughly 1.5x that, so it fails
 		// only on a real regression -- a name field growing unboundedly, a lost freeze causing a
-		// per-date copy -- not on ordinary content drift from a table regeneration.
-		expect(bytes).toBeLessThan(days * 1250);
+		// per-date copy, or year-level naming returning to the date -- not on ordinary content
+		// drift from a table regeneration.
+		expect(bytes).toBeLessThan(days * 540);
 	});
 });
