@@ -95,7 +95,15 @@ in the source, which is the whole point.
 Saturday as `spen ma`; his own Bhutan appendix gives `spen pa` for the same day in Tibet. The wrong
 one reached a shipped docblock and sat there for three phases. So for **names**, a single Janson
 table is not sufficient evidence — `scripts/verify-name-sources.mjs` puts every term through five
-independent checks and refuses to emit if any fails. Corrections to the source live in that script
+independent checks and refuses to emit if any fails.
+
+**And his sixty-year name table is not independent evidence at all**: his own LaTeX says it is
+"taken from `\cite{Henning}`", so his Sanskrit column and Henning's are one witness rather than two.
+That went unnoticed for months while the table was treated as the Tibetan-lineage authority. The
+independent witness is **Csoma de Kőrös, *A Grammar of the Tibetan Language* (Calcutta 1834)**, whose
+§233 plates print the Sanskrit in Tibetan script — the only script any source attests for that list.
+Before citing a source as corroboration for a name, check whose lineage it is; the date on the title
+page is not the answer. Corrections to the source live in that script
 as data carrying their evidence, and self-invalidate; do not patch a name by editing `src/names.ts`.
 
 Two further traps of the same class, both found in his tables and both documented in
@@ -384,6 +392,14 @@ cells. Each of those fails silently
 rather than loudly. When you add a rule here, check whether `scripts/check-conventions.mjs` can hold
 it, and write the failing case before the check — a guard that has never failed proves nothing.
 
+**A check placed after the emit gate cannot fail the run, whatever its comment claims.**
+`scripts/verify-rabjung-names.mjs` writes its fixture immediately after the `problems` gate, and the
+divergence self-invalidation sat *below* that write — so its promise that "the run fails if his table
+no longer says that" had never once been true, and nothing revealed it until a deliberate mutation
+did. When adding a check to a generator, put it above the gate and then **prove it by mutation**:
+break the thing it guards and watch it refuse to write. This is the same rule as "a guard that has
+never failed proves nothing", one level up — the guard existed, was correct, and was unreachable.
+
 **The script now proves its own predicates on every run**, before any rule, reporting "the checker
 itself is broken" rather than a violation. That is not decoration: the `test/computation/` naming
 rule was first written to split a suite name on its first `-`, which rejects
@@ -499,9 +515,13 @@ by everything else** — five copies of a number is a number that will drift. De
 by `check:conventions`, because every available predicate fires on `docs/validation-sources.md`
 itself. Both in
 [docs/decisions/2026-08-23-readme-is-the-landing-page.md](docs/decisions/2026-08-23-readme-is-the-landing-page.md).
-`package.json#files` ships `docs/guide.md` and `docs/why-trust-these-dates.md`, so **their examples
-are contract exactly as the README's are**; `test/guide.test.ts` asserts every one that states a
-value.
+`package.json#files` ships `docs/guide.md`, `docs/why-trust-these-dates.md` and — since 2026-08-24 —
+`docs/how-it-is-calculated.md`, so **their examples are contract exactly as the README's are**;
+`test/guide.test.ts` asserts every one that states a value. The third joined them because the shipped
+types carry a claim a consumer cannot evaluate without it: `RabjungName.sanskrit` is one of **two**
+Sanskrit name lists for the sixty-year cycle. A shipped document's relative links must resolve inside
+the tarball, which `check-pack` enforces, so anything repo-only is linked by absolute URL — that is
+why that file's four internal links are absolute and the others' are not.
 
 **`npm run coverage` is not one of the nine, so nothing gates it.** It was broken on `main` for an
 unknown stretch and nobody noticed: the 200-year moon-phase sweep runs in well under a second bare
