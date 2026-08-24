@@ -512,7 +512,18 @@ edits, and moving files once after they have landed is one link-fixing commit in
       alternatives worth weighing are keeping it as shipped, a third shape that nests only the
       Sanskrit (`{ tibetan, wylie, phonetic, sanskrit: { … } }` is already that — so the question is
       whether the *docblock* carries the asymmetry loudly enough), and renaming the field to say it
-      is the Indic list's name rather than a translation. Breaking after 1.0.0, free now
+      is the Indic list's name rather than a translation. Breaking after 1.0.0, free now.
+
+      **A constraint found on 2026-08-24 that narrows this, and should be settled before the shape
+      is.** Now that both lists exist in the fixture, "ship the list the Tibetan actually translates
+      instead" is a live option — and it cannot carry a `meaning`. Every gloss in this package is a
+      Monier-Williams lookup keyed on **Devanāgarī**, and that list has no Devanāgarī: its attested
+      script is Tibetan, and no source enumerates it in Devanāgarī at all (the Vimalaprabhā discusses
+      the cycle without listing the names). Producing one would be the back-transliteration this
+      project already refuses for Janson's ASCII, on the ground that it manufactures authority the
+      source does not have. So the three shipping options are **not** symmetric: the Indic list can
+      carry script, transliteration and a sourced gloss; the other can carry script and
+      transliteration only. Decide what `meaning` is *for* before deciding which list `sanskrit` is
 
 **Review passes**
 
