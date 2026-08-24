@@ -207,8 +207,6 @@ interface TraditionConfig {
 interface TibetanDate {
   year: number;           // Royal era, 127 BC epoch (e.g. 2153)
   yearStartsIn: number;   // Janson's Y — Gregorian year this Tibetan year begins in (2026)
-  rabjung: Rabjung;       // Indian cycle — a numbering, plus its name
-  yearName: TibetanYearName;  // Chinese cycle — a name
   month: number;          // Month number (1-12); a leap month repeats the following month's
   monthCode: string;      // "M06" or "M06L" for leap month
   isLeapMonth: boolean;
@@ -304,6 +302,19 @@ uniform, but `d.month` as an object where `PlainDate.month` is a number generate
 failures: `d.month === 11` is quietly false and `${d.month}` renders `[object Object]`. That is
 the same failure class the [year numbering decision](decisions/2026-08-11-year-numbering.md)
 exists to eliminate.
+
+### Why year-level naming is not on `TibetanDate`
+
+Both cycles name a **year**, so on a date they are one value repeated across all 354 or 384 days of
+it — together more than half of a serialised year. `yearNameFor(year)` and `rabjungFor(year)` are
+closed forms over the year alone, so nothing is lost: a date carries `year`, and both are one call
+away. `TibetanMonth` keeps `yearName`, where the repetition is thirteen-fold rather than
+354-fold and the `monthsFor` → `datesFor` path wants it to hand.
+
+`weekdayName` stays on the date, and the line is not arbitrary: it is the only name a date cannot
+regenerate from itself, because `weekdayNameFor` takes a `TraditionConfig` and a serialised date
+carries none. See
+[decisions/2026-08-24-year-naming-off-the-date.md](decisions/2026-08-24-year-naming-off-the-date.md).
 
 ### Why `rabjung` is separate from `yearName`
 

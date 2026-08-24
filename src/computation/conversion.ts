@@ -27,7 +27,7 @@ import {
 	trueMonthCount,
 } from "./calendar.js";
 import { julianDayOfLunarDay } from "./corrections.js";
-import { rabjungFromYear, royalEraFromYear, yearFromRoyalEra, yearNameFromYear } from "./epoch.js";
+import { royalEraFromYear, yearFromRoyalEra } from "./epoch.js";
 import { meanDate } from "./mean-astronomy.js";
 import { type ScaledTradition, scalingFor } from "./scaling.js";
 
@@ -340,8 +340,6 @@ function buildDate(
 	return {
 		year: royalEraFromYear(year),
 		yearStartsIn: year,
-		rabjung: rabjungFromYear(year),
-		yearName: yearNameFromYear(year),
 		month,
 		monthCode: monthCodeOf(month, isLeapMonth),
 		isLeapMonth,

@@ -17,15 +17,15 @@ npm install tibetan-calendar-temporal
 ```
 
 ```js
-import { isoToTibetan, formatTibetanDate } from 'tibetan-calendar-temporal';
+import { isoToTibetan, formatTibetanDate, yearNameFor, rabjungFor } from 'tibetan-calendar-temporal';
 
 const day = isoToTibetan(Temporal.PlainDate.from('2026-08-23'));
 
-formatTibetanDate(day);      // "2153-M07-11"
-day.yearName.element;        // "fire"        — Fire Male Horse year
-day.rabjung;                 // { cycle: 17, year: 40, … }
-day.weekdayName.phonetic;    // "nyi ma"      — Sunday, the sun's day
-day.isFullMoon;              // false
+formatTibetanDate(day);          // "2153-M07-11"
+day.weekdayName.phonetic;        // "nyi ma"      — Sunday, the sun's day
+day.isFullMoon;                  // false
+yearNameFor(day.year).element;   // "fire"        — Fire Male Horse year
+rabjungFor(day.year);            // { cycle: 17, year: 40, … }
 ```
 
 Zero runtime dependencies, MIT licensed, built on [Temporal](https://tc39.es/proposal-temporal/docs/).
@@ -61,7 +61,7 @@ see [why you can trust these dates](docs/why-trust-these-dates.md).
 | **Conversion, both ways** | Western ↔ Tibetan, total in both directions. Every calendar day has a Tibetan date; a Tibetan date that no day carries is reported rather than guessed |
 | **The hard cases, handled** | Leap months, doubled days and skipped days — the three things that make this calendar a calculation rather than a lookup. Roughly one of each every couple of months |
 | **Month grids** | A year's months in calendar order with their boundaries, and one entry per calendar day of a month, so a grid needs no arithmetic of its own |
-| **A full almanac row** | Eighteen fields per date: royal-era year, month code, day, true full and new moon, ISO and Tibetan weekday with its planet and element, the element–animal year name, and the rabjung cycle position |
+| **A full almanac row** | Fifteen fields per date: royal-era year, month code, day, true full and new moon, ISO and Tibetan weekday with its planet and element. The element–animal year name and the rabjung cycle position are properties of the *year*, so they are closed-form lookups rather than one value repeated on all 354 days |
 | **Names in three renderings** | Tibetan script, Wylie, and THL Simplified phonetics for every weekday, element, gender, animal and rabjung year — each verified against five independent sources before it shipped |
 | **Observances** | The great holy days and the monthly cycle, as configurable rules that carry their citation. Each result says *how* it landed on its day, so a display can show the almanac's footnote instead of presenting a moved date as an exact one |
 | **Four traditions** | Phugpa and Bhutanese, each in two parameterisations. Constants and rules are injected as data, so a further tradition is a config object rather than a code change |
@@ -106,7 +106,7 @@ differs from a published almanac and why, and which questions no available sourc
 |---|---|---|---|---|
 | Date type | legacy `Date` | `Date` + Julian day | writes text files | `Temporal.PlainDate` |
 | Traditions | Phugpa | 3, as fixed classes | Phugpa, Tsurphu, Zhonnu Pal | 4 configs, more addable as data |
-| What a date carries | ~9 properties | a 6-element tuple | text columns | 18 fields, names in three scripts |
+| What a date carries | ~9 properties | a 6-element tuple | text columns | 15 fields, names in three scripts |
 | Observances | — | — | hardcoded columns | configurable, cited, with resolutions |
 | Astrological data | — | — | **planets, lunar mansions, eclipses** | — |
 | Stated validated range | — | — | — | every claim carries its window |
@@ -175,24 +175,6 @@ The full object:
 {
   "year": 2153,
   "yearStartsIn": 2026,
-  "rabjung": {
-    "cycle": 17,
-    "year": 40,
-    "name": {
-      "tibetan": "ཟིལ་གནོན",
-      "wylie": "zil gnon",
-      "phonetic": "zil nön",
-      "sanskrit": { "devanagari": "पराभव", "iast": "Parābhava", "meaning": "overthrow, defeat" }
-    }
-  },
-  "yearName": {
-    "element": "fire",
-    "animal": "horse",
-    "gender": "male",
-    "elementName": { "tibetan": "མེ", "wylie": "me", "phonetic": "mé" },
-    "genderName": { "tibetan": "ཕོ", "wylie": "pho", "phonetic": "po" },
-    "animalName": { "tibetan": "རྟ", "wylie": "rta", "phonetic": "ta" }
-  },
   "month": 6,
   "monthCode": "M06",
   "isLeapMonth": false,
@@ -302,14 +284,19 @@ records what a year costs to serialise.
 ```js
 const losar = isoToTibetan(Temporal.PlainDate.from('2026-02-18'));
 
-formatTibetanDate(losar);   // "2153-M01-01"  — Losar, Tibetan New Year
-losar.yearName;             // { element: 'fire', animal: 'horse', gender: 'male' }
-losar.rabjung;              // { cycle: 17, year: 40 }
+formatTibetanDate(losar);        // "2153-M01-01"  — Losar, Tibetan New Year
+yearNameFor(losar.year);         // { element: 'fire', animal: 'horse', gender: 'male' }
+rabjungFor(losar.year);          // { cycle: 17, year: 40, name: { … } }
 ```
 
-`yearName` is the element–animal name practitioners recognise. `rabjung` is the Indian 60-year
-cycle, which is a *numbering* rather than a name — and it indexes the year differently, so the
-two are kept apart deliberately. See
+**Year naming is a lookup, not a field on the date.** Both are closed forms over the year alone —
+three modulos, no lunar arithmetic — so they take a year number and never a date. Putting them on
+every date would repeat one value across all 354 days of the year, which was more than half of what
+a serialised year cost.
+
+`yearNameFor` gives the element–animal name practitioners recognise. `rabjungFor` gives the Indian
+60-year cycle, which is a *numbering* rather than a name — and it indexes the year differently, so
+the two are kept apart deliberately. See
 [docs/architecture.md](docs/architecture.md#why-rabjung-is-separate-from-yearname).
 
 ### Errors and validation
@@ -596,8 +583,8 @@ Full detail: [docs/architecture.md](docs/architecture.md).
 ## Internationalisation
 
 **What ships:** the *Tibetan* name of a thing — Tibetan script, Wylie, and THL Simplified Phonetic
-Transcription — on `weekdayName`, and on `elementName` / `genderName` / `animalName` under
-`yearName`.
+Transcription — on `weekdayName`, and on `elementName` / `genderName` / `animalName` under the
+`TibetanYearName` that `yearNameFor` returns.
 
 **What deliberately does not ship:** translations into any other language. What ships instead is a
 stable key your own i18n layer maps from — `TibetanElement`, `TibetanGender`, `TibetanAnimal` and

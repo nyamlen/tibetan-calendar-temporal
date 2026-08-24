@@ -39,9 +39,9 @@ describe("README usage examples", () => {
 		const day = isoToTibetan(iso("2026-08-23"));
 
 		expect(formatTibetanDate(day)).toBe("2153-M07-11");
-		expect(day.yearName.element).toBe("fire");
-		expect(day.rabjung.cycle).toBe(17);
-		expect(day.rabjung.year).toBe(40);
+		expect(yearNameFor(day.year).element).toBe("fire");
+		expect(rabjungFor(day.year).cycle).toBe(17);
+		expect(rabjungFor(day.year).year).toBe(40);
 		expect(day.weekdayName.phonetic).toBe("nyi ma");
 		expect(day.isFullMoon).toBe(false);
 	});
@@ -56,28 +56,6 @@ describe("README usage examples", () => {
 		expect(JSON.parse(JSON.stringify(date))).toEqual({
 			year: 2153,
 			yearStartsIn: 2026,
-			rabjung: {
-				cycle: 17,
-				year: 40,
-				name: {
-					tibetan: "ཟིལ་གནོན",
-					wylie: "zil gnon",
-					phonetic: "zil nön",
-					sanskrit: {
-						devanagari: "पराभव",
-						iast: "Parābhava",
-						meaning: "overthrow, defeat",
-					},
-				},
-			},
-			yearName: {
-				element: "fire",
-				animal: "horse",
-				gender: "male",
-				elementName: { tibetan: "མེ", wylie: "me", phonetic: "mé" },
-				genderName: { tibetan: "ཕོ", wylie: "pho", phonetic: "po" },
-				animalName: { tibetan: "རྟ", wylie: "rta", phonetic: "ta" },
-			},
 			month: 6,
 			monthCode: "M06",
 			isLeapMonth: false,
@@ -138,8 +116,12 @@ describe("README usage examples", () => {
 	it("names the year as documented", () => {
 		const losar = isoToTibetan(iso("2026-02-18"));
 		expect(formatTibetanDate(losar)).toBe("2153-M01-01");
-		expect(losar.yearName).toMatchObject({ element: "fire", animal: "horse", gender: "male" });
-		expect(losar.rabjung).toMatchObject({ cycle: 17, year: 40 });
+		expect(yearNameFor(losar.year)).toMatchObject({
+			element: "fire",
+			animal: "horse",
+			gender: "male",
+		});
+		expect(rabjungFor(losar.year)).toMatchObject({ cycle: 17, year: 40 });
 	});
 
 	it("shows the documented difference between the two traditions", () => {

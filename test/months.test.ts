@@ -6,6 +6,7 @@ import {
 	tibetanDateExists,
 	tibetanToIso,
 } from "../src/computation/conversion.js";
+import { yearNameFor } from "../src/cycles.js";
 import {
 	datesFor,
 	daysInMonth,
@@ -105,7 +106,7 @@ describe("monthsFor", () => {
 	 */
 	it("names the year of every month, including both halves of a leap pair", () => {
 		for (const year of [2151, 2153]) {
-			const expected = losarFor(year).yearName;
+			const expected = yearNameFor(year);
 			for (const month of monthsFor(year)) {
 				expect(month.yearName, `${year} ${month.monthCode}`).toEqual(expected);
 			}

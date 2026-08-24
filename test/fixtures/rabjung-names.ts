@@ -81,6 +81,16 @@ export interface RabjungNameFixtureRow {
 	csomaTibetan: string;
 	/** His own romanisation, §232, p. 150; readings he braces to one Tibetan name are joined by "|". */
 	csomaRoman: string;
+	/**
+	 * The **Tibetan** name as Csoma romanises it, §232, p. 150 -- his column, not his Sanskrit one.
+	 *
+	 * The second witness to the Tibetan names, which otherwise rest on Janson alone and so on
+	 * Henning alone. His case marks prefix from root where Wylie does not; the generator maps it onto
+	 * `wylie` by rule and refuses to emit unless all sixty rows agree or are declared exceptions.
+	 * Four are: 2 is a real variant, 6 transliterates rather than translates, and 8 and 38 are slips
+	 * in his Roman that his script settles.
+	 */
+	csomaTibetanName: string;
 }
 
 export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
@@ -122,6 +132,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Apte"],
 		csomaTibetan: "པྲབྷབ",
 		csomaRoman: "Prabhava",
+		csomaTibetanName: "Rab-byung",
 	},
 	{
 		position: 2,
@@ -174,6 +185,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Edgerton", "Wilson"],
 		csomaTibetan: "བིབྷབ",
 		csomaRoman: "Vibhava",
+		csomaTibetanName: "rNam-hbyung",
 	},
 	{
 		position: 3,
@@ -248,6 +260,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Edgerton"],
 		csomaTibetan: "ཤུཀླ",
 		csomaRoman: "Shukla",
+		csomaTibetanName: "dKar-po",
 	},
 	{
 		position: 4,
@@ -299,6 +312,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Edgerton", "Wilson"],
 		csomaTibetan: "པྲམོདི",
 		csomaRoman: "Pramodi",
+		csomaTibetanName: "Rab-myos",
 	},
 	{
 		position: 5,
@@ -354,6 +368,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Edgerton"],
 		csomaTibetan: "པྲཛཔདི",
 		csomaRoman: "Prajapati",
+		csomaTibetanName: "sKyes-bdag",
 	},
 	{
 		position: 6,
@@ -395,6 +410,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Edgerton", "Wilson"],
 		csomaTibetan: "ཨང་གི་ར",
 		csomaRoman: "Angira",
+		csomaTibetanName: "Angira",
 	},
 	{
 		position: 7,
@@ -431,6 +447,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Yates"],
 		csomaTibetan: "ཤྲཱིམུཁ",
 		csomaRoman: "Srimukha",
+		csomaTibetanName: "dPal-gdong",
 	},
 	{
 		position: 8,
@@ -550,6 +567,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Edgerton", "Wilson"],
 		csomaTibetan: "བྷབ",
 		csomaRoman: "Bhava",
+		csomaTibetanName: "dNos-po",
 	},
 	{
 		position: 9,
@@ -598,6 +616,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Wilson"],
 		csomaTibetan: "ཡུབིག",
 		csomaRoman: "Yuvika",
+		csomaTibetanName: "Na-tshod-ldan",
 	},
 	{
 		position: 10,
@@ -642,6 +661,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Edgerton"],
 		csomaTibetan: "དྷྲིཏུ",
 		csomaRoman: "Dhritu|Dhata",
+		csomaTibetanName: "hDsin-byed",
 	},
 	{
 		position: 11,
@@ -692,6 +712,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Edgerton"],
 		csomaTibetan: "ཨིཤྭར",
 		csomaRoman: "Iswara",
+		csomaTibetanName: "dVang-phyug",
 	},
 	{
 		position: 12,
@@ -720,6 +741,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: [],
 		csomaTibetan: "བཧུདྷནྱ",
 		csomaRoman: "Bahudanya",
+		csomaTibetanName: "hBru-mang-po",
 	},
 	{
 		position: 13,
@@ -763,6 +785,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: [],
 		csomaTibetan: "པྲམཱཐི",
 		csomaRoman: "Pramathi",
+		csomaTibetanName: "Myos-ldan",
 	},
 	{
 		position: 14,
@@ -836,6 +859,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Edgerton"],
 		csomaTibetan: "བིཀྲམ",
 		csomaRoman: "Vikrama",
+		csomaTibetanName: "rNam-gnon",
 	},
 	{
 		position: 15,
@@ -902,6 +926,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Wilson"],
 		csomaTibetan: "བྲིཥབྷ",
 		csomaRoman: "Vrishabha",
+		csomaTibetanName: "Khyu-mchhog",
 	},
 	{
 		position: 16,
@@ -942,6 +967,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Edgerton", "Wilson"],
 		csomaTibetan: "ཙིཏྲ",
 		csomaRoman: "Chitra",
+		csomaTibetanName: "sNa-tshogs",
 	},
 	{
 		position: 17,
@@ -964,6 +990,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: [],
 		csomaTibetan: "བྷནུ",
 		csomaRoman: "Bhanu",
+		csomaTibetanName: "Nyi-ma",
 	},
 	{
 		position: 18,
@@ -1003,6 +1030,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Edgerton", "Wilson"],
 		csomaTibetan: "བྷནུཏར",
 		csomaRoman: "Bhanutara",
+		csomaTibetanName: "Nyi-sgrol-byed",
 	},
 	{
 		position: 19,
@@ -1060,6 +1088,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Wilson"],
 		csomaTibetan: "པིརྠཔ",
 		csomaRoman: "Pirthapa",
+		csomaTibetanName: "Sa-skyong",
 	},
 	{
 		position: 20,
@@ -1109,6 +1138,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Wilson"],
 		csomaTibetan: "ཨཀྵཡ",
 		csomaRoman: "Akshaya",
+		csomaTibetanName: "Mi-zad",
 	},
 	{
 		position: 21,
@@ -1139,6 +1169,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Wilson"],
 		csomaTibetan: "སརྦཛིཏ",
 		csomaRoman: "Sarvajit",
+		csomaTibetanName: "Thams-chad-hdul",
 	},
 	{
 		position: 22,
@@ -1168,6 +1199,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Yates", "Wilson"],
 		csomaTibetan: "སརྦདྷརི",
 		csomaRoman: "Sarvadhari",
+		csomaTibetanName: "Kun-hdsin",
 	},
 	{
 		position: 23,
@@ -1222,6 +1254,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Wilson"],
 		csomaTibetan: "བིརོདྷི",
 		csomaRoman: "Virodhi",
+		csomaTibetanName: "hGal-va",
 	},
 	{
 		position: 24,
@@ -1264,6 +1297,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates"],
 		csomaTibetan: "བིཀྲིཏ",
 		csomaRoman: "Vikrita",
+		csomaTibetanName: "rNam-hgyur",
 	},
 	{
 		position: 25,
@@ -1358,6 +1392,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Edgerton", "Wilson"],
 		csomaTibetan: "ཁར",
 		csomaRoman: "Khara",
+		csomaTibetanName: "Bong-bu",
 	},
 	{
 		position: 26,
@@ -1415,6 +1450,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Edgerton"],
 		csomaTibetan: "ནནྡ",
 		csomaRoman: "Nanda",
+		csomaTibetanName: "dGah-va",
 	},
 	{
 		position: 27,
@@ -1543,6 +1579,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Edgerton", "Wilson"],
 		csomaTibetan: "བིཛཡ",
 		csomaRoman: "Vijaya",
+		csomaTibetanName: "rNam-rgyal",
 	},
 	{
 		position: 28,
@@ -1653,6 +1690,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Edgerton", "Wilson"],
 		csomaTibetan: "ཇཡ",
 		csomaRoman: "Jaya",
+		csomaTibetanName: "rGyal-va",
 	},
 	{
 		position: 29,
@@ -1689,6 +1727,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates"],
 		csomaTibetan: "མད",
 		csomaRoman: "Mada|Manmatha",
+		csomaTibetanName: "Myos-byed",
 	},
 	{
 		position: 30,
@@ -1729,6 +1768,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Edgerton"],
 		csomaTibetan: "དུརྨུཁ",
 		csomaRoman: "Durmukha",
+		csomaTibetanName: "gDong-ňan",
 	},
 	{
 		position: 31,
@@ -1760,6 +1800,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: [],
 		csomaTibetan: "ཧེམལམྦི",
 		csomaRoman: "Hemalambhi",
+		csomaTibetanName: "gSer-hphyang",
 	},
 	{
 		position: 32,
@@ -1803,6 +1844,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: [],
 		csomaTibetan: "བིལམྦི",
 		csomaRoman: "Vilambhi",
+		csomaTibetanName: "rNam-hphyang",
 	},
 	{
 		position: 33,
@@ -1849,6 +1891,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Edgerton"],
 		csomaTibetan: "བིཀརི",
 		csomaRoman: "Vicari",
+		csomaTibetanName: "sGyur-byed",
 	},
 	{
 		position: 34,
@@ -1880,6 +1923,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Wilson"],
 		csomaTibetan: "སརྦཔཏི",
 		csomaRoman: "Sarvapati",
+		csomaTibetanName: "Kun-ldan",
 	},
 	{
 		position: 35,
@@ -1961,6 +2005,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Wilson"],
 		csomaTibetan: "སླབ",
 		csomaRoman: "Plava|Sava",
+		csomaTibetanName: "hPhar-va",
 	},
 	{
 		position: 36,
@@ -1990,6 +2035,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Yates"],
 		csomaTibetan: "ཤུབྷཀྲིད",
 		csomaRoman: "Shubhakrit",
+		csomaTibetanName: "dGé-byed",
 	},
 	{
 		position: 37,
@@ -2059,6 +2105,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Edgerton", "Wilson"],
 		csomaTibetan: "ཤོབྷན",
 		csomaRoman: "Shobhana",
+		csomaTibetanName: "mDses-byed",
 	},
 	{
 		position: 38,
@@ -2081,6 +2128,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Yates"],
 		csomaTibetan: "ཁྲོདྷི",
 		csomaRoman: "Khrodhi",
+		csomaTibetanName: "Khromo",
 	},
 	{
 		position: 39,
@@ -2133,6 +2181,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Wilson"],
 		csomaTibetan: "བིཤྭབནྡྷུ",
 		csomaRoman: "Vishwabandhu|Viswavasu",
+		csomaTibetanName: "sNa-tshogs-dvyig",
 	},
 	{
 		position: 40,
@@ -2171,6 +2220,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates"],
 		csomaTibetan: "པརཱབྷབ",
 		csomaRoman: "Parabhava",
+		csomaTibetanName: "Zil-gnon",
 	},
 	{
 		position: 41,
@@ -2207,6 +2257,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates"],
 		csomaTibetan: "པྲབངྒ",
 		csomaRoman: "Pravanga|Plavanga",
+		csomaTibetanName: "sPréhu",
 	},
 	{
 		position: 42,
@@ -2246,6 +2297,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates"],
 		csomaTibetan: "ཀཱིལཀ",
 		csomaRoman: "Kilaka",
+		csomaTibetanName: "Phur-bu",
 	},
 	{
 		position: 43,
@@ -2354,6 +2406,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Wilson"],
 		csomaTibetan: "སོམྱ",
 		csomaRoman: "Saumya",
+		csomaTibetanName: "Zhi-va",
 	},
 	{
 		position: 44,
@@ -2419,6 +2472,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Wilson"],
 		csomaTibetan: "སཱདྷརཎ",
 		csomaRoman: "Sadharana",
+		csomaTibetanName: "Thun-mong",
 	},
 	{
 		position: 45,
@@ -2449,6 +2503,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: [],
 		csomaTibetan: "བིརོདྷཀྲིད",
 		csomaRoman: "Virodhakrit",
+		csomaTibetanName: "hGal-byed",
 	},
 	{
 		position: 46,
@@ -2477,6 +2532,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: [],
 		csomaTibetan: "པརིདྷརི",
 		csomaRoman: "Paridhari",
+		csomaTibetanName: "Yongs-hdsin",
 	},
 	{
 		position: 47,
@@ -2513,6 +2569,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Wilson"],
 		csomaTibetan: "པྲམཱདི",
 		csomaRoman: "Pramadi",
+		csomaTibetanName: "Bag-med",
 	},
 	{
 		position: 48,
@@ -2574,6 +2631,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Edgerton", "Wilson"],
 		csomaTibetan: "ཨཱནནྡ",
 		csomaRoman: "Ananda",
+		csomaTibetanName: "Kun-dGah",
 	},
 	{
 		position: 49,
@@ -2637,6 +2695,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Edgerton", "Wilson"],
 		csomaTibetan: "རཀྵས",
 		csomaRoman: "Rakshasa",
+		csomaTibetanName: "Srin-bu",
 	},
 	{
 		position: 50,
@@ -2678,6 +2737,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Edgerton", "Wilson"],
 		csomaTibetan: "ཨནལ",
 		csomaRoman: "Anala",
+		csomaTibetanName: "Mé",
 	},
 	{
 		position: 51,
@@ -2757,6 +2817,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Edgerton", "Wilson"],
 		csomaTibetan: "པིངྒལ",
 		csomaRoman: "Pingala",
+		csomaTibetanName: "dMar-ser-chan",
 	},
 	{
 		position: 52,
@@ -2790,6 +2851,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: [],
 		csomaTibetan: "ཀལཡུཀྟི",
 		csomaRoman: "Kaladuti|Kalayukta",
+		csomaTibetanName: "Dus-kyi pho-nya",
 	},
 	{
 		position: 53,
@@ -2854,6 +2916,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: [],
 		csomaTibetan: "སིདྡྷརྠི",
 		csomaRoman: "Siddharthi",
+		csomaTibetanName: "Don-grub",
 	},
 	{
 		position: 54,
@@ -2934,6 +2997,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Edgerton", "Wilson"],
 		csomaTibetan: "རུདྲ",
 		csomaRoman: "Rudra",
+		csomaTibetanName: "Drag-po",
 	},
 	{
 		position: 55,
@@ -2980,6 +3044,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Edgerton", "Wilson"],
 		csomaTibetan: "དུརམཏི",
 		csomaRoman: "Durmati",
+		csomaTibetanName: "bLo-ňan",
 	},
 	{
 		position: 56,
@@ -3034,6 +3099,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Edgerton", "Wilson"],
 		csomaTibetan: "དུནདུབྷི",
 		csomaRoman: "Dundubhi",
+		csomaTibetanName: "rŇa-chhen",
 	},
 	{
 		position: 57,
@@ -3062,6 +3128,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: [],
 		csomaTibetan: "རུདྷིརུདྒར",
 		csomaRoman: "Rudhirura|Rudirodgari",
+		csomaTibetanName: "Khrag-skyug",
 	},
 	{
 		position: 58,
@@ -3103,6 +3170,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Yates", "Edgerton"],
 		csomaTibetan: "རཀྟཀྵི",
 		csomaRoman: "Raktakshi",
+		csomaTibetanName: "Mig-dmar",
 	},
 	{
 		position: 59,
@@ -3160,6 +3228,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Edgerton"],
 		csomaTibetan: "ཀྲོདྷན",
 		csomaRoman: "Krodhana",
+		csomaTibetanName: "Khro-vo",
 	},
 	{
 		position: 60,
@@ -3231,5 +3300,6 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Edgerton", "Wilson"],
 		csomaTibetan: "ཀྵཡ",
 		csomaRoman: "Kshaya|Kshayaka",
+		csomaTibetanName: "Zad-pa",
 	},
 ];

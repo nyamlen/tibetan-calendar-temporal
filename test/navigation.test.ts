@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
-import {
-	isoToTibetan,
-	losarFor,
-	tibetanDateExists,
-	tibetanToIso,
-} from "../src/computation/conversion.js";
+import { isoToTibetan, tibetanDateExists, tibetanToIso } from "../src/computation/conversion.js";
+import { yearNameFor } from "../src/cycles.js";
 import { monthsFor } from "../src/months.js";
 import {
 	addDays,
@@ -90,7 +86,7 @@ describe("lunationFromMonth and monthFromLunation", () => {
 		// The point of the reverse direction: an integer from storage, with no year in hand.
 		const m = monthFromLunation(lunationFromMonth({ year: 2151, month: 6, isLeapMonth: true }));
 		expect(m.year).toBe(2151);
-		expect(m.yearName).toEqual(losarFor(2151).yearName);
+		expect(m.yearName).toEqual(yearNameFor(2151));
 	});
 });
 

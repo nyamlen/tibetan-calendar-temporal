@@ -338,14 +338,25 @@ for what the cycle is and why two lists exist.
 
 ### The cost of a year
 
-**A year of dates, serialised, is about 293 KB** (354 days, ordinary year 2153) or **324 KB** for a
-thirteen-month leap year like 2151 — measured, not assumed, in `test/serialisation.test.ts`. Every
-`TibetanDate` in that array holds a *pointer* to a shared, frozen name object rather than a copy —
-there are only seven weekday names, five elements, two genders, twelve animals and sixty rabjung
-names in the whole process — so the in-memory cost of a year is those pointer fields, not thousands
-of string copies. `JSON.stringify` cannot see that sharing, and expands every pointer to its full
-object; the figures above are what a consumer actually pays to persist or transmit a year, not what
-the engine holds in memory.
+**A year of dates, serialised, is about 127 KB** (354 days, ordinary year 2153) or **137 KB** for a
+thirteen-month leap year like 2151 — measured, not assumed, in `test/serialisation.test.ts`.
+
+Those figures used to be 293 KB and 324 KB. **Year-level naming is no longer a field on a date**: the
+element–animal name and the rabjung position describe the *year*, so on a date they were one value
+repeated across all 354 days, and together they were more than half of a serialised year. Reach them
+with `yearNameFor(date.year)` and `rabjungFor(date.year)`, which are closed forms and touch no lunar
+arithmetic. `TibetanMonth` still carries `yearName`, so the `monthsFor` → `datesFor` path keeps it
+one hop away.
+
+`weekdayName` stays on the date, and it is the one naming field that has to: `weekdayNameFor` needs
+the `TraditionConfig`, because Bhutan names its weekdays one planet ahead of Tibet, and a serialised
+date carries no config. It is also the only one that *varies* within a year — seven values across
+the 354 days rather than one repeated.
+
+Each `TibetanDate` holds a *pointer* to a shared, frozen weekday-name object rather than a copy, so
+the in-memory cost is a pointer field, not thousands of string copies. `JSON.stringify` cannot see
+that sharing and expands every pointer to its full object; the figures above are what a consumer
+actually pays to persist or transmit a year, not what the engine holds in memory.
 
 ### Handling errors
 

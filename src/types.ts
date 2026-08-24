@@ -308,6 +308,17 @@ export interface TibetanWeekdayName extends TibetanName {
  * Do not format this by hand as `` `${year}-${month}-${day}` ``. That produces a well-formed
  * ISO-looking string which is not an ISO date, and which silently loses leap-month and
  * doubled-day information. Use the package's formatting function.
+ *
+ * **Year-level naming is deliberately not here.** The element–animal name and the rabjung position
+ * are properties of the *year*, so on a date they are one value repeated for all 354 or 384 days —
+ * together more than half of a serialised year. Both are closed forms over {@link TibetanDate.year}
+ * alone: use `yearNameFor(date.year)` and `rabjungFor(date.year)`, neither of which takes a config
+ * or evaluates the calendar. {@link TibetanMonth.yearName} keeps one-hop access on the
+ * `monthsFor` → `datesFor` path.
+ *
+ * {@link TibetanDate.weekdayName} stays for the reason those two go: it is the one name a date
+ * cannot regenerate from itself, because `weekdayNameFor` needs the `TraditionConfig` — Bhutan
+ * names its weekdays one planet ahead of Tibet — and a serialised date carries none.
  */
 export interface TibetanDate {
 	/**
@@ -322,8 +333,8 @@ export interface TibetanDate {
 	 * For historical dates this is a modern label applied backwards. The royal-era count is a
 	 * convention of the second half of the twentieth century, and Janson records that epochs of
 	 * 255 and 1027 have also been used. It is not wrong, but it asserts a numbering that nobody
-	 * alive at the time used — {@link TibetanDate.yearName} is the culturally correct label for
-	 * such dates.
+	 * alive at the time used — `yearNameFor(year)` gives the element–animal name, which is the
+	 * culturally correct label for such dates.
 	 */
 	year: number;
 
@@ -336,12 +347,6 @@ export interface TibetanDate {
 	 * differs from `isoDate.year` for dates in January and February.
 	 */
 	yearStartsIn: number;
-
-	/** Position in the Indian 60-year cycle. A numbering — see {@link Rabjung}. */
-	rabjung: Rabjung;
-
-	/** The element–animal name from the Chinese 60-year cycle. See {@link TibetanYearName}. */
-	yearName: TibetanYearName;
 
 	/**
 	 * Month number, 1–12.

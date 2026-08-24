@@ -6,6 +6,7 @@ import {
 	tibetanToIso,
 	tibetanWeekday,
 } from "../src/computation/conversion.js";
+import { yearNameFor } from "../src/cycles.js";
 import { formatTibetanDate } from "../src/format.js";
 import { monthsFor } from "../src/months.js";
 import { GELUG, getObservances, observancesOn } from "../src/observances/index.js";
@@ -37,7 +38,7 @@ describe("guide examples", () => {
 	it("carries the lunation of the month containing it", () => {
 		const month = monthsFor(date.year).find((m) => m.monthCode === date.monthCode);
 		expect(date.lunation).toBe(month?.lunation);
-		expect(month?.yearName).toEqual(date.yearName);
+		expect(month?.yearName).toEqual(yearNameFor(date.year));
 	});
 
 	it("numbers the weekday as ISO 8601 and names it through Temporal", () => {
