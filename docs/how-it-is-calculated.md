@@ -167,8 +167,8 @@ But it is real, and if you compare two Tibetan calendars from different sources 
 disagree on one date in a decade, `a₂` is very likely why.
 
 **Which value is right depends on whose calendar you want**, which is why this package ships both and
-defaults to almanac practice. See [traditions.md](traditions.md) for what is established about each,
-and [validation-sources.md](validation-sources.md) for the evidence and its limits.
+defaults to almanac practice. See [traditions.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/traditions.md) for what is established about each,
+and [validation-sources.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/validation-sources.md) for the evidence and its limits.
 
 ## Where traditions differ, in summary
 
@@ -184,3 +184,47 @@ The mean motion rates `m₁`, `s₁`, `a₁` and the correction tables are **sha
 Janson documents. The traditions are closer than the list suggests — but each difference is enough to
 produce a calendar that looks entirely reasonable and is wrong for its intended community, which is
 why this package injects all of them as configuration rather than assuming any.
+
+## The sixty-year cycle: one cycle, two reckonings, two name lists
+
+The years also carry a name from a sixty-year cycle, and the vocabulary around it is genuinely
+confusing, because three different things are involved and one word gets used for all of them.
+
+| Term | What it is |
+|---|---|
+| **Vṛhaspati / Bṛhaspati chakra** | The **cycle**. Jupiter takes almost twelve years to orbit the sun; a twelfth of that is a "Jovian year", and the Indian tradition gives each a name from a list of sixty, so the names repeat over five revolutions. |
+| **saṃvatsara** | **One year** of that cycle. Hence "the saṃvatsara list" for the sixty names. |
+| **jyotiṣa** | The **discipline** — Indian astral science. Not a cycle, and not a name for either list. |
+| **Kālacakra** | Not a cycle either: the **system that carried this one to Tibet** in the 11th century, and the source of the epoch that anchors the count. |
+| **rabjung** (*rab byung*) | The same cycle under its **Tibetan name**, taken from the name of its first year — Sanskrit *prabhava*, Tibetan *rab byung* — plus something India does not do: the cycles are **numbered**. |
+
+### The two reckonings, and why Tibet matches the southern one
+
+Because the names track Jupiter's computed position, a solar year occasionally gets no name at all
+and one is **expunged** from the sequence — every 85 or 86 years. That is the northern, or true,
+reckoning.
+
+Southern India stopped expunging. Sewell puts it precisely: expunction was "neglected from, and
+including, the cycle beginning in A.D. 900", after which the southern reckoning is a plain sixty-year
+rotation. Csoma's own heading says which side Tibet is on — his table gives the years "as they are
+reckoned **south of the river Nermada**, in India, and in Tibet".
+
+That is why the Tibetan and southern Indian answers to "which year is this?" agree rather than merely
+resemble each other. **1027 CE is Prabhava in both.** Tibet did not choose a phase; it inherited one,
+and added the numbering — which is what makes the rabjung an *era* rather than a rotation, since a
+cycle number plus a position names a year unambiguously where a bare name repeats every sixty years.
+
+### Two Sanskrit name lists, for the one cycle
+
+There are two lists of sixty Sanskrit names in play, and this package ships one of them.
+
+- The **Indic saṃvatsara list** — Varāhamihira's lineage, attested name by name in Monier-Williams
+  and corroborated by Sewell. This is what `RabjungName.sanskrit` carries.
+- The list **the Tibetan names translate**, witnessed by Csoma de Kőrös (1834) and by Janson, whose
+  table is Henning's.
+
+They agree at most positions and carry **different names** at five — 16, 17, 18, 20 and 34 — where
+the Tibetan follows the second list every time. So a Tibetan year name is not always a translation of
+the Sanskrit name printed beside it. [names/rabjung.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/rabjung.md) tabulates both lists with a
+verdict for every row where they differ, and [names/rabjung-sourcing.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/rabjung-sourcing.md)
+records how that was established.

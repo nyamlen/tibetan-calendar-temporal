@@ -86,16 +86,25 @@ try {
 	console.log(`Installing ${tarball}...`);
 	runNpm(["install", "--no-package-lock", "--ignore-scripts", `./${tarball}`], scratch);
 
-	// The two consumer documents `package.json#files` ships. They are what makes the README's
+	// The consumer documents `package.json#files` ships. They are what makes the README's
 	// condensation safe: the long-form material moved to `docs/guide.md` rather than out of the
 	// package, so an npm consumer loses nothing to the split. Nothing else in this repository sees
 	// the packed file list, so a `files` edit that dropped them would surface only for a consumer.
+	//
+	// `docs/how-it-is-calculated.md` joined them on 2026-08-24, because the shipped types now carry a
+	// claim a consumer cannot evaluate without it: `RabjungName.sanskrit` is one of **two** Sanskrit
+	// name lists for the sixty-year cycle, and at five positions it is not the name the Tibetan
+	// translates. That is calendar, not API, so it belongs in the document that explains the calendar.
 	//
 	// Their relative links must resolve inside the tarball, because npmjs.com rewrites relative
 	// links in a README against `repository` but a file read from `node_modules` gets no such
 	// rewriting. Anything repo-only is linked by absolute URL, which is why the only relative
 	// targets here are each other and the README.
-	const shippedDocs = ["docs/guide.md", "docs/why-trust-these-dates.md"];
+	const shippedDocs = [
+		"docs/guide.md",
+		"docs/why-trust-these-dates.md",
+		"docs/how-it-is-calculated.md",
+	];
 	const installed = join(scratch, "node_modules", "tibetan-calendar-temporal");
 	for (const doc of shippedDocs) {
 		const text = readFileSync(join(installed, doc), "utf8");

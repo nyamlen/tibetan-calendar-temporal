@@ -43,6 +43,7 @@
     "README.md",
     "LICENSE",
     "docs/guide.md",
+    "docs/how-it-is-calculated.md",
     "docs/why-trust-these-dates.md"
   ],
   "scripts": {

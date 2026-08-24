@@ -324,6 +324,18 @@ monthsFor(2151).map((m) => m.lunation);
 // consecutive integers — M06L is one less than M06, which is the ordering a tuple sort gets wrong
 ```
 
+### The Sanskrit beside a year name is not always its translation
+
+`rabjungFor(year).name` carries the Tibetan name of the year and a `sanskrit` field beside it. Those
+are **two different lists** of sixty names for the one cycle, not two renderings of one: `sanskrit`
+is the Indic saṃvatsara list's name at that position, and at five positions — 16, 17, 18, 20 and 34 —
+it is a different name from the one the Tibetan translates. At 34 the Tibetan *kun ldan*, all-endowed,
+sits beside शार्वरी *Śārvarī*, "belonging to night".
+
+So `sanskrit.meaning` glosses the Sanskrit name, and is not a translation of the Tibetan one. See
+[how-it-is-calculated.md](how-it-is-calculated.md#the-sixty-year-cycle-one-cycle-two-reckonings-two-name-lists)
+for what the cycle is and why two lists exist.
+
 ### The cost of a year
 
 **A year of dates, serialised, is about 293 KB** (354 days, ordinary year 2153) or **324 KB** for a
