@@ -22,19 +22,11 @@
 
 import { rabjungFromYear, yearFromRoyalEra, yearNameFromYear } from "./computation/epoch.js";
 import { rangeError } from "./errors.js";
-import { animalNameOf, elementNameOf, genderNameOf, weekdayNameOf } from "./names.js";
+import { weekdayNameWithOffset } from "./names.js";
 import { PHUGPA } from "./traditions/phugpa.js";
 import type { TraditionConfig } from "./traditions/types.js";
 import { assertTraditionConfig } from "./traditions/validate.js";
-import type {
-	Rabjung,
-	TibetanAnimal,
-	TibetanElement,
-	TibetanGender,
-	TibetanName,
-	TibetanWeekdayName,
-	TibetanYearName,
-} from "./types.js";
+import type { Rabjung, TibetanWeekdayName, TibetanYearName } from "./types.js";
 
 /**
  * Validates a year for the naming functions.
@@ -158,44 +150,5 @@ export function weekdayNameFor(
 		);
 	}
 	assertTraditionConfig(config);
-	return weekdayNameOf(weekday, config.naming?.weekdayOffset ?? 0);
-}
-
-/** The Tibetan name of one of the five elements. */
-export function elementNameFor(element: TibetanElement): TibetanName {
-	return requireName(elementNameOf(element), "elementNameFor", element);
-}
-
-/** The Tibetan name of a year's gender. */
-export function genderNameFor(gender: TibetanGender): TibetanName {
-	return requireName(genderNameOf(gender), "genderNameFor", gender);
-}
-
-/** The Tibetan name of one of the twelve animals. */
-export function animalNameFor(animal: TibetanAnimal): TibetanName {
-	return requireName(animalNameOf(animal), "animalNameFor", animal);
-}
-
-/**
- * Rejects a member that is not in the union.
- *
- * @remarks
- * The unions are the package's i18n contract — a consumer's message catalogue keys off them — so a
- * caller reaching here with `"Fire"` or `"rooster"` has a real bug that a silent `undefined` would
- * hide until it surfaced as a missing translation.
- *
- * `TCT_INVALID_ARGUMENT`, not `TCT_FIELD_OUT_OF_RANGE`, and the distinction is the one
- * `docs/decisions/2026-08-15-argument-errors-split.md` draws: a month of `13` is bad data worth
- * surfacing to whoever typed it, while `"Fire"` is a bug in the calling code, exactly like the
- * string outside `parseTibetanDate`'s grammar that the record already assigns this code. Nobody
- * types an element name into a form — these members are written by the consumer's own source.
- */
-function requireName(name: TibetanName | undefined, subject: string, member: string): TibetanName {
-	if (name === undefined) {
-		throw rangeError(
-			"TCT_INVALID_ARGUMENT",
-			`${subject}: unknown member ${JSON.stringify(member)}`,
-		);
-	}
-	return name;
+	return weekdayNameWithOffset(weekday, config.naming?.weekdayOffset ?? 0);
 }

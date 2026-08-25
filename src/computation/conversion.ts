@@ -12,7 +12,7 @@
 
 import { codedError, hasCode, rangeError } from "../errors.js";
 import { monthCodeOf } from "../format.js";
-import { weekdayNameOf } from "../names.js";
+import { weekdayNameWithOffset } from "../names.js";
 import { PHUGPA } from "../traditions/phugpa.js";
 import type { TraditionConfig } from "../traditions/types.js";
 import type { TibetanDate, TibetanDateFields } from "../types.js";
@@ -368,7 +368,7 @@ function buildDate(
 		tibetanWeekday: tibetanWeekdayUnchecked(julianDay),
 		// Built here rather than in epoch.ts because it is the one part of naming that varies by
 		// tradition — Bhutan names its weekdays one planet ahead — and this is where the config is.
-		weekdayName: weekdayNameOf(
+		weekdayName: weekdayNameWithOffset(
 			tibetanWeekdayUnchecked(julianDay),
 			scaled.config.naming?.weekdayOffset ?? 0,
 		),

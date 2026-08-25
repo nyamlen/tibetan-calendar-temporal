@@ -55,9 +55,6 @@ export {
 	tibetanWeekday,
 } from "./computation/conversion.js";
 export {
-	animalNameFor,
-	elementNameFor,
-	genderNameFor,
 	rabjungFor,
 	weekdayNameFor,
 	yearNameFor,

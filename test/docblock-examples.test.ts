@@ -3,14 +3,7 @@ import { isoToTibetan, losarFor, tibetanToIso } from "../src/computation/convers
 import { rabjungFromYear, royalEraFromYear, yearNameFromYear } from "../src/computation/epoch.js";
 import { meanDate } from "../src/computation/mean-astronomy.js";
 import { deriveScaling } from "../src/computation/scaling.js";
-import {
-	animalNameFor,
-	elementNameFor,
-	genderNameFor,
-	rabjungFor,
-	weekdayNameFor,
-	yearNameFor,
-} from "../src/cycles.js";
+import { rabjungFor, weekdayNameFor, yearNameFor } from "../src/cycles.js";
 import { daysInMonth, leapMonthOfYear, monthsFor } from "../src/months.js";
 import {
 	addDays,
@@ -21,7 +14,6 @@ import {
 	nextFullMoon,
 } from "../src/navigation.js";
 import { PHUGPA } from "../src/traditions/phugpa.js";
-import type { TibetanAnimal, TibetanElement, TibetanGender } from "../src/types.js";
 
 /**
  * Every docblock `@example` in `src/` that states a concrete result, asserted.
@@ -155,27 +147,6 @@ describe("docblock examples", () => {
 			// and the wrong one reached a shipped docblock once already.
 			expect(weekdayNameFor(0).wylie).toBe("spen pa");
 			expect(weekdayNameFor(0).planet).toBe("saturn");
-		});
-
-		it("the three vocabulary lookups return their documented names", () => {
-			// These four functions are on the public surface and, before this suite, were called by
-			// nothing but the export-shape test — `cycles.ts` sat at 37% function coverage.
-			expect(elementNameFor("fire")).toEqual({ tibetan: "མེ", wylie: "me", phonetic: "mé" });
-			expect(animalNameFor("horse")).toEqual({ tibetan: "རྟ", wylie: "rta", phonetic: "ta" });
-			expect(genderNameFor("male")).toEqual({ tibetan: "ཕོ", wylie: "pho", phonetic: "po" });
-		});
-
-		it("rejects a member outside the union as a wrong-kind argument", () => {
-			// TCT_INVALID_ARGUMENT, not TCT_FIELD_OUT_OF_RANGE: "Fire" is a bug in the calling code,
-			// like the string outside parseTibetanDate's grammar, not bad data someone typed.
-			// See docs/decisions/2026-08-15-argument-errors-split.md.
-			for (const call of [
-				() => elementNameFor("Fire" as TibetanElement),
-				() => animalNameFor("rooster" as TibetanAnimal),
-				() => genderNameFor("neuter" as TibetanGender),
-			]) {
-				expect(call).toThrow(expect.objectContaining({ code: "TCT_INVALID_ARGUMENT" }));
-			}
 		});
 
 		it("rejects a weekday outside 0…6 as a field out of range", () => {

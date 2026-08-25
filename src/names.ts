@@ -103,7 +103,18 @@ export const NAME_TABLES = freeze({ WEEKDAYS, ELEMENTS, GENDERS, ANIMALS });
  * @param weekday - Tibetan weekday, 0 = Saturday through 6 = Friday.
  * @param offset - Planets to shift the name by: 0 for every Tibetan version, 1 for Bhutan.
  */
-export function weekdayNameOf(weekday: number, offset: number): TibetanWeekdayName {
+/**
+ * The Tibetan name of a weekday, after applying a tradition's planet offset.
+ *
+ * @remarks
+ * **Named for what it does, not `weekdayNameOf`, and the asymmetry with its three siblings below is
+ * deliberate.** They are pure table access and take no offset; this one shifts the index, which is
+ * the whole Bhutan difference. The old name also sat one character from the public
+ * `weekdayNameFor` that calls it — a hazard `docs/coding-standards.md` recorded, because writing
+ * the public name where this one belongs **compiles**, both returning `TibetanWeekdayName`, and
+ * recurses infinitely rather than failing to typecheck. Renaming removed the last instance of it.
+ */
+export function weekdayNameWithOffset(weekday: number, offset: number): TibetanWeekdayName {
 	const index = (((weekday + offset) % 7) + 7) % 7;
 	return assertInternal(
 		WEEKDAYS[index],
