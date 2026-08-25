@@ -271,6 +271,24 @@ tibetanDateExists({ ...month, day: 8 });  // true
 > }
 > ```
 
+A grid usually needs cells on either side of the month — the days that finish the previous month and
+start the next, so the first row can begin on the right weekday. Those are not this month's days, so
+`datesFor` does not produce them: step **ISO** days and convert each one. `isoToTibetan` is total, so
+the walk never has to know where the neighbouring month began or whether it was a leap month, and
+each result carries the month it belongs to.
+
+```js
+let day = month.firstDay.subtract({ days: 3 });
+
+for (let i = 0; i < 3; i++, day = day.add({ days: 1 })) {
+  const date = isoToTibetan(day);
+  formatTibetanDate(date);   // "2152-M12-28", then "2152-M12-29", then "2152-M12-30"
+}
+```
+
+Use it only for the cells outside the month: inside it, `datesFor` is what keeps a doubled or
+skipped date number right.
+
 `hasLeapMonth`, `leapMonthOfYear` and `monthsInYear` are closed forms over the year and never touch
 lunar arithmetic, so reach for them rather than for `monthsFor(y).length` when the months themselves
 are not wanted.

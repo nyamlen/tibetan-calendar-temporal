@@ -237,6 +237,19 @@ describe("README navigation examples", () => {
 		expect(dates[0]?.isoDate.toString()).toBe("2026-02-18");
 	});
 
+	// The padding cells either side of a grid: ISO days stepped and converted, which is the one
+	// walk the README still shows by hand, because datesFor cannot produce a neighbouring month's days.
+	it("fills the cells before a month by stepping ISO days", () => {
+		const [first] = monthsFor(2153);
+		if (first === undefined) expect.unreachable("2153 has months");
+		const before: string[] = [];
+		let day = first.firstDay.subtract({ days: 3 });
+		for (let i = 0; i < 3; i++, day = day.add({ days: 1 })) {
+			before.push(formatTibetanDate(isoToTibetan(day)));
+		}
+		expect(before).toEqual(["2152-M12-28", "2152-M12-29", "2152-M12-30"]);
+	});
+
 	it("steps months into and out of a leap pair, as the table says", () => {
 		expect(addMonths({ year: 2151, month: 5 }, 1).monthCode).toBe("M06L");
 		expect(monthsBetween({ year: 2151, month: 5 }, { year: 2151, month: 7 })).toBe(3);
