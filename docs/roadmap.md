@@ -849,7 +849,10 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
 
 - **Tibetan-language output — weekday and year naming shipped 2026-08-16.** `TibetanDate` carries
   `weekdayName`; `yearName` carries `elementName`, `genderName` and `animalName`; and
-  `weekdayNameFor`, `elementNameFor`, `genderNameFor` and `animalNameFor` are exported. Each name is
+  `weekdayNameFor` is exported. (`elementNameFor`, `genderNameFor` and `animalNameFor` were exported
+  too until 2026-08-25, when they came off the surface and out of `cycles.ts` — never argued for,
+  and reachable as `yearNameFor(year).elementName`. See
+  [decisions/2026-08-12-public-surface.md](decisions/2026-08-12-public-surface.md).) Each name is
   Tibetan script, Wylie and THL Simplified phonetics — no English field, because the string unions
   already carry the English identity and are the i18n contract. See
   [decisions/2026-08-16-names-are-data-not-locales.md](decisions/2026-08-16-names-are-data-not-locales.md).

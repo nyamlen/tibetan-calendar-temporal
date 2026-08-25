@@ -471,12 +471,9 @@ year, including ones where `losarFor` must refuse.
 
 | Export | Signature | Notes |
 |---|---|---|
-| `yearNameFor` | `(year: number) => TibetanYearName` | `{ element, animal, gender }`. Element and gender repeat every ten years, the animal every twelve, the whole name every sixty |
+| `yearNameFor` | `(year: number) => TibetanYearName` | `{ element, animal, gender }`. Element and gender repeat every ten years, the animal every twelve, the whole name every sixty; plus `elementName`, `genderName` and `animalName` in Tibetan script, Wylie and phonetics — which is why there are no separate lookups for those three |
 | `rabjungFor` | `(year: number) => Rabjung` | `{ cycle, year, name }` — `cycle`/`year` are the sixty-year numbering from 1027 CE, a *numbering* rather than a name (the two cycles sit three apart), and `name` is the Tibetan and Sanskrit name at that position |
 | `weekdayNameFor` | `(weekday: number, config?) => TibetanWeekdayName` | Tibetan name of a weekday. Takes the **Tibetan** numbering, 0 = Saturday. The only naming lookup taking a config, because Bhutan names its days one planet ahead |
-| `elementNameFor` | `(element: TibetanElement) => TibetanName` | ཤིང *shing* for wood, མེ *me* for fire, and so on |
-| `genderNameFor` | `(gender: TibetanGender) => TibetanName` | ཕོ *pho* and མོ *mo* |
-| `animalNameFor` | `(animal: TibetanAnimal) => TibetanName` | རྟ *rta* for horse, སྟག *stag* for tiger, and so on |
 
 A year picker is a loop over these plus `hasLeapMonth`; there is no range function, because building
 the list is the consumer's business and nothing about it can go wrong.

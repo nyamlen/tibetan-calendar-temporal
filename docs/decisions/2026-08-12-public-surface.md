@@ -150,6 +150,41 @@ would have qualified under the *old* rule too, had anyone written the naive vers
 **Build the thing before deciding what it needs.** That spike cost fifteen minutes and overturned
 two decisions taken across two review passes. Prefer it to another round of argument.
 
+## Revisited 2026-08-25: three vocabulary lookups removed
+
+`elementNameFor`, `genderNameFor` and `animalNameFor` are **off the surface.** `weekdayNameFor`
+stays.
+
+They were never argued for. The 2026-08-15 rescoping above lists every function it licensed, with
+the test each one passed; these three are not among them. They arrived the next day with the naming
+layer, in the same commit as `weekdayNameFor`, and shipped **by symmetry with it** — no decision
+record, no roadmap argument, nothing in the commit message.
+
+They also fail the second test on its merits. Both halves are required, and "does a calendar library
+of this kind normally provide it" is the half that fails: `yearNameFor` and `rabjungFor` passed it
+because *naming a year is a headline feature of any sexagenary calendar*, and naming a bare element
+is a headline feature of nothing.
+
+The decisive point is narrower. **`yearNameFor(year)` already returns `elementName`, `genderName`
+and `animalName`, populated.** So the only consumer these three served is one holding a bare
+`TibetanElement` with no year in hand — and that consumer was *half*-served, because the string
+unions are not enumerable at runtime and no array of the five elements is exported. The one scenario
+they existed for, they did not complete.
+
+**This is not the failure mode the rescoping named.** `addMonths` and `yearNameFor` were cut wrongly
+on **cost** arguments — a µs measurement, "it's a two-call composition" — which is the third case's
+territory applied to a convenience question. No cost argument is made here; the argument is the
+second test's own half, and the alternative route is one property access rather than a
+reimplementation.
+
+They were deleted from `cycles.ts` too, not merely unexported, and that was a separate call:
+**nothing in `src/` called them.** `epoch.ts` builds `TibetanYearName` from `names.ts` directly, so
+the wrappers had no internal user, and `requireName` — which existed only to serve them — went with
+them. Keeping them would have been dead code carrying a live hazard: `docs/coding-standards.md`
+records `*For`/`*Of` being one character apart as a trap that **compiles** and recurses infinitely,
+and this removes three of its four instances. Restoring one is three lines if a real consumer ever
+appears.
+
 ## Consequences
 
 - Do not export from `src/computation/` to make a test or a sibling module easier. Tests import
