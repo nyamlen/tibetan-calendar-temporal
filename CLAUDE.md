@@ -286,12 +286,18 @@ derivation; in `docs/` they are just noise.
   changed, so decide whether that was intended before editing the list.
 
   **But it sees runtime exports only, and a type is not one.** It reads `Object.keys(api)` and
-  `typeof`, so removing an exported *interface* or *type alias* passes every one of the nine
-  commands — proved on 2026-08-25, when `RabjungName` and `SanskritName` came off the surface and
-  the only thing that caught the now-false type list in `README.md` was a grep. **There is no
-  tripwire on the shipped type list.** Removing or renaming a type is a documentation sweep done by
-  hand: `README.md`'s type list, `docs/architecture.md`'s shapes, `docs/guide.md`, and any docblock
-  naming it.
+  `typeof`, so removing an exported *interface* or *type alias* passes it — proved on 2026-08-25,
+  when `RabjungName` and `SanskritName` came off the surface and the only thing that caught the
+  now-false type list in `README.md` was a grep.
+
+  **`check:conventions` rule 13 now closes the list half**, comparing both barrels' `export type`
+  blocks against `README.md`'s two "Type-only exports" lists as sets, so ordering is free. **It does
+  not close the prose half.** A sentence describing a type's *fields* is still unguarded: the same
+  README called `rabjungFor`'s `name` "the Tibetan and Sanskrit name" for hours after the Sanskrit
+  came off, and the grep that found the stale list named the removed types rather than the field, so
+  it sailed past. Removing or renaming a type therefore still needs the hand sweep for everything
+  except the list — `docs/architecture.md`'s shapes (7 exported types named), `docs/guide.md` (4),
+  and any docblock naming it.
 
   **A `TraditionConfig` is judged by a different rule, because it is a different kind of claim.**
   That record is about API design; a config asserts that dates computed with it are a real

@@ -209,6 +209,50 @@ const carriesNoData = (source) =>
 		/^export\s+(?:const|let|var|function|class|default)\b/.test(code.trim()),
 	);
 
+/**
+ * Rule 13 — the type names a barrel re-exports, as a consumer sees them.
+ *
+ * An `as` alias publishes the alias, so the last segment is the public name. A value export is
+ * not a type export and must not be collected: `test/public-api.test.ts` already pins those, and
+ * pinning them twice in different shapes is how two guards drift apart.
+ */
+const exportedTypeNames = (source) =>
+	new Set(
+		[...source.matchAll(/export type \{([^}]*)\}/g)]
+			.flatMap(([, names]) => names.split(","))
+			.map((name) =>
+				name
+					.trim()
+					.split(/\s+as\s+/)
+					.pop()
+					.trim(),
+			)
+			.filter(Boolean),
+	);
+
+/**
+ * Rule 13 — the type names the README documents, with where each list sits in the file.
+ *
+ * Deliberately a **different shape** from `exportedTypeNames` above: that one parses TypeScript
+ * syntax, this one reads a prose paragraph and takes its backticked identifiers. A single pattern
+ * serving both would let one edit silence the rule and the invariant meant to catch that at the
+ * same moment — the trap Rule 12's guard was rewritten to avoid.
+ */
+const documentedTypeLists = (markdown) =>
+	[...markdown.matchAll(/Type-only exports[^\n]*(?:\n(?!\s*\n)[^\n]*)*/g)].map((match) => ({
+		at: match.index,
+		names: new Set([...match[0].matchAll(/`([A-Za-z][A-Za-z0-9]*)`/g)].map(([, name]) => name)),
+	}));
+
+/** Rule 13 — the two published entry points, each with the README heading its section opens with. */
+const TYPE_BARRELS = [
+	{ file: "src/index.ts", label: "the root entry point" },
+	{ file: "src/observances/index.ts", label: "./observances" },
+];
+
+/** Rule 13 — where the README stops describing the root and starts describing the subpath. */
+const OBSERVANCES_HEADING = "### `tibetan-calendar-temporal/observances`";
+
 function selfTest() {
 	const broken = [];
 	const check = (predicate, actual, expected, reason) => {
@@ -384,6 +428,74 @@ function selfTest() {
 		codeOf('const s = "// not a comment";').includes("not a comment"),
 		false,
 		"KNOWN LIMIT, not a guarantee: string literals are not tracked, so this is misparsed as a comment. Recorded so a later fix changes this case deliberately rather than being blocked by it.",
+	);
+
+	// --- Rule 13, the invariant. Derived from the tree, so it needs no foresight. ---
+	//
+	// Every name the barrel extractor returns must actually be declared under src/. An extractor
+	// that silently matches nothing — a renamed keyword, a broken group — yields an empty set,
+	// which would otherwise compare equal to an equally empty README reading and pass vacuously.
+	// This fires on that without naming any particular type.
+	// Both patterns, not just the second: in git's pathspec `src/**/*.ts` requires at least one
+	// directory level, so it silently skips src/types.ts — where most of these are declared.
+	const declaredTypes = new Set(
+		tracked("src/*.ts", "src/**/*.ts").flatMap((file) =>
+			[...read(file).matchAll(/export\s+(?:interface|type)\s+([A-Za-z][A-Za-z0-9]*)/g)].map(
+				([, name]) => name,
+			),
+		),
+	);
+	for (const barrel of TYPE_BARRELS) {
+		const exported = exportedTypeNames(read(barrel.file));
+		check(
+			"exportedTypeNames invariant",
+			exported.size > 0,
+			true,
+			`${barrel.file} re-exports types, so the extractor must find some. An empty set compares equal to an empty README reading and passes vacuously.`,
+		);
+		for (const name of exported) {
+			check(
+				"exportedTypeNames invariant",
+				declaredTypes.has(name),
+				true,
+				`"${name}" is re-exported by ${barrel.file} but declared nowhere in src/. Either the extractor is collecting something that is not a type name, or the barrel is stale.`,
+			);
+		}
+	}
+
+	// --- Rule 13, the cases the invariant cannot see. ---
+	check(
+		"exportedTypeNames",
+		[...exportedTypeNames("export type { Alpha, Beta } from './x.js';")].join(","),
+		"Alpha,Beta",
+		"the ordinary case: a braced type re-export lists its names.",
+	);
+	check(
+		"exportedTypeNames",
+		[...exportedTypeNames("export type { Alpha as Beta } from './x.js';")].join(","),
+		"Beta",
+		"an alias publishes the ALIAS. Collecting the left-hand name would report a type the consumer cannot import.",
+	);
+	check(
+		"exportedTypeNames",
+		exportedTypeNames("export { Alpha } from './x.js';").size,
+		0,
+		"a value export is not a type export. The invariant above is satisfied either way, so only this case catches it.",
+	);
+	check(
+		"documentedTypeLists",
+		[
+			...(documentedTypeLists("Type-only exports: `Alpha`, `Beta`.\n\nNext paragraph.")[0]?.names ??
+				[]),
+		].join(","),
+		"Alpha,Beta",
+		"the README's prose list is read from its backticked identifiers, and stops at the blank line.",
+	);
+	check(
+		"documentedTypeLists",
+		documentedTypeLists("Type-only exports: `Alpha`.\n\nType-only exports: `Beta`.").length,
+		2,
+		"both entry points document a list, so the reader must find both. Finding one would silently leave ./observances unguarded.",
 	);
 
 	if (broken.length > 0) {
@@ -922,6 +1034,79 @@ for (const file of tracked("test/computation/*.test.ts")) {
 		file,
 		`is not named for any module in src/computation/ (${computationModules.join(", ")}). Name it for the module it tests, optionally narrowed — calendar-leap-index-threshold.test.ts is a calendar.ts suite about one rule. If its subject spans several modules it is not a computation suite: move it to test/ root, where invariants.test.ts and regression.test.ts already live. See docs/testing.md.`,
 	);
+}
+
+// ---------------------------------------------------------------------------------------
+// Rule 13 — the README's type lists match what the barrels export
+//
+// `test/public-api.test.ts` pins the runtime surface by reading `Object.keys(api)` and `typeof`.
+// Types are erased at runtime, so removing or renaming an exported interface passes every one of
+// the nine CI commands. That is not hypothetical: `RabjungName` and `SanskritName` came off the
+// surface on 2026-08-25 and the only thing that caught the now-false type list in `README.md` was
+// a grep somebody happened to run. The README ships in the tarball and is what npmjs.com renders,
+// so a stale type list is a false contract statement rather than a tidying issue.
+//
+// This closes the LIST half only. Prose describing a type's FIELDS is not checked here and stays
+// a review item — `README.md` described `rabjungFor`'s `name` as carrying Sanskrit for hours after
+// it stopped doing so, and no predicate available here would have seen it. The enforcement map
+// says so rather than letting this rule read as full coverage.
+// ---------------------------------------------------------------------------------------
+
+{
+	const RULE = "README type lists match the barrels";
+	const readme = read("README.md");
+	const lists = documentedTypeLists(readme);
+	const boundary = readme.indexOf(OBSERVANCES_HEADING);
+
+	if (boundary === -1) {
+		fail(
+			RULE,
+			"README.md",
+			`has no \`${OBSERVANCES_HEADING}\` heading, so the root and subpath type lists cannot be told apart. Restore the heading, or teach this rule the new one.`,
+		);
+	} else if (lists.length !== TYPE_BARRELS.length) {
+		fail(
+			RULE,
+			"README.md",
+			`documents ${lists.length} "Type-only exports" list(s); ${TYPE_BARRELS.length} entry points publish types. A missing list leaves one entry point unguarded, which is the state this rule was written to end.`,
+		);
+	} else {
+		const documented = [
+			lists.find((list) => list.at < boundary),
+			lists.find((list) => list.at > boundary),
+		];
+
+		TYPE_BARRELS.forEach((barrel, index) => {
+			const doc = documented[index];
+			if (!doc) {
+				fail(
+					RULE,
+					"README.md",
+					`has no "Type-only exports" list for ${barrel.label} on the expected side of the ${OBSERVANCES_HEADING} heading.`,
+				);
+				return;
+			}
+
+			const exported = exportedTypeNames(read(barrel.file));
+			const missing = [...exported].filter((name) => !doc.names.has(name)).sort();
+			const extra = [...doc.names].filter((name) => !exported.has(name)).sort();
+
+			if (missing.length > 0) {
+				fail(
+					RULE,
+					barrel.file,
+					`exports ${missing.map((n) => `\`${n}\``).join(", ")}, which README.md's list for ${barrel.label} does not document. Removing or renaming a type breaks no test — sweep README.md, docs/architecture.md, docs/guide.md and any docblock naming it.`,
+				);
+			}
+			if (extra.length > 0) {
+				fail(
+					RULE,
+					"README.md",
+					`documents ${extra.map((n) => `\`${n}\``).join(", ")} for ${barrel.label}, which ${barrel.file} does not export. A consumer following the README would fail to import it.`,
+				);
+			}
+		});
+	}
 }
 
 // ---------------------------------------------------------------------------------------
