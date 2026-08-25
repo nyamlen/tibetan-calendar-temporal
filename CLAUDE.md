@@ -400,6 +400,16 @@ did. When adding a check to a generator, put it above the gate and then **prove 
 break the thing it guards and watch it refuse to write. This is the same rule as "a guard that has
 never failed proves nothing", one level up — the guard existed, was correct, and was unreachable.
 
+**And run the generator unchanged *before* you edit it.** A baseline that reproduces the committed
+fixture byte-for-byte is what makes any later diff attributable to your change rather than to a
+source that has moved since the last run — these generators read five live sources, and none of them
+is pinned. Without it a single altered cell is unattributable, and the temptation is to assume it was
+yours. It costs one full pass, about four minutes for `verify:rabjung-names`. Remember that the
+comparison only means anything **after** `npx biome check --write` on the emitted fixture: the raw run
+differs from the committed file by roughly +60/−3148 lines purely through reflow, which looks like a
+catastrophe and is not. Same principle as proving a guard by mutation, one step earlier — establish
+that the instrument reads zero before you measure with it.
+
 **The script now proves its own predicates on every run**, before any rule, reporting "the checker
 itself is broken" rather than a violation. That is not decoration: the `test/computation/` naming
 rule was first written to split a suite name on its first `-`, which rejects

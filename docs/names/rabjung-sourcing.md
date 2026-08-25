@@ -150,10 +150,11 @@ the wrong one** — "opposition, hostility" is विरोध, the noun, reache
 I through Janson, so a second lineage would have to be Tibetan-language and not calendrical software.
 Three leads, no witness:
 
-- **Rangjung Yeshe Wiki** — behind a Cloudflare interstitial that returns 403 to any programmatic
-  request, with a declared User-Agent or a browser one alike. An earlier note calling it
-  "machine-fetchable" was wrong. This is a deliberate access decision by the site; do not work around
-  it.
+- **Rangjung Yeshe Wiki** — the *site* is behind a Cloudflare interstitial that returns 403 to any
+  programmatic request, with a declared User-Agent or a browser one alike. That is a deliberate
+  access decision; do not work around it. **But the dictionary is not the site, and that distinction
+  was missed until 2026-08-25** — this entry read "unavailable, settled" while the same corpus was
+  being published elsewhere in a form nothing had to be worked around. See the section below.
 - **BDRC** — a live lead, unrealised. Its full-text search over open-access Unicode Tibetan etexts
   works: ten chunks contain both དུས་ཀྱི་ཕོ་ཉ (52) and ཁྲག་སྐྱུག (57), two names distinctive enough that
   co-occurrence implies a list of the sixty. What blocked it was retrieval, not access —
@@ -182,6 +183,60 @@ same list in the same literature.
 Sewell and of Rao, which is what had been checked, and never true of the lexicographers.
 Monier-Williams glosses every one of the sixty headwords.
 
+## The Tibetan-side English lead: reachable, quotable only in part
+
+`docs/names/rabjung.md` says of the **English of the Tibetan** column that "no source gives English
+for these", justified by checking Sewell & Fleet. That is true of *Sewell*, who is a Sanskrit-calendar
+source. Nobody had asked a **Tibetan dictionary**, and the answer changes what that column can claim.
+
+A Wylie-keyed aggregate at `github.com/christiansteinert/tibetan-dictionary` publishes several as
+pipe-separated files (`_input/dictionaries/public/`). Coverage of the sixty Tibetan names, measured:
+
+| Source | Headword | States this cycle position |
+|---|---|---|
+| Ives Waldo | **60/60** | 42/60 |
+| Rangjung Yeshe | 57/60 | 38/60 |
+| *tshig mdzod chen mo* (Tibetan–Tibetan) | 58/60 | — (defines in Tibetan) |
+| 84000 | 31/60 | — |
+| Jäschke 1881, scan index | 31/60 → printed page | — |
+| Chandra Das 1902, scan index | 31/60 → printed page | — |
+
+They do not merely gloss the word; many name the year outright — `mi zad | inexhaustible; ... me pho
+khyi lo` at 20, `kun ldan | Sarwadin, 34'th year male iron mouse`. **That yields a mechanical check
+the generator can run:** these entries state the element–animal year, which the generator computes
+independently, so a source's own identification can be verified rather than trusted — the Tibetan-side
+analogue of the Bṛhat Saṃhitā position check.
+
+**The licence gate, and what survives it.** The aggregate's README states, in capitals, that *"THE
+COPYRIGHT OF THE DICTIONARY DATA IS WITH THE RESPECTIVE AUTHORS"*, with no per-dictionary terms; the
+GPL there covers the code only. Waldo, Rangjung Yeshe and the *tshig mdzod chen mo* are modern
+copyrighted works. So they may **gate** and may never be **quoted** — exactly the standing wisdomlib
+already has here ("only the position is taken, never the prose"), and the split this repository
+already draws for competing implementations: *dates are facts, not copyrightable expression*.
+
+| Takeable — fact | Not takeable — expression |
+|---|---|
+| That a headword exists at this Wylie | The wording of any gloss |
+| The cycle position the entry states | The phrasing of a definition |
+| The element–animal year it states | |
+
+**The public-domain route was tested and is weaker than it looks.** Jäschke (1881) and Das (1902) are
+quotable with a page citation, but their archive.org OCR is not usable as text. Jäschke returned
+**0/60** — his romanisation is idiosyncratic (`khyon-idom`, `kyom-khyom`) and the Tibetan script is
+dropped entirely, so he is a *page pointer* and nothing more. Das is partially reachable, **21/60** on
+a naive hyphen-join, and the misses are his own conventions rather than absences — he writes `'` as
+`h` (`hdsin` for `'dzin`, `rgyal-pohi` for `rgyal po'i`) and OCR loses his diacritics, so a
+Das-convention ladder would recover most of the rest. Sewell's majority-vote trick does not transfer:
+it works because the book prints each name thousands of times, and a dictionary headword appears once.
+
+**Lineage caution, which is the usual trap here.** Ives Waldo and Rangjung Yeshe are overlapping
+modern compilations, so under this document's own rule they are close to **one** witness, not two.
+The independent legs are the *tshig mdzod chen mo*, Jäschke and Das by printed page, and Csoma.
+
+**And the homograph trap is present**, as it was on the Sanskrit side at युव and दुन्दुभी: position 1
+`rab byung` glosses first as *ordination, renunciate* — the Buddhist sense, not "arising". Read the
+sense, never the presence of an entry.
+
 ## Operational notes
 
 **wisdomlib rate-limits.** A full sixty-row pass trips it, after which it answers `403` to every
@@ -189,6 +244,22 @@ User-Agent alike, a browser string included. Changing the User-Agent is not the 
 same working-around declined for Rangjung Yeshe Wiki. The generator sends one request before sixty
 and aborts the whole run if the source is down, because an empty corroboration column would otherwise
 be written into the table as a finding about Sanskrit rather than about our request volume.
+
+**Csoma's plates, with no PDF renderer installed.** `pdftoppm` is absent, so the Read tool cannot
+rasterise the PDF. Use archive.org's page images instead —
+`https://archive.org/download/dli.pahar.0168/page/nNNN.jpg`, where **printed page = N − 14**, so
+§232's p. 150 is `n164` and §233 runs `n165`–`n166`. At full size §232's Roman is legible directly;
+§233's Tibetan script needs cropping and upscaling 3–5× (PIL is available). Read §232 for anything
+that can be read there: it is ordinary Latin type and carries none of the Tibetan-glyph misread risk
+that `test/fixtures/rgob.ts` exists to warn about. Read §233 to settle the rows where his Roman slips,
+which it does at 8 and 38.
+
+**Run the generator unchanged before editing it.** A baseline that reproduces the committed fixture
+byte-for-byte — after `npx biome check --write`, which the raw output needs — is what makes a later
+diff attributable to your change rather than to a source that has moved since the last run. It costs
+one full pass, about four minutes, and without it a single altered cell is unattributable. This is the
+same principle as proving a guard by mutation, one step earlier: establish that the instrument reads
+zero before you measure with it.
 
 **archive.org serves Sewell intermittently.** It answered a 500 page three times in a row during one
 session, which `curl -sL` saves silently — the same trap the arXiv `-L` rule exists for. The
