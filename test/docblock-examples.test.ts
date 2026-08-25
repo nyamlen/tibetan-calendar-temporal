@@ -136,10 +136,13 @@ describe("docblock examples", () => {
 			expect(rabjungFor(2153 + 60).year).toBe(40);
 		});
 
-		it("rabjungFor(2153).name states the Tibetan and Sanskrit name at position 40", () => {
+		it("rabjungFor(2153).name states the Tibetan name at position 40, and only that", () => {
 			const { name } = rabjungFor(2153);
 			expect(name.tibetan).toBe("ཟིལ་གནོན");
-			expect(name.sanskrit.meaning).toBe("overthrow, defeat");
+			expect(name.wylie).toBe("zil gnon");
+			// Neither Sanskrit list ships on this type. A consumer reaching for one gets `undefined`
+			// rather than the wrong list's name, which is the whole point of the 2026-08-25 decision.
+			expect("sanskrit" in name).toBe(false);
 		});
 
 		it("weekdayNameFor gives Saturday as spen pa, the Saturn day", () => {

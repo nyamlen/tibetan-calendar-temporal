@@ -7,9 +7,12 @@ import { datesFor, monthsFor } from "../src/months.js";
  * @remarks
  * Part 3 of the naming plan specified this gate and never built it — there was no size assertion
  * anywhere in `test/` and no figure in `README.md`, so this is new work rather than a
- * re-measurement of something already checked. It matters now specifically because `Rabjung`
- * gained a second level of nesting: `rabjung.name` carries a `RabjungName`, which carries a
- * `SanskritName`.
+ * re-measurement of something already checked.
+ *
+ * The figures below are **unchanged** by the 2026-08-25 decision to drop both Sanskrit lists from
+ * `Rabjung.name`, and that is worth stating rather than leaving as a coincidence: `TibetanDate` has
+ * carried no `rabjung` field since 2026-08-24, so a rabjung name is not in a serialised year of
+ * dates at all. A change to that type moves this number only if a date starts carrying one again.
  *
  * Name objects are **shared frozen singletons** — `src/rabjung-names.ts` and `src/names.ts` freeze
  * one object per weekday, element, gender, animal and rabjung position, and every `TibetanDate`

@@ -1,6 +1,6 @@
 ---
 date: 2026-08-21
-status: accepted
+status: superseded
 ---
 
 # `Rabjung.name` carries the Tibetan tradition's name and the Indic list's name together
@@ -10,6 +10,11 @@ and adds `sanskrit: SanskritName`, where `SanskritName` is `{ devanagari, iast, 
 Tibetan tradition's name is the base `TibetanName`; `sanskrit` is the Indic saṃvatsara list's name at
 the same position, sourced from Monier-Williams — and is **not** a gloss of the Tibetan name at two
 positions where the traditions genuinely diverge.
+
+>**Superseded on 2026-08-25 by [2026-08-25-rabjung-ships-the-tibetan-name-only.md](2026-08-25-rabjung-ships-the-tibetan-name-only.md)>:**
+>neither Sanskrit list ships in the type. What stands from this record is the reasoning about
+>shape — why the Tibetan half is `extends` rather than nested, and why `meaning` was one field
+>rather than two — which the growth path in that record depends on.
 
 ## Who this is for
 

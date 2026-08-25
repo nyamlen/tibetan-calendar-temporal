@@ -324,16 +324,21 @@ monthsFor(2151).map((m) => m.lunation);
 // consecutive integers — M06L is one less than M06, which is the ordering a tuple sort gets wrong
 ```
 
-### The Sanskrit beside a year name is not always its translation
+### The year name you may know in Sanskrit is not shipped, and that is deliberate
 
-`rabjungFor(year).name` carries the Tibetan name of the year and a `sanskrit` field beside it. Those
-are **two different lists** of sixty names for the one cycle, not two renderings of one: `sanskrit`
-is the Indic saṃvatsara list's name at that position, and at five positions — 16, 17, 18, 20 and 34 —
-it is a different name from the one the Tibetan translates. At 34 the Tibetan *kun ldan*, all-endowed,
-sits beside शार्वरी *Śārvarī*, "belonging to night".
+`rabjungFor(year).name` carries the Tibetan name of the year — script, Wylie and phonetics — and
+nothing else. If you were expecting *Prabhava* or *Parābhava* beside it, here is why they are absent.
 
-So `sanskrit.meaning` glosses the Sanskrit name, and is not a translation of the Tibetan one. See
-[how-it-is-calculated.md](how-it-is-calculated.md#the-sixty-year-cycle-one-cycle-two-reckonings-two-name-lists)
+There are **two different lists** of sixty Sanskrit names for the one cycle, not two renderings of
+one. At five positions — 16, 17, 18, 20 and 34 — they carry different names, and the Tibetan follows
+the second list every time. At 34 the Tibetan *kun ldan*, all-endowed, renders *sarvapati*, while the
+Indic saṃvatsara list has शार्वरी *Śārvarī*, "belonging to night". A type that put one list beside the
+Tibetan name would therefore be naming something the Tibetan does not render, on 8% of years, with
+nothing about the output looking wrong.
+
+Both lists are tabulated in full, with a verdict for every divergent row, in
+[names/rabjung.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/rabjung.md).
+See [how-it-is-calculated.md](how-it-is-calculated.md#the-sixty-year-cycle-one-cycle-two-reckonings-two-name-lists)
 for what the cycle is and why two lists exist.
 
 ### The cost of a year

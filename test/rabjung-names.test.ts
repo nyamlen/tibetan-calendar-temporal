@@ -152,12 +152,12 @@ describe("the generated rabjung name table", () => {
  * The shipped rabjung names must match what the verification harness produced.
  *
  * @remarks
- * `src/rabjung-names.ts` carries only the public subset of each fixture row — `tibetan`, `wylie`,
- * `phonetic` and `sanskrit: { devanagari, iast, meaning }` — never the evidence fields (`senses`,
- * `mwPage`, `brihatSamhitaPosition`, and so on), which are provenance, not calendar data.
- * `meaning` merges the fixture's `selected` (verbatim, on 58 of 60 rows) and `composed` (assembled
- * from a compound's parts, on the other 2) into one field: a consumer wants "the English gloss",
- * not to know which of two mechanisms produced it. This suite is what stops the two drifting apart.
+ * `src/rabjung-names.ts` carries only `tibetan`, `wylie` and `phonetic`. **The fixture is
+ * deliberately much fuller** — both Sanskrit lists, the Monier-Williams senses, Csoma's two columns
+ * and the evidence fields — so this suite asserts a **subset** of each row rather than an equality.
+ * That asymmetry is the shape of the 2026-08-25 decision, not drift: the data stays sourced and
+ * regenerated so that shipping it later is cheap, while the published type stays unable to pair a
+ * Tibetan name with a Sanskrit one it does not render. Do not "fix" it by trimming the fixture.
  */
 describe("src/rabjung-names.ts matches the verified fixture", () => {
 	it.each(RABJUNG_NAMES)("position $position ($wylie) matches the shipped table", (row) => {
@@ -166,11 +166,6 @@ describe("src/rabjung-names.ts matches the verified fixture", () => {
 			tibetan: row.tibetan,
 			wylie: row.wylie,
 			phonetic: row.phonetic,
-			sanskrit: {
-				devanagari: row.devanagari,
-				iast: row.iast,
-				meaning: row.selected ?? row.composed,
-			},
 		});
 	});
 
@@ -181,7 +176,6 @@ describe("src/rabjung-names.ts matches the verified fixture", () => {
 	it("is frozen at every level, so a consumer cannot mutate a shared name object", () => {
 		expect(Object.isFrozen(SHIPPED_RABJUNG_NAMES)).toBe(true);
 		expect(Object.isFrozen(SHIPPED_RABJUNG_NAMES[0])).toBe(true);
-		expect(Object.isFrozen(SHIPPED_RABJUNG_NAMES[0]?.sanskrit)).toBe(true);
 	});
 });
 

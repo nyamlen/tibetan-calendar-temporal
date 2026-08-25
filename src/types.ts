@@ -87,8 +87,12 @@ export type TibetanGender = "male" | "female";
  * (Janson App. B) — so indexing one cycle's name table with the other's number would be wrong for
  * 57 of every 60 years, and wrong quietly.
  *
- * `name` is the name attached to the position — see {@link RabjungName}, whose own docblock
- * records that two Sanskrit lists exist for this cycle and which one the field carries.
+ * `name` is the Tibetan name attached to the position, and **only** that. The cycle has two
+ * Sanskrit name lists, which carry different names at 16, 17, 18, 20 and 34; neither ships here,
+ * because a type pairing one of them with the Tibetan name would name something the Tibetan does not
+ * render at five of every sixty years, silently. Both lists are tabulated in
+ * `docs/names/rabjung.md`. See `docs/decisions/2026-08-25-rabjung-ships-the-tibetan-name-only.md`,
+ * which also records the shape they would take if they ever return.
  *
  * The two numbering fields are grouped rather than flattened to `rabjungCycle` / `rabjungYear`
  * because they are only meaningful together — unlike `year` and `yearStartsIn`, each of which
@@ -116,67 +120,8 @@ export interface Rabjung {
 	 */
 	year: number;
 
-	/** The Tibetan and Sanskrit name at this position. */
-	name: RabjungName;
-}
-
-/**
- * The Sanskrit half of a rabjung name, from the Indic saṃvatsara list.
- *
- * @remarks
- * Script before transliteration, matching {@link TibetanName.tibetan} — first, because it is the
- * name; `iast` is a way of reaching it, derived from `devanagari` rather than taken from the Indic
- * list, whose own printed romanisation disagrees with its own script at twelve of the sixty rows.
- */
-export interface SanskritName {
-	/** Devanāgarī script. */
-	devanagari: string;
-
-	/** IAST, derived from {@link SanskritName.devanagari}. */
-	iast: string;
-
-	/**
-	 * An English gloss for the Sanskrit name, sourced from Monier-Williams. Null where nothing in
-	 * his dictionary renders the Tibetan name.
-	 *
-	 * @remarks
-	 * On all but two of the sixty rows this is a **verbatim** quote of one printed sense. On two —
-	 * where Monier-Williams glosses no entry for the whole word but does gloss both halves of the
-	 * compound, and the Tibetan disambiguates which reading is meant — it is **composed** from his
-	 * entries for the two parts instead. Either way this is a sourced, checked gloss, never invented
-	 * free text; see `docs/names/rabjung.md` for which rows are composed and why.
-	 */
-	meaning: string | null;
-}
-
-/**
- * The Tibetan tradition's name at a rabjung position, plus the Indic saṃvatsara list's name at the
- * same position.
- *
- * @remarks
- * **There are two Sanskrit name lists for this one cycle, and `sanskrit` holds the Indic one.** The
- * other is the list the Tibetan names are translations of, witnessed by Csoma de Kőrös (1834) and by
- * Janson. The two agree at most positions and carry **different names** at five of them — 16, 17,
- * 18, 20 and 34 — where the Tibetan follows the other list every time. Position **34** is the worked
- * example: `kun ldan`, all-endowed, renders *sarvapati*, "a lord of everything", while the Indic
- * list has शार्वरी *Śārvarī*, "belonging to night". Beside it, position **40** (`zil gnon`,
- * parābhava, "overwhelming") is the ordinary case, where the two agree.
- *
- * So `sanskrit` is **not reliably a gloss of the Tibetan name**, and at those five positions it
- * names something else.
- *
- * Positions **29** and **52** were long recorded here as divergences and are not. Csoma prints two
- * readings there, braced to one Tibetan name — *Mada or Manmatha*, *Kāladūtī or Kālayukta* — so they
- * are one year with a pair of attested readings, of which the Tibetan takes the one the Indic list
- * did not. Six other positions have such a pair and never looked divergent, because there the Indic
- * list happens to carry the same reading the Tibetan does.
- *
- * See `docs/names/rabjung.md` for the full sixty-row table, both lists side by side, and the
- * difference table that argues each row.
- */
-export interface RabjungName extends TibetanName {
-	/** The Indic saṃvatsara list's name at this position — see the two-lists note above. */
-	sanskrit: SanskritName;
+	/** The Tibetan tradition's name at this position. No Sanskrit — see the note above. */
+	name: TibetanName;
 }
 
 /**
@@ -228,10 +173,10 @@ export interface TibetanYearName {
  * *is* `"fire"` — so a gloss here would duplicate it. Those unions are the i18n contract: they are
  * stable lowercase identifiers, and a consumer's message catalogue keys off them to produce French,
  * Russian or anything else. This package ships no translations, because authoring them would mean
- * writing content in languages nobody here reads. {@link RabjungName} is the exception: a rabjung
- * position is a bare integer 1–60, with no sibling union to carry an English identity, so the
- * English question is answered where the English is *sourced* — {@link SanskritName.meaning} —
- * rather than on this base type.
+ * writing content in languages nobody here reads. A rabjung name is the one place that rationale
+ * does not reach: a position is a bare integer 1–60, with no sibling union to carry an English
+ * identity. It is still not answered here. The English for those sixty is authored rather than
+ * sourced, so it lives in `docs/names/rabjung.md`, where a reader can see which columns are which.
  *
  * Every value was verified before being written down. For the weekday, element, gender and animal
  * vocabulary: two independent EWTS implementations must agree on the script, it must read back as

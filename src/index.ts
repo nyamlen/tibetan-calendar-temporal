@@ -90,8 +90,6 @@ export type {
 } from "./traditions/types.js";
 export type {
 	Rabjung,
-	RabjungName,
-	SanskritName,
 	TibetanAnimal,
 	TibetanDate,
 	TibetanDateFields,

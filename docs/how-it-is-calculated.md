@@ -219,10 +219,12 @@ every sixty years.
 
 ### Two Sanskrit name lists, for the one cycle
 
-There are two lists of sixty Sanskrit names in play, and this package ships one of them.
+There are two lists of sixty Sanskrit names in play, and this package ships **neither** — a
+`Rabjung` carries the Tibetan name only. Both are tabulated in
+[names/rabjung.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/rabjung.md).
 
 - The **Indic saṃvatsara list** — Varāhamihira's lineage, attested name by name in Monier-Williams
-  and corroborated by Sewell. This is what `RabjungName.sanskrit` carries.
+  and corroborated by Sewell. This is the one you are likely to have met: *Prabhava*, *Vibhava*.
 - The list **the Tibetan names translate**, witnessed by Csoma de Kőrös (1834) and by Janson, whose
   table is Henning's.
 

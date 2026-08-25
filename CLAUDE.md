@@ -527,9 +527,12 @@ itself. Both in
 [docs/decisions/2026-08-23-readme-is-the-landing-page.md](docs/decisions/2026-08-23-readme-is-the-landing-page.md).
 `package.json#files` ships `docs/guide.md`, `docs/why-trust-these-dates.md` and — since 2026-08-24 —
 `docs/how-it-is-calculated.md`, so **their examples are contract exactly as the README's are**;
-`test/guide.test.ts` asserts every one that states a value. The third joined them because the shipped
-types carry a claim a consumer cannot evaluate without it: `RabjungName.sanskrit` is one of **two**
-Sanskrit name lists for the sixty-year cycle. A shipped document's relative links must resolve inside
+`test/guide.test.ts` asserts every one that states a value. The third joined them to answer a
+question the shipped types raise and cannot answer: a `Rabjung` carries a Tibetan year name and **no**
+Sanskrit one, and a consumer who expected *Prabhava* beside it needs to be told that the cycle has
+**two** Sanskrit name lists which disagree at five positions, so pairing either with the Tibetan name
+would misname 8% of years. That reason replaced an earlier one on 2026-08-25, when the Sanskrit came
+off the type — the document is shipped for what it explains, not for a field that no longer exists. A shipped document's relative links must resolve inside
 the tarball, which `check-pack` enforces, so anything repo-only is linked by absolute URL — that is
 why that file's four internal links are absolute and the others' are not.
 

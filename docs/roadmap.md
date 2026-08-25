@@ -267,7 +267,7 @@ Decisions deliberately deferred during setup, each with the reason it was deferr
 through this before publishing v1.0.0 — several are one-way doors once published.
 
 The list is grouped by subject, not by sequence, and one run of items does have a required order.
-The `RabjungName` shape settles first, because it is free now and breaking later and it changes what
+The rabjung name shape settles first, because it is free now and breaking later and it changes what
 an API review is looking at. Then the four **Review passes** below, in the order given there. The
 `docs/` folder restructure goes **last of all** — every review before it produces documentation
 edits, and moving files once after they have landed is one link-fixing commit instead of four.
@@ -505,35 +505,20 @@ edits, and moving files once after they have landed is one link-fixing commit in
       property regardless of the type, so `name?:` would have saved none of the 14 migrated
       assertion sites while costing permanent narrowing under `exactOptionalPropertyTypes` for a
       field that is total over 1–60.
-- [ ] **Re-open `RabjungName`'s shape: `sanskrit` sits at the same level as `tibetan`, `wylie` and
-      `phonetic`.** This *was* argued when the type was created — see
-      [decisions/2026-08-21-rabjung-names-carry-both.md](decisions/2026-08-21-rabjung-names-carry-both.md),
-      "`extends` rather than nesting the Tibetan half": `RabjungName extends TibetanName` was chosen
-      because the rejected alternative `{ tibetan: TibetanName; sanskrit: SanskritName }` makes the
-      script reachable only as `rabjungFor(2153).name.tibetan.tibetan`, which reads as a typo
-      permanently. The record also states the trade-off it accepts — extending `TibetanName` makes
-      the Tibetan the identity and the Sanskrit an attribute, which runs against the Sanskrit name
-      being historically first. So this item is not "was it discussed" but "does the accepted
-      trade-off still look right at 1.0.0": the three flat siblings are three *renderings of one
-      name* (script, transliteration, transcription) and `sanskrit` is a **different name** at a
-      different level of the tree — at positions 16, 17, 18, 20 and 34 provably naming something
-      else, since it belongs to a different Sanskrit list (29 and 52, which this item originally
-      cited, turned out to be one year with two attested readings rather than a divergence). The
-      alternatives worth weighing are keeping it as shipped, a third shape that nests only the
-      Sanskrit (`{ tibetan, wylie, phonetic, sanskrit: { … } }` is already that — so the question is
-      whether the *docblock* carries the asymmetry loudly enough), and renaming the field to say it
-      is the Indic list's name rather than a translation. Breaking after 1.0.0, free now.
-
-      **A constraint found on 2026-08-24 that narrows this, and should be settled before the shape
-      is.** Now that both lists exist in the fixture, "ship the list the Tibetan actually translates
-      instead" is a live option — and it cannot carry a `meaning`. Every gloss in this package is a
-      Monier-Williams lookup keyed on **Devanāgarī**, and that list has no Devanāgarī: its attested
-      script is Tibetan, and no source enumerates it in Devanāgarī at all (the Vimalaprabhā discusses
-      the cycle without listing the names). Producing one would be the back-transliteration this
-      project already refuses for Janson's ASCII, on the ground that it manufactures authority the
-      source does not have. So the three shipping options are **not** symmetric: the Indic list can
-      carry script, transliteration and a sourced gloss; the other can carry script and
-      transliteration only. Decide what `meaning` is *for* before deciding which list `sanskrit` is
+- [x] **The rabjung name shape — settled 2026-08-25, and the answer was "neither list".**
+      `Rabjung.name` is a plain `TibetanName`. The item asked whether `sanskrit` sat at the right
+      level; the answer is that it should not be there at all, because the cycle has **two** Sanskrit
+      lists carrying different names at 16, 17, 18, 20 and 34, so any type pairing one of them with
+      the Tibetan name misnames 8% of years with nothing about the output looking wrong. The
+      asymmetry the 2026-08-24 constraint identified is what closed it: only the Indic list has an
+      attested Devanāgarī, so only it can carry a sourced gloss, and shipping the pair honestly means
+      shipping both with a visible asymmetry rather than one silently. That shape is recorded in
+      [decisions/2026-08-25-rabjung-ships-the-tibetan-name-only.md](decisions/2026-08-25-rabjung-ships-the-tibetan-name-only.md)
+      so it need not be re-derived, along with the four implications that are why it is not shipping
+      now, and the constraint that the trigger for revisiting is a **stated consumer need** rather
+      than symmetry. Growing the smaller type into it is additive for readers and breaks only code
+      that *constructs* a `Rabjung`; the reverse is breaking outright, which is why the small shape
+      goes first.
 
 **Review passes**
 
@@ -548,7 +533,7 @@ nothing and reports success.
       2026-08-15 rescoping — the wrong-or-impossible test for computation internals and contested
       conventions, the "does a calendar library normally provide it, and does it have one obvious
       correct semantics" test for thin compositions. Check the type shapes too, not only the
-      function list: this is where the `RabjungName` item above gets settled, and the last item that
+      function list: this is where the rabjung name-shape item above gets settled, and the last item that
       belongs on the pre-1.0.0 surface is the one nobody thought to look for.
       **Command:** `/code-review max src/index.ts` for the barrel, then
       `/sc:sc-analyze src --focus architecture --depth deep` for the shapes behind it.
@@ -683,14 +668,17 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   unrelated web surfaces for one project is a maintenance surface nobody asked for. TypeDoc stays
   blocked on TypeScript 7 independently of this.
 
-- **The 60 rabjung cycle names — SHIPPED.** `rabjungFor(year).name` carries a `RabjungName` at every
-  position: the Tibetan tradition's name, plus the Indic saṃvatsara list's name in `sanskrit`, whose
-  `meaning` is sourced from Monier-Williams (58 of 60 rows verbatim, 2 composed from his entries for
-  a compound's parts) and null only where nothing in his dictionary renders the Tibetan name at all.
-  `name` is a **required** field, decided against the completed, fully-sourced table.
+- **The 60 rabjung cycle names — SHIPPED, Tibetan only.** `rabjungFor(year).name` carries a
+  `TibetanName` at every position — script, Wylie, phonetics. **Neither** of the cycle's two Sanskrit
+  lists ships, because they carry different names at 16, 17, 18, 20 and 34 and a type pairing either
+  with the Tibetan name would misname 8% of years silently
+  ([decisions/2026-08-25-rabjung-ships-the-tibetan-name-only.md](decisions/2026-08-25-rabjung-ships-the-tibetan-name-only.md),
+  which also records the shape both lists would take if they return). The Monier-Williams glosses and
+  Csoma's columns stay sourced and regenerated in `test/fixtures/rabjung-names.ts` and
+  `docs/names/rabjung.md`. `name` is a **required** field, decided against the completed table.
 
   Additive, so not a breaking change. See
-  [architecture.md](architecture.md#why-rabjungname-carries-both-traditions-and-what-it-does-not-promise)
+  [architecture.md](architecture.md#why-rabjungname-carries-the-tibetan-name-and-neither-sanskrit-list)
   for the shape and what it does and does not promise,
   [names/rabjung-sourcing.md](names/rabjung-sourcing.md) for the sourcing hunt — every source tried,
   the dead ends with their evidence, and the findings that changed the method — and

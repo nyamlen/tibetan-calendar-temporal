@@ -133,7 +133,7 @@ tibetan-calendar-temporal/
 │   ├── cycles.ts             # the cyclic names: year, rabjung, weekday, element, gender, animal
 │   ├── names.ts              # the frozen name vocabulary — internal; cycles.ts, epoch.ts,
 │   │                         #   conversion.ts all read it
-│   ├── rabjung-names.ts      # the 60 rabjung names, RabjungName + SanskritName — a weaker
+│   ├── rabjung-names.ts      # the 60 rabjung names, Tibetan only — a weaker
 │   │                         #   evidence tier than names.ts, so its own module
 │   └── types.ts              # TibetanDate, TibetanMonth, their field shapes, SkippedDayError
 ├── test/
@@ -237,17 +237,7 @@ interface TibetanMonthFields {
 interface Rabjung {
   cycle: number;          // 17 for 1987-2046
   year: number;           // 1-60 position within the cycle
-  name: RabjungName;      // the Tibetan and Sanskrit name at that position
-}
-
-interface SanskritName {
-  devanagari: string;
-  iast: string;                  // derived from devanagari, not taken from the Indic list
-  meaning: string | null;        // sourced from Monier-Williams; null on ~2 of 60 rows
-}
-
-interface RabjungName extends TibetanName {
-  sanskrit: SanskritName;        // the Indic list's name — a different name at five positions
+  name: TibetanName;      // the Tibetan name only — neither Sanskrit list ships
 }
 
 interface TibetanYearName {
@@ -336,21 +326,21 @@ makes the mistake unbuildable.
 together — unlike `year` and `yearStartsIn`, each of which stands alone — and because it is where
 the Indian cycle names will go if they are ever added.
 
-### Why `rabjung.name` carries both traditions, and what it does not promise
+### Why `rabjung.name` carries the Tibetan name and neither Sanskrit list
 
-`rabjung.year` is a position in two 60-year Sanskrit lists — Janson's Tibetan-lineage one and the
-Indic saṃvatsara list — and `rabjung.name` exposes both, as a `RabjungName` whose `tibetan` fields
-are the Tibetan tradition's name and whose `sanskrit` field is the Indic list's name at the same
-position. See [names/rabjung.md](names/rabjung.md) for the sourced table,
-[names/rabjung-sourcing.md](names/rabjung-sourcing.md) for how it was arrived at, and
-[decisions/2026-08-21-rabjung-names-carry-both.md](decisions/2026-08-21-rabjung-names-carry-both.md)
-for the shape decisions and their trade-offs.
+`rabjung.year` is a position in two 60-year Sanskrit lists — the one Janson's Tibetan-lineage table
+descends from and the Indic saṃvatsara list — which carry **different names** at 16, 17, 18, 20 and
+34, the Tibetan following the second every time. At 34 the Indic Śārvarī, "belonging to night",
+stands against *kun ldan*, all-endowed, which renders *sarvapati*.
 
-**`sanskrit` is not reliably a gloss of the Tibetan name.** The two lists agree at most positions and
-carry **different names** at five — 16, 17, 18, 20 and 34 — where the Tibetan follows the other list
-every time. At 34 the Indic Śārvarī, "belonging to night", stands against *kun ldan*, all-endowed,
-which renders *sarvapati*. `RabjungName`'s own docblock carries the worked example; do not reconcile
-the two fields into one meaning.
+`rabjung.name` therefore exposes **neither**: a type pairing one list with the Tibetan name would be
+naming something the Tibetan does not render at five of every sixty positions, and the only defence
+would be a docblock the reader has to have read. Both lists stay tabulated in
+[names/rabjung.md](names/rabjung.md), with [names/rabjung-sourcing.md](names/rabjung-sourcing.md) for
+how they were arrived at. The decision, and the shape they would take if they ever return, is
+[decisions/2026-08-25-rabjung-ships-the-tibetan-name-only.md](decisions/2026-08-25-rabjung-ships-the-tibetan-name-only.md),
+which supersedes
+[decisions/2026-08-21-rabjung-names-carry-both.md](decisions/2026-08-21-rabjung-names-carry-both.md).
 
 This section used to be titled "why the 60 rabjung names are not included," and recorded three
 reasons for deferring them. Two turned out to be wrong, and the third was resolved by sourcing work
