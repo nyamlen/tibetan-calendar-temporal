@@ -285,6 +285,14 @@ derivation; in `docs/` they are just noise.
   a stale one ships as contract. A failure in the first means the surface
   changed, so decide whether that was intended before editing the list.
 
+  **But it sees runtime exports only, and a type is not one.** It reads `Object.keys(api)` and
+  `typeof`, so removing an exported *interface* or *type alias* passes every one of the nine
+  commands — proved on 2026-08-25, when `RabjungName` and `SanskritName` came off the surface and
+  the only thing that caught the now-false type list in `README.md` was a grep. **There is no
+  tripwire on the shipped type list.** Removing or renaming a type is a documentation sweep done by
+  hand: `README.md`'s type list, `docs/architecture.md`'s shapes, `docs/guide.md`, and any docblock
+  naming it.
+
   **A `TraditionConfig` is judged by a different rule, because it is a different kind of claim.**
   That record is about API design; a config asserts that dates computed with it are a real
   tradition's real dates. So it is exported only once the engine has been tiled against an
@@ -399,6 +407,16 @@ no longer says that" had never once been true, and nothing revealed it until a d
 did. When adding a check to a generator, put it above the gate and then **prove it by mutation**:
 break the thing it guards and watch it refuse to write. This is the same rule as "a guard that has
 never failed proves nothing", one level up — the guard existed, was correct, and was unreachable.
+
+**A mutation harness needs a control, or it proves nothing either.** This is the same rule as
+"a guard that has never failed proves nothing", one level further up, and it cost three false proofs
+on 2026-08-25 alone. Twice a set of mutants all exited non-zero and were read as refusals; they had
+died on a `SyntaxError` introduced by the mutation itself, and then on `ERR_MODULE_NOT_FOUND`,
+because the mutant was written to a scratch directory while its relative imports resolve against the
+file. Both look identical to a guard firing — a non-zero exit and no output you happened to be
+grepping for. **So every mutation run includes an unmutated control expected to PASS**, and asserting
+on the failure *message*, not the exit code, is what makes the difference visible. The control
+failing is the only signal that the harness is measuring nothing.
 
 **And run the generator unchanged *before* you edit it.** A baseline that reproduces the committed
 fixture byte-for-byte is what makes any later diff attributable to your change rather than to a

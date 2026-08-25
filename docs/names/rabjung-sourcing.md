@@ -185,8 +185,9 @@ Monier-Williams glosses every one of the sixty headwords.
 
 ## The Tibetan-side English lead: reachable, quotable only in part
 
-`docs/names/rabjung.md` says of the **English of the Tibetan** column that "no source gives English
-for these", justified by checking Sewell & Fleet. That is true of *Sewell*, who is a Sanskrit-calendar
+`docs/names/rabjung.md` *used to say* of the **English of the Tibetan** column that "no source gives
+English for these", justified by checking Sewell & Fleet — it no longer does, and the section below
+records what replaced it. That is true of *Sewell*, who is a Sanskrit-calendar
 source. Nobody had asked a **Tibetan dictionary**, and the answer changes what that column can claim.
 
 A Wylie-keyed aggregate at `github.com/christiansteinert/tibetan-dictionary` publishes several as
