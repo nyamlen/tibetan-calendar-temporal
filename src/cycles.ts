@@ -22,7 +22,7 @@
 
 import { rabjungFromYear, yearFromRoyalEra, yearNameFromYear } from "./computation/epoch.js";
 import { rangeError } from "./errors.js";
-import { weekdayNameOf } from "./names.js";
+import { weekdayNameWithOffset } from "./names.js";
 import { PHUGPA } from "./traditions/phugpa.js";
 import type { TraditionConfig } from "./traditions/types.js";
 import { assertTraditionConfig } from "./traditions/validate.js";
@@ -150,5 +150,5 @@ export function weekdayNameFor(
 		);
 	}
 	assertTraditionConfig(config);
-	return weekdayNameOf(weekday, config.naming?.weekdayOffset ?? 0);
+	return weekdayNameWithOffset(weekday, config.naming?.weekdayOffset ?? 0);
 }

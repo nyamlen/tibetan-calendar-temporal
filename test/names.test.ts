@@ -18,7 +18,7 @@ import {
 	elementNameOf,
 	genderNameOf,
 	NAME_TABLES,
-	weekdayNameOf,
+	weekdayNameWithOffset,
 } from "../src/names.js";
 import { PHUGPA } from "../src/traditions/phugpa.js";
 import type { TibetanAnimal, TibetanElement, TibetanGender } from "../src/types.js";
@@ -33,14 +33,14 @@ import { assertNoDiscouragedCodepoints } from "./support/unicode-tibetan.js";
 
 describe("src/names.ts matches the verified fixture", () => {
 	it.each(WEEKDAY_NAMES)("weekday $key is $wylie", (row) => {
-		const name = weekdayNameOf(Number(row.key), 0);
+		const name = weekdayNameWithOffset(Number(row.key), 0);
 		expect(name.tibetan).toBe(row.tibetan);
 		expect(name.wylie).toBe(row.wylie);
 		expect(name.phonetic).toBe(row.phonetic);
 	});
 
 	it.each(WEEKDAY_ATTRIBUTES)("weekday $key is the $planet day", (row) => {
-		const name = weekdayNameOf(Number(row.key), 0);
+		const name = weekdayNameWithOffset(Number(row.key), 0);
 		expect(name.planet).toBe(row.planet);
 		expect(name.element).toBe(row.element);
 	});
@@ -74,8 +74,8 @@ describe("Saturday carries the correction, not Janson's slip", () => {
 	it("is spen pa", () => {
 		// Janson's day-of-week table prints `spen ma`. Wiktionary has no entry for it and CLDR's bo
 		// locale disagrees; both give `spen pa`, which is also the form behind the name *penpa*.
-		expect(weekdayNameOf(0, 0).wylie).toBe("spen pa");
-		expect(weekdayNameOf(0, 0).wylie).not.toBe("spen ma");
+		expect(weekdayNameWithOffset(0, 0).wylie).toBe("spen pa");
+		expect(weekdayNameWithOffset(0, 0).wylie).not.toBe("spen ma");
 	});
 
 	it("agrees with CLDR, which is a lineage entirely independent of Janson", () => {
@@ -86,7 +86,7 @@ describe("Saturday carries the correction, not Janson's slip", () => {
 				.toLocaleString("bo", { weekday: "long" })
 				.replace("གཟའ་", "")
 				.replace(/་$/, "");
-			expect(weekdayNameOf(weekday, 0).tibetan, `weekday ${weekday}`).toBe(cldr);
+			expect(weekdayNameWithOffset(weekday, 0).tibetan, `weekday ${weekday}`).toBe(cldr);
 		}
 	});
 });
@@ -95,9 +95,9 @@ describe("the Bhutanese weekday-name offset", () => {
 	it("shifts the name by one planet and nothing else", () => {
 		// Janson calls this "a unique feature of the Bhutanese calendar": day 0 is spen pa in Tibet
 		// and nyi ma in Bhutan.
-		expect(weekdayNameOf(0, 1).wylie).toBe("nyi ma");
-		expect(weekdayNameOf(1, 1).wylie).toBe("zla ba");
-		expect(weekdayNameOf(6, 1).wylie).toBe("spen pa");
+		expect(weekdayNameWithOffset(0, 1).wylie).toBe("nyi ma");
+		expect(weekdayNameWithOffset(1, 1).wylie).toBe("zla ba");
+		expect(weekdayNameWithOffset(6, 1).wylie).toBe("spen pa");
 	});
 
 	it("matches CLDR's dz locale, which is independent of Janson", () => {
@@ -108,7 +108,7 @@ describe("the Bhutanese weekday-name offset", () => {
 				.toLocaleString("dz", { weekday: "long" })
 				.replace("གཟའ་", "")
 				.replace(/་$/, "");
-			expect(weekdayNameOf(weekday, 1).tibetan, `weekday ${weekday}`).toBe(cldr);
+			expect(weekdayNameWithOffset(weekday, 1).tibetan, `weekday ${weekday}`).toBe(cldr);
 		}
 	});
 });
@@ -118,7 +118,7 @@ describe("the tables are frozen", () => {
 		// A TibetanDate holds a pointer to these, not a copy. Shared and mutable would reproduce the
 		// bug CLAUDE.md records for the monthsFor cache: one consumer's write corrupting every other.
 		expect(() => {
-			(weekdayNameOf(0, 0) as { wylie: string }).wylie = "x";
+			(weekdayNameWithOffset(0, 0) as { wylie: string }).wylie = "x";
 		}).toThrow(TypeError);
 		expect(() => {
 			(NAME_TABLES as unknown as Record<string, unknown>).WEEKDAYS = [];
@@ -126,7 +126,7 @@ describe("the tables are frozen", () => {
 	});
 
 	it("hands out the same object every time", () => {
-		expect(weekdayNameOf(0, 0)).toBe(weekdayNameOf(0, 0));
+		expect(weekdayNameWithOffset(0, 0)).toBe(weekdayNameWithOffset(0, 0));
 		expect(elementNameOf("fire")).toBe(elementNameOf("fire"));
 	});
 });
