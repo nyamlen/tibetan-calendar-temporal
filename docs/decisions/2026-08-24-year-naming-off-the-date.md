@@ -49,8 +49,10 @@ An earlier draft of this record led on register: the sixty rabjung names are lit
 rather than everyday speech — the *tshig mdzod chen mo* files `zil gnon`'s year-sense under
 མངོན་བརྗོད *ngönjö*, the poetic-synonym register — so few readers would miss them from a date.
 
-That is interesting and it is being checked properly elsewhere, but it must not be the stated reason
-here, for two reasons. It is a claim about **audience**, and a calendar library ships plenty its
+That has since been checked properly, and the claim held: 54 of the sixty carry the marker on the
+sense that states their year, counted in
+[the sourcing document](../names/rabjung-sourcing.md#the-ngönjö-survey-what-register-the-sixty-names-are-in).
+It is left out of this record's argument all the same, for two reasons. It is a claim about **audience**, and a calendar library ships plenty its
 median user never touches. And the part doing the work — that ordinary speech does not use these
 names — is the part that is not sourced. Redundancy and recoverability are checkable by anyone
 reading the code; register is not. See `2c0dce7`, which removed a different section for telling a

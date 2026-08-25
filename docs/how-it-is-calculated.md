@@ -231,3 +231,16 @@ the Tibetan follows the second list every time. So a Tibetan year name is not al
 the Sanskrit name printed beside it. [names/rabjung.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/rabjung.md) tabulates both lists with a
 verdict for every row where they differ, and [names/rabjung-sourcing.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/rabjung-sourcing.md)
 records how that was established.
+
+### What kind of words the sixty names are
+
+They are not ordinary vocabulary. English has *horse* for talking and *steed* for verse; Tibetan
+draws the same distinction, and the sixty year names are all on the *steed* side — poetic synonyms
+(abhidhāna अभिधान; མངྫྷbན་བརྡྷོད *ngönjö*), the register of verse and of almanacs rather than of speech.
+
+That is counted, not assumed. The great Tibetan–Tibetan dictionary marks a sense with that register
+itself, and **54 of the sixty** carry the mark on the sense that states their year, checked against a
+year computed independently from the cycle. The consequence for a reader is small but real: meeting
+one of these names in an almanac is not like meeting an everyday word, and a plain English gloss of
+one is a gloss of a literary synonym. [names/rabjung-sourcing.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/rabjung-sourcing.md)
+carries the count and the six rows that are exceptions.

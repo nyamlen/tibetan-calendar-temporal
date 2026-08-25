@@ -237,6 +237,92 @@ The independent legs are the *tshig mdzod chen mo*, Jäschke and Das by printed 
 `rab byung` glosses first as *ordination, renunciate* — the Buddhist sense, not "arising". Read the
 sense, never the presence of an entry.
 
+## The ngönjö survey: what register the sixty names are in
+
+**Counted, not sampled.** An earlier note recorded that two of two names sampled carried the
+མངོན་བརྗོད *ngönjö* marker and warned that this was a hint rather than a result. It has now been run
+across all sixty by `scripts/survey-ngonjo.mjs`, against the *tshig mdzod chen mo*.
+
+The *tshig mdzod chen mo* tags a sense `(mngon)` when it belongs to the *mngon brjod* register — the
+poetic-synonym vocabulary of verse and almanacs rather than of speech. It is one of a small set of
+register tags the dictionary uses, and the inventory is what makes the tag legible at all:
+`(mngon)` 3520, `(rnying)` archaic 1731, `(yul)` dialect 1156, `(legs)` *legs sbyar* — Sanskrit — 457,
+`(rgya)` 215, `(sog)` Mongolian 58.
+
+| | of 60 |
+|---|---|
+| A sense states the year this name carries | **57** |
+| That sense is tagged `(mngon)` | **54** |
+| Tagged something else | 2 |
+| Stated but untagged | 1 |
+| No sense states the year | 3 |
+
+**The year is computed from the cycle and never read off the dictionary**, so what is being counted
+is the source agreeing with an independently derived fact — the Tibetan-side analogue of the Bṛhat
+Saṃhitā position check. Fifty-seven agreements out of sixty is itself the evidence that the matching
+is sound; a wrong sign arithmetic would have missed nearly all of them.
+
+**So the sixty are literary vocabulary, and that is now sourced rather than assumed.** It is
+deliberately **not** load-bearing for any decision here — see
+[the year-naming record](../decisions/2026-08-24-year-naming-off-the-date.md), which argues
+redundancy and recoverability instead, precisely because register is a claim about audience.
+
+### The six rows that are not a plain `(mngon)`, which is where the interest is
+
+- **1 `rab byung`** states its year and carries no tag at all. The cycle's own name is ordinary
+  vocabulary — consistent with the homograph trap already recorded here, where it glosses first as
+  *ordination*.
+- **6 `ang gi ra`** is tagged `(legs)`, Sanskrit, not `(mngon)`. That is independent corroboration of
+  Csoma's declared exception 6, which reads his entry as **transliterating rather than translating**.
+  Two sources reaching that from different directions, and neither was looking for it.
+- **12 `'bru mang po`** is filed one syllable short, as `'bru mang`, and tagged `(mong)` — a **hapax**
+  in a 5.6 MB file, beside 3520 `(mngon)`. Its sense states `sa stag lo`, exactly the year we compute.
+  Whether `(mong)` is a slip for `(mngon)` cannot be settled from this source, and is not asserted;
+  the file carries two other one-off tags (`(tnying)`, `(rnging)`) that plainly are slips.
+- **15 `khyu mchog`** is tagged `(mngon)` and assigns itself to `chu rta` — the **water-horse** year,
+  which is position **16**, where `sna tshogs` also sits. So the dictionary disagrees with our
+  position for 15, and 16 is one of the five positions at which the two Sanskrit lists diverge. Left
+  as a recorded divergence, not a correction: our 15 is वृष *Vṛṣa*, the bull, which `khyu mchog`
+  renders exactly.
+- **39 `sna tshogs dbyig`** has no headword.
+- **49 `srin bu`** has a headword with ordinary senses only.
+
+For 15, 39 and 49 the dictionary was swept **whole**, not just at our headword: no `(mngon)`-tagged
+entry anywhere in it states `lcags sbrul`, `shing sbrul` or `shing yos`. Those are gaps in the source,
+not lookup failures.
+
+### What the survey may take, and what it may not
+
+The same gate as the rest of this section: the dictionary is a modern copyrighted work and may
+**gate** but never be **quoted**. Three facts are taken — that a headword exists, that a sense carries
+a tag, and the element–animal a sense states. No gloss text is stored, printed or written to any file,
+and the script emits no fixture.
+
+**Chandra Das uses the same marker**, `(Mnon.)`, which would give the finding a public-domain second
+witness. That is **not** counted above and should not be quoted as if it were: the aggregate carries
+Das as a scan index — page pointers with no text — so his marker cannot be swept the way this one was.
+
+### Three ways it went wrong before it went right
+
+Each is recorded because each is a live trap for anyone extending this, and each moved the count by
+double figures:
+
+1. **The marker has two scopes.** `{(mngon)} 1) {…} 2) {…}` tags the whole entry; `4) {(mngon) …}`
+   tags that sense alone. Reading "the entry contains `(mngon)`" conflates them, and counts entries
+   whose *year* sense is ordinary vocabulary.
+2. **The year is not written the way the calendar writes it.** The dictionary drops the gender and
+   abbreviates the animal — `me byi lo`, not `me pho byi ba` — and spells the monkey three ways
+   (`spre`, `sprel`, `spre'u`). Matching the calendar's spelling scored **8/60** against the true 57,
+   which looks like a finding about the source and is a finding about the query.
+3. **A reverse sweep looks stronger and is worse.** Searching the whole dictionary for each year
+   string returns mostly biographies — "born in the water-horse year" — and requiring the trailing
+   `lo` those sentences carry drops the entries that write the year bare, `zil gnon` among them.
+
+The script proves its own sign arithmetic against four publicly known years before judging any
+source, and refuses to run if the dictionary no longer says what the counts above rest on — the
+`(mngon)` volume, `(mong)` being a singleton, and `ang gi ra` carrying `(legs)`. All four refusals
+were proved by mutation rather than assumed.
+
 ## Operational notes
 
 **wisdomlib rate-limits.** A full sixty-row pass trips it, after which it answers `403` to every
