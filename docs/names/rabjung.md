@@ -219,9 +219,13 @@ Recorded rather than corrected, alongside the two already noted above.
 
 They gloss **different names**, which is the point of showing them side by side.
 
-- **English of the Tibetan** is **authored, not sourced.** It glosses the Tibetan name, written for
-  this table. No source gives English for these — Sewell & Fleet prints the sixty as bare names
-  against Kaliyuga years and fractional day-counts, with no meaning column, checked directly.
+- **English of the Tibetan** is **authored, and the name it glosses is checked.** The wording is
+  written for this table — no source publishes English for these sixty that may be reproduced here,
+  and Sewell & Fleet prints them as bare names against Kaliyuga years with no meaning column, checked
+  directly. What is now verified is that the word being glossed is the right word: all
+  60 of the sixty are carried as a headword by a Tibetan dictionary
+  whose entry names **the same year this table gives them**. See
+  [What stands behind the authored English](#what-stands-behind-the-authored-english).
 - **Sanskrit senses** are **sourced**: every sense Monier-Williams lists for that headword, uncapped
   — 781 of them across the sixty rows.
   The table shows the first; the rest are in the detail section below, untruncated.
@@ -235,6 +239,64 @@ taking the first is an accident rather than a policy. `क्षय` opens with 
 "dominion" — from *kṣi*, to rule — where the sense that renders `zad pa` is "destruction, decay",
 from a different *kṣi* meaning to destroy. Monier-Williams marks these as separate numbered
 headwords, which is one of the reasons the sense column comes from him.
+
+## What stands behind the authored English
+
+### The plain version
+
+English has two words for a horse: *horse*, which you say out loud, and *steed*, which belongs in a
+poem. A good dictionary puts a little label next to *steed* saying **poetic**, so you know not to use
+it in a shop.
+
+Tibetan does the same, and its label is `(mngon)` — short for མངོན་བརྗོད *ngönjö*, poetic synonym
+(abhidhāna अभिधान). **The sixty year names are all *steed* words.** Counted, not assumed:
+**54 of the sixty** carry that label on the sense that says which year
+they name.
+
+That is why the English column here has to be checked rather than trusted. Nobody can guess what one
+of these names means from ordinary Tibetan, so a gloss written from the first sense of a dictionary
+entry can easily be a gloss of the wrong word entirely — which is exactly what position 1 offers:
+`rab byung` opens as *ordination*, the everyday Buddhist sense, not *arising*.
+
+### What is checked, and what cannot be
+
+The gloss itself cannot be sourced. These dictionaries are modern copyrighted works, published
+through an aggregate that states copyright stays with the respective authors, so they may **gate**
+and may never be **quoted** — the standing wisdomlib already has here. Three facts are taken and no
+prose: that a headword exists, the cycle position an entry states, and the element–animal year an
+entry states.
+
+**The year is computed from the cycle and never read off a dictionary**, so a source's own
+identification is verified rather than trusted. That makes the check meaningful rather than
+circular, and it is the Tibetan-side analogue of the Bṛhat Saṃhitā position check on the Sanskrit
+column.
+
+| Source | Lineage | Headword | States our year | States our position |
+|---|---|---|---|---|
+| Ives Waldo | modern compilation | 60/60 | 58/60 | 51/60 |
+| Rangjung Yeshe | modern compilation | 60/60 | 53/60 | 52/60 |
+| tshig mdzod chen mo | Tibetan–Tibetan | 59/60 | 57/60 | 0/60 |
+
+**Every one of the sixty** is confirmed by at least one source, and
+**57** by both lineages independently.
+
+**Do not read that table as three witnesses.** Ives Waldo and Rangjung Yeshe are overlapping modern
+compilations, so they are close to **one**; the second leg is the *tshig mdzod chen mo*, and the
+independent ones beyond it are Jäschke and Das by printed page, and Csoma. The *tshig mdzod chen mo*
+states no cycle positions at all — it defines in Tibetan and identifies the year by its
+element–animal name — which is why that column is zero for it rather than a failure.
+
+### Where a source disagrees
+
+- **Position 15**, tshig mdzod chen mo: assigns the name to
+  position 16's year.
+  The tshig mdzod chen mo files `khyu mchog` under the water-horse year, which is position 16, where `sna tshogs` also sits.
+  Ives Waldo states the fifteenth year and `lcags mo sbrul` outright, Rangjung Yeshe states the fifteenth, and Csoma and Janson both place it at 15 — so this is one source against four, recorded as a divergence rather than acted on.
+  Position 16 is also one of the five where the two Sanskrit lists differ, which is why it is worth keeping visible.
+
+Each is **declared and self-invalidating**: the run fails if the source stops saying it, so a note
+here cannot outlive the disagreement it describes. An undeclared disagreement fails the run outright
+rather than being reported and written anyway.
 
 ## The table
 
@@ -257,7 +319,7 @@ script* and *Csoma's Roman* are the list the Tibetan names translate; *Devanāga
 Indic saṃvatsara list. They agree at most positions and carry different names at five of them — see
 the difference table above, which is where that is argued row by row.
 
-| # *(Janson)* | Tibetan *(two EWTS)* | Wylie *(Janson)* | Phonetic *(THL)* | Sanskrit in Tibetan script *(Csoma §233)* | Csoma's Roman *(§232)* | Devanāgarī *(saṃvatsara)* | IAST *(derived)* | English of the Tibetan **(authored)** | Sanskrit senses *(Monier-Williams)* | Selected **(authored)** | Evidence | Years *(Janson + saṃvatsara)* |
+| # *(Janson)* | Tibetan *(two EWTS)* | Wylie *(Janson)* | Phonetic *(THL)* | Sanskrit in Tibetan script *(Csoma §233)* | Csoma's Roman *(§232)* | Devanāgarī *(saṃvatsara)* | IAST *(derived)* | English of the Tibetan **(authored, checked)** | Sanskrit senses *(Monier-Williams)* | Selected **(authored)** | Evidence | Years *(Janson + saṃvatsara)* |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | 1 | རབ་བྱུང | `rab byung` | *rap jung* | པྲབྷབ | Prabhava | प्रभव | Prabhava | Arising | प्र-भव mfn. prominent, excelling, distinguished, RV. ([+7 more](#sanskrit-senses-at-position-1)) | production, source | MW as printed; Wiktionary; 4 other lexicon(s); position: Wiktionary + Bṛhat Saṃhitā | 1927, 1987 |
 | 2 | རྣམ་བྱུང | `rnam byung` | *nam jung* | བིབྷབ | Vibhava | विभव | Vibhava | Full arising | वि-भव mfn. powerful, rich, MBh. xiii, 802 ([+12 more](#sanskrit-senses-at-position-2)) | development, evolution | MW as printed; Wiktionary; 5 other lexicon(s); position: Wiktionary + Bṛhat Saṃhitā | 1928, 1988 |

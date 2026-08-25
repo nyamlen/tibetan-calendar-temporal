@@ -466,6 +466,20 @@ check .` reports it without naming the file, and the obvious suspects are the fi
 rather than the one the generator rewrote. Provenance is checked before a release;
 integrity is checked on every push.
 
+**`verify:rabjung-names` also gates the authored English on Tibetan-dictionary facts, and the
+licence line there is narrow.** Three dictionaries (Ives Waldo, Rangjung Yeshe, the *tshig mdzod chen
+mo*) may **gate** and may never be **quoted** — they are modern copyrighted works, so exactly three
+facts are taken: that a headword exists, the cycle position an entry states, and the element–animal
+year an entry states. **No gloss text is stored, printed or emitted**, and the year is computed from
+the cycle and never read off a dictionary, which is what stops the check being circular. The reading
+logic lives in `scripts/tibetan-dictionary.mjs`, shared with `scripts/survey-ngonjo.mjs`, and carries
+the traps that logic exists to avoid — chief among them that **a register tag has two scopes** and
+that **the prefix before an entry's first numbered sense is a sense**, not merely where a tag lives.
+The second was live through the whole ngönjö survey and cost nothing there, because the *tshig mdzod
+chen mo*'s prefix is a bare tag; Ives Waldo puts the entire gloss there, so the same code discarded
+the text being checked. A rule that is harmless on the source it was written against is the failure
+mode to expect here.
+
 **Both verifiers carry corrections to their sources as data, and a correction must self-invalidate.**
 It states the value it expects to find and refuses to run if the source no longer says it, so a
 correction that stops being needed fails loudly instead of silently patching a source that has since

@@ -84,6 +84,17 @@ import {
 	proveIndicPredicates,
 	slugVariants,
 } from "./indic.ts";
+import {
+	DICTIONARIES,
+	senses as dictionarySenses,
+	fetchDictionary,
+	indexEntries,
+	positionsStatedIn,
+	provePredicates as proveDictionaryPredicates,
+	signsForYear,
+	statesYearInEnglish,
+	statesYearInWylie,
+} from "./tibetan-dictionary.mjs";
 
 const [texPath, wikiPath, sewellPath] = process.argv.slice(2);
 if (!texPath || !wikiPath) {
@@ -2281,6 +2292,187 @@ for (const d of NAME_DIFFERENCES) {
 }
 
 // ---------------------------------------------------------------------------------------------
+// What checks the authored English of the Tibetan names. (Tier A)
+// ---------------------------------------------------------------------------------------------
+//
+// The English-of-the-Tibetan column is authored: nobody publishes English for these sixty that may
+// be reproduced here. What CAN be checked is that the word being glossed is the word we think it
+// is -- that a Tibetan dictionary carries the headword, and that its entry identifies the same year
+// we computed. That is the difference between "authored" and "authored, and the thing it names has
+// been confirmed", and it catches the failure that actually happens: position 1 `rab byung` glosses
+// first as ORDINATION, so a gloss written from the first sense of the entry would be a gloss of a
+// homograph.
+//
+// Facts only. These are modern copyrighted works, so they gate and are never quoted -- see
+// scripts/tibetan-dictionary.mjs, which also carries the plain-language account of the register
+// marker and the three ways reading these dictionaries goes wrong.
+
+/**
+ * Where a source assigns one of the sixty names to a different year than we do.
+ *
+ * Declared rather than silenced, and self-invalidating: the run fails if the source stops saying
+ * this, so a divergence that has since been corrected upstream cannot sit here forever pretending
+ * to describe a live disagreement.
+ */
+const TIBETAN_YEAR_DIVERGENCES = [
+	{
+		position: 15,
+		dictionary: "tshigmdzod",
+		claimsPositionOf: 16,
+		why:
+			"The tshig mdzod chen mo files `khyu mchog` under the water-horse year, which is position " +
+			"16, where `sna tshogs` also sits. Ives Waldo states the fifteenth year and `lcags mo " +
+			"sbrul` outright, Rangjung Yeshe states the fifteenth, and Csoma and Janson both place it " +
+			"at 15 — so this is one source against four, recorded as a divergence rather than acted " +
+			"on. Position 16 is also one of the five where the two Sanskrit lists differ, which is " +
+			"why it is worth keeping visible.",
+	},
+];
+
+proveDictionaryPredicates();
+
+const dictionaryTexts = new Map();
+for (const dictionary of DICTIONARIES) {
+	dictionaryTexts.set(dictionary.id, indexEntries(await fetchDictionary(dictionary)));
+}
+
+/**
+ * Minimum headword coverage per dictionary, so a download that succeeds but returns the wrong thing
+ * fails as a broken source rather than as sixty absent names.
+ *
+ * Deliberately below the measured figures (60, 60, 59): the point is to catch a format change or a
+ * truncated file, not to freeze a source that may legitimately gain or lose an entry.
+ */
+const HEADWORD_FLOOR = 55;
+
+for (const row of rows) {
+	const signs = signsForYear(row.years[0]);
+	row.tibetanDictionary = {};
+
+	for (const dictionary of DICTIONARIES) {
+		const index = dictionaryTexts.get(dictionary.id);
+		// Dropping a syllable to find a shorter headword is only safe when the shorter form is not
+		// itself one of the sixty: `sna tshogs dbyig` (39) shortens to `sna tshogs`, which is 16.
+		const shortened = row.wylie.split(" ").slice(0, -1).join(" ");
+		const heads = [row.wylie];
+		if (shortened && !rows.some((other) => other.wylie === shortened)) heads.push(shortened);
+
+		let bodies = [];
+		for (const head of heads) {
+			bodies = index.get(head) ?? [];
+			if (bodies.length > 0) break;
+		}
+		const all = bodies.flatMap(dictionarySenses);
+		const statesYear = all.some(
+			(sense) =>
+				statesYearInWylie(sense.text, signs) ||
+				(dictionary.glossesInto === "english" && statesYearInEnglish(sense.text, signs)),
+		);
+		const positions = new Set();
+		for (const sense of all) for (const p of positionsStatedIn(sense.text)) positions.add(p);
+
+		// Which OTHER of the sixty years this entry names, if it does not name ours. This is the
+		// contradiction check, and it is what surfaced the position-15 divergence.
+		let claimsPositionOf = null;
+		if (!statesYear) {
+			for (const other of rows) {
+				if (other.n === row.n) continue;
+				if (all.some((sense) => statesYearInWylie(sense.text, signsForYear(other.years[0])))) {
+					claimsPositionOf = other.n;
+					break;
+				}
+			}
+		}
+
+		row.tibetanDictionary[dictionary.id] = {
+			headword: bodies.length > 0,
+			statesYear,
+			statesOurPosition: positions.has(row.n),
+			claimsPositionOf,
+			// The register tag on the sense that states the year -- the ngonjo survey, folded in.
+			register:
+				all.find(
+					(sense) =>
+						statesYearInWylie(sense.text, signs) ||
+						(dictionary.glossesInto === "english" && statesYearInEnglish(sense.text, signs)),
+				)?.tag ?? null,
+		};
+	}
+}
+
+for (const dictionary of DICTIONARIES) {
+	const covered = rows.filter((r) => r.tibetanDictionary[dictionary.id].headword).length;
+	if (covered < HEADWORD_FLOOR) {
+		problems.push(
+			`${dictionary.label} carries only ${covered} of the sixty headwords, under the floor of ` +
+				`${HEADWORD_FLOOR}. That is a broken or reformatted download, not sixty missing names.`,
+		);
+	}
+}
+
+for (const row of rows) {
+	if (!DICTIONARIES.some((d) => row.tibetanDictionary[d.id].statesYear)) {
+		problems.push(
+			`position ${row.n} (${row.wylie}): no Tibetan dictionary states the year this table gives ` +
+				"it, so the English gloss is unchecked. Every one of the sixty was confirmed when this " +
+				"was written.",
+		);
+	}
+	for (const dictionary of DICTIONARIES) {
+		const facts = row.tibetanDictionary[dictionary.id];
+		if (facts.claimsPositionOf === null) continue;
+		const declared = TIBETAN_YEAR_DIVERGENCES.find(
+			(d) => d.position === row.n && d.dictionary === dictionary.id,
+		);
+		if (!declared) {
+			problems.push(
+				`position ${row.n} (${row.wylie}): ${dictionary.label} assigns this name to position ` +
+					`${facts.claimsPositionOf}'s year. Undeclared -- add it to TIBETAN_YEAR_DIVERGENCES ` +
+					"with its evidence, or find out which of us is wrong.",
+			);
+		} else if (declared.claimsPositionOf !== facts.claimsPositionOf) {
+			problems.push(
+				`position ${row.n} (${row.wylie}): ${dictionary.label} now assigns it position ` +
+					`${facts.claimsPositionOf}, not the ${declared.claimsPositionOf} recorded. The ` +
+					"declared divergence no longer describes the source.",
+			);
+		}
+	}
+}
+
+// A declared divergence that has stopped diverging is a note describing a source that has moved on.
+for (const declared of TIBETAN_YEAR_DIVERGENCES) {
+	const row = rows.find((r) => r.n === declared.position);
+	const facts = row?.tibetanDictionary?.[declared.dictionary];
+	if (facts && facts.claimsPositionOf === null) {
+		problems.push(
+			`the declared divergence at position ${declared.position} is stale: ` +
+				`${declared.dictionary} no longer assigns that name to another year. Remove it.`,
+		);
+	}
+}
+
+const tibetanChecks = {
+	perDictionary: DICTIONARIES.map((d) => ({
+		label: d.label,
+		lineage: d.lineage,
+		headword: rows.filter((r) => r.tibetanDictionary[d.id].headword).length,
+		statesYear: rows.filter((r) => r.tibetanDictionary[d.id].statesYear).length,
+		statesPosition: rows.filter((r) => r.tibetanDictionary[d.id].statesOurPosition).length,
+	})),
+	confirmedBySome: rows.filter((r) =>
+		DICTIONARIES.some((d) => r.tibetanDictionary[d.id].statesYear),
+	).length,
+	confirmedByBothLineages: rows.filter(
+		(r) =>
+			(r.tibetanDictionary.waldo.statesYear || r.tibetanDictionary.rangjung.statesYear) &&
+			r.tibetanDictionary.tshigmdzod.statesYear,
+	).length,
+	ngonjo: rows.filter((r) => r.tibetanDictionary.tshigmdzod.register === "mngon").length,
+	divergences: TIBETAN_YEAR_DIVERGENCES,
+};
+
+// ---------------------------------------------------------------------------------------------
 // Report, then emit only if everything held.
 // ---------------------------------------------------------------------------------------------
 
@@ -2777,9 +2969,13 @@ Recorded rather than corrected, alongside the two already noted above.
 
 They gloss **different names**, which is the point of showing them side by side.
 
-- **English of the Tibetan** is **authored, not sourced.** It glosses the Tibetan name, written for
-  this table. No source gives English for these — Sewell & Fleet prints the sixty as bare names
-  against Kaliyuga years and fractional day-counts, with no meaning column, checked directly.
+- **English of the Tibetan** is **authored, and the name it glosses is checked.** The wording is
+  written for this table — no source publishes English for these sixty that may be reproduced here,
+  and Sewell & Fleet prints them as bare names against Kaliyuga years with no meaning column, checked
+  directly. What is now verified is that the word being glossed is the right word: all
+  ${tibetanChecks.confirmedBySome} of the sixty are carried as a headword by a Tibetan dictionary
+  whose entry names **the same year this table gives them**. See
+  [What stands behind the authored English](#what-stands-behind-the-authored-english).
 - **Sanskrit senses** are **sourced**: every sense Monier-Williams lists for that headword, uncapped
   — ${rows.reduce((total, r) => total + (r.senses?.length ?? 0), 0)} of them across the sixty rows.
   The table shows the first; the rest are in the detail section below, untruncated.
@@ -2793,6 +2989,70 @@ taking the first is an accident rather than a policy. \`क्षय\` opens wit
 "dominion" — from *kṣi*, to rule — where the sense that renders \`zad pa\` is "destruction, decay",
 from a different *kṣi* meaning to destroy. Monier-Williams marks these as separate numbered
 headwords, which is one of the reasons the sense column comes from him.
+
+## What stands behind the authored English
+
+### The plain version
+
+English has two words for a horse: *horse*, which you say out loud, and *steed*, which belongs in a
+poem. A good dictionary puts a little label next to *steed* saying **poetic**, so you know not to use
+it in a shop.
+
+Tibetan does the same, and its label is \`(mngon)\` — short for མངོན་བརྗོད *ngönjö*, poetic synonym
+(abhidhāna अभिधान). **The sixty year names are all *steed* words.** Counted, not assumed:
+**${tibetanChecks.ngonjo} of the sixty** carry that label on the sense that says which year
+they name.
+
+That is why the English column here has to be checked rather than trusted. Nobody can guess what one
+of these names means from ordinary Tibetan, so a gloss written from the first sense of a dictionary
+entry can easily be a gloss of the wrong word entirely — which is exactly what position 1 offers:
+\`rab byung\` opens as *ordination*, the everyday Buddhist sense, not *arising*.
+
+### What is checked, and what cannot be
+
+The gloss itself cannot be sourced. These dictionaries are modern copyrighted works, published
+through an aggregate that states copyright stays with the respective authors, so they may **gate**
+and may never be **quoted** — the standing wisdomlib already has here. Three facts are taken and no
+prose: that a headword exists, the cycle position an entry states, and the element–animal year an
+entry states.
+
+**The year is computed from the cycle and never read off a dictionary**, so a source's own
+identification is verified rather than trusted. That makes the check meaningful rather than
+circular, and it is the Tibetan-side analogue of the Bṛhat Saṃhitā position check on the Sanskrit
+column.
+
+| Source | Lineage | Headword | States our year | States our position |
+|---|---|---|---|---|
+${tibetanChecks.perDictionary
+	.map(
+		(d) =>
+			`| ${d.label} | ${d.lineage === "tibetan-tibetan" ? "Tibetan–Tibetan" : "modern compilation"} | ${d.headword}/60 | ${d.statesYear}/60 | ${d.statesPosition}/60 |`,
+	)
+	.join("\n")}
+
+**${tibetanChecks.confirmedBySome === 60 ? "Every one of the sixty" : `${tibetanChecks.confirmedBySome} of the sixty`}** is confirmed by at least one source, and
+**${tibetanChecks.confirmedByBothLineages}** by both lineages independently.
+
+**Do not read that table as three witnesses.** Ives Waldo and Rangjung Yeshe are overlapping modern
+compilations, so they are close to **one**; the second leg is the *tshig mdzod chen mo*, and the
+independent ones beyond it are Jäschke and Das by printed page, and Csoma. The *tshig mdzod chen mo*
+states no cycle positions at all — it defines in Tibetan and identifies the year by its
+element–animal name — which is why that column is zero for it rather than a failure.
+
+### Where a source disagrees
+
+${tibetanChecks.divergences
+	.map(
+		(d) =>
+			`- **Position ${d.position}**, ${DICTIONARIES.find((x) => x.id === d.dictionary)?.label}: assigns the name to
+  position ${d.claimsPositionOf}'s year.
+  ${d.why.split(/(?<=\.) /).join(`\n  `)}`,
+	)
+	.join("\n")}
+
+Each is **declared and self-invalidating**: the run fails if the source stops saying it, so a note
+here cannot outlive the disagreement it describes. An undeclared disagreement fails the run outright
+rather than being reported and written anyway.
 
 ## The table
 
@@ -2815,7 +3075,7 @@ script* and *Csoma's Roman* are the list the Tibetan names translate; *Devanāga
 Indic saṃvatsara list. They agree at most positions and carry different names at five of them — see
 the difference table above, which is where that is argued row by row.
 
-| # *(Janson)* | Tibetan *(two EWTS)* | Wylie *(Janson)* | Phonetic *(THL)* | Sanskrit in Tibetan script *(Csoma §233)* | Csoma's Roman *(§232)* | Devanāgarī *(saṃvatsara)* | IAST *(derived)* | English of the Tibetan **(authored)** | Sanskrit senses *(Monier-Williams)* | Selected **(authored)** | Evidence | Years *(Janson + saṃvatsara)* |
+| # *(Janson)* | Tibetan *(two EWTS)* | Wylie *(Janson)* | Phonetic *(THL)* | Sanskrit in Tibetan script *(Csoma §233)* | Csoma's Roman *(§232)* | Devanāgarī *(saṃvatsara)* | IAST *(derived)* | English of the Tibetan **(authored, checked)** | Sanskrit senses *(Monier-Williams)* | Selected **(authored)** | Evidence | Years *(Janson + saṃvatsara)* |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 ${rows.map(docRow).join("\n")}
 

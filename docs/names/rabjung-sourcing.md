@@ -323,6 +323,69 @@ source, and refuses to run if the dictionary no longer says what the counts abov
 `(mngon)` volume, `(mong)` being a singleton, and `ang gi ra` carrying `(legs)`. All four refusals
 were proved by mutation rather than assumed.
 
+## Tier A: the authored English is now gated on facts
+
+**Built 2026-08-25.** The lead above is closed. `docs/names/rabjung.md`'s **English of the Tibetan**
+column reads **(authored, checked)**, and `verify-rabjung-names.mjs` refuses to write if the check
+fails.
+
+**What is checked is not the gloss.** No source publishes English for these sixty that may be
+reproduced here, so the wording stays authored. What is verified is that **the word being glossed is
+the word we think it is** — that a Tibetan dictionary carries the headword, and that its entry names
+the same year this table gives it. The year is computed from the cycle and never read off a
+dictionary, so a source's own identification is verified rather than trusted, which is what stops the
+check being circular.
+
+That catches the failure that actually happens. Position 1 `rab byung` opens as *ordination* — the
+everyday Buddhist sense — so a gloss written from an entry's first sense would gloss a homograph.
+
+| Source | Lineage | Headword | States our year | States our position |
+|---|---|---|---|---|
+| Ives Waldo | modern compilation | 60/60 | 58/60 | 51/60 |
+| Rangjung Yeshe | modern compilation | 60/60 | 53/60 | 52/60 |
+| *tshig mdzod chen mo* | Tibetan–Tibetan | 59/60 | 57/60 | — |
+
+**Every one of the sixty** is confirmed by at least one source; **57** by both lineages. The
+*tshig mdzod chen mo* states no cycle positions at all — it identifies a year by its element–animal
+name — so that column is empty for it rather than failing.
+
+The generator gates on three things, each mutation-proved: an **undeclared** year disagreement fails
+the run; a **declared** one that no longer matches the source fails it; and headword coverage below a
+floor fails it as a broken download rather than as sixty absent names.
+
+### The position-15 divergence, now resolved to one source against four
+
+The ngönjö survey found the *tshig mdzod chen mo* filing `khyu mchog` under the **water-horse** year,
+which is position **16**. Tier A settles what that is worth: **Ives Waldo states the fifteenth year
+and `lcags mo sbrul` outright, Rangjung Yeshe states the fifteenth**, and Csoma and Janson both place
+it at 15. So it is one source against four, and it is recorded as a declared divergence rather than
+acted on. Position 16 is also one of the five where the two Sanskrit lists differ, which is why it
+stays visible rather than being filed away.
+
+**A lineage observation worth keeping.** Ives Waldo's entry for `khyu mchog` carries the
+*tshig mdzod chen mo*'s water-horse reading as well as its own fifteenth-year one — so on that row
+Waldo is partly downstream of the source it appears to corroborate. Independence has to be checked
+per row, not assumed from a source list.
+
+### Two bugs found by building it, both of the same shape
+
+**A prefix is a sense.** The sense splitter returned the text before an entry's first numbered sense
+only as a place to look for a register tag, discarding it otherwise. In the *tshig mdzod chen mo*
+that prefix is usually a bare `{(mngon)}` and dropping it costs nothing, which is how it survived the
+ngönjö survey unnoticed. Ives Waldo puts the **entire English gloss** there and only a Tibetan
+quotation after `1)`, so the splitter was discarding the very text being checked — and position 15
+was reported as disagreeing with a source that in fact agreed. The ngönjö count is unaffected: it is
+still 54 of 60 after the fix, re-run to confirm.
+
+**Shortening a headword can land on a different name.** Position 12 is filed as `'bru mang`, one
+syllable short of `'bru mang po`, so the lookup falls back to a shortened form. Unguarded, that turns
+position 39 `sna tshogs dbyig` into `sna tshogs` — which is **position 16**, a different name in the
+same list, and it silently reported a headword that was not there. The fallback now refuses any
+shortened form that is itself one of the sixty.
+
+Both are the same failure: a rule that is harmless on the source it was written against, and wrong on
+the next one. Neither was caught by a count looking plausible.
+
 ## Operational notes
 
 **wisdomlib rate-limits.** A full sixty-row pass trips it, after which it answers `403` to every
