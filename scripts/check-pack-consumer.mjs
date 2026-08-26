@@ -40,7 +40,7 @@ check(
 	`monthsFor(2151) returned ${months.length} months, codes ${months.map((m) => m.monthCode).join(" ")}`,
 );
 check(
-	api.hasLeapMonth(2151) && api.leapMonthOfYear(2151) === 6 && api.monthsInYear(2151) === 13,
+	api.hasLeapMonth(2151) && api.leapMonthNumberFor(2151) === 6 && api.monthsInYear(2151) === 13,
 	"the closed-form month scalars disagree with monthsFor in the packed build",
 );
 check(

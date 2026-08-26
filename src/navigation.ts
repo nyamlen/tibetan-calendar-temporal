@@ -612,14 +612,48 @@ const NEW_MOON = 30;
  * lunation `n` directly, so this locates the containing month, asks for its phase, and steps one
  * lunation if that has already passed.
  */
+/**
+ * Normalises either accepted input to the ISO day the phase search starts from.
+ *
+ * @remarks
+ * **This deliberately does not go through {@link asPlainDate} for the Tibetan case.** That
+ * function rejects a bare `{ year, month, day }` object on the stated ground that it is
+ * "ambiguous with this package's own Tibetan-date shape" — which is right everywhere else and is
+ * exactly what these two functions must now accept. Routing around it keeps its contract, and its
+ * message, unchanged for the seven other entry points that rely on it.
+ *
+ * The discrimination is sound at runtime because the Western forms are all class instances or a
+ * string: only a plain object reaches the Tibetan branch. At compile time the union is
+ * discriminated by {@link TibetanDateFields.calendarId}, declared `never` against the
+ * `readonly calendarId: string` all three `Temporal` classes carry.
+ */
+function phaseStart(
+	name: string,
+	date: Temporal.PlainDate | TibetanDateFields,
+	config: TraditionConfig,
+): Temporal.PlainDate {
+	if (
+		date instanceof Temporal.PlainDate ||
+		date instanceof Temporal.PlainDateTime ||
+		date instanceof Temporal.ZonedDateTime ||
+		typeof date === "string"
+	) {
+		return asPlainDate(date as Temporal.PlainDate);
+	}
+	// A plain object: Tibetan fields. assertDateFields carries the shape and range guards, so a
+	// malformed one is coded here rather than reaching Temporal as an uncoded TypeError.
+	assertDateFields(name, date);
+	return tibetanToIso(date, config);
+}
+
 function nextPhase(
 	name: string,
 	lunarDay: number,
-	date: Temporal.PlainDate,
+	date: Temporal.PlainDate | TibetanDateFields,
 	config: TraditionConfig,
 ): TibetanDate {
 	assertTraditionConfig(config);
-	const from = asPlainDate(date);
+	const from = phaseStart(name, date, config);
 	const scaled = scalingFor(config);
 	const target = julianDayFromIso(from);
 	assertExactJulianDay(scaled, target, () => `${name}(${from.toString()})`);
@@ -645,21 +679,26 @@ function nextPhase(
  * 2153 M11 on the day numbered 14. {@link TibetanDate.isFullMoon} is derived correctly and is what
  * to read when you already have a date.
  *
- * Western in, Tibetan out, matching `isoToTibetan`. These therefore do not chain with themselves:
- * for the next three, step through `isoDate` each time.
+ * **They chain directly — widened 2026-08-26.** They took a `Temporal.PlainDate` only, so every
+ * other navigation function was Tibetan-in and these two forced a round trip through the Western
+ * calendar to answer a Tibetan question; the spike chained them three deep doing exactly that.
+ * Both forms are accepted and agree, and the `Temporal.PlainDate` form is unchanged.
  *
- * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `date` is not a value `asPlainDate`
- * accepts — notably a bare `{ year, month, day }` object; `TCT_OUTSIDE_EXACT_RANGE` if the phase
- * lies past where the arithmetic stays exact.
+ * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `date` is neither a value
+ * `asPlainDate` accepts nor an object naming a Tibetan date; `TCT_FIELD_OUT_OF_RANGE` for a
+ * Tibetan field out of range; `TCT_OUTSIDE_EXACT_RANGE` if the phase lies past where the
+ * arithmetic stays exact. A bare `{ year, month, day }` is read as **Tibetan** here, unlike at
+ * every other entry point taking a Western date.
+ * @throws {@link SkippedDayError} if a Tibetan `date` names a day no calendar day carries.
  *
  * @example
  * ```ts
  * let moon = nextFullMoon(Temporal.PlainDate.from("2026-01-01"));
- * moon = nextFullMoon(moon.isoDate);   // the one after that
+ * moon = nextFullMoon(moon);           // the one after that — no .isoDate needed
  * ```
  */
 export function nextFullMoon(
-	date: Temporal.PlainDate,
+	date: Temporal.PlainDate | TibetanDateFields,
 	config: TraditionConfig = PHUGPA,
 ): TibetanDate {
 	return nextPhase("nextFullMoon", FULL_MOON, date, config);
@@ -677,7 +716,7 @@ export function nextFullMoon(
  * @throws The codes {@link nextFullMoon} throws.
  */
 export function nextNewMoon(
-	date: Temporal.PlainDate,
+	date: Temporal.PlainDate | TibetanDateFields,
 	config: TraditionConfig = PHUGPA,
 ): TibetanDate {
 	return nextPhase("nextNewMoon", NEW_MOON, date, config);

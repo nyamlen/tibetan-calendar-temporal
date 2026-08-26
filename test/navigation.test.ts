@@ -532,12 +532,22 @@ describe("nextFullMoon and nextNewMoon", () => {
 		}
 	});
 
+	// A bare { year, month, day } was on this list until 2026-08-26, when these two were widened to
+	// accept a Tibetan date. It is now READ as one rather than refused. Everything that names
+	// neither a Western nor a Tibetan date is still refused.
 	it.each([
-		["a bare fields object", () => nextFullMoon({ year: 2026, month: 8, day: 12 } as never)],
 		["null", () => nextNewMoon(null as never)],
 		["a number", () => nextFullMoon(42 as never)],
+		["a boolean", () => nextNewMoon(true as never)],
 	])("rejects %s", (_label, call) => {
 		expect(codeOf(call)).toBe("TCT_INVALID_ARGUMENT");
+	});
+
+	it("reads a bare fields object as a TIBETAN date, not a Western one", () => {
+		// Royal era 2026 is Janson Y 1899, so the two readings are 127 years apart and cannot be
+		// confused by accident if this ever regresses.
+		const tibetan = nextFullMoon({ year: 2026, month: 8, day: 12 });
+		expect(tibetan.isoDate.year).toBeLessThan(1910);
 	});
 
 	it("accepts the Temporal shapes that name a calendar day", () => {
@@ -702,5 +712,64 @@ describe("addMonthsToDate", () => {
 		expect(addMonthsToDate({ year: 2153, month: 12, day: 8 }, 0).isoDate.toString()).toBe(
 			"2027-01-15",
 		);
+	});
+});
+
+describe("nextFullMoon / nextNewMoon accept a Tibetan date too", () => {
+	it("agrees with the Temporal form across a leap month", () => {
+		const bad: string[] = [];
+		// 2151 carries the leap M06, so this window straddles it.
+		for (const month of monthsFor(2151)) {
+			for (const date of datesFor(month)) {
+				for (const [name, fn] of [
+					["nextFullMoon", nextFullMoon],
+					["nextNewMoon", nextNewMoon],
+				] as const) {
+					const viaIso = fn(date.isoDate);
+					const viaTibetan = fn(date);
+					if (!viaIso.isoDate.equals(viaTibetan.isoDate)) {
+						bad.push(`${name} ${date.isoDate.toString()}`);
+					}
+				}
+			}
+		}
+		expect(bad).toEqual([]);
+	});
+
+	it("chains without a round trip through .isoDate", () => {
+		const first = nextFullMoon(iso("2026-01-01"));
+		const second = nextFullMoon(first);
+		expect(second.isoDate.toString()).toBe(nextFullMoon(first.isoDate).isoDate.toString());
+		expect(Temporal.PlainDate.compare(second.isoDate, first.isoDate)).toBe(1);
+	});
+
+	it("still takes every Western form it took before", () => {
+		const expected = nextFullMoon(iso("2026-01-01")).isoDate.toString();
+		expect(nextFullMoon("2026-01-01" as unknown as Temporal.PlainDate).isoDate.toString()).toBe(
+			expected,
+		);
+		expect(
+			nextFullMoon(
+				Temporal.PlainDateTime.from("2026-01-01T12:00") as unknown as Temporal.PlainDate,
+			).isoDate.toString(),
+		).toBe(expected);
+	});
+
+	it("codes a malformed Tibetan object rather than throwing a bare TypeError", () => {
+		expect(codeOf(() => nextFullMoon({ year: 2153, month: 13, day: 1 }))).toBe(
+			"TCT_FIELD_OUT_OF_RANGE",
+		);
+		expect(codeOf(() => nextFullMoon(null as never))).toBe("TCT_INVALID_ARGUMENT");
+		expect(codeOf(() => nextFullMoon(42 as never))).toBe("TCT_INVALID_ARGUMENT");
+	});
+
+	it("throws SkippedDayError when the Tibetan date names no calendar day", () => {
+		let thrown: unknown;
+		try {
+			nextFullMoon({ year: 2150, month: 12, day: 29 });
+		} catch (error) {
+			thrown = error;
+		}
+		expect(thrown).toBeInstanceOf(SkippedDayError);
 	});
 });

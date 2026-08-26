@@ -11,7 +11,7 @@ import {
 	datesFor,
 	daysInMonth,
 	hasLeapMonth,
-	leapMonthOfYear,
+	leapMonthNumberFor,
 	monthsFor,
 	monthsInYear,
 	resolveMonth,
@@ -334,7 +334,7 @@ describe("the scalars agree with the list", () => {
 			const months = monthsFor(year);
 			expect(monthsInYear(year), `monthsInYear ${year}`).toBe(months.length);
 			expect(hasLeapMonth(year), `hasLeapMonth ${year}`).toBe(months.some((m) => m.isLeapMonth));
-			expect(leapMonthOfYear(year), `leapMonthOfYear ${year}`).toBe(
+			expect(leapMonthNumberFor(year), `leapMonthNumberFor ${year}`).toBe(
 				months.find((m) => m.isLeapMonth)?.month,
 			);
 		}
@@ -349,7 +349,7 @@ describe("the scalars agree with the list", () => {
 
 	it("takes the royal era, not Janson's Y", () => {
 		expect(hasLeapMonth(2153)).toBe(isLeapYear(PHUGPA, 2026));
-		expect(leapMonthOfYear(2153)).toBe(leapMonthOfYearY(PHUGPA, 2026));
+		expect(leapMonthNumberFor(2153)).toBe(leapMonthOfYearY(PHUGPA, 2026));
 		expect(monthsInYear(2153)).toBe(hasLeapMonth(2153) ? 13 : 12);
 	});
 
@@ -368,7 +368,7 @@ describe("the scalars agree with the list", () => {
 		for (const call of [
 			() => hasLeapMonth(1.5),
 			() => hasLeapMonth(Number.NaN),
-			() => leapMonthOfYear(1.5),
+			() => leapMonthNumberFor(1.5),
 			() => monthsInYear(1.5),
 		]) {
 			expect(codeOf(call)).toBe("TCT_FIELD_OUT_OF_RANGE");
@@ -396,7 +396,7 @@ describe("closed-form overflow guard", () => {
 			() => daysInMonth({ year: OVERFLOW_YEAR, month: 5 }),
 			() => daysInMonth({ year: OVERFLOW_YEAR, month: 5, isLeapMonth: true }),
 			() => hasLeapMonth(OVERFLOW_YEAR),
-			() => leapMonthOfYear(OVERFLOW_YEAR),
+			() => leapMonthNumberFor(OVERFLOW_YEAR),
 			() => monthsInYear(OVERFLOW_YEAR),
 		]) {
 			expect(codeOf(call)).toBe("TCT_OUTSIDE_EXACT_RANGE");
@@ -413,7 +413,7 @@ describe("closed-form overflow guard", () => {
 	});
 
 	/**
-	 * `isLeapYear`/`leapMonthOfYear` compute `24·year + γ*` on the *absolute* Janson `Y`, not on
+	 * `isLeapYear`/`leapMonthNumberFor` compute `24·year + γ*` on the *absolute* Janson `Y`, not on
 	 * `year − epochYear` like `sharesNumberWithLeapMonth`'s route does — so the bound has to be the tighter of two
 	 * different overflow points, converted into the same `|year − epochYear|` terms. A version of
 	 * the guard that only accounted for the `12·(year − epochYear)` formula let `hasLeapMonth` answer

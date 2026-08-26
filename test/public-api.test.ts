@@ -33,7 +33,7 @@ const EXPECTED_EXPORTS = [
 	"isoFromJulianDay",
 	"isoToTibetan",
 	"julianDayFromIso",
-	"leapMonthOfYear",
+	"leapMonthNumberFor",
 	"losarFor",
 	"lunationFromMonth",
 	"monthFromLunation",
@@ -81,7 +81,7 @@ describe("public API surface", () => {
 			isoFromJulianDay: "function",
 			isoToTibetan: "function",
 			julianDayFromIso: "function",
-			leapMonthOfYear: "function",
+			leapMonthNumberFor: "function",
 			losarFor: "function",
 			lunationFromMonth: "function",
 			monthFromLunation: "function",
@@ -531,7 +531,7 @@ describe("error codes", () => {
 		expect(() => api.daysInMonth({ year: 2153, month: 1 })).not.toThrow();
 
 		// explicit true/false still work. 2151 month 6 is a genuine leap month
-		// (leapMonthOfYear(2151) === 6).
+		// (leapMonthNumberFor(2151) === 6).
 		expect(() =>
 			api.tibetanToIso({ year: 2151, month: 6, day: 1, isLeapMonth: true }),
 		).not.toThrow();

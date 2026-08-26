@@ -24,7 +24,7 @@ The discriminator is whether a consumer can get a **correct** answer without us.
 | `isFullMoon` / `isNewMoon` | `day === 15` — **wrong** in months where 15 is skipped | public, as fields |
 | `tibetanWeekday` | none; `dayOfWeek` is deliberately ISO, so the almanac's 0 = Saturday has no other route | public |
 | `julianDayFromIso`, `isoFromJulianDay` | none for converting to any other calendar | public |
-| `monthsInYear`, `leapMonthOfYear`, `isLeapYear` | walk the year with `losarFor`, collect distinct `monthCode`s — correct, just O(365) | internal — **revisited, see below** |
+| `monthsInYear`, `leapMonthNumberFor` (then `leapMonthOfYear`), `isLeapYear` | walk the year with `losarFor`, collect distinct `monthCode`s — correct, just O(365) | internal — **revisited, see below** |
 
 ## Two findings that fell out of applying it
 

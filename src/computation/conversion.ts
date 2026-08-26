@@ -450,7 +450,7 @@ export function tibetanToIso(
 			"TCT_NO_SUCH_LEAP_MONTH",
 			`${subject()}: month ${input.month} of ${input.year} has no leap month. Leap months ` +
 				"recur roughly every 32 months and fall on a different month number each time; drop " +
-				"isLeapMonth, or call leapMonthOfYear to find which month of a year is doubled",
+				"isLeapMonth, or call leapMonthNumberFor to find which month of a year is doubled",
 		);
 	}
 

@@ -422,12 +422,12 @@ are more exposed than the README's, because docblocks are compiled into `dist/*.
 editor hover renders. A stale one is a false contract statement a consumer never had reason to
 doubt.
 
-> It found one on its first run. `leapMonthOfYear` documented `2153 → 6`; 2153 has no leap month at
+> It found one on its first run. `leapMonthNumberFor` documented `2153 → 6`; 2153 has no leap month at
 > all, and 2151 is the year whose month 6 is doubled. The neighbouring examples in the same file
 > already used 2151 correctly, so it was a stale year rather than a misunderstanding — invisible
 > to lint, typecheck and every other test, and already shipped in the type declarations.
 >
-> The same review found the example was **tradition-blind** in a second way: `leapMonthOfYear`
+> The same review found the example was **tradition-blind** in a second way: `leapMonthNumberFor`
 > takes a config, and for 2151 Phugpa gives 6, Mongolian 5 and Bhutanese 10, while Tsurphu has no
 > leap month that year. A docblock on a config-taking function states one tradition's answer, so it
 > has to say which. The test now pins all four thresholds.

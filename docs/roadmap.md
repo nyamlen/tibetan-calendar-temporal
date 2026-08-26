@@ -177,7 +177,7 @@ the surface can be frozen.
 
 **Fix the documentation — six items.**
 
-1. **`leapMonthOfYear`'s docblock is a false contract, and it ships.** `src/months.ts` says the
+1. **`leapMonthNumberFor`'s docblock is a false contract, and it ships.** `src/months.ts` says the
    engine "does not yet express" where a leap month sits, that it "always" places it before the
    regular month sharing the number, and that "until that is configurable the number here is
    already the Bhutanese one but the position is not". Every clause has been false since
@@ -214,7 +214,7 @@ draft dropped `isFullMoon`/`isNewMoon`, which it recorded as its own mistake.
 
 **All six were fixed on 2026-08-23**, and the gate is closed: every item on the client's list
 carries a verdict, and no verdict was "change the API". What shipped as corrections —
-`leapMonthOfYear`'s docblock and its Bhutan figure, the README's month-grid ordering claim, the
+`leapMonthNumberFor`'s docblock and its Bhutan figure, the README's month-grid ordering claim, the
 `days` callout now recommending `datesFor` instead of teaching the walk that displaced it, the
 `Observance` shape, `weekdayName`'s tradition-awareness, and a `@remarks` on `formatTibetanDate`
 saying it is not a complete encoding of a resolved date. The suite stayed at 816 tests throughout,
@@ -413,7 +413,7 @@ edits, and moving files once after they have landed is one link-fixing commit in
       </details>
 
 - [x] **Export month enumeration** — done 2026-08-13, as five names rather than the three or four
-      this item anticipated: `monthsFor`, `daysInMonth`, `hasLeapMonth`, `leapMonthOfYear` and
+      this item anticipated: `monthsFor`, `daysInMonth`, `hasLeapMonth`, `leapMonthNumberFor` and
       `monthsInYear`.
 
       Four things came out differently from this item as written.
@@ -497,7 +497,7 @@ edits, and moving files once after they have landed is one link-fixing commit in
 
       Docblocks reach the shipped `.d.ts` and are what editor hover shows, so a stale one is a false
       contract statement, not a tidying issue. This review already found three: `hasLeapMonth`,
-      `leapMonthOfYear` and `monthsInYear` promised exactness "for any safe integer year" (corrected
+      `leapMonthNumberFor` and `monthsInYear` promised exactness "for any safe integer year" (corrected
       when the arithmetic was fixed); `getObservances` stated a threat model its guard did not cover
       (Finding 1); and `asPlainDate` argued for a widening that was later removed (Finding 2 — see
       [decisions/2026-08-13-tibetan-date-input-boundary.md](decisions/2026-08-13-tibetan-date-input-boundary.md),
@@ -512,7 +512,7 @@ edits, and moving files once after they have landed is one link-fixing commit in
       3. Every `@example` runs and produces the stated output. **Now automated** —
          `test/docblock-examples.test.ts` asserts all 43 concrete claims across the 30 example
          blocks, so this item is permanently closed. It found one wrong on its first run
-         (`leapMonthOfYear`, documented `2153 → 6` when 2153 has no leap month), and a second
+         (`leapMonthNumberFor`, documented `2153 → 6` when 2153 has no leap month), and a second
          defect of a different kind: the example was tradition-blind on a config-taking function.
          Check that too — an example states one tradition's answer and must say which.
       4. Every `{@link}` resolves. **Now automated** — `check:conventions` checks all 199 of them

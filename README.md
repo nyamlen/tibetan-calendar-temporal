@@ -232,12 +232,12 @@ PHUGPA  M01 M02 M03 M04 M05 M06L M06 M07 M08  M09  M10 M11 M12
 BHUTAN  M01 M02 M03 M04 M05 M06  M07 M08 M08L M09  M10 M11 M12
 ```
 
-`leapMonthOfYear(2151)` is **6** under `PHUGPA` and **8** under `BHUTAN`, and Phugpa's `M06L` is
+`leapMonthNumberFor(2151)` is **6** under `PHUGPA` and **8** under `BHUTAN`, and Phugpa's `M06L` is
 Bhutan's `M06`. So a month identified as `(year, month, isLeapMonth)` under one tradition names a
 different month under the other — always pair a stored month with the config it came from.
 
 ```js
-import { monthsFor, hasLeapMonth, leapMonthOfYear } from 'tibetan-calendar-temporal';
+import { monthsFor, hasLeapMonth, leapMonthNumberFor } from 'tibetan-calendar-temporal';
 
 const months = monthsFor(2151);
 months.length;                                 // 13
@@ -245,7 +245,7 @@ months.map((m) => m.monthCode).join(' ');
 // "M01 M02 M03 M04 M05 M06L M06 M07 M08 M09 M10 M11 M12"
 
 hasLeapMonth(2151);                            // true
-leapMonthOfYear(2151);                         // 6
+leapMonthNumberFor(2151);                         // 6
 ```
 
 Each month carries its own boundaries, so a grid needs no further conversion to lay out:
@@ -302,7 +302,7 @@ for (let i = 0; i < 3; i++, day = day.add({ days: 1 })) {
 Use it only for the cells outside the month: inside it, `datesFor` is what keeps a doubled or
 skipped date number right.
 
-`hasLeapMonth`, `leapMonthOfYear` and `monthsInYear` are closed forms over the year and never touch
+`hasLeapMonth`, `leapMonthNumberFor` and `monthsInYear` are closed forms over the year and never touch
 lunar arithmetic, so reach for them rather than for `monthsFor(y).length` when the months themselves
 are not wanted.
 
@@ -480,7 +480,7 @@ a handful of integer operations, and exact for any year — including ones where
 | `resolveDate` | `(date: TibetanDateFields, config?) => TibetanDate` | The same one tier down, replacing `addDays(d, 0)`. Throws `SkippedDayError` if no calendar day carries the date. Two passes, not a lookup |
 | `daysInMonth` | `(month: TibetanMonthFields, config?) => number` | **Calendar days**, 29 or 30 — not the highest date number, which is always 30. Accepts a `TibetanDate` directly |
 | `hasLeapMonth` | `(year: number, config?) => boolean` | Whether the year has a thirteenth month. Not called `isLeapYear`: a Tibetan leap year gains a *month*, not a day |
-| `leapMonthOfYear` | `(year: number, config?) => number \| undefined` | Which month number is doubled, or `undefined` |
+| `leapMonthNumberFor` | `(year: number, config?) => number \| undefined` | Which month number is doubled, or `undefined` |
 | `monthsInYear` | `(year: number, config?) => number` | 12 or 13 |
 | `datesFor` | `(month: TibetanMonthFields, config?) => TibetanDate[]` | The month's calendar days, labelled — one entry per day, so a doubled number appears twice and a skipped one not at all. Bounded at 29 or 30 |
 
@@ -588,7 +588,7 @@ a `code`, which is what to branch on rather than the type:
 | `TCT_FIELD_OUT_OF_RANGE` | every function taking a date, a year or a Julian day | A year, month, day or Julian day is not an integer, or is outside 1–12 / 1–30. The argument was the right kind of thing and one of its numbers was wrong — so this is the one to surface to a user |
 | `TCT_INVALID_ARGUMENT` | the same functions, plus `parseTibetanDate` | The argument is the wrong *kind* of thing, so nothing in it is a field out of a range: a `Temporal.PlainDate` where a Tibetan date is expected, a bare `{ year, month, day }` where a Western date is expected, a non-boolean `isLeapMonth`/`isLeapDay`, `null`/`undefined`, or a string outside `parseTibetanDate`'s grammar. A bug in the calling code rather than bad data |
 | `TCT_NO_SUCH_LEAP_MONTH` | `tibetanToIso` | `isLeapMonth: true` for a month with no leap twin that year |
-| `TCT_OUTSIDE_EXACT_RANGE` | any conversion, and the closed-form year functions `hasLeapMonth`, `leapMonthOfYear`, `monthsInYear` | Beyond where this tradition's integer arithmetic stays exact. `PHUGPA_HENNING` runs out around ISO year 11,356; `PHUGPA` does not, within Temporal's own range |
+| `TCT_OUTSIDE_EXACT_RANGE` | any conversion, and the closed-form year functions `hasLeapMonth`, `leapMonthNumberFor`, `monthsInYear` | Beyond where this tradition's integer arithmetic stays exact. `PHUGPA_HENNING` runs out around ISO year 11,356; `PHUGPA` does not, within Temporal's own range |
 | `TCT_INVALID_TRADITION_CONFIG` | any function taking a config | The `TraditionConfig` is malformed. The message names the field |
 | `TCT_INVALID_OBSERVANCE_CONFIG` | `getObservances`, `observancesOn` | The `ObservanceConfig` or one of its rules is malformed |
 | `TCT_SPAN_TOO_WIDE` | `getObservances` | More than 200 years requested at once. Chunk it; the function is pure, so concatenating is correct |

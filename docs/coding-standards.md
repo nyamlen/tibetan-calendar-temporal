@@ -98,7 +98,7 @@ A rule with a command beside it will stop a push. A rule marked **review** will 
 | A decision record documents a **constraint a contributor would otherwise violate** | **review** | Records that only narrate deliberation get deleted — planning artifacts stay out of the repo |
 | Comments only for non-obvious logic or architectural constraints | **review** | |
 | Lowercase technical identifiers; capitalised `Nyamlen` brand | **review** | npm rejects uppercase package names, so this is a constraint rather than a preference |
-| Docblocks are contract — they reach the shipped `.d.ts` | `npm run check:conventions` checks `{@link}` targets; `test/docblock-examples.test.ts` asserts every `@example` stating a value; prose claims are **review** | A stale docblock is a false contract statement, not a tidying issue. The example suite found `leapMonthOfYear` documenting `2153 → 6` when 2153 has no leap month at all |
+| Docblocks are contract — they reach the shipped `.d.ts` | `npm run check:conventions` checks `{@link}` targets; `test/docblock-examples.test.ts` asserts every `@example` stating a value; prose claims are **review** | A stale docblock is a false contract statement, not a tidying issue. The example suite found `leapMonthNumberFor` documenting `2153 → 6` when 2153 has no leap month at all |
 
 ### Sanskrit and Tibetan terminology
 

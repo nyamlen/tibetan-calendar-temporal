@@ -10,7 +10,13 @@ import {
 } from "../src/computation/conversion.js";
 import { rabjungFor, yearNameFor } from "../src/cycles.js";
 import { formatTibetanDate } from "../src/format.js";
-import { datesFor, daysInMonth, hasLeapMonth, leapMonthOfYear, monthsFor } from "../src/months.js";
+import {
+	datesFor,
+	daysInMonth,
+	hasLeapMonth,
+	leapMonthNumberFor,
+	monthsFor,
+} from "../src/months.js";
 import { addMonths, monthsBetween, nextFullMoon } from "../src/navigation.js";
 import { getObservances } from "../src/observances/index.js";
 import { PHUGPA_HENNING } from "../src/traditions/phugpa.js";
@@ -90,7 +96,7 @@ describe("README usage examples", () => {
 			"M01 M02 M03 M04 M05 M06L M06 M07 M08 M09 M10 M11 M12",
 		);
 		expect(hasLeapMonth(2151)).toBe(true);
-		expect(leapMonthOfYear(2151)).toBe(6);
+		expect(leapMonthNumberFor(2151)).toBe(6);
 
 		const month = monthsFor(2153)[0];
 		expect(month?.year).toBe(2153);

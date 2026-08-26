@@ -81,7 +81,7 @@ What earns a place on it is decided by
 
 The month tier splits along a line worth knowing. `monthsFor` and `daysInMonth` compute month
 boundaries, so they evaluate `true_date` and are bounded by the tradition's exact range;
-`hasLeapMonth`, `leapMonthOfYear` and `monthsInYear` are closed forms over the year alone, cost a
+`hasLeapMonth`, `leapMonthNumberFor` and `monthsInYear` are closed forms over the year alone, cost a
 handful of integer operations, and stay exact for any safe integer year — including years the
 first two refuse.
 

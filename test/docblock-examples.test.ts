@@ -5,7 +5,7 @@ import { meanDate } from "../src/computation/mean-astronomy.js";
 import { deriveScaling } from "../src/computation/scaling.js";
 import { rabjungFor, weekdayNameFor, yearNameFor } from "../src/cycles.js";
 import { formatTibetanDate } from "../src/format.js";
-import { daysInMonth, leapMonthOfYear, monthsFor } from "../src/months.js";
+import { daysInMonth, leapMonthNumberFor, monthsFor } from "../src/months.js";
 import {
 	addDays,
 	addMonths,
@@ -23,7 +23,7 @@ import { PHUGPA } from "../src/traditions/phugpa.js";
  * contract statement rather than a tidying issue — and unlike the README, nothing was checking
  * them. `test/readme.test.ts` does exactly this job for the README and exists for the same reason.
  *
- * This suite found a live error on its first run: `leapMonthOfYear` documented `2153 → 6`, when
+ * This suite found a live error on its first run: `leapMonthNumberFor` documented `2153 → 6`, when
  * 2153 has no leap month at all and 2151 is the year whose month 6 is doubled. It had shipped in
  * the type declarations.
  *
@@ -123,17 +123,17 @@ describe("docblock examples", () => {
 			]);
 		});
 
-		it("leapMonthOfYear names the doubled month, or undefined", () => {
-			expect(leapMonthOfYear(2151)).toBe(6);
-			expect(leapMonthOfYear(2153)).toBeUndefined();
+		it("leapMonthNumberFor names the doubled month, or undefined", () => {
+			expect(leapMonthNumberFor(2151)).toBe(6);
+			expect(leapMonthNumberFor(2153)).toBeUndefined();
 		});
 
-		it("leapMonthOfYear answers per tradition, so the example is Phugpa's alone", () => {
+		it("leapMonthNumberFor answers per tradition, so the example is Phugpa's alone", () => {
 			// The docblock claims 2151 gives 6 for Phugpa, 5 for Mongolian, 10 for Bhutanese and
 			// nothing for Tsurphu. Only `leapIndexThreshold` varies here — Janson's 48/0/46/57 — so
 			// this pins the claim that the answer is tradition-specific, not the other constants.
 			const forThreshold = (leapIndexThreshold: number) =>
-				leapMonthOfYear(2151, { ...PHUGPA, leapIndexThreshold });
+				leapMonthNumberFor(2151, { ...PHUGPA, leapIndexThreshold });
 
 			expect(forThreshold(48)).toBe(6);
 			expect(forThreshold(46)).toBe(5);

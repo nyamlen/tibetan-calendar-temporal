@@ -11,7 +11,7 @@
  *
  * - {@link monthsFor} and {@link daysInMonth} compute month **boundaries**, so they evaluate
  *   `true_date` and are bounded by {@link ScaledTradition.exactToJulianDay}.
- * - {@link hasLeapMonth}, {@link leapMonthOfYear} and {@link monthsInYear} are closed forms over
+ * - {@link hasLeapMonth}, {@link leapMonthNumberFor} and {@link monthsInYear} are closed forms over
  *   the year alone. They touch no lunar arithmetic and stay exact up to the configured tradition's
  *   derivable range — far past {@link ScaledTradition.exactToJulianDay} — for a handful of integer
  *   operations against the ~26 `true_date` evaluations the list costs.
@@ -384,7 +384,7 @@ export function hasLeapMonth(year: number, config: TraditionConfig = PHUGPA): bo
  * version 5, the Bhutanese 10, and Tsurphu no leap month that year at all.
  *
  * **Those are threshold-only figures, and the shipped `BHUTAN` config is not one of them.** It also
- * sets `leapMonthPosition`, which changes the numbering: `leapMonthOfYear(2151, BHUTAN)` is **8**,
+ * sets `leapMonthPosition`, which changes the numbering: `leapMonthNumberFor(2151, BHUTAN)` is **8**,
  * not 10. Quote such a figure with the constant it varies, never as "the Bhutanese answer".
  *
  * Where the leap month *sits* relative to its twin is `TraditionConfig.leapMonthPosition`, settled
@@ -397,15 +397,15 @@ export function hasLeapMonth(year: number, config: TraditionConfig = PHUGPA): bo
  *
  * @example
  * ```ts
- * leapMonthOfYear(2151);   // 6 — Phugpa, the default config
- * leapMonthOfYear(2153);   // undefined — no leap month that year
+ * leapMonthNumberFor(2151);   // 6 — Phugpa, the default config
+ * leapMonthNumberFor(2153);   // undefined — no leap month that year
  * ```
  */
-export function leapMonthOfYear(
+export function leapMonthNumberFor(
 	year: number,
 	config: TraditionConfig = PHUGPA,
 ): number | undefined {
-	return leapMonthOfYearY(config, closedFormYear(`leapMonthOfYear(${year})`, year, config));
+	return leapMonthOfYearY(config, closedFormYear(`leapMonthNumberFor(${year})`, year, config));
 }
 
 /**

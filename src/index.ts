@@ -71,7 +71,7 @@ export {
 	datesFor,
 	daysInMonth,
 	hasLeapMonth,
-	leapMonthOfYear,
+	leapMonthNumberFor,
 	monthsFor,
 	monthsInYear,
 	resolveMonth,

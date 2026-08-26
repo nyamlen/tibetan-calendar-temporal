@@ -241,7 +241,8 @@ derivation; in `docs/` they are just noise.
   `leapIndexThreshold`, and `β` and the true-month rounding term derive from it. When adding a
   tradition, check that the *rules* are injected too, not only the numbers.
   **It extends to the docblocks as well as the code**, which is subtler and was live until
-  2026-08-16. `leapMonthOfYear` takes a config and its example read `leapMonthOfYear(2151) // 6`
+  2026-08-16. `leapMonthNumberFor` (then `leapMonthOfYear`) takes a config and its example read
+  `leapMonthOfYear(2151) // 6`
   — true for Phugpa and for nothing else: varying `leapIndexThreshold` alone gives Mongolian 5 and
   Bhutanese 10 (the shipped `BHUTAN` config, which also sets `leapMonthPosition`, gives **8** — quote
   such a figure with the constant it varies), and Tsurphu has no leap
@@ -254,7 +255,8 @@ derivation; in `docs/` they are just noise.
   diverge most. `test/docblock-examples.test.ts` pins the thresholds; a third instance of the
   "precedes" claim survives in `src/types.ts` on `lunation`, where it explains tuple sort order,
   and was made tradition-aware when `leapMonthPosition` landed; the stale claim that survived instead
-  was on `leapMonthOfYear`, corrected 2026-08-23 after a smoke client found it shipping in `dist`.
+  was on `leapMonthNumberFor`, corrected 2026-08-23 after a smoke client found it shipping in
+  `dist`. It was `leapMonthOfYear` until 2026-08-26, when it was renamed as the last public `*Of`.
 
   This extends to anything **derived from** those constants. The `±3` search window in
   `isoToTibetan` was proved from `(25 + 11)/60` — Phugpa's largest `moonTab` and `sunTab` entries —
