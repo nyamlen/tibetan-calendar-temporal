@@ -476,6 +476,8 @@ a handful of integer operations, and exact for any year — including ones where
 | Export | Signature | Notes |
 |---|---|---|
 | `monthsFor` | `(year: number, config?) => TibetanMonth[]` | The year's months in calendar order, 12 or 13. Tiles Losar to the day before the next Losar, leap month first of its pair |
+| `resolveMonth` | `(month: TibetanMonthFields, config?) => TibetanMonth` | A month's identity to the month itself. Replaces `addMonths(m, 0)` and the `monthsFor().find()` search, which returns the wrong half of a leap pair when it matches on the number alone |
+| `resolveDate` | `(date: TibetanDateFields, config?) => TibetanDate` | The same one tier down, replacing `addDays(d, 0)`. Throws `SkippedDayError` if no calendar day carries the date. Two passes, not a lookup |
 | `daysInMonth` | `(month: TibetanMonthFields, config?) => number` | **Calendar days**, 29 or 30 — not the highest date number, which is always 30. Accepts a `TibetanDate` directly |
 | `hasLeapMonth` | `(year: number, config?) => boolean` | Whether the year has a thirteenth month. Not called `isLeapYear`: a Tibetan leap year gains a *month*, not a day |
 | `leapMonthOfYear` | `(year: number, config?) => number \| undefined` | Which month number is doubled, or `undefined` |
@@ -493,7 +495,8 @@ from; in coordinate space a leap month is simply the next lunation.
 |---|---|---|
 | `addDays` | `(date: TibetanDateFields, days: number, config?) => TibetanDate` | **Solar** days, the unit elapsed-time reckonings use. Total — it can never land on a skipped date, because stepping real days never reaches a label no day carries |
 | `daysBetween` | `(from: TibetanDateFields, to: TibetanDateFields, config?) => number` | Signed. If both dates came from this package, `a.isoDate.until(b.isoDate)` is the better route; this is for dates you built yourself |
-| `addMonths` | `(month: TibetanMonthFields, months: number, config?) => TibetanMonth` | Month in, month out, so **total**. `+1` from a leap month is its twin. A `TibetanDate` is accepted; the day is ignored |
+| `addMonths` | `(month: TibetanMonthFields & { day?: never }, months: number, config?) => TibetanMonth` | Month in, month out, so **total**. `+1` from a leap month is its twin. A `TibetanDate` does **not** compile — it would discard the day silently; use `addMonthsToDate` |
+| `addMonthsToDate` | `(date: TibetanDateFields, months: number, options?) => TibetanDate` | "The same day next month". `options` is `{ overflow?, config? }`; `overflow` is `"constrain"` (default — fall to the nearest **lower** existing day) or `"reject"` |
 | `monthsBetween` | `(from: TibetanMonthFields, to: TibetanMonthFields, config?) => number` | Signed, counted in **lunations** — month 5 to month 7 is three in a year that doubles month 6, two otherwise |
 | `lunationFromMonth` | `(month: TibetanMonthFields, config?) => number` | The month as one sortable integer, for a database or cache key. No consumer-side route: it needs the intercalation index |
 | `monthFromLunation` | `(lunation: number, config?) => TibetanMonth` | The inverse, for a stored coordinate with no year in hand. Narrower domain than its inverse — it returns boundaries, so it evaluates the calendar |
@@ -516,7 +519,7 @@ year, including ones where `losarFor` must refuse.
 | Export | Signature | Notes |
 |---|---|---|
 | `yearNameFor` | `(year: number) => TibetanYearName` | `{ element, animal, gender }`. Element and gender repeat every ten years, the animal every twelve, the whole name every sixty; plus `elementName`, `genderName` and `animalName` in Tibetan script, Wylie and phonetics — which is why there are no separate lookups for those three |
-| `rabjungFor` | `(year: number) => Rabjung` | `{ cycle, year, name }` — `cycle`/`year` are the sixty-year numbering from 1027 CE, a *numbering* rather than a name (the two cycles sit three apart), and `name` is the Tibetan and Sanskrit name at that position |
+| `rabjungFor` | `(year: number) => Rabjung` | `{ cycle, year, name }` — `cycle`/`year` are the sixty-year numbering from 1027 CE, a *numbering* rather than a name (the two cycles sit three apart), and `name` is the **Tibetan** name at that position. No Sanskrit: the cycle has two Sanskrit name lists disagreeing at five positions, so pairing either with the Tibetan would misname 8% of years — see [docs/how-it-is-calculated.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/how-it-is-calculated.md) |
 | `weekdayNameFor` | `(weekday: number, config?) => TibetanWeekdayName` | Tibetan name of a weekday. Takes the **Tibetan** numbering, 0 = Saturday. The only naming lookup taking a config, because Bhutan names its days one planet ahead |
 
 A year picker is a loop over these plus `hasLeapMonth`; there is no range function, because building
@@ -538,6 +541,8 @@ because naming a date needs no calendar.
 |---|---|---|
 | `formatTibetanDate` | `(date: TibetanDateFields) => string` | `"2153-M06-30"`, with `L` on a leap month and a trailing `(leap)` on a leap day. A `TibetanDate` is assignable, so pass one straight in |
 | `parseTibetanDate` | `(text: string) => TibetanDateFields` | Strict — the canonical form only. Returns the naming fields rather than a resolved date, so a **skipped** date parses rather than throwing; pass it to `tibetanToIso` or `tibetanDateExists` |
+| `formatTibetanMonth` | `(month: TibetanMonthFields) => string` | `"2151-M06L"` for a leap month, `"2151-M06"` for its twin. A `TibetanDate` is accepted and its day dropped, as `daysInMonth` also does |
+| `parseTibetanMonth` | `(text: string) => TibetanMonthFields` | The inverse, and strict for the same reason. Compose with `resolveMonth` to resolve it |
 
 #### Interoperability
 
@@ -598,23 +603,24 @@ Type-only exports, erased at runtime: `TibetanDate`, `TibetanDateFields`, `Tibet
 `TibetanMonthFields`, `TibetanYearName`, `Rabjung`, `TibetanName`,
 `TibetanWeekdayName`, `TibetanWeekdayElement`, `TibetanPlanet`, `TibetanElement`, `TibetanAnimal`,
 `TibetanGender`, `TraditionConfig`, `TraditionNaming`, `MeanMotion`, `Rational`,
-`TibetanCalendarErrorCode`.
+`TibetanCalendarErrorCode`, `MonthOverflow`, `AddMonthsToDateOptions`.
 
 ### `tibetan-calendar-temporal/observances`
 
 A separate subpath, so a consumer who only converts dates never loads it. `config` here is an
-`ObservanceConfig` defaulting to `GELUG`, and `tradition` is the `TraditionConfig` — see
+`ObservanceConfig` defaulting to `GELUG`, and `tradition` is the `TraditionConfig`; both travel
+in one options bag rather than as two positional optionals — see
 [Two kinds of config](docs/guide.md#two-kinds-of-config).
 
 | Export | Signature | Notes |
 |---|---|---|
-| `getObservances` | `(from: Temporal.PlainDate, to: Temporal.PlainDate, config?, tradition?) => Observance[]` | Date order. Returns `[]` if `to` precedes `from`; throws above a 200-year span |
-| `observancesOn` | `(date: Temporal.PlainDate, config?, tradition?) => Observance[]` | The single-day case |
+| `getObservances` | `(from: Temporal.PlainDate, to: Temporal.PlainDate, options?) => Observance[]` | `options` is `{ config?, tradition? }`. Date order. Returns `[]` if `to` precedes `from`; throws above a 200-year span |
+| `observancesOn` | `(date: Temporal.PlainDate, options?) => Observance[]` | The single-day case, same options |
 | `GELUG` | | The default config, sourced from FPMT with a URL on every rule |
 
 Type-only exports: `Observance`, `ObservanceConfig`, `ObservanceRule`, `ObservanceKind`,
 `ObservanceWhen`, `ObservanceResolution`, `DoubledDayChoice`, `SkippedDayChoice`,
-`LeapMonthChoice`.
+`LeapMonthChoice`, `ObservanceQueryOptions`.
 
 Note that `SkippedDayError` is exported from the **root** only. Nothing in this layer throws it —
 a skipped day is handled by the `skippedDay` convention instead.

@@ -37,11 +37,11 @@ import { yearFromRoyalEra } from "../computation/epoch.js";
 import { type ScaledTradition, scalingFor } from "../computation/scaling.js";
 import { codedError, rangeError } from "../errors.js";
 import { PHUGPA } from "../traditions/phugpa.js";
-import type { TraditionConfig } from "../traditions/types.js";
 import { GELUG } from "./default-gelug.js";
 import type {
 	Observance,
 	ObservanceConfig,
+	ObservanceQueryOptions,
 	ObservanceResolution,
 	ObservanceRule,
 } from "./types.js";
@@ -53,6 +53,7 @@ export type {
 	Observance,
 	ObservanceConfig,
 	ObservanceKind,
+	ObservanceQueryOptions,
 	ObservanceResolution,
 	ObservanceRule,
 	ObservanceWhen,
@@ -376,6 +377,30 @@ function appliesToMonth(
 }
 
 /**
+ * Rejects an options bag that is not an object.
+ *
+ * @remarks
+ * New boundary, new guard — CLAUDE.md requires one per exported argument shape, and reshaping
+ * these two functions to a bag on 2026-08-26 created one. Without it `observancesOn(date, null)`
+ * reads `.config` off `null` and throws a raw uncoded `TypeError`, which is the exact failure the
+ * config validators were added to end: a consumer's `catch (e) { if (e.code === …) }` falls
+ * through it.
+ *
+ * `TCT_INVALID_ARGUMENT` rather than `TCT_INVALID_OBSERVANCE_CONFIG`: the bag is the wrong *kind*
+ * of thing, and no config has been reached yet. A bag carrying a bad `config` still gets the
+ * config code, from the validator that has always owned it.
+ */
+function assertQueryOptions(functionName: string, options: unknown): void {
+	if (options === null || typeof options !== "object") {
+		throw rangeError(
+			"TCT_INVALID_ARGUMENT",
+			`${functionName}: options must be an object like { config, tradition } or omitted, received ` +
+				`${options === undefined ? "undefined" : JSON.stringify(options)}`,
+		);
+	}
+}
+
+/**
  * Every observance falling between two dates, inclusive, in date order.
  *
  * @remarks
@@ -405,9 +430,7 @@ function appliesToMonth(
  * via `asPlainDate`.
  * @param to - Last calendar day to include, accepting the same shapes as `from`. Returns `[]` if
  * before `from`.
- * @param config - Which observances, and the conventions for resolving them. Defaults to
- * {@link GELUG}.
- * @param tradition - Astronomical constants. Defaults to `PHUGPA`.
+ * @param options - `config` (which observances) and `tradition` (astronomical constants).
  *
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `from` or `to` is not a value
  * `asPlainDate` accepts; `TCT_SPAN_TOO_WIDE` if the span exceeds {@link MAX_SPAN_YEARS}; or
@@ -416,9 +439,15 @@ function appliesToMonth(
 export function getObservances(
 	from: Temporal.PlainDate,
 	to: Temporal.PlainDate,
-	config: ObservanceConfig = GELUG,
-	tradition: TraditionConfig = PHUGPA,
+	options: ObservanceQueryOptions = {},
 ): Observance[] {
+	assertQueryOptions("getObservances", options);
+	// Not `?? GELUG`: nullish-coalescing treats an explicit `null` as absent, so a caller passing
+	// `{ config: null }` would silently get the default instead of the coded rejection the
+	// positional signature gave them. Only `undefined` means "omitted"; everything else is the
+	// caller's value and goes to the validator.
+	const config = options.config === undefined ? GELUG : options.config;
+	const tradition = options.tradition === undefined ? PHUGPA : options.tradition;
 	// Normalised before anything else touches from/to: Temporal.PlainDate.compare and the span-cap
 	// comparison below both accept a raw string without complaint, which let a string range slip
 	// past the cap (NaN > 200 is false) and let null/number arguments reach Temporal as uncoded
@@ -509,8 +538,8 @@ export function getObservances(
  */
 export function observancesOn(
 	date: Temporal.PlainDate,
-	config: ObservanceConfig = GELUG,
-	tradition: TraditionConfig = PHUGPA,
+	options: ObservanceQueryOptions = {},
 ): Observance[] {
-	return getObservances(date, date, config, tradition);
+	assertQueryOptions("observancesOn", options);
+	return getObservances(date, date, options);
 }

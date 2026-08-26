@@ -87,7 +87,7 @@ describe("observance resolution", () => {
 	// 9th. An institution follows that line by spreading the config, never by editing the engine.
 	it("puts it on 9 July under Janson's rule, reached by spreading the config", () => {
 		const kopan = { ...GELUG, id: "kopan", doubledDay: "first" as const };
-		const found = observancesOn(iso("2024-07-09"), kopan).filter(
+		const found = observancesOn(iso("2024-07-09"), { config: kopan }).filter(
 			(o) => o.rule.id === "chokhor-duchen",
 		);
 		expect(found).toHaveLength(1);
@@ -96,7 +96,7 @@ describe("observance resolution", () => {
 
 	it("emits both halves under 'both', reproducing FPMT's own 'July 9 or July 10'", () => {
 		const config = { ...GELUG, doubledDay: "both" as const };
-		const days = getObservances(iso("2024-07-01"), iso("2024-07-31"), config)
+		const days = getObservances(iso("2024-07-01"), iso("2024-07-31"), { config })
 			.filter((o) => o.rule.id === "chokhor-duchen")
 			.map((o) => o.date.isoDate.toString());
 		expect(days).toEqual(["2024-07-09", "2024-07-10"]);
@@ -161,7 +161,7 @@ describe("observance resolution", () => {
 		// The window covers two Tibetan months, so day 15 comes round twice; the date is the primary
 		// key and the id tie-break applies within each day.
 		const byDay = new Map<string, string[]>();
-		for (const o of getObservances(iso("2026-05-01"), iso("2026-05-31"), config)) {
+		for (const o of getObservances(iso("2026-05-01"), iso("2026-05-31"), { config })) {
 			const key = o.date.isoDate.toString();
 			byDay.set(key, [...(byDay.get(key) ?? []), o.rule.id]);
 		}
@@ -280,7 +280,7 @@ describe("a rule on day 1, where the preceding day belongs to the previous month
 	// So the day-1 rule for month 1 has no day to land on, and shifts back across a month boundary
 	// -- and across a *year* boundary -- onto the 30th of month 12 of the year before.
 	it("shifts back across the month boundary when day 1 is skipped", () => {
-		const shifted = getObservances(iso("1977-01-01"), iso("1977-12-31"), dayOne).filter(
+		const shifted = getObservances(iso("1977-01-01"), iso("1977-12-31"), { config: dayOne }).filter(
 			(o) => o.resolution === "shiftedFromSkipped",
 		);
 		expect(shifted).toHaveLength(1);
@@ -298,7 +298,7 @@ describe("a rule on day 1, where the preceding day belongs to the previous month
 
 	// Every month resolves, none silently vanishes, and none lands on a day that does not exist.
 	it("resolves all twelve months to real days", () => {
-		const found = getObservances(iso("1977-01-01"), iso("1977-12-31"), dayOne);
+		const found = getObservances(iso("1977-01-01"), iso("1977-12-31"), { config: dayOne });
 		expect(found).toHaveLength(12);
 		for (const o of found) {
 			expect(tibetanDateExists({ year: o.date.year, month: o.date.month, day: o.date.day })).toBe(
@@ -331,7 +331,7 @@ describe("consumer config validation", () => {
 		],
 	});
 	const run = (config: unknown) =>
-		getObservances(iso("2026-01-01"), iso("2026-12-31"), config as typeof GELUG);
+		getObservances(iso("2026-01-01"), iso("2026-12-31"), { config: config as typeof GELUG });
 
 	it("accepts the shipped GELUG config", () => {
 		expect(() => run(GELUG)).not.toThrow();
@@ -449,9 +449,9 @@ describe("consumer config validation", () => {
 
 		const withLeap = { ...chokhor, leapMonth: "leap" };
 		expect(
-			getObservances(iso("2024-01-01"), iso("2024-12-31"), withLeap as typeof GELUG).map((o) =>
-				o.date.isoDate.toString(),
-			),
+			getObservances(iso("2024-01-01"), iso("2024-12-31"), {
+				config: withLeap as typeof GELUG,
+			}).map((o) => o.date.isoDate.toString()),
 		).toEqual(["2024-07-10"]);
 
 		const dropped = { ...chokhor };
@@ -468,15 +468,33 @@ describe("consumer config validation", () => {
 		["a non-object config", 42],
 		["a string config", "gelug"],
 	])("rejects %s with a coded error", (_label, config) => {
-		expect(thrownBy(() => observancesOn(iso("2026-01-01"), config as never))?.code).toBe(
+		expect(thrownBy(() => observancesOn(iso("2026-01-01"), { config } as never))?.code).toBe(
 			"TCT_INVALID_OBSERVANCE_CONFIG",
 		);
+	});
+
+	// The options bag reshape of 2026-08-26 created a new boundary, and this is its guard. Without
+	// it these read a property off a non-object and throw the same raw uncoded TypeError the block
+	// above exists to prevent — one layer further out. TCT_INVALID_ARGUMENT, not the config code:
+	// the bag is the wrong KIND of thing and no config has been reached.
+	it.each([
+		["a null bag", null],
+		["a number bag", 42],
+		["a string bag", "gelug"],
+	])("rejects %s passed where the options bag belongs", (_label, options) => {
+		expect(thrownBy(() => observancesOn(iso("2026-01-01"), options as never))?.code).toBe(
+			"TCT_INVALID_ARGUMENT",
+		);
+		expect(
+			thrownBy(() => getObservances(iso("2026-01-01"), iso("2026-12-31"), options as never))?.code,
+		).toBe("TCT_INVALID_ARGUMENT");
 	});
 
 	// `undefined` is not in the list above on purpose: it means "argument omitted", so the default
 	// parameter supplies GELUG and the call is correct. Only an explicitly wrong value is an error.
 	it("treats an undefined config as the GELUG default", () => {
 		expect(() => observancesOn(iso("2026-01-01"), undefined)).not.toThrow();
+		expect(() => observancesOn(iso("2026-01-01"), {})).not.toThrow();
 	});
 
 	it.each([

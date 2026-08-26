@@ -23,10 +23,12 @@ const EXPECTED_EXPORTS = [
 	"SkippedDayError",
 	"addDays",
 	"addMonths",
+	"addMonthsToDate",
 	"datesFor",
 	"daysBetween",
 	"daysInMonth",
 	"formatTibetanDate",
+	"formatTibetanMonth",
 	"hasLeapMonth",
 	"isoFromJulianDay",
 	"isoToTibetan",
@@ -41,7 +43,10 @@ const EXPECTED_EXPORTS = [
 	"nextFullMoon",
 	"nextNewMoon",
 	"parseTibetanDate",
+	"parseTibetanMonth",
 	"rabjungFor",
+	"resolveDate",
+	"resolveMonth",
 	"tibetanDateExists",
 	"tibetanToIso",
 	"tibetanWeekday",
@@ -66,10 +71,12 @@ describe("public API surface", () => {
 			SkippedDayError: "function",
 			addDays: "function",
 			addMonths: "function",
+			addMonthsToDate: "function",
 			datesFor: "function",
 			daysBetween: "function",
 			daysInMonth: "function",
 			formatTibetanDate: "function",
+			formatTibetanMonth: "function",
 			hasLeapMonth: "function",
 			isoFromJulianDay: "function",
 			isoToTibetan: "function",
@@ -84,7 +91,10 @@ describe("public API surface", () => {
 			nextFullMoon: "function",
 			nextNewMoon: "function",
 			parseTibetanDate: "function",
+			parseTibetanMonth: "function",
 			rabjungFor: "function",
+			resolveDate: "function",
+			resolveMonth: "function",
 			tibetanDateExists: "function",
 			tibetanToIso: "function",
 			tibetanWeekday: "function",
@@ -245,8 +255,10 @@ describe("error codes", () => {
 		// consumer, and for the TypeScript one whose config came from JSON.parse or a form field.
 		TCT_INVALID_OBSERVANCE_CONFIG: () =>
 			observances.observancesOn(iso("2026-08-12"), {
-				...observances.GELUG,
-				doubledDay: "1st" as observances.DoubledDayChoice,
+				config: {
+					...observances.GELUG,
+					doubledDay: "1st" as observances.DoubledDayChoice,
+				},
 			}),
 		TCT_SPAN_TOO_WIDE: () => observances.getObservances(iso("1500-01-01"), iso("2500-01-01")),
 	};
@@ -567,7 +579,7 @@ describe("observances API surface", () => {
 	// could drift out of its own contract and only a consumer would ever find out.
 	it("passes the validation it imposes on consumer configs", () => {
 		const day = Temporal.PlainDate.from("2026-01-01");
-		expect(() => observances.getObservances(day, day, observances.GELUG)).not.toThrow();
+		expect(() => observances.getObservances(day, day, { config: observances.GELUG })).not.toThrow();
 
 		const ids = observances.GELUG.rules.map((r) => r.id);
 		expect(new Set(ids).size).toBe(ids.length);

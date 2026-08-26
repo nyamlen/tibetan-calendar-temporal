@@ -369,14 +369,20 @@ describe("the observance layer selects the right one of a twinned pair", () => {
 		["after", MIRRORED],
 	] as const)("fires once, not in both months, under %s", (_position, tradition) => {
 		for (const choice of ["leap", "regular"] as const) {
-			const hits = getObservances(window.from, window.to, configWith(choice), tradition);
+			const hits = getObservances(window.from, window.to, {
+				config: configWith(choice),
+				tradition,
+			});
 			expect(hits.filter((hit) => hit.rule.id === "probe")).toHaveLength(1);
 		}
 	});
 
 	it("picks the earlier month for regular under after, and the later under before", () => {
 		const dayOf = (tradition: TraditionConfig, choice: "leap" | "regular") => {
-			const [hit] = getObservances(window.from, window.to, configWith(choice), tradition);
+			const [hit] = getObservances(window.from, window.to, {
+				config: configWith(choice),
+				tradition,
+			});
 			return hit?.date.isoDate.toString();
 		};
 		// Same physical pair of lunations either way, so the two configs must disagree about which

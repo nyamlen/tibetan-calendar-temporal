@@ -66,7 +66,7 @@ export {
 	yearNameFor,
 } from "./cycles.js";
 export type { TibetanCalendarErrorCode } from "./errors.js";
-export { formatTibetanDate } from "./format.js";
+export { formatTibetanDate, formatTibetanMonth } from "./format.js";
 export {
 	datesFor,
 	daysInMonth,
@@ -74,18 +74,22 @@ export {
 	leapMonthOfYear,
 	monthsFor,
 	monthsInYear,
+	resolveMonth,
 } from "./months.js";
+export type { AddMonthsToDateOptions, MonthOverflow } from "./navigation.js";
 export {
 	addDays,
 	addMonths,
+	addMonthsToDate,
 	daysBetween,
 	lunationFromMonth,
 	monthFromLunation,
 	monthsBetween,
 	nextFullMoon,
 	nextNewMoon,
+	resolveDate,
 } from "./navigation.js";
-export { parseTibetanDate } from "./parse.js";
+export { parseTibetanDate, parseTibetanMonth } from "./parse.js";
 export { BHUTAN, BHUTAN_HENNING } from "./traditions/bhutan.js";
 export { PHUGPA, PHUGPA_HENNING } from "./traditions/phugpa.js";
 export type {
