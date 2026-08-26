@@ -15,6 +15,7 @@ import {
 	nextFullMoon,
 } from "../src/navigation.js";
 import { PHUGPA } from "../src/traditions/phugpa.js";
+import { asTibetanWeekday, type TibetanWeekday } from "../src/types.js";
 
 /**
  * Every docblock `@example` in `src/` that states a concrete result, asserted.
@@ -177,14 +178,21 @@ describe("docblock examples", () => {
 		it("weekdayNameFor gives Saturday as spen pa, the Saturn day", () => {
 			// `spen pa`, not `spen ma` — Janson's own weekday table and his Bhutan appendix disagree,
 			// and the wrong one reached a shipped docblock once already.
-			expect(weekdayNameFor(0).wylie).toBe("spen pa");
-			expect(weekdayNameFor(0).planet).toBe("saturn");
+			expect(weekdayNameFor(asTibetanWeekday(0)).wylie).toBe("spen pa");
+			expect(weekdayNameFor(asTibetanWeekday(0)).planet).toBe("saturn");
 		});
 
 		it("rejects a weekday outside 0…6 as a field out of range", () => {
 			// This one genuinely is a range, so it keeps the range code — the split is not a blanket
 			// rename of every guard in the module.
-			expect(() => weekdayNameFor(7)).toThrow(
+			// Cast, because the brand is what stops a TypeScript caller getting here at all. The guard
+			// is for the JavaScript consumer and for a branded value that came from a cast like this
+			// one — types erase, so it cannot be dropped just because the signature narrowed.
+			expect(() => weekdayNameFor(7 as unknown as TibetanWeekday)).toThrow(
+				expect.objectContaining({ code: "TCT_FIELD_OUT_OF_RANGE" }),
+			);
+			// asTibetanWeekday is the checked way in, and refuses the same value with the same code.
+			expect(() => asTibetanWeekday(7)).toThrow(
 				expect.objectContaining({ code: "TCT_FIELD_OUT_OF_RANGE" }),
 			);
 		});

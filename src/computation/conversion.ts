@@ -15,7 +15,7 @@ import { monthCodeOf } from "../format.js";
 import { weekdayNameWithOffset } from "../names.js";
 import { PHUGPA } from "../traditions/phugpa.js";
 import type { TraditionConfig } from "../traditions/types.js";
-import type { TibetanDate, TibetanDateFields } from "../types.js";
+import type { TibetanDate, TibetanDateFields, TibetanWeekday } from "../types.js";
 import {
 	rejectInvalidLeapFlags,
 	rejectMissingFields,
@@ -296,8 +296,12 @@ function describeBound(exactToJulianDay: number): string {
  * `isoFromJulianDayUnchecked` set: an internal caller that has done the checking gets its own name
  * rather than the boundary quietly losing a guard.
  */
-function tibetanWeekdayUnchecked(julianDay: number): number {
-	return mod(julianDay + 2, 7);
+function tibetanWeekdayUnchecked(julianDay: number): TibetanWeekday {
+	// The one place the brand is applied without asTibetanWeekday, and it is sound by construction:
+	// `mod` is the flooring modulus, so the result is in 0…6 for every integer input. Routing this
+	// through the validator would re-check a bound the arithmetic already guarantees, on the hottest
+	// path in the package — every date built calls it.
+	return mod(julianDay + 2, 7) as TibetanWeekday;
 }
 
 /**
@@ -314,7 +318,7 @@ function tibetanWeekdayUnchecked(julianDay: number): number {
  * field, which is what to reach for when a `TibetanDate` is already in hand — this function is for
  * callers working from a Julian day directly.
  */
-export function tibetanWeekday(julianDay: number): number {
+export function tibetanWeekday(julianDay: number): TibetanWeekday {
 	// The guard this function most needed, and the one it did not have. It returns a plain `number`
 	// with no other signal, and every plausible consumer feeds that straight into a lookup table of
 	// weekday names — so `tibetanWeekday(1.5)` returning `3.5` is an out-of-bounds index at best and

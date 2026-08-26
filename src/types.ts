@@ -165,6 +165,65 @@ export interface TibetanYearName {
 }
 
 /**
+ * A Tibetan weekday number, 0 = Saturday through 6 = Friday — **branded**, so an ISO
+ * `dayOfWeek` cannot be passed where one belongs.
+ *
+ * @remarks
+ * A `number` at runtime; the brand exists only at compile time and erases completely.
+ *
+ * ## What it prevents
+ *
+ * The two numberings differ, and both are on {@link TibetanDate}:
+ * {@link TibetanDate.dayOfWeek} is ISO, 1 = Monday through 7 = Sunday, and
+ * {@link TibetanDate.tibetanWeekday} is Tibetan, 0 = Saturday. So
+ * `weekdayNameFor(date.dayOfWeek)` compiles, throws nothing, and returns **the wrong name six
+ * days in seven** — the only silent wrong answer a consumer spike found anywhere on this surface.
+ * It is now a compile error, and the two legitimate sources flow through untouched.
+ *
+ * ## Why a brand rather than a runtime check alone
+ *
+ * The deciding argument is **reversibility, not safety**. Widening a parameter later is
+ * non-breaking; narrowing one is not. Branded-now to plain-`number`-later stays available
+ * forever, and the reverse never does — which is why this lands before 1.0.0 rather than after.
+ *
+ * Two known limits, neither of which changes the direction. Types erase, so a JavaScript consumer
+ * keeps the slip. And the brand does not survive `JSON.parse`, `structuredClone` or a database
+ * read — which is exactly why {@link asTibetanWeekday} exists and **validates** rather than being
+ * a bare cast.
+ */
+export type TibetanWeekday = number & { readonly __tibetanWeekday: unique symbol };
+
+/**
+ * Checks that `value` is a Tibetan weekday number and brands it.
+ *
+ * @remarks
+ * The way back in from a number this package did not produce: a parsed JSON payload, a form
+ * field, a database column. It validates rather than asserting, because the values that reach it
+ * are precisely the ones no compiler has seen.
+ *
+ * `asTibetanWeekday(7)` throws `TCT_FIELD_OUT_OF_RANGE` — a **present number outside its
+ * range**, which is the same rule every other field check on this surface follows, and not
+ * `TCT_INVALID_ARGUMENT`, which is reserved for the wrong *kind* of thing.
+ *
+ * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `value` is not an integer 0–6.
+ *
+ * @example
+ * ```ts
+ * weekdayNameFor(asTibetanWeekday(Number(fromJson.weekday))).wylie;
+ * ```
+ */
+export function asTibetanWeekday(value: number): TibetanWeekday {
+	if (!Number.isInteger(value) || value < 0 || value > 6) {
+		throw rangeError(
+			"TCT_FIELD_OUT_OF_RANGE",
+			`asTibetanWeekday: expected an integer 0-6, received ${value}. This is the Tibetan ` +
+				"numbering — 0 is Saturday — not the ISO dayOfWeek, which runs 1-7 from Monday",
+		);
+	}
+	return value as TibetanWeekday;
+}
+
+/**
  * A Tibetan name, in the three renderings this package ships.
  *
  * @remarks
@@ -434,7 +493,7 @@ export interface TibetanDate {
 	 * because it is a date component; the name groups under `*Name` — see
 	 * {@link TibetanDate.weekdayName}.
 	 */
-	tibetanWeekday: number;
+	tibetanWeekday: TibetanWeekday;
 
 	/**
 	 * The Tibetan name of {@link TibetanDate.tibetanWeekday} — script, Wylie, phonetics, and the

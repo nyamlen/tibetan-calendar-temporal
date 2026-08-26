@@ -521,6 +521,7 @@ year, including ones where `losarFor` must refuse.
 | `yearNameFor` | `(year: number) => TibetanYearName` | `{ element, animal, gender }`. Element and gender repeat every ten years, the animal every twelve, the whole name every sixty; plus `elementName`, `genderName` and `animalName` in Tibetan script, Wylie and phonetics — which is why there are no separate lookups for those three |
 | `rabjungFor` | `(year: number) => Rabjung` | `{ cycle, year, name }` — `cycle`/`year` are the sixty-year numbering from 1027 CE, a *numbering* rather than a name (the two cycles sit three apart), and `name` is the **Tibetan** name at that position. No Sanskrit: the cycle has two Sanskrit name lists disagreeing at five positions, so pairing either with the Tibetan would misname 8% of years — see [docs/how-it-is-calculated.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/how-it-is-calculated.md) |
 | `weekdayNameFor` | `(weekday: number, config?) => TibetanWeekdayName` | Tibetan name of a weekday. Takes the **Tibetan** numbering, 0 = Saturday. The only naming lookup taking a config, because Bhutan names its days one planet ahead |
+| `asTibetanWeekday` | `(value: number) => TibetanWeekday` | Validates 0–6 and brands. The way in for a number this package did not produce — parsed JSON, a form field. `weekdayNameFor(date.dayOfWeek)` is a **compile error**: ISO runs 1–7 from Monday, Tibetan 0–6 from Saturday |
 
 A year picker is a loop over these plus `hasLeapMonth`; there is no range function, because building
 the list is the consumer's business and nothing about it can go wrong.
@@ -601,7 +602,8 @@ Codes are stable and part of the API. Message text is not — match on the code.
 
 Type-only exports, erased at runtime: `TibetanDate`, `TibetanDateFields`, `TibetanMonth`,
 `TibetanMonthFields`, `TibetanYearName`, `Rabjung`, `TibetanName`,
-`TibetanWeekdayName`, `TibetanWeekdayElement`, `TibetanPlanet`, `TibetanElement`, `TibetanAnimal`,
+`TibetanWeekdayName`, `TibetanWeekdayElement`, `TibetanWeekday`, `TibetanPlanet`, `TibetanElement`,
+`TibetanAnimal`,
 `TibetanGender`, `TraditionConfig`, `TraditionNaming`, `MeanMotion`, `Rational`,
 `TibetanCalendarErrorCode`, `MonthOverflow`, `AddMonthsToDateOptions`.
 

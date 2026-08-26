@@ -109,8 +109,9 @@ export type {
 	TibetanMonthFields,
 	TibetanName,
 	TibetanPlanet,
+	TibetanWeekday,
 	TibetanWeekdayElement,
 	TibetanWeekdayName,
 	TibetanYearName,
 } from "./types.js";
-export { SkippedDayError } from "./types.js";
+export { asTibetanWeekday, SkippedDayError } from "./types.js";
