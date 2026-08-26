@@ -299,6 +299,15 @@ derivation; in `docs/` they are just noise.
   except the list — `docs/architecture.md`'s shapes (7 exported types named), `docs/guide.md` (4),
   and any docblock naming it.
 
+  **And a signature is not a runtime export either.** The suite pins *names* and *kinds* —
+  `Object.keys` and `typeof` — so changing a function's parameters passes every one of the nine
+  commands as a **surface** check. Measured on 2026-08-26: reshaping `getObservances(from, to,
+  config?, tradition?)` to an options bag breaks **21 call sites**, one of them production code
+  (`src/observances/index.ts`, where `observancesOn` delegates), and nothing reports it as an API
+  change — it surfaces as ordinary type errors scattered across suites, which is what a *typo* looks
+  like too. When changing a signature, count the call sites first and say the number in the commit
+  message; the compiler will find them, but only after you have decided the change was small.
+
   **A `TraditionConfig` is judged by a different rule, because it is a different kind of claim.**
   That record is about API design; a config asserts that dates computed with it are a real
   tradition's real dates. So it is exported only once the engine has been tiled against an

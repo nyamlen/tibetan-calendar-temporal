@@ -233,6 +233,23 @@ whole navigation tier (`addDays`, `addMonths`, `daysBetween`, `monthsBetween`, `
 `tibetanDateExists`, `SkippedDayError` — no error path was exercised at all), `parseTibetanDate`,
 `getObservances` as a range query, the closed-form name lookups, and any custom `ObservanceConfig`.
 
+**A second client ran on 2026-08-25** against that unreached set — `nyamlen/spikes/calendar-nav/`,
+working from the tarball alone. It reached all 25 exports its brief named and returned **sixteen
+findings**, of which eight were shipped prose that was false, two were its own mistakes, and six
+needed API rulings. Its most consequential single finding was that `README.md` shipped a line that
+**could never have run**: `monthsFor(2153).flatMap(datesFor)` throws, because `flatMap` passes the
+array index into the optional `config` parameter.
+
+**Writing the brief: a coverage list destroys discoverability testing for everything on it.**
+Learned from that run and binding on the next. Naming the exports a spike must reach does stop a
+thin spike declaring success after touching eight — but you cannot then learn whether a consumer
+*finds* a name, because you handed it over. The first client's sharpest finding was exactly a
+discoverability failure: it hand-rolled the month walk and never called `datesFor`, which the README
+calls its preferred route. So specify **tasks, not function names**; require the coverage report to
+be measured against the tarball's own `.d.ts`, which the spike can enumerate itself; and **never say
+which names are new**. Non-use then reads as a finding about the surface rather than a gap in the
+brief.
+
 ## Outstanding — near term
 
 - [x] **`TibetanDate` shape confirmed** before writing `src/types.ts` — done 2026-08-11. Date
@@ -448,12 +465,19 @@ edits, and moving files once after they have landed is one link-fixing commit in
       additive later.
 
 - [x] **Conventions are enforced rather than remembered** — done 2026-08-16.
-      `scripts/check-conventions.mjs` gates seven rules nothing previously checked — twelve as of
-      2026-08-22, the later five added as the conventions they enforce were written — Biome bans the
+      `scripts/check-conventions.mjs` gates seven rules nothing previously checked — thirteen as of
+      2026-08-26, the later six added as the conventions they enforce were written — Biome bans the
       `Date` global in `src/`, and markdownlint finally runs in CI against the config that had
       existed for weeks unread. CI is nine commands. Every rule and its enforcement status is in
       [coding-standards.md](coding-standards.md), which the guard also validates against reality so
       it cannot drift.
+
+      **That last clause overstated itself, and this sentence proved it.** The guard checks that the
+      map names real commands and paths; it does not check a *count*, and Rule 12's hardcoded-count
+      rule covers only **generated** documents. So "twelve as of 2026-08-22" survived the addition of
+      Rule 13 on 2026-08-26 — in the same commit that updated `CLAUDE.md` and
+      [coding-standards.md](coding-standards.md) and missed this line. A count stated in prose is
+      unguarded wherever it appears; prefer naming the newest rule over totalling them.
 
       Three violations existed when the guard first ran: a bare `new Error` in `epoch.ts`, the same
       constraint discharged by a cast in `names.ts`, and seven divisions carrying no statement of
