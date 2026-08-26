@@ -5,6 +5,7 @@ import { datesFor, monthsFor } from "../src/months.js";
 import {
 	addDays,
 	addMonths,
+	addMonthsToDate,
 	daysBetween,
 	lunationFromMonth,
 	monthFromLunation,
@@ -13,7 +14,7 @@ import {
 	nextNewMoon,
 	resolveDate,
 } from "../src/navigation.js";
-import { PHUGPA_HENNING } from "../src/traditions/phugpa.js";
+import { PHUGPA, PHUGPA_HENNING } from "../src/traditions/phugpa.js";
 import { SkippedDayError } from "../src/types.js";
 
 const iso = (s: string) => Temporal.PlainDate.from(s);
@@ -236,9 +237,18 @@ describe("addMonths", () => {
 		expect(addMonths(addMonths(m, 3), -3).monthCode).toBe("M06L");
 	});
 
-	it("accepts a TibetanDate, ignoring the day", () => {
+	it("refuses a TibetanDate at COMPILE time, so the day cannot be silently discarded", () => {
 		const date = isoToTibetan(iso("2026-08-12"));
-		expect(addMonths(date, 1).lunation).toBe(date.lunation + 1);
+		// @ts-expect-error a date carries a day, and `day?: never` is what rejects it. tsc errors on
+		// an UNUSED @ts-expect-error, so this line fails typecheck the moment the narrowing is lost.
+		// It used to compile and return a month, discarding the day in silence.
+		expect(() => addMonths(date, 1)).not.toThrow();
+		// The day is what is refused, not the value: dropping it compiles and still steps correctly.
+		expect(
+			addMonths({ year: date.year, month: date.month, isLeapMonth: date.isLeapMonth }, 1).lunation,
+		).toBe(date.lunation + 1);
+		// addMonthsToDate is the route for a date, and it agrees about the month.
+		expect(addMonthsToDate(date, 1).lunation).toBe(date.lunation + 1);
 	});
 });
 
@@ -602,6 +612,95 @@ describe("resolveDate", () => {
 		);
 		expect(codeOf(() => resolveDate({ year: 2153, month: 13, day: 1 }))).toBe(
 			"TCT_FIELD_OUT_OF_RANGE",
+		);
+	});
+});
+
+describe("addMonthsToDate", () => {
+	// 2153 M03 carries no 5 and no 29; 2153 M05 carries no 2 and no 25. Verified by datesFor below,
+	// so the probe fails loudly if the arithmetic moves rather than testing a stale assumption.
+	it("names months that really do skip the numbers this suite probes", () => {
+		const skipped = (month: number) => {
+			const present = new Set(datesFor({ year: 2153, month }).map((d) => d.day));
+			return [...Array(30).keys()].map((i) => i + 1).filter((d) => !present.has(d));
+		};
+		expect(skipped(3)).toEqual([5, 29]);
+		expect(skipped(5)).toEqual([2, 25]);
+	});
+
+	it("keeps the day number when the target month carries it", () => {
+		const stepped = addMonthsToDate({ year: 2153, month: 2, day: 8 }, 1);
+		expect(stepped.month).toBe(3);
+		expect(stepped.day).toBe(8);
+	});
+
+	it("constrains to the nearest LOWER existing day by default", () => {
+		expect(addMonthsToDate({ year: 2153, month: 2, day: 5 }, 1).day).toBe(4);
+		expect(addMonthsToDate({ year: 2153, month: 2, day: 29 }, 1).day).toBe(28);
+		expect(addMonthsToDate({ year: 2153, month: 4, day: 2 }, 1).day).toBe(1);
+		expect(addMonthsToDate({ year: 2153, month: 4, day: 25 }, 1).day).toBe(24);
+	});
+
+	it("throws SkippedDayError under overflow: reject", () => {
+		let thrown: unknown;
+		try {
+			addMonthsToDate({ year: 2153, month: 2, day: 5 }, 1, { overflow: "reject" });
+		} catch (error) {
+			thrown = error;
+		}
+		expect(thrown).toBeInstanceOf(SkippedDayError);
+	});
+
+	it("refuses an overflow value it does not know rather than defaulting", () => {
+		expect(
+			codeOf(() =>
+				addMonthsToDate({ year: 2153, month: 2, day: 8 }, 1, {
+					overflow: "clamp" as never,
+				}),
+			),
+		).toBe("TCT_INVALID_ARGUMENT");
+	});
+
+	it("steps across a leap month in lunation order, like addMonths", () => {
+		const from = { year: 2151, month: 5, day: 10 };
+		expect(addMonthsToDate(from, 1).isLeapMonth).toBe(true);
+		expect(addMonthsToDate(from, 1).month).toBe(6);
+		expect(addMonthsToDate(from, 2).isLeapMonth).toBe(false);
+		expect(addMonthsToDate(from, 2).month).toBe(6);
+	});
+
+	it("agrees with addMonths about which month it lands in, over a leap year", () => {
+		const bad: string[] = [];
+		for (let step = -13; step <= 13; step++) {
+			const date = addMonthsToDate({ year: 2151, month: 1, day: 10 }, step);
+			const month = addMonths({ year: 2151, month: 1 }, step);
+			if (date.month !== month.month || date.isLeapMonth !== month.isLeapMonth) {
+				bad.push(`${step}: ${date.monthCode} vs ${month.monthCode}`);
+			}
+		}
+		expect(bad).toEqual([]);
+	});
+
+	it("takes the config through the options bag rather than defaulting to PHUGPA", () => {
+		// Threaded, not ignored: the answer must track addMonths under the SAME config. Asserting a
+		// literal here would pass just as well with the config dropped, since the two traditions
+		// agree at month level in all but four years between 1500 and 2500.
+		const bad: string[] = [];
+		for (const config of [PHUGPA, PHUGPA_HENNING]) {
+			for (let step = -6; step <= 6; step++) {
+				const date = addMonthsToDate({ year: 2151, month: 1, day: 10 }, step, { config });
+				const month = addMonths({ year: 2151, month: 1 }, step, config);
+				if (date.monthCode !== month.monthCode || date.year !== month.year) {
+					bad.push(`${config === PHUGPA ? "PHUGPA" : "HENNING"} ${step}`);
+				}
+			}
+		}
+		expect(bad).toEqual([]);
+	});
+
+	it("is a no-op at zero on a date that exists", () => {
+		expect(addMonthsToDate({ year: 2153, month: 12, day: 8 }, 0).isoDate.toString()).toBe(
+			"2027-01-15",
 		);
 	});
 });
