@@ -192,9 +192,13 @@ things that happen to share a word. Getting them the wrong way round is the easi
 make against this API, so they are contrasted here rather than left to be inferred:
 
 ```js
-getObservances(from, to, observanceConfig, traditionConfig);
-observancesOn(date, observanceConfig, traditionConfig);
+getObservances(from, to, { config: observanceConfig, tradition: traditionConfig });
+observancesOn(date, { config: observanceConfig, tradition: traditionConfig });
 ```
+
+They travel in **one options bag**, and both keys are optional, so wanting a custom tradition with
+the default observances is `{ tradition }` alone. Until 2026-08-26 they were two sequential
+positional parameters, which made that case read `getObservances(from, to, undefined, tradition)`.
 
 | | `TraditionConfig` | `ObservanceConfig` |
 |---|---|---|
@@ -204,7 +208,7 @@ observancesOn(date, observanceConfig, traditionConfig);
 | **Shipped** | `PHUGPA` (default), `PHUGPA_HENNING`, `BHUTAN`, `BHUTAN_HENNING` | `GELUG` (default) |
 | **Kind of claim** | **Falsifiable** — checkable against Janson and against an almanac. A disagreement is a bug | **Convention** — published sources legitimately disagree. A difference is a difference, not a bug |
 | **Wrong value gives** | A wrong calendar | A different institution's calendar |
-| **Position** | Last argument | Before the tradition |
+| **Key in the bag** | `tradition` | `config` |
 
 The root export never takes an `ObservanceConfig`, which is the point of the split: a consumer who
 only converts dates never inherits anyone's conventions. Both are extended the same way — spread a
@@ -218,7 +222,7 @@ Institutions differ by spreading the config, the same way `PHUGPA_HENNING` is bu
 
 ```js
 const kopan = { ...GELUG, id: 'kopan', doubledDay: 'first' };
-observancesOn(Temporal.PlainDate.from('2024-07-09'), kopan);
+observancesOn(Temporal.PlainDate.from('2024-07-09'), { config: kopan });
 // Chokhor Duchen — where the default GELUG config puts it on 10 July
 ```
 
