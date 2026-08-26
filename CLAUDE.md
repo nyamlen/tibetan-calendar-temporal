@@ -265,8 +265,10 @@ derivation; in `docs/` they are just noise.
   `ScaledTradition.searchHalfWidth`, computed per tradition. If a bound is proved from a config's
   numbers, derive it from that config; assertions specific to Phugpa's values belong in the test
   suite, where they also catch a mistyped transcription.
-- **The shipped configs are deeply frozen.** `PHUGPA`, `PHUGPA_HENNING` and `GELUG` go through
-  `deepFreeze` in `src/freeze.ts`. They are the objects the docs point at for `{ ...PHUGPA, … }`,
+- **The shipped configs are deeply frozen.** All five — `PHUGPA`, `PHUGPA_HENNING`, `BHUTAN`,
+  `BHUTAN_HENNING` and `GELUG` — go through `deepFreeze` in `src/freeze.ts`. This rule named only
+  three until 2026-08-26; the two Bhutanese configs were frozen from the day they landed and the
+  rule simply was not updated with them. They are the objects the docs point at for `{ ...PHUGPA, … }`,
   so they are the ones a keystroke off a spread mutates — and because scaling and validation are
   both memoised on the config object, a mutation after first use yields neither the old constants
   nor the new ones but a stale mix. Do not unfreeze one to make a test easier.
@@ -298,17 +300,29 @@ derivation; in `docs/` they are just noise.
   README called `rabjungFor`'s `name` "the Tibetan and Sanskrit name" for hours after the Sanskrit
   came off, and the grep that found the stale list named the removed types rather than the field, so
   it sailed past. Removing or renaming a type therefore still needs the hand sweep for everything
-  except the list — `docs/architecture.md`'s shapes (7 exported types named), `docs/guide.md` (4),
-  and any docblock naming it.
+  except the list — `docs/architecture.md`'s shapes (**10** exported types defined as interface
+  blocks, plus `TibetanWeekday`, `TibetanWeekdayName` and `TibetanYearName` named in field
+  positions), `docs/guide.md` (4), and any docblock naming it. The figure here read 7 until
+  2026-08-26 and had been wrong for some time; both counts are now verified rather than remembered.
+  Those shapes are **complete** — every field, not a selection — which they had also drifted out of
+  being, `TibetanDate` showing 10 of its 15 fields with nothing saying so.
 
   **And a signature is not a runtime export either.** The suite pins *names* and *kinds* —
   `Object.keys` and `typeof` — so changing a function's parameters passes every one of the nine
-  commands as a **surface** check. Measured on 2026-08-26: reshaping `getObservances(from, to,
-  config?, tradition?)` to an options bag breaks **21 call sites**, one of them production code
-  (`src/observances/index.ts`, where `observancesOn` delegates), and nothing reports it as an API
-  change — it surfaces as ordinary type errors scattered across suites, which is what a *typo* looks
-  like too. When changing a signature, count the call sites first and say the number in the commit
-  message; the compiler will find them, but only after you have decided the change was small.
+  commands as a **surface** check. When the reshape of `getObservances(from, to, config?,
+  tradition?)` to an options bag was actually done on 2026-08-26 it broke **16 call sites**, one of
+  them production code (`src/observances/index.ts`, where `observancesOn` delegates), and nothing
+  reported it as an API change — it surfaced as ordinary type errors scattered across suites, which
+  is what a *typo* looks like too. When changing a signature, count the call sites first and say the
+  number in the commit message; the compiler will find them, but only after you have decided the
+  change was small.
+
+  **That number was written here as 21 before the work was done, and it was wrong.** The estimate
+  counted every *occurrence* of the two names; only the calls actually passing a config or tradition
+  positionally break, and `(from, to)` calls still compile. The lesson is not the arithmetic: **a
+  figure recorded in this file before the work is an estimate, and must be re-measured and corrected
+  when the work lands**, because everything else here reads as measured. Found by the doc-drift
+  sweep, not by any check.
 
   **A `TraditionConfig` is judged by a different rule, because it is a different kind of claim.**
   That record is about API design; a config asserts that dates computed with it are a real
@@ -346,6 +360,17 @@ derivation; in `docs/` they are just noise.
   which is what makes a caller's type confusion throw instead of being reported as a date that does
   not exist. A new shape check uses the second, never the first:
   [docs/decisions/2026-08-15-argument-errors-split.md](docs/decisions/2026-08-15-argument-errors-split.md).
+- **A function with two axes of choice takes an options bag** — not two sequential optional
+  parameters, which made a caller wanting a custom tradition with the default observances write
+  `getObservances(from, to, undefined, tradition)`. `getObservances`, `observancesOn` and
+  `addMonthsToDate` all take one as of 2026-08-26, so it is the surface's stated pattern rather
+  than a one-off. **Two things a bag gets wrong, both hit while building the first one.** It is a
+  **new argument boundary and needs its own guard** — without one `observancesOn(date, null)` reads
+  a property off `null` and throws an uncoded `TypeError`, which is precisely the failure the
+  config validators exist to end, one level further out. And **read it with `=== undefined`, never
+  `??`**: nullish-coalescing treats an explicit `null` as absent, so `{ config: null }` silently
+  becomes the default where the positional signature had rejected it — a validation quietly lost in
+  a refactor that looked like a pure move.
 - **Every consumer config gets a validator, and every export gets a guard.** `TraditionConfig` and
   `ObservanceConfig` are both documented extension points, so both are checked at the boundary and
   memoised per object. Add a config type, add a validator — `TraditionConfig` went unchecked for
