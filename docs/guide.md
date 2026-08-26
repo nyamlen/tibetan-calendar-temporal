@@ -324,6 +324,13 @@ monthsFor(2151).map((m) => m.lunation);
 // consecutive integers — M06L is one less than M06, which is the ordering a tuple sort gets wrong
 ```
 
+**A `lunation` is only meaningful beside the config that produced it.** The count runs from *that
+tradition's* epoch, and the four shipped configs do not share one: month 1 of 2151 is lunation
+`15064` under `PHUGPA` and `3337` under `BHUTAN`. So if you store the integer as a key — which is
+what it is for — store the tradition with it, exactly as you would store a currency beside an
+amount. A column holding the bare integer is ambiguous in any application that offers more than
+one tradition, and this package ships four.
+
 ### The year name you may know in Sanskrit is not shipped, and that is deliberate
 
 `rabjungFor(year).name` carries the Tibetan name of the year — script, Wylie and phonetics — and
