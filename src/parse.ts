@@ -5,7 +5,7 @@
  */
 
 import { rangeError } from "./errors.js";
-import type { TibetanDateFields } from "./types.js";
+import type { TibetanDateFields, TibetanMonthFields } from "./types.js";
 
 /**
  * The canonical form, and only the canonical form.
@@ -114,6 +114,73 @@ export function parseTibetanDate(text: string): TibetanDateFields {
 		isLeapMonth: match[3] === "L",
 		isLeapDay: match[5] !== undefined,
 	};
+}
+
+/**
+ * The canonical month form, and only the canonical form.
+ *
+ * @remarks
+ * {@link CANONICAL} without the day and leap-day groups, and strict for the same reasons: a parser
+ * loosens without breaking anyone and tightens by breaking everyone, and `"2151-06"` is a
+ * plausible-but-wrong string this must refuse rather than guess at.
+ */
+const CANONICAL_MONTH = /^(0|-?[1-9]\d*)-M(0[1-9]|1[0-2])(L?)$/;
+
+/**
+ * Parses the canonical string form of a Tibetan month.
+ *
+ * @remarks
+ * The inverse of {@link formatTibetanMonth}, and an exact one:
+ * `formatTibetanMonth(parseTibetanMonth(s)) === s` for every string this accepts.
+ *
+ * Returns {@link TibetanMonthFields} and takes no `TraditionConfig`, for the reasons
+ * {@link parseTibetanDate} gives: naming a month is a string operation, resolving one needs the
+ * calendar, and the pair stays symmetric. A string naming a leap month that its year does not have
+ * parses successfully — the string is not the thing that is wrong. Pass the result to
+ * {@link resolveMonth} to resolve it, which is where that becomes `TCT_NO_SUCH_LEAP_MONTH`.
+ *
+ * `isLeapMonth` is **always present** in the result, so the shape is predictable to inspect and to
+ * compare.
+ *
+ * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `text` is not a string, or is a string
+ * outside the canonical grammar; `TCT_FIELD_OUT_OF_RANGE` if it parses but names a year outside the
+ * safe-integer range.
+ *
+ * @example
+ * ```ts
+ * parseTibetanMonth("2151-M06L");
+ * // { year: 2151, month: 6, isLeapMonth: true }
+ *
+ * resolveMonth(parseTibetanMonth("2151-M06L")).days;   // 30
+ * ```
+ */
+export function parseTibetanMonth(text: string): TibetanMonthFields {
+	if (typeof text !== "string") {
+		throw rangeError(
+			"TCT_INVALID_ARGUMENT",
+			`parseTibetanMonth: expected a string, received ${describe(text)}`,
+		);
+	}
+
+	const match = CANONICAL_MONTH.exec(text);
+	if (match === null) {
+		throw rangeError(
+			"TCT_INVALID_ARGUMENT",
+			`parseTibetanMonth: ${JSON.stringify(text)} is not a Tibetan month in the canonical form ` +
+				'YYYY-MMM, as produced by formatTibetanMonth — for example "2153-M12", or ' +
+				'"2151-M06L" for a leap month. The month is two digits after an M',
+		);
+	}
+
+	const year = Number(match[1]);
+	if (!Number.isSafeInteger(year)) {
+		throw rangeError(
+			"TCT_FIELD_OUT_OF_RANGE",
+			`parseTibetanMonth: ${JSON.stringify(text)} names a year outside the safe-integer range`,
+		);
+	}
+
+	return { year, month: Number(match[2]), isLeapMonth: match[3] === "L" };
 }
 
 /** A value rendered short enough for a message, and unambiguously: `"3"` is not `3`. */

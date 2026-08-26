@@ -47,7 +47,10 @@ import { PHUGPA } from "./traditions/phugpa.js";
 import type { TraditionConfig } from "./traditions/types.js";
 import { assertTraditionConfig } from "./traditions/validate.js";
 import type { TibetanDate, TibetanMonth, TibetanMonthFields } from "./types.js";
-import { rejectInvalidLeapFlags, rejectTemporalInstance } from "./types.js";
+import { rejectInvalidLeapFlags, rejectMissingFields, rejectTemporalInstance } from "./types.js";
+
+/** The two fields {@link TibetanMonthFields} declares required. */
+const MONTH_FIELDS = ["year", "month"] as const;
 
 /**
  * Rejects a year that is not a safe integer.
@@ -217,6 +220,75 @@ export function monthsFor(year: number, config: TraditionConfig = PHUGPA): Tibet
 }
 
 /**
+ * The one {@link TibetanMonth} named by `month`, resolved from its identifying fields.
+ *
+ * @remarks
+ * The month tier's counterpart to {@link resolveDate}, and the named route from a month's
+ * **identity** to the month itself. Before it existed the two available routes were both
+ * accidents: `addMonths(month, 0)` — a zero step, which reads as a mistake — and
+ * `monthsFor(year).find(…)`, which must match on `month` **and** `isLeapMonth` together and
+ * silently returns the wrong half of a leap pair when it matches on the number alone.
+ *
+ * Equal to the corresponding entry of `monthsFor(month.year)`, computed directly rather than by
+ * building the year: one `true_date` pair against the ~26 the whole list costs.
+ *
+ * **Not named `monthFor`.** That differs from {@link monthsFor} by one letter, takes the same
+ * first argument and returns a month-shaped thing — the collision `docs/coding-standards.md`
+ * records as compiling silently and recursing.
+ *
+ * @param month - The month to resolve. `isLeapMonth` defaults to `false`, the regular month.
+ * @param config - Astronomical constants. Defaults to `PHUGPA`.
+ *
+ * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `month` is not an object naming a Tibetan
+ * month, or `isLeapMonth` is present and not a boolean; `TCT_FIELD_OUT_OF_RANGE` for a field out of
+ * range; `TCT_NO_SUCH_LEAP_MONTH` if `isLeapMonth` is set for a month with no twin that year;
+ * `TCT_OUTSIDE_EXACT_RANGE` past the tradition's exact range.
+ *
+ * @example
+ * ```ts
+ * const leap = resolveMonth({ year: 2151, month: 6, isLeapMonth: true });
+ * leap.monthCode;             // "M06L"
+ * leap.firstDay.toString();   // "2024-07-06"
+ * leap.days;                  // 30
+ * ```
+ */
+export function resolveMonth(
+	month: TibetanMonthFields,
+	config: TraditionConfig = PHUGPA,
+): TibetanMonth {
+	rejectTemporalInstance("resolveMonth", month);
+	rejectInvalidLeapFlags("resolveMonth", month);
+	rejectMissingFields("resolveMonth", month, MONTH_FIELDS);
+	const isLeapMonth = month.isLeapMonth ?? false;
+	const subject = () =>
+		`resolveMonth({ year: ${month.year}, month: ${month.month}` +
+		`${isLeapMonth ? ", isLeapMonth: true" : ""} })`;
+
+	assertSafeYear(subject(), month.year);
+	if (!Number.isInteger(month.month) || month.month < 1 || month.month > 12) {
+		throw rangeError(
+			"TCT_FIELD_OUT_OF_RANGE",
+			`${subject()}: month must be an integer 1-12, received ${month.month}`,
+		);
+	}
+
+	const scaled = scalingFor(config);
+	const y = yearFromRoyalEra(month.year);
+	assertClosedFormYear(subject, y, config);
+	if (isLeapMonth && !sharesNumberWithLeapMonth(config, y, month.month)) {
+		throw rangeError(
+			"TCT_NO_SUCH_LEAP_MONTH",
+			`${subject()}: month ${month.month} of ${month.year} has no leap month. Drop isLeapMonth, ` +
+				"or use monthsFor to see which month of a year is doubled.",
+		);
+	}
+
+	const monthCount = trueMonthCount(config, y, month.month, isLeapMonth);
+	assertExactJulianDay(scaled, firstDayOfMonth(scaled, monthCount), subject);
+	assertExactJulianDay(scaled, lastDayOfMonth(scaled, monthCount), subject);
+	return describeMonth(scaled, monthCount, month.year, month.month, isLeapMonth);
+}
+/**
  * How many **calendar days** a Tibetan month spans: 29 or 30.
  *
  * @remarks
@@ -245,6 +317,7 @@ export function monthsFor(year: number, config: TraditionConfig = PHUGPA): Tibet
 export function daysInMonth(month: TibetanMonthFields, config: TraditionConfig = PHUGPA): number {
 	rejectTemporalInstance("daysInMonth", month);
 	rejectInvalidLeapFlags("daysInMonth", month);
+	rejectMissingFields("daysInMonth", month, MONTH_FIELDS);
 	const scaled = scalingFor(config);
 	const isLeapMonth = month.isLeapMonth ?? false;
 	const subject = () =>
@@ -394,6 +467,7 @@ export function datesFor(
 	// thing wrong with delegating, so the guards run first under this function's name.
 	rejectTemporalInstance("datesFor", month);
 	rejectInvalidLeapFlags("datesFor", month);
+	rejectMissingFields("datesFor", month, MONTH_FIELDS);
 	assertSafeYear(`datesFor({ year: ${month.year}, month: ${month.month} })`, month.year);
 	if (!Number.isInteger(month.month) || month.month < 1 || month.month > 12) {
 		throw rangeError(

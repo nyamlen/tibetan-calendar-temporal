@@ -14,6 +14,7 @@ import {
 	leapMonthOfYear,
 	monthsFor,
 	monthsInYear,
+	resolveMonth,
 } from "../src/months.js";
 import { PHUGPA, PHUGPA_HENNING } from "../src/traditions/phugpa.js";
 import type { TibetanMonth } from "../src/types.js";
@@ -538,5 +539,37 @@ describe("datesFor", () => {
 		expect(codeOf(() => datesFor({ year: 11_490, month: 1 }, PHUGPA_HENNING))).toBe(
 			"TCT_OUTSIDE_EXACT_RANGE",
 		);
+	});
+});
+
+describe("resolveMonth", () => {
+	it("returns the same object monthsFor returns for that month", () => {
+		const month = resolveMonth({ year: 2151, month: 6, isLeapMonth: true });
+		expect(month.monthCode).toBe("M06L");
+		expect(month.firstDay.toString()).toBe("2024-07-06");
+		expect(month.days).toBe(30);
+	});
+
+	it("agrees with monthsFor across a leap year, month for month", () => {
+		for (const month of monthsFor(2151)) {
+			expect(
+				resolveMonth({ year: 2151, month: month.month, isLeapMonth: month.isLeapMonth }),
+			).toEqual(month);
+		}
+	});
+
+	it("defaults isLeapMonth to the regular month, as the field documents", () => {
+		expect(resolveMonth({ year: 2151, month: 6 }).monthCode).toBe("M06");
+	});
+
+	it("throws TCT_NO_SUCH_LEAP_MONTH for a leap month the year does not have", () => {
+		expect(codeOf(() => resolveMonth({ year: 2153, month: 6, isLeapMonth: true }))).toBe(
+			"TCT_NO_SUCH_LEAP_MONTH",
+		);
+	});
+
+	it("carries the same guards daysInMonth does", () => {
+		expect(codeOf(() => resolveMonth({ year: 2151, month: 13 }))).toBe("TCT_FIELD_OUT_OF_RANGE");
+		expect(codeOf(() => resolveMonth({ year: 1.5, month: 1 }))).toBe("TCT_FIELD_OUT_OF_RANGE");
 	});
 });

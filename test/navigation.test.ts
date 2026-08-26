@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { isoToTibetan, tibetanDateExists, tibetanToIso } from "../src/computation/conversion.js";
 import { yearNameFor } from "../src/cycles.js";
-import { monthsFor } from "../src/months.js";
+import { datesFor, monthsFor } from "../src/months.js";
 import {
 	addDays,
 	addMonths,
@@ -11,8 +11,10 @@ import {
 	monthsBetween,
 	nextFullMoon,
 	nextNewMoon,
+	resolveDate,
 } from "../src/navigation.js";
 import { PHUGPA_HENNING } from "../src/traditions/phugpa.js";
+import { SkippedDayError } from "../src/types.js";
 
 const iso = (s: string) => Temporal.PlainDate.from(s);
 
@@ -561,5 +563,45 @@ describe("nextFullMoon and nextNewMoon", () => {
 		// And the same day is fine under PHUGPA, whose range is far wider — so this is the tradition's
 		// bound biting, not a broken date.
 		expect(() => nextFullMoon(iso("+011356-03-02"))).not.toThrow();
+	});
+});
+
+describe("resolveDate", () => {
+	it("resolves identifying fields to the date they name", () => {
+		expect(resolveDate({ year: 2153, month: 12, day: 8 }).isoDate.toString()).toBe("2027-01-15");
+	});
+
+	it("agrees with the round trip it replaces, across a month", () => {
+		for (const date of datesFor({ year: 2153, month: 1 })) {
+			expect(
+				resolveDate({
+					year: date.year,
+					month: date.month,
+					day: date.day,
+					isLeapMonth: date.isLeapMonth,
+					isLeapDay: date.isLeapDay,
+				}),
+			).toEqual(date);
+		}
+	});
+
+	it("throws an actual SkippedDayError on a date no day carries", () => {
+		let thrown: unknown;
+		try {
+			resolveDate({ year: 2150, month: 12, day: 29 });
+		} catch (error) {
+			thrown = error;
+		}
+		expect(thrown).toBeInstanceOf(SkippedDayError);
+		expect((thrown as SkippedDayError).code).toBe("TCT_SKIPPED_DAY");
+	});
+
+	it("carries the same field guards addDays does", () => {
+		expect(codeOf(() => resolveDate({ year: 2153, month: 12, day: 31 }))).toBe(
+			"TCT_FIELD_OUT_OF_RANGE",
+		);
+		expect(codeOf(() => resolveDate({ year: 2153, month: 13, day: 1 }))).toBe(
+			"TCT_FIELD_OUT_OF_RANGE",
+		);
 	});
 });

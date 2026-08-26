@@ -701,6 +701,55 @@ export function rejectInvalidLeapFlags(
 	}
 }
 
+/** The fields {@link rejectMissingFields} can be asked about — the required ones of the two field types. */
+export type RequiredDateField = "year" | "month" | "day";
+
+/**
+ * Rejects a required numeric field that is absent, nullish, or not a number at all.
+ *
+ * @remarks
+ * The presence half of the boundary check, and it carries a **different code** from the range
+ * half on purpose. `TCT_FIELD_OUT_OF_RANGE` means a number is wrong; `TCT_INVALID_ARGUMENT` means
+ * the argument is the wrong *kind* of thing — and only the first is on `tibetanDateExists`'s
+ * swallow-allowlist. That is the whole reason the split exists, and until 2026-08-26 the presence
+ * case was on the wrong side of it:
+ *
+ * ```ts
+ * tibetanDateExists({ year: 2151, month: 6, isLeapMonth: true });  // was false — it is a MONTH
+ * tibetanDateExists({ year: 2153, month: 1 });                     // was false — day forgotten
+ * ```
+ *
+ * Both reported type confusion as *a date that does not exist*. The engine never detects that the
+ * argument is a month; it detects a missing field, which is why the fix belongs here rather than
+ * in a wrong-shape branch. Neither case is reachable by a caller who is right about what they are
+ * passing, so throwing loses nothing the `false` was giving.
+ *
+ * **`NaN` and non-integers are deliberately *not* here.** They are present numbers that are out of
+ * range, so they keep `TCT_FIELD_OUT_OF_RANGE` and keep answering `false`; the range check at each
+ * call site still owns them. Four input classes, two codes, and the line between them is
+ * **presence**, not validity.
+ *
+ * Mirrors {@link rejectInvalidLeapFlags}: one policy for the message and the code in one place
+ * rather than the same guard written out at each entry point that needs it.
+ */
+export function rejectMissingFields(
+	functionName: string,
+	value: { year?: unknown; month?: unknown; day?: unknown },
+	fields: readonly RequiredDateField[],
+): void {
+	for (const field of fields) {
+		const present = value[field];
+		if (typeof present === "number") continue;
+		throw rangeError(
+			"TCT_INVALID_ARGUMENT",
+			`${functionName}: ${field} is required and must be a number, received ` +
+				`${describeFlagValue(present)}. A missing or wrong-typed field is a malformed ` +
+				"argument, not a date out of range, so it is thrown rather than reported as a date " +
+				"that does not exist",
+		);
+	}
+}
+
 /**
  * The identifying fields needed to name a Tibetan month, as accepted by `daysInMonth`.
  *

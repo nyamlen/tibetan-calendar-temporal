@@ -16,7 +16,12 @@ import { weekdayNameWithOffset } from "../names.js";
 import { PHUGPA } from "../traditions/phugpa.js";
 import type { TraditionConfig } from "../traditions/types.js";
 import type { TibetanDate, TibetanDateFields } from "../types.js";
-import { rejectInvalidLeapFlags, rejectTemporalInstance, SkippedDayError } from "../types.js";
+import {
+	rejectInvalidLeapFlags,
+	rejectMissingFields,
+	rejectTemporalInstance,
+	SkippedDayError,
+} from "../types.js";
 import { floorDiv, mod } from "./arithmetic.js";
 import {
 	assertClosedFormYear,
@@ -30,6 +35,9 @@ import { julianDayOfLunarDay } from "./corrections.js";
 import { royalEraFromYear, yearFromRoyalEra } from "./epoch.js";
 import { meanDate } from "./mean-astronomy.js";
 import { type ScaledTradition, scalingFor } from "./scaling.js";
+
+/** The three fields {@link TibetanDateFields} declares required. */
+const DATE_FIELDS = ["year", "month", "day"] as const;
 
 // Checked at module evaluation, because the next line already needs Temporal. Without this a
 // consumer on a runtime that lacks it gets `ReferenceError: Temporal is not defined` on import,
@@ -411,6 +419,7 @@ export function tibetanToIso(
 ): Temporal.PlainDate {
 	rejectTemporalInstance("tibetanToIso", input);
 	rejectInvalidLeapFlags("tibetanToIso", input);
+	rejectMissingFields("tibetanToIso", input, DATE_FIELDS);
 	const scaled = scalingFor(config);
 	const isLeapMonth = input.isLeapMonth ?? false;
 
@@ -494,6 +503,22 @@ export function tibetanToIso(
  * `TCT_INVALID_ARGUMENT` is on the throwing side for the same kind of reason: a `Temporal.PlainDate`
  * or a non-boolean `isLeapMonth` is a confusion in the caller's code, not a date that does not
  * exist, and answering `false` would let that confusion look like a calendrical fact.
+ *
+ * ## A missing or wrong-typed field throws — changed 2026-08-26
+ *
+ * **This is a behaviour change, and a migration note for anyone passing unvalidated input.** A
+ * required field that is absent, `null`, or not a number now raises `TCT_INVALID_ARGUMENT` rather
+ * than answering `false`:
+ *
+ * ```ts
+ * tibetanDateExists({ year: 2153, month: 1 });                     // throws — day forgotten
+ * tibetanDateExists({ year: 2151, month: 6, isLeapMonth: true });  // throws — that is a MONTH
+ * ```
+ *
+ * Both used to answer `false`, reporting the caller's type confusion as a calendrical fact — the
+ * exact outcome the two-code split exists to prevent. A **present** number that is out of range,
+ * fractional or `NaN` is unchanged and still answers `false`; the line is presence, not validity.
+ * Validate shape before calling if you were relying on `false` for arbitrary input.
  */
 export function tibetanDateExists(
 	input: TibetanDateFields,
@@ -510,6 +535,7 @@ export function tibetanDateExists(
 	// both meanings, so a Temporal instance caught inside the try was swallowed into `false`.
 	rejectTemporalInstance("tibetanDateExists", input);
 	rejectInvalidLeapFlags("tibetanDateExists", input);
+	rejectMissingFields("tibetanDateExists", input, DATE_FIELDS);
 	try {
 		tibetanToIso(input, config);
 		return true;

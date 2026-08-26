@@ -5,7 +5,13 @@
  */
 
 import { rangeError } from "./errors.js";
-import { rejectInvalidLeapFlags, rejectTemporalInstance, type TibetanDateFields } from "./types.js";
+import {
+	rejectInvalidLeapFlags,
+	rejectMissingFields,
+	rejectTemporalInstance,
+	type TibetanDateFields,
+	type TibetanMonthFields,
+} from "./types.js";
 
 /**
  * Formats a month as a Temporal-style code: `"M01"`…`"M12"`, with `L` appended for a leap month.
@@ -89,6 +95,7 @@ export function formatTibetanDate(date: TibetanDateFields): string {
 	// shape test would make that test the reachable one and this function's shape error would then
 	// carry the range code, disagreeing with the other three entry points.
 	rejectInvalidLeapFlags("formatTibetanDate", date);
+	rejectMissingFields("formatTibetanDate", date, ["year", "month", "day"]);
 	if (
 		!Number.isSafeInteger(date.year) ||
 		!Number.isInteger(date.month) ||
@@ -107,6 +114,53 @@ export function formatTibetanDate(date: TibetanDateFields): string {
 	const day = String(date.day).padStart(2, "0");
 	const monthCode = monthCodeOf(date.month, date.isLeapMonth ?? false);
 	return `${date.year}-${monthCode}-${day}${date.isLeapDay ? " (leap)" : ""}`;
+}
+
+/**
+ * Formats a Tibetan month as `YYYY-MMM`, e.g. `"2151-M06L"`.
+ *
+ * @remarks
+ * The month-tier counterpart of {@link formatTibetanDate}, and the inverse of
+ * {@link parseTibetanMonth}. The same argument applies one tier up: `` `${year}-${month}` ``
+ * hand-rolled discards `isLeapMonth`, so the two months of a leap pair render identically and a
+ * string that looks like a month key silently names the wrong one of the two.
+ *
+ * The month segment is {@link monthCodeOf}'s output, the sole producer of that substring, so this
+ * cannot drift from `TibetanMonth.monthCode`.
+ *
+ * **A `TibetanDate` is accepted and its day is dropped.** A date is structurally a
+ * {@link TibetanMonthFields}, so `formatTibetanMonth(aDate)` compiles and returns that date's
+ * month. That is the same deliberate widening {@link daysInMonth} makes — a value from
+ * `isoToTibetan` can be passed straight in — and it is stated here rather than left to be
+ * discovered, because the string it returns is a *month* and looks nothing like a truncated date.
+ *
+ * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `month` is not an object naming a Tibetan
+ * month, or `isLeapMonth` is present and not a boolean; `TCT_FIELD_OUT_OF_RANGE` if it does not
+ * carry an integer year and a month in 1-12.
+ *
+ * @example
+ * ```ts
+ * formatTibetanMonth({ year: 2151, month: 6, isLeapMonth: true });   // "2151-M06L"
+ * formatTibetanMonth({ year: 2153, month: 12 });                     // "2153-M12"
+ * ```
+ */
+export function formatTibetanMonth(month: TibetanMonthFields): string {
+	rejectTemporalInstance("formatTibetanMonth", month);
+	rejectInvalidLeapFlags("formatTibetanMonth", month);
+	rejectMissingFields("formatTibetanMonth", month, ["year", "month"]);
+	if (
+		!Number.isSafeInteger(month.year) ||
+		!Number.isInteger(month.month) ||
+		month.month < 1 ||
+		month.month > 12
+	) {
+		throw rangeError(
+			"TCT_FIELD_OUT_OF_RANGE",
+			"formatTibetanMonth: expected a year and a month 1-12, received " +
+				`${describe(month)}. Pass a value returned by monthsFor or resolveMonth`,
+		);
+	}
+	return `${month.year}-${monthCodeOf(month.month, month.isLeapMonth ?? false)}`;
 }
 
 /**

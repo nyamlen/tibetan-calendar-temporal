@@ -48,7 +48,13 @@ import { PHUGPA } from "./traditions/phugpa.js";
 import type { TraditionConfig } from "./traditions/types.js";
 import { assertTraditionConfig } from "./traditions/validate.js";
 import type { TibetanDate, TibetanDateFields, TibetanMonth, TibetanMonthFields } from "./types.js";
-import { rejectInvalidLeapFlags, rejectTemporalInstance } from "./types.js";
+import { rejectInvalidLeapFlags, rejectMissingFields, rejectTemporalInstance } from "./types.js";
+
+/** The three fields {@link TibetanDateFields} declares required. */
+const DATE_FIELDS = ["year", "month", "day"] as const;
+
+/** The two fields {@link TibetanMonthFields} declares required. */
+const MONTH_FIELDS = ["year", "month"] as const;
 
 /**
  * Validates a month-shaped argument, under the name the caller actually used.
@@ -62,6 +68,7 @@ import { rejectInvalidLeapFlags, rejectTemporalInstance } from "./types.js";
 function assertMonthFields(subject: string, month: TibetanMonthFields): void {
 	rejectTemporalInstance(subject, month);
 	rejectInvalidLeapFlags(subject, month);
+	rejectMissingFields(subject, month, MONTH_FIELDS);
 	if (!Number.isSafeInteger(month.year)) {
 		throw rangeError(
 			"TCT_FIELD_OUT_OF_RANGE",
@@ -88,6 +95,7 @@ function assertMonthFields(subject: string, month: TibetanMonthFields): void {
 function assertDateFields(subject: string, date: TibetanDateFields): void {
 	rejectTemporalInstance(subject, date);
 	rejectInvalidLeapFlags(subject, date);
+	rejectMissingFields(subject, date, DATE_FIELDS);
 	if (!Number.isSafeInteger(date.year)) {
 		throw rangeError(
 			"TCT_FIELD_OUT_OF_RANGE",
@@ -376,6 +384,44 @@ export function addDays(
 	// would either throw uncoded from Temporal or answer from degraded arithmetic.
 	assertExactJulianDay(scaled, target, () => `addDays(…, ${days})`);
 	return isoToTibetan(isoFromJulianDayUnchecked(target), config);
+}
+
+/**
+ * The one {@link TibetanDate} named by `date`, resolved from its identifying fields.
+ *
+ * @remarks
+ * The named route from a date's **identity** to the date itself, and the counterpart of
+ * {@link resolveMonth} one tier down. Before it existed the two available routes were both
+ * accidents of other functions: `addDays(date, 0)` — a zero step, which reads as a mistake — and
+ * `isoToTibetan(tibetanToIso(date))`, which announces a round trip through the Western calendar
+ * to answer a Tibetan question.
+ *
+ * **Two passes, not a lookup.** It is exactly that round trip, named: fields to a Julian day and
+ * back. Reach for it to *resolve* an identity, not inside a loop over a month — {@link datesFor}
+ * walks the calendar days once and is the right shape there.
+ *
+ * @param date - The date to resolve. `isLeapMonth` and `isLeapDay` default to `false`.
+ * @param config - Astronomical constants. Defaults to `PHUGPA`.
+ *
+ * @throws {@link SkippedDayError} — code `TCT_SKIPPED_DAY` — if no calendar day carries `date`.
+ * Use {@link tibetanDateExists} to test first.
+ * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `date` is not an object naming a Tibetan
+ * date, or a leap flag is present and not a boolean; `TCT_FIELD_OUT_OF_RANGE` for a field out of
+ * range; `TCT_OUTSIDE_EXACT_RANGE` past the tradition's exact range.
+ *
+ * @example
+ * ```ts
+ * const date = resolveDate({ year: 2153, month: 12, day: 8 });
+ * date.isoDate.toString();   // "2027-01-15"
+ * ```
+ */
+export function resolveDate(
+	date: TibetanDateFields,
+	config: TraditionConfig = PHUGPA,
+): TibetanDate {
+	assertTraditionConfig(config);
+	assertDateFields("resolveDate", date);
+	return isoToTibetan(tibetanToIso(date, config), config);
 }
 
 /**

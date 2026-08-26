@@ -284,7 +284,6 @@ describe("error codes", () => {
 		["tibetanWeekday, string", () => api.tibetanWeekday("x" as unknown as number)],
 		["isoFromJulianDay, fractional", () => api.isoFromJulianDay(0.5)],
 		["isoFromJulianDay, NaN", () => api.isoFromJulianDay(Number.NaN)],
-		["formatTibetanDate, empty object", () => api.formatTibetanDate({} as never)],
 	])("codes the failure of %s", (_label, call) => {
 		expect(codeOf(call)).toBe("TCT_FIELD_OUT_OF_RANGE");
 	});
@@ -297,14 +296,30 @@ describe("error codes", () => {
 	 * `TCT_FIELD_OUT_OF_RANGE` named neither a field nor a range for any of them, which is what
 	 * `docs/decisions/2026-08-15-argument-errors-split.md` records.
 	 *
-	 * `formatTibetanDate({})` stays with the range code above deliberately: `{}` *is* an object, so
-	 * it clears the shape guard and fails on `year` not being a safe integer — the same place
-	 * `tibetanToIso({})` fails, and the two must agree.
+	 * `formatTibetanDate({})` moved here on 2026-08-26. It used to carry the range code on the
+	 * reasoning that `{}` is an object, so it clears the shape guard and fails on `year` not being a
+	 * safe integer. That put an ABSENT required field on `tibetanDateExists`'s swallow-allowlist,
+	 * which is how `tibetanDateExists({ year, month })` with the day forgotten answered `false`
+	 * instead of throwing. Presence is a wrong *kind* of argument; only a present-but-bad number is
+	 * a range failure.
 	 */
 	it.each([
 		["julianDayFromIso, null", () => api.julianDayFromIso(null as unknown as Temporal.PlainDate)],
 		["julianDayFromIso, number", () => api.julianDayFromIso(7 as unknown as Temporal.PlainDate)],
 		["formatTibetanDate, null", () => api.formatTibetanDate(null as never)],
+		["formatTibetanDate, empty object", () => api.formatTibetanDate({} as never)],
+		[
+			"tibetanDateExists, a month object",
+			() => api.tibetanDateExists({ year: 2151, month: 6 } as never),
+		],
+		[
+			"tibetanDateExists, day forgotten",
+			() => api.tibetanDateExists({ year: 2153, month: 1 } as never),
+		],
+		[
+			"tibetanToIso, day as a string",
+			() => api.tibetanToIso({ year: 2153, month: 1, day: "5" } as never),
+		],
 		["isoToTibetan, garbage string", () => api.isoToTibetan("not-a-date" as never)],
 		// The three Tibetan-date entry points that lacked formatTibetanDate's null/non-object guard:
 		// rejectInvalidLeapFlags dereferenced `value[field]` with no shape check first, so these threw
