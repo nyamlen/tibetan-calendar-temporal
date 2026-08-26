@@ -168,3 +168,35 @@ describe("formatTibetanMonth / parseTibetanMonth", () => {
 		expect(resolveMonth(parseTibetanMonth("2151-M06L")).days).toBe(30);
 	});
 });
+
+describe("the month string pair's guards", () => {
+	// Added after `npm run coverage` reported these three lines unreached — the new code shipped
+	// with its happy path and its grammar covered and its FIELD guards not. Coverage is run for
+	// what it reports, not only to keep it passing.
+	it("refuses a month object that is not one", () => {
+		expect(codeOf(() => formatTibetanMonth({ year: 2151, month: 13 }))).toBe(
+			"TCT_FIELD_OUT_OF_RANGE",
+		);
+		expect(codeOf(() => formatTibetanMonth({ year: 2151, month: 0 }))).toBe(
+			"TCT_FIELD_OUT_OF_RANGE",
+		);
+		expect(codeOf(() => formatTibetanMonth({ year: 1.5, month: 1 }))).toBe(
+			"TCT_FIELD_OUT_OF_RANGE",
+		);
+		expect(codeOf(() => formatTibetanMonth({} as never))).toBe("TCT_INVALID_ARGUMENT");
+		expect(codeOf(() => formatTibetanMonth(null as never))).toBe("TCT_INVALID_ARGUMENT");
+	});
+
+	it("refuses a non-string where the text belongs", () => {
+		for (const value of [null, undefined, 2151, { year: 2151 }]) {
+			expect(codeOf(() => parseTibetanMonth(value as never))).toBe("TCT_INVALID_ARGUMENT");
+		}
+	});
+
+	it("refuses a year outside the safe-integer range, as the date parser does", () => {
+		// Parses the grammar, then fails on the value — so it is a FIELD out of range, not a
+		// malformed string. The two codes are on opposite sides of the boundary the parser draws.
+		const huge = `${"9".repeat(20)}-M06`;
+		expect(codeOf(() => parseTibetanMonth(huge))).toBe("TCT_FIELD_OUT_OF_RANGE");
+	});
+});
