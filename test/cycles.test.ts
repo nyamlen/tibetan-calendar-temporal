@@ -1,7 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { losarFor } from "../src/computation/conversion.js";
-import { rabjungFor, yearNameFor } from "../src/cycles.js";
+import {
+	isoToTibetan,
+	julianDayFromIso,
+	losarFor,
+	tibetanWeekday,
+} from "../src/computation/conversion.js";
+import { rabjungFor, weekdayNameFor, yearNameFor } from "../src/cycles.js";
 import { PHUGPA_HENNING } from "../src/traditions/phugpa.js";
+import { asTibetanWeekday, type TibetanWeekday } from "../src/types.js";
+
+const iso = (s: string) => Temporal.PlainDate.from(s);
 
 const codeOf = (call: () => unknown): string | undefined => {
 	try {
@@ -102,5 +110,63 @@ describe("yearNameFor and rabjungFor", () => {
 		} catch (error) {
 			expect((error as Error).message).toContain("rabjungFor");
 		}
+	});
+});
+
+describe("TibetanWeekday brand", () => {
+	// The spike's finding 9: the only SILENT wrong answer anywhere on this surface. ISO dayOfWeek
+	// runs 1-7 from Monday, Tibetan tibetanWeekday runs 0-6 from Saturday, both are fields on the
+	// same object, and passing the wrong one compiled, threw nothing and returned the wrong name
+	// six days in seven.
+	it("makes weekdayNameFor(date.dayOfWeek) a COMPILE error", () => {
+		const date = isoToTibetan(iso("2027-01-15"));
+		// @ts-expect-error dayOfWeek is an ISO number, not a TibetanWeekday. tsc errors on an
+		// UNUSED @ts-expect-error, so this line fails `npm run typecheck` the moment the brand is
+		// widened back to `number` — which is what makes it evidence rather than decoration.
+		expect(() => weekdayNameFor(date.dayOfWeek)).not.toThrow();
+	});
+
+	it("lets both legitimate sources through untouched", () => {
+		const date = isoToTibetan(iso("2027-01-15"));
+		expect(weekdayNameFor(date.tibetanWeekday).wylie).toBe(
+			weekdayNameFor(tibetanWeekday(julianDayFromIso(date.isoDate))).wylie,
+		);
+	});
+
+	it("would have been SILENTLY wrong six days in seven, and thrown on the seventh", () => {
+		// A measurement of what the slip actually cost, not a claim about types. tibetanWeekday is
+		// (dayOfWeek + 1) mod 7, so the two numbers NEVER coincide. On ISO Sunday, dayOfWeek is 7 and
+		// the runtime guard rejects it — loudly. On the other six the call succeeds and returns
+		// the wrong name. That asymmetry is the finding: six silent, one loud.
+		let silentlyWrong = 0;
+		let threw = 0;
+		const total = 70;
+		let day = iso("2027-01-01");
+		for (let i = 0; i < total; i++) {
+			const date = isoToTibetan(day);
+			const correct = weekdayNameFor(date.tibetanWeekday).wylie;
+			try {
+				const slipped = weekdayNameFor(date.dayOfWeek as unknown as TibetanWeekday).wylie;
+				if (slipped !== correct) silentlyWrong++;
+			} catch {
+				threw++;
+			}
+			day = day.add({ days: 1 });
+		}
+		expect(silentlyWrong).toBe((total / 7) * 6);
+		expect(threw).toBe(total / 7);
+	});
+
+	it("validates on the way in from a number this package did not produce", () => {
+		expect(weekdayNameFor(asTibetanWeekday(0)).planet).toBe("saturn");
+		for (const bad of [7, -1, 1.5, Number.NaN]) {
+			expect(codeOf(() => asTibetanWeekday(bad))).toBe("TCT_FIELD_OUT_OF_RANGE");
+		}
+	});
+
+	it("erases at runtime, so a branded value is just a number", () => {
+		expect(typeof asTibetanWeekday(3)).toBe("number");
+		expect(asTibetanWeekday(3) + 1).toBe(4);
+		expect(JSON.parse(JSON.stringify({ w: asTibetanWeekday(3) })).w).toBe(3);
 	});
 });

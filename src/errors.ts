@@ -44,7 +44,7 @@
  *   input error; use `tibetanDateExists` to test first.
  * - `TCT_OUTSIDE_EXACT_RANGE` — the date or year lies beyond where this tradition's integer
  *   arithmetic stays exact. Thrown by conversions and by the closed-form year functions
- *   (`hasLeapMonth`, `leapMonthOfYear`, `monthsInYear`) alike. Deliberately distinct from
+ *   (`hasLeapMonth`, `leapMonthNumberFor`, `monthsInYear`) alike. Deliberately distinct from
  *   `TCT_SKIPPED_DAY`: past the bound the day was never computed, so reporting it as non-existent
  *   would be a confident false claim.
  * - `TCT_INVALID_TRADITION_CONFIG` — a `TraditionConfig` is malformed.

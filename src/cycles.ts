@@ -26,7 +26,7 @@ import { weekdayNameWithOffset } from "./names.js";
 import { PHUGPA } from "./traditions/phugpa.js";
 import type { TraditionConfig } from "./traditions/types.js";
 import { assertTraditionConfig } from "./traditions/validate.js";
-import type { Rabjung, TibetanWeekdayName, TibetanYearName } from "./types.js";
+import type { Rabjung, TibetanWeekday, TibetanWeekdayName, TibetanYearName } from "./types.js";
 
 /**
  * Validates a year for the naming functions.
@@ -125,20 +125,34 @@ export function rabjungFor(year: number): Rabjung {
  * package ships the Tibetan name and no translations. See the README's Internationalisation
  * section.
  *
+ * ## The parameter is branded, and `date.dayOfWeek` no longer compiles
+ *
+ * The two numberings differ — ISO runs 1 = Monday through 7 = Sunday, Tibetan 0 = Saturday
+ * through 6 = Friday — and both are fields on {@link TibetanDate}. So
+ * `weekdayNameFor(date.dayOfWeek)` used to compile, throw nothing, and return the wrong name six
+ * days in seven. {@link TibetanWeekday} makes it a compile error. Pass
+ * {@link TibetanDate.tibetanWeekday} or {@link tibetanWeekday}, both of which are already branded,
+ * or {@link asTibetanWeekday} for a number from outside this package.
+ *
+ * The runtime guard below stays regardless: types erase, so a JavaScript consumer still reaches it.
+ *
  * @param weekday - Tibetan weekday, **0 = Saturday through 6 = Friday**. This is
- * `TibetanDate.tibetanWeekday`, not the ISO `dayOfWeek`.
+ * {@link TibetanDate.tibetanWeekday}, not the ISO `dayOfWeek`.
  * @param config - Tradition; defaults to Phugpa.
  *
  * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `weekday` is not an integer in 0–6.
  *
  * @example
  * ```ts
- * weekdayNameFor(0).wylie;    // 'spen pa'
- * weekdayNameFor(0).planet;   // 'saturn'
+ * weekdayNameFor(asTibetanWeekday(0)).wylie;    // 'spen pa'
+ * weekdayNameFor(asTibetanWeekday(0)).planet;   // 'saturn'
+ *
+ * const date = isoToTibetan(Temporal.PlainDate.from("2027-01-15"));
+ * weekdayNameFor(date.tibetanWeekday).wylie;    // already branded, no conversion
  * ```
  */
 export function weekdayNameFor(
-	weekday: number,
+	weekday: TibetanWeekday,
 	config: TraditionConfig = PHUGPA,
 ): TibetanWeekdayName {
 	if (!Number.isInteger(weekday) || weekday < 0 || weekday > 6) {

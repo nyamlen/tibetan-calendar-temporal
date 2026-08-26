@@ -23,15 +23,18 @@ const EXPECTED_EXPORTS = [
 	"SkippedDayError",
 	"addDays",
 	"addMonths",
+	"addMonthsToDate",
+	"asTibetanWeekday",
 	"datesFor",
 	"daysBetween",
 	"daysInMonth",
 	"formatTibetanDate",
+	"formatTibetanMonth",
 	"hasLeapMonth",
 	"isoFromJulianDay",
 	"isoToTibetan",
 	"julianDayFromIso",
-	"leapMonthOfYear",
+	"leapMonthNumberFor",
 	"losarFor",
 	"lunationFromMonth",
 	"monthFromLunation",
@@ -41,7 +44,10 @@ const EXPECTED_EXPORTS = [
 	"nextFullMoon",
 	"nextNewMoon",
 	"parseTibetanDate",
+	"parseTibetanMonth",
 	"rabjungFor",
+	"resolveDate",
+	"resolveMonth",
 	"tibetanDateExists",
 	"tibetanToIso",
 	"tibetanWeekday",
@@ -66,15 +72,18 @@ describe("public API surface", () => {
 			SkippedDayError: "function",
 			addDays: "function",
 			addMonths: "function",
+			addMonthsToDate: "function",
+			asTibetanWeekday: "function",
 			datesFor: "function",
 			daysBetween: "function",
 			daysInMonth: "function",
 			formatTibetanDate: "function",
+			formatTibetanMonth: "function",
 			hasLeapMonth: "function",
 			isoFromJulianDay: "function",
 			isoToTibetan: "function",
 			julianDayFromIso: "function",
-			leapMonthOfYear: "function",
+			leapMonthNumberFor: "function",
 			losarFor: "function",
 			lunationFromMonth: "function",
 			monthFromLunation: "function",
@@ -84,7 +93,10 @@ describe("public API surface", () => {
 			nextFullMoon: "function",
 			nextNewMoon: "function",
 			parseTibetanDate: "function",
+			parseTibetanMonth: "function",
 			rabjungFor: "function",
+			resolveDate: "function",
+			resolveMonth: "function",
 			tibetanDateExists: "function",
 			tibetanToIso: "function",
 			tibetanWeekday: "function",
@@ -245,8 +257,10 @@ describe("error codes", () => {
 		// consumer, and for the TypeScript one whose config came from JSON.parse or a form field.
 		TCT_INVALID_OBSERVANCE_CONFIG: () =>
 			observances.observancesOn(iso("2026-08-12"), {
-				...observances.GELUG,
-				doubledDay: "1st" as observances.DoubledDayChoice,
+				config: {
+					...observances.GELUG,
+					doubledDay: "1st" as observances.DoubledDayChoice,
+				},
 			}),
 		TCT_SPAN_TOO_WIDE: () => observances.getObservances(iso("1500-01-01"), iso("2500-01-01")),
 	};
@@ -284,7 +298,6 @@ describe("error codes", () => {
 		["tibetanWeekday, string", () => api.tibetanWeekday("x" as unknown as number)],
 		["isoFromJulianDay, fractional", () => api.isoFromJulianDay(0.5)],
 		["isoFromJulianDay, NaN", () => api.isoFromJulianDay(Number.NaN)],
-		["formatTibetanDate, empty object", () => api.formatTibetanDate({} as never)],
 	])("codes the failure of %s", (_label, call) => {
 		expect(codeOf(call)).toBe("TCT_FIELD_OUT_OF_RANGE");
 	});
@@ -297,14 +310,30 @@ describe("error codes", () => {
 	 * `TCT_FIELD_OUT_OF_RANGE` named neither a field nor a range for any of them, which is what
 	 * `docs/decisions/2026-08-15-argument-errors-split.md` records.
 	 *
-	 * `formatTibetanDate({})` stays with the range code above deliberately: `{}` *is* an object, so
-	 * it clears the shape guard and fails on `year` not being a safe integer — the same place
-	 * `tibetanToIso({})` fails, and the two must agree.
+	 * `formatTibetanDate({})` moved here on 2026-08-26. It used to carry the range code on the
+	 * reasoning that `{}` is an object, so it clears the shape guard and fails on `year` not being a
+	 * safe integer. That put an ABSENT required field on `tibetanDateExists`'s swallow-allowlist,
+	 * which is how `tibetanDateExists({ year, month })` with the day forgotten answered `false`
+	 * instead of throwing. Presence is a wrong *kind* of argument; only a present-but-bad number is
+	 * a range failure.
 	 */
 	it.each([
 		["julianDayFromIso, null", () => api.julianDayFromIso(null as unknown as Temporal.PlainDate)],
 		["julianDayFromIso, number", () => api.julianDayFromIso(7 as unknown as Temporal.PlainDate)],
 		["formatTibetanDate, null", () => api.formatTibetanDate(null as never)],
+		["formatTibetanDate, empty object", () => api.formatTibetanDate({} as never)],
+		[
+			"tibetanDateExists, a month object",
+			() => api.tibetanDateExists({ year: 2151, month: 6 } as never),
+		],
+		[
+			"tibetanDateExists, day forgotten",
+			() => api.tibetanDateExists({ year: 2153, month: 1 } as never),
+		],
+		[
+			"tibetanToIso, day as a string",
+			() => api.tibetanToIso({ year: 2153, month: 1, day: "5" } as never),
+		],
 		["isoToTibetan, garbage string", () => api.isoToTibetan("not-a-date" as never)],
 		// The three Tibetan-date entry points that lacked formatTibetanDate's null/non-object guard:
 		// rejectInvalidLeapFlags dereferenced `value[field]` with no shape check first, so these threw
@@ -504,7 +533,7 @@ describe("error codes", () => {
 		expect(() => api.daysInMonth({ year: 2153, month: 1 })).not.toThrow();
 
 		// explicit true/false still work. 2151 month 6 is a genuine leap month
-		// (leapMonthOfYear(2151) === 6).
+		// (leapMonthNumberFor(2151) === 6).
 		expect(() =>
 			api.tibetanToIso({ year: 2151, month: 6, day: 1, isLeapMonth: true }),
 		).not.toThrow();
@@ -552,7 +581,7 @@ describe("observances API surface", () => {
 	// could drift out of its own contract and only a consumer would ever find out.
 	it("passes the validation it imposes on consumer configs", () => {
 		const day = Temporal.PlainDate.from("2026-01-01");
-		expect(() => observances.getObservances(day, day, observances.GELUG)).not.toThrow();
+		expect(() => observances.getObservances(day, day, { config: observances.GELUG })).not.toThrow();
 
 		const ids = observances.GELUG.rules.map((r) => r.id);
 		expect(new Set(ids).size).toBe(ids.length);

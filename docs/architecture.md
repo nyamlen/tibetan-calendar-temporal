@@ -81,7 +81,7 @@ What earns a place on it is decided by
 
 The month tier splits along a line worth knowing. `monthsFor` and `daysInMonth` compute month
 boundaries, so they evaluate `true_date` and are bounded by the tradition's exact range;
-`hasLeapMonth`, `leapMonthOfYear` and `monthsInYear` are closed forms over the year alone, cost a
+`hasLeapMonth`, `leapMonthNumberFor` and `monthsInYear` are closed forms over the year alone, cost a
 handful of integer operations, and stay exact for any safe integer year — including years the
 first two refuse.
 
@@ -179,6 +179,12 @@ about. See [decisions/2026-08-12-observance-policy.md](decisions/2026-08-12-obse
 
 ## Core Types
 
+The shapes below are **complete** — every field of each type, not a selection. They drifted into
+being an abridgement once, with `TibetanDate` showing 10 of its 15 fields and nothing saying so,
+which is worse than an obvious summary because a reader diffs against it and concludes a field does
+not exist. `check:conventions` rule 13 compares the README's *type lists* against the barrels but
+cannot see a field, so this stays a hand sweep.
+
 ```typescript
 interface Rational { num: number; den: number }
 
@@ -213,13 +219,19 @@ interface TibetanDate {
   day: number;            // Tibetan day number (1-30)
   isDoubledDay: boolean;  // true on BOTH days sharing this number
   isLeapDay: boolean;     // true only on the first of a doubled pair (almanacs: "Extra")
+  isFullMoon: boolean;    // Do NOT test day === 15; when 15 is skipped the full moon is on 14
+  isNewMoon: boolean;     // Likewise not day === 30
   isoDate: Temporal.PlainDate;
   dayOfWeek: number;      // 1=Mon, 7=Sun (ISO standard)
+  tibetanWeekday: TibetanWeekday;  // 0=Sat..6=Fri — BRANDED, so dayOfWeek cannot be passed for it
+  weekdayName: TibetanWeekdayName; // The one name a date cannot regenerate: it needs the config
+  lunation: number;       // Unbroken month count; the date's month as a single sortable integer
 }
 
 interface TibetanMonth {
   year: number;           // Royal era, so the month identifies itself without its producer
   lunation: number;       // Unbroken count since the epoch; +1 per month, leap months included
+  yearName: TibetanYearName;  // On the month, not the date: 13 of these a year rather than 354
   month: number;          // 1-12; shared with its twin in a leap year
   monthCode: string;      // "M06" or "M06L" — unique within the year, unlike `month`
   isLeapMonth: boolean;

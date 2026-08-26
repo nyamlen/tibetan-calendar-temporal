@@ -11,9 +11,10 @@ import {
 	datesFor,
 	daysInMonth,
 	hasLeapMonth,
-	leapMonthOfYear,
+	leapMonthNumberFor,
 	monthsFor,
 	monthsInYear,
+	resolveMonth,
 } from "../src/months.js";
 import { PHUGPA, PHUGPA_HENNING } from "../src/traditions/phugpa.js";
 import type { TibetanMonth } from "../src/types.js";
@@ -333,7 +334,7 @@ describe("the scalars agree with the list", () => {
 			const months = monthsFor(year);
 			expect(monthsInYear(year), `monthsInYear ${year}`).toBe(months.length);
 			expect(hasLeapMonth(year), `hasLeapMonth ${year}`).toBe(months.some((m) => m.isLeapMonth));
-			expect(leapMonthOfYear(year), `leapMonthOfYear ${year}`).toBe(
+			expect(leapMonthNumberFor(year), `leapMonthNumberFor ${year}`).toBe(
 				months.find((m) => m.isLeapMonth)?.month,
 			);
 		}
@@ -348,7 +349,7 @@ describe("the scalars agree with the list", () => {
 
 	it("takes the royal era, not Janson's Y", () => {
 		expect(hasLeapMonth(2153)).toBe(isLeapYear(PHUGPA, 2026));
-		expect(leapMonthOfYear(2153)).toBe(leapMonthOfYearY(PHUGPA, 2026));
+		expect(leapMonthNumberFor(2153)).toBe(leapMonthOfYearY(PHUGPA, 2026));
 		expect(monthsInYear(2153)).toBe(hasLeapMonth(2153) ? 13 : 12);
 	});
 
@@ -367,7 +368,7 @@ describe("the scalars agree with the list", () => {
 		for (const call of [
 			() => hasLeapMonth(1.5),
 			() => hasLeapMonth(Number.NaN),
-			() => leapMonthOfYear(1.5),
+			() => leapMonthNumberFor(1.5),
 			() => monthsInYear(1.5),
 		]) {
 			expect(codeOf(call)).toBe("TCT_FIELD_OUT_OF_RANGE");
@@ -395,7 +396,7 @@ describe("closed-form overflow guard", () => {
 			() => daysInMonth({ year: OVERFLOW_YEAR, month: 5 }),
 			() => daysInMonth({ year: OVERFLOW_YEAR, month: 5, isLeapMonth: true }),
 			() => hasLeapMonth(OVERFLOW_YEAR),
-			() => leapMonthOfYear(OVERFLOW_YEAR),
+			() => leapMonthNumberFor(OVERFLOW_YEAR),
 			() => monthsInYear(OVERFLOW_YEAR),
 		]) {
 			expect(codeOf(call)).toBe("TCT_OUTSIDE_EXACT_RANGE");
@@ -412,7 +413,7 @@ describe("closed-form overflow guard", () => {
 	});
 
 	/**
-	 * `isLeapYear`/`leapMonthOfYear` compute `24·year + γ*` on the *absolute* Janson `Y`, not on
+	 * `isLeapYear`/`leapMonthNumberFor` compute `24·year + γ*` on the *absolute* Janson `Y`, not on
 	 * `year − epochYear` like `sharesNumberWithLeapMonth`'s route does — so the bound has to be the tighter of two
 	 * different overflow points, converted into the same `|year − epochYear|` terms. A version of
 	 * the guard that only accounted for the `12·(year − epochYear)` formula let `hasLeapMonth` answer
@@ -538,5 +539,37 @@ describe("datesFor", () => {
 		expect(codeOf(() => datesFor({ year: 11_490, month: 1 }, PHUGPA_HENNING))).toBe(
 			"TCT_OUTSIDE_EXACT_RANGE",
 		);
+	});
+});
+
+describe("resolveMonth", () => {
+	it("returns the same object monthsFor returns for that month", () => {
+		const month = resolveMonth({ year: 2151, month: 6, isLeapMonth: true });
+		expect(month.monthCode).toBe("M06L");
+		expect(month.firstDay.toString()).toBe("2024-07-06");
+		expect(month.days).toBe(30);
+	});
+
+	it("agrees with monthsFor across a leap year, month for month", () => {
+		for (const month of monthsFor(2151)) {
+			expect(
+				resolveMonth({ year: 2151, month: month.month, isLeapMonth: month.isLeapMonth }),
+			).toEqual(month);
+		}
+	});
+
+	it("defaults isLeapMonth to the regular month, as the field documents", () => {
+		expect(resolveMonth({ year: 2151, month: 6 }).monthCode).toBe("M06");
+	});
+
+	it("throws TCT_NO_SUCH_LEAP_MONTH for a leap month the year does not have", () => {
+		expect(codeOf(() => resolveMonth({ year: 2153, month: 6, isLeapMonth: true }))).toBe(
+			"TCT_NO_SUCH_LEAP_MONTH",
+		);
+	});
+
+	it("carries the same guards daysInMonth does", () => {
+		expect(codeOf(() => resolveMonth({ year: 2151, month: 13 }))).toBe("TCT_FIELD_OUT_OF_RANGE");
+		expect(codeOf(() => resolveMonth({ year: 1.5, month: 1 }))).toBe("TCT_FIELD_OUT_OF_RANGE");
 	});
 });

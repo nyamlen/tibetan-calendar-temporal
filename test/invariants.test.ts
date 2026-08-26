@@ -242,7 +242,7 @@ describe("skipped days are never observance days", () => {
 				for (const o of getObservances(
 					Temporal.PlainDate.from("2020-01-01"),
 					Temporal.PlainDate.from("2040-12-31"),
-					config,
+					{ config },
 				)) {
 					// Round-tripping through the ISO date is the strongest form: the day the
 					// observance names must be the day it actually falls on.

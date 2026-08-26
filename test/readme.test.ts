@@ -10,7 +10,13 @@ import {
 } from "../src/computation/conversion.js";
 import { rabjungFor, yearNameFor } from "../src/cycles.js";
 import { formatTibetanDate } from "../src/format.js";
-import { datesFor, daysInMonth, hasLeapMonth, leapMonthOfYear, monthsFor } from "../src/months.js";
+import {
+	datesFor,
+	daysInMonth,
+	hasLeapMonth,
+	leapMonthNumberFor,
+	monthsFor,
+} from "../src/months.js";
 import { addMonths, monthsBetween, nextFullMoon } from "../src/navigation.js";
 import { getObservances } from "../src/observances/index.js";
 import { PHUGPA_HENNING } from "../src/traditions/phugpa.js";
@@ -90,7 +96,7 @@ describe("README usage examples", () => {
 			"M01 M02 M03 M04 M05 M06L M06 M07 M08 M09 M10 M11 M12",
 		);
 		expect(hasLeapMonth(2151)).toBe(true);
-		expect(leapMonthOfYear(2151)).toBe(6);
+		expect(leapMonthNumberFor(2151)).toBe(6);
 
 		const month = monthsFor(2153)[0];
 		expect(month?.year).toBe(2153);
@@ -111,6 +117,18 @@ describe("README usage examples", () => {
 	it("builds a whole year from monthsFor and datesFor", () => {
 		const year = monthsFor(2153).flatMap((month) => datesFor(month));
 		expect(year.length).toBe(354);
+	});
+
+	// The README shipped this line POINT-FREE — `flatMap(datesFor)` — for as long as the assertion
+	// above existed, and the assertion never caught it because it transcribed the intent and wrapped
+	// the callback while doing so. `flatMap` calls back with `(value, index, array)`, so the array
+	// index landed in `datesFor`'s optional `config` parameter and the documented line could never
+	// have run. Found by a consumer spike on 2026-08-25, not by this suite.
+	//
+	// So: assert an example as WRITTEN, not as meant. A suite that quietly repairs the example it is
+	// checking reports success on a README that throws.
+	it("refuses the point-free form the README used to show", () => {
+		expect(() => monthsFor(2153).flatMap(datesFor as never)).toThrow(/TraditionConfig/);
 	});
 
 	it("names the year as documented", () => {

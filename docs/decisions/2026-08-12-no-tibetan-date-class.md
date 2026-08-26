@@ -35,9 +35,22 @@ Only **day** arithmetic is well defined, being Julian day ± n. Month and year a
 
 A class implementing only the defined subset is worse than none. `add()` that throws on
 `{months: 1}` is a partial implementation of a standard interface, and anyone arriving from
-Temporal will write it and hit a runtime error. Decisively, [CLAUDE.md](../../CLAUDE.md) lists
-**pure stateless functions** among the non-negotiable rules, and the whole package is free
-functions; a class for two well-defined operations trades an architectural rule for autocomplete.
+Temporal will write it and hit a runtime error — and a *familiar* interface is worse to implement
+partially than an unfamiliar one, because the familiarity is what makes people write the call
+without checking.
+
+**The "pure stateless functions" argument is struck — see the 2026-08-26 amendment below.** It said
+a class "trades an architectural rule for autocomplete", and that is not true: CLAUDE.md defines
+the rule as *"same input, same output, no side effects — measured by what a **caller** can
+observe"*, which an immutable class returning new instances satisfies completely.
+`Temporal.PlainDate` is itself such a class. Two arguments stand in its place:
+
+- **Plain objects serialise and class instances do not.** `TibetanDate` is 15 plain fields, so
+  `JSON.stringify`, structured clone, a worker boundary and a React or Redux store all work
+  without a revival step. This project treats serialisation as first-class enough to have reshaped
+  the type for it, taking a year of dates from 293,009 bytes to 126,629.
+- **A class ships whole under tree-shaking.** A consumer converting one date pays for the month
+  grid, the navigation tier and the name tables; free functions drop what is unused.
 
 ## The cost, accepted knowingly
 
@@ -64,9 +77,8 @@ it, because two of the three are now answered:
   Tibetan month is a lunation, so one month after leap-5 is regular-5.
 - **`until` counting labels against lunations** — answered. Lunations are what is counted, which is
   why `monthsBetween` gives 3 from month 5 to month 7 in a year that doubles month 6.
-- **`overflow: "constrain"` against non-contiguous day numbers** — **survives untouched.** A Tibetan
-  month's day numbers are still not a contiguous range, "last valid day" still needs an existence
-  scan, and the clamp target may still itself be skipped.
+- **`overflow: "constrain"` against non-contiguous day numbers** — **survived until 2026-08-26,
+  and no longer does.** See the amendment below: `addMonthsToDate` answers exactly this question.
 
 And the decisive argument is not merely intact but strengthened by what shipped. This record says
 "a class implementing only the defined subset is worse than none" — and `addMonths` returning a
@@ -75,9 +87,31 @@ returning a *date* would require answering the skipped-day question the design d
 Temporal-shaped class remains unimplementable in full, on top of
 [CLAUDE.md](../../CLAUDE.md)'s non-negotiable "pure stateless functions".
 
-Say this plainly, because **twenty-five root functions is the surface size at which the next
-reviewer reaches for a class.** The answer is not "we never got round to it"; it is that the shape
-cannot be honoured and a partial one is worse than none.
+Say this plainly, because **a root surface of this size is where the next reviewer reaches for a
+class.** The answer is not "we never got round to it"; it is that the shape cannot be honoured and
+a partial one is worse than none.
+
+## Amended 2026-08-26: the third question is answered, and the ruling still stands
+
+**Decision:** the class ruling is unchanged. Two of this record's *reasons* are not.
+
+**All three originally ill-defined operations now have stated answers.** The 2026-08-15 amendment
+recorded `overflow: "constrain"` as "surviving untouched"; `addMonthsToDate` supplies the answer
+it said did not exist — a documented clamp to the nearest existing **lower** day number, with an
+`overflow: "reject"` opt-out. The default is not invented: falling to the nearest lower existing
+day is `"preceding"`, already the shipped `/observances` convention and what Janson and FPMT
+agree on. `Temporal` faces the identical problem and clamps by default rather than refusing.
+
+So the "ill-defined" heading no longer carries the ruling on its own, and this record must say so
+rather than continue to claim otherwise. **What still carries it** is that a date-shaped class
+invites Temporal's *whole* interface, which cannot be honoured in full, plus serialisation and
+tree-shaking as set out above.
+
+**Still unruled, and deliberately left open: a namespace object.** It is not a class — no `new`,
+no `this`, no instance state — so nothing in this record covers it, and nobody has decided. The
+arguments against are tree-shaking, since a namespace object is one binding and unused members
+cannot be dropped, and that the package already separates by subpath. Raised here so the next
+reviewer finds it ruled-on-or-open rather than assuming this record settled it.
 
 ## Consequences
 

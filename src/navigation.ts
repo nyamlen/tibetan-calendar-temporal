@@ -48,7 +48,18 @@ import { PHUGPA } from "./traditions/phugpa.js";
 import type { TraditionConfig } from "./traditions/types.js";
 import { assertTraditionConfig } from "./traditions/validate.js";
 import type { TibetanDate, TibetanDateFields, TibetanMonth, TibetanMonthFields } from "./types.js";
-import { rejectInvalidLeapFlags, rejectTemporalInstance } from "./types.js";
+import {
+	rejectInvalidLeapFlags,
+	rejectMissingFields,
+	rejectTemporalInstance,
+	SkippedDayError,
+} from "./types.js";
+
+/** The three fields {@link TibetanDateFields} declares required. */
+const DATE_FIELDS = ["year", "month", "day"] as const;
+
+/** The two fields {@link TibetanMonthFields} declares required. */
+const MONTH_FIELDS = ["year", "month"] as const;
 
 /**
  * Validates a month-shaped argument, under the name the caller actually used.
@@ -62,6 +73,7 @@ import { rejectInvalidLeapFlags, rejectTemporalInstance } from "./types.js";
 function assertMonthFields(subject: string, month: TibetanMonthFields): void {
 	rejectTemporalInstance(subject, month);
 	rejectInvalidLeapFlags(subject, month);
+	rejectMissingFields(subject, month, MONTH_FIELDS);
 	if (!Number.isSafeInteger(month.year)) {
 		throw rangeError(
 			"TCT_FIELD_OUT_OF_RANGE",
@@ -88,6 +100,7 @@ function assertMonthFields(subject: string, month: TibetanMonthFields): void {
 function assertDateFields(subject: string, date: TibetanDateFields): void {
 	rejectTemporalInstance(subject, date);
 	rejectInvalidLeapFlags(subject, date);
+	rejectMissingFields(subject, date, DATE_FIELDS);
 	if (!Number.isSafeInteger(date.year)) {
 		throw rangeError(
 			"TCT_FIELD_OUT_OF_RANGE",
@@ -255,8 +268,15 @@ function monthAt(name: string, lunation: number, config: TraditionConfig): Tibet
  * **Month in, month out — and therefore total.** It never places a day number, so it never meets a
  * skipped one, and there is no convention to choose. That is the whole reason it takes a month
  * rather than a date: `addMonths(someDate, 1)` would have to decide what "the 8th of next month"
- * means when the 8th is skipped there, and the tradition supplies no answer. A `TibetanDate`
- * satisfies `TibetanMonthFields`, so you can still pass one — the day is ignored.
+ * means when the 8th is skipped there.
+ *
+ * **A date no longer compiles here — narrowed 2026-08-26.** It used to: a `TibetanDate` satisfies
+ * `TibetanMonthFields`, so `addMonths(aDate, 1)` silently discarded the day and returned a *month*.
+ * With {@link addMonthsToDate} existing that would be two names one word apart, taking the same
+ * argument and returning different types, with declaration order the only thing telling them
+ * apart. The `day?: never` is the same mechanism {@link TibetanMonthFields.calendarId} already uses
+ * to reject a `Temporal` instance, so the call now fails to compile and the error points at the
+ * right function. Reach for {@link addMonthsToDate} for a date, or drop the day yourself.
  *
  * ## What the naive versions do
  *
@@ -285,7 +305,7 @@ function monthAt(name: string, lunation: number, config: TraditionConfig): Tibet
  * ```
  */
 export function addMonths(
-	month: TibetanMonthFields,
+	month: TibetanMonthFields & { day?: never },
 	months: number,
 	config: TraditionConfig = PHUGPA,
 ): TibetanMonth {
@@ -379,6 +399,174 @@ export function addDays(
 }
 
 /**
+ * The one {@link TibetanDate} named by `date`, resolved from its identifying fields.
+ *
+ * @remarks
+ * The named route from a date's **identity** to the date itself, and the counterpart of
+ * {@link resolveMonth} one tier down. Before it existed the two available routes were both
+ * accidents of other functions: `addDays(date, 0)` — a zero step, which reads as a mistake — and
+ * `isoToTibetan(tibetanToIso(date))`, which announces a round trip through the Western calendar
+ * to answer a Tibetan question.
+ *
+ * **Two passes, not a lookup.** It is exactly that round trip, named: fields to a Julian day and
+ * back. Reach for it to *resolve* an identity, not inside a loop over a month — {@link datesFor}
+ * walks the calendar days once and is the right shape there.
+ *
+ * @param date - The date to resolve. `isLeapMonth` and `isLeapDay` default to `false`.
+ * @param config - Astronomical constants. Defaults to `PHUGPA`.
+ *
+ * @throws {@link SkippedDayError} — code `TCT_SKIPPED_DAY` — if no calendar day carries `date`.
+ * Use {@link tibetanDateExists} to test first.
+ * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `date` is not an object naming a Tibetan
+ * date, or a leap flag is present and not a boolean; `TCT_FIELD_OUT_OF_RANGE` for a field out of
+ * range; `TCT_OUTSIDE_EXACT_RANGE` past the tradition's exact range.
+ *
+ * @example
+ * ```ts
+ * const date = resolveDate({ year: 2153, month: 12, day: 8 });
+ * date.isoDate.toString();   // "2027-01-15"
+ * ```
+ */
+export function resolveDate(
+	date: TibetanDateFields,
+	config: TraditionConfig = PHUGPA,
+): TibetanDate {
+	assertTraditionConfig(config);
+	assertDateFields("resolveDate", date);
+	return isoToTibetan(tibetanToIso(date, config), config);
+}
+
+/**
+ * How {@link addMonthsToDate} resolves a day number the target month does not carry.
+ *
+ * @remarks
+ * Named for `Temporal`'s own option of the same name, which faces the identical problem —
+ * `PlainDate.from("2024-01-31").add({ months: 1 })` is `2024-02-29` — and offers the same two
+ * answers. Matching its vocabulary means a consumer already knows what these mean.
+ */
+export type MonthOverflow = "constrain" | "reject";
+
+/** Options for {@link addMonthsToDate}. */
+export interface AddMonthsToDateOptions {
+	/**
+	 * What to do when the target month does not carry the starting day's number.
+	 *
+	 * @defaultValue `"constrain"` — fall to the nearest **lower** number the month does carry.
+	 */
+	overflow?: MonthOverflow;
+
+	/** Astronomical constants. Defaults to `PHUGPA`. */
+	config?: TraditionConfig;
+}
+
+/**
+ * The date `months` lunations after `date`, keeping the day number where the month carries it.
+ *
+ * @remarks
+ * The date-tier counterpart of {@link addMonths}, and the answer to "the same day next month" —
+ * which is the question a calendar UI's next-month control actually asks. {@link addMonths} cannot
+ * answer it: it is month in, month out, and deliberately so.
+ *
+ * ## Why this exists when `addMonths` refuses the question
+ *
+ * `addMonths`'s docblock argues that the tradition supplies no answer for "the 8th of next month"
+ * when the 8th is skipped there. **Two things say otherwise**, and it was reversed on 2026-08-26.
+ *
+ * `Temporal` faces the identical problem and does not refuse:
+ * `PlainDate.from("2024-01-31").add({ months: 1 })` is `2024-02-29`, clamping by default and
+ * offering `overflow: "reject"`. So the host language this package is built on has a settled,
+ * overridable convention.
+ *
+ * And the tradition *does* answer the analogous question. Falling to the nearest lower existing
+ * day is `"preceding"` — already the shipped convention on `/observances` for an observance whose
+ * date is skipped, and what Janson and FPMT agree on. The default here is therefore not invented.
+ *
+ * **The overflow is explicit because the convention is contested.** A silent clamp would bake a
+ * choice into the root export; naming it puts the choice in the caller's hands, which is what the
+ * public-surface record requires. `@hebcal/core` — the closest lunisolar peer, with variable month
+ * lengths and leap months — ships month arithmetic without documenting its overflow anywhere. That
+ * is the gap this must not reproduce.
+ *
+ * ## What "nearest lower" means here
+ *
+ * Tibetan day numbers always run 1–30 while the month spans 29 or 30 *calendar days*, so some
+ * numbers are skipped: 2153 M03 carries no 5 and no 29. Stepping onto one of those under
+ * `"constrain"` lands on 4 and 28 respectively. It never lands on a *later* day, so a sequence
+ * stepped month by month never runs forwards past a month boundary.
+ *
+ * **Stepping is not associative under `"constrain"`, and that is inherent rather than a defect.**
+ * Constraining loses the original day number, so `addMonthsToDate(d, 1)` twice can differ from
+ * `addMonthsToDate(d, 2)` — exactly as it does in `Temporal`. Step from the original date each
+ * time if you want the day number preserved.
+ *
+ * @param date - The date to step from.
+ * @param months - How many lunations to move. May be negative or zero.
+ * @param options - `overflow` and `config`. An options bag rather than two positional optionals,
+ * which is this surface's stated shape for a function with two axes of choice.
+ *
+ * @throws {@link SkippedDayError} — code `TCT_SKIPPED_DAY` — under `overflow: "reject"` when the
+ * target month does not carry the day number. Also thrown, under either setting, if `date` itself
+ * names a day no calendar day carries.
+ * @throws RangeError with the codes {@link addMonths} throws, plus `TCT_INVALID_ARGUMENT` if
+ * `overflow` is neither `"constrain"` nor `"reject"`.
+ *
+ * @example
+ * ```ts
+ * // 2153 M03 carries no day 5 — it is skipped.
+ * addMonthsToDate({ year: 2153, month: 2, day: 5 }, 1).day;                        // 4
+ * addMonthsToDate({ year: 2153, month: 2, day: 5 }, 1, { overflow: "reject" });    // throws
+ * ```
+ */
+export function addMonthsToDate(
+	date: TibetanDateFields,
+	months: number,
+	options: AddMonthsToDateOptions = {},
+): TibetanDate {
+	const config = options.config ?? PHUGPA;
+	const overflow = options.overflow ?? "constrain";
+	if (overflow !== "constrain" && overflow !== "reject") {
+		throw rangeError(
+			"TCT_INVALID_ARGUMENT",
+			`addMonthsToDate: overflow must be "constrain" or "reject", received ${JSON.stringify(overflow)}`,
+		);
+	}
+	assertTraditionConfig(config);
+	assertDateFields("addMonthsToDate", date);
+	assertCount("addMonthsToDate", "months", months);
+
+	const target = monthAt(
+		"addMonthsToDate",
+		lunationOf("addMonthsToDate", date, config) + months,
+		config,
+	);
+
+	// Walk down from the requested number rather than reading the month's day list: the list costs
+	// a conversion per calendar day, and the overwhelming case is that the first try succeeds.
+	for (let day = date.day; day >= 1; day--) {
+		const candidate: TibetanDateFields = {
+			year: target.year,
+			month: target.month,
+			day,
+			isLeapMonth: target.isLeapMonth,
+		};
+		try {
+			return resolveDate(candidate, config);
+		} catch (error) {
+			if (!(error instanceof SkippedDayError)) throw error;
+			if (overflow === "reject") throw error;
+		}
+	}
+
+	// Unreachable in practice — a month carries at least 29 of its 30 numbers, so day 1 always
+	// exists — and asserted rather than cast, so a tradition that broke the assumption would say so.
+	throw rangeError(
+		"TCT_INTERNAL",
+		`addMonthsToDate: ${target.year}-${target.monthCode} carries no day at or below ${date.day}. ` +
+			"A month carries at least 29 of its 30 numbers, so this cannot happen for a sound tradition",
+	);
+}
+
+/**
  * How many **solar days** separate two Tibetan dates, signed.
  *
  * @remarks
@@ -424,14 +612,48 @@ const NEW_MOON = 30;
  * lunation `n` directly, so this locates the containing month, asks for its phase, and steps one
  * lunation if that has already passed.
  */
+/**
+ * Normalises either accepted input to the ISO day the phase search starts from.
+ *
+ * @remarks
+ * **This deliberately does not go through {@link asPlainDate} for the Tibetan case.** That
+ * function rejects a bare `{ year, month, day }` object on the stated ground that it is
+ * "ambiguous with this package's own Tibetan-date shape" — which is right everywhere else and is
+ * exactly what these two functions must now accept. Routing around it keeps its contract, and its
+ * message, unchanged for the seven other entry points that rely on it.
+ *
+ * The discrimination is sound at runtime because the Western forms are all class instances or a
+ * string: only a plain object reaches the Tibetan branch. At compile time the union is
+ * discriminated by {@link TibetanDateFields.calendarId}, declared `never` against the
+ * `readonly calendarId: string` all three `Temporal` classes carry.
+ */
+function phaseStart(
+	name: string,
+	date: Temporal.PlainDate | TibetanDateFields,
+	config: TraditionConfig,
+): Temporal.PlainDate {
+	if (
+		date instanceof Temporal.PlainDate ||
+		date instanceof Temporal.PlainDateTime ||
+		date instanceof Temporal.ZonedDateTime ||
+		typeof date === "string"
+	) {
+		return asPlainDate(date as Temporal.PlainDate);
+	}
+	// A plain object: Tibetan fields. assertDateFields carries the shape and range guards, so a
+	// malformed one is coded here rather than reaching Temporal as an uncoded TypeError.
+	assertDateFields(name, date);
+	return tibetanToIso(date, config);
+}
+
 function nextPhase(
 	name: string,
 	lunarDay: number,
-	date: Temporal.PlainDate,
+	date: Temporal.PlainDate | TibetanDateFields,
 	config: TraditionConfig,
 ): TibetanDate {
 	assertTraditionConfig(config);
-	const from = asPlainDate(date);
+	const from = phaseStart(name, date, config);
 	const scaled = scalingFor(config);
 	const target = julianDayFromIso(from);
 	assertExactJulianDay(scaled, target, () => `${name}(${from.toString()})`);
@@ -457,21 +679,26 @@ function nextPhase(
  * 2153 M11 on the day numbered 14. {@link TibetanDate.isFullMoon} is derived correctly and is what
  * to read when you already have a date.
  *
- * Western in, Tibetan out, matching `isoToTibetan`. These therefore do not chain with themselves:
- * for the next three, step through `isoDate` each time.
+ * **They chain directly — widened 2026-08-26.** They took a `Temporal.PlainDate` only, so every
+ * other navigation function was Tibetan-in and these two forced a round trip through the Western
+ * calendar to answer a Tibetan question; the spike chained them three deep doing exactly that.
+ * Both forms are accepted and agree, and the `Temporal.PlainDate` form is unchanged.
  *
- * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `date` is not a value `asPlainDate`
- * accepts — notably a bare `{ year, month, day }` object; `TCT_OUTSIDE_EXACT_RANGE` if the phase
- * lies past where the arithmetic stays exact.
+ * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `date` is neither a value
+ * `asPlainDate` accepts nor an object naming a Tibetan date; `TCT_FIELD_OUT_OF_RANGE` for a
+ * Tibetan field out of range; `TCT_OUTSIDE_EXACT_RANGE` if the phase lies past where the
+ * arithmetic stays exact. A bare `{ year, month, day }` is read as **Tibetan** here, unlike at
+ * every other entry point taking a Western date.
+ * @throws {@link SkippedDayError} if a Tibetan `date` names a day no calendar day carries.
  *
  * @example
  * ```ts
  * let moon = nextFullMoon(Temporal.PlainDate.from("2026-01-01"));
- * moon = nextFullMoon(moon.isoDate);   // the one after that
+ * moon = nextFullMoon(moon);           // the one after that — no .isoDate needed
  * ```
  */
 export function nextFullMoon(
-	date: Temporal.PlainDate,
+	date: Temporal.PlainDate | TibetanDateFields,
 	config: TraditionConfig = PHUGPA,
 ): TibetanDate {
 	return nextPhase("nextFullMoon", FULL_MOON, date, config);
@@ -489,7 +716,7 @@ export function nextFullMoon(
  * @throws The codes {@link nextFullMoon} throws.
  */
 export function nextNewMoon(
-	date: Temporal.PlainDate,
+	date: Temporal.PlainDate | TibetanDateFields,
 	config: TraditionConfig = PHUGPA,
 ): TibetanDate {
 	return nextPhase("nextNewMoon", NEW_MOON, date, config);

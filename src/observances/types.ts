@@ -23,6 +23,7 @@
  * @packageDocumentation
  */
 
+import type { TraditionConfig } from "../traditions/types.js";
 import type { TibetanDate } from "../types.js";
 
 /**
@@ -213,4 +214,25 @@ export interface Observance {
 
 	/** How it landed here. */
 	readonly resolution: ObservanceResolution;
+}
+
+/**
+ * Options for {@link getObservances} and {@link observancesOn}.
+ *
+ * @remarks
+ * A bag rather than two sequential optional parameters, which is what these took until
+ * 2026-08-26. That shape made a caller wanting a custom tradition with the default observances
+ * write `getObservances(from, to, undefined, myTradition)` — passing `undefined` positionally to
+ * reach past a parameter they had no opinion about. It was the only two-sequential-optionals
+ * defect on the surface, and free to fix before 1.0.0.
+ *
+ * {@link addMonthsToDate} takes the same shape, which makes the bag this surface's stated pattern
+ * for a function with two axes of choice rather than a one-off exception to uniformity.
+ */
+export interface ObservanceQueryOptions {
+	/** Which observances, and the conventions for resolving them. Defaults to {@link GELUG}. */
+	config?: ObservanceConfig;
+
+	/** Astronomical constants. Defaults to `PHUGPA`. */
+	tradition?: TraditionConfig;
 }

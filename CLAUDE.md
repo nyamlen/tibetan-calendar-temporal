@@ -241,7 +241,8 @@ derivation; in `docs/` they are just noise.
   `leapIndexThreshold`, and `β` and the true-month rounding term derive from it. When adding a
   tradition, check that the *rules* are injected too, not only the numbers.
   **It extends to the docblocks as well as the code**, which is subtler and was live until
-  2026-08-16. `leapMonthOfYear` takes a config and its example read `leapMonthOfYear(2151) // 6`
+  2026-08-16. `leapMonthNumberFor` (then `leapMonthOfYear`) takes a config and its example read
+  `leapMonthOfYear(2151) // 6`
   — true for Phugpa and for nothing else: varying `leapIndexThreshold` alone gives Mongolian 5 and
   Bhutanese 10 (the shipped `BHUTAN` config, which also sets `leapMonthPosition`, gives **8** — quote
   such a figure with the constant it varies), and Tsurphu has no leap
@@ -254,7 +255,8 @@ derivation; in `docs/` they are just noise.
   diverge most. `test/docblock-examples.test.ts` pins the thresholds; a third instance of the
   "precedes" claim survives in `src/types.ts` on `lunation`, where it explains tuple sort order,
   and was made tradition-aware when `leapMonthPosition` landed; the stale claim that survived instead
-  was on `leapMonthOfYear`, corrected 2026-08-23 after a smoke client found it shipping in `dist`.
+  was on `leapMonthNumberFor`, corrected 2026-08-23 after a smoke client found it shipping in
+  `dist`. It was `leapMonthOfYear` until 2026-08-26, when it was renamed as the last public `*Of`.
 
   This extends to anything **derived from** those constants. The `±3` search window in
   `isoToTibetan` was proved from `(25 + 11)/60` — Phugpa's largest `moonTab` and `sunTab` entries —
@@ -286,12 +288,27 @@ derivation; in `docs/` they are just noise.
   changed, so decide whether that was intended before editing the list.
 
   **But it sees runtime exports only, and a type is not one.** It reads `Object.keys(api)` and
-  `typeof`, so removing an exported *interface* or *type alias* passes every one of the nine
-  commands — proved on 2026-08-25, when `RabjungName` and `SanskritName` came off the surface and
-  the only thing that caught the now-false type list in `README.md` was a grep. **There is no
-  tripwire on the shipped type list.** Removing or renaming a type is a documentation sweep done by
-  hand: `README.md`'s type list, `docs/architecture.md`'s shapes, `docs/guide.md`, and any docblock
-  naming it.
+  `typeof`, so removing an exported *interface* or *type alias* passes it — proved on 2026-08-25,
+  when `RabjungName` and `SanskritName` came off the surface and the only thing that caught the
+  now-false type list in `README.md` was a grep.
+
+  **`check:conventions` rule 13 now closes the list half**, comparing both barrels' `export type`
+  blocks against `README.md`'s two "Type-only exports" lists as sets, so ordering is free. **It does
+  not close the prose half.** A sentence describing a type's *fields* is still unguarded: the same
+  README called `rabjungFor`'s `name` "the Tibetan and Sanskrit name" for hours after the Sanskrit
+  came off, and the grep that found the stale list named the removed types rather than the field, so
+  it sailed past. Removing or renaming a type therefore still needs the hand sweep for everything
+  except the list — `docs/architecture.md`'s shapes (7 exported types named), `docs/guide.md` (4),
+  and any docblock naming it.
+
+  **And a signature is not a runtime export either.** The suite pins *names* and *kinds* —
+  `Object.keys` and `typeof` — so changing a function's parameters passes every one of the nine
+  commands as a **surface** check. Measured on 2026-08-26: reshaping `getObservances(from, to,
+  config?, tradition?)` to an options bag breaks **21 call sites**, one of them production code
+  (`src/observances/index.ts`, where `observancesOn` delegates), and nothing reports it as an API
+  change — it surfaces as ordinary type errors scattered across suites, which is what a *typo* looks
+  like too. When changing a signature, count the call sites first and say the number in the commit
+  message; the compiler will find them, but only after you have decided the change was small.
 
   **A `TraditionConfig` is judged by a different rule, because it is a different kind of claim.**
   That record is about API design; a config asserts that dates computed with it are a real

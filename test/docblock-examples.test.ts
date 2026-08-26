@@ -4,7 +4,8 @@ import { rabjungFromYear, royalEraFromYear, yearNameFromYear } from "../src/comp
 import { meanDate } from "../src/computation/mean-astronomy.js";
 import { deriveScaling } from "../src/computation/scaling.js";
 import { rabjungFor, weekdayNameFor, yearNameFor } from "../src/cycles.js";
-import { daysInMonth, leapMonthOfYear, monthsFor } from "../src/months.js";
+import { formatTibetanDate } from "../src/format.js";
+import { daysInMonth, leapMonthNumberFor, monthsFor } from "../src/months.js";
 import {
 	addDays,
 	addMonths,
@@ -14,6 +15,7 @@ import {
 	nextFullMoon,
 } from "../src/navigation.js";
 import { PHUGPA } from "../src/traditions/phugpa.js";
+import { asTibetanWeekday, type TibetanWeekday } from "../src/types.js";
 
 /**
  * Every docblock `@example` in `src/` that states a concrete result, asserted.
@@ -22,7 +24,7 @@ import { PHUGPA } from "../src/traditions/phugpa.js";
  * contract statement rather than a tidying issue — and unlike the README, nothing was checking
  * them. `test/readme.test.ts` does exactly this job for the README and exists for the same reason.
  *
- * This suite found a live error on its first run: `leapMonthOfYear` documented `2153 → 6`, when
+ * This suite found a live error on its first run: `leapMonthNumberFor` documented `2153 → 6`, when
  * 2153 has no leap month at all and 2151 is the year whose month 6 is doubled. It had shipped in
  * the type declarations.
  *
@@ -30,6 +32,34 @@ import { PHUGPA } from "../src/traditions/phugpa.js";
  * this fails, which is the point.
  */
 describe("docblock examples", () => {
+	// index.ts's block is `@remarks` with a fenced example inside it, not `@example` — which is why
+	// this suite never saw it, and why it shipped `date.yearName` in dist/index.d.ts for two days
+	// after year-level naming came off TibetanDate on 2026-08-24. It is the entry point's headline
+	// example and the first API prose a consumer meets on hover. A consumer spike found it.
+	//
+	// The lesson is the selector, not the line: this suite keys on `@example`, so a value stated in
+	// any other tag is unguarded. Assert those here too.
+	describe("index.ts — the package docblock", () => {
+		it("states the four values its quickstart shows", () => {
+			const date = isoToTibetan(Temporal.PlainDate.from("2027-01-15"));
+			expect(date.year).toBe(2153);
+			expect(date.yearStartsIn).toBe(2026);
+			expect(yearNameFor(date.year)).toMatchObject({
+				element: "fire",
+				animal: "horse",
+				gender: "male",
+			});
+			expect(formatTibetanDate(date)).toBe("2153-M12-08");
+		});
+
+		it("is right that a date carries no year-level naming", () => {
+			const date = isoToTibetan(Temporal.PlainDate.from("2027-01-15"));
+			expect("yearName" in date).toBe(false);
+			expect("rabjung" in date).toBe(false);
+			expect("weekdayName" in date).toBe(true);
+		});
+	});
+
 	describe("conversion.ts", () => {
 		it("losarFor states the right Losar, skipped day and leap-month opening", () => {
 			expect(losarFor(2153).isoDate.toString()).toBe("2026-02-18");
@@ -94,17 +124,17 @@ describe("docblock examples", () => {
 			]);
 		});
 
-		it("leapMonthOfYear names the doubled month, or undefined", () => {
-			expect(leapMonthOfYear(2151)).toBe(6);
-			expect(leapMonthOfYear(2153)).toBeUndefined();
+		it("leapMonthNumberFor names the doubled month, or undefined", () => {
+			expect(leapMonthNumberFor(2151)).toBe(6);
+			expect(leapMonthNumberFor(2153)).toBeUndefined();
 		});
 
-		it("leapMonthOfYear answers per tradition, so the example is Phugpa's alone", () => {
+		it("leapMonthNumberFor answers per tradition, so the example is Phugpa's alone", () => {
 			// The docblock claims 2151 gives 6 for Phugpa, 5 for Mongolian, 10 for Bhutanese and
 			// nothing for Tsurphu. Only `leapIndexThreshold` varies here — Janson's 48/0/46/57 — so
 			// this pins the claim that the answer is tradition-specific, not the other constants.
 			const forThreshold = (leapIndexThreshold: number) =>
-				leapMonthOfYear(2151, { ...PHUGPA, leapIndexThreshold });
+				leapMonthNumberFor(2151, { ...PHUGPA, leapIndexThreshold });
 
 			expect(forThreshold(48)).toBe(6);
 			expect(forThreshold(46)).toBe(5);
@@ -148,14 +178,21 @@ describe("docblock examples", () => {
 		it("weekdayNameFor gives Saturday as spen pa, the Saturn day", () => {
 			// `spen pa`, not `spen ma` — Janson's own weekday table and his Bhutan appendix disagree,
 			// and the wrong one reached a shipped docblock once already.
-			expect(weekdayNameFor(0).wylie).toBe("spen pa");
-			expect(weekdayNameFor(0).planet).toBe("saturn");
+			expect(weekdayNameFor(asTibetanWeekday(0)).wylie).toBe("spen pa");
+			expect(weekdayNameFor(asTibetanWeekday(0)).planet).toBe("saturn");
 		});
 
 		it("rejects a weekday outside 0…6 as a field out of range", () => {
 			// This one genuinely is a range, so it keeps the range code — the split is not a blanket
 			// rename of every guard in the module.
-			expect(() => weekdayNameFor(7)).toThrow(
+			// Cast, because the brand is what stops a TypeScript caller getting here at all. The guard
+			// is for the JavaScript consumer and for a branded value that came from a cast like this
+			// one — types erase, so it cannot be dropped just because the signature narrowed.
+			expect(() => weekdayNameFor(7 as unknown as TibetanWeekday)).toThrow(
+				expect.objectContaining({ code: "TCT_FIELD_OUT_OF_RANGE" }),
+			);
+			// asTibetanWeekday is the checked way in, and refuses the same value with the same code.
+			expect(() => asTibetanWeekday(7)).toThrow(
 				expect.objectContaining({ code: "TCT_FIELD_OUT_OF_RANGE" }),
 			);
 		});

@@ -177,7 +177,7 @@ the surface can be frozen.
 
 **Fix the documentation — six items.**
 
-1. **`leapMonthOfYear`'s docblock is a false contract, and it ships.** `src/months.ts` says the
+1. **`leapMonthNumberFor`'s docblock is a false contract, and it ships.** `src/months.ts` says the
    engine "does not yet express" where a leap month sits, that it "always" places it before the
    regular month sharing the number, and that "until that is configurable the number here is
    already the Bhutanese one but the position is not". Every clause has been false since
@@ -214,7 +214,7 @@ draft dropped `isFullMoon`/`isNewMoon`, which it recorded as its own mistake.
 
 **All six were fixed on 2026-08-23**, and the gate is closed: every item on the client's list
 carries a verdict, and no verdict was "change the API". What shipped as corrections —
-`leapMonthOfYear`'s docblock and its Bhutan figure, the README's month-grid ordering claim, the
+`leapMonthNumberFor`'s docblock and its Bhutan figure, the README's month-grid ordering claim, the
 `days` callout now recommending `datesFor` instead of teaching the walk that displaced it, the
 `Observance` shape, `weekdayName`'s tradition-awareness, and a `@remarks` on `formatTibetanDate`
 saying it is not a complete encoding of a resolved date. The suite stayed at 816 tests throughout,
@@ -232,6 +232,23 @@ whole navigation tier (`addDays`, `addMonths`, `daysBetween`, `monthsBetween`, `
 `monthFromLunation`, `nextFullMoon`, `nextNewMoon`), the reverse path (`tibetanToIso`,
 `tibetanDateExists`, `SkippedDayError` — no error path was exercised at all), `parseTibetanDate`,
 `getObservances` as a range query, the closed-form name lookups, and any custom `ObservanceConfig`.
+
+**A second client ran on 2026-08-25** against that unreached set — `nyamlen/spikes/calendar-nav/`,
+working from the tarball alone. It reached all 25 exports its brief named and returned **sixteen
+findings**, of which eight were shipped prose that was false, two were its own mistakes, and six
+needed API rulings. Its most consequential single finding was that `README.md` shipped a line that
+**could never have run**: `monthsFor(2153).flatMap(datesFor)` throws, because `flatMap` passes the
+array index into the optional `config` parameter.
+
+**Writing the brief: a coverage list destroys discoverability testing for everything on it.**
+Learned from that run and binding on the next. Naming the exports a spike must reach does stop a
+thin spike declaring success after touching eight — but you cannot then learn whether a consumer
+*finds* a name, because you handed it over. The first client's sharpest finding was exactly a
+discoverability failure: it hand-rolled the month walk and never called `datesFor`, which the README
+calls its preferred route. So specify **tasks, not function names**; require the coverage report to
+be measured against the tarball's own `.d.ts`, which the spike can enumerate itself; and **never say
+which names are new**. Non-use then reads as a finding about the surface rather than a gap in the
+brief.
 
 ## Outstanding — near term
 
@@ -396,7 +413,7 @@ edits, and moving files once after they have landed is one link-fixing commit in
       </details>
 
 - [x] **Export month enumeration** — done 2026-08-13, as five names rather than the three or four
-      this item anticipated: `monthsFor`, `daysInMonth`, `hasLeapMonth`, `leapMonthOfYear` and
+      this item anticipated: `monthsFor`, `daysInMonth`, `hasLeapMonth`, `leapMonthNumberFor` and
       `monthsInYear`.
 
       Four things came out differently from this item as written.
@@ -448,12 +465,19 @@ edits, and moving files once after they have landed is one link-fixing commit in
       additive later.
 
 - [x] **Conventions are enforced rather than remembered** — done 2026-08-16.
-      `scripts/check-conventions.mjs` gates seven rules nothing previously checked — twelve as of
-      2026-08-22, the later five added as the conventions they enforce were written — Biome bans the
+      `scripts/check-conventions.mjs` gates seven rules nothing previously checked — thirteen as of
+      2026-08-26, the later six added as the conventions they enforce were written — Biome bans the
       `Date` global in `src/`, and markdownlint finally runs in CI against the config that had
       existed for weeks unread. CI is nine commands. Every rule and its enforcement status is in
       [coding-standards.md](coding-standards.md), which the guard also validates against reality so
       it cannot drift.
+
+      **That last clause overstated itself, and this sentence proved it.** The guard checks that the
+      map names real commands and paths; it does not check a *count*, and Rule 12's hardcoded-count
+      rule covers only **generated** documents. So "twelve as of 2026-08-22" survived the addition of
+      Rule 13 on 2026-08-26 — in the same commit that updated `CLAUDE.md` and
+      [coding-standards.md](coding-standards.md) and missed this line. A count stated in prose is
+      unguarded wherever it appears; prefer naming the newest rule over totalling them.
 
       Three violations existed when the guard first ran: a bare `new Error` in `epoch.ts`, the same
       constraint discharged by a cast in `names.ts`, and seven divisions carrying no statement of
@@ -473,7 +497,7 @@ edits, and moving files once after they have landed is one link-fixing commit in
 
       Docblocks reach the shipped `.d.ts` and are what editor hover shows, so a stale one is a false
       contract statement, not a tidying issue. This review already found three: `hasLeapMonth`,
-      `leapMonthOfYear` and `monthsInYear` promised exactness "for any safe integer year" (corrected
+      `leapMonthNumberFor` and `monthsInYear` promised exactness "for any safe integer year" (corrected
       when the arithmetic was fixed); `getObservances` stated a threat model its guard did not cover
       (Finding 1); and `asPlainDate` argued for a widening that was later removed (Finding 2 — see
       [decisions/2026-08-13-tibetan-date-input-boundary.md](decisions/2026-08-13-tibetan-date-input-boundary.md),
@@ -488,7 +512,7 @@ edits, and moving files once after they have landed is one link-fixing commit in
       3. Every `@example` runs and produces the stated output. **Now automated** —
          `test/docblock-examples.test.ts` asserts all 43 concrete claims across the 30 example
          blocks, so this item is permanently closed. It found one wrong on its first run
-         (`leapMonthOfYear`, documented `2153 → 6` when 2153 has no leap month), and a second
+         (`leapMonthNumberFor`, documented `2153 → 6` when 2153 has no leap month), and a second
          defect of a different kind: the example was tradition-blind on a config-taking function.
          Check that too — an example states one tradition's answer and must say which.
       4. Every `{@link}` resolves. **Now automated** — `check:conventions` checks all 199 of them
@@ -528,17 +552,40 @@ so it sees the final state rather than a moving one. The flags recorded here are
 where a command is **diff-shaped** that is noted, because running it on a clean `main` reviews
 nothing and reports success.
 
-- [ ] **Full API surface review.** Subject: every name in `src/index.ts`, judged against
-      [decisions/2026-08-12-public-surface.md](decisions/2026-08-12-public-surface.md) and its
-      2026-08-15 rescoping — the wrong-or-impossible test for computation internals and contested
-      conventions, the "does a calendar library normally provide it, and does it have one obvious
-      correct semantics" test for thin compositions. Check the type shapes too, not only the
-      function list: this is where the rabjung name-shape item above gets settled, and the last item that
-      belongs on the pre-1.0.0 surface is the one nobody thought to look for.
-      **Command:** `/code-review max src/index.ts` for the barrel, then
-      `/sc:sc-analyze src --focus architecture --depth deep` for the shapes behind it.
-      `test/public-api.test.ts` pins the list, so any change it prompts fails there first — which is
-      the intended signal, not a nuisance
+- [ ] **Full API surface review** — **changes landed 2026-08-26; the pass is NOT closed.** It stays
+      open because its own closing condition is unmet: a full uncontaminated **re-spike** against a
+      tarball packed from the finished branch. Six of the names below were designed inside this
+      repo, by a session that had read every decision record, and were never shown to a consumer —
+      which collides with the gate this whole pass runs under, that no 1.0.0 ships until a consumer
+      outside this repository has exercised the public API. Ticking it now would exempt exactly the
+      names the pass added from the only gate that catches API-shape problems.
+      **What has landed.** The item planned a *static* read of the barrel with two review commands.
+      What settled it was a second **consumer spike** against a packed tarball, in an
+      uncontaminated session: six findings, all six moved the surface, and the sharpest was
+      invisible to any static pass — `weekdayNameFor(date.dayOfWeek)` compiled and returned the
+      wrong name, measured at 60 silently wrong calls in 70 days. Ten changes: six added names
+      (`resolveMonth`, `resolveDate`, `formatTibetanMonth`, `parseTibetanMonth`,
+      `addMonthsToDate`, `asTibetanWeekday`), four reshaped (`addMonths` narrowed to reject a
+      date, `getObservances`/`observancesOn` to an options bag, the moon functions widened,
+      `leapMonthOfYear` → `leapMonthNumberFor`), plus the absent-field error code. Recorded as the
+      fourth `## Revisited` section in
+      [decisions/2026-08-12-public-surface.md](decisions/2026-08-12-public-surface.md), which also
+      reconciles this record's "14 functions to 25" against today's 37 — unit-mixing, not drift.
+      **Two things the item did not anticipate.** `test/public-api.test.ts` pins names and
+      **kinds**, not signatures, so reshaping `getObservances` broke 16 call sites and **nothing
+      reported it as an API change**; it surfaced as ordinary type errors. And one recommendation
+      was **withdrawn** on examination — the two conversion-naming families were suspected of
+      contradicting each other and do not — which is now a rule rather than a rename.
+      **To close it.** Re-pack, write the second brief, and re-run Stage 3 in a fresh session. The
+      brief differs from the first in three ways that are not cosmetic: it specifies **tasks, not
+      function names**, so discoverability is tested rather than assumed; it measures coverage
+      against the tarball's own `.d.ts`, which the spike enumerates itself, so non-use reads as a
+      discoverability finding; and it **does not say which names are new**. Bounded at this one
+      re-entry — a further "change the API" round means the surface is not converging, which is
+      escalated rather than iterated.
+      **Also still unruled:** whether the barrel should have a **namespace object**. It is not a
+      class, so the no-class record does not cover it, and the flatness of this barrel is why two
+      of the new naming rules exist
 - [ ] **Full code review.** Subject: all of `src/`, plus `scripts/` and the fixture generators,
       which are unreviewed and produce the primary correctness gate. **Command:**
       `/code-review max src/` for a path-scoped pass — note that plain `/code-review` and

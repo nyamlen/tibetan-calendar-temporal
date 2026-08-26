@@ -134,7 +134,7 @@ describe("guide examples", () => {
 
 	it("moves the 2024 Chokhor Duchen to 9 July under a spread config", () => {
 		const kopan = { ...GELUG, id: "kopan", doubledDay: "first" as const };
-		expect(observancesOn(iso("2024-07-09"), kopan).map((o) => o.rule.id)).toContain(
+		expect(observancesOn(iso("2024-07-09"), { config: kopan }).map((o) => o.rule.id)).toContain(
 			"chokhor-duchen",
 		);
 	});
@@ -158,7 +158,7 @@ describe("guide examples", () => {
 			// A wide window on purpose: "exact" and the two doubled cases appear within months, but a
 			// rule's own day being skipped is rarer than a skipped day, so a few years would not
 			// exercise "shiftedFromSkipped" and the assertion would pass for the wrong reason.
-			for (const o of getObservances(iso("2010-01-01"), iso("2030-12-31"), config)) {
+			for (const o of getObservances(iso("2010-01-01"), iso("2030-12-31"), { config })) {
 				seen.add(o.resolution);
 			}
 		}
@@ -183,7 +183,7 @@ describe("guide examples", () => {
 				},
 			],
 		};
-		const found = getObservances(iso("2026-01-01"), iso("2026-12-31"), myCentre).filter(
+		const found = getObservances(iso("2026-01-01"), iso("2026-12-31"), { config: myCentre }).filter(
 			(o) => o.rule.id === "founder-anniversary",
 		);
 		expect(found).toHaveLength(1);

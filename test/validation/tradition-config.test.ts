@@ -129,7 +129,7 @@ describe("tradition config validation", () => {
 			() => isoToTibetan(iso("2026-08-12"), bad),
 			() => tibetanToIso({ year: 2153, month: 6, day: 30 }, bad),
 			() => losarFor(2153, bad),
-			() => getObservances(iso("2026-01-01"), iso("2026-12-31"), undefined, bad),
+			() => getObservances(iso("2026-01-01"), iso("2026-12-31"), { tradition: bad }),
 		]) {
 			expect(thrownBy(call)?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
 		}

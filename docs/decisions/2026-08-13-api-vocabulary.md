@@ -28,7 +28,8 @@ day" intuition works against the distinction the rest of the API is at pains to 
 `isLeapYear`, and it means the same extra-month thing there, because the Hebrew calendar is also
 lunisolar. So the term does carry the right sense within the lunisolar family, and someone arriving
 from another calendar library will reach for it first. Internal consistency won because
-`leapMonthOfYear` sits beside it in the same table and makes the concept discoverable either way,
+`leapMonthNumberFor` sits beside it in the same table and makes the concept discoverable either
+way,
 while the vocabulary inconsistency would be permanent.
 
 ## Why `monthsFor` rather than `monthsOfYear`

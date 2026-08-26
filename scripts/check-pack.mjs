@@ -91,16 +91,24 @@ try {
 	// package, so an npm consumer loses nothing to the split. Nothing else in this repository sees
 	// the packed file list, so a `files` edit that dropped them would surface only for a consumer.
 	//
-	// `docs/how-it-is-calculated.md` joined them on 2026-08-24, because the shipped types now carry a
-	// claim a consumer cannot evaluate without it: `RabjungName.sanskrit` is one of **two** Sanskrit
-	// name lists for the sixty-year cycle, and at five positions it is not the name the Tibetan
-	// translates. That is calendar, not API, so it belongs in the document that explains the calendar.
+	// `docs/how-it-is-calculated.md` joined them on 2026-08-24. Its reason was replaced on
+	// 2026-08-25 when the Sanskrit came off `Rabjung.name`: it now ships to answer the question the
+	// *smaller* type raises — a `Rabjung` carries a Tibetan year name and no Sanskrit one, and a
+	// consumer expecting *Prabhava* beside it needs to be told the cycle has two Sanskrit lists
+	// which disagree at five positions. That is calendar, not API, so it belongs in the document
+	// that explains the calendar.
 	//
 	// Their relative links must resolve inside the tarball, because npmjs.com rewrites relative
 	// links in a README against `repository` but a file read from `node_modules` gets no such
-	// rewriting. Anything repo-only is linked by absolute URL, which is why the only relative
-	// targets here are each other and the README.
+	// rewriting. Anything repo-only is linked by absolute URL.
+	//
+	// README.md IS ON THIS LIST, and was not until 2026-08-26. The reasoning above applies to it
+	// exactly — it is the file most likely to be read from `node_modules` — but it was exempt from
+	// the rule its own siblings were held to, and had accumulated ten dead targets: architecture.md,
+	// testing.md, roadmap.md, CONTRIBUTING.md and six more, every one of them fine on npmjs.com and
+	// broken in an editor. Found by a consumer spike on 2026-08-25, not by this script.
 	const shippedDocs = [
+		"README.md",
 		"docs/guide.md",
 		"docs/why-trust-these-dates.md",
 		"docs/how-it-is-calculated.md",

@@ -165,6 +165,65 @@ export interface TibetanYearName {
 }
 
 /**
+ * A Tibetan weekday number, 0 = Saturday through 6 = Friday — **branded**, so an ISO
+ * `dayOfWeek` cannot be passed where one belongs.
+ *
+ * @remarks
+ * A `number` at runtime; the brand exists only at compile time and erases completely.
+ *
+ * ## What it prevents
+ *
+ * The two numberings differ, and both are on {@link TibetanDate}:
+ * {@link TibetanDate.dayOfWeek} is ISO, 1 = Monday through 7 = Sunday, and
+ * {@link TibetanDate.tibetanWeekday} is Tibetan, 0 = Saturday. So
+ * `weekdayNameFor(date.dayOfWeek)` compiles, throws nothing, and returns **the wrong name six
+ * days in seven** — the only silent wrong answer a consumer spike found anywhere on this surface.
+ * It is now a compile error, and the two legitimate sources flow through untouched.
+ *
+ * ## Why a brand rather than a runtime check alone
+ *
+ * The deciding argument is **reversibility, not safety**. Widening a parameter later is
+ * non-breaking; narrowing one is not. Branded-now to plain-`number`-later stays available
+ * forever, and the reverse never does — which is why this lands before 1.0.0 rather than after.
+ *
+ * Two known limits, neither of which changes the direction. Types erase, so a JavaScript consumer
+ * keeps the slip. And the brand does not survive `JSON.parse`, `structuredClone` or a database
+ * read — which is exactly why {@link asTibetanWeekday} exists and **validates** rather than being
+ * a bare cast.
+ */
+export type TibetanWeekday = number & { readonly __tibetanWeekday: unique symbol };
+
+/**
+ * Checks that `value` is a Tibetan weekday number and brands it.
+ *
+ * @remarks
+ * The way back in from a number this package did not produce: a parsed JSON payload, a form
+ * field, a database column. It validates rather than asserting, because the values that reach it
+ * are precisely the ones no compiler has seen.
+ *
+ * `asTibetanWeekday(7)` throws `TCT_FIELD_OUT_OF_RANGE` — a **present number outside its
+ * range**, which is the same rule every other field check on this surface follows, and not
+ * `TCT_INVALID_ARGUMENT`, which is reserved for the wrong *kind* of thing.
+ *
+ * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `value` is not an integer 0–6.
+ *
+ * @example
+ * ```ts
+ * weekdayNameFor(asTibetanWeekday(Number(fromJson.weekday))).wylie;
+ * ```
+ */
+export function asTibetanWeekday(value: number): TibetanWeekday {
+	if (!Number.isInteger(value) || value < 0 || value > 6) {
+		throw rangeError(
+			"TCT_FIELD_OUT_OF_RANGE",
+			`asTibetanWeekday: expected an integer 0-6, received ${value}. This is the Tibetan ` +
+				"numbering — 0 is Saturday — not the ISO dayOfWeek, which runs 1-7 from Monday",
+		);
+	}
+	return value as TibetanWeekday;
+}
+
+/**
  * A Tibetan name, in the three renderings this package ships.
  *
  * @remarks
@@ -434,7 +493,7 @@ export interface TibetanDate {
 	 * because it is a date component; the name groups under `*Name` — see
 	 * {@link TibetanDate.weekdayName}.
 	 */
-	tibetanWeekday: number;
+	tibetanWeekday: TibetanWeekday;
 
 	/**
 	 * The Tibetan name of {@link TibetanDate.tibetanWeekday} — script, Wylie, phonetics, and the
@@ -492,8 +551,11 @@ export interface TibetanDate {
  * **{@link TibetanMonth.days} counts calendar days, not date numbers.** The numbering always runs
  * 1–30; the *span* is 29 or 30 days, because some numbers are skipped and some are carried by two
  * consecutive days. So `for (let d = 1; d <= days; d++)` is wrong and produces a silently bad grid.
- * Walk {@link TibetanMonth.firstDay} to {@link TibetanMonth.lastDay} and call `isoToTibetan` on
- * each — which is also the right model for a UI, since a grid holds one cell per calendar day.
+ * Use `datesFor(month)`, which returns one entry per calendar day with the numbering already
+ * right — a doubled number appearing twice and a skipped one not at all. Walking
+ * {@link TibetanMonth.firstDay} to {@link TibetanMonth.lastDay} with `isoToTibetan` gives the same
+ * answer and is the route for the *padding* cells of a UI grid, which belong to neighbouring
+ * months that `datesFor` cannot reach — but inside the month, `datesFor` is what to reach for.
  *
  * **{@link TibetanMonth.month} is not a unique key within the year.** In a leap year two months
  * share a number. {@link TibetanMonth.monthCode} is the unique one.
@@ -542,10 +604,14 @@ export interface TibetanMonth {
 	 * The element–animal name of the year this month belongs to.
 	 *
 	 * @remarks
-	 * The same value {@link TibetanDate.yearName} carries, and it is here for the same reason
+	 * The same value `yearNameFor(month.year)` returns, and it is here for the same reason
 	 * {@link TibetanMonth.year} is: a month should identify itself. Rendering a month header
 	 * otherwise means hopping into the date tier through `losarFor`, which is not a route anyone
 	 * would guess from the name.
+	 *
+	 * A `TibetanDate` does **not** carry this field — year-level naming came off it on 2026-08-24,
+	 * since a date repeated one value across every day of its year. A month is the tier where the
+	 * name is worth storing, because there are twelve or thirteen of them rather than 354.
 	 *
 	 * Both halves of a leap pair carry the same name — they are two months of one year.
 	 */
@@ -691,6 +757,55 @@ export function rejectInvalidLeapFlags(
 					"instead of being rejected.",
 			);
 		}
+	}
+}
+
+/** The fields {@link rejectMissingFields} can be asked about — the required ones of the two field types. */
+export type RequiredDateField = "year" | "month" | "day";
+
+/**
+ * Rejects a required numeric field that is absent, nullish, or not a number at all.
+ *
+ * @remarks
+ * The presence half of the boundary check, and it carries a **different code** from the range
+ * half on purpose. `TCT_FIELD_OUT_OF_RANGE` means a number is wrong; `TCT_INVALID_ARGUMENT` means
+ * the argument is the wrong *kind* of thing — and only the first is on `tibetanDateExists`'s
+ * swallow-allowlist. That is the whole reason the split exists, and until 2026-08-26 the presence
+ * case was on the wrong side of it:
+ *
+ * ```ts
+ * tibetanDateExists({ year: 2151, month: 6, isLeapMonth: true });  // was false — it is a MONTH
+ * tibetanDateExists({ year: 2153, month: 1 });                     // was false — day forgotten
+ * ```
+ *
+ * Both reported type confusion as *a date that does not exist*. The engine never detects that the
+ * argument is a month; it detects a missing field, which is why the fix belongs here rather than
+ * in a wrong-shape branch. Neither case is reachable by a caller who is right about what they are
+ * passing, so throwing loses nothing the `false` was giving.
+ *
+ * **`NaN` and non-integers are deliberately *not* here.** They are present numbers that are out of
+ * range, so they keep `TCT_FIELD_OUT_OF_RANGE` and keep answering `false`; the range check at each
+ * call site still owns them. Four input classes, two codes, and the line between them is
+ * **presence**, not validity.
+ *
+ * Mirrors {@link rejectInvalidLeapFlags}: one policy for the message and the code in one place
+ * rather than the same guard written out at each entry point that needs it.
+ */
+export function rejectMissingFields(
+	functionName: string,
+	value: { year?: unknown; month?: unknown; day?: unknown },
+	fields: readonly RequiredDateField[],
+): void {
+	for (const field of fields) {
+		const present = value[field];
+		if (typeof present === "number") continue;
+		throw rangeError(
+			"TCT_INVALID_ARGUMENT",
+			`${functionName}: ${field} is required and must be a number, received ` +
+				`${describeFlagValue(present)}. A missing or wrong-typed field is a malformed ` +
+				"argument, not a date out of range, so it is thrown rather than reported as a date " +
+				"that does not exist",
+		);
 	}
 }
 
