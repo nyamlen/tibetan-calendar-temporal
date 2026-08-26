@@ -7,14 +7,20 @@
  * dependencies.
  *
  * ```ts
- * import { isoToTibetan, formatTibetanDate } from "tibetan-calendar-temporal";
+ * import { isoToTibetan, formatTibetanDate, yearNameFor } from "tibetan-calendar-temporal";
  *
  * const date = isoToTibetan(Temporal.PlainDate.from("2027-01-15"));
  * date.year;                  // 2153 — royal era, what an almanac prints
  * date.yearStartsIn;          // 2026 — Janson's Y, for cross-referencing the paper
- * date.yearName;              // { element: 'fire', animal: 'horse', gender: 'male' }
+ * yearNameFor(date.year);     // { element: 'fire', animal: 'horse', gender: 'male', … }
  * formatTibetanDate(date);    // "2153-M12-08"
  * ```
+ *
+ * Year-level naming is **not** a field on the date. `rabjung` and `yearName` came off
+ * {@link TibetanDate} on 2026-08-24: both are closed forms over `year`, so a date carrying them
+ * repeated one value across all 354 days of its year. Reach them through {@link yearNameFor} and
+ * {@link rabjungFor}. {@link TibetanDate.weekdayName} stays, because it is the one name a date
+ * cannot regenerate from itself.
  *
  * Three things are worth knowing before relying on the output:
  *

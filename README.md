@@ -294,8 +294,15 @@ lunar arithmetic, so reach for them rather than for `monthsFor(y).length` when t
 are not wanted.
 
 `datesFor` lays out one month's calendar days; combine it with `monthsFor` to build a whole year —
-`monthsFor(2153).flatMap(datesFor)` gives 354 entries. [The guide](docs/guide.md#the-cost-of-a-year)
-records what a year costs to serialise.
+`monthsFor(2153).flatMap((month) => datesFor(month))` gives 354 entries.
+[The guide](docs/guide.md#the-cost-of-a-year) records what a year costs to serialise.
+
+**Wrap the callback; do not pass one of these functions to `map` or `flatMap` point-free.**
+`flatMap` calls back with `(value, index, array)`, and the second parameter of every function here
+that takes a `TraditionConfig` is that config — so the array index lands in the config slot and the
+call throws `TCT_INVALID_TRADITION_CONFIG`. TypeScript refuses it outright; JavaScript gets a throw
+rather than a wrong calendar. `yearNameFor` and `rabjungFor` are the only exports that survive
+point-free use, because they take no config.
 
 ### Naming a year
 

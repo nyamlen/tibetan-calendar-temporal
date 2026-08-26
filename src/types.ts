@@ -492,8 +492,11 @@ export interface TibetanDate {
  * **{@link TibetanMonth.days} counts calendar days, not date numbers.** The numbering always runs
  * 1–30; the *span* is 29 or 30 days, because some numbers are skipped and some are carried by two
  * consecutive days. So `for (let d = 1; d <= days; d++)` is wrong and produces a silently bad grid.
- * Walk {@link TibetanMonth.firstDay} to {@link TibetanMonth.lastDay} and call `isoToTibetan` on
- * each — which is also the right model for a UI, since a grid holds one cell per calendar day.
+ * Use `datesFor(month)`, which returns one entry per calendar day with the numbering already
+ * right — a doubled number appearing twice and a skipped one not at all. Walking
+ * {@link TibetanMonth.firstDay} to {@link TibetanMonth.lastDay} with `isoToTibetan` gives the same
+ * answer and is the route for the *padding* cells of a UI grid, which belong to neighbouring
+ * months that `datesFor` cannot reach — but inside the month, `datesFor` is what to reach for.
  *
  * **{@link TibetanMonth.month} is not a unique key within the year.** In a leap year two months
  * share a number. {@link TibetanMonth.monthCode} is the unique one.
@@ -542,10 +545,14 @@ export interface TibetanMonth {
 	 * The element–animal name of the year this month belongs to.
 	 *
 	 * @remarks
-	 * The same value {@link TibetanDate.yearName} carries, and it is here for the same reason
+	 * The same value `yearNameFor(month.year)` returns, and it is here for the same reason
 	 * {@link TibetanMonth.year} is: a month should identify itself. Rendering a month header
 	 * otherwise means hopping into the date tier through `losarFor`, which is not a route anyone
 	 * would guess from the name.
+	 *
+	 * A `TibetanDate` does **not** carry this field — year-level naming came off it on 2026-08-24,
+	 * since a date repeated one value across every day of its year. A month is the tier where the
+	 * name is worth storing, because there are twelve or thirteen of them rather than 354.
 	 *
 	 * Both halves of a leap pair carry the same name — they are two months of one year.
 	 */

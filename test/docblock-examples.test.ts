@@ -4,6 +4,7 @@ import { rabjungFromYear, royalEraFromYear, yearNameFromYear } from "../src/comp
 import { meanDate } from "../src/computation/mean-astronomy.js";
 import { deriveScaling } from "../src/computation/scaling.js";
 import { rabjungFor, weekdayNameFor, yearNameFor } from "../src/cycles.js";
+import { formatTibetanDate } from "../src/format.js";
 import { daysInMonth, leapMonthOfYear, monthsFor } from "../src/months.js";
 import {
 	addDays,
@@ -30,6 +31,34 @@ import { PHUGPA } from "../src/traditions/phugpa.js";
  * this fails, which is the point.
  */
 describe("docblock examples", () => {
+	// index.ts's block is `@remarks` with a fenced example inside it, not `@example` — which is why
+	// this suite never saw it, and why it shipped `date.yearName` in dist/index.d.ts for two days
+	// after year-level naming came off TibetanDate on 2026-08-24. It is the entry point's headline
+	// example and the first API prose a consumer meets on hover. A consumer spike found it.
+	//
+	// The lesson is the selector, not the line: this suite keys on `@example`, so a value stated in
+	// any other tag is unguarded. Assert those here too.
+	describe("index.ts — the package docblock", () => {
+		it("states the four values its quickstart shows", () => {
+			const date = isoToTibetan(Temporal.PlainDate.from("2027-01-15"));
+			expect(date.year).toBe(2153);
+			expect(date.yearStartsIn).toBe(2026);
+			expect(yearNameFor(date.year)).toMatchObject({
+				element: "fire",
+				animal: "horse",
+				gender: "male",
+			});
+			expect(formatTibetanDate(date)).toBe("2153-M12-08");
+		});
+
+		it("is right that a date carries no year-level naming", () => {
+			const date = isoToTibetan(Temporal.PlainDate.from("2027-01-15"));
+			expect("yearName" in date).toBe(false);
+			expect("rabjung" in date).toBe(false);
+			expect("weekdayName" in date).toBe(true);
+		});
+	});
+
 	describe("conversion.ts", () => {
 		it("losarFor states the right Losar, skipped day and leap-month opening", () => {
 			expect(losarFor(2153).isoDate.toString()).toBe("2026-02-18");

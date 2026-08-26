@@ -113,6 +113,18 @@ describe("README usage examples", () => {
 		expect(year.length).toBe(354);
 	});
 
+	// The README shipped this line POINT-FREE — `flatMap(datesFor)` — for as long as the assertion
+	// above existed, and the assertion never caught it because it transcribed the intent and wrapped
+	// the callback while doing so. `flatMap` calls back with `(value, index, array)`, so the array
+	// index landed in `datesFor`'s optional `config` parameter and the documented line could never
+	// have run. Found by a consumer spike on 2026-08-25, not by this suite.
+	//
+	// So: assert an example as WRITTEN, not as meant. A suite that quietly repairs the example it is
+	// checking reports success on a README that throws.
+	it("refuses the point-free form the README used to show", () => {
+		expect(() => monthsFor(2153).flatMap(datesFor as never)).toThrow(/TraditionConfig/);
+	});
+
 	it("names the year as documented", () => {
 		const losar = isoToTibetan(iso("2026-02-18"));
 		expect(formatTibetanDate(losar)).toBe("2153-M01-01");
