@@ -552,17 +552,40 @@ so it sees the final state rather than a moving one. The flags recorded here are
 where a command is **diff-shaped** that is noted, because running it on a clean `main` reviews
 nothing and reports success.
 
-- [ ] **Full API surface review.** Subject: every name in `src/index.ts`, judged against
-      [decisions/2026-08-12-public-surface.md](decisions/2026-08-12-public-surface.md) and its
-      2026-08-15 rescoping — the wrong-or-impossible test for computation internals and contested
-      conventions, the "does a calendar library normally provide it, and does it have one obvious
-      correct semantics" test for thin compositions. Check the type shapes too, not only the
-      function list: this is where the rabjung name-shape item above gets settled, and the last item that
-      belongs on the pre-1.0.0 surface is the one nobody thought to look for.
-      **Command:** `/code-review max src/index.ts` for the barrel, then
-      `/sc:sc-analyze src --focus architecture --depth deep` for the shapes behind it.
-      `test/public-api.test.ts` pins the list, so any change it prompts fails there first — which is
-      the intended signal, not a nuisance
+- [ ] **Full API surface review** — **changes landed 2026-08-26; the pass is NOT closed.** It stays
+      open because its own closing condition is unmet: a full uncontaminated **re-spike** against a
+      tarball packed from the finished branch. Six of the names below were designed inside this
+      repo, by a session that had read every decision record, and were never shown to a consumer —
+      which collides with the gate this whole pass runs under, that no 1.0.0 ships until a consumer
+      outside this repository has exercised the public API. Ticking it now would exempt exactly the
+      names the pass added from the only gate that catches API-shape problems.
+      **What has landed.** The item planned a *static* read of the barrel with two review commands.
+      What settled it was a second **consumer spike** against a packed tarball, in an
+      uncontaminated session: six findings, all six moved the surface, and the sharpest was
+      invisible to any static pass — `weekdayNameFor(date.dayOfWeek)` compiled and returned the
+      wrong name, measured at 60 silently wrong calls in 70 days. Ten changes: six added names
+      (`resolveMonth`, `resolveDate`, `formatTibetanMonth`, `parseTibetanMonth`,
+      `addMonthsToDate`, `asTibetanWeekday`), four reshaped (`addMonths` narrowed to reject a
+      date, `getObservances`/`observancesOn` to an options bag, the moon functions widened,
+      `leapMonthOfYear` → `leapMonthNumberFor`), plus the absent-field error code. Recorded as the
+      fourth `## Revisited` section in
+      [decisions/2026-08-12-public-surface.md](decisions/2026-08-12-public-surface.md), which also
+      reconciles this record's "14 functions to 25" against today's 37 — unit-mixing, not drift.
+      **Two things the item did not anticipate.** `test/public-api.test.ts` pins names and
+      **kinds**, not signatures, so reshaping `getObservances` broke 16 call sites and **nothing
+      reported it as an API change**; it surfaced as ordinary type errors. And one recommendation
+      was **withdrawn** on examination — the two conversion-naming families were suspected of
+      contradicting each other and do not — which is now a rule rather than a rename.
+      **To close it.** Re-pack, write the second brief, and re-run Stage 3 in a fresh session. The
+      brief differs from the first in three ways that are not cosmetic: it specifies **tasks, not
+      function names**, so discoverability is tested rather than assumed; it measures coverage
+      against the tarball's own `.d.ts`, which the spike enumerates itself, so non-use reads as a
+      discoverability finding; and it **does not say which names are new**. Bounded at this one
+      re-entry — a further "change the API" round means the surface is not converging, which is
+      escalated rather than iterated.
+      **Also still unruled:** whether the barrel should have a **namespace object**. It is not a
+      class, so the no-class record does not cover it, and the flatness of this barrel is why two
+      of the new naming rules exist
 - [ ] **Full code review.** Subject: all of `src/`, plus `scripts/` and the fixture generators,
       which are unreviewed and produce the primary correctness gate. **Command:**
       `/code-review max src/` for a path-scoped pass — note that plain `/code-review` and

@@ -185,6 +185,75 @@ records `*For`/`*Of` being one character apart as a trap that **compiles** and r
 and this removes three of its four instances. Restoring one is three lines if a real consumer ever
 appears.
 
+## Revisited 2026-08-26: a second consumer spike, and ten changes
+
+**Decision:** the rule is unchanged. Six names are added, four are reshaped or renamed, and the
+arithmetic this record could not account for is reconciled.
+
+**The pass itself is not closed, and this section is not its sign-off.** Its closing condition is
+a full uncontaminated **re-spike** against a tarball packed from the finished branch: six of the
+names below were designed inside this repository by a session that had read every decision record,
+and were never shown to a consumer. The gate this pass runs under is that no 1.0.0 ships until a
+consumer outside this repository has exercised the public API, and treating these changes as done
+would exempt exactly the names the pass added from the only gate that catches API-shape problems.
+The roadmap item stays unchecked until that spike runs.
+
+**What the second spike changed, and why a static read could not have.** The first client returned
+no API change. The second returned six findings, and the surface moved for all six — which is the
+evidence for building against a surface before freezing it, not an argument about taste. The
+sharpest was not a missing feature: `weekdayNameFor(date.dayOfWeek)` **compiled**, because both
+numberings are fields on the same object, and returned the wrong name. Measured over 70 days: 60
+calls silently wrong, 10 throwing. No review pass had seen it.
+
+### The ten changes
+
+| Change | Judged by |
+|---|---|
+| `resolveMonth`, `resolveDate` | second test — every comparator makes fields → date first-class, and here it had **no name**: two indirect routes existed and the spike found neither |
+| `formatTibetanMonth`, `parseTibetanMonth` | second test — symmetric with the date pair, one obvious semantics, strict grammar |
+| `addMonthsToDate` | second test — **reversed** on evidence. Originally refused as "the tradition supplies no answer"; `Temporal` clamps by default with a `reject` opt-out, and `"preceding"` is already this package's own shipped convention for the analogous question |
+| `asTibetanWeekday` + the `TibetanWeekday` brand | **first** test — a plausible wrong answer reachable by the most obvious line, which is that test's own criterion |
+| `addMonths` narrowed to reject a date | first test — it discarded the day **silently** and returned a month |
+| `getObservances` / `observancesOn` to an options bag | coherence — the only two-sequential-optionals defect; free now, breaking after |
+| `nextFullMoon` / `nextNewMoon` also accept `TibetanDateFields` | second test — purely additive; navigation is Tibetan-in throughout |
+| `leapMonthOfYear` → `leapMonthNumberFor` | the `*For`/`*Of` hazard, last public instance. It stays a **number**: returning a `TibetanMonth` would evaluate `true_date` and shrink the domain, and that wider domain is why 2026-08-13 exported the scalars at all |
+| An absent required field throws `TCT_INVALID_ARGUMENT` | not an API-shape question but a **behaviour** change, recorded here because it is breaking |
+| Two naming rules, no code change | see [coding-standards.md](../coding-standards.md) |
+
+**One recommendation was withdrawn on examination**, and that matters as much as the nine taken:
+the two conversion-naming families were suspected of contradicting each other and do not. Recorded
+as a rule rather than "fixed".
+
+### The arithmetic this record could not account for, reconciled
+
+The 2026-08-15 revision says the root export goes "from 14 functions to 25". The root exports **37
+runtime names** today, and a surface whose governing record does not reconcile against it is itself
+a finding. It reconciles exactly, and the gap was **unit-mixing rather than drift**:
+
+- The record counts **functions**. There are **26** today — its 25, plus `weekdayNameFor`, which
+  arrived on 2026-08-16 with the naming layer, after the rescoping.
+- 37 counts **all runtime names**: those 26 functions, plus `SkippedDayError`, plus the four
+  tradition configs. `typeof` reports a class as `"function"`, so an introspection-based count
+  gives 27 functions and that is the same 26 plus the error class.
+
+Neither side was wrong; the two numbers were never the same unit. Say which unit a surface count is
+in, or this recurs.
+
+### The settled size
+
+**37 root runtime names and 21 root types; 40 and 31 across both entry points.** The type figures
+are three higher than the plan for this pass projected, and the cause is worth recording because it
+is the ordinary way a count goes stale: the plan counted `TibetanWeekday` but never propagated the
+types its *own* options-bag decisions require — `MonthOverflow`, `AddMonthsToDateOptions` and
+`ObservanceQueryOptions`. A consumer annotating a variable needs all three, so they are exported
+and the projection was what was wrong.
+
+### What the surface is not
+
+**A namespace object has never been ruled on.** It is not a class, so
+[2026-08-12-no-tibetan-date-class.md](2026-08-12-no-tibetan-date-class.md) does not cover it, and
+the flatness of this barrel is the reason two of the naming rules above exist. Raised, not settled.
+
 ## Consequences
 
 - Do not export from `src/computation/` to make a test or a sibling module easier. Tests import
