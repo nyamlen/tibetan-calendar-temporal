@@ -300,12 +300,19 @@ derivation; in `docs/` they are just noise.
   README called `rabjungFor`'s `name` "the Tibetan and Sanskrit name" for hours after the Sanskrit
   came off, and the grep that found the stale list named the removed types rather than the field, so
   it sailed past. Removing or renaming a type therefore still needs the hand sweep for everything
-  except the list — `docs/architecture.md`'s shapes (**10** exported types defined as interface
-  blocks, plus `TibetanWeekday`, `TibetanWeekdayName` and `TibetanYearName` named in field
-  positions), `docs/guide.md` (4), and any docblock naming it. The figure here read 7 until
-  2026-08-26 and had been wrong for some time; both counts are now verified rather than remembered.
-  Those shapes are **complete** — every field, not a selection — which they had also drifted out of
-  being, `TibetanDate` showing 10 of its 15 fields with nothing saying so.
+  except the list — `docs/architecture.md`'s shapes (**11** exported types defined as interface
+  blocks, plus `TibetanAnimal`, `TibetanElement`, `TibetanGender`, `TibetanName`, `TibetanWeekday`,
+  `TibetanWeekdayName` and `TibetanYearName` named in field positions), `docs/guide.md` (4), and any
+  docblock naming it. This figure read 7 until 2026-08-26 and 10 until 2026-08-27; it moves whenever
+  a shape is added, so **re-count it rather than trusting the number written here** — the count is
+  `grep -c '^interface ' docs/architecture.md`.
+
+  Those shapes are **complete** — every field, not a selection — and that is the rule that keeps
+  failing silently. `TibetanDate` had drifted to 10 of its 15 fields with nothing saying so; the
+  2026-08-27 sweep then found `TibetanYearName` at **3 of 6**, the three `*Name` fields having
+  arrived with the naming layer on 2026-08-16 without the shape being touched, and
+  `TibetanMonthFields` missing its `calendarId` phantom. Nothing mechanical sees any of this. When
+  you add a field to an exported type, the shape in `docs/architecture.md` is part of the change.
 
   **And a signature is not a runtime export either.** The suite pins *names* and *kinds* —
   `Object.keys` and `typeof` — so changing a function's parameters passes every one of the nine
@@ -323,6 +330,28 @@ derivation; in `docs/` they are just noise.
   figure recorded in this file before the work is an estimate, and must be re-measured and corrected
   when the work lands**, because everything else here reads as measured. Found by the doc-drift
   sweep, not by any check.
+
+  **A widening is not "purely additive" if the added arm is structurally ambiguous with an existing
+  one.** `nextFullMoon` was widened on 2026-08-26 to take `TibetanDateFields` beside
+  `Temporal.PlainDate`, judged additive because it removed nothing. It was additive in the *type*
+  and breaking in the *contract*: a bare `{ year, month, day }` is a genuine value of both, so the
+  parameter silently resolved a calendar ambiguity that `asPlainDate` refuses everywhere else, and
+  `nextFullMoon({ year: 2026, month: 1, day: 1 })` meant as a Western date returned a day in
+  **1899**. Narrowed back on 2026-08-27; both the rule and the two arguments that lost are in
+  [docs/decisions/2026-08-12-public-surface.md](docs/decisions/2026-08-12-public-surface.md).
+
+  The rule that came out of it: **a parameter spanning two calendars accepts only shapes that say
+  which one they mean** — a `Temporal` instance or a resolved `TibetanDate`, never loose fields.
+  It does **not** generalise to the fields-in convention elsewhere: `addDays`, `daysBetween` and
+  `addMonthsToDate` take one calendar, so they have no ambiguity and keep taking loose fields.
+  **Put the guard where the ambiguity is; uniformity is not the goal.**
+
+  Two corollaries worth having before the next such change. Reversibility cuts the same way it does
+  for the `TibetanWeekday` brand — widening later is free, narrowing never is — so ship the narrow
+  arm and widen on demand. And when a batch adds a **composition** and a **convenience the
+  composition subsumes**, check the pair against each other before both ship: `resolveDate` landed
+  in the same batch as this widening and was never compared with it, and
+  `nextFullMoon(resolveDate(x))` is what the widening was avoiding.
 
   **A `TraditionConfig` is judged by a different rule, because it is a different kind of claim.**
   That record is about API design; a config asserts that dates computed with it are a real
@@ -469,6 +498,16 @@ comparison only means anything **after** `npx biome check --write` on the emitte
 differs from the committed file by roughly +60/−3148 lines purely through reflow, which looks like a
 catastrophe and is not. Same principle as proving a guard by mutation, one step earlier — establish
 that the instrument reads zero before you measure with it.
+
+**That applies to a throwaway check just as much as to a generator, which is easy to forget because
+a one-off script feels too small to need proving.** An ad-hoc comparison of every shape block in
+`docs/architecture.md` against `src/` reported three drifted types on 2026-08-27 —
+`TraditionConfig`, `ObservanceRule`, `ObservanceConfig` — and all three were **false**: the field
+extractor did not skip `readonly`, so it read those interfaces as having no fields at all. The two
+*real* drifts it found were real, which is what makes this the dangerous shape of error — a
+believable result mixed with noise. The tell was `src=0`, an impossible reading nobody had thought
+to assert on. Give a one-off check a case whose answer you already know before you trust the cases
+whose answers you do not.
 
 **The script now proves its own predicates on every run**, before any rule, reporting "the checker
 itself is broken" rather than a violation. That is not decoration: the `test/computation/` naming
