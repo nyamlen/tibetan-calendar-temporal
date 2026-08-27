@@ -552,24 +552,28 @@ so it sees the final state rather than a moving one. The flags recorded here are
 where a command is **diff-shaped** that is noted, because running it on a clean `main` reviews
 nothing and reports success.
 
-- [ ] **Full API surface review** — **changes landed 2026-08-26, the re-spike ran 2026-08-27, and
-      one ruling is outstanding before this can be ticked.** The closing condition — a full
-      uncontaminated re-spike against a tarball packed from the finished branch — **has now been
-      met**: spike 3 ran against `0.0.1-2b4e2bb` in a fresh session, from a brief specifying tasks
-      rather than function names. It reached the surface it needed and returned **two** findings,
-      both closed: nothing shipped stated that the *types* need TypeScript 7, and the moon pair read
-      a bare `{ year, month, day }` as Tibetan, inverting `asPlainDate`'s refusal of that shape as
-      ambiguous. The six names added on 2026-08-26 drew **zero** friction — the spike used all of
-      them without incident, which is the result the gate existed to test.
-      **Why it is still unticked.** The second finding was ruled a **change the API** item, not a
-      documentation one: the moon parameter narrowed to `Temporal.PlainDate | TibetanDate` on
-      2026-08-27. By the letter of the bound below, an API change after the permitted re-entry is a
-      second re-entry, and is escalated rather than iterated. The escalation is open. The argument
-      against a fourth spike is that the narrowing is a **partial revert** adding no new name, that
-      its failure mode is a compile error rather than a plausible wrong answer, and that a migration
-      check against the spike's own CLI cost **one compile error fixed by one line**, using a
-      function (`resolveDate`) that CLI already imported. Tick this only once that ruling is
-      accepted — a `[x]` beside an open escalation is the contradiction this list has made before.
+- [x] **Full API surface review** — closed 2026-08-27. The closing condition was met: spike 3 ran
+      uncontaminated against a tarball packed from the finished branch, from a brief specifying
+      tasks rather than function names. **The six names added on 2026-08-26 drew zero friction** —
+      the spike used all of them without incident, which is the result the gate existed to test, and
+      it is the item's real outcome rather than the static read it planned.
+      **Two findings, and the second moved the surface again.** Nothing shipped stated that the
+      *types* need TypeScript 7 — a consumer could satisfy every documented requirement, on Node 26,
+      and still not compile a line, since `TS2503: Cannot find namespace 'Temporal'` hits every
+      declaration file naming a date. And the moon pair read a bare `{ year, month, day }` as
+      Tibetan, inverting `asPlainDate`'s refusal of that shape as ambiguous; measured, it returned a
+      day in **1899** for a date meant as 2026. That was ruled a change-the-API item and the
+      parameter narrowed to `Temporal.PlainDate | TibetanDate`.
+      **The bound was therefore triggered, and escalated rather than iterated** — a fourth spike was
+      ruled unnecessary on 2026-08-27, on evidence rather than convenience: the narrowing is a
+      partial revert adding **no new name**, its failure mode is a compile error rather than a
+      plausible wrong answer, and a migration check against the spike's own CLI cost **one compile
+      error fixed by one line**, using `resolveDate`, which that CLI already imported for another
+      command.
+      **The namespace-object question, open since 2026-08-26, is also settled** — no namespace
+      object, on measurement: a consumer's own `import * as` already tree-shakes to a byte-identical
+      bundle, while a namespace object *shipped by the package* costs **+142%** on a minimal
+      consumer, because the object holds live references to every export.
       **What has landed.** The item planned a *static* read of the barrel with two review commands.
       What settled it was a second **consumer spike** against a packed tarball, in an
       uncontaminated session: six findings, all six moved the surface, and the sharpest was
@@ -596,9 +600,17 @@ nothing and reports success.
       discoverability result the first brief's format could not have produced, since handing over
       the name is what destroys the measurement. Bounded at this one re-entry; the escalation that
       bound triggered is recorded above.
-      **Also still unruled:** whether the barrel should have a **namespace object**. It is not a
-      class, so the no-class record does not cover it, and the flatness of this barrel is why two
-      of the new naming rules exist
+      **What the residual sweep found**, run over the names and type shapes no consumer has
+      exercised: two documentation drifts and no API change, which is the outcome declared likely in
+      advance. `docs/architecture.md` showed `TibetanYearName` with **3 of its 6 fields** — the
+      three `*Name` fields arrived with the naming layer and the shape was never updated — and
+      `TibetanMonthFields` without its `calendarId` phantom. Both are the completeness rule failing
+      silently, the same way `TibetanDate` had drifted to 10 of 15. `TibetanDateFields` was missing
+      altogether and is now documented beside its month counterpart. `hasLeapMonth` was closed with
+      a pointer to [decisions/2026-08-13-api-vocabulary.md](decisions/2026-08-13-api-vocabulary.md),
+      which already rules it, and `TibetanWeekdayElement` — which the spike could not place from the
+      export list — is kept under the first test: typing it as `TibetanElement` would make `wind`
+      unrepresentable, and `wind` is not a year element at all
 - [ ] **Full code review.** Subject: all of `src/`, plus `scripts/` and the fixture generators,
       which are unreviewed and produce the primary correctness gate. **Command:**
       `/code-review max src/` for a path-scoped pass — note that plain `/code-review` and

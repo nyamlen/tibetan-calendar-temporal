@@ -257,9 +257,37 @@ and the projection was what was wrong.
 
 ### What the surface is not
 
-**A namespace object has never been ruled on.** It is not a class, so
-[2026-08-12-no-tibetan-date-class.md](2026-08-12-no-tibetan-date-class.md) does not cover it, and
-the flatness of this barrel is the reason two of the naming rules above exist. Raised, not settled.
+**No namespace object — settled 2026-08-27, on measurement.** It is not a class, so
+[2026-08-12-no-tibetan-date-class.md](2026-08-12-no-tibetan-date-class.md) does not cover it; it had
+been raised and left open since 2026-08-26, and the flatness of this barrel is the reason two of the
+naming rules above exist.
+
+**The ergonomic benefit is already available and costs nothing.** A consumer who wants
+namespace-style access writes `import * as tct from 'tibetan-calendar-temporal'` today. Bundled
+minimal — one `isoToTibetan` and one `formatTibetanDate` — that is **byte-for-byte identical** to
+named imports, because a bundler tree-shakes statically-analysable property access on a namespace
+import. So the package shipping one would add no capability a consumer lacks.
+
+**What it would cost is not theoretical.** A shipped object (`export const tibetan = { … }`) holds
+live references to every export, which defeats tree-shaking outright. Same minimal consumer:
+
+| Import style | Bundled, minified |
+|---|---|
+| `import { isoToTibetan, formatTibetanDate }` | 15,462 bytes |
+| `import * as tct` (consumer's own choice) | 15,462 bytes — identical |
+| via a namespace **object shipped by the package** | 37,418 bytes — **+142%** |
+
+*Method, since this record refuses unsourced numbers from its sources and owes the same of its own:*
+esbuild 0.24.0, `--bundle --format=esm --minify`, against the tarball built from `71ec831`,
+measured 2026-08-27 on Node v26.7.0. Re-measure rather than quote if the surface grows much.
+
+**And it is the reversible direction.** Adding a namespace object later is a pure addition and
+never breaking; removing one always is. Three arguments, all pointing the same way.
+
+*One argument that does **not** support this ruling, recorded because it was made and is wrong:*
+that a namespace import defeats tree-shaking on the consumer's side. It does not — the table above
+was built to check exactly that and refuted it. The cost lives entirely in the package shipping an
+object, not in how a consumer imports.
 
 ## Revisited 2026-08-27: the moon pair takes a resolved date, not loose fields
 
