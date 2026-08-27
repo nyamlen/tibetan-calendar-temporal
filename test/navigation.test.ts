@@ -532,22 +532,26 @@ describe("nextFullMoon and nextNewMoon", () => {
 		}
 	});
 
-	// A bare { year, month, day } was on this list until 2026-08-26, when these two were widened to
-	// accept a Tibetan date. It is now READ as one rather than refused. Everything that names
-	// neither a Western nor a Tibetan date is still refused.
+	// A bare { year, month, day } was widened ONTO this parameter on 2026-08-26 and narrowed back
+	// OFF it on 2026-08-27. It is refused rather than read as either calendar, because nothing about
+	// the object says which one it names — the ground asPlainDate has always refused it on.
 	it.each([
 		["null", () => nextNewMoon(null as never)],
 		["a number", () => nextFullMoon(42 as never)],
 		["a boolean", () => nextNewMoon(true as never)],
+		["a bare fields object", () => nextFullMoon({ year: 2026, month: 8, day: 12 } as never)],
 	])("rejects %s", (_label, call) => {
 		expect(codeOf(call)).toBe("TCT_INVALID_ARGUMENT");
 	});
 
-	it("reads a bare fields object as a TIBETAN date, not a Western one", () => {
-		// Royal era 2026 is Janson Y 1899, so the two readings are 127 years apart and cannot be
-		// confused by accident if this ever regresses.
-		const tibetan = nextFullMoon({ year: 2026, month: 8, day: 12 });
-		expect(tibetan.isoDate.year).toBeLessThan(1910);
+	it("names resolveDate in the message, so the refusal states its own remedy", () => {
+		let message = "";
+		try {
+			nextFullMoon({ year: 2153, month: 8, day: 12 } as never);
+		} catch (error) {
+			message = (error as Error).message;
+		}
+		expect(message).toContain("resolveDate");
 	});
 
 	it("accepts the Temporal shapes that name a calendar day", () => {
@@ -743,6 +747,21 @@ describe("nextFullMoon / nextNewMoon accept a Tibetan date too", () => {
 		expect(Temporal.PlainDate.compare(second.isoDate, first.isoDate)).toBe(1);
 	});
 
+	/**
+	 * The compile-time half of the narrowing, and the half that actually does the work: the runtime
+	 * guard catches a JavaScript caller, but a TypeScript one should never reach it.
+	 *
+	 * `tsc` errors on an UNUSED `@ts-expect-error`, so this line fails `npm run typecheck` the moment
+	 * a bare fields object starts type-checking again — which is what makes it a tripwire rather
+	 * than a comment. Nothing here runs; the assertion is the directive.
+	 */
+	it("refuses a bare fields object at compile time", () => {
+		const call = () =>
+			// @ts-expect-error a bare { year, month, day } names no calendar — pass resolveDate(...)
+			nextFullMoon({ year: 2026, month: 8, day: 12 });
+		expect(call).toBeTypeOf("function");
+	});
+
 	it("still takes every Western form it took before", () => {
 		const expected = nextFullMoon(iso("2026-01-01")).isoDate.toString();
 		expect(nextFullMoon("2026-01-01" as unknown as Temporal.PlainDate).isoDate.toString()).toBe(
@@ -755,18 +774,23 @@ describe("nextFullMoon / nextNewMoon accept a Tibetan date too", () => {
 		).toBe(expected);
 	});
 
-	it("codes a malformed Tibetan object rather than throwing a bare TypeError", () => {
-		expect(codeOf(() => nextFullMoon({ year: 2153, month: 13, day: 1 }))).toBe(
-			"TCT_FIELD_OUT_OF_RANGE",
+	// Narrowing the parameter to a RESOLVED date shrank this pair's error surface, and that is a
+	// contract change rather than a detail: a TibetanDate cannot carry an out-of-range field or name
+	// a skipped day, because the engine is what produced it. So both of those codes became
+	// unreachable HERE and moved one call out, to resolveDate. Asserted so the narrower @throws is
+	// checked rather than merely believed.
+	it("refuses an unresolved object outright rather than field-checking it", () => {
+		expect(codeOf(() => nextFullMoon({ year: 2153, month: 13, day: 1 } as never))).toBe(
+			"TCT_INVALID_ARGUMENT",
 		);
 		expect(codeOf(() => nextFullMoon(null as never))).toBe("TCT_INVALID_ARGUMENT");
 		expect(codeOf(() => nextFullMoon(42 as never))).toBe("TCT_INVALID_ARGUMENT");
 	});
 
-	it("throws SkippedDayError when the Tibetan date names no calendar day", () => {
+	it("leaves SkippedDayError to resolveDate, which is where the skipped day is now named", () => {
 		let thrown: unknown;
 		try {
-			nextFullMoon({ year: 2150, month: 12, day: 29 });
+			nextFullMoon(resolveDate({ year: 2150, month: 12, day: 29 }));
 		} catch (error) {
 			thrown = error;
 		}
