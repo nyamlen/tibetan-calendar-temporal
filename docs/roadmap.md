@@ -552,13 +552,24 @@ so it sees the final state rather than a moving one. The flags recorded here are
 where a command is **diff-shaped** that is noted, because running it on a clean `main` reviews
 nothing and reports success.
 
-- [ ] **Full API surface review** — **changes landed 2026-08-26; the pass is NOT closed.** It stays
-      open because its own closing condition is unmet: a full uncontaminated **re-spike** against a
-      tarball packed from the finished branch. Six of the names below were designed inside this
-      repo, by a session that had read every decision record, and were never shown to a consumer —
-      which collides with the gate this whole pass runs under, that no 1.0.0 ships until a consumer
-      outside this repository has exercised the public API. Ticking it now would exempt exactly the
-      names the pass added from the only gate that catches API-shape problems.
+- [ ] **Full API surface review** — **changes landed 2026-08-26, the re-spike ran 2026-08-27, and
+      one ruling is outstanding before this can be ticked.** The closing condition — a full
+      uncontaminated re-spike against a tarball packed from the finished branch — **has now been
+      met**: spike 3 ran against `0.0.1-2b4e2bb` in a fresh session, from a brief specifying tasks
+      rather than function names. It reached the surface it needed and returned **two** findings,
+      both closed: nothing shipped stated that the *types* need TypeScript 7, and the moon pair read
+      a bare `{ year, month, day }` as Tibetan, inverting `asPlainDate`'s refusal of that shape as
+      ambiguous. The six names added on 2026-08-26 drew **zero** friction — the spike used all of
+      them without incident, which is the result the gate existed to test.
+      **Why it is still unticked.** The second finding was ruled a **change the API** item, not a
+      documentation one: the moon parameter narrowed to `Temporal.PlainDate | TibetanDate` on
+      2026-08-27. By the letter of the bound below, an API change after the permitted re-entry is a
+      second re-entry, and is escalated rather than iterated. The escalation is open. The argument
+      against a fourth spike is that the narrowing is a **partial revert** adding no new name, that
+      its failure mode is a compile error rather than a plausible wrong answer, and that a migration
+      check against the spike's own CLI cost **one compile error fixed by one line**, using a
+      function (`resolveDate`) that CLI already imported. Tick this only once that ruling is
+      accepted — a `[x]` beside an open escalation is the contradiction this list has made before.
       **What has landed.** The item planned a *static* read of the barrel with two review commands.
       What settled it was a second **consumer spike** against a packed tarball, in an
       uncontaminated session: six findings, all six moved the surface, and the sharpest was
@@ -566,9 +577,9 @@ nothing and reports success.
       wrong name, measured at 60 silently wrong calls in 70 days. Ten changes: six added names
       (`resolveMonth`, `resolveDate`, `formatTibetanMonth`, `parseTibetanMonth`,
       `addMonthsToDate`, `asTibetanWeekday`), four reshaped (`addMonths` narrowed to reject a
-      date, `getObservances`/`observancesOn` to an options bag, the moon functions widened,
-      `leapMonthOfYear` → `leapMonthNumberFor`), plus the absent-field error code. Recorded as the
-      fourth `## Revisited` section in
+      date, `getObservances`/`observancesOn` to an options bag, the moon functions widened —
+      **and narrowed again on 2026-08-27, see above** — `leapMonthOfYear` → `leapMonthNumberFor`),
+      plus the absent-field error code. Recorded as the fourth and fifth `## Revisited` sections in
       [decisions/2026-08-12-public-surface.md](decisions/2026-08-12-public-surface.md), which also
       reconciles this record's "14 functions to 25" against today's 37 — unit-mixing, not drift.
       **Two things the item did not anticipate.** `test/public-api.test.ts` pins names and
@@ -576,13 +587,15 @@ nothing and reports success.
       reported it as an API change**; it surfaced as ordinary type errors. And one recommendation
       was **withdrawn** on examination — the two conversion-naming families were suspected of
       contradicting each other and do not — which is now a rule rather than a rename.
-      **To close it.** Re-pack, write the second brief, and re-run Stage 3 in a fresh session. The
-      brief differs from the first in three ways that are not cosmetic: it specifies **tasks, not
-      function names**, so discoverability is tested rather than assumed; it measures coverage
-      against the tarball's own `.d.ts`, which the spike enumerates itself, so non-use reads as a
-      discoverability finding; and it **does not say which names are new**. Bounded at this one
-      re-entry — a further "change the API" round means the surface is not converging, which is
-      escalated rather than iterated.
+      **How it was closed, and what the second brief proved.** Re-packed, second brief written,
+      Stage 3 re-run in a fresh session on 2026-08-27. The brief differed from the first in three
+      ways that were not cosmetic: it specified **tasks, not function names**, so discoverability
+      was tested rather than assumed; it measured coverage against the tarball's own `.d.ts`, which
+      the spike enumerated itself, so non-use read as a discoverability finding; and it **did not
+      say which names were new**. All three earned their keep — the `lunation` finding is a pure
+      discoverability result the first brief's format could not have produced, since handing over
+      the name is what destroys the measurement. Bounded at this one re-entry; the escalation that
+      bound triggered is recorded above.
       **Also still unruled:** whether the barrel should have a **namespace object**. It is not a
       class, so the no-class record does not cover it, and the flatness of this barrel is why two
       of the new naming rules exist
