@@ -140,8 +140,15 @@ export function asPlainDate(date: Temporal.PlainDate): Temporal.PlainDate {
 	}
 }
 
-/** A value rendered short enough for a message, and unambiguously: `"3"` is not `3`. */
-function describeValue(value: unknown): string {
+/**
+ * A value rendered short enough for a message, and unambiguously: `"3"` is not `3`.
+ *
+ * @remarks
+ * Exported for `navigation.ts`, whose moon-phase guard refuses the same class of argument and must
+ * describe it the same way. Shared under `src/` rather than published — only the barrel makes a
+ * name API.
+ */
+export function describeValue(value: unknown): string {
 	if (typeof value === "string") return JSON.stringify(value);
 	if (value !== null && typeof value === "object") return value.constructor?.name ?? "an object";
 	return String(value);

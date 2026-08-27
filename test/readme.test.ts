@@ -223,10 +223,10 @@ describe("README error examples", () => {
  * but the worked snippets beside them can, so those are asserted like every other README claim.
  */
 describe("README navigation examples", () => {
-	it("chains the phases through .isoDate, as documented", () => {
+	it("chains the phases directly, as documented", () => {
 		let moon = nextFullMoon(iso("2026-01-01"));
 		const first = moon.isoDate.toString();
-		moon = nextFullMoon(moon.isoDate);
+		moon = nextFullMoon(moon);
 		expect(moon.isFullMoon).toBe(true);
 		expect(Temporal.PlainDate.compare(moon.isoDate, iso(first))).toBeGreaterThan(0);
 	});

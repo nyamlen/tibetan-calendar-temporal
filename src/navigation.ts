@@ -34,6 +34,7 @@ import {
 import {
 	asPlainDate,
 	assertExactJulianDay,
+	describeValue,
 	isoFromJulianDayUnchecked,
 	isoToTibetan,
 	julianDayFromIso,
@@ -616,22 +617,23 @@ const NEW_MOON = 30;
  * Normalises either accepted input to the ISO day the phase search starts from.
  *
  * @remarks
- * **This deliberately does not go through {@link asPlainDate} for the Tibetan case.** That
- * function rejects a bare `{ year, month, day }` object on the stated ground that it is
- * "ambiguous with this package's own Tibetan-date shape" — which is right everywhere else and is
- * exactly what these two functions must now accept. Routing around it keeps its contract, and its
- * message, unchanged for the seven other entry points that rely on it.
+ * **Both accepted shapes name their own calendar, and that is the entire rule.** A `Temporal`
+ * instance says Western by construction; a resolved {@link TibetanDate} says Tibetan, because the
+ * engine is what produced it. A bare `{ year, month, day }` says *neither* — it is a genuine value
+ * of both {@link TibetanDateFields} and Temporal's own fields shape — so it is refused here on
+ * exactly the ground {@link asPlainDate} refuses it at every other entry point.
  *
- * The discrimination is sound at runtime because the Western forms are all class instances or a
- * string: only a plain object reaches the Tibetan branch. At compile time the union is
- * discriminated by {@link TibetanDateFields.calendarId}, declared `never` against the
- * `readonly calendarId: string` all three `Temporal` classes carry.
+ * **This pair accepted that bare object between 2026-08-26 and 2026-08-27 and no longer does.** The
+ * widening bought chaining, which a resolved date gives just as well; what it cost was the only
+ * parameter on the surface where one value could mean two calendars, silently resolved in favour of
+ * Tibetan. `nextFullMoon({ year: 2026, month: 1, day: 1 })` meant as a Western date returned a day
+ * in 1899. Narrowing keeps the chaining and returns the refusal.
+ *
+ * The Tibetan branch reads `isoDate` rather than re-running {@link tibetanToIso}: a resolved date
+ * already carries the answer, so this is a field read and not a conversion — which is why `config`
+ * is no longer a parameter here.
  */
-function phaseStart(
-	name: string,
-	date: Temporal.PlainDate | TibetanDateFields,
-	config: TraditionConfig,
-): Temporal.PlainDate {
+function phaseStart(name: string, date: Temporal.PlainDate | TibetanDate): Temporal.PlainDate {
 	if (
 		date instanceof Temporal.PlainDate ||
 		date instanceof Temporal.PlainDateTime ||
@@ -640,20 +642,27 @@ function phaseStart(
 	) {
 		return asPlainDate(date as Temporal.PlainDate);
 	}
-	// A plain object: Tibetan fields. assertDateFields carries the shape and range guards, so a
-	// malformed one is coded here rather than reaching Temporal as an uncoded TypeError.
-	assertDateFields(name, date);
-	return tibetanToIso(date, config);
+	if (date !== null && typeof date === "object" && date.isoDate instanceof Temporal.PlainDate) {
+		return date.isoDate;
+	}
+	throw rangeError(
+		"TCT_INVALID_ARGUMENT",
+		`${name}: expected a Temporal.PlainDate or a resolved TibetanDate, received ` +
+			`${describeValue(date)}. A bare { year, month, day } object names no calendar — it is a ` +
+			"genuine value of both this package's Tibetan date shape and Temporal's own — so it is " +
+			"refused rather than guessed at. Pass resolveDate({ ... }) for a Tibetan date, or " +
+			"Temporal.PlainDate.from({ ... }) for a Western one",
+	);
 }
 
 function nextPhase(
 	name: string,
 	lunarDay: number,
-	date: Temporal.PlainDate | TibetanDateFields,
+	date: Temporal.PlainDate | TibetanDate,
 	config: TraditionConfig,
 ): TibetanDate {
 	assertTraditionConfig(config);
-	const from = phaseStart(name, date, config);
+	const from = phaseStart(name, date);
 	const scaled = scalingFor(config);
 	const target = julianDayFromIso(from);
 	assertExactJulianDay(scaled, target, () => `${name}(${from.toString()})`);
@@ -679,17 +688,21 @@ function nextPhase(
  * 2153 M11 on the day numbered 14. {@link TibetanDate.isFullMoon} is derived correctly and is what
  * to read when you already have a date.
  *
- * **They chain directly — widened 2026-08-26.** They took a `Temporal.PlainDate` only, so every
- * other navigation function was Tibetan-in and these two forced a round trip through the Western
- * calendar to answer a Tibetan question; the spike chained them three deep doing exactly that.
- * Both forms are accepted and agree, and the `Temporal.PlainDate` form is unchanged.
+ * **They chain directly, and they take a resolved date rather than loose fields.** This is the one
+ * parameter on the surface that spans two calendars, so it accepts only shapes that *say* which one
+ * they mean: a `Temporal` instance, or a {@link TibetanDate} the engine produced. A bare
+ * `{ year, month, day }` names neither and is refused — call {@link resolveDate} on it first.
+ * Widened to accept loose fields on 2026-08-26 and narrowed back on 2026-08-27, when a consumer
+ * spike found it the only place a value could silently mean the wrong calendar.
  *
- * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `date` is neither a value
- * `asPlainDate` accepts nor an object naming a Tibetan date; `TCT_FIELD_OUT_OF_RANGE` for a
- * Tibetan field out of range; `TCT_OUTSIDE_EXACT_RANGE` if the phase lies past where the
- * arithmetic stays exact. A bare `{ year, month, day }` is read as **Tibetan** here, unlike at
- * every other entry point taking a Western date.
- * @throws {@link SkippedDayError} if a Tibetan `date` names a day no calendar day carries.
+ * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `date` is neither a value `asPlainDate`
+ * accepts nor a resolved {@link TibetanDate}; `TCT_OUTSIDE_EXACT_RANGE` if the phase lies past
+ * where the arithmetic stays exact.
+ *
+ * @remarks
+ * The error surface is narrower than it looks, and deliberately: a resolved `TibetanDate` cannot
+ * carry an out-of-range field or name a skipped day, so `TCT_FIELD_OUT_OF_RANGE` and
+ * {@link SkippedDayError} are unreachable here and belong to {@link resolveDate} one call out.
  *
  * @example
  * ```ts
@@ -698,7 +711,7 @@ function nextPhase(
  * ```
  */
 export function nextFullMoon(
-	date: Temporal.PlainDate | TibetanDateFields,
+	date: Temporal.PlainDate | TibetanDate,
 	config: TraditionConfig = PHUGPA,
 ): TibetanDate {
 	return nextPhase("nextFullMoon", FULL_MOON, date, config);
@@ -716,7 +729,7 @@ export function nextFullMoon(
  * @throws The codes {@link nextFullMoon} throws.
  */
 export function nextNewMoon(
-	date: Temporal.PlainDate | TibetanDateFields,
+	date: Temporal.PlainDate | TibetanDate,
 	config: TraditionConfig = PHUGPA,
 ): TibetanDate {
 	return nextPhase("nextNewMoon", NEW_MOON, date, config);

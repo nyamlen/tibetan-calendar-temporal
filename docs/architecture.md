@@ -244,6 +244,16 @@ interface TibetanMonthFields {
   year: number;           // Royal era, like TibetanDate.year
   month: number;          // 1-12
   isLeapMonth?: boolean;
+  calendarId?: never;     // always absent; present only to reject Temporal instances at compile time
+}
+
+interface TibetanDateFields {
+  year: number;           // Royal era, like TibetanDate.year
+  month: number;          // 1-12
+  day: number;            // 1-30
+  isLeapMonth?: boolean;  // select the leap month when two share a number
+  isLeapDay?: boolean;    // select the first when two calendar days share a number
+  calendarId?: never;     // as above
 }
 
 interface Rabjung {
@@ -255,7 +265,10 @@ interface Rabjung {
 interface TibetanYearName {
   element: TibetanElement;  // 'wood' | 'fire' | 'earth' | 'iron' | 'water'
   animal: TibetanAnimal;    // 'mouse' | 'ox' | 'tiger' | ... | 'pig'
-  gender: TibetanGender;    // 'male' | 'female'
+  gender: TibetanGender;    // 'male' | 'female' — redundant with animal, stored as printed
+  elementName: TibetanName; // ཤིང *shing* for wood, མེ *me* for fire
+  genderName: TibetanName;  // ཕོ *pho* for male, མོ *mo* for female
+  animalName: TibetanName;  // རྟ *rta* for horse, སྟག *stag* for tiger
 }
 
 interface ObservanceRule {
