@@ -207,6 +207,13 @@ calls silently wrong, 10 throwing. No review pass had seen it.
 
 ### The ten changes
 
+**One row below was narrowed the next day, and the table is kept as it stood.** The
+`nextFullMoon` / `nextNewMoon` row read `TibetanDateFields` when these ten were taken on
+2026-08-26; on 2026-08-27 the parameter became `Temporal.PlainDate | TibetanDate` — a *resolved*
+date, not loose fields. See "Revisited — 2026-08-27" below for why. The row is left as written
+because what it got wrong is instructive: "purely additive" was true of the type and false of the
+contract.
+
 | Change | Judged by |
 |---|---|
 | `resolveMonth`, `resolveDate` | second test — every comparator makes fields → date first-class, and here it had **no name**: two indirect routes existed and the spike found neither |
@@ -253,6 +260,62 @@ and the projection was what was wrong.
 **A namespace object has never been ruled on.** It is not a class, so
 [2026-08-12-no-tibetan-date-class.md](2026-08-12-no-tibetan-date-class.md) does not cover it, and
 the flatness of this barrel is the reason two of the naming rules above exist. Raised, not settled.
+
+## Revisited 2026-08-27: the moon pair takes a resolved date, not loose fields
+
+**Decision:** `nextFullMoon` and `nextNewMoon` take `Temporal.PlainDate | TibetanDate`. The
+`TibetanDateFields` arm added on 2026-08-26 is withdrawn. A bare `{ year, month, day }` throws
+`TCT_INVALID_ARGUMENT` naming `resolveDate` as the remedy.
+
+**The rule this settles, which is the part to carry:** a parameter spanning two calendars accepts
+only shapes that *say* which one they mean. A `Temporal` instance says Western by construction; a
+resolved `TibetanDate` says Tibetan, because the engine produced it. A bare fields object says
+neither — it is a genuine value of both `TibetanDateFields` and Temporal's own fields shape.
+
+This is not a new rule. It is the rule `asPlainDate` has always stated and enforced at every other
+entry point. The 2026-08-26 widening overruled it at these two, and its own helper docblock said so
+in as many words — *"which is right everywhere else and is exactly what these two functions must now
+accept."* Nothing recorded that an override had been taken.
+
+**Why the override did not survive.** The third consumer spike, run uncontaminated against
+`0.0.1-2b4e2bb`, reported it as one of two findings: the pair that most invites "just hand it
+today's date" was the one place the package resolved calendar ambiguity silently instead of
+refusing it. Measured before the change, `nextFullMoon({ year: 2026, month: 1, day: 1 })` meant as a
+Western date returned **1899-02-25**.
+
+**Two arguments were weighed and lost, and both are worth keeping.** *That the error is loud* — the
+royal-era numbering puts the two readings 127 years apart, and `TibetanDateFields.year`'s docblock
+cites that gap as a deliberate mitigation for exactly this confusion. True, and it is why the
+finding was a hazard report rather than an incident. It does not answer why the surface should rely
+on a numbering accident where a type will do. *That fields-in is the navigation convention* — also
+true, and it stays the convention for `addDays`, `daysBetween` and `addMonthsToDate`, none of which
+span two calendars and so none of which have an ambiguity to resolve. **Put the guard where the
+ambiguity is; uniformity is not the goal.**
+
+**The deciding argument was reversibility**, as it was for the `TibetanWeekday` brand in the batch
+before: widening a parameter later is non-breaking, narrowing it is not. `TibetanDate`-now →
+`TibetanDateFields`-later stays available; the reverse never does.
+
+**What the narrowing cost, honestly.** One visible call on the loose-fields path —
+`nextFullMoon(resolveDate(fields))`. Not extra work: the widened version ran `tibetanToIso`
+internally anyway. The conversion moved from hidden to explicit, and the chaining case now skips it
+entirely by reading `isoDate` off the resolved date.
+
+**A contract narrowing that came free with it, and must not be re-widened by accident:** a resolved
+`TibetanDate` cannot carry an out-of-range field or name a skipped day. So `TCT_FIELD_OUT_OF_RANGE`
+and `SkippedDayError` are unreachable through these two functions and belong to `resolveDate` one
+call out. The `@throws` says so and `test/navigation.test.ts` asserts it.
+
+**`resolveDate` landed in the same batch as the widening and was never checked as an alternative to
+it.** Had it been, the widening would probably not have been proposed. When a batch adds a
+composition *and* a convenience that the composition subsumes, check the pair against each other
+before both ship.
+
+**Guarded by a `@ts-expect-error` in `test/navigation.test.ts`**, not only by a runtime test:
+`tsc` errors on an *unused* directive, so the line fails `npm run typecheck` the moment a bare
+fields object starts type-checking again. Proved by running it against the old signature first,
+where it reported `TS2578: Unused '@ts-expect-error' directive` — the control that makes it a
+tripwire rather than a comment.
 
 ## Consequences
 

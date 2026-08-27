@@ -500,16 +500,21 @@ from; in coordinate space a leap month is simply the next lunation.
 | `monthsBetween` | `(from: TibetanMonthFields, to: TibetanMonthFields, config?) => number` | Signed, counted in **lunations** — month 5 to month 7 is three in a year that doubles month 6, two otherwise |
 | `lunationFromMonth` | `(month: TibetanMonthFields, config?) => number` | The month as one sortable integer, for a database or cache key. No consumer-side route: it needs the intercalation index |
 | `monthFromLunation` | `(lunation: number, config?) => TibetanMonth` | The inverse, for a stored coordinate with no year in hand. Narrower domain than its inverse — it returns boundaries, so it evaluates the calendar |
-| `nextFullMoon` | `(date: Temporal.PlainDate, config?) => TibetanDate` | Strictly after. **Not** `day === 15`: when 15 is skipped the full moon is on the day numbered 14, about one month in forty-five |
-| `nextNewMoon` | `(date: Temporal.PlainDate, config?) => TibetanDate` | Strictly after. On a doubled 30 it is the **second** of the pair, not the leap day |
+| `nextFullMoon` | `(date: Temporal.PlainDate \| TibetanDate, config?) => TibetanDate` | Strictly after. **Not** `day === 15`: when 15 is skipped the full moon is on the day numbered 14, about one month in forty-five. Takes a *resolved* date, so it chains — a bare `{ year, month, day }` names no calendar and is refused; pass `resolveDate(…)` |
+| `nextNewMoon` | `(date: Temporal.PlainDate \| TibetanDate, config?) => TibetanDate` | Strictly after. On a doubled 30 it is the **second** of the pair, not the leap day |
 
-Western in, Tibetan out for the two phases, so they do not chain with themselves — step through
-`.isoDate`:
+These two chain with themselves: the resolved date they return is a date they accept.
 
 ```js
 let moon = nextFullMoon(Temporal.PlainDate.from('2026-01-01'));
-moon = nextFullMoon(moon.isoDate);   // the one after that
+moon = nextFullMoon(moon);   // the one after that — no .isoDate needed
 ```
+
+This is the only parameter in the package spanning two calendars, so it takes only shapes that say
+which one they mean — a `Temporal` instance, or a resolved `TibetanDate`. A bare
+`{ year, month, day }` is a genuine value of both this package's Tibetan shape and Temporal's own,
+so it names neither and is refused rather than guessed at. Pass `resolveDate({ … })` for a Tibetan
+date, or `Temporal.PlainDate.from({ … })` for a Western one.
 
 #### Year names
 
