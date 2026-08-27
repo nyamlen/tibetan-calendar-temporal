@@ -580,9 +580,16 @@ export interface TibetanMonth {
 	year: number;
 
 	/**
-	 * The month's position in the unbroken count of lunations since the tradition's epoch.
+	 * The month's identity as a single sortable integer — its **database key, cache key or array
+	 * index** — being its position in the unbroken count of lunations since the tradition's epoch.
 	 *
 	 * @remarks
+	 * The key framing leads deliberately. A consumer looking for "the month as one storable value"
+	 * searches for *key* or *id*, not for *lunation*, and a 2026-08-27 spike reached for `monthKey`
+	 * and `monthId` before finding this field. The name stays — it is what the number *is*, and it
+	 * matches `julianDay` one tier down, which is named the same way for the same reason — but the
+	 * summary line says what it is *for*, since that is the line an editor shows on hover.
+	 *
 	 * A Tibetan month **is** a lunation, and every month counts once — leap months included — so
 	 * this increases by exactly one per month with no special case, and continues across Losar
 	 * without a gap. Janson calls it the true month count.

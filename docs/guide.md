@@ -470,6 +470,56 @@ That flag exposes V8's in-progress implementation, which may not match the shipp
 The point of this engine is deterministic dates that are identical everywhere; a date computed
 against a moving implementation is not that. Use the polyfill instead.
 
+### Type-checking needs TypeScript 7, which the runtime requirement does not imply
+
+Everything above is about *running* the code. Type-checking it is a second requirement, and the two
+are independent — which is worth stating plainly, because satisfying the runtime one completely
+leaves the other unmet and the symptom does not point at it.
+
+The ambient `Temporal` namespace type ships in TypeScript's own lib files only from **7.0**, as
+`lib.esnext.temporal.d.ts`. TypeScript 5.x has no such lib file at any `"lib"` setting, and neither
+`@types/node` nor any other typings package supplies one. So on 5.x every declaration file in this
+package that mentions a date fails:
+
+```text
+node_modules/tibetan-calendar-temporal/dist/computation/conversion.d.ts:12:34
+  error TS2503: Cannot find namespace 'Temporal'.
+```
+
+That is not a corner of the API. Every function signature naming `Temporal.PlainDate` is unusable
+until it resolves, which is all of them, because dates are what the package returns. **You can be on
+Node 26 with `Temporal` working perfectly at runtime and still not compile a single line.**
+
+The whole fix is the TypeScript version:
+
+```sh
+npm i -D typescript@^7
+```
+
+No `"lib"` change is needed — TypeScript 7's default already carries it. A `tsconfig.json` as plain
+as this type-checks against the package:
+
+```jsonc
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true
+  }
+}
+```
+
+**Do not install `temporal-polyfill`, `temporal-spec` or any other Temporal typings package to make
+the error go away.** They are unnecessary once TypeScript is current, and the published `.d.ts`
+references the global on purpose — the zero-dependency claim runs through the type declarations as
+well as the runtime. The polyfill is for *runtimes* without `Temporal`, and installing it changes
+nothing about this error.
+
+Why this has to live in prose: `engines` in `package.json` constrains only `node`. npm has no
+equivalent field for the TypeScript version a package's types require, so there is nothing
+mechanical to declare it with.
+
 ### Displaying Tibetan names
 
 Every name the engine returns carries three renderings — Tibetan script, Wylie transliteration and

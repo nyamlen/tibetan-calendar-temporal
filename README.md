@@ -155,6 +155,23 @@ polyfill instead.
 so a polyfilled Node 22 or 24 project works fine. See
 [the guide](docs/guide.md#running-it-anywhere) for `engine-strict` and the rest.
 
+**TypeScript 7 or later, if you type-check.** This is a *separate* requirement from the runtime one
+above and is not implied by it. The ambient `Temporal` namespace type ships in TypeScript's own lib
+files only from 7.0 (`lib.esnext.temporal.d.ts`), so on the 5.x line every declaration file here
+that mentions a date fails with `TS2503: Cannot find namespace 'Temporal'` — which is all of them,
+because dates are the product. **You can satisfy every runtime requirement on this page, on Node 26,
+and still not compile a line.** If you see that error, this is the axis to check.
+
+```sh
+npm i -D typescript@^7
+```
+
+No `"lib"` setting is needed — TypeScript 7's default already carries it. And do **not** install
+`temporal-polyfill`, `temporal-spec` or any other typings package to fix it: they are unnecessary
+here, and the published `.d.ts` references the global deliberately. `engines` constrains only
+`node`; npm has no field for the TypeScript version a package's *types* require, which is why this
+lives in prose.
+
 ## Usage
 
 ### Converting a Western date
