@@ -298,6 +298,46 @@ edits, and moving files once after they have landed is one link-fixing commit in
       return type, taken now because the package is pre-v1.0.0. Took a serialised year from 293,009
       to 126,629 bytes. Constraint and the rule it follows in
       [decisions/2026-08-24-year-naming-off-the-date.md](decisions/2026-08-24-year-naming-off-the-date.md)
+- [ ] **Composable/additive `ObservanceConfig`s — decide before 1.0.0, not after.** Today, a
+      consumer combining several institutions' rule sets (e.g. `GELUG` plus a `TEACHERS` and a
+      `TANTRA` config) hand-rolls
+      `{ ...GELUG, rules: [...GELUG.rules, ...TEACHERS.rules, ...TANTRA.rules] }` and silently
+      drops a convention field (`doubledDay`/`skippedDay`/`leapMonth`) wherever two source configs
+      disagree on it. Whether this package ships a first-class merge helper is exactly the kind of
+      call [decisions/2026-08-12-public-surface.md](decisions/2026-08-12-public-surface.md) governs
+      — once `ObservanceConfig` and the shipped configs are frozen at 1.0.0, adding a helper later
+      is free, but its *absence* being the sanctioned way to compose configs is what would need
+      revisiting, and that is a documentation claim worth getting right now rather than retrofitting.
+      Needs its own brainstorm and spec — see `nyamlen/docs/fpmt-dharma-dates.md`'s "Design
+      questions ahead" section, which raised this alongside the day-quality-code question below
+- [ ] **Where FPMT's astrological/elemental day-quality codes belong — decide before 1.0.0.**
+      FD-*, UD-*, NB/NCE/NF/NG/NH/NCH/NMP/NM/NPF/NWR (full list in
+      `nyamlen/docs/fpmt-dharma-dates.md`) describe a *property of a day* — favourable, forbidden
+      for a category of activity — not a dated practice, and do not fit `ObservanceRule`'s shape at
+      all. `src/observances/default-gelug.ts`'s own docblock already disclaims this category as
+      "Janson's appendices D-E, which this package does not compute," so the decision is not merely
+      what shape they take but **whether this package computes them at all**, versus staying a
+      `nyamlen`-only layer built on top of dates this package already produces. That is a scope
+      question for this package's stated purpose (a calendar computation engine, not an almanac),
+      not only an API-shape question — decide it before 1.0.0 states the surface is complete,
+      because adding a wholly new export category afterward is a bigger claim than widening an
+      existing one. Needs its own brainstorm and spec, separate from the composable-config item
+      above; still has real sourcing gaps to close first (NWR and Fire Puja have no stated days in
+      any source found, and the key page has never actually been rendered) — see that document's
+      "Open questions" and "Design questions ahead" sections.
+
+      **The scope just got bigger, and one gap is now specific.** Reading Janson's Appendix E
+      directly (2026-08-28, from the LaTeX, not this repo's own prior reading of it) found that
+      FPMT's ten FD-*/UD-* codes are exactly his "elemental yoga" — the unordered pair of a day's
+      weekday element and lunar-mansion element, `C(4,2)+4=10` combinations — and that his Appendix
+      E separately defines full year/month/lunar-day/calendar-day attribute sets (elements,
+      animals, trigrams, numbers) that appear nowhere on fpmt.org and are, unlike the elemental
+      yoga, entirely self-derived by Janson with no second source needed. The one specific gap:
+      the mansion-to-element table and the ten yogas' names/favorability are cited by Janson to
+      Henning, not derived — so FD-*/UD-* specifically cannot be computed under the sole-source
+      rule without either accepting Henning as a second source or leaving that one piece
+      uncomputed. See `nyamlen/docs/fpmt-dharma-dates.md`'s "What Janson's Appendix E has that FPMT's
+      list does not" for the full derivation and the attribute-set table
 
 **Documentation**
 
@@ -611,6 +651,44 @@ nothing and reports success.
       which already rules it, and `TibetanWeekdayElement` — which the spike could not place from the
       export list — is kept under the first test: typing it as `TibetanElement` would make `wind`
       unrepresentable, and `wind` is not a year element at all
+- [ ] **Decide what belongs in this package's general observance layer versus what stays
+      FPMT-specific, and validate/document the result — before the code review reaches it.** This
+      absorbs two questions that were tracked as separate, cross-referenced items and are now one
+      decision, because the second changes the shape of the first.
+
+      **The boundary.** `GELUG`'s eleven shipped rules (four fixed-date duchens, six
+      monthly-cycle rules) are enumerated only in `src/observances/default-gelug.ts`; no
+      consumer-facing document lists them, unlike the config's *absences* (Losar, teacher
+      anniversaries, astrological day qualities, sojong), which that file's own docblock documents
+      in detail. `GELUG` bundles FPMT's specific convention choices (`doubledDay: "second"`,
+      `leapMonth: "leap"`) together with its rule set as one object; decide whether any of the
+      eleven are general enough — true of the tradition rather than particular to this
+      institution — to belong somewhere a differently-scoped default could carry, or whether the
+      whole set is correctly FPMT-specific and the only fix is documenting it as such.
+
+      **Sojong.** Andreas: sojong should be included. Phase 3 shipped nothing for it — a fixed
+      15th-and-30th rule misses 38 of FPMT's 2022-2025 occurrences and invents 36 (full divergence
+      table and history under Sojong, Beyond v1, below) — but `nyamlen/docs/fpmt-dharma-dates.md`
+      (2026-08-28) now records a possible rule from an oral teaching: sojong at the end of an odd
+      Tibetan month falls on the 14th, at the end of an even month on the 15th. **Verify it against
+      that divergence table before deciding to ship it** — it is one person's notes from a live
+      teaching, not an FPMT publication, and has not been checked computationally. If it verifies,
+      decide where it lives: inside `GELUG` if FPMT's own calendars actually follow it, as a
+      separately-scoped general rule if it turns out to be tradition-wide rather than
+      institution-specific, or neither if it still doesn't reproduce the data.
+
+      Once both are settled: confirm each surviving rule's day, tier and source against FPMT's
+      current guidance rather than trusting the 2022-2025 fixture check alone to still hold;
+      decide whether `GELUG` should be renamed — `id: "gelug"` currently reads as naming the
+      institution rather than a specific set of convention choices, which is the ambiguity the
+      boundary question above surfaced; and add the settled rule list to `docs/guide.md` or
+      `docs/architecture.md`, so a reader is not required to open `default-gelug.ts` to know what
+      ships. **Blocks the item below**: a code review that reads a ruleset which may still change
+      content, membership or name is reviewing a moving target.
+
+      **Still separate:** the composable-config helper and the day-quality-code placement question,
+      both recorded in the same nyamlen note, are distinct subsystems needing their own brainstorm
+      and spec — not folded into this task
 - [ ] **Full code review.** Subject: all of `src/`, plus `scripts/` and the fixture generators,
       which are unreviewed and produce the primary correctness gate. **Command:**
       `/code-review max src/` for a path-scoped pass — note that plain `/code-review` and
@@ -800,6 +878,22 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   is that it is scheduled by each community rather than computed, that is a publishable finding
   too — it would mean sojong belongs in caller-supplied rules permanently, and the docblock in
   `src/observances/default-gelug.ts` should say so rather than leaving it open.
+
+  **A possible answer surfaced 2026-08-28, outside this repo.** `nyamlen/docs/fpmt-dharma-dates.md`
+  records an oral-teaching source (Geshe Gyaltsen, translated by Geshe Graham, notes by Thubten
+  Chöying) giving an actual rule rather than a fixed day: sojong at the end of an **odd** Tibetan
+  month falls on the 14th, at the end of an **even** month on the 15th. **Unverified against the
+  table above** — that check (which Tibetan month each of these seven Gregorian dates falls in, and
+  whether the rule reproduces "yes"/"no" for each) has not been run, and the source is one person's
+  notes from a live teaching, not an FPMT publication. Start there before extending this item
+  further.
+
+  That note also opens two follow-on design questions, and **neither is beyond-v1 any more**: the
+  composable/additive `ObservanceConfig` helper (e.g. `GELUG + TEACHERS + TANTRA`) and the
+  day-quality-code placement question are both now tracked under the Pre-v1.0.0 checklist's API
+  shape section above, since both bear on this package's stated scope and surface before that
+  freezes. Both still need their own brainstorm and spec, in that order; see
+  `nyamlen/docs/fpmt-dharma-dates.md`'s "Design questions ahead" section.
 
 - **Tsurphu tradition** (Karma Kagyu) via a second `TraditionConfig`.
 
