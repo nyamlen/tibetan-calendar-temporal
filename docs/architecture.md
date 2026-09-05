@@ -108,38 +108,38 @@ This does not affect the package's Temporal-native claim. The engine speaks
 ```text
 tibetan-calendar-temporal/
 ├── src/
-│   ├── index.ts              # Public API exports
+│   ├── index.ts                    # Public API exports
 │   ├── traditions/
-│   │   ├── types.ts          # TraditionConfig type
-│   │   ├── validate.ts       # assertTraditionConfig — shape check at the boundary
-│   │   └── phugpa.ts         # Phugpa constants (epoch, tables)
+│   │   ├── types.ts                # TraditionConfig type
+│   │   ├── validate.ts             # assertTraditionConfig — shape check at the boundary
+│   │   └── phugpa.ts               # Phugpa constants (epoch, tables)
 │   ├── computation/
-│   │   ├── arithmetic.ts     # floorDiv, ceilDiv, mod, amod, gcd, lcm, scaleTo (§2)
-│   │   ├── scaling.ts        # derives each tradition's exact-integer denominators
-│   │   ├── epoch.ts          # Year numbering, rabjung, element/animal (§4)
-│   │   ├── mean-astronomy.ts # Mean date, mean sun, lunar anomaly (§7)
-│   │   ├── corrections.ts    # moon_tab / sun_tab, true date (§7)
-│   │   ├── calendar.ts       # True month count, leap months, day rule (§5-6)
-│   │   └── conversion.ts     # ISO ↔ Tibetan bidirectional, weekday (§8-9)
+│   │   ├── arithmetic.ts           # floorDiv, ceilDiv, mod, amod, gcd, lcm, scaleTo (§2)
+│   │   ├── scaling.ts              # derives each tradition's exact-integer denominators
+│   │   ├── epoch.ts                # Year numbering, rabjung, element/animal (§4)
+│   │   ├── mean-astronomy.ts       # Mean date, mean sun, lunar anomaly (§7)
+│   │   ├── corrections.ts          # moon_tab / sun_tab, true date (§7)
+│   │   ├── calendar.ts             # True month count, leap months, day rule (§5-6)
+│   │   └── conversion.ts           # ISO ↔ Tibetan bidirectional, weekday (§8-9)
 │   ├── observances/
-│   │   ├── index.ts          # getObservances, observancesOn (Layer 4)
-│   │   ├── types.ts          # ObservanceRule, ObservanceConfig, Observance
+│   │   ├── index.ts                # getObservances, observancesOn (Layer 4)
+│   │   ├── types.ts                # ObservanceRule, ObservanceConfig, Observance
 │   │   └── default-observances.ts  # DEFAULT_OBSERVANCES — FPMT's published rules, each cited
-│   ├── errors.ts             # Error codes, and the constructors that attach them
-│   ├── format.ts             # formatTibetanDate, monthCodeOf — the canonical string form
-│   ├── parse.ts              # parseTibetanDate — its inverse
-│   ├── months.ts             # monthsFor, datesFor, daysInMonth, the three closed-form scalars
-│   ├── navigation.ts         # the lunation coordinate, day and month arithmetic, the phases
-│   ├── cycles.ts             # the cyclic names: year, rabjung, weekday, element, gender, animal
-│   ├── names.ts              # the frozen name vocabulary — internal; cycles.ts, epoch.ts,
-│   │                         #   conversion.ts all read it
-│   ├── rabjung-names.ts      # the 60 rabjung names, Tibetan only — a weaker
-│   │                         #   evidence tier than names.ts, so its own module
-│   └── types.ts              # TibetanDate, TibetanMonth, their field shapes, SkippedDayError
+│   ├── errors.ts                   # Error codes, and the constructors that attach them
+│   ├── format.ts                   # formatTibetanDate, monthCodeOf — the canonical string form
+│   ├── parse.ts                    # parseTibetanDate — its inverse
+│   ├── months.ts                   # monthsFor, datesFor, daysInMonth, the three closed-form scalars
+│   ├── navigation.ts               # the lunation coordinate, day and month arithmetic, the phases
+│   ├── cycles.ts                   # the cyclic names: year, rabjung, weekday, element, gender, animal
+│   ├── names.ts                    # the frozen name vocabulary — internal; cycles.ts, epoch.ts,
+│   │                               #   conversion.ts all read it
+│   ├── rabjung-names.ts            # the 60 rabjung names, Tibetan only — a weaker
+│   │                               #   evidence tier than names.ts, so its own module
+│   └── types.ts                    # TibetanDate, TibetanMonth, their field shapes, SkippedDayError
 ├── test/
-│   ├── computation/          # named for a computation module, or <module>-<concept>
-│   ├── fixtures/             # Janson's tables, then FPMT data in Phase 2
-│   └── invariants.test.ts    # Year lengths, safe-integer bound, §13 period
+│   ├── computation/                # named for a computation module, or <module>-<concept>
+│   ├── fixtures/                   # Janson's tables, then FPMT data in Phase 2
+│   └── invariants.test.ts          # Year lengths, safe-integer bound, §13 period
 ├── package.json
 ├── biome.json
 ├── vitest.config.ts

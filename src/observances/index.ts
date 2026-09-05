@@ -79,13 +79,13 @@ const TIERS = [1, 2, 3];
  *
  * @remarks
  * `ObservanceConfig` is the documented extension point — the type comments and the docs both push
- * consumers toward `{ ...DEFAULT_OBSERVANCES, rules: [...] }` — and every field below was previously accepted
- * without a word. The mean-motion formulas are linear in the lunar day, so they extrapolate past
- * the end of a month rather than failing: `day: 31` returned the 1st of the *following* month and
- * `day: 0` the 30th of the *previous* one, each labelled `resolution: "exact"`. An out-of-range
- * `when.month` failed the other way, silently yielding zero hits so the observance vanished from
- * the year. A typo in a downstream rule table shipped a wrong date to practitioners with this
- * library's full authority behind it.
+ * consumers toward `{ ...DEFAULT_OBSERVANCES, rules: [...] }` — and every field below was
+ * previously accepted without a word. The mean-motion formulas are linear in the lunar day, so
+ * they extrapolate past the end of a month rather than failing: `day: 31` returned the 1st of the
+ * *following* month and `day: 0` the 30th of the *previous* one, each labelled `resolution:
+ * "exact"`. An out-of-range `when.month` failed the other way, silently yielding zero hits so the
+ * observance vanished from the year. A typo in a downstream rule table shipped a wrong date to
+ * practitioners with this library's full authority behind it.
  *
  * The convention fields are checked too, and **required rather than optional**. They are
  * type-level only, so a JavaScript consumer — or a TypeScript one whose config came from
@@ -105,8 +105,8 @@ function validateObservanceConfig(config: ObservanceConfig): void {
 	if (config === null || typeof config !== "object") {
 		throw rangeError(
 			"TCT_INVALID_OBSERVANCE_CONFIG",
-			`ObservanceConfig must be an object, received ${describe(config)}. Pass DEFAULT_OBSERVANCES, or a ` +
-				"config spread from it",
+			`ObservanceConfig must be an object, received ${describe(config)}. Pass DEFAULT_OBSERVANCES, ` +
+				"or a config spread from it",
 		);
 	}
 
@@ -122,7 +122,8 @@ function validateObservanceConfig(config: ObservanceConfig): void {
 		throw rangeError(
 			"TCT_INVALID_OBSERVANCE_CONFIG",
 			`observance config "${config.id}": rules must be an array. An institution is built by ` +
-				"spreading a shipped config — `{ ...DEFAULT_OBSERVANCES, rules: [...DEFAULT_OBSERVANCES.rules, mine] }` — never by " +
+				"spreading a shipped config — `{ ...DEFAULT_OBSERVANCES, " +
+				"rules: [...DEFAULT_OBSERVANCES.rules, mine] }` — never by " +
 				"supplying a partial one",
 		);
 	}

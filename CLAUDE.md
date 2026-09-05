@@ -687,11 +687,12 @@ in the same commit.
 
 **No exported identifier names an institution.** An export name states what a thing *is* — its
 shape, its role in the API — never who published the convention it encodes. `GELUG`, the observance
-config's export name until it was renamed to `DEFAULT_OBSERVANCES` on 2026-09-04, violated this: it
-was FPMT's specific published convention (`doubledDay: "second"`, `leapMonth: "leap"`, plus its
-particular rule set), not "the Gelug way" — Kopan Monastery, also Gelug, prints the *opposite*
-`doubledDay` for the 2024 Chokhor Duchen. Naming the export after an institution therefore didn't
-just look institution-specific, it overclaimed a universality the data itself contradicted. See
+config's export name until it was renamed to `DEFAULT_OBSERVANCES` on 2026-09-05 (decided
+2026-09-03), violated this: it was FPMT's specific published convention (`doubledDay: "second"`,
+`leapMonth: "leap"`, plus its particular rule set), not "the Gelug way" — Kopan Monastery, also
+Gelug, prints the *opposite* `doubledDay` for the 2024 Chokhor Duchen. Naming the export after an
+institution therefore didn't just look institution-specific, it overclaimed a universality the
+data itself contradicted. See
 [docs/decisions/2026-09-03-no-institution-names-in-exports.md](docs/decisions/2026-09-03-no-institution-names-in-exports.md).
 Provenance belongs in a `source` field and the docblock, which can carry a URL and a citation;
 an identifier cannot, and readers take a name at face value in a way they do not take prose.
@@ -708,7 +709,7 @@ moment a second config ships. `test/public-api.test.ts` asserts the id explicitl
 "consistency fix" fails loudly rather than quietly.
 Decided 2026-09-03, after Andreas asked that nothing in the package be named after an institution
 (FPMT was the example) while scoping the astrological-attributes work; `GELUG` was the first
-casualty, tracked in [roadmap.md](docs/roadmap.md)'s Pre-v1.0.0 checklist. This is distinct from
+casualty. This is distinct from
 `PHUGPA`/`TSURPHU`/`BHUTAN`-style names on a `TraditionConfig`, which name an objective, falsifiable
 calendrical system Janson describes — not one institution's convention among several that legitimately
 disagree — see the "Kind of claim" distinction between `TraditionConfig` and `ObservanceConfig`

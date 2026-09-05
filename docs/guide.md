@@ -223,7 +223,7 @@ Institutions differ by spreading the config, the same way `PHUGPA_HENNING` is bu
 ```js
 const kopan = { ...DEFAULT_OBSERVANCES, id: 'kopan', doubledDay: 'first' };
 observancesOn(Temporal.PlainDate.from('2024-07-09'), { config: kopan });
-// Chokhor Duchen — where the default DEFAULT_OBSERVANCES config puts it on 10 July
+// Chokhor Duchen — where the shipped default puts it on 10 July
 ```
 
 Three convention fields decide what happens when a rule's day is not an ordinary one. Each can be

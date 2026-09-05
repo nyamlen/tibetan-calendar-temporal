@@ -755,20 +755,22 @@ nothing and reports success.
       not merely unconfirmed.
 
       Once both are settled: confirm each surviving rule's day, tier and source against FPMT's
-      current guidance rather than trusting the 2022-2025 fixture check alone to still hold;
-      **rename `GELUG` to `DEFAULT_OBSERVANCES`** (`id` stays `"gelug"` — a data field, not an
-      exported identifier, so the naming rule doesn't reach it — file renamed to
-      `default-observances.ts`) — decided 2026-09-03, no longer open: no exported identifier names
-      an institution, and `GELUG` overclaims besides, since Kopan Monastery — also Gelug — prints
-      the opposite `doubledDay` for the same date FPMT does. See the new rule in
+      current guidance rather than trusting the 2022-2025 fixture check alone to still hold.
+
+      **Done 2026-09-05: renamed `GELUG` to `DEFAULT_OBSERVANCES`** (`id` stays `"gelug"` — a data
+      field, not an exported identifier, so the naming rule doesn't reach it — file renamed to
+      `default-observances.ts`), per the rule decided 2026-09-03: no exported identifier names an
+      institution, and `GELUG` overclaimed besides, since Kopan Monastery — also Gelug — prints
+      the opposite `doubledDay` for the same date FPMT does. See the rule in
       [CLAUDE.md](../CLAUDE.md)'s Conventions section and its row in
-      [coding-standards.md](coding-standards.md); this is now a package-wide naming rule, not a
-      one-off fix, so sweep for any other export or identifier named after an institution or
-      organisation while doing this rename, not only `GELUG`. Add the settled rule list to
-      `docs/guide.md` or `docs/architecture.md`, so a reader is not required to open
-      `default-observances.ts` to know what ships. **Blocks the item below**: a code review that
-      reads a ruleset which may still change content, membership or name is reviewing a moving
-      target.
+      [coding-standards.md](coding-standards.md). The sweep for any other export or identifier
+      named after an institution or organisation, required alongside this rename, is recorded
+      below, dated 2026-09-05.
+
+      **Still open:** add the settled rule list to `docs/guide.md` or `docs/architecture.md`, so a
+      reader is not required to open `default-observances.ts` to know what ships. **Blocks the item
+      below**: a code review that reads a ruleset which may still change content, membership or
+      name is reviewing a moving target.
 
       **Still separate:** the composable-config helper and the day-quality-code placement question,
       both recorded in the same nyamlen note, are distinct subsystems needing their own brainstorm
@@ -779,7 +781,7 @@ nothing and reports success.
       [2026-09-03-no-institution-names-in-exports.md](decisions/2026-09-03-no-institution-names-in-exports.md).
       `PHUGPA`, `PHUGPA_HENNING`, `BHUTAN` and `BHUTAN_HENNING` were checked deliberately and are not
       violations — they name calendrical systems Janson describes, not institutions' conventions.
-      `DEFAULT_OBSERVANCES` was already renamed. No other offender found
+      `DEFAULT_OBSERVANCES` was already renamed. No other offender found.
 - [ ] **Full code review.** Subject: all of `src/`, plus `scripts/` and the fixture generators,
       which are unreviewed and produce the primary correctness gate. **Command:**
       `/code-review max src/` for a path-scoped pass — note that plain `/code-review` and

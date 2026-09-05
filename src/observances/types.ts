@@ -230,7 +230,10 @@ export interface Observance {
  * for a function with two axes of choice rather than a one-off exception to uniformity.
  */
 export interface ObservanceQueryOptions {
-	/** Which observances, and the conventions for resolving them. Defaults to {@link DEFAULT_OBSERVANCES}. */
+	/**
+	 * Which observances, and the conventions for resolving them.
+	 * Defaults to {@link DEFAULT_OBSERVANCES}.
+	 */
 	config?: ObservanceConfig;
 
 	/** Astronomical constants. Defaults to `PHUGPA`. */

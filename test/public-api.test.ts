@@ -566,7 +566,7 @@ describe("observances API surface", () => {
 		expect(Object.keys(observances).sort()).toEqual([...EXPECTED_OBSERVANCE_EXPORTS]);
 	});
 
-	it("ships the Gelug config as spreadable plain data, like a tradition config", () => {
+	it("ships the default observance config (id `gelug`) as spreadable plain data, like a tradition config", () => {
 		expect(typeof observances.DEFAULT_OBSERVANCES).toBe("object");
 		expect(observances.DEFAULT_OBSERVANCES.id).toBe("gelug");
 		// An institution differs by spreading, never by subclassing.

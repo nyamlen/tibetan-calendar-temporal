@@ -10,6 +10,9 @@ published the convention it encodes.
 Provenance goes in a `source` field and the docblock.
 `GELUG` becomes `DEFAULT_OBSERVANCES`.
 
+This is a breaking change to the `./observances` surface, taken because the package is
+pre-v1.0.0 and the published `0.0.1` exports nothing.
+
 The name was not merely institution-flavoured, it **overclaimed**.
 `GELUG` encodes FPMT's specific published convention — `doubledDay: "second"`, `leapMonth: "leap"`,
 and one particular rule set — not "the Gelug way".
