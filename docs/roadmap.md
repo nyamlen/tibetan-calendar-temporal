@@ -308,8 +308,10 @@ edits, and moving files once after they have landed is one link-fixing commit in
       — once `ObservanceConfig` and the shipped configs are frozen at 1.0.0, adding a helper later
       is free, but its *absence* being the sanctioned way to compose configs is what would need
       revisiting, and that is a documentation claim worth getting right now rather than retrofitting.
-      Needs its own brainstorm and spec — see `nyamlen/docs/fpmt-dharma-dates.md`'s "Design
-      questions ahead" section, which raised this alongside the day-quality-code question below.
+      Needs its own brainstorm and spec. It was raised alongside the day-quality-code question
+      below, in the research that became [almanac-sources.md](almanac-sources.md); that file's
+      deliberation was dropped when it moved into this repo on 2026-09-05, because the decisions it
+      argued toward are the ones recorded here.
 
       **Composed shape, proposed 2026-09-03, subtractive part settled, reconciliation part
       deferred 2026-09-04:**
@@ -360,7 +362,7 @@ edits, and moving files once after they have landed is one link-fixing commit in
       self-derived by Janson, no second source needed) and the "elemental yoga" — the unordered
       pair of a day's weekday element and lunar-mansion element, `C(4,2)+4=10` combinations, found
       2026-08-28 to be *exactly* FPMT's ten FD-*/UD-* day-quality codes (full derivation in
-      `nyamlen/docs/fpmt-dharma-dates.md`'s "What Janson's Appendix E has that FPMT's list does
+      [almanac-sources.md](almanac-sources.md)'s "What Janson's Appendix E has that FPMT's list does
       not"). Both ship under `./astrology`. **Appendix D ("Planets") does not** — see the Beyond v1
       entry below for what it is and why it's excluded, not merely deferred by inertia.
 
@@ -393,7 +395,7 @@ edits, and moving files once after they have landed is one link-fixing commit in
 
       FPMT's list itself still has real sourcing gaps unrelated to this subpath (NWR and Fire Puja
       have no stated days in any source found; the key page has never actually been rendered) — see
-      `nyamlen/docs/fpmt-dharma-dates.md`'s "Open questions." Needs its own implementation plan once
+      [almanac-sources.md](almanac-sources.md)'s "Open questions." Needs its own implementation plan once
       brainstormed further; not folded into the composable-config item above, which stays
       `./observances`-only
 
@@ -736,7 +738,7 @@ nothing and reports success.
       2026-09-04.** Andreas: sojong should be included, so this stays open rather than closing as
       "cannot be done." Phase 3 shipped nothing for it — a fixed 15th-and-30th rule misses 38 of
       FPMT's 2022-2025 occurrences and invents 36 (full divergence table and history under Sojong,
-      Beyond v1, below). `nyamlen/docs/fpmt-dharma-dates.md` (2026-08-28) recorded a candidate from
+      Beyond v1, below). [almanac-sources.md](almanac-sources.md) (moved into this repo 2026-09-05) recorded a candidate from
       an oral teaching — sojong at the end of an odd Tibetan month falls on the 14th, at the end of
       an even month on the 15th — and it has now been run computationally against the roadmap's own
       seven-row divergence table. **Result: 4 of 7 match, 3 mismatch, and the failures are not
@@ -983,7 +985,7 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   `src/observances/default-gelug.ts` should say so rather than leaving it open.
 
   **A candidate answer surfaced 2026-08-28, outside this repo, and was falsified 2026-09-04.**
-  `nyamlen/docs/fpmt-dharma-dates.md` records an oral-teaching source (Geshe Gyaltsen, translated by
+  [almanac-sources.md](almanac-sources.md) records an oral-teaching source (Geshe Gyaltsen, translated by
   Geshe Graham, notes by Thubten Chöying) giving an actual rule rather than a fixed day: sojong at
   the end of an **odd** Tibetan month falls on the 14th, at the end of an **even** month on the
   15th. Run against the table above (`isoToTibetan` on all seven dates, checked under three
@@ -999,7 +1001,7 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   day-quality-code placement question are both now tracked under the Pre-v1.0.0 checklist's API
   shape section above, since both bear on this package's stated scope and surface before that
   freezes. Both still need their own brainstorm and spec, in that order; see
-  `nyamlen/docs/fpmt-dharma-dates.md`'s "Design questions ahead" section.
+  [almanac-sources.md](almanac-sources.md).
 
 - **Tsurphu tradition** (Karma Kagyu) via a second `TraditionConfig`.
 
