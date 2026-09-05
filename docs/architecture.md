@@ -124,7 +124,7 @@ tibetan-calendar-temporal/
 │   ├── observances/
 │   │   ├── index.ts          # getObservances, observancesOn (Layer 4)
 │   │   ├── types.ts          # ObservanceRule, ObservanceConfig, Observance
-│   │   └── default-gelug.ts  # GELUG — FPMT's published rules, each cited
+│   │   └── default-observances.ts  # DEFAULT_OBSERVANCES — FPMT's published rules, each cited
 │   ├── errors.ts             # Error codes, and the constructors that attach them
 │   ├── format.ts             # formatTibetanDate, monthCodeOf — the canonical string form
 │   ├── parse.ts              # parseTibetanDate — its inverse

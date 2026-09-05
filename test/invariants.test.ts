@@ -12,7 +12,7 @@ import { isoFromJulianDay } from "../src/computation/conversion.js";
 import { trueDate } from "../src/computation/corrections.js";
 import { deriveScaling } from "../src/computation/scaling.js";
 import { formatTibetanDate, isoToTibetan, PHUGPA, tibetanDateExists } from "../src/index.js";
-import { GELUG, getObservances } from "../src/observances/index.js";
+import { DEFAULT_OBSERVANCES, getObservances } from "../src/observances/index.js";
 
 const scaled = deriveScaling(PHUGPA);
 
@@ -238,7 +238,7 @@ describe("skipped days are never observance days", () => {
 	it("holds under every skipped-day and doubled-day convention", () => {
 		for (const skippedDay of ["preceding", "omit"] as const) {
 			for (const doubledDay of ["first", "second", "both"] as const) {
-				const config = { ...GELUG, skippedDay, doubledDay };
+				const config = { ...DEFAULT_OBSERVANCES, skippedDay, doubledDay };
 				for (const o of getObservances(
 					Temporal.PlainDate.from("2020-01-01"),
 					Temporal.PlainDate.from("2040-12-31"),

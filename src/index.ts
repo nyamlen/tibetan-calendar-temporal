@@ -36,11 +36,12 @@
  *
  * ## Observances are on a separate subpath
  *
- * `getObservances`, `observancesOn` and the `GELUG` config are **not** exported here. They live on
- * `tibetan-calendar-temporal/observances`, and importing them from the root fails at module load:
+ * `getObservances`, `observancesOn` and the `DEFAULT_OBSERVANCES` config are **not** exported here.
+ * They live on `tibetan-calendar-temporal/observances`, and importing them from the root fails at
+ * module load:
  *
  * ```ts
- * import { getObservances, GELUG } from "tibetan-calendar-temporal/observances";
+ * import { getObservances, DEFAULT_OBSERVANCES } from "tibetan-calendar-temporal/observances";
  * ```
  *
  * The split is not packaging tidiness. Everything on this entry point makes a **falsifiable** claim

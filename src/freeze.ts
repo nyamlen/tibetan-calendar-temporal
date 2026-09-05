@@ -5,7 +5,7 @@
  * `TraditionConfig` and `ObservanceConfig` are `readonly` throughout, which is a **compile-time**
  * claim and nothing more. A JavaScript consumer, a TypeScript one holding the value as `any`, or
  * any transitive dependency reaching the module registry can assign to `PHUGPA.moonTab[4]` or push
- * onto `GELUG.rules`, and "same input, same output, no side effects" stops being true for every
+ * onto `DEFAULT_OBSERVANCES.rules`, and "same input, same output, no side effects" stops being true for every
  * caller in the process.
  *
  * That is ordinary hygiene anywhere. Two things make it worth enforcing here.

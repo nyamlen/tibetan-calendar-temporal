@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { isoToTibetan, losarFor, tibetanDateExists } from "../../src/computation/conversion.js";
-import { GELUG, getObservances, observancesOn } from "../../src/observances/index.js";
+import { DEFAULT_OBSERVANCES, getObservances, observancesOn } from "../../src/observances/index.js";
 import type { ObservanceRule } from "../../src/observances/types.js";
 import { FPMT_OBSERVANCES } from "../fixtures/fpmt-observances.js";
 
@@ -86,7 +86,7 @@ describe("observance resolution", () => {
 	// Janson's holidays section, following Berzin, says the first. Kopan Monastery observed the
 	// 9th. An institution follows that line by spreading the config, never by editing the engine.
 	it("puts it on 9 July under Janson's rule, reached by spreading the config", () => {
-		const kopan = { ...GELUG, id: "kopan", doubledDay: "first" as const };
+		const kopan = { ...DEFAULT_OBSERVANCES, id: "kopan", doubledDay: "first" as const };
 		const found = observancesOn(iso("2024-07-09"), { config: kopan }).filter(
 			(o) => o.rule.id === "chokhor-duchen",
 		);
@@ -95,7 +95,7 @@ describe("observance resolution", () => {
 	});
 
 	it("emits both halves under 'both', reproducing FPMT's own 'July 9 or July 10'", () => {
-		const config = { ...GELUG, doubledDay: "both" as const };
+		const config = { ...DEFAULT_OBSERVANCES, doubledDay: "both" as const };
 		const days = getObservances(iso("2024-07-01"), iso("2024-07-31"), { config })
 			.filter((o) => o.rule.id === "chokhor-duchen")
 			.map((o) => o.date.isoDate.toString());
@@ -152,7 +152,7 @@ describe("observance resolution", () => {
 			source: "https://example.invalid/",
 		});
 		const config = {
-			...GELUG,
+			...DEFAULT_OBSERVANCES,
 			id: "tie",
 			// Deliberately supplied out of order, and mixing case and an accent -- the inputs where
 			// collations disagree with each other.
@@ -257,11 +257,11 @@ describe("bad from/to arguments", () => {
 });
 
 // The branch carrying the subtlest hand-reasoning in the layer, and unreachable from the shipped
-// config: GELUG has no day-1 rule, and its monthly rules all opt out with skippedDay: "omit".
+// config: DEFAULT_OBSERVANCES has no day-1 rule, and its monthly rules all opt out with skippedDay: "omit".
 // Only a consumer config gets here, which is exactly why it needs a test.
 describe("a rule on day 1, where the preceding day belongs to the previous month", () => {
 	const dayOne = {
-		...GELUG,
+		...DEFAULT_OBSERVANCES,
 		id: "day-one",
 		rules: [
 			{
@@ -316,7 +316,7 @@ describe("a rule on day 1, where the preceding day belongs to the previous month
 // day extrapolated into a real, wrong calendar date labelled resolution: "exact".
 describe("consumer config validation", () => {
 	const withRule = (rule: Record<string, unknown>) => ({
-		...GELUG,
+		...DEFAULT_OBSERVANCES,
 		id: "test",
 		rules: [
 			{
@@ -331,25 +331,27 @@ describe("consumer config validation", () => {
 		],
 	});
 	const run = (config: unknown) =>
-		getObservances(iso("2026-01-01"), iso("2026-12-31"), { config: config as typeof GELUG });
+		getObservances(iso("2026-01-01"), iso("2026-12-31"), {
+			config: config as typeof DEFAULT_OBSERVANCES,
+		});
 
-	it("accepts the shipped GELUG config", () => {
-		expect(() => run(GELUG)).not.toThrow();
+	it("accepts the shipped DEFAULT_OBSERVANCES config", () => {
+		expect(() => run(DEFAULT_OBSERVANCES)).not.toThrow();
 	});
 
-	// `{ ...GELUG, rules: [...GELUG.rules, mine] }` is what the docs tell a consumer to write, so
-	// `GELUG.rules.push(mine)` is the mistake one keystroke away -- and it used to succeed, adding
+	// `{ ...DEFAULT_OBSERVANCES, rules: [...DEFAULT_OBSERVANCES.rules, mine] }` is what the docs tell a consumer to write, so
+	// `DEFAULT_OBSERVANCES.rules.push(mine)` is the mistake one keystroke away -- and it used to succeed, adding
 	// the rule for every caller in the process.
-	it("freezes GELUG, its rules array and each rule", () => {
-		expect(Object.isFrozen(GELUG)).toBe(true);
-		expect(Object.isFrozen(GELUG.rules)).toBe(true);
-		for (const rule of GELUG.rules) {
+	it("freezes DEFAULT_OBSERVANCES, its rules array and each rule", () => {
+		expect(Object.isFrozen(DEFAULT_OBSERVANCES)).toBe(true);
+		expect(Object.isFrozen(DEFAULT_OBSERVANCES.rules)).toBe(true);
+		for (const rule of DEFAULT_OBSERVANCES.rules) {
 			expect(Object.isFrozen(rule)).toBe(true);
 			expect(Object.isFrozen(rule.when)).toBe(true);
 		}
-		expect(() => (GELUG.rules as ObservanceRule[]).push({ id: "z" } as ObservanceRule)).toThrow(
-			TypeError,
-		);
+		expect(() =>
+			(DEFAULT_OBSERVANCES.rules as ObservanceRule[]).push({ id: "z" } as ObservanceRule),
+		).toThrow(TypeError);
 	});
 
 	// Each of these previously returned a real, wrong day rather than complaining.
@@ -377,7 +379,10 @@ describe("consumer config validation", () => {
 	});
 
 	it("rejects duplicate rule ids", () => {
-		const config = { ...GELUG, rules: [...GELUG.rules, GELUG.rules[0] as never] };
+		const config = {
+			...DEFAULT_OBSERVANCES,
+			rules: [...DEFAULT_OBSERVANCES.rules, DEFAULT_OBSERVANCES.rules[0] as never],
+		};
 		expect(() => run(config)).toThrow(/unique within a config/);
 	});
 
@@ -385,11 +390,13 @@ describe("consumer config validation", () => {
 		expect(() => run(withRule({ id: "" }))).toThrow(/non-empty string/);
 	});
 
-	// The config is meant to be *extended* by spreading -- `{ ...GELUG, rules: [...GELUG.rules, x] }`
+	// The config is meant to be *extended* by spreading -- `{ ...DEFAULT_OBSERVANCES, rules: [...DEFAULT_OBSERVANCES.rules, x] }`
 	// -- and a reader who writes a partial one instead used to reach a `for...of` over undefined.
 	it("rejects a config whose rules are missing or not an array", () => {
 		for (const rules of [undefined, null, {}]) {
-			expect(() => run({ ...GELUG, rules } as never)).toThrow(/rules must be an array/);
+			expect(() => run({ ...DEFAULT_OBSERVANCES, rules } as never)).toThrow(
+				/rules must be an array/,
+			);
 		}
 	});
 
@@ -403,7 +410,9 @@ describe("consumer config validation", () => {
 	});
 
 	it("rejects an invalid convention on the config itself", () => {
-		expect(() => run({ ...GELUG, doubledDay: "1st" })).toThrow(/config doubledDay must be one of/);
+		expect(() => run({ ...DEFAULT_OBSERVANCES, doubledDay: "1st" })).toThrow(
+			/config doubledDay must be one of/,
+		);
 	});
 
 	// Validation is memoised per config object, so a repeated call must behave identically rather
@@ -422,7 +431,7 @@ describe("consumer config validation", () => {
 	it.each(["doubledDay", "skippedDay", "leapMonth"])(
 		"rejects a config with %s missing entirely",
 		(field) => {
-			const config = { ...GELUG } as Record<string, unknown>;
+			const config = { ...DEFAULT_OBSERVANCES } as Record<string, unknown>;
 			delete config[field];
 			expect(thrownBy(() => run(config))?.code).toBe("TCT_INVALID_OBSERVANCE_CONFIG");
 		},
@@ -433,7 +442,7 @@ describe("consumer config validation", () => {
 	// dropped the engine returned 2024-08-08 from the regular month 6 instead of 2024-07-10.
 	it("no longer resolves Chokhor Duchen a month late when leapMonth is dropped", () => {
 		const chokhor = {
-			...GELUG,
+			...DEFAULT_OBSERVANCES,
 			id: "chokhor-only",
 			rules: [
 				{
@@ -450,7 +459,7 @@ describe("consumer config validation", () => {
 		const withLeap = { ...chokhor, leapMonth: "leap" };
 		expect(
 			getObservances(iso("2024-01-01"), iso("2024-12-31"), {
-				config: withLeap as typeof GELUG,
+				config: withLeap as typeof DEFAULT_OBSERVANCES,
 			}).map((o) => o.date.isoDate.toString()),
 		).toEqual(["2024-07-10"]);
 
@@ -491,18 +500,24 @@ describe("consumer config validation", () => {
 	});
 
 	// `undefined` is not in the list above on purpose: it means "argument omitted", so the default
-	// parameter supplies GELUG and the call is correct. Only an explicitly wrong value is an error.
-	it("treats an undefined config as the GELUG default", () => {
+	// parameter supplies DEFAULT_OBSERVANCES and the call is correct. Only an explicitly wrong value is an error.
+	it("treats an undefined config as the DEFAULT_OBSERVANCES default", () => {
 		expect(() => observancesOn(iso("2026-01-01"), undefined)).not.toThrow();
 		expect(() => observancesOn(iso("2026-01-01"), {})).not.toThrow();
 	});
 
 	it.each([
-		["a null rule", { ...GELUG, rules: [null] }],
-		["a rule with no when", { ...GELUG, rules: [{ id: "r", name: "R", kind: "puja", tier: 1 }] }],
+		["a null rule", { ...DEFAULT_OBSERVANCES, rules: [null] }],
+		[
+			"a rule with no when",
+			{ ...DEFAULT_OBSERVANCES, rules: [{ id: "r", name: "R", kind: "puja", tier: 1 }] },
+		],
 		[
 			"a null when",
-			{ ...GELUG, rules: [{ id: "r", name: "R", kind: "puja", tier: 1, when: null }] },
+			{
+				...DEFAULT_OBSERVANCES,
+				rules: [{ id: "r", name: "R", kind: "puja", tier: 1, when: null }],
+			},
 		],
 	])("rejects %s with a coded error", (_label, config) => {
 		expect(thrownBy(() => run(config))?.code).toBe("TCT_INVALID_OBSERVANCE_CONFIG");
@@ -530,12 +545,15 @@ describe("consumer config validation", () => {
 	 */
 	it("codes every rejection, over every dropped and nulled field", () => {
 		const uncoded: string[] = [];
-		const topLevel = Object.keys(GELUG);
-		const ruleFields = Object.keys(GELUG.rules[0] as object);
+		const topLevel = Object.keys(DEFAULT_OBSERVANCES);
+		const ruleFields = Object.keys(DEFAULT_OBSERVANCES.rules[0] as object);
 
 		for (const field of topLevel) {
 			for (const mutation of ["drop", "null"] as const) {
-				const config = { ...GELUG, id: `mutant-${field}-${mutation}` } as Record<string, unknown>;
+				const config = { ...DEFAULT_OBSERVANCES, id: `mutant-${field}-${mutation}` } as Record<
+					string,
+					unknown
+				>;
 				if (mutation === "drop") delete config[field];
 				else config[field] = null;
 
@@ -550,10 +568,14 @@ describe("consumer config validation", () => {
 
 		for (const field of ruleFields) {
 			for (const mutation of ["drop", "null"] as const) {
-				const rule = { ...(GELUG.rules[0] as object) } as Record<string, unknown>;
+				const rule = { ...(DEFAULT_OBSERVANCES.rules[0] as object) } as Record<string, unknown>;
 				if (mutation === "drop") delete rule[field];
 				else rule[field] = null;
-				const config = { ...GELUG, id: `mutant-rule-${field}-${mutation}`, rules: [rule] };
+				const config = {
+					...DEFAULT_OBSERVANCES,
+					id: `mutant-rule-${field}-${mutation}`,
+					rules: [rule],
+				};
 
 				const error = thrownBy(() => run(config));
 				if (error !== undefined && error.code !== "TCT_INVALID_OBSERVANCE_CONFIG") {

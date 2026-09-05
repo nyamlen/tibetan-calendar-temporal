@@ -155,7 +155,7 @@ export interface ObservanceRule {
  * Plain data, like `PHUGPA`, so an institution that differs spreads one rather than subclassing:
  *
  * ```ts
- * const kopan = { ...GELUG, id: "kopan", doubledDay: "first" as const };
+ * const kopan = { ...DEFAULT_OBSERVANCES, id: "kopan", doubledDay: "first" as const };
  * ```
  *
  * **Teacher anniversaries are not shipped.** {@link ObservanceKind} includes `"anniversary"` so a
@@ -208,7 +208,7 @@ export interface Observance {
 	 * @remarks
 	 * The **same object** the config holds, not a copy — so for a consumer-supplied config,
 	 * mutating this mutates their own rule table. `readonly` says so at compile time; the shipped
-	 * `GELUG` is deeply frozen, so this aliases a frozen object there.
+	 * `DEFAULT_OBSERVANCES` is deeply frozen, so this aliases a frozen object there.
 	 */
 	readonly rule: ObservanceRule;
 
@@ -230,7 +230,7 @@ export interface Observance {
  * for a function with two axes of choice rather than a one-off exception to uniformity.
  */
 export interface ObservanceQueryOptions {
-	/** Which observances, and the conventions for resolving them. Defaults to {@link GELUG}. */
+	/** Which observances, and the conventions for resolving them. Defaults to {@link DEFAULT_OBSERVANCES}. */
 	config?: ObservanceConfig;
 
 	/** Astronomical constants. Defaults to `PHUGPA`. */

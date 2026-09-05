@@ -299,9 +299,9 @@ edits, and moving files once after they have landed is one link-fixing commit in
       to 126,629 bytes. Constraint and the rule it follows in
       [decisions/2026-08-24-year-naming-off-the-date.md](decisions/2026-08-24-year-naming-off-the-date.md)
 - [ ] **Composable/additive `ObservanceConfig`s — decide before 1.0.0, not after.** Today, a
-      consumer combining several institutions' rule sets (e.g. `GELUG` plus a `TEACHERS` and a
+      consumer combining several institutions' rule sets (e.g. `DEFAULT_OBSERVANCES` plus a `TEACHERS` and a
       `TANTRA` config) hand-rolls
-      `{ ...GELUG, rules: [...GELUG.rules, ...TEACHERS.rules, ...TANTRA.rules] }` and silently
+      `{ ...DEFAULT_OBSERVANCES, rules: [...DEFAULT_OBSERVANCES.rules, ...TEACHERS.rules, ...TANTRA.rules] }` and silently
       drops a convention field (`doubledDay`/`skippedDay`/`leapMonth`) wherever two source configs
       disagree on it. Whether this package ships a first-class merge helper is exactly the kind of
       call [decisions/2026-08-12-public-surface.md](decisions/2026-08-12-public-surface.md) governs
@@ -318,7 +318,7 @@ edits, and moving files once after they have landed is one link-fixing commit in
 
       ```ts
       composeObservances({
-        from: [GELUG, TEACHERS, TANTRA],  // merged in order
+        from: [DEFAULT_OBSERVANCES, TEACHERS, TANTRA],  // merged in order
         omit: ['chotrul-duchen'],          // by id, after merge
         extra: [myRule],                   // added after omit
       });
@@ -982,7 +982,7 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   and why does it take the first of a doubled day where the duchen take the second? If the answer
   is that it is scheduled by each community rather than computed, that is a publishable finding
   too — it would mean sojong belongs in caller-supplied rules permanently, and the docblock in
-  `src/observances/default-gelug.ts` should say so rather than leaving it open.
+  `src/observances/default-observances.ts` should say so rather than leaving it open.
 
   **A candidate answer surfaced 2026-08-28, outside this repo, and was falsified 2026-09-04.**
   [almanac-sources.md](almanac-sources.md) records an oral-teaching source (Geshe Gyaltsen, translated by
@@ -997,7 +997,7 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   flaw in this table.
 
   That note also opens two follow-on design questions, and **neither is beyond-v1 any more**: the
-  composable/additive `ObservanceConfig` helper (e.g. `GELUG + TEACHERS + TANTRA`) and the
+  composable/additive `ObservanceConfig` helper (e.g. `DEFAULT_OBSERVANCES + TEACHERS + TANTRA`) and the
   day-quality-code placement question are both now tracked under the Pre-v1.0.0 checklist's API
   shape section above, since both bear on this package's stated scope and surface before that
   freezes. Both still need their own brainstorm and spec, in that order; see
@@ -1096,7 +1096,7 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
     it. For two dates this package produced, `a.isoDate.until(b.isoDate)` is better. It is recorded
     as **the first export to cut** if the surface ever needs trimming.
 
-- **A signal when observances go to the leap twin.** `GELUG` sets `leapMonth: "leap"`, so in a leap
+- **A signal when observances go to the leap twin.** `DEFAULT_OBSERVANCES` sets `leapMonth: "leap"`, so in a leap
   year every observance of the doubled month falls in the leap half and the regular twin renders
   with **no tier-1 observances at all** — 2151's regular M06 is empty while M06L holds Chökhor
   Düchen. That is correct and matches FPMT's published date, but a consumer laying out the regular
