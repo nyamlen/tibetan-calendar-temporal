@@ -9,7 +9,7 @@ import {
 import { yearNameFor } from "../src/cycles.js";
 import { formatTibetanDate } from "../src/format.js";
 import { monthsFor } from "../src/months.js";
-import { GELUG, getObservances, observancesOn } from "../src/observances/index.js";
+import { DEFAULT_OBSERVANCES, getObservances, observancesOn } from "../src/observances/index.js";
 import { parseTibetanDate } from "../src/parse.js";
 import { SkippedDayError } from "../src/types.js";
 
@@ -133,18 +133,18 @@ describe("guide examples", () => {
 	});
 
 	it("moves the 2024 Chokhor Duchen to 9 July under a spread config", () => {
-		const kopan = { ...GELUG, id: "kopan", doubledDay: "first" as const };
+		const kopan = { ...DEFAULT_OBSERVANCES, id: "kopan", doubledDay: "first" as const };
 		expect(observancesOn(iso("2024-07-09"), { config: kopan }).map((o) => o.rule.id)).toContain(
 			"chokhor-duchen",
 		);
 	});
 
-	// The README prints the three convention fields, their allowed values and GELUG's defaults as a
+	// The README prints the three convention fields, their allowed values and DEFAULT_OBSERVANCES's defaults as a
 	// table. A default changing there and not here would put a wrong date in front of a reader.
-	it("documents GELUG's convention defaults correctly", () => {
-		expect(GELUG.doubledDay).toBe("second");
-		expect(GELUG.skippedDay).toBe("preceding");
-		expect(GELUG.leapMonth).toBe("leap");
+	it("documents DEFAULT_OBSERVANCES's convention defaults correctly", () => {
+		expect(DEFAULT_OBSERVANCES.doubledDay).toBe("second");
+		expect(DEFAULT_OBSERVANCES.skippedDay).toBe("preceding");
+		expect(DEFAULT_OBSERVANCES.leapMonth).toBe("leap");
 	});
 
 	// The list of `resolution` values reads as exhaustive, and once was not -- it omitted
@@ -154,7 +154,7 @@ describe("guide examples", () => {
 		const documented = ["exact", "firstOfDoubled", "secondOfDoubled", "shiftedFromSkipped"];
 		const seen = new Set<string>();
 		for (const doubledDay of ["first", "second", "both"] as const) {
-			const config = { ...GELUG, id: `readme-${doubledDay}`, doubledDay };
+			const config = { ...DEFAULT_OBSERVANCES, id: `readme-${doubledDay}`, doubledDay };
 			// A wide window on purpose: "exact" and the two doubled cases appear within months, but a
 			// rule's own day being skipped is rarer than a skipped day, so a few years would not
 			// exercise "shiftedFromSkipped" and the assertion would pass for the wrong reason.
@@ -168,10 +168,10 @@ describe("guide examples", () => {
 	// The `myCentre` example: extend `rules` by spreading, never replace it.
 	it("accepts the documented custom-rule config", () => {
 		const myCentre = {
-			...GELUG,
+			...DEFAULT_OBSERVANCES,
 			id: "my-centre",
 			rules: [
-				...GELUG.rules,
+				...DEFAULT_OBSERVANCES.rules,
 				{
 					id: "founder-anniversary",
 					name: "Founder's anniversary",

@@ -104,7 +104,7 @@ keyed by the config object — the same bargain `scalingFor` already makes with 
 consumer who mutates a config in place after first use escapes revalidation; that is accepted, not
 overlooked.
 
-The bargain covers **consumer-supplied** configs only. `PHUGPA`, `PHUGPA_HENNING` and `GELUG` are
+The bargain covers **consumer-supplied** configs only. `PHUGPA`, `PHUGPA_HENNING` and `DEFAULT_OBSERVANCES` are
 deeply frozen, because they are the objects the docs point a reader at for `{ ...PHUGPA, … }` and so
 the ones a keystroke off a spread mutates. Keep them frozen: a mutation after first use produces
 neither the old constants nor the new ones but a stale mix — a fresh `moonTab` beside a

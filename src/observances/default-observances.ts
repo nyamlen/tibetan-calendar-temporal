@@ -18,8 +18,8 @@
  *   Tibetan — the Dalai Lama's birthday is 6 July. The data is institution-specific and changes
  *   within a decade, so `ObservanceKind` supports `"anniversary"` and ships none.
  * - **Astrological day qualities.** The `FD-EW`, `GCH`, `NMP` codes on FPMT's calendars are the
- *   almanac's elemental and planetary attributes, Janson's appendices D-E, which this package
- *   does not compute.
+ *   almanac's elemental and planetary attributes, Janson's appendices D-E, which are not
+ *   observances and so are not rules here.
  * - **Sojong** (*sojong* གསོ་སྦྱོང་; Sanskrit *poṣadha* पोषध), vow renewal. It is conventionally
  *   described as falling on the full and new moon, but FPMT's calendars do not place it that way:
  *   over 2022-2025 a fixed 15th-and-30th rule misses 38 of its occurrences and invents 36, mostly
@@ -52,11 +52,12 @@ const DATES_EXPLAINED = "https://fpmt.org/media/resources/dharma-dates/dates-exp
  *
  * @remarks
  * **Deeply frozen**, `rules` and each rule object included. The docs point a reader at
- * `{ ...GELUG, rules: [...GELUG.rules, mine] }`, and `GELUG.rules.push(mine)` is the mistake one
- * keystroke away from it — which used to succeed and add the rule for every caller in the process.
+ * `{ ...DEFAULT_OBSERVANCES, rules: [...DEFAULT_OBSERVANCES.rules, mine] }`, and
+ * `DEFAULT_OBSERVANCES.rules.push(mine)` is the mistake one keystroke away from it — which used to
+ * succeed and add the rule for every caller in the process.
  * See {@link deepFreeze}.
  */
-export const GELUG: ObservanceConfig = deepFreeze({
+export const DEFAULT_OBSERVANCES: ObservanceConfig = deepFreeze({
 	id: "gelug",
 	name: "Gelug (FPMT)",
 

@@ -60,7 +60,7 @@ Implement solely from Svante Janson, "Tibetan Calendar Mathematics" (arXiv:1401.
 *algorithm* — epochs, mean motions, correction tables, leap-month and skipped-day rules — where a
 second source means reconciling two formulas for one number, which is how the `a₂` fork and the
 mixed-radix traps happened. It has never governed the **data** this package ships alongside the
-arithmetic, and the repository already proves that: `GELUG`'s observance rules cite **FPMT**, and the
+arithmetic, and the repository already proves that: `DEFAULT_OBSERVANCES`'s observance rules cite **FPMT**, and the
 Tibetan and rabjung names cite Wiktionary, THL, CLDR, Csoma, Monier-Williams and wisdomlib — five
 independent checks, because for a name a single Janson table is explicitly *not* sufficient.
 
@@ -282,7 +282,7 @@ derivation; in `docs/` they are just noise.
   numbers, derive it from that config; assertions specific to Phugpa's values belong in the test
   suite, where they also catch a mistyped transcription.
 - **The shipped configs are deeply frozen.** All five — `PHUGPA`, `PHUGPA_HENNING`, `BHUTAN`,
-  `BHUTAN_HENNING` and `GELUG` — go through `deepFreeze` in `src/freeze.ts`. This rule named only
+  `BHUTAN_HENNING` and `DEFAULT_OBSERVANCES` — go through `deepFreeze` in `src/freeze.ts`. This rule named only
   three until 2026-08-26; the two Bhutanese configs were frozen from the day they landed and the
   rule simply was not updated with them. They are the objects the docs point at for `{ ...PHUGPA, … }`,
   so they are the ones a keystroke off a spread mutates — and because scaling and validation are
@@ -686,11 +686,14 @@ in the same commit.
 ## Conventions
 
 **No exported identifier names an institution.** An export name states what a thing *is* — its
-shape, its role in the API — never who published the convention it encodes. `GELUG` violates this:
-it is FPMT's specific published convention (`doubledDay: "second"`, `leapMonth: "leap"`, plus its
-particular rule set), not "the Gelug way" — Kopan Monastery, also Gelug, prints the *opposite*
-`doubledDay` for the 2024 Chokhor Duchen. Naming the export after an institution therefore doesn't
-just look institution-specific, it overclaims a universality the data itself contradicts.
+shape, its role in the API — never who published the convention it encodes. `GELUG`, the observance
+config's export name until it was renamed to `DEFAULT_OBSERVANCES` on 2026-09-05 (decided
+2026-09-03), violated this: it was FPMT's specific published convention (`doubledDay: "second"`,
+`leapMonth: "leap"`, plus its particular rule set), not "the Gelug way" — Kopan Monastery, also
+Gelug, prints the *opposite* `doubledDay` for the 2024 Chokhor Duchen. Naming the export after an
+institution therefore didn't just look institution-specific, it overclaimed a universality the
+data itself contradicted. See
+[docs/decisions/2026-09-03-no-institution-names-in-exports.md](docs/decisions/2026-09-03-no-institution-names-in-exports.md).
 Provenance belongs in a `source` field and the docblock, which can carry a URL and a citation;
 an identifier cannot, and readers take a name at face value in a way they do not take prose.
 
@@ -705,8 +708,8 @@ to another object — breaking that stability — or sit on an object that is no
 moment a second config ships. `test/public-api.test.ts` asserts the id explicitly so a later
 "consistency fix" fails loudly rather than quietly.
 Decided 2026-09-03, after Andreas asked that nothing in the package be named after an institution
-(FPMT was the example) while scoping the astrological-attributes work; `GELUG` is the first
-casualty, tracked in [roadmap.md](docs/roadmap.md)'s Pre-v1.0.0 checklist. This is distinct from
+(FPMT was the example) while scoping the astrological-attributes work; `GELUG` was the first
+casualty. This is distinct from
 `PHUGPA`/`TSURPHU`/`BHUTAN`-style names on a `TraditionConfig`, which name an objective, falsifiable
 calendrical system Janson describes — not one institution's convention among several that legitimately
 disagree — see the "Kind of claim" distinction between `TraditionConfig` and `ObservanceConfig`

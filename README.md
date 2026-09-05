@@ -433,7 +433,7 @@ Which days an institution marks — the great holy days and the monthly cycle �
 separate subpath:
 
 ```js
-import { getObservances, observancesOn, GELUG } from 'tibetan-calendar-temporal/observances';
+import { getObservances, observancesOn, DEFAULT_OBSERVANCES } from 'tibetan-calendar-temporal/observances';
 
 const duchen = getObservances(
   Temporal.PlainDate.from('2026-01-01'),
@@ -448,9 +448,9 @@ duchen.map((o) => `${o.rule.name}: ${o.date.isoDate}`);
 Each `Observance` is three fields — `date`, the `TibetanDate` it falls on and always a real calendar
 day; `rule`, the rule that produced it, carrying `id`, `name`, `kind` and `tier`; and `resolution`,
 how it landed there. The `rule` is the **same object** the config holds rather than a copy, so for a
-config you supplied, mutating it mutates your own rule table; the shipped `GELUG` is deeply frozen.
+config you supplied, mutating it mutates your own rule table; the shipped `DEFAULT_OBSERVANCES` is deeply frozen.
 
-**`GELUG` ships ten rules, and none of them is *sojong*.** Its kinds are `duchen`, `puja` and
+**`DEFAULT_OBSERVANCES` ships ten rules, and none of them is *sojong*.** Its kinds are `duchen`, `puja` and
 `tsok`. The `"sojong"` kind exists so you can supply your own rule, but no shipped rule produces
 one: a fixed 15th-and-30th convention misses 38 of FPMT's published occurrences over 2022–2025 and
 invents 36, so whatever governs it is not a day number, and an approximate rule here is worse than
@@ -632,7 +632,7 @@ Type-only exports, erased at runtime: `TibetanDate`, `TibetanDateFields`, `Tibet
 ### `tibetan-calendar-temporal/observances`
 
 A separate subpath, so a consumer who only converts dates never loads it. `config` here is an
-`ObservanceConfig` defaulting to `GELUG`, and `tradition` is the `TraditionConfig`; both travel
+`ObservanceConfig` defaulting to `DEFAULT_OBSERVANCES`, and `tradition` is the `TraditionConfig`; both travel
 in one options bag rather than as two positional optionals — see
 [Two kinds of config](docs/guide.md#two-kinds-of-config).
 
@@ -640,7 +640,7 @@ in one options bag rather than as two positional optionals — see
 |---|---|---|
 | `getObservances` | `(from: Temporal.PlainDate, to: Temporal.PlainDate, options?) => Observance[]` | `options` is `{ config?, tradition? }`. Date order. Returns `[]` if `to` precedes `from`; throws above a 200-year span |
 | `observancesOn` | `(date: Temporal.PlainDate, options?) => Observance[]` | The single-day case, same options |
-| `GELUG` | | The default config, sourced from FPMT with a URL on every rule |
+| `DEFAULT_OBSERVANCES` | | The default config, sourced from FPMT with a URL on every rule |
 
 Type-only exports: `Observance`, `ObservanceConfig`, `ObservanceRule`, `ObservanceKind`,
 `ObservanceWhen`, `ObservanceResolution`, `DoubledDayChoice`, `SkippedDayChoice`,

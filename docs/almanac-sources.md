@@ -21,7 +21,7 @@ Three tiers, and they should not be collapsed:
 
 | Tier | Content | Status |
 |---|---|---|
-| **Shipped** | The four duchens and the six monthly-cycle rules in `src/observances/default-gelug.ts` | Validated against `test/fixtures/fpmt-observances.ts` for 2022–2025 |
+| **Shipped** | The four duchens and the six monthly-cycle rules in `src/observances/default-observances.ts` | Validated against `test/fixtures/fpmt-observances.ts` for 2022–2025 |
 | **Candidate** | Sojong; the elemental yoga (FPMT's FD-\*/UD-\* codes); Janson's year/month/lunar-day/calendar-day attribute sets | Sourced below, not yet computed. The attribute sets are the scope of the planned `./astrology` subpath |
 | **Recorded only** | The hair-cutting table; NB/NCE/NF/NG/NH/NCH/NMP/NM/NPF/NWR; the Eight Mahayana Precepts; the omen window | Provenance captured so it is not re-researched. **Shipping any of it would mean this package asserts religious and astrological prescription, which is a scope decision nobody has taken** |
 
@@ -159,7 +159,7 @@ Recorded only.
 celebrated on the first day if it is more convenient. Special days which fall on missing days are
 usually celebrated on the preceding day."
 
-This is the convention `GELUG` encodes as `doubledDay: "second"` / `skippedDay: "preceding"` — and
+This is the convention `DEFAULT_OBSERVANCES` encodes as `doubledDay: "second"` / `skippedDay: "preceding"` — and
 the Phase 3 finding stands: the *monthly cycle* rules (Tara, Medicine Buddha, Tsog, Protector) do
 not follow this guidance in FPMT's own printed calendars, which instead track the printed day number
 literally, so a doubled 8th is observed twice and a skipped 25th is simply not observed that month.

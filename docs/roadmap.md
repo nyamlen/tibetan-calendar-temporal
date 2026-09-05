@@ -299,9 +299,9 @@ edits, and moving files once after they have landed is one link-fixing commit in
       to 126,629 bytes. Constraint and the rule it follows in
       [decisions/2026-08-24-year-naming-off-the-date.md](decisions/2026-08-24-year-naming-off-the-date.md)
 - [ ] **Composable/additive `ObservanceConfig`s — decide before 1.0.0, not after.** Today, a
-      consumer combining several institutions' rule sets (e.g. `GELUG` plus a `TEACHERS` and a
+      consumer combining several institutions' rule sets (e.g. `DEFAULT_OBSERVANCES` plus a `TEACHERS` and a
       `TANTRA` config) hand-rolls
-      `{ ...GELUG, rules: [...GELUG.rules, ...TEACHERS.rules, ...TANTRA.rules] }` and silently
+      `{ ...DEFAULT_OBSERVANCES, rules: [...DEFAULT_OBSERVANCES.rules, ...TEACHERS.rules, ...TANTRA.rules] }` and silently
       drops a convention field (`doubledDay`/`skippedDay`/`leapMonth`) wherever two source configs
       disagree on it. Whether this package ships a first-class merge helper is exactly the kind of
       call [decisions/2026-08-12-public-surface.md](decisions/2026-08-12-public-surface.md) governs
@@ -318,7 +318,7 @@ edits, and moving files once after they have landed is one link-fixing commit in
 
       ```ts
       composeObservances({
-        from: [GELUG, TEACHERS, TANTRA],  // merged in order
+        from: [DEFAULT_OBSERVANCES, TEACHERS, TANTRA],  // merged in order
         omit: ['chotrul-duchen'],          // by id, after merge
         extra: [myRule],                   // added after omit
       });
@@ -716,11 +716,11 @@ nothing and reports success.
       absorbs two questions that were tracked as separate, cross-referenced items and are now one
       decision, because the second changes the shape of the first.
 
-      **The boundary.** `GELUG`'s **ten** shipped rules (four fixed-date duchens, six
-      monthly-cycle rules) are enumerated only in `src/observances/default-gelug.ts`; no
+      **The boundary.** `DEFAULT_OBSERVANCES`'s **ten** shipped rules (four fixed-date duchens, six
+      monthly-cycle rules) are enumerated only in `src/observances/default-observances.ts`; no
       consumer-facing document lists them, unlike the config's *absences* (Losar, teacher
       anniversaries, astrological day qualities, sojong), which that file's own docblock documents
-      in detail. `GELUG` bundles FPMT's specific convention choices (`doubledDay: "second"`,
+      in detail. `DEFAULT_OBSERVANCES` bundles FPMT's specific convention choices (`doubledDay: "second"`,
       `leapMonth: "leap"`) together with its rule set as one object; decide whether any of the
       ten are general enough — true of the tradition rather than particular to this
       institution — to belong somewhere a differently-scoped default could carry, or whether the
@@ -755,23 +755,33 @@ nothing and reports success.
       not merely unconfirmed.
 
       Once both are settled: confirm each surviving rule's day, tier and source against FPMT's
-      current guidance rather than trusting the 2022-2025 fixture check alone to still hold;
-      **rename `GELUG` to `DEFAULT_OBSERVANCES`** (`id: "default"`, file renamed to
-      `default-observances.ts`) — decided 2026-09-03, no longer open: no exported identifier names
-      an institution, and `GELUG` overclaims besides, since Kopan Monastery — also Gelug — prints
-      the opposite `doubledDay` for the same date FPMT does. See the new rule in
+      current guidance rather than trusting the 2022-2025 fixture check alone to still hold.
+
+      **Done 2026-09-05: renamed `GELUG` to `DEFAULT_OBSERVANCES`** (`id` stays `"gelug"` — a data
+      field, not an exported identifier, so the naming rule doesn't reach it — file renamed to
+      `default-observances.ts`), per the rule decided 2026-09-03: no exported identifier names an
+      institution, and `GELUG` overclaimed besides, since Kopan Monastery — also Gelug — prints
+      the opposite `doubledDay` for the same date FPMT does. See the rule in
       [CLAUDE.md](../CLAUDE.md)'s Conventions section and its row in
-      [coding-standards.md](coding-standards.md); this is now a package-wide naming rule, not a
-      one-off fix, so sweep for any other export or identifier named after an institution or
-      organisation while doing this rename, not only `GELUG`. Add the settled rule list to
-      `docs/guide.md` or `docs/architecture.md`, so a reader is not required to open
-      `default-observances.ts` to know what ships. **Blocks the item below**: a code review that
-      reads a ruleset which may still change content, membership or name is reviewing a moving
-      target.
+      [coding-standards.md](coding-standards.md). The sweep for any other export or identifier
+      named after an institution or organisation, required alongside this rename, is recorded
+      below, dated 2026-09-05.
+
+      **Still open:** add the settled rule list to `docs/guide.md` or `docs/architecture.md`, so a
+      reader is not required to open `default-observances.ts` to know what ships. **Blocks the item
+      below**: a code review that reads a ruleset which may still change content, membership or
+      name is reviewing a moving target.
 
       **Still separate:** the composable-config helper and the day-quality-code placement question,
       both recorded in the same nyamlen note, are distinct subsystems needing their own brainstorm
-      and spec — not folded into this task
+      and spec — not folded into this task.
+
+      **Sweep run 2026-09-05: clean.** Every export on both barrels
+      (`src/index.ts`, `src/observances/index.ts`) was read against the rule in
+      [2026-09-03-no-institution-names-in-exports.md](decisions/2026-09-03-no-institution-names-in-exports.md).
+      `PHUGPA`, `PHUGPA_HENNING`, `BHUTAN` and `BHUTAN_HENNING` were checked deliberately and are not
+      violations — they name calendrical systems Janson describes, not institutions' conventions.
+      `DEFAULT_OBSERVANCES` was already renamed. No other offender found.
 - [ ] **Full code review.** Subject: all of `src/`, plus `scripts/` and the fixture generators,
       which are unreviewed and produce the primary correctness gate. **Command:**
       `/code-review max src/` for a path-scoped pass — note that plain `/code-review` and
@@ -982,7 +992,7 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   and why does it take the first of a doubled day where the duchen take the second? If the answer
   is that it is scheduled by each community rather than computed, that is a publishable finding
   too — it would mean sojong belongs in caller-supplied rules permanently, and the docblock in
-  `src/observances/default-gelug.ts` should say so rather than leaving it open.
+  `src/observances/default-observances.ts` should say so rather than leaving it open.
 
   **A candidate answer surfaced 2026-08-28, outside this repo, and was falsified 2026-09-04.**
   [almanac-sources.md](almanac-sources.md) records an oral-teaching source (Geshe Gyaltsen, translated by
@@ -997,7 +1007,7 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   flaw in this table.
 
   That note also opens two follow-on design questions, and **neither is beyond-v1 any more**: the
-  composable/additive `ObservanceConfig` helper (e.g. `GELUG + TEACHERS + TANTRA`) and the
+  composable/additive `ObservanceConfig` helper (e.g. `DEFAULT_OBSERVANCES + TEACHERS + TANTRA`) and the
   day-quality-code placement question are both now tracked under the Pre-v1.0.0 checklist's API
   shape section above, since both bear on this package's stated scope and surface before that
   freezes. Both still need their own brainstorm and spec, in that order; see
@@ -1096,7 +1106,7 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
     it. For two dates this package produced, `a.isoDate.until(b.isoDate)` is better. It is recorded
     as **the first export to cut** if the surface ever needs trimming.
 
-- **A signal when observances go to the leap twin.** `GELUG` sets `leapMonth: "leap"`, so in a leap
+- **A signal when observances go to the leap twin.** `DEFAULT_OBSERVANCES` sets `leapMonth: "leap"`, so in a leap
   year every observance of the doubled month falls in the leap half and the regular twin renders
   with **no tier-1 observances at all** — 2151's regular M06 is empty while M06L holds Chökhor
   Düchen. That is correct and matches FPMT's published date, but a consumer laying out the regular

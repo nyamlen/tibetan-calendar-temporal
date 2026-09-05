@@ -189,7 +189,7 @@ describe("public API surface", () => {
 
 	it("keeps the observance layer off the root, so a date consumer never loads it", () => {
 		expect(Object.keys(api)).not.toContain("getObservances");
-		expect(Object.keys(api)).not.toContain("GELUG");
+		expect(Object.keys(api)).not.toContain("DEFAULT_OBSERVANCES");
 	});
 
 	it("makes SkippedDayError catchable as an Error subclass", () => {
@@ -258,7 +258,7 @@ describe("error codes", () => {
 		TCT_INVALID_OBSERVANCE_CONFIG: () =>
 			observances.observancesOn(iso("2026-08-12"), {
 				config: {
-					...observances.GELUG,
+					...observances.DEFAULT_OBSERVANCES,
 					doubledDay: "1st" as observances.DoubledDayChoice,
 				},
 			}),
@@ -555,37 +555,43 @@ describe("error codes", () => {
  * makes a falsifiable claim, checkable against Janson or an almanac, while this layer encodes
  * conventions that published sources disagree about. See `src/observances/types.ts`.
  */
-const EXPECTED_OBSERVANCE_EXPORTS = ["GELUG", "getObservances", "observancesOn"] as const;
+const EXPECTED_OBSERVANCE_EXPORTS = [
+	"DEFAULT_OBSERVANCES",
+	"getObservances",
+	"observancesOn",
+] as const;
 
 describe("observances API surface", () => {
 	it("exports exactly the documented names", () => {
 		expect(Object.keys(observances).sort()).toEqual([...EXPECTED_OBSERVANCE_EXPORTS]);
 	});
 
-	it("ships the Gelug config as spreadable plain data, like a tradition config", () => {
-		expect(typeof observances.GELUG).toBe("object");
-		expect(observances.GELUG.id).toBe("gelug");
+	it("ships the default observance config (id `gelug`) as spreadable plain data, like a tradition config", () => {
+		expect(typeof observances.DEFAULT_OBSERVANCES).toBe("object");
+		expect(observances.DEFAULT_OBSERVANCES.id).toBe("gelug");
 		// An institution differs by spreading, never by subclassing.
-		const kopan = { ...observances.GELUG, id: "kopan", doubledDay: "first" as const };
-		expect(kopan.rules).toBe(observances.GELUG.rules);
-		expect(kopan.doubledDay).not.toBe(observances.GELUG.doubledDay);
+		const kopan = { ...observances.DEFAULT_OBSERVANCES, id: "kopan", doubledDay: "first" as const };
+		expect(kopan.rules).toBe(observances.DEFAULT_OBSERVANCES.rules);
+		expect(kopan.doubledDay).not.toBe(observances.DEFAULT_OBSERVANCES.doubledDay);
 	});
 
 	it("cites a source for every shipped rule", () => {
-		for (const rule of observances.GELUG.rules) {
+		for (const rule of observances.DEFAULT_OBSERVANCES.rules) {
 			expect(rule.source).toMatch(/^https:\/\/fpmt\.org\//);
 		}
 	});
 
-	// The shipped config must satisfy the rules imposed on consumer configs. Without this, GELUG
+	// The shipped config must satisfy the rules imposed on consumer configs. Without this, DEFAULT_OBSERVANCES
 	// could drift out of its own contract and only a consumer would ever find out.
 	it("passes the validation it imposes on consumer configs", () => {
 		const day = Temporal.PlainDate.from("2026-01-01");
-		expect(() => observances.getObservances(day, day, { config: observances.GELUG })).not.toThrow();
+		expect(() =>
+			observances.getObservances(day, day, { config: observances.DEFAULT_OBSERVANCES }),
+		).not.toThrow();
 
-		const ids = observances.GELUG.rules.map((r) => r.id);
+		const ids = observances.DEFAULT_OBSERVANCES.rules.map((r) => r.id);
 		expect(new Set(ids).size).toBe(ids.length);
-		for (const rule of observances.GELUG.rules) {
+		for (const rule of observances.DEFAULT_OBSERVANCES.rules) {
 			expect(rule.when.day).toBeGreaterThanOrEqual(1);
 			expect(rule.when.day).toBeLessThanOrEqual(30);
 			if ("month" in rule.when) {
@@ -598,7 +604,7 @@ describe("observances API surface", () => {
 	// Shipping an anniversary would put institution-specific data on a release cycle it does not
 	// belong on -- a new spiritual director should not need a package publish.
 	it("ships no teacher anniversaries, only the shape for a caller to supply them", () => {
-		expect(observances.GELUG.rules.some((r) => r.kind === "anniversary")).toBe(false);
+		expect(observances.DEFAULT_OBSERVANCES.rules.some((r) => r.kind === "anniversary")).toBe(false);
 	});
 
 	/**

@@ -205,7 +205,7 @@ positional parameters, which made that case read `getObservances(from, to, undef
 | **Answers** | When is Tibetan day *n*? | Which days does an institution mark? |
 | **Contains** | Astronomical constants — mean motions, correction tables, epoch | Rules, each with a source URL, plus three convention defaults |
 | **Import from** | `tibetan-calendar-temporal` | `tibetan-calendar-temporal/observances` |
-| **Shipped** | `PHUGPA` (default), `PHUGPA_HENNING`, `BHUTAN`, `BHUTAN_HENNING` | `GELUG` (default) |
+| **Shipped** | `PHUGPA` (default), `PHUGPA_HENNING`, `BHUTAN`, `BHUTAN_HENNING` | `DEFAULT_OBSERVANCES` (default) |
 | **Kind of claim** | **Falsifiable** — checkable against Janson and against an almanac. A disagreement is a bug | **Convention** — published sources legitimately disagree. A difference is a difference, not a bug |
 | **Wrong value gives** | A wrong calendar | A different institution's calendar |
 | **Key in the bag** | `tradition` | `config` |
@@ -221,15 +221,15 @@ mean.
 Institutions differ by spreading the config, the same way `PHUGPA_HENNING` is built from `PHUGPA`:
 
 ```js
-const kopan = { ...GELUG, id: 'kopan', doubledDay: 'first' };
+const kopan = { ...DEFAULT_OBSERVANCES, id: 'kopan', doubledDay: 'first' };
 observancesOn(Temporal.PlainDate.from('2024-07-09'), { config: kopan });
-// Chokhor Duchen — where the default GELUG config puts it on 10 July
+// Chokhor Duchen — where the shipped default puts it on 10 July
 ```
 
 Three convention fields decide what happens when a rule's day is not an ordinary one. Each can be
 set on the config as a default and overridden per rule:
 
-| Field | Values | Default in `GELUG` | Decides |
+| Field | Values | Default in `DEFAULT_OBSERVANCES` | Decides |
 |---|---|---|---|
 | `doubledDay` | `'first'` `'second'` `'both'` | `'second'` | Which half of a doubled day carries the observance, or both |
 | `skippedDay` | `'preceding'` `'omit'` | `'preceding'` | Whether a skipped day moves to the day before, or vanishes that month |
@@ -239,10 +239,10 @@ To add your own days, extend `rules` rather than replacing it:
 
 ```js
 const myCentre = {
-  ...GELUG,
+  ...DEFAULT_OBSERVANCES,
   id: 'my-centre',
   rules: [
-    ...GELUG.rules,
+    ...DEFAULT_OBSERVANCES.rules,
     {
       id: 'founder-anniversary',
       name: 'Founder’s anniversary',

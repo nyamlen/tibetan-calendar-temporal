@@ -8,7 +8,7 @@
  *
  * @example
  * ```ts
- * import { getObservances, GELUG } from "tibetan-calendar-temporal/observances";
+ * import { getObservances, DEFAULT_OBSERVANCES } from "tibetan-calendar-temporal/observances";
  *
  * const days = getObservances(
  *   Temporal.PlainDate.from("2026-01-01"),
@@ -37,7 +37,7 @@ import { yearFromRoyalEra } from "../computation/epoch.js";
 import { type ScaledTradition, scalingFor } from "../computation/scaling.js";
 import { codedError, rangeError } from "../errors.js";
 import { PHUGPA } from "../traditions/phugpa.js";
-import { GELUG } from "./default-gelug.js";
+import { DEFAULT_OBSERVANCES } from "./default-observances.js";
 import type {
 	Observance,
 	ObservanceConfig,
@@ -46,7 +46,7 @@ import type {
 	ObservanceRule,
 } from "./types.js";
 
-export { GELUG } from "./default-gelug.js";
+export { DEFAULT_OBSERVANCES } from "./default-observances.js";
 export type {
 	DoubledDayChoice,
 	LeapMonthChoice,
@@ -79,13 +79,13 @@ const TIERS = [1, 2, 3];
  *
  * @remarks
  * `ObservanceConfig` is the documented extension point — the type comments and the docs both push
- * consumers toward `{ ...GELUG, rules: [...] }` — and every field below was previously accepted
- * without a word. The mean-motion formulas are linear in the lunar day, so they extrapolate past
- * the end of a month rather than failing: `day: 31` returned the 1st of the *following* month and
- * `day: 0` the 30th of the *previous* one, each labelled `resolution: "exact"`. An out-of-range
- * `when.month` failed the other way, silently yielding zero hits so the observance vanished from
- * the year. A typo in a downstream rule table shipped a wrong date to practitioners with this
- * library's full authority behind it.
+ * consumers toward `{ ...DEFAULT_OBSERVANCES, rules: [...] }` — and every field below was
+ * previously accepted without a word. The mean-motion formulas are linear in the lunar day, so
+ * they extrapolate past the end of a month rather than failing: `day: 31` returned the 1st of the
+ * *following* month and `day: 0` the 30th of the *previous* one, each labelled `resolution:
+ * "exact"`. An out-of-range `when.month` failed the other way, silently yielding zero hits so the
+ * observance vanished from the year. A typo in a downstream rule table shipped a wrong date to
+ * practitioners with this library's full authority behind it.
  *
  * The convention fields are checked too, and **required rather than optional**. They are
  * type-level only, so a JavaScript consumer — or a TypeScript one whose config came from
@@ -105,8 +105,8 @@ function validateObservanceConfig(config: ObservanceConfig): void {
 	if (config === null || typeof config !== "object") {
 		throw rangeError(
 			"TCT_INVALID_OBSERVANCE_CONFIG",
-			`ObservanceConfig must be an object, received ${describe(config)}. Pass GELUG, or a ` +
-				"config spread from it",
+			`ObservanceConfig must be an object, received ${describe(config)}. Pass DEFAULT_OBSERVANCES, ` +
+				"or a config spread from it",
 		);
 	}
 
@@ -122,7 +122,8 @@ function validateObservanceConfig(config: ObservanceConfig): void {
 		throw rangeError(
 			"TCT_INVALID_OBSERVANCE_CONFIG",
 			`observance config "${config.id}": rules must be an array. An institution is built by ` +
-				"spreading a shipped config — `{ ...GELUG, rules: [...GELUG.rules, mine] }` — never by " +
+				"spreading a shipped config — `{ ...DEFAULT_OBSERVANCES, " +
+				"rules: [...DEFAULT_OBSERVANCES.rules, mine] }` — never by " +
 				"supplying a partial one",
 		);
 	}
@@ -272,7 +273,7 @@ function describe(value: unknown): string {
  * Keyed on the object, matching {@link scalingFor} above. A consumer who mutates a config in place
  * after first use escapes revalidation, which is the same bargain the scaling cache already makes.
  *
- * The bargain covers **consumer-supplied** configs only: {@link GELUG} is deeply frozen, so the
+ * The bargain covers **consumer-supplied** configs only: {@link DEFAULT_OBSERVANCES} is deeply frozen, so the
  * object a reader is most likely to mutate cannot reach the stale-cache state at all.
  */
 const validatedConfigs = new WeakSet<ObservanceConfig>();
@@ -442,11 +443,11 @@ export function getObservances(
 	options: ObservanceQueryOptions = {},
 ): Observance[] {
 	assertQueryOptions("getObservances", options);
-	// Not `?? GELUG`: nullish-coalescing treats an explicit `null` as absent, so a caller passing
-	// `{ config: null }` would silently get the default instead of the coded rejection the
-	// positional signature gave them. Only `undefined` means "omitted"; everything else is the
-	// caller's value and goes to the validator.
-	const config = options.config === undefined ? GELUG : options.config;
+	// Not `?? DEFAULT_OBSERVANCES`: nullish-coalescing treats an explicit `null` as absent, so a
+	// caller passing `{ config: null }` would silently get the default instead of the coded
+	// rejection the positional signature gave them. Only `undefined` means "omitted"; everything
+	// else is the caller's value and goes to the validator.
+	const config = options.config === undefined ? DEFAULT_OBSERVANCES : options.config;
 	const tradition = options.tradition === undefined ? PHUGPA : options.tradition;
 	// Normalised before anything else touches from/to: Temporal.PlainDate.compare and the span-cap
 	// comparison below both accept a raw string without complaint, which let a string range slip
