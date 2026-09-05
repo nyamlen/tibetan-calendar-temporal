@@ -716,11 +716,11 @@ nothing and reports success.
       absorbs two questions that were tracked as separate, cross-referenced items and are now one
       decision, because the second changes the shape of the first.
 
-      **The boundary.** `GELUG`'s **ten** shipped rules (four fixed-date duchens, six
-      monthly-cycle rules) are enumerated only in `src/observances/default-gelug.ts`; no
+      **The boundary.** `DEFAULT_OBSERVANCES`'s **ten** shipped rules (four fixed-date duchens, six
+      monthly-cycle rules) are enumerated only in `src/observances/default-observances.ts`; no
       consumer-facing document lists them, unlike the config's *absences* (Losar, teacher
       anniversaries, astrological day qualities, sojong), which that file's own docblock documents
-      in detail. `GELUG` bundles FPMT's specific convention choices (`doubledDay: "second"`,
+      in detail. `DEFAULT_OBSERVANCES` bundles FPMT's specific convention choices (`doubledDay: "second"`,
       `leapMonth: "leap"`) together with its rule set as one object; decide whether any of the
       ten are general enough — true of the tradition rather than particular to this
       institution — to belong somewhere a differently-scoped default could carry, or whether the
@@ -756,7 +756,8 @@ nothing and reports success.
 
       Once both are settled: confirm each surviving rule's day, tier and source against FPMT's
       current guidance rather than trusting the 2022-2025 fixture check alone to still hold;
-      **rename `GELUG` to `DEFAULT_OBSERVANCES`** (`id: "default"`, file renamed to
+      **rename `GELUG` to `DEFAULT_OBSERVANCES`** (`id` stays `"gelug"` — a data field, not an
+      exported identifier, so the naming rule doesn't reach it — file renamed to
       `default-observances.ts`) — decided 2026-09-03, no longer open: no exported identifier names
       an institution, and `GELUG` overclaims besides, since Kopan Monastery — also Gelug — prints
       the opposite `doubledDay` for the same date FPMT does. See the new rule in
