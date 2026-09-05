@@ -309,35 +309,93 @@ edits, and moving files once after they have landed is one link-fixing commit in
       is free, but its *absence* being the sanctioned way to compose configs is what would need
       revisiting, and that is a documentation claim worth getting right now rather than retrofitting.
       Needs its own brainstorm and spec — see `nyamlen/docs/fpmt-dharma-dates.md`'s "Design
-      questions ahead" section, which raised this alongside the day-quality-code question below
-- [ ] **Where FPMT's astrological/elemental day-quality codes belong — decide before 1.0.0.**
-      FD-*, UD-*, NB/NCE/NF/NG/NH/NCH/NMP/NM/NPF/NWR (full list in
-      `nyamlen/docs/fpmt-dharma-dates.md`) describe a *property of a day* — favourable, forbidden
-      for a category of activity — not a dated practice, and do not fit `ObservanceRule`'s shape at
-      all. `src/observances/default-gelug.ts`'s own docblock already disclaims this category as
-      "Janson's appendices D-E, which this package does not compute," so the decision is not merely
-      what shape they take but **whether this package computes them at all**, versus staying a
-      `nyamlen`-only layer built on top of dates this package already produces. That is a scope
-      question for this package's stated purpose (a calendar computation engine, not an almanac),
-      not only an API-shape question — decide it before 1.0.0 states the surface is complete,
-      because adding a wholly new export category afterward is a bigger claim than widening an
-      existing one. Needs its own brainstorm and spec, separate from the composable-config item
-      above; still has real sourcing gaps to close first (NWR and Fire Puja have no stated days in
-      any source found, and the key page has never actually been rendered) — see that document's
-      "Open questions" and "Design questions ahead" sections.
+      questions ahead" section, which raised this alongside the day-quality-code question below.
 
-      **The scope just got bigger, and one gap is now specific.** Reading Janson's Appendix E
-      directly (2026-08-28, from the LaTeX, not this repo's own prior reading of it) found that
-      FPMT's ten FD-*/UD-* codes are exactly his "elemental yoga" — the unordered pair of a day's
-      weekday element and lunar-mansion element, `C(4,2)+4=10` combinations — and that his Appendix
-      E separately defines full year/month/lunar-day/calendar-day attribute sets (elements,
-      animals, trigrams, numbers) that appear nowhere on fpmt.org and are, unlike the elemental
-      yoga, entirely self-derived by Janson with no second source needed. The one specific gap:
-      the mansion-to-element table and the ten yogas' names/favorability are cited by Janson to
-      Henning, not derived — so FD-*/UD-* specifically cannot be computed under the sole-source
-      rule without either accepting Henning as a second source or leaving that one piece
-      uncomputed. See `nyamlen/docs/fpmt-dharma-dates.md`'s "What Janson's Appendix E has that FPMT's
-      list does not" for the full derivation and the attribute-set table
+      **Composed shape, proposed 2026-09-03, subtractive part settled, reconciliation part
+      deferred 2026-09-04:**
+
+      ```ts
+      composeObservances({
+        from: [GELUG, TEACHERS, TANTRA],  // merged in order
+        omit: ['chotrul-duchen'],          // by id, after merge
+        extra: [myRule],                   // added after omit
+      });
+      ```
+
+      Removal needs **no new API** — `rules` is already a plain array with a stable `id` per rule,
+      so `.filter(r => r.id !== 'chotrul-duchen')` already works today; `omit` above is sugar over
+      that, not new capability. What the helper actually buys is add + remove + merge in one call.
+      **Deferred, explicitly, not left ambiguous:** which config's `doubledDay`/`skippedDay`/
+      `leapMonth` wins when two configs in `from` disagree. Decide this when the helper is actually
+      designed, not before
+- [ ] **New subpath `./astrology`, computing Janson's Appendix E in full — placement, scope and
+      naming decided 2026-09-03; the module itself is not yet built.**
+
+      **Placement — settled, and it took three tries.** Not `nyamlen` (Andreas: the backend stays
+      general-purpose open source; `nyamlen` is a front-end only). Not a sibling npm package
+      either, even in the same repo as an npm workspace — that was the working assumption until it
+      was checked against why a sibling package looked necessary in the first place, which was the
+      sole-source rule (below), and that turned out not to require it. A sibling package would
+      have bought nothing this new subpath doesn't already get for free (own module, own docblock,
+      no cost to a consumer who doesn't import it — tree-shaking already works this way for
+      `./observances`), while costing a second `package.json`, version, `exports` map and release
+      step. `./observances` is the precedent: it already cites a source other than Janson (FPMT),
+      inside this package, without conflict.
+
+      **The sole-source rule doesn't block this, and conflating it with the clean-room rule was a
+      mistake corrected 2026-09-03.** The clean-room constraint is narrowly about two specific
+      unlicensed npm packages — evidence of independent derivation, nothing to do with Henning, an
+      independently published scholarly source this project already cites elsewhere (day-of-week
+      naming, the rabjung table's lineage). Janson's own elemental-yoga section doesn't offer a
+      competing formula that Henning's table would contradict — Janson states he doesn't derive the
+      mansion-to-element table or the ten yogas' names/favorability himself, and points to Henning
+      for both. That's an ordinary citation chain, not two sources disagreeing on one number (which
+      *is* the real risk this project polices elsewhere, e.g. the `a₂` fork). Citing Henning for
+      that one table is safe and necessary, documented the same way `default-observances.ts` already
+      documents its FPMT citation.
+
+      **Scope — Appendix E in full, Appendix D explicitly deferred.** Appendix E ("Further
+      astrological calculations") defines two things: full year/month/lunar-day/calendar-day
+      attribute sets (element, animal, gender, trigram, number — closed-form, cyclic, entirely
+      self-derived by Janson, no second source needed) and the "elemental yoga" — the unordered
+      pair of a day's weekday element and lunar-mansion element, `C(4,2)+4=10` combinations, found
+      2026-08-28 to be *exactly* FPMT's ten FD-*/UD-* day-quality codes (full derivation in
+      `nyamlen/docs/fpmt-dharma-dates.md`'s "What Janson's Appendix E has that FPMT's list does
+      not"). Both ship under `./astrology`. **Appendix D ("Planets") does not** — see the Beyond v1
+      entry below for what it is and why it's excluded, not merely deferred by inertia.
+
+      **Naming — `./astrology`, chosen over `./almanac` and `./attributes`.** Matches Janson's own
+      section title and stays disjoint from `./observances` (which "almanac" would not — both
+      subpaths are almanac content under the definition this project settled on 2026-08-28).
+
+      **Product identity — a narrow fix, not a pitch rewrite.** README.md's pitch (lines 11-13)
+      already says "for almanac applications" — apps *using* this as their engine, never claimed
+      to *be* one — and survives unchanged; the stale claim is `default-observances.ts`'s docblock
+      line "a calendar computation engine, not an almanac," which becomes false and should be
+      retired. Add "astrological attributes" to the pitch's capability list the same way
+      "observances" is already there — one word, no subpath mechanics in the pitch itself, which
+      stays reserved for the install line and one runnable example per
+      [decisions/2026-08-23-readme-is-the-landing-page.md](decisions/2026-08-23-readme-is-the-landing-page.md).
+      `./astrology`'s own module docblock explains its scope and sourcing, exactly as
+      `./observances`'s does, and the API section further down documents the subpath itself.
+
+      **Yoga favorability — settled 2026-09-04: plain exported lookup table, consumer override
+      deferred.** The raw attribute computation (element/animal/trigram/number) is a total function
+      needing no config at all. The ten yogas' favorability is closer to a cited convention, and
+      could in principle be made consumer-overridable the way `ObservanceConfig` is — but a
+      lookup table has to exist before there's anything to override, and nothing today argues for
+      override at all: unlike observance conventions, there's no known institution-to-institution
+      disagreement about yoga favorability for a consumer to need to express. Ship the table;
+      revisit override only if a consumer actually asks for it. This matches the existing rule in
+      [decisions/2026-08-12-public-surface.md](decisions/2026-08-12-public-surface.md) — expose when
+      the workaround is wrong or impossible, not merely to anticipate a need — so it isn't a new
+      precedent, just that rule applied here.
+
+      FPMT's list itself still has real sourcing gaps unrelated to this subpath (NWR and Fire Puja
+      have no stated days in any source found; the key page has never actually been rendered) — see
+      `nyamlen/docs/fpmt-dharma-dates.md`'s "Open questions." Needs its own implementation plan once
+      brainstormed further; not folded into the composable-config item above, which stays
+      `./observances`-only
 
 **Documentation**
 
@@ -656,35 +714,58 @@ nothing and reports success.
       absorbs two questions that were tracked as separate, cross-referenced items and are now one
       decision, because the second changes the shape of the first.
 
-      **The boundary.** `GELUG`'s eleven shipped rules (four fixed-date duchens, six
+      **The boundary.** `GELUG`'s **ten** shipped rules (four fixed-date duchens, six
       monthly-cycle rules) are enumerated only in `src/observances/default-gelug.ts`; no
       consumer-facing document lists them, unlike the config's *absences* (Losar, teacher
       anniversaries, astrological day qualities, sojong), which that file's own docblock documents
       in detail. `GELUG` bundles FPMT's specific convention choices (`doubledDay: "second"`,
       `leapMonth: "leap"`) together with its rule set as one object; decide whether any of the
-      eleven are general enough — true of the tradition rather than particular to this
+      ten are general enough — true of the tradition rather than particular to this
       institution — to belong somewhere a differently-scoped default could carry, or whether the
       whole set is correctly FPMT-specific and the only fix is documenting it as such.
 
-      **Sojong.** Andreas: sojong should be included. Phase 3 shipped nothing for it — a fixed
-      15th-and-30th rule misses 38 of FPMT's 2022-2025 occurrences and invents 36 (full divergence
-      table and history under Sojong, Beyond v1, below) — but `nyamlen/docs/fpmt-dharma-dates.md`
-      (2026-08-28) now records a possible rule from an oral teaching: sojong at the end of an odd
-      Tibetan month falls on the 14th, at the end of an even month on the 15th. **Verify it against
-      that divergence table before deciding to ship it** — it is one person's notes from a live
-      teaching, not an FPMT publication, and has not been checked computationally. If it verifies,
-      decide where it lives: inside `GELUG` if FPMT's own calendars actually follow it, as a
-      separately-scoped general rule if it turns out to be tradition-wide rather than
-      institution-specific, or neither if it still doesn't reproduce the data.
+      **This item said "eleven" from 2026-08-28 until 2026-09-04, and the arithmetic beside it —
+      four duchens plus six monthly — always said ten.** The miscount came from counting `id:`
+      occurrences in `default-gelug.ts`, of which there are eleven: ten rule ids plus the config's
+      own `id` on line 60. `README.md` had said ten correctly the whole time. Caught by an
+      architecture review of the rename plan, not by any check — nothing counts a config's rules
+      against the prose describing them, which is the same unguarded-prose class as the type-list
+      drift recorded under Review passes.
+
+      **Sojong — still wanted, but the one candidate rule found so far is falsified, checked
+      2026-09-04.** Andreas: sojong should be included, so this stays open rather than closing as
+      "cannot be done." Phase 3 shipped nothing for it — a fixed 15th-and-30th rule misses 38 of
+      FPMT's 2022-2025 occurrences and invents 36 (full divergence table and history under Sojong,
+      Beyond v1, below). `nyamlen/docs/fpmt-dharma-dates.md` (2026-08-28) recorded a candidate from
+      an oral teaching — sojong at the end of an odd Tibetan month falls on the 14th, at the end of
+      an even month on the 15th — and it has now been run computationally against the roadmap's own
+      seven-row divergence table. **Result: 4 of 7 match, 3 mismatch, and the failures are not
+      edge-case noise.** Two of the three (2026-06-14/15, an ordinary non-leap month) are a clean
+      inversion — the rule predicts sojong on the 30th and none on the 29th; FPMT prints exactly the
+      reverse. Two further readings of "which month" were tried — true sequential lunation number,
+      and position-within-the-year counted from Losar — both did *worse* (2 of 7 each) than the
+      naive nominal-month reading. **Verdict: this specific rule does not verify and must not ship
+      as-is.** Either the teaching notes are incomplete (something about waxing/waning
+      identification, or an epoch convention, wasn't fully captured — plausible, given the source's
+      own disclaimer that transcription errors are the transcriber's), or the "simple" restatement
+      the notes give doesn't actually match the fuller rule stated earlier in the same document.
+      Sojong inclusion stays open pending a **different or corrected** source — this one is closed,
+      not merely unconfirmed.
 
       Once both are settled: confirm each surviving rule's day, tier and source against FPMT's
       current guidance rather than trusting the 2022-2025 fixture check alone to still hold;
-      decide whether `GELUG` should be renamed — `id: "gelug"` currently reads as naming the
-      institution rather than a specific set of convention choices, which is the ambiguity the
-      boundary question above surfaced; and add the settled rule list to `docs/guide.md` or
-      `docs/architecture.md`, so a reader is not required to open `default-gelug.ts` to know what
-      ships. **Blocks the item below**: a code review that reads a ruleset which may still change
-      content, membership or name is reviewing a moving target.
+      **rename `GELUG` to `DEFAULT_OBSERVANCES`** (`id: "default"`, file renamed to
+      `default-observances.ts`) — decided 2026-09-03, no longer open: no exported identifier names
+      an institution, and `GELUG` overclaims besides, since Kopan Monastery — also Gelug — prints
+      the opposite `doubledDay` for the same date FPMT does. See the new rule in
+      [CLAUDE.md](../CLAUDE.md)'s Conventions section and its row in
+      [coding-standards.md](coding-standards.md); this is now a package-wide naming rule, not a
+      one-off fix, so sweep for any other export or identifier named after an institution or
+      organisation while doing this rename, not only `GELUG`. Add the settled rule list to
+      `docs/guide.md` or `docs/architecture.md`, so a reader is not required to open
+      `default-observances.ts` to know what ships. **Blocks the item below**: a code review that
+      reads a ruleset which may still change content, membership or name is reviewing a moving
+      target.
 
       **Still separate:** the composable-config helper and the day-quality-code placement question,
       both recorded in the same nyamlen note, are distinct subsystems needing their own brainstorm
@@ -802,6 +883,28 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
 
 ## Beyond v1
 
+- **Planetary longitudes (Janson's Appendix D, "Planets") — deferred, and deliberately not part of
+  `./astrology`.** Appendix D computes **geocentric longitudes for the five visible planets (Mars,
+  Mercury, Jupiter, Venus, Saturn) plus Rahu**, the lunar ascending node — via mean heliocentric
+  motion, a slow-longitude correction using an iterative step index, then conversion to geocentric
+  position. This is continuous astronomical computation, structurally close to what this project
+  already does for the sun and moon (mean motion plus a correction table), extended to five more
+  bodies, each needing its own constants and its own accuracy validation against a modern
+  ephemeris — a project comparable in size to the existing sun/moon machinery, not an afternoon's
+  addition to `./astrology`.
+
+  It exists in Janson because Tibetan astrology uses planetary position for **muhurta-style
+  work** — timing an activity (a wedding, a journey, a medical procedure, a ritual) by which
+  planet occupies which position or lunar mansion at that moment, the same family of practice as
+  the Vedic *muhūrta* मुहूर्त (auspicious-timing) tradition Tibetan astrology inherited alongside
+  the calendar itself. That is a narrower, more specialised consumer need than "what element is
+  today" — `./astrology`'s attribute layer answers the latter for every day unconditionally;
+  planetary longitude only matters to a consumer actually doing this kind of positional timing.
+  Decided 2026-09-03 to keep it out of `./astrology` even if it is eventually built: different
+  computational character (iterative vs. closed-form), different validation burden, different and
+  narrower audience. If it ever ships, it gets its own subpath, its own name, and its own
+  brainstorm — not a module bolted onto this one.
+
 - **An interactive almanac page, not a prose docs site.** A prose documentation site would duplicate
   [guide.md](guide.md), and its examples would sit outside the assertion machinery that makes the
   README's trustworthy — `test/readme.test.ts` and `test/guide.test.ts` assert every example those
@@ -879,14 +982,17 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   too — it would mean sojong belongs in caller-supplied rules permanently, and the docblock in
   `src/observances/default-gelug.ts` should say so rather than leaving it open.
 
-  **A possible answer surfaced 2026-08-28, outside this repo.** `nyamlen/docs/fpmt-dharma-dates.md`
-  records an oral-teaching source (Geshe Gyaltsen, translated by Geshe Graham, notes by Thubten
-  Chöying) giving an actual rule rather than a fixed day: sojong at the end of an **odd** Tibetan
-  month falls on the 14th, at the end of an **even** month on the 15th. **Unverified against the
-  table above** — that check (which Tibetan month each of these seven Gregorian dates falls in, and
-  whether the rule reproduces "yes"/"no" for each) has not been run, and the source is one person's
-  notes from a live teaching, not an FPMT publication. Start there before extending this item
-  further.
+  **A candidate answer surfaced 2026-08-28, outside this repo, and was falsified 2026-09-04.**
+  `nyamlen/docs/fpmt-dharma-dates.md` records an oral-teaching source (Geshe Gyaltsen, translated by
+  Geshe Graham, notes by Thubten Chöying) giving an actual rule rather than a fixed day: sojong at
+  the end of an **odd** Tibetan month falls on the 14th, at the end of an **even** month on the
+  15th. Run against the table above (`isoToTibetan` on all seven dates, checked under three
+  readings of "which month" — nominal month number, true sequential lunation, and position since
+  Losar): the best of the three, nominal month number, matches only 4 of 7, with the 2026-06-14/15
+  pair a clean inversion rather than an edge case. **This candidate does not reproduce the table and
+  should not ship.** Sojong stays open pending a different or corrected source — the notes' own
+  disclaimer that transcription errors are the transcriber's is the likeliest explanation, not a
+  flaw in this table.
 
   That note also opens two follow-on design questions, and **neither is beyond-v1 any more**: the
   composable/additive `ObservanceConfig` helper (e.g. `GELUG + TEACHERS + TANTRA`) and the

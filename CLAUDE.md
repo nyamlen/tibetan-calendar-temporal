@@ -56,6 +56,22 @@ justification is, and the new one does not depend on anybody's licence.
 
 Implement solely from Svante Janson, "Tibetan Calendar Mathematics" (arXiv:1401.6285).
 
+**That rule governs the calendar arithmetic, and it is narrower than it looks.** It is about the
+*algorithm* — epochs, mean motions, correction tables, leap-month and skipped-day rules — where a
+second source means reconciling two formulas for one number, which is how the `a₂` fork and the
+mixed-radix traps happened. It has never governed the **data** this package ships alongside the
+arithmetic, and the repository already proves that: `GELUG`'s observance rules cite **FPMT**, and the
+Tibetan and rabjung names cite Wiktionary, THL, CLDR, Csoma, Monier-Williams and wisdomlib — five
+independent checks, because for a name a single Janson table is explicitly *not* sufficient.
+
+State this because the flat reading cost real time on 2026-09-03: scoping the `./astrology` work,
+the sole-source line was read as forbidding Henning's lunar-mansion element table, and a sibling npm
+package was designed to escape a constraint that does not apply. Janson himself does not derive that
+table — he cites Henning for it — so using it is an ordinary citation chain, not two sources
+disagreeing. **Do not confuse this rule with the clean-room constraint above**, which is a different
+thing entirely: that one names two specific unlicensed implementations and is about evidence of
+independent derivation, not about which scholarship may be cited.
+
 **Read the LaTeX source, never PDF-extracted text.**
 Fetch it with `curl -L -o 1401.6285.gz https://arxiv.org/e-print/1401.6285`, then `gzip -dc` it to
 `tibet.tex`. **`-L` is not optional**: arXiv redirects `/e-print/` to `/src/`, so without it curl
@@ -463,7 +479,10 @@ see**, which before it existed was all of them: the zero-dependency claim, integ
 coded errors, `{@link}` targets, the reality of every `TCT_` code named in a `@throws`, the
 decision-record format, fixture provenance, whether
 [docs/coding-standards.md](docs/coding-standards.md) still names real commands and paths, that a
-validation suite is named for the fixture it validates, that an exported config is imported by one,
+validation suite is named for the fixture it validates, that an exported **tradition** config is
+imported by one — rule 10 matches only `export … from "./traditions/…"` in `src/index.ts`, so it
+does **not** see `ObservanceConfig` or anything on the `./observances` barrel, and rule 13 is
+type-only, so neither guards a runtime value export there —
 that a suite in `test/computation/` is named for a module there, and that **a generated document does
 not hardcode a count its generator computes** — `docs/names/rabjung.md` read "Four values are marked,
 at positions …" beside an interpolated list for three commits, and there were five positions and nine
@@ -665,6 +684,33 @@ here cross-reference heavily, so renaming or deleting one breaks inbound links s
 in the same commit.
 
 ## Conventions
+
+**No exported identifier names an institution.** An export name states what a thing *is* — its
+shape, its role in the API — never who published the convention it encodes. `GELUG` violates this:
+it is FPMT's specific published convention (`doubledDay: "second"`, `leapMonth: "leap"`, plus its
+particular rule set), not "the Gelug way" — Kopan Monastery, also Gelug, prints the *opposite*
+`doubledDay` for the 2024 Chokhor Duchen. Naming the export after an institution therefore doesn't
+just look institution-specific, it overclaims a universality the data itself contradicts.
+Provenance belongs in a `source` field and the docblock, which can carry a URL and a citation;
+an identifier cannot, and readers take a name at face value in a way they do not take prose.
+
+**The rule governs exported identifiers, not data fields, and the two deliberately disagree.**
+Settled 2026-09-04: `config.id` stays `"gelug"` and `config.name` stays `"Gelug (FPMT)"` even as the
+export becomes `DEFAULT_OBSERVANCES`. Those fields are values inside a config object, read as data,
+and they are the only machine-readable statement of whose convention it is — deleting that buys
+nothing and loses the provenance the rule says to keep. The asymmetry is also load-bearing in one
+direction only: an **export name** may name a role, because it can be repointed at whatever plays
+that role, but `id` is documented as a *stable identifier*, so `id: "default"` would have to migrate
+to another object — breaking that stability — or sit on an object that is no longer the default the
+moment a second config ships. `test/public-api.test.ts` asserts the id explicitly so a later
+"consistency fix" fails loudly rather than quietly.
+Decided 2026-09-03, after Andreas asked that nothing in the package be named after an institution
+(FPMT was the example) while scoping the astrological-attributes work; `GELUG` is the first
+casualty, tracked in [roadmap.md](docs/roadmap.md)'s Pre-v1.0.0 checklist. This is distinct from
+`PHUGPA`/`TSURPHU`/`BHUTAN`-style names on a `TraditionConfig`, which name an objective, falsifiable
+calendrical system Janson describes — not one institution's convention among several that legitimately
+disagree — see the "Kind of claim" distinction between `TraditionConfig` and `ObservanceConfig`
+already drawn elsewhere in this file.
 
 Technical identifiers are lowercase (`nyamlen`, `@nyamlen`); the brand is capitalised
 (`Nyamlen`). npm rejects uppercase package names, so this is a constraint, not a preference.
