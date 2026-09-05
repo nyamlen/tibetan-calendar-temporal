@@ -772,7 +772,14 @@ nothing and reports success.
 
       **Still separate:** the composable-config helper and the day-quality-code placement question,
       both recorded in the same nyamlen note, are distinct subsystems needing their own brainstorm
-      and spec — not folded into this task
+      and spec — not folded into this task.
+
+      **Sweep run 2026-09-05: clean.** Every export on both barrels
+      (`src/index.ts`, `src/observances/index.ts`) was read against the rule in
+      [2026-09-03-no-institution-names-in-exports.md](decisions/2026-09-03-no-institution-names-in-exports.md).
+      `PHUGPA`, `PHUGPA_HENNING`, `BHUTAN` and `BHUTAN_HENNING` were checked deliberately and are not
+      violations — they name calendrical systems Janson describes, not institutions' conventions.
+      `DEFAULT_OBSERVANCES` was already renamed. No other offender found
 - [ ] **Full code review.** Subject: all of `src/`, plus `scripts/` and the fixture generators,
       which are unreviewed and produce the primary correctness gate. **Command:**
       `/code-review max src/` for a path-scoped pass — note that plain `/code-review` and
