@@ -185,6 +185,16 @@ each agreement actually covers — Phugpa's day-by-day external validation spans
 documented range starting 1447, and Bhutan's spans 2000 to early 2030 against one lineage plus
 twenty-five government-published days — so cite the window whenever citing the agreement.
 
+**The observance window is narrower than the date window, and quoting the wrong one is a live
+trap.** 2022–2027 is the *union* of four sources and covers **dates**. The only source carrying
+observance labels is `test/fixtures/fpmt-observances.ts`, and it runs **2022–2025** — so a claim
+about which days carry a puja has three fewer years behind it than a claim about which Tibetan day a
+date is. `docs/why-trust-these-dates.md` states both correctly; the trap is that this file states
+only the wider one, and an agent answering an observance question reaches for what it read here.
+Done on 2026-09-10, answering which days carried Tara puja in late 2026: the dates were corroborated
+by three external calendars and the *labels* by nothing, and the reply claimed FPMT coverage that
+stops a year earlier. Cite 2022–2025 for an observance, 2022–2027 for a date.
+
 `scripts/rabjung-names.data.json` is **not** a second exception, because it is not a fixture: no
 test reads it, and nothing in `src/` depends on it. It holds the one **authored** column of
 `docs/names/rabjung.md` — English glosses of the Tibetan names. Keep it out of `test/fixtures/`, and
