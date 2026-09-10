@@ -41,6 +41,7 @@ undifferentiated "FPMT says" citation.
 | [cutting_hair_advice_lzr08.pdf](https://fpmt.org/wp-content/uploads/teachers/zopa/advice/pdf/cutting_hair_advice_lzr08.pdf) | FPMT-published PDF, translated text with colophon | 2026-08-28 |
 | "Tibetan Calendar calculation of Sojong" | Unpublished personal notes from an oral teaching, held outside this repo | Supplied privately, 2026-08-28 |
 | Svante Janson, "Tibetan Calendar Mathematics" (arXiv:1401.6285), Appendix E | The engine's own source, read from the LaTeX per the clean-room rule in [../CLAUDE.md](../CLAUDE.md), never PDF-extracted | 2026-08-28 |
+| [zurkhai.app](https://zurkhai.app/) | Third-party consumer app and website, public pages only — **a comparison target, never a source**; see [Zurkhai](#zurkhai-a-second-witness-to-the-attribute-layer) | 2026-09-10 |
 
 **The key page rendered nothing to fetch.**
 `fpmt.org/media/resources/dharma-dates/` is a client-rendered page — the static HTML is a JS
@@ -258,6 +259,51 @@ Colophon, in full: translated by Lama Zopa Rinpoche, Crestone, Colorado, June 20
 Holly Ansett; lightly edited and formatted by Ven. Gyalten Mindrol, FPMT Education Services,
 September 2008.
 
+## Zurkhai: a second witness to the attribute layer
+
+[zurkhai.app](https://zurkhai.app/) is a free consumer calendar — website plus an iOS app
+(`id6772695315`), with Android in a closed beta — published in English, Russian and Mongolian.
+It matters here because it publishes, day by day, most of the layer this file otherwise has only
+FPMT for: element-animal per day, lunar mansions, tithi, the sixty-year cycle, and day-quality
+guidance for twelve named activities.
+Until now the elemental attributes had exactly one witness, and that witness was FPMT's
+`FD-*`/`UD-*` codes.
+
+**It is a comparison target, not a source, and the distinction is the whole entry.**
+Janson's Appendix E stays the source for anything this engine computes.
+What Zurkhai offers is something to check computed output *against* once `./astrology` exists —
+the same footing as the date cross-checks in
+[validation-sources.md](validation-sources.md), where computed dates are compared and no code is
+read.
+Seeding data from its day-quality tables would be something else entirely: a curated list of which
+days suit cutting hair is closer to a compilation than to a fact, the app states no licence, and it
+is someone else's work.
+
+**What it states about its own method, in full.**
+One sentence: *"The calculations on this site follow the Phugpa school, the standard for most of
+these traditions."*
+On the hard cases it says the count is *"read from the Phugpa almanac rather than computed by
+simple counting"*, and elsewhere that *"Exact dates vary by lineage; confirm with a published
+almanac."*
+It names no scholar, no almanac edition, no repository and no API.
+That is a tradition, not a provenance — which is why it is recorded here and **not** in
+[validation-sources.md](validation-sources.md): agreement is only evidence if the source did not
+reach its answer the way an existing one did, and nothing published tells us whether this descends
+from Henning.
+A fourth Phugpa cross-check in Henning's lineage would add a row and no confidence.
+
+**Its dates agree with ours where checked**, which is worth recording even though it cannot count as
+corroboration.
+Its December 2026 page gives 16 December as lunar day 7 and 17 December as day 8 of month 11,
+marks the 17th as a Medicine Buddha day, and shows 23 December as day 14 against 24 December as day
+16 — the skipped 15th this engine also computes.
+Checked 2026-09-10, prompted by a secondhand claim that Tara puja fell on 16 December; three
+existing cross-check fixtures say the same thing, and this was the only one of the four that also
+carried the observance label.
+
+Two things are unresolved and are tracked in [roadmap.md](roadmap.md): its App Store metadata, which
+rate-limited on both attempts, and its lineage.
+
 ## Open questions
 
 - **NWR (No Wealth Ritual) has no stated days.**
@@ -272,6 +318,15 @@ September 2008.
   material.
 - **The mansion-to-element table is not yet transcribed.**
   It is Henning's, and it is the last thing standing between this engine and computing FD-\*/UD-\*.
+- **Zurkhai's lineage is unknown**, and that is what keeps it out of
+  [validation-sources.md](validation-sources.md).
+  It states "the Phugpa school" and cites no scholar, almanac edition or repository.
+  Establishing it would promote a comparison target to a possible cross-check; failing to establish
+  it is itself a result worth writing down, not a reason to use it anyway.
+- **Zurkhai's App Store metadata has never been read.**
+  Two fetches of `apps.apple.com/us/app/id6772695315` returned HTTP 429 on 2026-09-10, so the
+  seller, version and release date are unknown, and
+  [other-implementations.md](other-implementations.md)'s entry is incomplete without them.
 - **Tibetan-script sourcing here is deliberately thin.**
   Only *sojong* carries a script rendering, taken from [../CLAUDE.md](../CLAUDE.md), which sources
   it independently.

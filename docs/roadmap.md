@@ -399,6 +399,30 @@ edits, and moving files once after they have landed is one link-fixing commit in
       brainstormed further; not folded into the composable-config item above, which stays
       `./observances`-only
 
+      **A comparison target now exists, found 2026-09-10.** [zurkhai.app](https://zurkhai.app/)
+      publishes element-animal days, lunar mansions, tithi and day-quality guidance day by day —
+      the only second witness to this attribute layer found so far, FPMT's `FD-*`/`UD-*` codes
+      being the first. Use it to check computed output once this ships, on the same footing as the
+      date cross-checks; **do not seed data from it.** Recorded in
+      [almanac-sources.md](almanac-sources.md)'s "Zurkhai" section
+
+- [ ] **Establish Zurkhai's calculation lineage, or record that it cannot be established.** Its
+      public pages state "the Phugpa school" and name no scholar, almanac edition or repository, so
+      there is no way to tell whether it descends from Henning — which is why it sits in
+      [almanac-sources.md](almanac-sources.md) as a comparison target rather than in
+      [validation-sources.md](validation-sources.md) as a cross-check. Its December 2026 dates agree
+      with ours where checked, including a skipped 15th, but agreement from inside a lineage already
+      represented is not evidence. **A negative result is a result**: if the lineage cannot be
+      established from public material, write that down in `validation-sources.md`'s tried-and-rejected
+      list so the same source is not re-evaluated. Blocks any use of it as a fourth Phugpa cross-check
+
+- [ ] **Read Zurkhai's App Store metadata and complete its
+      [other-implementations.md](other-implementations.md) entry.** `apps.apple.com/us/app/id6772695315`
+      returned HTTP 429 on both attempts on 2026-09-10, so seller, version, release date and
+      description are unknown, and that file's discipline is that every claim carries a source and an
+      access date. The entry is written and marked incomplete rather than left out. Small; needs only
+      a successful fetch
+
 **Documentation**
 
 - [x] **Split the README into a landing page and a guide.** Done 2026-08-23. The README carries the

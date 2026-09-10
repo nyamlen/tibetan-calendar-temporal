@@ -11,8 +11,8 @@ this project works under: it is a clean-room implementation of Janson's paper, a
 competing implementation would compromise that.
 
 All figures accessed **2026-08-23**, except the API-shape comparison below, which was gathered
-**2026-08-26** and carries its own dates. Download counts are the npm registry's last-30-day
-figures.
+**2026-08-26**, and the Zurkhai entry, gathered **2026-09-10**; both carry their own dates.
+Download counts are the npm registry's last-30-day figures.
 
 ## The field is small, and that is worth saying first
 
@@ -105,6 +105,41 @@ of most Bhutanese calendar applications in circulation.
 consuming it from an application means parsing its output or porting its arithmetic. It is Windows
 and C. And being unmaintained, it will not change again.
 
+## Zurkhai — an end-user app, not a library
+
+- [zurkhai.app](https://zurkhai.app/), website plus iOS app (`id6772695315`); Android in a closed
+  beta
+- Free, "fully offline, no ads"; English, Russian and Mongolian
+- No developer name, copyright line, licence, repository or API stated anywhere on the public site
+- Version, seller and release date **not established** — `apps.apple.com` returned HTTP 429 on both
+  attempts, 2026-09-10
+
+All figures accessed **2026-09-10**.
+
+**It is listed here for the opposite reason to the others.** The three above are libraries a
+developer might install instead of this one; Zurkhai is a finished consumer product and cannot be
+imported. Someone arriving from a search for "Tibetan calendar" will meet it first, so the useful
+thing this entry does is say plainly that it is not an alternative to a package — and that if what
+you want is a calendar to *read* rather than one to *compute with*, it is very likely the better
+answer.
+
+**What it covers that no library here does.** Day-quality guidance for twelve named activities —
+haircut, travel, business, medical treatment, moving house and more — alongside element-animal days,
+lunar mansions and the sixty-year cycle. That is almanac territory, and among the software surveyed
+here only Henning's reaches it.
+
+**Where this package differs.** It states one methodological fact — *"The calculations on this site
+follow the Phugpa school"* — and cites no scholar, almanac edition or validated range, while telling
+the reader that *"Exact dates vary by lineage; confirm with a published almanac."* That is honest
+about the problem and silent about the answer. This package's whole claim is the opposite trade:
+fewer features, and a stated window for every one of them.
+
+Its attribute layer is recorded in [almanac-sources.md](almanac-sources.md) as a comparison target
+for the deferred `./astrology` work. It is deliberately **not** in
+[validation-sources.md](validation-sources.md): with no stated lineage there is no way to tell
+whether it descends from Henning, and agreement from within a lineage already represented is not
+evidence.
+
 ## API shape, compared — added 2026-08-26
 
 Gathered during the pre-1.0.0 API surface review, because the rule governing what earns a public
@@ -185,6 +220,7 @@ file is; prefer "at least N" to a false precision.
 | If you need | Use |
 |---|---|
 | An astrological almanac — planets, lunar mansions, eclipses | Henning's software |
+| A calendar to read rather than compute with, on a phone | Zurkhai |
 | A Mongolian date, today | `@hnw/date-tibetan` |
 | A Tibetan date in a few lines, on legacy `Date` | `tibetan-date-calculator` |
 | A calendar application: month grids, observances, year names, Bhutan | this package |
