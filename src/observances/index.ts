@@ -273,8 +273,9 @@ function describe(value: unknown): string {
  * Keyed on the object, matching {@link scalingFor} above. A consumer who mutates a config in place
  * after first use escapes revalidation, which is the same bargain the scaling cache already makes.
  *
- * The bargain covers **consumer-supplied** configs only: {@link DEFAULT_OBSERVANCES} is deeply frozen, so the
- * object a reader is most likely to mutate cannot reach the stale-cache state at all.
+ * The bargain covers **consumer-supplied** configs only: {@link DEFAULT_OBSERVANCES} is deeply
+ * frozen, so the object a reader is most likely to mutate cannot reach the stale-cache state at
+ * all.
  */
 const validatedConfigs = new WeakSet<ObservanceConfig>();
 
