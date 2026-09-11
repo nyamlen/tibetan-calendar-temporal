@@ -30,7 +30,9 @@ Three tiers, and they should not be collapsed:
 These are not one tier of evidence.
 Two are FPMT-published web pages; one is an FPMT-published PDF with a named colophon; one is
 personal notes from an oral teaching, explicitly flagged by its own transcriber as possibly
-containing errors; one is the paper the engine's arithmetic already comes from.
+containing errors; one is the paper the engine's arithmetic already comes from; one is a scholar's
+own website carrying the tables that paper cites him for; and one is a third-party app that is a
+comparison target rather than a source at all.
 Keep them distinguishable in whatever consumes this document — do not flatten them into one
 undifferentiated "FPMT says" citation.
 
@@ -42,14 +44,26 @@ undifferentiated "FPMT says" citation.
 | "Tibetan Calendar calculation of Sojong" | Unpublished personal notes from an oral teaching, held outside this repo | Supplied privately, 2026-08-28 |
 | Svante Janson, "Tibetan Calendar Mathematics" (arXiv:1401.6285), Appendix E | The engine's own source, read from the LaTeX per the clean-room rule in [../CLAUDE.md](../CLAUDE.md), never PDF-extracted | 2026-08-28 |
 | [zurkhai.app](https://zurkhai.app/) | Third-party consumer app and website, public pages only — **a comparison target, never a source**; see [Zurkhai](#zurkhai-a-second-witness-to-the-attribute-layer) | 2026-09-10 |
+| [kalacakra.org/calendar/symlst.htm](http://www.kalacakra.org/calendar/symlst.htm) | Edward Henning's own website, "Symbolic details of the Kālacakra calendar", last updated 3 February 2010 — the reference tables Janson cites his 2007 book for, published free by their author | 2026-09-10 |
 
-**The key page rendered nothing to fetch.**
-`fpmt.org/media/resources/dharma-dates/` is a client-rendered page — the static HTML is a JS
-application shell with no legend text in it.
-What follows under "The key" is therefore drawn entirely from the *dates-explained* page, which does
-carry the definitions.
-If the key page's calendar grid renders different or additional codes, that has not been checked;
-**it needs a browser render, not a text fetch**.
+**The key page was finally rendered on 2026-09-10, and the answer was better than expected.**
+`fpmt.org/media/resources/dharma-dates/` is indeed a client-rendered shell with no legend text, as
+recorded here since 2026-08-28.
+What it does carry is a grid that loads the **monthly pages** at
+`fpmt.org/resources/calendar/YYYY/Month.php` — the very files
+`scripts/fetch-fpmt-observances.mjs` already parses.
+Those cells carry the day-quality codes day by day:
+
+```text
+1  19  UD-FW GCH NM  Fire puja
+2  21  UD-WA NCH NG  Naga puja
+3  22  FD-FA GCH NB NMP NWR  Fire puja  Naga puja
+```
+
+So the codes were never behind a render at all — our own generator has been discarding them.
+The open question this file carried ("the key page has never actually been read") is closed, and so
+is the sourcing problem behind it: the external day-by-day witness for the elemental yoga needs no
+new source, only a widened parser.
 
 ## The key: every day-type FPMT names
 
@@ -93,7 +107,7 @@ Recorded only — see the tier table above.
 | NMP | No Medical Procedure | 4, 8, 11, 15, 18, 22, 25, 29 |
 | NM | No Memorial or Wake | 9, 19, 29 |
 | NW | No Wedding | 7, 17, 27 |
-| NWR | No Wealth Ritual | The site names the code but not the days — **unresolved**, see [Open questions](#open-questions) |
+| NWR | No Wealth Ritual | **Not a fixed-day rule at all** — see [NWR and GCH](#nwr-and-gch-two-codes-the-day-lists-do-not-explain) |
 | UD | Unfavorable Day | Not good for starting important activities |
 | UD-EA | Unfavorable Day (Earth-Air) | Can decline wealth and property; risk of shortened life span or sickness |
 | UD-WA | Unfavorable Day (Water-Air) | Can harm or sever relationships; risk of disagreement and disharmony |
@@ -130,6 +144,65 @@ See [../CLAUDE.md](../CLAUDE.md), where the sole-source rule is now scoped to th
 explicitly for this reason.
 The real cost is narrower: the table has to be transcribed from a second work, with its own
 provenance recorded, before FD-\*/UD-\* can ship.
+
+**Both pieces were sourced on 2026-09-10, and not from the book.**
+Henning published them himself at
+[kalacakra.org/calendar/symlst.htm](http://www.kalacakra.org/calendar/symlst.htm): the
+mansion-to-element list, explicitly "from the Indian system — this is different in the Chinese
+tradition", and the ten elemental yogas with their Tibetan, Sanskrit and English names.
+The ten are reproduced in [astrology.md](astrology.md), which is the reader-facing account of the
+whole attribute layer.
+**Favorability is in neither Janson nor Henning** — Henning gives names and senses, not a verdict —
+so FPMT remains the sole witness for which pairs are favorable, exactly as it already is for the
+observance rules.
+
+Three traps in that page, all of which would produce a plausible wrong answer:
+
+- **It lists 28 mansions, not 27.** Abhijit sits at position 23, and Janson numbers the mansions
+  0–26. The elements run 7/7/7/7 across the 28, so dropping Abhijit (earth) leaves 6 earth against 7
+  of each other — the drop is identifiable and must be asserted rather than assumed, because getting
+  it wrong shifts every element from Dhaniṣṭhā onward with nothing looking wrong.
+- **Three different things on that one page are called "yoga"**: the 27 sun-plus-moon-longitude
+  yogas, the 28 weekday×mansion yogas, and the 10 elemental yogas. Janson separately warns that the
+  first two get confused.
+- **The site is HTTP-only.** Its TLS certificate is for `*.your-server.de`, so every HTTPS fetch
+  fails outright. Henning died in 2016 and the page was last updated in 2010; treat it as at risk
+  and keep the access date.
+
+**The correspondence was then confirmed against FPMT's own calendars, and it found errors in them.**
+For every day of 2024 and 2026 carrying a code, the weekday element computed from the Julian day
+should be one of the two elements the code names.
+670 days carried a code and **666 matched**.
+The four exceptions are errors in FPMT's calendar rather than in the model:
+
+| Date | Printed | Why it cannot be right |
+|---|---|---|
+| 2024-09-12 | `UD-EW` | Not one of the ten at all — earth + water is *yauvana*, favorable, printed elsewhere as `FD-EW` |
+| 2026-04-22 | `UD-EF` | Weekday element is water, in neither position |
+| 2026-04-23 | `UD-EF` | Weekday element is wind; also the second of two consecutive identical codes, which is impossible because the weekday element changes daily |
+| 2026-04-29 | `UD-EF` | Weekday element is water, in neither position |
+
+That these are *findable* is the strongest argument for computing the layer rather than
+transcribing it, and it is why the validation suite needs a known-source-errors allowlist rather
+than a tolerance — asserted exhaustive, so a fifth divergence fails loudly instead of quietly
+joining a list of excuses.
+
+### NWR and GCH: two codes the day lists do not explain
+
+**NWR (No Wealth Ritual) is not a fixed-day rule, which is why no day list was ever found.**
+This file recorded it as "the site names the code but not the days — unresolved".
+Across 2025 and 2026 NWR lands on **17 distinct Tibetan day numbers** (1–11, 16, 19, 21, 22, 23,
+29), which no monthly rule of the NB/NCE/NF shape can produce.
+So the question was mis-framed rather than unanswered: NWR is computed per day, like the yoga, and
+finding it needs the attribute layer rather than another page of the website.
+The same reasoning applies to Fire Puja, whose "multiple monthly days" have never resolved either.
+
+**GCH is a code this repository had never recorded, and FPMT defines it nowhere.**
+It appears **166 times in 2026** and on no key page or explanation page.
+Its day set across 2025–26 is the complement of NCH's forbidden list bar a single stray 20, and it
+matches the positive rows of the hair-cutting table below almost exactly.
+The obvious reading is "good day for cutting hair" — but **that is a hypothesis, not a definition**,
+and it is recorded here as one. Nothing may ship on it until FPMT states it.
 
 ### NPF — No Prayer Flags, the one code with a full month table
 
@@ -306,18 +379,17 @@ rate-limited on both attempts, and its lineage.
 
 ## Open questions
 
-- **NWR (No Wealth Ritual) has no stated days.**
-  The dates-explained page names the code and nothing else.
-  Either a rendered calendar shows them, or this stays unresolved.
-- **Fire Puja has no stated correct days**, only that wrong ones "can cause sickness and obstacles."
-  The same shape of gap as NWR.
-- **The key page has never actually been read** — it needs a browser render, not a text fetch.
+- **What determines an NWR or a Fire Puja day.**
+  Both were recorded here as "the site names the code but not the days".
+  That framing is now known to be wrong for NWR — it is not a fixed-day rule, so no list exists to
+  find, and the same is likely true of Fire Puja.
+  Answering either needs the computed attribute layer, not another page of the website.
+- **What GCH means.** Undocumented by FPMT and used 166 times in 2026; the "good day for cutting
+  hair" reading above is a hypothesis this repository has not confirmed.
 - **NCH and the hair-cutting table disagree in scope**, as above.
 - **Sojong needs a different or corrected source.**
   The 2026-08-28 candidate is falsified, not merely unconfirmed; do not re-test it without new
   material.
-- **The mansion-to-element table is not yet transcribed.**
-  It is Henning's, and it is the last thing standing between this engine and computing FD-\*/UD-\*.
 - **Zurkhai's lineage is unknown**, and that is what keeps it out of
   [validation-sources.md](validation-sources.md).
   It states "the Phugpa school" and cites no scholar, almanac edition or repository.
