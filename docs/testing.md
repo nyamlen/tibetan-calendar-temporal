@@ -8,6 +8,7 @@ trust the dates. Three tiers, all run in CI.
 ```text
 test/
 ├── computation/          # named for a src/computation module, or <module>-<concept>
+├── observances/          # named for a src/observances module — index.ts is the engine
 ├── validation/           # Tier 2, cross-checks against external sources
 ├── fixtures/             # generated — from Janson, and from external implementations
 ├── invariants.test.ts    # year lengths, safe-integer bound, §13 period
@@ -23,13 +24,14 @@ test/
 Tiers 1 and 3 are interleaved with the unit suites rather than kept in separate directories —
 a property and the edge case it generalises belong next to the function they constrain.
 
-**Naming a computation suite.** A file in `test/computation/` is named for the `src/computation/`
-module it tests, optionally narrowed to a concept as `<module>-<concept>` — so
-`calendar-leap-index-threshold.test.ts` is a `calendar.ts` suite about one rule. The match is on the
+**Naming a module suite.** A directory under `test/` that mirrors one under `src/` holds suites
+named for the modules in it, optionally narrowed to a concept as `<module>-<concept>` — so
+`calendar-leap-index-threshold.test.ts` is a `calendar.ts` suite about one rule, and
+`test/observances/index.test.ts` is the suite for the engine in `src/observances/index.ts`. The match is on the
 longest module prefix, **not** the first `-`-delimited segment: `mean-astronomy.ts` is the one
 hyphenated module, and a segment rule rejects `mean-astronomy.test.ts`, which is already correct.
 
-A suite whose subject spans several modules is not a computation suite and belongs at `test/` root
+A suite whose subject spans several modules is not a module suite and belongs at `test/` root
 beside `invariants.test.ts`. `leap-month-position.test.ts` is the case: it reaches into `calendar`,
 `scaling`, `months` and `observances`, so naming it for any one of them would promise a subject it
 does not have — the same false promise the validation-suite rule catches one directory over.

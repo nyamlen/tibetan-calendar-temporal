@@ -1049,8 +1049,12 @@ for (const [, names] of read("src/index.ts").matchAll(CONFIG_EXPORT)) {
 //
 // A focused suite may narrow a module — calendar-leap-index-threshold.test.ts is a calendar.ts
 // suite about one rule — but the module it narrows has to lead the name. A suite whose subject
-// spans several modules is not a computation suite at all and belongs at test/ root, beside
+// spans several modules is not a module suite at all and belongs at test/ root, beside
 // invariants.test.ts and regression.test.ts.
+//
+// This runs over **every mirrored directory**, not test/computation/ alone. It was written for
+// computation because that was the only mirror that existed; the examples above are still drawn
+// from there because that is where the two real drifts happened.
 // ---------------------------------------------------------------------------------------
 
 // Only directories that actually exist under test/, or `git ls-files` writes a warning per missing

@@ -15,9 +15,9 @@ const thrownBy = (call: () => unknown): (Error & { code?: string }) | undefined 
 	}
 };
 
-// Tier 2. The engine's rules are checked against the calendars FPMT actually publishes, which is
-// what makes them a tested claim rather than a transcription -- the failure mode CLAUDE.md
-// records for an early draft of docs/testing.md, which put Losar 2026 a day out.
+// The observance *engine*: how a rule resolves onto a calendar day, and what the boundary refuses.
+// Agreement with FPMT's published calendars is a different claim about a different subject, and
+// lives in test/validation/fpmt-observances.test.ts.
 
 describe("observance resolution", () => {
 	// The row docs/testing.md calls the fixture's most informative: a leap month and a doubled day

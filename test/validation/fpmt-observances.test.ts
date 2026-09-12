@@ -27,6 +27,7 @@ const NUMBERING_DIVERGENCES = new Set(["2022-12-02", "2022-12-03", "2024-12-08",
 
 // Tier 2. The engine's rules are checked against the calendars FPMT actually publishes, which is
 // what makes them a tested claim rather than a transcription -- the failure mode CLAUDE.md
+// records for an early draft of docs/testing.md, which put Losar 2026 a day out.
 
 describe("observances against FPMT's published calendars, 2022-2025", () => {
 	const emitted = getObservances(iso("2022-01-01"), iso("2025-12-31"));
