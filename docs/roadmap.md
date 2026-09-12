@@ -444,6 +444,13 @@ edits, and moving files once after they have landed is one link-fixing commit in
       re-confirmed against the real types when the module is built. The decision stands; the box
       closes when it has survived contact with code.
 
+      **Half of it has now survived that contact, 2026-09-12.** `monthAttributes` and
+      `lunarDayAttributes` exist and throw `TCT_ATTRIBUTE_NOT_SOURCED` for both Bhutanese configs,
+      which is tested from inside and proved by mutation; the refusal needs no "is this Bhutan" check,
+      because a tradition nobody has sourced simply carries no `naming.months` block. **The other half
+      is untested until the composition exists**: `attributesFor` returning `null` for those two
+      members is what freezes at 1.0.0, and it lands with the barrel. The box stays open until then.
+
       **The ruling:** `monthAttributesFor` and `lunarDayAttributesFor` throw
       a coded error for Bhutan; `attributesFor` returns `null` for those two members and answers the
       rest. Chosen on **reversibility**, not taste — when Bhutan is eventually sourced, a throw
