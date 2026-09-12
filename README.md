@@ -46,6 +46,7 @@ see [why you can trust these dates](docs/why-trust-these-dates.md).
   - [Errors and validation](#errors-and-validation)
   - [Traditions](#traditions)
   - [Observances](#observances)
+  - [Astrological attributes](#astrological-attributes)
 - [API](#api)
 - [Internationalisation](#internationalisation)
 - [Why this exists](#why-this-exists)
@@ -64,6 +65,7 @@ see [why you can trust these dates](docs/why-trust-these-dates.md).
 | **A full almanac row** | Fifteen fields per date: royal-era year, month code, day, true full and new moon, ISO and Tibetan weekday with its planet and element. The element–animal year name and the rabjung cycle position are properties of the *year*, so they are closed-form lookups rather than one value repeated on all 354 days |
 | **Names in three renderings** | Tibetan script, Wylie, and THL Simplified phonetics for every weekday, element, gender, animal and rabjung year — each verified against five independent sources before it shipped |
 | **Observances** | The great holy days and the monthly cycle, as configurable rules that carry their citation. Each result says *how* it landed on its day, so a display can show the almanac's footnote instead of presenting a moved date as an exact one |
+| **Astrological attributes** | What kind of day it is, not just which day: the year's five elements, the month's and lunar day's labels, the calendar day's own, and the elemental yoga — which needs the moon's real position, not a cycle. A separate subpath, sourced piece by piece |
 | **Four traditions** | Phugpa and Bhutanese, each in two parameterisations. Constants and rules are injected as data, so a further tradition is a config object rather than a code change |
 | **Date arithmetic** | Add days or months, count between two dates, find the next true full or new moon, and reduce a month to one sortable integer for a database key |
 
@@ -108,10 +110,11 @@ differs from a published almanac and why, and which questions no available sourc
 | Traditions | Phugpa | 3, as fixed classes | Phugpa, Tsurphu, Zhonnu Pal | 4 configs, more addable as data |
 | What a date carries | ~9 properties | a 6-element tuple | text columns | 15 fields, names in three scripts |
 | Observances | — | — | hardcoded columns | configurable, cited, with resolutions |
-| Astrological data | — | — | **planets, lunar mansions, eclipses** | — |
+| Astrological data | — | — | **planets, lunar mansions, eclipses** | attributes and the yoga; no planets or eclipses |
 | Stated validated range | — | — | — | every claim carries its window |
 
-Henning's software computes an astrological almanac this package does not attempt, and
+Henning's software computes a full astrological almanac — planets and eclipses included — which this
+package does not attempt, and
 `@hnw/date-tibetan` is the shortest route to a Mongolian date. **[When to use which
 →](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/other-implementations.md)**
 
@@ -464,6 +467,37 @@ says the first of a doubled pair; FPMT says the second. So the conventions are i
 carrying a citation, never logic, and a consumer who only wants date conversion never inherits
 anyone's.
 
+### Astrological attributes
+
+*What kind of day is this?* — the question an almanac view asks after it has the date. A separate
+subpath, so a consumer who only converts dates never loads it.
+
+```ts
+import { attributesFor } from "tibetan-calendar-temporal/astrology";
+
+const day = attributesFor(Temporal.PlainDate.from("2026-09-01"));
+
+day.year.power;          // "fire" — 2026 is a Fire Horse year
+day.year.life;           // "fire", and body, fortune and spirit each run on their own cycle
+day.calendarDay.animal;  // the sunrise-to-sunrise day's animal
+day.lunarDay?.animal;    // the lunar day's, which is a different label for the same date
+day.yoga.english;        // "death" — the least auspicious of the ten
+day.yoga.favorable;      // false
+```
+
+**A day carries two sets of labels that disagree, and almanacs print both.** The lunar day is the
+thirtieth of a lunation; the calendar day runs sunrise to sunrise. On a doubled date the two halves
+share `year`, `month` and `lunarDay` and differ in `calendarDay` and `yoga` — that is the calendar,
+not a bug.
+
+**`month` and `lunarDay` are `null` for the Bhutanese traditions.** Janson tabulates no month-animal
+list for that version, so the package refuses rather than handing over Phugpa's answers; the
+primitives throw `TCT_ATTRIBUTE_NOT_SOURCED` where the composition reports `null`.
+
+Favorability is FPMT's convention and is in neither Janson nor Henning. What is validated, over which
+years, and against what, is in
+[docs/why-trust-these-dates.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/why-trust-these-dates.md).
+
 ## API
 
 The complete surface, across both entry points. Everything is a pure function over plain objects —
@@ -626,7 +660,7 @@ Type-only exports, erased at runtime: `TibetanDate`, `TibetanDateFields`, `Tibet
 `TibetanMonthFields`, `TibetanYearName`, `Rabjung`, `TibetanName`,
 `TibetanWeekdayName`, `TibetanWeekdayElement`, `TibetanWeekday`, `TibetanPlanet`, `TibetanElement`,
 `TibetanAnimal`,
-`TibetanGender`, `TraditionConfig`, `TraditionNaming`, `MeanMotion`, `Rational`,
+`TibetanGender`, `TraditionConfig`, `TraditionNaming`, `TraditionMonthNaming`, `MeanMotion`, `Rational`,
 `TibetanCalendarErrorCode`, `MonthOverflow`, `AddMonthsToDateOptions`.
 
 ### `tibetan-calendar-temporal/observances`
@@ -650,6 +684,31 @@ Note that `SkippedDayError` is exported from the **root** only. Nothing in this 
 a skipped day is handled by the `skippedDay` convention instead.
 
 Full detail: [docs/architecture.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/architecture.md).
+
+### `tibetan-calendar-temporal/astrology`
+
+A separate subpath, like `./observances`. `options` is `{ tradition? }`, defaulting to `PHUGPA`.
+
+| Export | Signature | Notes |
+|---|---|---|
+| `attributesFor` | `(date: Temporal.PlainDate \| TibetanDate, options?) => DayAttributes` | Everything about one day. `month` and `lunarDay` are `null` where unsourced |
+| `yearAttributesFor` | `(year: number) => YearAttributes` | Royal era, and no tradition: closed forms on the year alone |
+| `monthAttributesFor` | `(month: TibetanMonthFields, options?) => MonthAttributes` | Throws `TCT_ATTRIBUTE_NOT_SOURCED` for the Bhutanese configs |
+| `lunarDayAttributesFor` | `(date: TibetanDateFields, options?) => LunarDayAttributes` | Tibetan fields in, so a **skipped** lunar day can be asked about |
+| `calendarDayAttributesFor` | `(date: Temporal.PlainDate \| TibetanDate) => CalendarDayAttributes` | Congruences on the Julian day; identical in every tradition |
+| `elementalYogaFor` | `(date: Temporal.PlainDate \| TibetanDate, options?) => ElementalYoga` | The one attribute needing the moon's real position |
+| `elementalYoga` | `(a: TibetanWeekdayElement, b: TibetanWeekdayElement) => ElementalYoga` | The pair alone, order-insensitive |
+| `ELEMENTAL_YOGAS` | | The ten, frozen: Henning's names, FPMT's favorability |
+| `MANSION_ELEMENTS`, `mansionElement`, `MANSION_COUNT` | | The 27 mansions' elements, Henning's table |
+
+Type-only exports: `DayAttributes`, `YearAttributes`, `MonthAttributes`, `LunarDayAttributes`,
+`CalendarDayAttributes`, `ElementalYoga`, `TibetanTrigram`, `AstrologyQueryOptions`.
+
+A date argument is a `Temporal.PlainDate` or a resolved `TibetanDate` — never loose
+`{ year, month, day }`, which is a value of both calendars and would make the ambiguity silent.
+`monthAttributesFor` and `lunarDayAttributesFor` are the exceptions, and the reason is that their
+argument is Tibetan-only: there is nothing to disambiguate, and fields are what lets a skipped lunar
+day be named at all.
 
 ## Internationalisation
 

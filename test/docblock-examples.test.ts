@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { lunarDayAttributes } from "../src/astrology/lunar-day.js";
+import { monthAttributes } from "../src/astrology/month.js";
 import { isoToTibetan, losarFor, tibetanToIso } from "../src/computation/conversion.js";
 import { rabjungFromYear, royalEraFromYear, yearNameFromYear } from "../src/computation/epoch.js";
 import { meanDate } from "../src/computation/mean-astronomy.js";
@@ -231,6 +233,28 @@ describe("docblock examples", () => {
 			const first = nextFullMoon(Temporal.PlainDate.from("2026-08-12"));
 			const second = nextFullMoon(first.isoDate);
 			expect(Temporal.PlainDate.compare(second.isoDate, first.isoDate)).toBeGreaterThan(0);
+		});
+	});
+	// `src/astrology/` is not on the public surface yet — the barrel and the `./astrology` subpath
+	// land with the yoga — but its docblocks compile into `dist/*.d.ts` the moment it is exported, and
+	// an example written now is the one that ships. Asserted from the day it is written, therefore.
+	describe("astrology/month.ts and astrology/lunar-day.ts", () => {
+		it("states Phugpa's month 1 of 2026 correctly", () => {
+			expect(monthAttributes(PHUGPA, 2026, 1)).toEqual({
+				animal: "dragon",
+				gender: "male",
+				element: "iron",
+				number: null,
+			});
+		});
+
+		it("states the four labels of its first lunar day correctly", () => {
+			expect(lunarDayAttributes(PHUGPA, 2026, 1, 1)).toEqual({
+				animal: "tiger",
+				element: "water",
+				trigram: "kham",
+				number: 7,
+			});
 		});
 	});
 });

@@ -104,8 +104,8 @@ The last two check the *published* package rather than the source. Everything el
 `src/`, which means nothing else can see a broken `exports` map, a file missing from `files`, or a
 `dist/` layout that does not match what `exports` points at — those fail only for a consumer, after
 publishing. `check:publish` runs `publint` and `attw` against the manifest; `test:pack` packs the
-tarball, installs it into a scratch directory outside the repository, and imports both subpaths the
-way a consumer would. Run them before touching `exports`, `files`, or the build output layout.
+tarball, installs it into a scratch directory outside the repository, and imports all three subpaths
+the way a consumer would, asserting a real computed value through each. Run them before touching `exports`, `files`, or the build output layout.
 
 `attw` runs under `--profile esm-only`, which ignores its `node10` and `node16-cjs` rows. Both are
 the deliberate design — no `main` field, no CJS build — not defects. Do not add a `main` field to

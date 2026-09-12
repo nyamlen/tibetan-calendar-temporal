@@ -239,7 +239,11 @@ narrower still.
 | Check | Range | Source | What it settles |
 |-------|-------|--------|-----------------|
 | Year and calendar-day attributes | all 60 cycle positions | Janson's own Table 60e | transcription and formula error — **not** external corroboration, since he computed it from the same formulas |
+| Month attributes: animal, gender | all 12 months, Phugpa **and** Tsurphu | Janson's own month-animal table | the same: transcription and formula error, not corroboration |
+| Month attributes: element | 1900–2100, both element rules | Janson's **prose**, there being no printed table | that the Tiger month takes the son of the year's element, that each element runs two months, and that Phugpa restarts annually where Tsurphu does not |
+| Lunar-day attributes | every day of every month | Janson's **prose** | the opening animal of odd and even months, and the opening trigram and number he names for each month animal |
 | Lunar mansion, day by day | 2022–2025, Phugpa only | FPMT's day-quality codes | the mansion arithmetic, at **97.6%** — see below |
+| Yoga favorability, day by day | 2022–2025, and tradition-free | FPMT's `FD-`/`UD-` prefixes | the favorability table, at **99.7%** — it reads FPMT's own pair letters, so the mansion residual cannot reach it, and the four disagreements are days FPMT contradicts itself on |
 
 **That 97.6% is a characterised figure, not a tolerance.** 1,424 of 1,459 days agree. Of the 35 that
 do not, 83% sit within 15% of a mansion boundary against 29% of the days that agree — Janson states
@@ -249,9 +253,17 @@ resist even that, at 0.4%, and are recorded as unexplained rather than dismissed
 that **concentration**, not merely the score: a bare threshold would keep passing if a real bug
 scattered the failures away from the boundaries.
 
+**Three of those rows are checked against prose rather than a table, and that is weaker in a specific
+way.** Janson prints no month-element table and no lunar-day table, so what the suites hold are the
+statements he makes *beside* the formulas — which catch a misphased congruence, since a shifted cycle
+stops opening on the value he names, but cannot catch a claim he states wrongly in both places. Two
+of them paid for themselves on first run: the lunar day's trigram and number came out as Kham and 7
+for a Dragon month, which is what he says a Dragon month opens with, from a formula transcribed
+independently of that sentence.
+
 **Quote the right window.** A claim about a Tibetan date has six years behind it, about an observance
 four, and about a mansion four *for Phugpa alone* — Bhutan's attributes have no external check at
-all.
+all, and no attribute of any tradition has one, since every row above is Janson against Janson.
 
 Those are all **Phugpa**. Bhutan has a window of its own, and a wider one:
 

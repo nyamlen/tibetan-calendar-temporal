@@ -95,7 +95,9 @@ Kālacakra कालचक्र and the Tibetan calendar, refined over thirty y
 this package does. Its output carries planetary longitudes both heliocentric and geocentric, the
 lunar mansion and the time at which it changes, the Svarodaya स्वरोदय emblems, earth-lord movements,
 trigrams, cyclic animals for the solar day, and the data needed for eclipse prediction. **This
-package computes none of that.** Anyone who needs an astrological almanac rather than a calendar
+package computes a small part of that and no more**: since 2026-09-12 its `./astrology` subpath gives
+the attribute cycles, the lunar mansion and the elemental yoga, and it computes no planetary
+longitude, no eclipse, and no emblem. Anyone who needs an astrological almanac rather than a calendar
 should start here, and there is nothing else to point them to.
 
 It is also the ancestor of the Bhutanese calendar data this project validates against, and thereby
@@ -230,8 +232,8 @@ file is; prefer "at least N" to a false precision.
 
 It is the newest of the four and, at the time of writing, unreleased — so it has no track record,
 no users, and none of the incidental robustness that comes from years of people finding edge cases
-in public. It requires Node 26 or a polyfill, which none of the others do. And it computes no
-astrological information at all.
+in public. It requires Node 26 or a polyfill, which none of the others do. And its astrological layer
+is a fraction of Henning's: attributes, the mansion and the yoga, with no planets and no eclipses.
 
 What it does offer that the others do not is an observance layer whose conventions are configuration
 rather than assumption, tradition constants injected as data rather than hardcoded, and — the part

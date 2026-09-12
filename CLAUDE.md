@@ -195,6 +195,25 @@ Done on 2026-09-10, answering which days carried Tara puja in late 2026: the dat
 by three external calendars and the *labels* by nothing, and the reply claimed FPMT coverage that
 stops a year earlier. Cite 2022–2025 for an observance, 2022–2027 for a date.
 
+**Since 2026-09-12 there is a third tier, and it is the weakest of the three.** The `./astrology`
+attributes are **not** covered by either figure above, and the differences are not about years:
+
+- The attribute **cycles** — the year's five elements, the month's and lunar day's labels, the
+  calendar day's — are checked against **Janson's own printed tables and his prose, and nothing
+  else**. He computed those tables from the formulas implemented here, so agreement catches a
+  transcription or formula error and is **not external corroboration**. There is no window to quote,
+  because there is no external source.
+- The **lunar mansion** agrees with FPMT on **97.6%** of 1,459 days, 2022–2025, Phugpa only — and the
+  residual is characterised rather than excused: the failures crowd against mansion boundaries as
+  Janson's own stated approximation predicts, and **six days in four years have no explanation**.
+- **Yoga favorability** agrees with FPMT's printed prefixes on 99.7% of the same days, and that check
+  is independent of the mansion because it reads FPMT's own pair letters.
+
+So never answer an attribute question with the date window, and never call the mansion "validated"
+without the 97.6% and its six unexplained days. `docs/testing.md` holds the table;
+`docs/why-trust-these-dates.md` states the consumer-facing version, and the bullet there that used to
+read "no astrological information is computed" is the shape of error to expect when a layer lands.
+
 `scripts/rabjung-names.data.json` is **not** a second exception, because it is not a fixture: no
 test reads it, and nothing in `src/` depends on it. It holds the one **authored** column of
 `docs/names/rabjung.md` — English glosses of the Tibetan names. Keep it out of `test/fixtures/`, and
@@ -320,16 +339,25 @@ derivation; in `docs/` they are just noise.
   when `RabjungName` and `SanskritName` came off the surface and the only thing that caught the
   now-false type list in `README.md` was a grep.
 
-  **`check:conventions` rule 13 now closes the list half**, comparing both barrels' `export type`
-  blocks against `README.md`'s two "Type-only exports" lists as sets, so ordering is free. **It does
+  **`check:conventions` rule 13 now closes the list half**, comparing all three barrels' `export type`
+  blocks against `README.md`'s three "Type-only exports" lists as sets, so ordering within a list is
+  free. It held **two** barrels and a single boundary string until 2026-09-12, and a third entry point
+  broke the *shape* rather than the list: one boundary cannot separate three sections, and the failure
+  was silent — the unextended rule kept passing while checking nothing about `./astrology`. Each
+  barrel now declares the README heading its section opens with, and the rule refuses to guess if a
+  heading is missing or out of order. **A type declared in a barrel is invisible to it**, because it
+  reads `export type { … } from` blocks: that is why `DayAttributes` and `AstrologyQueryOptions` live
+  in `src/astrology/types.ts` rather than in the barrel, and the rule is what found them there. **It does
   not close the prose half.** A sentence describing a type's *fields* is still unguarded: the same
   README called `rabjungFor`'s `name` "the Tibetan and Sanskrit name" for hours after the Sanskrit
   came off, and the grep that found the stale list named the removed types rather than the field, so
   it sailed past. Removing or renaming a type therefore still needs the hand sweep for everything
-  except the list — `docs/architecture.md`'s shapes (**11** exported types defined as interface
+  except the list — `docs/architecture.md`'s shapes (**20** exported types defined as interface
   blocks, plus `TibetanAnimal`, `TibetanElement`, `TibetanGender`, `TibetanName`, `TibetanWeekday`,
   `TibetanWeekdayName` and `TibetanYearName` named in field positions), `docs/guide.md` (4), and any
-  docblock naming it. This figure read 7 until 2026-08-26 and 10 until 2026-08-27; it moves whenever
+  docblock naming it. This figure read 7 until 2026-08-26, 10 until 2026-08-27, and moved twice on
+  2026-09-12 — 13 when `TraditionNaming` and `TraditionMonthNaming` gained shapes, then 20 with the
+  eight `./astrology` ones; it moves whenever
   a shape is added, so **re-count it rather than trusting the number written here** — the count is
   `grep -c '^interface ' docs/architecture.md`.
 
@@ -408,6 +436,17 @@ derivation; in `docs/` they are just noise.
   bare `RangeError` in `scaleTo` made it report that Losar 2026 does not exist. Both rules and the
   message-writing guidance:
   [docs/decisions/2026-08-12-error-codes-not-classes.md](docs/decisions/2026-08-12-error-codes-not-classes.md).
+
+  **A third semantics arrived with `./astrology` on 2026-09-12, and it is neither of the two below.**
+  `TCT_ATTRIBUTE_NOT_SOURCED` means the caller's input is **fine** and no source gives the answer —
+  the Bhutanese month and lunar-day attributes, which Janson does not tabulate. It is
+  `TCT_INVALID_ARGUMENT`'s neighbour rather than `TCT_FIELD_OUT_OF_RANGE`'s, it is deliberately
+  **off** `tibetanDateExists`'s allowlist (a Bhutanese date exists; only an attribute of it is
+  unsourced), and the refusal is reached by a tradition carrying no `naming.months` block rather than
+  by any code asking "is this Bhutan". A **composition** may report it as `null` where a primitive
+  throws — `attributesFor` does — on the reasoning that a specific question with no answer is an
+  error while "what is known about this day" is not. Reach for this code, not the range one, when the
+  gap is in the sources.
 
   Two codes, not one, for bad input: `TCT_FIELD_OUT_OF_RANGE` means a **number** is wrong;
   `TCT_INVALID_ARGUMENT` means the argument is the wrong **kind of thing** — a `Temporal` instance
@@ -518,6 +557,13 @@ grepping for. **So every mutation run includes an unmutated control expected to 
 on the failure *message*, not the exit code, is what makes the difference visible. The control
 failing is the only signal that the harness is measuring nothing.
 
+**And restore the mutant from a copy, never with `git checkout` — which silently cannot restore a file
+that is not yet tracked.** Proved on 2026-09-12: two mutations of a brand-new `src/astrology/` module
+were "reverted" by `git checkout <path>`, which failed with `pathspec did not match any file` while
+the loop carried on, so the next mutant ran on top of the previous one. The tell was a run reporting
+*more* failures than the mutation could explain — not an error, and not a pass. `cp` the file aside
+first, restore from that, and re-run the control after every restore.
+
 **And run the generator unchanged *before* you edit it.** A baseline that reproduces the committed
 fixture byte-for-byte is what makes any later diff attributable to your change rather than to a
 source that has moved since the last run — these generators read five live sources, and none of them
@@ -569,7 +615,9 @@ The last two are the only checks that see the **published** package. Every test 
 match `exports` is invisible to the suite and fails only for a consumer, after publishing.
 `check:publish` runs publint and attw against the manifest; `test:pack` packs the tarball, installs
 it into a scratch directory **outside** the repository — a `node_modules` copy inside the working
-tree would be picked up by Biome, the link checker and Vitest — and imports both subpaths.
+tree would be picked up by Biome, the link checker and Vitest — and imports all three subpaths,
+asserting real values through each so a compilation that damaged the arithmetic is caught rather than
+just a module that loaded.
 
 `attw` runs under `--profile esm-only`. Its `node10` and `node16-cjs` rows are the deliberate
 design, not defects: there is no `main` field and no CJS build. Do not add `main` to make a row
@@ -696,7 +744,10 @@ any new multi-century test an explicit timeout rather than discovering this agai
 Run it for what it *reports*, not only to keep it passing. An unreachable-line report is how the
 2026-08-13 review pass found that a new config check sat after the `scaleTo` call that already
 guarded the same condition — the test passed, because both throws carry the same code, and only
-coverage showed the check could never run.
+coverage showed the check could never run. It paid again on 2026-09-12, on code written the same
+hour: an **uncovered branch** in `./astrology`'s options guard was the `undefined` arm of its error
+message, unreachable because every caller defaults the parameter to `{}`. `./observances`' copy of
+that guard still carries the arm, which is how it got there.
 
 `check:links` validates relative markdown links and `#fragments` against the filesystem. Docs
 here cross-reference heavily, so renaming or deleting one breaks inbound links silently; fix them

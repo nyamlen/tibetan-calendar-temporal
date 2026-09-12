@@ -48,6 +48,7 @@ the shape of it matters more than the size:
 | Royal Government of Bhutan days, 2025–2026 | 25 | an independent almanac |
 | Losar, 1927–2046 | 120 | Janson |
 | Leap months across four traditions, 2000–2030 | 124 | Janson |
+| Astrological attributes | see below | Janson's tables, and FPMT for the mansion and the yoga |
 
 **Two honest qualifications, and they are the reason the table is here rather than a headline
 number.**
@@ -136,9 +137,19 @@ Stating this is the point of the page.
 - **The calendar is usable from 1447**, when the Phugpa system was introduced. Earlier dates are
   computed, and they are a back-projection: the system did not exist, and the year numbering is a
   modern convention applied backwards.
-- **No astrological information is computed** — no lunar mansions, no planetary positions, no
-  elemental day qualities, no yoga or karana. Sources that print those are computing something this
-  package does not.
+- **The astrological attributes are computed but corroborated much less than the dates.** This said
+  "no astrological information is computed" until 2026-09-12, when the `./astrology` subpath landed,
+  and the honest version is longer. The cycles — the year's five elements, the month's and lunar
+  day's labels, the calendar day's — are closed forms checked against Janson's own printed tables,
+  which catches a transcription or formula error and is **not** external corroboration. The **lunar
+  mansion** needs real astronomy and agrees with FPMT's published codes on **97.6%** of 1,459 days in
+  2022–2025; the disagreements crowd against mansion boundaries exactly as Janson's own stated
+  approximation predicts, and **six days in four years have no explanation at all**. Yoga
+  **favorability** is FPMT's convention and nobody else's, and agrees with their printed prefixes on
+  99.7% of those days. Month and lunar-day attributes **refuse** for the Bhutanese traditions,
+  because no source gives them.
+- **Planetary positions and karaṇa are still not computed**, nor eclipses. Janson's Appendix D is
+  deliberately out of scope. Sources that print those are computing something this package does not.
 
 ## Why the results are identical everywhere
 

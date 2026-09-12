@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import * as astrology from "../src/astrology/index.js";
 import * as api from "../src/index.js";
 import * as observances from "../src/observances/index.js";
 
@@ -212,6 +213,7 @@ describe("public API surface", () => {
  * reachable from the public API, and no call throws a code that is not documented.
  */
 const EXPECTED_ERROR_CODES = [
+	"TCT_ATTRIBUTE_NOT_SOURCED",
 	"TCT_FIELD_OUT_OF_RANGE",
 	"TCT_INTERNAL",
 	"TCT_INVALID_ARGUMENT",
@@ -263,6 +265,10 @@ describe("error codes", () => {
 				},
 			}),
 		TCT_SPAN_TOO_WIDE: () => observances.getObservances(iso("1500-01-01"), iso("2500-01-01")),
+		// Reachable as of 2026-09-12, when ./astrology landed. Before that it sat in the unreachable
+		// list below: the code existed and the modules threw it, but nothing exported them.
+		TCT_ATTRIBUTE_NOT_SOURCED: () =>
+			astrology.monthAttributesFor({ year: 2153, month: 1 }, { tradition: api.BHUTAN }),
 	};
 
 	it("throws each reachable code from the public API", () => {
@@ -625,5 +631,139 @@ describe("observances API surface", () => {
 		};
 		expect(codeOf(() => observances.getObservances(bare, bare))).toBe("TCT_INVALID_ARGUMENT");
 		expect(codeOf(() => observances.observancesOn(bare))).toBe("TCT_INVALID_ARGUMENT");
+	});
+});
+
+/**
+ * The `./astrology` subpath, pinned separately for the same reason `./observances` is.
+ *
+ * A third one-way door, and the one whose sourcing is least uniform: Janson gives the cycles and the
+ * mansion arithmetic, Henning the mansion elements and the yoga names, and FPMT the favorability
+ * alone. That is why it is a subpath rather than part of the root — the root's claims are all
+ * checkable against Janson.
+ */
+const EXPECTED_ASTROLOGY_EXPORTS = [
+	"ELEMENTAL_YOGAS",
+	"MANSION_COUNT",
+	"MANSION_ELEMENTS",
+	"attributesFor",
+	"calendarDayAttributesFor",
+	"elementalYoga",
+	"elementalYogaFor",
+	"lunarDayAttributesFor",
+	"mansionElement",
+	"monthAttributesFor",
+	"yearAttributesFor",
+] as const;
+
+describe("astrology API surface", () => {
+	const day = Temporal.PlainDate.from("2026-09-01");
+
+	it("exports exactly the documented names", () => {
+		expect(Object.keys(astrology).sort()).toEqual([...EXPECTED_ASTROLOGY_EXPORTS]);
+	});
+
+	it("keeps every name off the root export", () => {
+		// The subpath exists so a date-only consumer never loads the mansion arithmetic or Henning's
+		// tables. A re-export from the root would quietly undo that.
+		for (const name of EXPECTED_ASTROLOGY_EXPORTS) {
+			expect(name in api, name).toBe(false);
+		}
+	});
+
+	it("ships the ten yogas frozen, like every other table the docs point at", () => {
+		expect(Object.isFrozen(astrology.ELEMENTAL_YOGAS)).toBe(true);
+		expect(astrology.ELEMENTAL_YOGAS).toHaveLength(10);
+	});
+
+	it("answers the whole row for one day", () => {
+		const attributes = astrology.attributesFor(day);
+		expect(attributes.year.power).toBe("fire");
+		expect(attributes.yoga.english).toBe("death");
+		expect(attributes.month).not.toBeNull();
+		expect(attributes.lunarDay).not.toBeNull();
+		expect(attributes.date.isoDate.toString()).toBe("2026-09-01");
+	});
+
+	it("reports the Bhutanese gap as null rather than refusing the whole day", () => {
+		const attributes = astrology.attributesFor(day, { tradition: api.BHUTAN });
+		expect(attributes.month).toBeNull();
+		expect(attributes.lunarDay).toBeNull();
+		// Everything tradition-free still answers, which is the point of reporting rather than throwing.
+		expect(attributes.calendarDay.animal).toBeDefined();
+		expect(attributes.yoga.sanskrit).toBeDefined();
+		expect(attributes.year.power).toBeDefined();
+	});
+
+	it("throws from the primitives where the composition reports null", () => {
+		const codeOf = (call: () => unknown) => {
+			try {
+				call();
+				return undefined;
+			} catch (error) {
+				return (error as { code?: string }).code;
+			}
+		};
+		expect(
+			codeOf(() =>
+				astrology.monthAttributesFor({ year: 2153, month: 1 }, { tradition: api.BHUTAN }),
+			),
+		).toBe("TCT_ATTRIBUTE_NOT_SOURCED");
+		expect(
+			codeOf(() =>
+				astrology.lunarDayAttributesFor(
+					{ year: 2153, month: 1, day: 1 },
+					{ tradition: api.BHUTAN },
+				),
+			),
+		).toBe("TCT_ATTRIBUTE_NOT_SOURCED");
+	});
+
+	it("rejects a bare { year, month, day } where a calendar day is meant", () => {
+		// The nextFullMoon rule: a parameter spanning two calendars accepts only shapes that say which
+		// one they mean. `{ year: 2026, month: 9, day: 1 }` is a genuine value of both.
+		const codeOf = (call: () => unknown) => {
+			try {
+				call();
+				return undefined;
+			} catch (error) {
+				return (error as { code?: string }).code;
+			}
+		};
+		const bare = { year: 2026, month: 9, day: 1 } as unknown as Temporal.PlainDate;
+		expect(codeOf(() => astrology.attributesFor(bare))).toBe("TCT_INVALID_ARGUMENT");
+		expect(codeOf(() => astrology.calendarDayAttributesFor(bare))).toBe("TCT_INVALID_ARGUMENT");
+		expect(codeOf(() => astrology.elementalYogaFor(bare))).toBe("TCT_INVALID_ARGUMENT");
+	});
+
+	it("guards the options bag itself, and reads it with === undefined", () => {
+		const codeOf = (call: () => unknown) => {
+			try {
+				call();
+				return undefined;
+			} catch (error) {
+				return (error as { code?: string }).code;
+			}
+		};
+		// `null` options is a malformed argument, not an absent one — the failure `??` would hide.
+		expect(codeOf(() => astrology.attributesFor(day, null as never))).toBe("TCT_INVALID_ARGUMENT");
+		// An explicit `{ tradition: null }` must reach the config validator rather than defaulting.
+		expect(codeOf(() => astrology.attributesFor(day, { tradition: null as never }))).toBe(
+			"TCT_INVALID_TRADITION_CONFIG",
+		);
+	});
+
+	it("accepts a resolved TibetanDate as well as a PlainDate, and agrees with itself", () => {
+		const resolved = api.isoToTibetan(day);
+		expect(astrology.attributesFor(resolved).yoga).toBe(astrology.attributesFor(day).yoga);
+		expect(astrology.calendarDayAttributesFor(resolved)).toEqual(
+			astrology.calendarDayAttributesFor(day),
+		);
+	});
+
+	it("takes the royal era for a year, matching yearNameFor", () => {
+		// 2153, not 2026. The two eras differ by 127, so a caller passing the Gregorian year gets a
+		// plausible wrong answer — which is why this is asserted rather than left to the docblock.
+		expect(astrology.yearAttributesFor(2153).power).toBe(api.yearNameFor(2153).element);
 	});
 });

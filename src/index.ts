@@ -97,6 +97,7 @@ export type {
 	MeanMotion,
 	Rational,
 	TraditionConfig,
+	TraditionMonthNaming,
 	TraditionNaming,
 } from "./traditions/types.js";
 export type {

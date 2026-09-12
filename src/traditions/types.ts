@@ -203,19 +203,28 @@ export interface TraditionConfig {
 	 * How this tradition *names* things, as distinct from how it computes them.
 	 *
 	 * @remarks
-	 * Optional; omitting it means the Tibetan conventions, which is right for every version but the
-	 * Bhutanese.
+	 * Optional, and **absence means two different things** depending on the member, because the two
+	 * rules behind them are different. For `weekdayOffset`, absence means the Tibetan convention,
+	 * which is right for every version but the Bhutanese. For {@link TraditionMonthNaming}, absence
+	 * means *not sourced for this tradition*, and the astrological layer refuses rather than
+	 * answering. A default is legitimate where there is one dominant convention and illegitimate
+	 * where there is a genuine fork: every Tibetan version agrees on weekday naming, while the month
+	 * animals fork Dragon against Tiger with no majority, so there is no honest default to pick.
 	 *
 	 * Nested rather than flat, deliberately. Nothing in here is read by the algorithm, so a flat
 	 * field would sit among the constants claiming to be one. Nesting keeps the boundary visible at
-	 * the call site — `config.naming.weekdayOffset` reads as a naming concern — and gives the known
-	 * future members somewhere to go: month naming is also tradition-dependent, and needs four more
-	 * (an animal offset, an element-rule selector, a seasonal-system selector, and a Tsurphu-only
-	 * number flag).
+	 * the call site — `config.naming.weekdayOffset` reads as a naming concern — and gives the
+	 * tradition-dependent naming rules somewhere to go. The one member still expected and absent is
+	 * a **seasonal-system selector**: Janson's seasonal month names, which belong to his month-names
+	 * section rather than to the astrological appendix, and which several incompatible versions exist
+	 * of.
 	 *
-	 * A separate top-level config was considered and rejected: `weekdayName` is populated inside the
-	 * conversion, which receives only a `TraditionConfig`, so separating it would mean passing two
-	 * configs to fill one field.
+	 * A separate top-level config was considered and rejected, and the argument is not the one the
+	 * `weekdayOffset` docblock gives. That one — `weekdayName` is populated inside the conversion,
+	 * which receives only a `TraditionConfig` — does not cover the month members, which are never
+	 * populated during conversion. The reason they belong here anyway is that `naming` is already the
+	 * not-read-by-the-algorithm bucket, and a second config would have to be threaded into
+	 * `./astrology` beside this one for a caller to get one tradition's answers.
 	 */
 	readonly naming?: TraditionNaming;
 }
@@ -224,11 +233,11 @@ export interface TraditionConfig {
  * The naming conventions of a tradition.
  *
  * @remarks
- * When a second member is added, name it for what the rule **does**, never for a tradition — a
- * `"phugpa" | "tsurphu"` selector inside a tradition-agnostic config is the same anti-pattern as
- * branching on `config.id`, which is consumer-settable and must not decide "is this Phugpa".
- * Janson describes the month-element rules functionally, as the *son* of the year's element against
- * a continuous cycle, so `"son-of-year" | "continuous"` is available and honest.
+ * Every member names what the rule **does**, never a tradition — a `"phugpa" | "tsurphu"` selector
+ * inside a tradition-agnostic config is the same anti-pattern as branching on `config.id`, which is
+ * consumer-settable and must not decide "is this Phugpa". Janson describes the month-element rules
+ * functionally, as the *son* of the year's element against a continuous cycle, which is why
+ * {@link TraditionMonthNaming.elementRule} spells them `"son-of-year" | "continuous"`.
  */
 export interface TraditionNaming {
 	/**
@@ -242,6 +251,84 @@ export interface TraditionNaming {
 	 * Applies to the **name only**. The weekday *number* is `mod(julianDay + 2, 7)` for every
 	 * tradition and the Western weekday is correct in both, which is why the difference is invisible
 	 * when dates are written in English.
+	 *
+	 * **Optional within `naming`, defaulting to 0**, so a config supplying only the month members
+	 * need not restate a shift it does not have. Absent `naming` already means offset 0, so this
+	 * makes the block internally consistent with the rule that governs it.
 	 */
-	readonly weekdayOffset: number;
+	readonly weekdayOffset?: number;
+
+	/**
+	 * How this tradition names its **months** astrologically, or absent if nobody has sourced it.
+	 *
+	 * @remarks
+	 * Present for `PHUGPA` and `PHUGPA_HENNING`, and **absent for `BHUTAN` and `BHUTAN_HENNING`** —
+	 * Janson gives no month-animal list for the Bhutanese version, so there is nothing to put here
+	 * and the astrological layer refuses instead.
+	 *
+	 * Absence is never a Phugpa fallback, and the reason is a tradition nobody has built yet: Janson
+	 * states that Mongolia uses **Tsurphu's** rules for the month animal, gender and element, and
+	 * worked Tsurphu and Mongolian configs already exist in `docs/traditions.md` as data. Defaulting
+	 * would hand whoever promotes one of those to a real config Phugpa's month attributes, silently,
+	 * with nothing about the output looking wrong — which is the `leapIndexThreshold` failure
+	 * verbatim.
+	 */
+	readonly months?: TraditionMonthNaming;
+}
+
+/**
+ * The month-naming rules Janson's astrological appendix needs, none of which the calendar reads.
+ *
+ * @remarks
+ * Three members rather than one selector, because Janson states three independent things and a
+ * tradition can differ on any of them. Mongolia shares all three with Tsurphu; Bhutan has none of
+ * them sourced at all.
+ *
+ * Every field is required **once the block is present**. The block is the unit of "this tradition's
+ * months are sourced": a half-filled one would be a claim nobody can make, since each rule is what
+ * decides a different attribute and two of them also decide the lunar day's.
+ */
+export interface TraditionMonthNaming {
+	/**
+	 * Which numbered month is the **Tiger** month — 11 in Phugpa, 1 in Tsurphu and Mongolia.
+	 *
+	 * @remarks
+	 * Janson states it exactly this way: "Phugpa almanacs set month 11 = Tiger, while Tsurphu
+	 * almanacs set month 1 = Tiger (as in the Chinese calendar)". Expressed as the Tiger month rather
+	 * than as an animal offset because the **element** rule hangs off the same fact — the Tiger month
+	 * is the one that takes the son of the year's element, and the twelve-month run of elements
+	 * starts there — so one field decides both and they cannot drift apart.
+	 *
+	 * Phugpa's value crossing a year boundary is not an accident of the number: its Tiger month is
+	 * month 11 of the **preceding** Gregorian year, which is why its element formula has two arms.
+	 */
+	readonly tigerMonth: number;
+
+	/**
+	 * Whether the month elements restart from the year's element annually, or run on continuously.
+	 *
+	 * @remarks
+	 * `"son-of-year"` is Phugpa: the Tiger month takes the *son* of the year's element — the next one
+	 * in the standard order — and the following twelve months repeat each element twice from there,
+	 * so the sequence restarts every year. `"continuous"` is Tsurphu and Mongolia: the same
+	 * ten-element cycle simply runs on, month after month, year after year, exactly as in the Chinese
+	 * calendar.
+	 *
+	 * The two agree on the *shape* — two months per element, in Janson's standard order — and differ
+	 * only on whether the year's element re-enters the computation.
+	 */
+	readonly elementRule: "son-of-year" | "continuous";
+
+	/**
+	 * Whether this tradition gives each month one of the nine numbers.
+	 *
+	 * @remarks
+	 * `false` for Phugpa: "only Tsurphu calendars give one of the 9 numbers to each month". The
+	 * number decreases by one each month, and therefore by three each year.
+	 *
+	 * A boolean rather than an absent field, because "this tradition does not number its months" is
+	 * something Janson **states** about Phugpa, while an absent block means nobody has looked. The
+	 * attribute is reported as `null` rather than refused for the same reason.
+	 */
+	readonly numbers: boolean;
 }

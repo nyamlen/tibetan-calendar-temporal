@@ -5,6 +5,7 @@ import {
 	mansionNumber,
 	moonCalendarDay,
 } from "../../src/astrology/mansions.js";
+import { elementalYoga } from "../../src/astrology/yoga.js";
 import { trueMonthCount } from "../../src/computation/calendar.js";
 import { isoToTibetan } from "../../src/computation/conversion.js";
 import { yearFromRoyalEra } from "../../src/computation/epoch.js";
@@ -212,3 +213,98 @@ function mansionDisagreements() {
 	}
 	return out;
 }
+
+/**
+ * The yoga's **favorability** against FPMT's `FD-`/`UD-` prefix — the one external check the
+ * favorability table has, and the only source for it anywhere.
+ *
+ * Janson ranks none of the ten and Henning's page carries the names rather than the judgement, so
+ * this is FPMT against our transcription of FPMT, with nothing else to appeal to. What makes it a
+ * real check rather than a tautology is that it reads **FPMT's own two letters** and not our mansion
+ * arithmetic: the 3.9% mansion residual cannot reach it, so a disagreement here is a disagreement
+ * about the table and nothing else.
+ *
+ * Four days disagree, and all four are **single-day prefix flips**: each names a pair that FPMT
+ * itself prints with the opposite prefix on more than a hundred other days in the same fixture. That
+ * asymmetry is the evidence, and it is asserted below rather than asserted about — a table that had
+ * a row's favorability backwards would disagree on *every* day carrying that pair, not on one.
+ *
+ * Three of the four were found by this suite on 2026-09-12 and are new:
+ * [almanac-sources.md](../../docs/almanac-sources.md) already recorded 2024-09-12 among four errors
+ * found by a different check, over a different window.
+ */
+
+/** `FD-` is favorable, `UD-` unfavorable. Anything else is not one of FPMT's day-quality codes. */
+const PREFIX_FAVORABLE: Record<string, boolean> = { "FD-": true, "UD-": false };
+
+/** Every day whose code parses into a prefix and a pair of known element letters. */
+const favorabilityDays = FPMT_OBSERVANCES.flatMap((row) => {
+	if (!row.dayQuality) return [];
+	const favorable = PREFIX_FAVORABLE[row.dayQuality.slice(0, 3)];
+	const pair = row.dayQuality
+		.slice(-2)
+		.split("")
+		.map((letter) => ELEMENT_LETTERS[letter]);
+	if (favorable === undefined || pair.some((element) => element === undefined)) return [];
+	return [{ iso: row.iso, code: row.dayQuality, favorable, pair: pair as TibetanWeekdayElement[] }];
+});
+
+describe("the yoga's favorability against FPMT's published prefixes", () => {
+	/** Days where our table and FPMT's prefix disagree about the same pair. */
+	const disagreements = favorabilityDays.filter((day) => {
+		const first = day.pair[0];
+		const second = day.pair[1];
+		if (first === undefined || second === undefined) return false;
+		return elementalYoga(first, second).favorable !== day.favorable;
+	});
+
+	it("agrees on every day but the four FPMT contradicts itself about", () => {
+		expect(disagreements.map((day) => `${day.iso} ${day.code}`)).toEqual([
+			// fire + fire is *pragati*, favorable, printed FD-FF on a hundred other days.
+			"2024-01-21 UD-FF",
+			// fire + wind is *balayukta*, favorable, printed FD-FA on a hundred and seventy others.
+			"2024-02-27 UD-FA",
+			// water + wind is *pratikūla*, unfavorable, printed UD-WA on a hundred and sixty others.
+			"2024-03-18 FD-WA",
+			// earth + water is *yauvana*, favorable, printed FD-EW on nearly two hundred others. The
+			// one of the four already recorded in docs/almanac-sources.md.
+			"2024-09-12 UD-EW",
+		]);
+	});
+
+	it("finds each of those four contradicted by the same calendar on a hundred other days", () => {
+		// The argument that these are FPMT's typos and not our table's errors, made as a test. A wrong
+		// row would disagree on every day carrying its pair; each of these is outvoted by its own
+		// source, and by three orders of magnitude.
+		const thin: string[] = [];
+		for (const day of disagreements) {
+			const sameLetters = favorabilityDays.filter((other) =>
+				other.code.endsWith(day.code.slice(-2)),
+			);
+			const otherWay = sameLetters.filter((other) => other.favorable !== day.favorable);
+			if (sameLetters.length - otherWay.length !== 1 || otherWay.length < 100) {
+				thin.push(
+					`${day.iso} ${day.code}: ${otherWay.length} the other way, ${sameLetters.length} in all`,
+				);
+			}
+		}
+		expect(thin).toEqual([]);
+	});
+
+	it("agrees on better than 99.7% of the days carrying a code", () => {
+		const agreed = favorabilityDays.length - disagreements.length;
+		expect(agreed / favorabilityDays.length).toBeGreaterThan(0.997);
+	});
+
+	it("uses all ten codes, so no row of the table is untested", () => {
+		// A favorability table can only be validated on pairs the source actually prints. All ten
+		// appear, so every row is exercised; if a future fixture window lost one, this says so rather
+		// than quietly reducing the check to nine.
+		const codes = new Set(favorabilityDays.map((day) => day.code.slice(-2)));
+		expect(codes.size).toBe(10);
+	});
+
+	it("covers a useful number of days", () => {
+		expect(favorabilityDays.length).toBeGreaterThan(1400);
+	});
+});

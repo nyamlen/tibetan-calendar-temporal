@@ -216,6 +216,51 @@ shipped default and replace whole fields — and both are validated on first use
 like `doubledDay: '1st'` is rejected rather than silently falling through to a branch you did not
 mean.
 
+### What kind of day it is
+
+The root export answers *which* day it is. The `./astrology` subpath answers what the day is **held
+to be** — the labels an almanac prints beside the date:
+
+```js
+import { attributesFor } from 'tibetan-calendar-temporal/astrology';
+
+const day = attributesFor(Temporal.PlainDate.from('2026-09-01'));
+
+day.year.power;      // 'fire'
+day.year.body;       // 'water' — each of the five elements runs on its own cycle
+day.yoga.sanskrit;   // 'maraṇa'
+day.yoga.favorable;  // false
+```
+
+**Three things about this layer are worth knowing before you display any of it.**
+
+*A day carries two sets of labels that disagree, and that is the calendar rather than a bug.* The
+lunar day is a thirtieth of a lunation; the calendar day runs sunrise to sunrise. So `lunarDay` and
+`calendarDay` give different animals for the same date, and an almanac prints both. On a **doubled**
+date the two halves share `year`, `month` and `lunarDay` — there is one lunar day — while
+`calendarDay` and `yoga` differ, because there are two calendar days.
+
+*The sourcing is not uniform, and the package does not pretend otherwise.* The cycles are Janson's.
+The element each lunar mansion carries and the ten yoga names are **Henning's**, which Janson cites
+and does not derive. Whether a yoga is favorable is **FPMT's** convention and appears in neither of
+them. What is checked against what, over which years, is in
+[why-trust-these-dates.md](why-trust-these-dates.md).
+
+*Two traditions answer and two refuse.* Janson tabulates no month-animal list for the Bhutanese
+version, so `month` and `lunarDay` are `null` under `BHUTAN` and `BHUTAN_HENNING` rather than quietly
+carrying Phugpa's answers. The primitives throw `TCT_ATTRIBUTE_NOT_SOURCED` where the composition
+reports `null`: a specific question with no answer is an error, while "what is known about this day"
+is not.
+
+```js
+attributesFor(date, { tradition: BHUTAN }).month;  // null
+monthAttributesFor({ year: 2153, month: 1 }, { tradition: BHUTAN });  // throws
+```
+
+The options bag is the same `{ tradition }` as everywhere else, and there is no `config` key here —
+nothing in this layer is an institution's convention except favorability, which ships as a table
+rather than as configuration, because no source disagrees with FPMT about it yet.
+
 ### Customising observances
 
 Institutions differ by spreading the config, the same way `PHUGPA_HENNING` is built from `PHUGPA`:

@@ -244,14 +244,56 @@ const documentedTypeLists = (markdown) =>
 		names: new Set([...match[0].matchAll(/`([A-Za-z][A-Za-z0-9]*)`/g)].map(([, name]) => name)),
 	}));
 
-/** Rule 13 — the two published entry points, each with the README heading its section opens with. */
+/**
+ * Rule 13 — every published entry point, with the README heading that opens its section.
+ *
+ * @remarks
+ * `heading: null` is the root, whose section runs from the top of the file to the first subpath
+ * heading. Every other entry must carry the heading its section opens with, and they must be listed
+ * in the order the README prints them — the self-test checks both, because the section ranges below
+ * are nonsense otherwise.
+ *
+ * This was a **two-element array and a single boundary string** until 2026-09-12, which could not
+ * express three entry points: one boundary cannot separate three sections, and the failure was
+ * silent — an unextended rule kept passing while checking nothing about the new barrel.
+ */
 const TYPE_BARRELS = [
-	{ file: "src/index.ts", label: "the root entry point" },
-	{ file: "src/observances/index.ts", label: "./observances" },
+	{ file: "src/index.ts", label: "the root entry point", heading: null },
+	{
+		file: "src/observances/index.ts",
+		label: "./observances",
+		heading: "### `tibetan-calendar-temporal/observances`",
+	},
+	{
+		file: "src/astrology/index.ts",
+		label: "./astrology",
+		heading: "### `tibetan-calendar-temporal/astrology`",
+	},
 ];
 
-/** Rule 13 — where the README stops describing the root and starts describing the subpath. */
-const OBSERVANCES_HEADING = "### `tibetan-calendar-temporal/observances`";
+/**
+ * Where each entry point's README section starts and ends, by its heading.
+ *
+ * @remarks
+ * Returns `null` if any declared heading is missing or out of order, because assigning a list to a
+ * section would then be guesswork — and a rule that guesses is worse than one that says it cannot
+ * tell.
+ */
+function typeSectionRanges(readme) {
+	const starts = TYPE_BARRELS.map((barrel) =>
+		barrel.heading === null ? 0 : readme.indexOf(barrel.heading),
+	);
+	if (starts.some((at) => at === -1)) return null;
+	for (let i = 1; i < starts.length; i++) {
+		const previous = starts[i - 1];
+		const current = starts[i];
+		if (previous === undefined || current === undefined || current <= previous) return null;
+	}
+	return starts.map((from, index) => ({
+		from,
+		to: starts[index + 1] ?? readme.length,
+	}));
+}
 
 function selfTest() {
 	const broken = [];
@@ -1101,13 +1143,16 @@ for (const directory of mirroredDirectories) {
 	const RULE = "README type lists match the barrels";
 	const readme = read("README.md");
 	const lists = documentedTypeLists(readme);
-	const boundary = readme.indexOf(OBSERVANCES_HEADING);
+	const ranges = typeSectionRanges(readme);
+	const declaredHeadings = TYPE_BARRELS.filter((barrel) => barrel.heading)
+		.map((barrel) => `\`${barrel.heading}\``)
+		.join(", ");
 
-	if (boundary === -1) {
+	if (ranges === null) {
 		fail(
 			RULE,
 			"README.md",
-			`has no \`${OBSERVANCES_HEADING}\` heading, so the root and subpath type lists cannot be told apart. Restore the heading, or teach this rule the new one.`,
+			`does not carry every entry point's heading in order — ${declaredHeadings} — so the type lists cannot be told apart. Restore the headings in that order, or teach this rule the new ones.`,
 		);
 	} else if (lists.length !== TYPE_BARRELS.length) {
 		fail(
@@ -1116,18 +1161,14 @@ for (const directory of mirroredDirectories) {
 			`documents ${lists.length} "Type-only exports" list(s); ${TYPE_BARRELS.length} entry points publish types. A missing list leaves one entry point unguarded, which is the state this rule was written to end.`,
 		);
 	} else {
-		const documented = [
-			lists.find((list) => list.at < boundary),
-			lists.find((list) => list.at > boundary),
-		];
-
 		TYPE_BARRELS.forEach((barrel, index) => {
-			const doc = documented[index];
+			const range = ranges[index];
+			const doc = range && lists.find((list) => list.at >= range.from && list.at < range.to);
 			if (!doc) {
 				fail(
 					RULE,
 					"README.md",
-					`has no "Type-only exports" list for ${barrel.label} on the expected side of the ${OBSERVANCES_HEADING} heading.`,
+					`has no "Type-only exports" list for ${barrel.label} inside its own section of the README.`,
 				);
 				return;
 			}

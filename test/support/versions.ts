@@ -26,6 +26,20 @@
 import { PHUGPA } from "../../src/traditions/phugpa.js";
 import type { TraditionConfig } from "../../src/traditions/types.js";
 
+/**
+ * The month-naming rules Tsurphu and Mongolia share, which are the Chinese calendar's.
+ *
+ * @remarks
+ * Month 1 is Tiger, the element cycle runs on continuously rather than restarting from the year's
+ * element, and the months are numbered — all three the opposite of Phugpa's, which is why a config
+ * spread from `PHUGPA` must replace the block rather than inherit it.
+ */
+const TSURPHU_MONTHS = {
+	tigerMonth: 1,
+	elementRule: "continuous",
+	numbers: true,
+} as const;
+
 /** The four version names Janson gives, in the order his comparison tables use. */
 export const VERSIONS = ["phugpa", "tsurphu", "mongolian", "bhutanese"] as const;
 
@@ -38,12 +52,15 @@ export const VERSION_CONFIGS: Record<Version, TraditionConfig> = {
 		intercalationIndexAtEpoch: 0,
 		leapIndexThreshold: 0,
 		leapMonthPosition: "before",
+		naming: { months: TSURPHU_MONTHS },
 	},
+	/** Janson: Mongolia uses Tsurphu's rules for the month animal, gender and element. */
 	mongolian: {
 		...PHUGPA,
 		intercalationIndexAtEpoch: 46,
 		leapIndexThreshold: 46,
 		leapMonthPosition: "before",
+		naming: { months: TSURPHU_MONTHS },
 	},
 	/**
 	 * The simplified intercalation index, 57 — not the traditional 59 an almanac prints. Janson gives
@@ -58,5 +75,9 @@ export const VERSION_CONFIGS: Record<Version, TraditionConfig> = {
 		intercalationIndexAtEpoch: 0,
 		leapIndexThreshold: 57,
 		leapMonthPosition: "after",
+		// The month block is deliberately **replaced rather than inherited**: spreading `PHUGPA` copies
+		// its `naming`, which would hand this config Phugpa's month animals — the one thing Janson
+		// gives no Bhutanese list for. `weekdayOffset: 1` is what the shipped `BHUTAN` carries.
+		naming: { weekdayOffset: 1 },
 	},
 };
