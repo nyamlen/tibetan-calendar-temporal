@@ -2,18 +2,9 @@ import { describe, expect, it } from "vitest";
 import { isoToTibetan, losarFor, tibetanDateExists } from "../../src/computation/conversion.js";
 import { DEFAULT_OBSERVANCES, getObservances, observancesOn } from "../../src/observances/index.js";
 import type { ObservanceRule } from "../../src/observances/types.js";
+import { thrownBy } from "../support/thrown.js";
 
 const iso = (s: string) => Temporal.PlainDate.from(s);
-
-/** The error a call throws, or `undefined` if it does not throw. */
-const thrownBy = (call: () => unknown): (Error & { code?: string }) | undefined => {
-	try {
-		call();
-		return undefined;
-	} catch (error) {
-		return error as Error & { code?: string };
-	}
-};
 
 // The observance *engine*: how a rule resolves onto a calendar day, and what the boundary refuses.
 // Agreement with FPMT's published calendars is a different claim about a different subject, and
