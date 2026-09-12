@@ -25,6 +25,14 @@ const root = execFileSync("git", ["rev-parse", "--show-toplevel"], {
 // brand-new file is checked before it is ever `git add`-ed. Mirrors check-links.mjs, and for
 // the same reason: a check that only sees tracked files reports "all clear" on the file most
 // likely to be wrong.
+//
+// --cached also lists a path the index holds and the disk does not — a deletion or a rename staged
+// on only one side. Handing that path to a rule crashed the whole run on `ENOENT` and discarded
+// every finding collected before it, so it is dropped here and reported instead. Reported, not
+// silently dropped: the index and the working tree disagreeing is a real state worth being told
+// about, and a clean CI checkout can never reach it.
+const missingFromDisk = new Set();
+
 function tracked(...patterns) {
 	return execFileSync(
 		"git",
@@ -35,10 +43,34 @@ function tracked(...patterns) {
 		},
 	)
 		.split("\n")
-		.filter(Boolean);
+		.filter(Boolean)
+		.filter((file) => {
+			if (existsSync(resolve(root, file))) return true;
+			if (!missingFromDisk.has(file)) {
+				missingFromDisk.add(file);
+				fail(
+					"the index and the working tree agree",
+					file,
+					"is tracked but missing from disk, so it was not read. Stage the deletion or rename (`git add -A` on the path), or restore the file.",
+				);
+			}
+			return false;
+		});
 }
 
-const read = (file) => readFileSync(resolve(root, file), "utf8");
+/** A caught throw as one sentence — a non-`Error` has no `message`, and most messages lack a stop. */
+const reasonOf = (error) => String(error?.message ?? error).replace(/(?<![.!?])$/, ".");
+
+function read(file) {
+	try {
+		return readFileSync(resolve(root, file), "utf8");
+	} catch (error) {
+		if (error?.code !== "ENOENT") throw error;
+		throw new Error(
+			`cannot read ${file}: it does not exist on disk. The checker expects it — restore it, or update the rule that names it.`,
+		);
+	}
+}
 
 const failures = [];
 function fail(rule, where, message) {
@@ -147,7 +179,6 @@ const namedForModule = (suite, modules) =>
 const HARDCODED_COUNT =
 	/\b(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty)\b[^$`.\n]{0,80}\$\{/gi;
 
-/**
 /**
  * The markdown template a generator writes, for a document anywhere under docs/.
  *
@@ -409,6 +440,31 @@ function selfTest() {
 		"prose with no interpolation states nothing the generator computed.",
 	);
 
+	// --- Rule 12, the invariant. ---
+	//
+	// A template parser that silently matches nothing passes every document, and reads as coverage
+	// while proving nothing. Derived from the tree so it needs no foresight: every generator that
+	// writes a docs/*.md must yield at least one template, and at least one of those must contain an
+	// interpolation — otherwise there was nothing for the rule to examine in the first place.
+	//
+	// It sat inside Rule 7 with a `process.exit` of its own until 2026-09-12 — a third exit path that
+	// bypassed both this self-test's report and every finding already collected.
+	for (const { file, source } of generators ?? []) {
+		// This checker is not a generator, but its source quotes the pattern above, so a plain textual
+		// signal cannot tell the description from the thing described. Excluded by name for that reason
+		// alone -- it holds no writeFileSync call at all.
+		if (file.endsWith("check-conventions.mjs")) continue;
+		// A cruder, independent signal than DOCUMENT_TEMPLATE, on purpose: if that pattern ever stops
+		// matching, this still fires and the invariant reports it rather than both falling silent.
+		if (!source.includes('join(root, "docs"')) continue;
+		check(
+			"documentTemplates invariant",
+			documentTemplates(source).some((template) => template.includes("${")),
+			true,
+			`${file} writes a document, but no interpolated template was recovered from it. Rule 12 would then pass vacuously for every generator, which reads as coverage while proving nothing.`,
+		);
+	}
+
 	// --- Rule 7. ---
 	check(
 		"carriesNoData",
@@ -507,7 +563,21 @@ function selfTest() {
 		),
 	);
 	for (const barrel of TYPE_BARRELS) {
-		const exported = exportedTypeNames(read(barrel.file));
+		// Contained here rather than left to the backstop, because a throw out of the self-test skips
+		// every rule — a barrel deleted and not yet staged would otherwise cost the whole report, the
+		// failure this runner was restructured to end. Rule 13 reads the same file and reports that it
+		// could not run, so skipping the invariant for this barrel cannot pass silently.
+		let exported;
+		try {
+			exported = exportedTypeNames(read(barrel.file));
+		} catch (error) {
+			fail(
+				"the checker's self-test could read its inputs",
+				barrel.file,
+				`${reasonOf(error)} The exportedTypeNames invariant was not proved for this barrel.`,
+			);
+			continue;
+		}
 		check(
 			"exportedTypeNames invariant",
 			exported.size > 0,
@@ -596,10 +666,30 @@ function selfTest() {
 		"a missing heading must refuse, or one entry point would go unguarded — the state rule 13 exists to end. Note which arm refuses: the ORDERING comparison, because indexOf returns -1 and -1 is below the root's 0. Mutating the `=== -1` arm away leaves this case passing, which was checked; that arm is therefore defensive rather than load-bearing, and is kept as the statement of intent for a future TYPE_BARRELS whose first entry is not the root.",
 	);
 
+	// --- The registry. A rule dropped from it stops running and says nothing. ---
+	//
+	// Every other rule failure in this file is loud; this one is not, because a rule that never runs
+	// collects no findings and the run reads "All conventions hold". Checked against the numbers
+	// rather than a count alone, so a duplicate cannot stand in for the missing rule.
+	check(
+		"RULES registry",
+		RULES.map(({ number }) => number)
+			.sort((a, b) => a - b)
+			.join(","),
+		Array.from({ length: 13 }, (_, index) => index + 1).join(","),
+		"every rule 1-13 must be registered exactly once. Adding a rule means adding it here too.",
+	);
+	check(
+		"RULES registry",
+		RULES.every(({ number, run }) => typeof run === "function" && run.name === `rule${number}`),
+		true,
+		"each registry entry must name its own rule's function. `{ number: 8, run: rule9 }` passes the number check above while rule 8 never runs and rule 9 runs twice.",
+	);
+
 	if (broken.length > 0) {
 		console.error("The checker itself is broken.\n");
 		console.error(
-			"This is not a convention violation, and no rule was run. A predicate below no longer\nbehaves as specified, so every rule resting on it is unreliable.\n",
+			"This is not a convention violation, and no rule was run. A check below no longer\nbehaves as specified, so every rule resting on it is unreliable.\n",
 		);
 		for (const failure of broken) {
 			console.error(`  ${failure}\n`);
@@ -607,11 +697,49 @@ function selfTest() {
 		console.error(
 			"Fix the predicate, not the expectation. Each case states why it must hold; if a case is\ngenuinely wrong, change it deliberately and say so.\n",
 		);
-		process.exit(1);
+		report();
+		return false;
+	}
+	return true;
+}
+
+// ---------------------------------------------------------------------------------------
+// The shared corpora
+//
+// What more than one rule reads, built once and before any of them. Each used to be declared
+// inside whichever rule needed it first — `generators` in Rule 7 and read again by Rule 12,
+// `testFiles` and `mirroredDirectories` in Rule 9 and read again by Rule 11 — so one rule's
+// dependency on another's section was implied by file position rather than stated, and reordering
+// the rules could break a rule that had not been touched.
+//
+// Building them reads files, so each is guarded on its own: a failure is reported rather than
+// thrown, one unbuildable corpus does not take the others with it, and every rule that reads a
+// corpus it could not get fails loudly on its own account.
+// ---------------------------------------------------------------------------------------
+
+function corpus(name, build) {
+	try {
+		return build();
+	} catch (error) {
+		fail(
+			"the checker's shared corpora could be built",
+			"scripts/check-conventions.mjs",
+			`\`${name}\` could not be built: ${reasonOf(error)} Every rule reading it could not run either.`,
+		);
+		return undefined;
 	}
 }
 
-selfTest();
+const manifest = corpus("manifest", () => JSON.parse(read("package.json")));
+const sources = corpus("sources", () => tracked("src/*.ts", "src/**/*.ts"));
+const generators = corpus("generators", () =>
+	tracked("scripts/*.mjs").map((file) => ({ file, source: read(file) })),
+);
+const testFiles = corpus("testFiles", () => tracked("test").filter((file) => file.endsWith(".ts")));
+const mirroredDirectories = corpus(
+	"mirroredDirectories",
+	() => new Set(tracked("src/*/*.ts").map((file) => file.split("/")[1])),
+);
 
 // ---------------------------------------------------------------------------------------
 // Rule 1 — zero runtime dependencies
@@ -619,16 +747,16 @@ selfTest();
 // The package's headline claim, in the README and in CLAUDE.md, and until now asserted by
 // nothing. publint and attw check the manifest's shape, not its dependency count.
 // ---------------------------------------------------------------------------------------
-
-const manifest = JSON.parse(read("package.json"));
-for (const field of ["dependencies", "peerDependencies", "optionalDependencies"]) {
-	const entries = Object.keys(manifest[field] ?? {});
-	if (entries.length > 0) {
-		fail(
-			"zero runtime dependencies",
-			"package.json",
-			`${field} must be absent; found ${entries.join(", ")}. Temporal is a language built-in and the engine depends on nothing. A generation-time package is resolved from the caller's working directory instead — see scripts/verify-name-sources.mjs.`,
-		);
+function rule1() {
+	for (const field of ["dependencies", "peerDependencies", "optionalDependencies"]) {
+		const entries = Object.keys(manifest[field] ?? {});
+		if (entries.length > 0) {
+			fail(
+				"zero runtime dependencies",
+				"package.json",
+				`${field} must be absent; found ${entries.join(", ")}. Temporal is a language built-in and the engine depends on nothing. A generation-time package is resolved from the caller's working directory instead — see scripts/verify-name-sources.mjs.`,
+			);
+		}
 	}
 }
 
@@ -639,20 +767,20 @@ for (const field of ["dependencies", "peerDependencies", "optionalDependencies"]
 // tibetanDateExists allowlists codes rather than types, so an uncoded throw escapes the
 // predicate entirely.
 // ---------------------------------------------------------------------------------------
+function rule2() {
+	const BARE_ERROR = /\bnew\s+(Error|RangeError|TypeError|SyntaxError)\s*\(/;
 
-const BARE_ERROR = /\bnew\s+(Error|RangeError|TypeError|SyntaxError)\s*\(/;
-const sources = tracked("src/*.ts", "src/**/*.ts");
-
-for (const file of sources) {
-	if (file === "src/errors.ts") continue;
-	for (const line of codeLines(read(file))) {
-		const match = BARE_ERROR.exec(line.code);
-		if (match) {
-			fail(
-				"coded errors, never a bare construction",
-				`${file}:${line.number}`,
-				`\`new ${match[1]}\` loses the code a consumer branches on. Throw through rangeError() or codedError() in src/errors.ts, or use assertInternal() for an invariant this engine proves for itself.`,
-			);
+	for (const file of sources) {
+		if (file === "src/errors.ts") continue;
+		for (const line of codeLines(read(file))) {
+			const match = BARE_ERROR.exec(line.code);
+			if (match) {
+				fail(
+					"coded errors, never a bare construction",
+					`${file}:${line.number}`,
+					`\`new ${match[1]}\` loses the code a consumer branches on. Throw through rangeError() or codedError() in src/errors.ts, or use assertInternal() for an invariant this engine proves for itself.`,
+				);
+			}
 		}
 	}
 }
@@ -666,35 +794,36 @@ for (const file of sources) {
 // why it stays exact. The marker is deliberately a sentence rather than a suppression: the
 // seven existing sites are all safe, and none of them said so before this rule landed.
 // ---------------------------------------------------------------------------------------
+function rule3() {
+	const EXACTNESS_MARKER = /\bexact:/;
 
-const EXACTNESS_MARKER = /\bexact:/;
+	for (const file of sources) {
+		if (file === "src/computation/arithmetic.ts") continue;
+		const lines = codeLines(read(file));
+		for (const [index, line] of lines.entries()) {
+			if (!line.code.includes(" / ")) continue;
 
-for (const file of sources) {
-	if (file === "src/computation/arithmetic.ts") continue;
-	const lines = codeLines(read(file));
-	for (const [index, line] of lines.entries()) {
-		if (!line.code.includes(" / ")) continue;
+			// The marker may sit anywhere in the run of lines introducing this statement: on the line
+			// itself, in a multi-line comment block above it, or above a statement that wraps so the
+			// division lands on a continuation line. Walk upward through comment-only lines and
+			// unterminated code lines, stopping at the first line that closes a previous statement.
+			let justified = EXACTNESS_MARKER.test(line.comment);
+			for (let above = index - 1; !justified && above >= 0; above--) {
+				const candidate = lines[above];
+				const isCommentOnly = candidate.code.trim() === "" && candidate.comment.trim() !== "";
+				const isUnterminated =
+					candidate.code.trim() !== "" && !/[;}]\s*$/.test(candidate.code.trim());
+				if (!isCommentOnly && !isUnterminated) break;
+				justified = EXACTNESS_MARKER.test(candidate.comment);
+			}
 
-		// The marker may sit anywhere in the run of lines introducing this statement: on the line
-		// itself, in a multi-line comment block above it, or above a statement that wraps so the
-		// division lands on a continuation line. Walk upward through comment-only lines and
-		// unterminated code lines, stopping at the first line that closes a previous statement.
-		let justified = EXACTNESS_MARKER.test(line.comment);
-		for (let above = index - 1; !justified && above >= 0; above--) {
-			const candidate = lines[above];
-			const isCommentOnly = candidate.code.trim() === "" && candidate.comment.trim() !== "";
-			const isUnterminated =
-				candidate.code.trim() !== "" && !/[;}]\s*$/.test(candidate.code.trim());
-			if (!isCommentOnly && !isUnterminated) break;
-			justified = EXACTNESS_MARKER.test(candidate.comment);
-		}
-
-		if (!justified) {
-			fail(
-				"integer-only arithmetic",
-				`${file}:${line.number}`,
-				"a division outside src/computation/arithmetic.ts must carry an `exact:` comment saying why it cannot lose precision — on the same line, or on the comment line directly above. Prefer floorDiv() or ceilDiv() where the intent is integer division.",
-			);
+			if (!justified) {
+				fail(
+					"integer-only arithmetic",
+					`${file}:${line.number}`,
+					"a division outside src/computation/arithmetic.ts must carry an `exact:` comment saying why it cannot lose precision — on the same line, or on the comment line directly above. Prefer floorDiv() or ceilDiv() where the intent is integer division.",
+				);
+			}
 		}
 	}
 }
@@ -707,66 +836,67 @@ for (const file of sources) {
 // a member path is trusted past its first segment, which still catches every rename of the
 // thing being linked.
 // ---------------------------------------------------------------------------------------
+function rule4() {
+	const DECLARATION =
+		/^\s*(?:export\s+)?(?:declare\s+)?(?:abstract\s+)?(?:async\s+)?(?:function|const|let|var|class|interface|type|enum)\s+([A-Za-z_$][\w$]*)/gm;
+	const NAMED_EXPORT = /^\s*export\s+(?:type\s+)?\{([^}]*)\}/gm;
 
-const DECLARATION =
-	/^\s*(?:export\s+)?(?:declare\s+)?(?:abstract\s+)?(?:async\s+)?(?:function|const|let|var|class|interface|type|enum)\s+([A-Za-z_$][\w$]*)/gm;
-const NAMED_EXPORT = /^\s*export\s+(?:type\s+)?\{([^}]*)\}/gm;
-
-const symbols = new Set();
-for (const file of sources) {
-	const source = read(file);
-	for (const [, name] of source.matchAll(DECLARATION)) symbols.add(name);
-	for (const [, group] of source.matchAll(NAMED_EXPORT)) {
-		for (const entry of group.split(",")) {
-			const name = entry
-				.trim()
-				.split(/\s+as\s+/)
-				.pop()
-				?.replace(/^type\s+/, "")
-				.trim();
-			if (name) symbols.add(name);
+	const symbols = new Set();
+	for (const file of sources) {
+		const source = read(file);
+		for (const [, name] of source.matchAll(DECLARATION)) symbols.add(name);
+		for (const [, group] of source.matchAll(NAMED_EXPORT)) {
+			for (const entry of group.split(",")) {
+				const name = entry
+					.trim()
+					.split(/\s+as\s+/)
+					.pop()
+					?.replace(/^type\s+/, "")
+					.trim();
+				if (name) symbols.add(name);
+			}
 		}
 	}
-}
 
-const LINK = /\{@link\s+([^}|\s]+)(?:[|\s][^}]*)?\}/g;
+	const LINK = /\{@link\s+([^}|\s]+)(?:[|\s][^}]*)?\}/g;
 
-for (const file of sources) {
-	for (const line of codeLines(read(file))) {
-		for (const [, target] of line.comment.matchAll(LINK)) {
-			// A module link — `{@link ./types.js}` — names a file rather than a symbol.
-			if (target.endsWith(".js")) {
-				const resolved = resolve(root, file, "..", target.replace(/\.js$/, ".ts"));
-				if (!existsSync(resolved)) {
-					fail("{@link} targets resolve", `${file}:${line.number}`, `no module at ${target}`);
-				}
-				continue;
-			}
-			// A qualified link — `{@link ../traditions/types.TraditionConfig.leapIndexThreshold}` —
-			// puts the *module basename* first after the last slash, then the symbol. An unqualified
-			// one starts at the symbol. Getting this backwards reports every qualified link as
-			// broken, which is how the rule failed the first time it ran.
-			const qualified = target.includes("/");
-			const parts = target.slice(target.lastIndexOf("/") + 1).split(".");
-			if (qualified) {
-				const module = resolve(
-					root,
-					file,
-					"..",
-					`${target.slice(0, target.lastIndexOf("/"))}/${parts[0]}.ts`,
-				);
-				if (!existsSync(module)) {
-					fail("{@link} targets resolve", `${file}:${line.number}`, `no module at ${target}`);
+	for (const file of sources) {
+		for (const line of codeLines(read(file))) {
+			for (const [, target] of line.comment.matchAll(LINK)) {
+				// A module link — `{@link ./types.js}` — names a file rather than a symbol.
+				if (target.endsWith(".js")) {
+					const resolved = resolve(root, file, "..", target.replace(/\.js$/, ".ts"));
+					if (!existsSync(resolved)) {
+						fail("{@link} targets resolve", `${file}:${line.number}`, `no module at ${target}`);
+					}
 					continue;
 				}
-			}
-			const rootSymbol = qualified ? parts[1] : parts[0];
-			if (rootSymbol && !symbols.has(rootSymbol)) {
-				fail(
-					"{@link} targets resolve",
-					`${file}:${line.number}`,
-					`{@link ${target}} names \`${rootSymbol}\`, which is not declared anywhere in src/. A stale link ships in the .d.ts and renders as plain text on hover.`,
-				);
+				// A qualified link — `{@link ../traditions/types.TraditionConfig.leapIndexThreshold}` —
+				// puts the *module basename* first after the last slash, then the symbol. An unqualified
+				// one starts at the symbol. Getting this backwards reports every qualified link as
+				// broken, which is how the rule failed the first time it ran.
+				const qualified = target.includes("/");
+				const parts = target.slice(target.lastIndexOf("/") + 1).split(".");
+				if (qualified) {
+					const module = resolve(
+						root,
+						file,
+						"..",
+						`${target.slice(0, target.lastIndexOf("/"))}/${parts[0]}.ts`,
+					);
+					if (!existsSync(module)) {
+						fail("{@link} targets resolve", `${file}:${line.number}`, `no module at ${target}`);
+						continue;
+					}
+				}
+				const rootSymbol = qualified ? parts[1] : parts[0];
+				if (rootSymbol && !symbols.has(rootSymbol)) {
+					fail(
+						"{@link} targets resolve",
+						`${file}:${line.number}`,
+						`{@link ${target}} names \`${rootSymbol}\`, which is not declared anywhere in src/. A stale link ships in the .d.ts and renders as plain text on hover.`,
+					);
+				}
 			}
 		}
 	}
@@ -778,60 +908,65 @@ for (const file of sources) {
 // The format is fixed so a reader can find the outcome without reading the reasoning, and so
 // markdownlint does not read a `title:` key plus an H1 as two titles.
 // ---------------------------------------------------------------------------------------
+function rule5() {
+	const RECORD_NAME = /^\d{4}-\d{2}-\d{2}-[a-z0-9-]+\.md$/;
+	const STATUSES = new Set(["accepted", "superseded", "deprecated"]);
 
-const RECORD_NAME = /^\d{4}-\d{2}-\d{2}-[a-z0-9-]+\.md$/;
-const STATUSES = new Set(["accepted", "superseded", "deprecated"]);
+	for (const file of tracked("docs/decisions/*.md")) {
+		const name = basename(file);
+		if (!RECORD_NAME.test(name)) {
+			fail("decision-record format", file, "filename must be YYYY-MM-DD-slug.md, all lowercase.");
+			continue;
+		}
 
-for (const file of tracked("docs/decisions/*.md")) {
-	const name = basename(file);
-	if (!RECORD_NAME.test(name)) {
-		fail("decision-record format", file, "filename must be YYYY-MM-DD-slug.md, all lowercase.");
-		continue;
-	}
+		const source = read(file);
+		const front = /^---\n([\s\S]*?)\n---\n/.exec(source);
+		if (!front) {
+			fail(
+				"decision-record format",
+				file,
+				"missing YAML front matter carrying `date` and `status`.",
+			);
+			continue;
+		}
 
-	const source = read(file);
-	const front = /^---\n([\s\S]*?)\n---\n/.exec(source);
-	if (!front) {
-		fail("decision-record format", file, "missing YAML front matter carrying `date` and `status`.");
-		continue;
-	}
+		const keys = front[1]
+			.split("\n")
+			.map((line) => line.split(":")[0]?.trim())
+			.filter(Boolean);
+		const extra = keys.filter((key) => key !== "date" && key !== "status");
+		if (extra.length > 0) {
+			fail(
+				"decision-record format",
+				file,
+				`front matter carries only \`date\` and \`status\`; found ${extra.join(", ")}. A \`title\` key duplicates the H1 and makes markdownlint read the file as having two titles.`,
+			);
+		}
 
-	const keys = front[1]
-		.split("\n")
-		.map((line) => line.split(":")[0]?.trim())
-		.filter(Boolean);
-	const extra = keys.filter((key) => key !== "date" && key !== "status");
-	if (extra.length > 0) {
-		fail(
-			"decision-record format",
-			file,
-			`front matter carries only \`date\` and \`status\`; found ${extra.join(", ")}. A \`title\` key duplicates the H1 and makes markdownlint read the file as having two titles.`,
-		);
-	}
+		const status = /^status:\s*(\S+)/m.exec(front[1])?.[1];
+		if (!status || !STATUSES.has(status)) {
+			fail("decision-record format", file, `status must be one of ${[...STATUSES].join(" / ")}.`);
+		}
 
-	const status = /^status:\s*(\S+)/m.exec(front[1])?.[1];
-	if (!status || !STATUSES.has(status)) {
-		fail("decision-record format", file, `status must be one of ${[...STATUSES].join(" / ")}.`);
-	}
+		const body = source.slice(front[0].length);
+		const headings = [...body.matchAll(/^#\s+(.+)$/gm)];
+		if (headings.length !== 1) {
+			fail(
+				"decision-record format",
+				file,
+				`expected exactly one H1 title; found ${headings.length}.`,
+			);
+		}
 
-	const body = source.slice(front[0].length);
-	const headings = [...body.matchAll(/^#\s+(.+)$/gm)];
-	if (headings.length !== 1) {
-		fail(
-			"decision-record format",
-			file,
-			`expected exactly one H1 title; found ${headings.length}.`,
-		);
-	}
-
-	const afterTitle = body.slice((headings[0]?.index ?? 0) + (headings[0]?.[0].length ?? 0));
-	const firstParagraph = afterTitle.split("\n").find((line) => line.trim() !== "");
-	if (firstParagraph === undefined || !firstParagraph.startsWith("**Decision:**")) {
-		fail(
-			"decision-record format",
-			file,
-			"a bold `**Decision:**` line must state the outcome before any reasoning. A record that only narrates deliberation is a planning artifact and gets deleted.",
-		);
+		const afterTitle = body.slice((headings[0]?.index ?? 0) + (headings[0]?.[0].length ?? 0));
+		const firstParagraph = afterTitle.split("\n").find((line) => line.trim() !== "");
+		if (firstParagraph === undefined || !firstParagraph.startsWith("**Decision:**")) {
+			fail(
+				"decision-record format",
+				file,
+				"a bold `**Decision:**` line must state the outcome before any reasoning. A record that only narrates deliberation is a planning artifact and gets deleted.",
+			);
+		}
 	}
 }
 
@@ -842,25 +977,26 @@ for (const file of tracked("docs/decisions/*.md")) {
 // is only worth having if the commands and paths it names still exist, so the map checks
 // itself. Without this it would drift exactly the way the prose version it replaced would.
 // ---------------------------------------------------------------------------------------
+function rule6() {
+	const MAP = "docs/coding-standards.md";
+	if (existsSync(resolve(root, MAP))) {
+		const source = read(MAP);
+		const scripts = new Set(Object.keys(manifest.scripts ?? {}));
 
-const MAP = "docs/coding-standards.md";
-if (existsSync(resolve(root, MAP))) {
-	const source = read(MAP);
-	const scripts = new Set(Object.keys(manifest.scripts ?? {}));
-
-	for (const [, command] of source.matchAll(/`npm run ([\w:]+)`/g)) {
-		if (!scripts.has(command)) {
-			fail(
-				"enforcement map stays live",
-				MAP,
-				`names \`npm run ${command}\`, which is not in package.json#scripts.`,
-			);
+		for (const [, command] of source.matchAll(/`npm run ([\w:]+)`/g)) {
+			if (!scripts.has(command)) {
+				fail(
+					"enforcement map stays live",
+					MAP,
+					`names \`npm run ${command}\`, which is not in package.json#scripts.`,
+				);
+			}
 		}
-	}
 
-	for (const [, path] of source.matchAll(/`((?:src|test|scripts|docs)\/[\w./-]+)`/g)) {
-		if (!existsSync(resolve(root, path))) {
-			fail("enforcement map stays live", MAP, `names \`${path}\`, which does not exist.`);
+		for (const [, path] of source.matchAll(/`((?:src|test|scripts|docs)\/[\w./-]+)`/g)) {
+			if (!existsSync(resolve(root, path))) {
+				fail("enforcement map stays live", MAP, `names \`${path}\`, which does not exist.`);
+			}
 		}
 	}
 }
@@ -890,47 +1026,20 @@ if (existsSync(resolve(root, MAP))) {
 // line from a generator's output. A provenance rule that passes for the wrong reason is worse than
 // one that fails, so the category is stated rather than left to coincidence.
 // ---------------------------------------------------------------------------------------
+function rule7() {
+	const HAND_CURATED = new Set(["fpmt-holy-days.ts", "rgob.ts"]);
 
-const HAND_CURATED = new Set(["fpmt-holy-days.ts", "rgob.ts"]);
-const generators = tracked("scripts/*.mjs").map((file) => ({ file, source: read(file) }));
-
-// --- Rule 12, the invariant. ---
-//
-// A template parser that silently matches nothing passes every document, and reads as coverage
-// while proving nothing. Derived from the tree so it needs no foresight: every generator that
-// writes a docs/*.md must yield at least one template, and at least one of those must contain an
-// interpolation — otherwise there was nothing for the rule to examine in the first place.
-for (const { file, source } of generators) {
-	// A cruder, independent signal than DOCUMENT_TEMPLATE, on purpose: if that pattern ever stops
-	// matching, this still fires and the invariant reports it instead of both falling silent.
-	// This checker is not a generator, but its source quotes the pattern above, so a plain textual
-	// signal cannot tell the description from the thing described. Excluded by name for that reason
-	// alone -- it holds no writeFileSync call at all.
-	if (file.endsWith("check-conventions.mjs")) continue;
-	// A cruder, independent signal than DOCUMENT_TEMPLATE, on purpose: if that pattern ever stops
-	// matching, this still fires and the invariant reports it rather than both falling silent.
-	if (!source.includes('join(root, "docs"')) continue;
-	const templates = documentTemplates(source);
-	if (templates.length === 0 || !templates.some((template) => template.includes("${"))) {
-		console.error(
-			`the checker itself is broken: ${file} writes a document, but no interpolated template was ` +
-				"recovered from it. Rule 12 would then pass vacuously for every generator, which reads as " +
-				"coverage while proving nothing.",
-		);
-		process.exit(1);
-	}
-}
-
-for (const fixture of tracked("test/fixtures/*.ts")) {
-	const name = basename(fixture, ".ts");
-	if (HAND_CURATED.has(`${name}.ts`)) continue;
-	if (carriesNoData(read(fixture))) continue;
-	if (!generators.some(({ source }) => source.includes(name))) {
-		fail(
-			"fixture provenance",
-			fixture,
-			`no script in scripts/ names this fixture, and it declares data. Fixtures are generated, not transcribed — add the generator and commit it alongside the output. The only exceptions are ${[...HAND_CURATED].join(" and ")}, and both earn it the same narrow way: their source has no markup at all, so a generator could only wrap a lossy reading. "Parsing it is inconvenient" is not the test. A file declaring only types is exempt, having nothing to transcribe.`,
-		);
+	for (const fixture of tracked("test/fixtures/*.ts")) {
+		const name = basename(fixture, ".ts");
+		if (HAND_CURATED.has(`${name}.ts`)) continue;
+		if (carriesNoData(read(fixture))) continue;
+		if (!generators.some(({ source }) => source.includes(name))) {
+			fail(
+				"fixture provenance",
+				fixture,
+				`no script in scripts/ names this fixture, and it declares data. Fixtures are generated, not transcribed — add the generator and commit it alongside the output. The only exceptions are ${[...HAND_CURATED].join(" and ")}, and both earn it the same narrow way: their source has no markup at all, so a generator could only wrap a lossy reading. "Parsing it is inconvenient" is not the test. A file declaring only types is exempt, having nothing to transcribe.`,
+			);
+		}
 	}
 }
 
@@ -950,14 +1059,16 @@ for (const fixture of tracked("test/fixtures/*.ts")) {
 // The window stops at a sentence boundary. Without that, the rule fires on
 // "choosing one would manufacture authority rather than source it.\n\n${...}", where "one" is a
 // pronoun two sentences away — a false positive measured against the real generator.
-for (const { file, source } of generators) {
-	for (const template of documentTemplates(source)) {
-		for (const match of template.matchAll(HARDCODED_COUNT)) {
-			fail(
-				"generated documents state computed counts",
-				file,
-				`the emitted markdown reads ${JSON.stringify(match[0].slice(0, 70))} — a literal number-word in the same sentence as an interpolated value. Emit the count instead: it is the shape of "Four values are marked, at positions \${...}", which was wrong for three commits because the list grew and the word did not.`,
-			);
+function rule12() {
+	for (const { file, source } of generators) {
+		for (const template of documentTemplates(source)) {
+			for (const match of template.matchAll(HARDCODED_COUNT)) {
+				fail(
+					"generated documents state computed counts",
+					file,
+					`the emitted markdown reads ${JSON.stringify(match[0].slice(0, 70))} — a literal number-word in the same sentence as an interpolated value. Emit the count instead: it is the shape of "Four values are marked, at positions \${...}", which was wrong for three commits because the list grew and the word did not.`,
+				);
+			}
 		}
 	}
 }
@@ -970,20 +1081,21 @@ for (const { file, source } of generators) {
 // never thrown, and a typo in a `codedError` call throws one they were never told about.
 // Neither is a type error: both are string literals in prose or in an argument.
 // ---------------------------------------------------------------------------------------
+function rule8() {
+	const CODE_UNION = new Set(
+		[...read("src/errors.ts").matchAll(/\|\s*"(TCT_[A-Z_]+)"/g)].map(([, code]) => code),
+	);
 
-const CODE_UNION = new Set(
-	[...read("src/errors.ts").matchAll(/\|\s*"(TCT_[A-Z_]+)"/g)].map(([, code]) => code),
-);
-
-for (const file of sources) {
-	for (const line of codeLines(read(file))) {
-		for (const [, code] of `${line.code}${line.comment}`.matchAll(/\b(TCT_[A-Z_]+)\b/g)) {
-			if (!CODE_UNION.has(code)) {
-				fail(
-					"error codes are real",
-					`${file}:${line.number}`,
-					`\`${code}\` is not a member of TibetanCalendarErrorCode. A code is the one part of an error consumers branch on, so a typo in a @throws or a codedError call is a broken contract that no type check catches.`,
-				);
+	for (const file of sources) {
+		for (const line of codeLines(read(file))) {
+			for (const [, code] of `${line.code}${line.comment}`.matchAll(/\b(TCT_[A-Z_]+)\b/g)) {
+				if (!CODE_UNION.has(code)) {
+					fail(
+						"error codes are real",
+						`${file}:${line.number}`,
+						`\`${code}\` is not a member of TibetanCalendarErrorCode. A code is the one part of an error consumers branch on, so a typo in a @throws or a codedError call is a broken contract that no type check catches.`,
+					);
+				}
 			}
 		}
 	}
@@ -1005,70 +1117,70 @@ for (const file of sources) {
 // suite. conversion.test.ts imports losar and epoch.test.ts imports sixty-year-cycle, and both
 // are named for their module, correctly.
 // ---------------------------------------------------------------------------------------
+function rule9() {
+	// Directories under test/ that hold no suites at all, so no parity question arises.
+	const INFRASTRUCTURE_DIRECTORIES = new Set(["fixtures", "support"]);
 
-// Directories under test/ that hold no suites at all, so no parity question arises.
-const INFRASTRUCTURE_DIRECTORIES = new Set(["fixtures", "support"]);
-
-// A directory under test/ earns its place by **mirroring a directory under src/**, rather than by
-// being on a list. That was not always so: the set was hardcoded as
-// `["computation", "fixtures", "support", "validation"]`, of which exactly one entry —
-// `computation` — was a module-suite mirror, and the other three were infrastructure or the
-// external-source home. So the "sanctioned set" was one name plus scaffolding, and it went stale
-// the moment src/ grew a second subsystem.
-//
-// It had already cost something. `src/observances/` had nowhere to put a module suite, so
-// `observances.test.ts` sat in test/validation/ with its subject recorded in a comment as the
-// observance *engine* and a hand-written exemption stopping Rule 9 firing on it. That exemption is
-// gone, and so is the file's misplacement — see docs/testing.md.
-//
-// Deriving the mirrors keeps every existing outcome and adds no licence: test/bench/ is still
-// rejected, because there is no src/bench/, which is the reason CLAUDE.md gives for refusing it —
-// a benchmark is neither a module suite nor an external-source suite.
-const mirroredDirectories = new Set(tracked("src/*/*.ts").map((file) => file.split("/")[1]));
-
-const FIXTURE_IMPORT = /from\s+"(?:\.\.\/)+fixtures\/([a-z0-9-]+)\.js"/g;
-
-const testFiles = tracked("test").filter((file) => file.endsWith(".ts"));
-const reportedDirectories = new Set();
-
-for (const file of testFiles) {
-	const [, directory] = file.split("/");
-	if (file.split("/").length < 3) continue;
-	if (directory === "validation") continue;
-	if (INFRASTRUCTURE_DIRECTORIES.has(directory)) continue;
-	if (mirroredDirectories.has(directory)) continue;
-	if (reportedDirectories.has(directory)) continue;
-	reportedDirectories.add(directory);
-	fail(
-		"validation suites are named for their fixtures",
-		`test/${directory}/`,
-		`is neither test/validation/, nor infrastructure (${[...INFRASTRUCTURE_DIRECTORIES].join(", ")}), nor a mirror of a directory under src/ (${[...mirroredDirectories].join(", ")}). A suite validating the engine against an external source belongs in test/validation/, named for the fixture it validates; a suite whose subject is a module belongs in the directory mirroring that module's own. A third home means one of those two questions was not answered — see docs/testing.md.`,
-	);
-}
-
-for (const file of testFiles) {
-	if (!file.startsWith("test/validation/") || !file.endsWith(".test.ts")) continue;
-
-	const suite = basename(file, ".test.ts");
-	const fixtures = [...read(file).matchAll(FIXTURE_IMPORT)].map(([, fixture]) => fixture);
-	if (fixtures.length === 0) continue;
-
-	// **At least one**, not every one, and the distinction is load-bearing in both directions.
+	// A directory under test/ earns its place by **mirroring a directory under src/**, rather than by
+	// being on a list. That was not always so: the set was hardcoded as
+	// `["computation", "fixtures", "support", "validation"]`, of which exactly one entry —
+	// `computation` — was a module-suite mirror, and the other three were infrastructure or the
+	// external-source home. So the "sanctioned set" was one name plus scaffolding, and it went stale
+	// the moment src/ grew a second subsystem.
 	//
-	// Requiring every import to match would forbid a suite consulting a *second, independent*
-	// source — which is the cross-checking this project is built on: bhutan.test.ts holds the
-	// Bhutanese day data to Janson's leap-month table as well as to itself, and those fixtures
-	// share no prefix by construction, because they share no lineage.
+	// It had already cost something. `src/observances/` had nowhere to put a module suite, so
+	// `observances.test.ts` sat in test/validation/ with its subject recorded in a comment as the
+	// observance *engine* and a hand-written exemption stopping Rule 9 firing on it. That exemption is
+	// gone, and so is the file's misplacement — see docs/testing.md.
 	//
-	// Requiring only that the names be prefix-*related* in either direction would be too weak: it
-	// would accept bhutan-fixture.test.ts, the exact drift this rule exists to catch, since
-	// "bhutan-fixture" does start with "bhutan". The direction is what carries the rule.
-	if (!validatesFixture(suite, fixtures)) {
+	// Deriving the mirrors keeps every existing outcome and adds no licence: test/bench/ is still
+	// rejected, because there is no src/bench/, which is the reason CLAUDE.md gives for refusing it —
+	// a benchmark is neither a module suite nor an external-source suite. The set is
+	// `mirroredDirectories`, built with the shared corpora because Rule 11 reads it too.
+
+	const FIXTURE_IMPORT = /from\s+"(?:\.\.\/)+fixtures\/([a-z0-9-]+)\.js"/g;
+
+	const reportedDirectories = new Set();
+
+	for (const file of testFiles) {
+		const [, directory] = file.split("/");
+		if (file.split("/").length < 3) continue;
+		if (directory === "validation") continue;
+		if (INFRASTRUCTURE_DIRECTORIES.has(directory)) continue;
+		if (mirroredDirectories.has(directory)) continue;
+		if (reportedDirectories.has(directory)) continue;
+		reportedDirectories.add(directory);
 		fail(
 			"validation suites are named for their fixtures",
-			file,
-			`validates ${fixtures.map((fixture) => `test/fixtures/${fixture}.ts`).join(", ")}, and none of those names starts with "${suite}". Name the suite for the fixture it validates, or for the prefix it shares with the others it covers — fpmt.test.ts covers both fpmt-*, crosscheck.test.ts all three crosscheck-*. A suite may consult further fixtures as independent cross-checks, but its name has to identify the one it is about. If the suite's real subject is a module rather than a source, it belongs beside that module instead.`,
+			`test/${directory}/`,
+			`is neither test/validation/, nor infrastructure (${[...INFRASTRUCTURE_DIRECTORIES].join(", ")}), nor a mirror of a directory under src/ (${[...mirroredDirectories].join(", ")}). A suite validating the engine against an external source belongs in test/validation/, named for the fixture it validates; a suite whose subject is a module belongs in the directory mirroring that module's own. A third home means one of those two questions was not answered — see docs/testing.md.`,
 		);
+	}
+
+	for (const file of testFiles) {
+		if (!file.startsWith("test/validation/") || !file.endsWith(".test.ts")) continue;
+
+		const suite = basename(file, ".test.ts");
+		const fixtures = [...read(file).matchAll(FIXTURE_IMPORT)].map(([, fixture]) => fixture);
+		if (fixtures.length === 0) continue;
+
+		// **At least one**, not every one, and the distinction is load-bearing in both directions.
+		//
+		// Requiring every import to match would forbid a suite consulting a *second, independent*
+		// source — which is the cross-checking this project is built on: bhutan.test.ts holds the
+		// Bhutanese day data to Janson's leap-month table as well as to itself, and those fixtures
+		// share no prefix by construction, because they share no lineage.
+		//
+		// Requiring only that the names be prefix-*related* in either direction would be too weak: it
+		// would accept bhutan-fixture.test.ts, the exact drift this rule exists to catch, since
+		// "bhutan-fixture" does start with "bhutan". The direction is what carries the rule.
+		if (!validatesFixture(suite, fixtures)) {
+			fail(
+				"validation suites are named for their fixtures",
+				file,
+				`validates ${fixtures.map((fixture) => `test/fixtures/${fixture}.ts`).join(", ")}, and none of those names starts with "${suite}". Name the suite for the fixture it validates, or for the prefix it shares with the others it covers — fpmt.test.ts covers both fpmt-*, crosscheck.test.ts all three crosscheck-*. A suite may consult further fixtures as independent cross-checks, but its name has to identify the one it is about. If the suite's real subject is a module rather than a source, it belongs beside that module instead.`,
+			);
+		}
 	}
 }
 
@@ -1097,23 +1209,24 @@ for (const file of testFiles) {
 // either. The failure would be a loud false positive rather than a silent pass, which is the right
 // direction for a rule whose job is to refuse an unevidenced export.
 // ---------------------------------------------------------------------------------------
+function rule10() {
+	const CONFIG_EXPORT = /^export \{([^}]*)\} from "\.\/traditions\/[\w-]+\.js";$/gm;
+	const validationImports = new Set();
+	for (const file of tracked("test/validation").filter((file) => file.endsWith(".test.ts"))) {
+		for (const name of importedNames(read(file))) validationImports.add(name);
+	}
 
-const CONFIG_EXPORT = /^export \{([^}]*)\} from "\.\/traditions\/[\w-]+\.js";$/gm;
-const validationImports = new Set();
-for (const file of tracked("test/validation").filter((file) => file.endsWith(".test.ts"))) {
-	for (const name of importedNames(read(file))) validationImports.add(name);
-}
-
-for (const [, names] of read("src/index.ts").matchAll(CONFIG_EXPORT)) {
-	for (const name of names.split(",").map((part) => part.trim())) {
-		// Type-only exports carry no dates and nothing to validate.
-		if (name === "" || name.startsWith("type ") || !/^[A-Z][A-Z0-9_]*$/.test(name)) continue;
-		if (!validationImports.has(name)) {
-			fail(
-				"exported configs are validated",
-				"src/index.ts",
-				`exports the tradition config \`${name}\`, which no suite in test/validation/ imports. Exporting a config asserts its dates are that tradition's real dates, which self-consistency cannot establish — a round trip proves the arithmetic inverts itself and cannot catch a shared misreading of the paper. Tile it against an external calendar day by day, record the window in docs/testing.md, and keep it in docs/traditions.md as data until then. Naming it in a comment or a describe title does not count, and a namespace import is not matched.`,
-			);
+	for (const [, names] of read("src/index.ts").matchAll(CONFIG_EXPORT)) {
+		for (const name of names.split(",").map((part) => part.trim())) {
+			// Type-only exports carry no dates and nothing to validate.
+			if (name === "" || name.startsWith("type ") || !/^[A-Z][A-Z0-9_]*$/.test(name)) continue;
+			if (!validationImports.has(name)) {
+				fail(
+					"exported configs are validated",
+					"src/index.ts",
+					`exports the tradition config \`${name}\`, which no suite in test/validation/ imports. Exporting a config asserts its dates are that tradition's real dates, which self-consistency cannot establish — a round trip proves the arithmetic inverts itself and cannot catch a shared misreading of the paper. Tile it against an external calendar day by day, record the window in docs/testing.md, and keep it in docs/traditions.md as data until then. Naming it in a comment or a describe title does not count, and a namespace import is not matched.`,
+				);
+			}
 		}
 	}
 }
@@ -1141,28 +1254,29 @@ for (const [, names] of read("src/index.ts").matchAll(CONFIG_EXPORT)) {
 // computation because that was the only mirror that existed; the examples above are still drawn
 // from there because that is where the two real drifts happened.
 // ---------------------------------------------------------------------------------------
+function rule11() {
+	// Only directories that actually exist under test/, or `git ls-files` writes a warning per missing
+	// path to stderr and CI output fills with noise about directories nobody has created yet.
+	const testDirectories = new Set(
+		testFiles.filter((file) => file.split("/").length > 2).map((file) => file.split("/")[1]),
+	);
 
-// Only directories that actually exist under test/, or `git ls-files` writes a warning per missing
-// path to stderr and CI output fills with noise about directories nobody has created yet.
-const testDirectories = new Set(
-	testFiles.filter((file) => file.split("/").length > 2).map((file) => file.split("/")[1]),
-);
+	for (const directory of mirroredDirectories) {
+		if (!testDirectories.has(directory)) continue;
+		// `index` is kept, not filtered. A subsystem's engine lives in its barrel — getObservances is
+		// in src/observances/index.ts — so test/observances/index.test.ts is the honest name for its
+		// suite, and filtering the barrel out would reject the one file this rule most needs to admit.
+		const modules = tracked(`src/${directory}/*.ts`).map((file) => basename(file, ".ts"));
 
-for (const directory of mirroredDirectories) {
-	if (!testDirectories.has(directory)) continue;
-	// `index` is kept, not filtered. A subsystem's engine lives in its barrel — getObservances is
-	// in src/observances/index.ts — so test/observances/index.test.ts is the honest name for its
-	// suite, and filtering the barrel out would reject the one file this rule most needs to admit.
-	const modules = tracked(`src/${directory}/*.ts`).map((file) => basename(file, ".ts"));
-
-	for (const file of tracked(`test/${directory}/*.test.ts`)) {
-		const suite = basename(file, ".test.ts");
-		if (namedForModule(suite, modules)) continue;
-		fail(
-			"module suites are named for their module",
-			file,
-			`is not named for any module in src/${directory}/ (${modules.join(", ")}). Name it for the module it tests, optionally narrowed — calendar-leap-index-threshold.test.ts is a calendar.ts suite about one rule. If its subject spans several modules it is not a module suite: move it to test/ root, where invariants.test.ts and regression.test.ts already live. See docs/testing.md.`,
-		);
+		for (const file of tracked(`test/${directory}/*.test.ts`)) {
+			const suite = basename(file, ".test.ts");
+			if (namedForModule(suite, modules)) continue;
+			fail(
+				"module suites are named for their module",
+				file,
+				`is not named for any module in src/${directory}/ (${modules.join(", ")}). Name it for the module it tests, optionally narrowed — calendar-leap-index-threshold.test.ts is a calendar.ts suite about one rule. If its subject spans several modules it is not a module suite: move it to test/ root, where invariants.test.ts and regression.test.ts already live. See docs/testing.md.`,
+			);
+		}
 	}
 }
 
@@ -1181,8 +1295,7 @@ for (const directory of mirroredDirectories) {
 // it stopped doing so, and no predicate available here would have seen it. The enforcement map
 // says so rather than letting this rule read as full coverage.
 // ---------------------------------------------------------------------------------------
-
-{
+function rule13() {
 	const RULE = "README type lists match the barrels";
 	const readme = read("README.md");
 	const lists = documentedTypeLists(readme);
@@ -1239,8 +1352,41 @@ for (const directory of mirroredDirectories) {
 }
 
 // ---------------------------------------------------------------------------------------
+// The runner
+//
+// Findings are collected so they can be reported together, and until 2026-09-12 a throw anywhere
+// discarded all of them: one unreadable file crashed the run on a stack trace, and whatever the
+// earlier rules had found went with it. Proved, not suspected — a Rule 6 violation injected
+// beside a deleted file vanished from the output. So containment is layered, because the layers
+// catch different things:
+//
+//   - each rule runs inside its own try/catch, and a throw becomes an attributed finding;
+//   - the shared corpora are guarded where they are built, above, since no rule's guard reaches;
+//   - anything else that throws — the self-test reading a barrel, say — reaches the backstop at the
+//     bottom, which prints what was collected before rethrowing.
+//
+// The order of RULES is the order the report groups appear in. Rule 12 runs straight after Rule 7
+// for that reason alone: moving it changes the report, and nothing else about the rules.
+// ---------------------------------------------------------------------------------------
 
-if (failures.length > 0) {
+const RULES = [
+	{ number: 1, run: rule1 },
+	{ number: 2, run: rule2 },
+	{ number: 3, run: rule3 },
+	{ number: 4, run: rule4 },
+	{ number: 5, run: rule5 },
+	{ number: 6, run: rule6 },
+	{ number: 7, run: rule7 },
+	{ number: 12, run: rule12 },
+	{ number: 8, run: rule8 },
+	{ number: 9, run: rule9 },
+	{ number: 10, run: rule10 },
+	{ number: 11, run: rule11 },
+	{ number: 13, run: rule13 },
+];
+
+function report() {
+	if (failures.length === 0) return;
 	const byRule = new Map();
 	for (const failure of failures) {
 		if (!byRule.has(failure.rule)) byRule.set(failure.rule, []);
@@ -1257,8 +1403,29 @@ if (failures.length > 0) {
 		console.error("");
 	}
 	console.error("Every rule above is documented in docs/coding-standards.md.\n");
-	process.exit(1);
 }
+
+try {
+	if (!selfTest()) process.exit(1);
+
+	for (const { number, run } of RULES) {
+		try {
+			run();
+		} catch (error) {
+			fail(
+				`rule ${number} could not run`,
+				"scripts/check-conventions.mjs",
+				`${reasonOf(error)} Everything it guards is unchecked until this is fixed.`,
+			);
+		}
+	}
+} catch (error) {
+	report();
+	throw error;
+}
+
+report();
+if (failures.length > 0) process.exit(1);
 
 console.log(
 	`All conventions hold (${sources.length} source files, ${failures.length} violations).`,
