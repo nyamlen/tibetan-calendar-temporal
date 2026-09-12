@@ -18,8 +18,11 @@
  *   Tibetan — the Dalai Lama's birthday is 6 July. The data is institution-specific and changes
  *   within a decade, so `ObservanceKind` supports `"anniversary"` and ships none.
  * - **Astrological day qualities.** The `FD-EW`, `GCH`, `NMP` codes on FPMT's calendars are the
- *   almanac's elemental and planetary attributes, Janson's appendices D-E, which are not
- *   observances and so are not rules here.
+ *   almanac's elemental and planetary attributes, and they are not observances, so they are not
+ *   rules here. **This said "Janson's appendices D-E, which are not computed" until 2026-09-12**, and
+ *   the halves have parted company: appendix **E** is computed, on the `./astrology` subpath, which
+ *   answers exactly what an `FD-EW` code says — while appendix **D**, the planets, remains out of
+ *   scope. Out of *this* layer is the claim being made, not out of the package.
  * - **Sojong** (*sojong* གསོ་སྦྱོང་; Sanskrit *poṣadha* पोषध), vow renewal. It is conventionally
  *   described as falling on the full and new moon, but FPMT's calendars do not place it that way:
  *   over 2022-2025 a fixed 15th-and-30th rule misses 38 of its occurrences and invents 36, mostly
