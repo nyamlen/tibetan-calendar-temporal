@@ -145,7 +145,7 @@ covered:
 
 | Risk | Retired by |
 |------|-----------|
-| Does the published artifact work — installs, resolves through `exports`, both subpaths import? | Largely `scripts/check-pack.mjs`, in CI |
+| Does the published artifact work — installs, resolves through `exports`, all three subpaths import? | Largely `scripts/check-pack.mjs`, in CI |
 | **Is the API shape right?** | Nothing yet. Only code that has to *make decisions* surfaces it |
 
 The second is the one 1.0.0 freezes permanently, and no test in this repository can see it: every
@@ -982,7 +982,7 @@ nothing and reports success.
 
 - [x] **Packaging is verified in CI.** `check:publish` runs `publint` and `attw --pack . --profile
       esm-only`; `test:pack` packs the tarball, installs it into a scratch directory outside the
-      repository, and imports both subpaths as a consumer would. The gap they close is structural
+      repository, and imports all three subpaths as a consumer would. The gap they close is structural
       rather than incidental: every other test imports from `src/`, so nothing else in the suite
       can see a broken `exports` map, a file missing from `files`, or a `dist/` layout that does
       not match what `exports` points at. Those fail only for a consumer, after publishing.

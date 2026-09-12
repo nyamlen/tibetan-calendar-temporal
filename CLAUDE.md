@@ -195,6 +195,25 @@ Done on 2026-09-10, answering which days carried Tara puja in late 2026: the dat
 by three external calendars and the *labels* by nothing, and the reply claimed FPMT coverage that
 stops a year earlier. Cite 2022–2025 for an observance, 2022–2027 for a date.
 
+**Since 2026-09-12 there is a third tier, and it is the weakest of the three.** The `./astrology`
+attributes are **not** covered by either figure above, and the differences are not about years:
+
+- The attribute **cycles** — the year's five elements, the month's and lunar day's labels, the
+  calendar day's — are checked against **Janson's own printed tables and his prose, and nothing
+  else**. He computed those tables from the formulas implemented here, so agreement catches a
+  transcription or formula error and is **not external corroboration**. There is no window to quote,
+  because there is no external source.
+- The **lunar mansion** agrees with FPMT on **97.6%** of 1,459 days, 2022–2025, Phugpa only — and the
+  residual is characterised rather than excused: the failures crowd against mansion boundaries as
+  Janson's own stated approximation predicts, and **six days in four years have no explanation**.
+- **Yoga favorability** agrees with FPMT's printed prefixes on 99.7% of the same days, and that check
+  is independent of the mansion because it reads FPMT's own pair letters.
+
+So never answer an attribute question with the date window, and never call the mansion "validated"
+without the 97.6% and its six unexplained days. `docs/testing.md` holds the table;
+`docs/why-trust-these-dates.md` states the consumer-facing version, and the bullet there that used to
+read "no astrological information is computed" is the shape of error to expect when a layer lands.
+
 `scripts/rabjung-names.data.json` is **not** a second exception, because it is not a fixture: no
 test reads it, and nothing in `src/` depends on it. It holds the one **authored** column of
 `docs/names/rabjung.md` — English glosses of the Tibetan names. Keep it out of `test/fixtures/`, and
@@ -418,6 +437,17 @@ derivation; in `docs/` they are just noise.
   message-writing guidance:
   [docs/decisions/2026-08-12-error-codes-not-classes.md](docs/decisions/2026-08-12-error-codes-not-classes.md).
 
+  **A third semantics arrived with `./astrology` on 2026-09-12, and it is neither of the two below.**
+  `TCT_ATTRIBUTE_NOT_SOURCED` means the caller's input is **fine** and no source gives the answer —
+  the Bhutanese month and lunar-day attributes, which Janson does not tabulate. It is
+  `TCT_INVALID_ARGUMENT`'s neighbour rather than `TCT_FIELD_OUT_OF_RANGE`'s, it is deliberately
+  **off** `tibetanDateExists`'s allowlist (a Bhutanese date exists; only an attribute of it is
+  unsourced), and the refusal is reached by a tradition carrying no `naming.months` block rather than
+  by any code asking "is this Bhutan". A **composition** may report it as `null` where a primitive
+  throws — `attributesFor` does — on the reasoning that a specific question with no answer is an
+  error while "what is known about this day" is not. Reach for this code, not the range one, when the
+  gap is in the sources.
+
   Two codes, not one, for bad input: `TCT_FIELD_OUT_OF_RANGE` means a **number** is wrong;
   `TCT_INVALID_ARGUMENT` means the argument is the wrong **kind of thing** — a `Temporal` instance
   where a Tibetan date belongs, a non-boolean leap flag, `null`. Only the first is on the allowlist,
@@ -526,6 +556,13 @@ file. Both look identical to a guard firing — a non-zero exit and no output yo
 grepping for. **So every mutation run includes an unmutated control expected to PASS**, and asserting
 on the failure *message*, not the exit code, is what makes the difference visible. The control
 failing is the only signal that the harness is measuring nothing.
+
+**And restore the mutant from a copy, never with `git checkout` — which silently cannot restore a file
+that is not yet tracked.** Proved on 2026-09-12: two mutations of a brand-new `src/astrology/` module
+were "reverted" by `git checkout <path>`, which failed with `pathspec did not match any file` while
+the loop carried on, so the next mutant ran on top of the previous one. The tell was a run reporting
+*more* failures than the mutation could explain — not an error, and not a pass. `cp` the file aside
+first, restore from that, and re-run the control after every restore.
 
 **And run the generator unchanged *before* you edit it.** A baseline that reproduces the committed
 fixture byte-for-byte is what makes any later diff attributable to your change rather than to a
@@ -707,7 +744,10 @@ any new multi-century test an explicit timeout rather than discovering this agai
 Run it for what it *reports*, not only to keep it passing. An unreachable-line report is how the
 2026-08-13 review pass found that a new config check sat after the `scaleTo` call that already
 guarded the same condition — the test passed, because both throws carry the same code, and only
-coverage showed the check could never run.
+coverage showed the check could never run. It paid again on 2026-09-12, on code written the same
+hour: an **uncovered branch** in `./astrology`'s options guard was the `undefined` arm of its error
+message, unreachable because every caller defaults the parameter to `{}`. `./observances`' copy of
+that guard still carries the arm, which is how it got there.
 
 `check:links` validates relative markdown links and `#fragments` against the filesystem. Docs
 here cross-reference heavily, so renaming or deleting one breaks inbound links silently; fix them
