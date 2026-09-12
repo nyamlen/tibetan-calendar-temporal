@@ -4,12 +4,12 @@ import {
 	losarFor,
 	tibetanDateExists,
 	tibetanToIso,
-} from "../../src/computation/conversion.js";
-import { deriveScaling } from "../../src/computation/scaling.js";
-import { getObservances } from "../../src/observances/index.js";
-import { PHUGPA, PHUGPA_HENNING } from "../../src/traditions/phugpa.js";
-import type { TraditionConfig } from "../../src/traditions/types.js";
-import { assertTraditionConfig } from "../../src/traditions/validate.js";
+} from "../src/computation/conversion.js";
+import { deriveScaling } from "../src/computation/scaling.js";
+import { getObservances } from "../src/observances/index.js";
+import { PHUGPA, PHUGPA_HENNING } from "../src/traditions/phugpa.js";
+import type { TraditionConfig } from "../src/traditions/types.js";
+import { assertTraditionConfig } from "../src/traditions/validate.js";
 
 const iso = (s: string) => Temporal.PlainDate.from(s);
 

@@ -66,7 +66,7 @@ A rule with a command beside it will stop a push. A rule marked **review** will 
 
 | Rule | Enforced by | Why |
 |---|---|---|
-| Tradition constants are injected via `TraditionConfig`, never hardcoded | `test/validation/tradition-config.test.ts`, `test/validation/cross-version-leap.test.ts` | Tested rather than asserted: Bhutan was added on 2026-08-16 with two new config fields and no change to any formula. Tsurphu and the Mongolian version must stay equally addable |
+| Tradition constants are injected via `TraditionConfig`, never hardcoded | `test/tradition-config.test.ts`, `test/validation/cross-version-leap.test.ts` | Tested rather than asserted: Bhutan was added on 2026-08-16 with two new config fields and no change to any formula. Tsurphu and the Mongolian version must stay equally addable |
 | The **rules** are injected too, not only the numbers | `test/computation/calendar-leap-index-threshold.test.ts` | This promise was false until 2026-08-16: every constant was injected while the leap-month rule was hardcoded to Phugpa's 48/49 |
 | A bound proved from a config's numbers is **derived** from that config | **review** | The `±3` search window was proved from Phugpa's tables and written as a literal, then broke 8% of days for a wider table. It is now `ScaledTradition.searchHalfWidth` |
 | Every consumer config gets a validator, memoised per object | `src/traditions/validate.ts`, `src/observances/types.ts` — **review** for new config types | `TraditionConfig` went unchecked for three phases because the failure looked like a language error |

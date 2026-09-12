@@ -16,6 +16,7 @@ test/
 ├── navigation.test.ts    # arithmetic, the coordinate, the phases — and the naive versions
 ├── cycles.test.ts        # the year-name closed forms, including outside the exact range
 ├── leap-month-position.test.ts  # cross-cutting: calendar, scaling, months, observances
+├── tradition-config.test.ts  # cross-cutting: what a config does at the engine's boundary
 ├── public-api.test.ts    # the export surface, pinned
 ├── readme.test.ts        # every example the README states
 └── smoke.test.ts         # Temporal reachable as a global
@@ -35,6 +36,27 @@ A suite whose subject spans several modules is not a module suite and belongs at
 beside `invariants.test.ts`. `leap-month-position.test.ts` is the case: it reaches into `calendar`,
 `scaling`, `months` and `observances`, so naming it for any one of them would promise a subject it
 does not have — the same false promise the validation-suite rule catches one directory over.
+
+`tradition-config.test.ts` is the second case, moved out of `test/validation/` on 2026-09-12. It
+validated **nothing external** — no source, no lineage, no agreement claim — and it imported no
+fixture, which is why the naming rule never fired on it and nobody ever recorded it as seen. Its two
+halves look separable and are not: the search-window block builds configs with *wider correction
+tables* to check that `searchHalfWidth` is **derived from the config rather than hardcoded**, which
+is the same question the validation block asks from the other side. One subject — what a
+`TraditionConfig` does at the engine's boundary — spanning `traditions/validate` and
+`computation/scaling`, so it is named for the concept and lives at the root.
+
+Moving it does not weaken the export gate: every shipped config is imported by other suites in
+`test/validation/` — `PHUGPA` by four of them, `PHUGPA_HENNING` by three — so the rule that ties an
+exported config to external evidence still holds without it.
+
+**`index` is a valid module name, deliberately.** `src/observances/index.ts` carries the engine
+rather than being a bare barrel, so `test/observances/index.test.ts` is the honest name for its
+suite; forbidding `index` would leave no legal name and force `observances.test.ts`, a *concept*
+name in a module-parity directory — the exact drift this rule exists to catch. It loosens nothing:
+in a mirrored directory whose `src/` side holds only `index.ts`, every other suite name is still
+rejected. It is also a permission exercised once rather than routinely — `src/astrology/index.ts`
+is planned as a pure barrel, with the logic in modules beside it.
 
 **Before renaming or moving a suite, capture the inventory.** Not the count — the inventory:
 
