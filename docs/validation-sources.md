@@ -267,6 +267,30 @@ own domain and no visible attribution looks like a second source until its About
 | THL (`thlib.org`) as a *witness* | Reachable and un-blocked, but the dictionary is a React SPA with no server-rendered endpoint, the legacy `translate.php` ignores query parameters, and the Mandala backend returns bot-interstitial `202`s. Its **phonetics converter** remains fully usable and is what `verify:names` and `verify:rabjung-names` depend on. |
 | Sanskrit meanings from Sewell & Fleet | **Not there.** He prints the sixty saṃvatsaras as bare names against Kaliyuga years and fractional day-counts. No meaning column, and every occurrence of "translation" in the book refers to translating Siddhānta texts. It is a book about *computing* which saṃvatsara a year falls in. |
 
+### Bhutan's month attributes — a negative result, recorded so it is not re-walked
+
+Searched 2026-09-10, for the animal and element each **month** of the Bhutanese year carries.
+Janson gives month-animal lists for Phugpa and Tsurphu and none for Bhutan, even though `BHUTAN` and
+`BHUTAN_HENNING` are both exported and day-validated, so the gap is real rather than an artefact of
+not looking.
+
+| Source | Outcome |
+|---|---|
+| BhutanWiki, *Bhutanese Astrology* and *Bhutanese Astrology and Divination* | Cover the 12-animal/5-element **year** cycle and the *kartsi*/*nagtsi* split. Say nothing about month attribution, and cite nothing that does. |
+| General Bhutan calendar and tourism pages | The same year-cycle material, less carefully. No month attribution anywhere. |
+
+**The one source that would settle it is already in this repository and cannot be machine-read.**
+The Royal Government's *lo-tho* is the scanned PDF with no text layer that
+[testing.md](testing.md) and [../CLAUDE.md](../CLAUDE.md) already describe as the reason
+[rgob.ts](../test/fixtures/rgob.ts) is hand-curated.
+So the answer probably exists in a document we hold, behind OCR that is exactly the failure mode
+that fixture's exception was granted to avoid.
+
+That makes this a **deferral, not a dead end**, and it is a different shape from the rows above: not
+"the source does not say", but "the source is unreadable by the means this repository permits".
+The consequence is recorded in [astrology.md](astrology.md) — Bhutan refuses the month and lunar-day
+attributes with a coded error rather than inheriting Phugpa's.
+
 ### Corpus occurrence is not lexical existence
 
 BDRC's chunk counts look like a better attestation check than an exact-title dictionary lookup,

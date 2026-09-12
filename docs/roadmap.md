@@ -399,12 +399,39 @@ edits, and moving files once after they have landed is one link-fixing commit in
       brainstormed further; not folded into the composable-config item above, which stays
       `./observances`-only
 
+      **Sourcing closed 2026-09-10, and three assumptions in this item were wrong.** Appendix E was
+      read in full from the LaTeX. (1) Janson gives the elemental yoga **nine lines** — he defines
+      the unordered pair and cites Henning for the mansion-to-element list *and* the ten names, and
+      **favorability is not in Janson at all**, so FPMT is its sole witness. (2) The mansion needs
+      `true_sun`, which the engine does not have: `trueDate` forms only the *difference* of the two
+      equations. (3) The month and lunar-day attributes are a `leapIndexThreshold`-shaped trap —
+      Janson gives a different **rule** per tradition, month numbers are Tsurphu-only, and he gives
+      **no month-animal list for Bhutan**.
+
+      **Henning turned out to be free and self-published**, at
+      [kalacakra.org/calendar/symlst.htm](http://www.kalacakra.org/calendar/symlst.htm) — both
+      tables, no book needed. Its traps (28 mansions where Janson numbers 27, three different things
+      called "yoga" on one page, HTTP-only with a broken certificate) and the 666-of-670 confirmation
+      against FPMT's own calendars are in [almanac-sources.md](almanac-sources.md). The
+      reader-facing account of the whole layer is [astrology.md](astrology.md).
+
       **A comparison target now exists, found 2026-09-10.** [zurkhai.app](https://zurkhai.app/)
       publishes element-animal days, lunar mansions, tithi and day-quality guidance day by day —
       the only second witness to this attribute layer found so far, FPMT's `FD-*`/`UD-*` codes
       being the first. Use it to check computed output once this ships, on the same footing as the
       date cross-checks; **do not seed data from it.** Recorded in
       [almanac-sources.md](almanac-sources.md)'s "Zurkhai" section
+
+- [ ] **Decide what `./astrology` does for Bhutan's month and lunar-day attributes.** Janson gives
+      no month-animal list for Bhutan, and `BHUTAN`/`BHUTAN_HENNING` are both exported and
+      day-validated, so the subpath has to do *something* when handed one. Three options, and only
+      one is admissible: refuse with a coded error naming the gap; return an absent or `null` field;
+      or silently fall back to Phugpa's list, which would hand one tradition's answers to another and
+      is the config-blind-cache failure one level up. **This is a pre-1.0.0 item and not a Beyond v1
+      one**, because the answer freezes into the surface at 1.0.0 and is breaking afterwards — the
+      *sourcing* half is filed separately under Beyond v1, where it has no deadline. The intended
+      answer is recorded in [astrology.md](astrology.md); what is not yet decided is the exact shape,
+      which the `./astrology` implementation plan settles
 
 - [ ] **Establish Zurkhai's calculation lineage, or record that it cannot be established.** Its
       public pages state "the Phugpa school" and name no scholar, almanac edition or repository, so
@@ -444,6 +471,44 @@ edits, and moving files once after they have landed is one link-fixing commit in
       justifies a shipped `TCT_SPAN_TOO_WIDE`, and the `monthsFor` cache. The first turned out to be
       wrong — about 270 ms, not the 190 ms the docblock claimed — and was corrected. Harness in
       `bench/RESULTS.md`; **no figure may be quoted without it**
+- [ ] **Announce `./astrology` in the README, and decide whether `docs/astrology.md` ships —
+      both *after* the subpath's code lands, not before.** Scoped 2026-09-11 when Andreas asked
+      whether to do it early, on the reasoning that the module will be built before 1.0.0 anyway.
+      That reasoning is sound; the sequencing argument is not about it.
+
+      **Neither change is the one-liner it looks like.**
+
+      The pitch edit is not one word. The API section gains a whole
+      `### tibetan-calendar-temporal/astrology` section at the same moment, and the rule 13 reshape
+      below is part of the same change. Adding "astrological attributes" to the capability list
+      while the API section documents nothing leaves the README internally inconsistent for however
+      long implementation takes — and its first 40 rendered lines are the one part of the file
+      carrying a rule, per
+      [decisions/2026-08-23-readme-is-the-landing-page.md](decisions/2026-08-23-readme-is-the-landing-page.md).
+
+      **Adding `docs/astrology.md` to `package.json#files` would fail `test:pack` today**, and it is
+      four changes rather than one: add it to `files`; add it to `scripts/check-pack.mjs`, which
+      hardcodes its own `shippedDocs` list; convert its repo-only relative links to absolute URLs —
+      **six of its seven**, since only [how-it-is-calculated.md](how-it-is-calculated.md) is in the
+      tarball; and delete the "Repo-only" banner the document currently carries. `check-pack` throws
+      on a shipped doc that links outside the tarball, which is what makes this a hard failure rather
+      than a cosmetic one.
+
+      **And whether it ships at all is an open decision, not a formality.** Three documents ship
+      today, each for a stated reason; a fourth is not automatic. The argument for is that a consumer
+      using the subpath needs to know what the attributes mean and where they come from, which a
+      module docblock cannot carry. The argument against is the real cost: the file is written as a
+      **scope document** — status banner, deliberately no API examples — so shipping it means
+      rewriting it in the consumer register with **asserted** examples, because a shipped document's
+      examples are contract and `test/guide.test.ts` asserts every one that states a value. Budget
+      the rewrite or do not ship it; do not ship it unrewritten.
+
+      Also in the same change: **rule 13 in `scripts/check-conventions.mjs` breaks in shape, not in
+      size.** It hardcodes `TYPE_BARRELS` as a two-element array and splits the README on a single
+      `OBSERVANCES_HEADING` boundary, and one boundary cannot separate three sections. It fails
+      **silently** — an unextended rule 13 keeps passing while checking nothing about the new barrel
+      — so prove the reshape by mutation rather than by the suite going green
+
 - [ ] **On the 1.0.0 render, confirm npm rewrites the README's relative links** against
       `repository`. If it does not, the `docs/` links in the README need absolute URLs — the two
       shipped documents are unaffected either way, since they are in the tarball
@@ -940,6 +1005,21 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   computational character (iterative vs. closed-form), different validation burden, different and
   narrower audience. If it ever ships, it gets its own subpath, its own name, and its own
   brainstorm — not a module bolted onto this one.
+
+- **Source Bhutan's month animals and elements.** Janson gives month-animal lists for Phugpa and
+  Tsurphu and none for Bhutan, so `./astrology` refuses that attribute for a tradition this package
+  otherwise exports and validates day by day. A search on 2026-09-10 found nothing usable —
+  BhutanWiki and the general Bhutan calendar pages cover only the *year* cycle — and the negative
+  result is recorded in [validation-sources.md](validation-sources.md) so it is not re-walked.
+
+  **It is a deferral rather than a dead end, and the reason is specific.** The source that would
+  settle it is the Royal Government's *lo-tho*, which this repository already holds and already
+  documents as a scanned PDF with **no text layer** — the reason `test/fixtures/rgob.ts` is
+  hand-curated by exception. So the answer is probably in a document we have, behind exactly the OCR
+  that exception exists to forbid. The realistic routes are a human reading of the relevant pages,
+  or a Bhutanese almanac published with machine-readable text; neither is urgent, because the
+  refusal is honest in the meantime. The API-shape half of this question is **not** here — it sits
+  in the Pre-v1.0.0 checklist, because it freezes at 1.0.0.
 
 - **An interactive almanac page, not a prose docs site.** A prose documentation site would duplicate
   [guide.md](guide.md), and its examples would sit outside the assertion machinery that makes the
