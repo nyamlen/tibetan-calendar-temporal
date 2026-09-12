@@ -245,7 +245,10 @@ narrower still.
 | Lunar mansion, day by day | 2022–2025, Phugpa only | FPMT's day-quality codes | the mansion arithmetic, at **97.6%** — see below |
 | Yoga favorability, day by day | 2022–2025, and tradition-free | FPMT's `FD-`/`UD-` prefixes | the favorability table, at **99.7%** — it reads FPMT's own pair letters, so the mansion residual cannot reach it, and the four disagreements are days FPMT contradicts itself on |
 
-**That 97.6% is a characterised figure, not a tolerance.** 1,424 of 1,459 days agree. Of the 35 that
+**That 97.6% is a characterised figure, not a tolerance.** 1,424 of 1,459 days agree — a **2.4%**
+residual, re-measured 2026-09-12 rather than carried over: the plan's working figure of 3.9% predated
+both the doubled-day rule and a leap-month fix in the cross-check itself, and two files had inherited
+it. **All 31 doubled-first days now agree**, where before the doubled-day rule 19 of them did not. Of the 35 that
 do not, 83% sit within 15% of a mansion boundary against 29% of the days that agree — Janson states
 the cause himself, since `moon_calendar_day` treats the moon as covering one full circle in 27 days,
 so his approximation and Men-Tsee-Khang's computation can straddle an edge. Six days in four years
@@ -262,8 +265,11 @@ for a Dragon month, which is what he says a Dragon month opens with, from a form
 independently of that sentence.
 
 **Quote the right window.** A claim about a Tibetan date has six years behind it, about an observance
-four, and about a mansion four *for Phugpa alone* — Bhutan's attributes have no external check at
-all, and no attribute of any tradition has one, since every row above is Janson against Janson.
+four, and about a mansion four *for Phugpa alone* — Bhutan's attributes have no external check at all.
+Of the rows above, the three **cycle** rows are Janson against Janson and are not external
+corroboration; only the **mansion** and the **yoga's favorability** have an outside witness, and that
+witness is FPMT in both cases. An earlier draft of this sentence said every row was Janson against
+Janson, which contradicted the table two lines above it.
 
 Those are all **Phugpa**. Bhutan has a window of its own, and a wider one:
 

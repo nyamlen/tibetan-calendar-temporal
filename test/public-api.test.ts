@@ -644,23 +644,59 @@ describe("observances API surface", () => {
  */
 const EXPECTED_ASTROLOGY_EXPORTS = [
 	"ELEMENTAL_YOGAS",
-	"MANSION_COUNT",
-	"MANSION_ELEMENTS",
 	"attributesFor",
 	"calendarDayAttributesFor",
 	"elementalYoga",
 	"elementalYogaFor",
 	"lunarDayAttributesFor",
-	"mansionElement",
 	"monthAttributesFor",
 	"yearAttributesFor",
 ] as const;
+
+/**
+ * What each name is, not only that it exists.
+ *
+ * @remarks
+ * The root surface has asserted kinds from the start; this subpath listed names only until a code
+ * review pointed out the gap on 2026-09-12. A function silently becoming an object — a barrel line
+ * changed from `export { f }` to `export { f as default }`, say — passes a name list and fails this.
+ */
+const ASTROLOGY_KINDS: Record<string, string> = {
+	ELEMENTAL_YOGAS: "object",
+	attributesFor: "function",
+	calendarDayAttributesFor: "function",
+	elementalYoga: "function",
+	elementalYogaFor: "function",
+	lunarDayAttributesFor: "function",
+	monthAttributesFor: "function",
+	yearAttributesFor: "function",
+};
 
 describe("astrology API surface", () => {
 	const day = Temporal.PlainDate.from("2026-09-01");
 
 	it("exports exactly the documented names", () => {
 		expect(Object.keys(astrology).sort()).toEqual([...EXPECTED_ASTROLOGY_EXPORTS]);
+	});
+
+	it("exports each of them as the kind it is documented to be", () => {
+		const bad: string[] = [];
+		for (const [name, kind] of Object.entries(ASTROLOGY_KINDS)) {
+			const actual = typeof (astrology as unknown as Record<string, unknown>)[name];
+			if (actual !== kind) bad.push(`${name}: ${actual}, expected ${kind}`);
+		}
+		expect(bad).toEqual([]);
+		expect(Object.keys(ASTROLOGY_KINDS).sort()).toEqual([...EXPECTED_ASTROLOGY_EXPORTS]);
+	});
+
+	it("does not export the mansion, which would be a dead name", () => {
+		// `mansionElement` and `MANSION_ELEMENTS` shipped briefly and were withdrawn the same day: with
+		// no exported way to learn today's mansion NUMBER, a consumer could ask what element mansion 17
+		// carries and never learn that today is mansion 17. Exposing the mansion later is additive;
+		// removing a dead export after 1.0.0 is not.
+		for (const name of ["mansionElement", "MANSION_ELEMENTS", "MANSION_COUNT", "mansionNumber"]) {
+			expect(name in astrology, name).toBe(false);
+		}
 	});
 
 	it("keeps every name off the root export", () => {

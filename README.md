@@ -500,7 +500,7 @@ years, and against what, is in
 
 ## API
 
-The complete surface, across both entry points. Everything is a pure function over plain objects —
+The complete surface, across all three entry points. Everything is a pure function over plain objects —
 same input, same output, no side effects. Wherever a `config?` parameter appears below it is a
 `TraditionConfig` defaulting to `PHUGPA`. Four take none, because naming or renumbering a date needs
 no calendar: `formatTibetanDate`, `parseTibetanDate`, `julianDayFromIso` and `tibetanWeekday`.
@@ -699,7 +699,6 @@ A separate subpath, like `./observances`. `options` is `{ tradition? }`, default
 | `elementalYogaFor` | `(date: Temporal.PlainDate \| TibetanDate, options?) => ElementalYoga` | The one attribute needing the moon's real position |
 | `elementalYoga` | `(a: TibetanWeekdayElement, b: TibetanWeekdayElement) => ElementalYoga` | The pair alone, order-insensitive |
 | `ELEMENTAL_YOGAS` | | The ten, frozen: Henning's names, FPMT's favorability |
-| `MANSION_ELEMENTS`, `mansionElement`, `MANSION_COUNT` | | The 27 mansions' elements, Henning's table |
 
 Type-only exports: `DayAttributes`, `YearAttributes`, `MonthAttributes`, `LunarDayAttributes`,
 `CalendarDayAttributes`, `ElementalYoga`, `TibetanTrigram`, `AstrologyQueryOptions`.

@@ -207,7 +207,7 @@ more than a hundred occurrences in the same source. `test/validation/fpmt-observ
 asserts that ratio rather than merely excusing the four, so a genuine table error cannot hide in the
 allowlist.
 
-It also reaches where the mansion check cannot: it reads FPMT's own two letters, so the 3.9% mansion
+It also reaches where the mansion check cannot: it reads FPMT's own two letters, so the 2.4% mansion
 residual has no bearing on it, and the favorability table is the one piece of this layer with an
 external agreement better than 99.7%.
 

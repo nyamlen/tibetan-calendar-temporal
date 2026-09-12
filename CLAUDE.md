@@ -357,7 +357,7 @@ derivation; in `docs/` they are just noise.
   `TibetanWeekdayName` and `TibetanYearName` named in field positions), `docs/guide.md` (4), and any
   docblock naming it. This figure read 7 until 2026-08-26, 10 until 2026-08-27, and moved twice on
   2026-09-12 — 13 when `TraditionNaming` and `TraditionMonthNaming` gained shapes, then 20 with the
-  eight `./astrology` ones; it moves whenever
+  seven `./astrology` ones; it moves whenever
   a shape is added, so **re-count it rather than trusting the number written here** — the count is
   `grep -c '^interface ' docs/architecture.md`.
 

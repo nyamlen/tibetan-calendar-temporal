@@ -278,6 +278,12 @@ const TYPE_BARRELS = [
  * Returns `null` if any declared heading is missing or out of order, because assigning a list to a
  * section would then be guesswork — and a rule that guesses is worse than one that says it cannot
  * tell.
+ *
+ * **The two refusals are not independent, and the self-test says so rather than implying otherwise.**
+ * A missing heading gives `indexOf` of -1, which is below the root's 0, so the *ordering* comparison
+ * catches it and the `=== -1` arm never fires while the first entry is the root with no heading. That
+ * arm is kept as the statement of intent — and proved unreachable by mutation rather than assumed
+ * reachable, which is how a self-test case came to pass for the wrong reason on 2026-09-12.
  */
 function typeSectionRanges(readme) {
 	const starts = TYPE_BARRELS.map((barrel) =>
@@ -551,6 +557,43 @@ function selfTest() {
 		documentedTypeLists("Type-only exports: `Alpha`.\n\nType-only exports: `Beta`.").length,
 		2,
 		"both entry points document a list, so the reader must find both. Finding one would silently leave ./observances unguarded.",
+	);
+	// `typeSectionRanges` is the newest and most intricate predicate here, and it had NO case at all
+	// until a code review pointed out that its own docblock claimed otherwise — a false claim inside a
+	// guard being worse than a missing one. Four cases, because the two failure modes differ in kind:
+	// a heading that is absent, and headings present in the wrong order. Both must return null rather
+	// than a plausible range, since a misassigned list means the rule compares a barrel against
+	// another entry point's list and passes.
+	const headings = TYPE_BARRELS.filter((barrel) => barrel.heading).map((barrel) => barrel.heading);
+	const readmeLike = (order) =>
+		`Type-only exports: \`Root\`.\n\n${order
+			.map((heading) => `${heading}\n\nType-only exports: \`X\`.\n`)
+			.join("\n")}`;
+	check(
+		"typeSectionRanges",
+		typeSectionRanges(readmeLike(headings)) === null,
+		false,
+		"with every heading present in the declared order, the ranges must resolve.",
+	);
+	check(
+		"typeSectionRanges",
+		(typeSectionRanges(readmeLike(headings)) ?? []).every(
+			(range, index, all) => index === 0 || (all[index - 1]?.from ?? 0) < range.from,
+		),
+		true,
+		"the resolved ranges must ascend, or a list would be assigned to the wrong entry point.",
+	);
+	check(
+		"typeSectionRanges",
+		typeSectionRanges(readmeLike([...headings].reverse())) === null,
+		true,
+		"headings out of the declared order must refuse rather than guess: the ranges would otherwise run backwards and every list would be compared against the wrong barrel.",
+	);
+	check(
+		"typeSectionRanges",
+		typeSectionRanges(readmeLike(headings.slice(1))) === null,
+		true,
+		"a missing heading must refuse, or one entry point would go unguarded — the state rule 13 exists to end. Note which arm refuses: the ORDERING comparison, because indexOf returns -1 and -1 is below the root's 0. Mutating the `=== -1` arm away leaves this case passing, which was checked; that arm is therefore defensive rather than load-bearing, and is kept as the statement of intent for a future TYPE_BARRELS whose first entry is not the root.",
 	);
 
 	if (broken.length > 0) {

@@ -221,7 +221,7 @@ function mansionDisagreements() {
  * Janson ranks none of the ten and Henning's page carries the names rather than the judgement, so
  * this is FPMT against our transcription of FPMT, with nothing else to appeal to. What makes it a
  * real check rather than a tautology is that it reads **FPMT's own two letters** and not our mansion
- * arithmetic: the 3.9% mansion residual cannot reach it, so a disagreement here is a disagreement
+ * arithmetic: the 2.4% mansion residual cannot reach it, so a disagreement here is a disagreement
  * about the table and nothing else.
  *
  * Four days disagree, and all four are **single-day prefix flips**: each names a pair that FPMT

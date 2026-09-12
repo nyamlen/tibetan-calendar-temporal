@@ -8,6 +8,8 @@ import {
 	yearAttributesFor,
 } from "../../src/astrology/index.js";
 import { isoToTibetan, tibetanDateExists } from "../../src/computation/conversion.js";
+import { weekdayNameFor } from "../../src/cycles.js";
+import { BHUTAN } from "../../src/traditions/bhutan.js";
 import { PHUGPA, PHUGPA_HENNING } from "../../src/traditions/phugpa.js";
 import { thrownBy } from "../support/thrown.js";
 
@@ -34,6 +36,17 @@ describe("the composition on a doubled date", () => {
 		expect(first.year).toEqual(second.year);
 		expect(first.month).toEqual(second.month);
 		expect(first.lunarDay).toEqual(second.lunarDay);
+	});
+
+	it("gives each half the yoga its own calendar day earns, by value", () => {
+		// **Pinned by VALUE, not by difference, and that is the whole point of this test.** Asserting
+		// only that the two halves differ cannot fail for the bug it is meant to catch: their weekday
+		// elements differ either way, so the inequality holds even when `attributesFor` forgets to pass
+		// `isLeapDay` down to the mansion. A code review proved that on 2026-09-12 by deleting the flag
+		// and watching all 990 tests stay green, while 19 of 31 doubled-first days changed answer —
+		// including this one, from maraṇa to amṛta.
+		expect(first.yoga.sanskrit).toBe("maraṇa");
+		expect(second.yoga.sanskrit).toBe("pratikūla");
 	});
 
 	it("differs on the calendar day and the yoga, because there are two calendar days", () => {
@@ -133,5 +146,57 @@ describe("the year entry point", () => {
 		expect(
 			thrownBy(() => attributesFor(iso("+012000-01-01"), { tradition: PHUGPA_HENNING }))?.code,
 		).toBe("TCT_OUTSIDE_EXACT_RANGE");
+	});
+});
+describe("the yoga's weekday element is tradition-free", () => {
+	/**
+	 * Janson gives the yoga's weekday element in one table, states Bhutan's name shift separately as a
+	 * naming feature, and never revisits the yoga for it. So the engine takes his printed table and
+	 * does not let `naming.weekdayOffset` propagate — following the shifted *name* would be an
+	 * inference nobody has published, and external validation here is Phugpa only.
+	 *
+	 * Until 2026-09-12 the offset did propagate, which gave Bhutan a different yoga on 12 of 14
+	 * consecutive days and made two shipped claims false: `TraditionNaming.weekdayOffset`'s "applies to
+	 * the name only", and `docs/astrology.md`'s "the yoga varies only through the mansion".
+	 */
+	it("pairs the unshifted weekday element even under a tradition that shifts the name", () => {
+		const bad: string[] = [];
+		let day = iso("2026-09-01");
+		for (let i = 0; i < 28; i++) {
+			const resolved = isoToTibetan(day, BHUTAN);
+			// Bhutan's own naming says one planet on; the yoga must still use the element Janson's
+			// weekday table gives for that weekday number.
+			const shifted = weekdayNameFor(resolved.tibetanWeekday, BHUTAN).element;
+			const unshifted = weekdayNameFor(resolved.tibetanWeekday, PHUGPA).element;
+			const yoga = elementalYogaFor(day, { tradition: BHUTAN });
+			if (!yoga.elements.includes(unshifted)) {
+				bad.push(`${day}: ${yoga.elements.join("+")} omits ${unshifted}`);
+			}
+			if (shifted !== unshifted && yoga.elements.every((e) => e === shifted)) {
+				bad.push(`${day}: both halves are Bhutan's shifted ${shifted}`);
+			}
+			day = day.add({ days: 1 });
+		}
+		expect(bad).toEqual([]);
+	});
+
+	it("still lets the mansion differ between traditions, which is the one thing that should", () => {
+		// docs/astrology.md: "the yoga varies only through the mansion". Bhutan's month count differs
+		// from Phugpa's, so some days genuinely disagree — the claim is about the *route*, not about
+		// the answers being identical. A suite asserting equality outright would be wrong.
+		let day = iso("2026-09-01");
+		let differing = 0;
+		for (let i = 0; i < 28; i++) {
+			if (
+				elementalYogaFor(day, { tradition: PHUGPA }).sanskrit !==
+				elementalYogaFor(day, { tradition: BHUTAN }).sanskrit
+			) {
+				differing++;
+			}
+			day = day.add({ days: 1 });
+		}
+		expect(differing).toBeGreaterThan(0);
+		// And far fewer than the weekday offset produced: it moved 12 of every 14.
+		expect(differing).toBeLessThan(14);
 	});
 });

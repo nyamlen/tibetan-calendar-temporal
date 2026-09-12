@@ -112,8 +112,8 @@ export function monthAnimalNumber(config: TraditionConfig, month: number): numbe
  * continuous                     (Y − 2     + ⌊(M − tigerMonth)/2⌋)      amod 5
  * ```
  *
- * With `tigerMonth = 11` the first two lines are Janson's Phugpa formula exactly, `⌊(M+1)/2⌋` and
- * `⌊(M−11)/2⌋`; with `tigerMonth = 1` the third is his Tsurphu formula exactly, `⌊(M−1)/2⌋`. **The
+ * With `tigerMonth = 11` the first two lines are Janson's Phugpa formula exactly — `⌊(M−11)/2⌋` for
+ * the `M ≥ tigerMonth` arm and `⌊(M+1)/2⌋` for the other, in that order; with `tigerMonth = 1` the third is his Tsurphu formula exactly, `⌊(M−1)/2⌋`. **The
  * two-arm split is not a year-boundary special case** — it is that Phugpa's Tiger month is month 11
  * of the *preceding* Gregorian year, so months 1–10 belong to a run that started last year and
  * months 11–12 open the next one.
@@ -174,6 +174,14 @@ export function monthAttributes(
 		gender: month % 2 === 1 ? "male" : "female",
 		element: at(ELEMENTS, monthElementNumber(config, year, month), "month element"),
 		// Janson: the number decreases by 1 each month, and so by 12 ≡ 3 (mod 9) each year.
+		//
+		// **The `3` is an absolute phase, and it is the one value here not derived from `tigerMonth`.**
+		// Janson states the formula for the version that numbers its months — Tsurphu, whose Tiger month
+		// is month 1 — so the anchor holds for `tigerMonth: 1` and is unverified for any other. No
+		// exported config sets `numbers: true`, so nothing reaches it today; the tests check the −1 a
+		// month and −3 a year steps, which hold at any phase, and **no source checks the phase itself**.
+		// Treat it the way `searchHalfWidth` is treated: if a config ever pairs `numbers: true` with a
+		// different Tiger month, derive the anchor rather than trusting this literal.
 		number: numbers ? amod(3 - (12 * year + month), 9) : null,
 	};
 }
