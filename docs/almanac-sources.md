@@ -186,8 +186,30 @@ The four exceptions are errors in FPMT's calendar rather than in the model:
 
 That these are *findable* is the strongest argument for computing the layer rather than
 transcribing it, and it is why the validation suite needs a known-source-errors allowlist rather
-than a tolerance — asserted exhaustive, so a fifth divergence fails loudly instead of quietly
+than a tolerance — asserted exhaustive, so a further divergence fails loudly instead of quietly
 joining a list of excuses.
+
+**A second, independent check found three more, 2026-09-12.** The check above tests the *pair*; this
+one tests the **prefix**. `FD-` means favorable and `UD-` unfavorable, so each of the ten pairs should
+always carry the same prefix — and in 2022–2025 four days break that, each contradicted by its own
+calendar:
+
+| Date | Printed | The same pair elsewhere in the same fixture |
+|---|---|---|
+| 2024-01-21 | `UD-FF` | `FD-FF` on 101 days — fire + fire is *pragati*, favorable |
+| 2024-02-27 | `UD-FA` | `FD-FA` on 172 days — fire + wind is *balayukta*, favorable |
+| 2024-03-18 | `FD-WA` | `UD-WA` on 161 days — water + wind is *pratikūla*, unfavorable |
+| 2024-09-12 | `UD-EW` | `FD-EW` on 196 days — earth + water is *yauvana*, favorable; the one already in the table above |
+
+**The asymmetry is what makes this a finding about FPMT rather than about us.** A favorability table
+with a row backwards would disagree on *every* day carrying that pair; each of these is outvoted by
+more than a hundred occurrences in the same source. `test/validation/fpmt-observances.test.ts`
+asserts that ratio rather than merely excusing the four, so a genuine table error cannot hide in the
+allowlist.
+
+It also reaches where the mansion check cannot: it reads FPMT's own two letters, so the 3.9% mansion
+residual has no bearing on it, and the favorability table is the one piece of this layer with an
+external agreement better than 99.7%.
 
 ### NWR and GCH: two codes the day lists do not explain
 

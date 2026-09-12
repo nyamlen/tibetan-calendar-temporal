@@ -243,6 +243,7 @@ narrower still.
 | Month attributes: element | 1900–2100, both element rules | Janson's **prose**, there being no printed table | that the Tiger month takes the son of the year's element, that each element runs two months, and that Phugpa restarts annually where Tsurphu does not |
 | Lunar-day attributes | every day of every month | Janson's **prose** | the opening animal of odd and even months, and the opening trigram and number he names for each month animal |
 | Lunar mansion, day by day | 2022–2025, Phugpa only | FPMT's day-quality codes | the mansion arithmetic, at **97.6%** — see below |
+| Yoga favorability, day by day | 2022–2025, and tradition-free | FPMT's `FD-`/`UD-` prefixes | the favorability table, at **99.7%** — it reads FPMT's own pair letters, so the mansion residual cannot reach it, and the four disagreements are days FPMT contradicts itself on |
 
 **That 97.6% is a characterised figure, not a tolerance.** 1,424 of 1,459 days agree. Of the 35 that
 do not, 83% sit within 15% of a mansion boundary against 29% of the days that agree — Janson states
