@@ -130,7 +130,7 @@ try {
 	// `exports` map rather than through this repository.
 	process.stdout.write(runNode(["consumer.mjs"], scratch));
 
-	console.log("\nThe packed tarball imports and computes correctly through both subpaths.");
+	console.log("\nThe packed tarball imports and computes correctly through all three subpaths.");
 } catch (error) {
 	if (error.stdout) process.stdout.write(error.stdout);
 	if (error.stderr) process.stderr.write(error.stderr);

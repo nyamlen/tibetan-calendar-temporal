@@ -36,8 +36,9 @@ This paper contains every formula needed. The implementation maps to its section
 - §8: `JD = ⌊true_date⌋`, its inverse, month boundaries and Losar
 - §9: Day of week
 
-§2–3 are notation and definitions rather than algorithms; §10–13 and App. D–E cover almanac,
-astrological and planetary data that this package does not compute.
+§2–3 are notation and definitions rather than algorithms; §10–13 and App. D cover almanac and
+planetary data this package does not compute. **App. E it does**, as of 2026-09-12, under the
+`./astrology` subpath — the attribute cycles, the lunar mansion and the elemental yoga.
 
 **Additional academic reference (2026):** "Possible Reforms of the Tibetan Lunisolar Calendar" (arXiv:2604.01233) — documents seasonal drift. Not needed for implementation but relevant context.
 
@@ -125,6 +126,16 @@ tibetan-calendar-temporal/
 │   │   ├── index.ts                # getObservances, observancesOn (Layer 4)
 │   │   ├── types.ts                # ObservanceRule, ObservanceConfig, Observance
 │   │   └── default-observances.ts  # DEFAULT_OBSERVANCES — FPMT's published rules, each cited
+│   ├── astrology/                  # Janson's Appendix E (Layer 4) — one concern per file
+│   │   ├── index.ts                # the six *For entry points and the composition
+│   │   ├── types.ts                # DayAttributes, AstrologyQueryOptions — the surface's own
+│   │   ├── year.ts                 # the year's five elements and three numbers
+│   │   ├── month.ts                # the month's animal, gender, element; Tsurphu's number
+│   │   ├── lunar-day.ts            # the lunar day's animal, element, trigram, number
+│   │   ├── calendar-day.ts         # congruences on the Julian day; no tradition
+│   │   ├── mansions.ts             # trueSun, moonCalendarDay, mansionNumber — the astronomy
+│   │   ├── mansion-elements.ts     # HENNING's 28 reduced to Janson's 27, with the drop asserted
+│   │   └── yoga.ts                 # the ten pairings; names Henning's, favorability FPMT's
 │   ├── errors.ts                   # Error codes, and the constructors that attach them
 │   ├── format.ts                   # formatTibetanDate, monthCodeOf — the canonical string form
 │   ├── parse.ts                    # parseTibetanDate — its inverse
@@ -163,19 +174,27 @@ tradition. See
   "type": "module",
   "exports": {
     ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
-    "./observances": { "types": "./dist/observances/index.d.ts", "default": "./dist/observances/index.js" }
+    "./observances": { "types": "./dist/observances/index.d.ts", "default": "./dist/observances/index.js" },
+    "./astrology": { "types": "./dist/astrology/index.d.ts", "default": "./dist/astrology/index.js" }
   },
   "sideEffects": false
 }
 ```
 
-Both subpaths are declared. `./observances` was added in Phase 3, when `src/observances/` came to
-exist — an export pointing at a file the build cannot produce breaks `npm pack`, so the entry and
-the directory land together. `npm pack --dry-run` is the check.
+All three are declared. `./observances` was added in Phase 3 and `./astrology` on 2026-09-12, each
+when its directory came to exist — an export pointing at a file the build cannot produce breaks
+`npm pack`, so the entry and the directory land together. `npm pack --dry-run` is the check, and
+`npm run test:pack` imports all three as a consumer would.
 
 The split is not packaging convenience. Everything on `.` makes a falsifiable claim, checkable
 against Janson or an almanac; `./observances` holds conventions that published sources disagree
 about. See [decisions/2026-08-12-observance-policy.md](decisions/2026-08-12-observance-policy.md).
+
+`./astrology` is a third kind again, and the reason it is not on the root is **sourcing rather than
+size**. Its pieces do not carry equal weight: Janson gives every cycle and the mansion arithmetic,
+Henning gives the element each mansion carries and the ten yoga names — which Janson cites and does
+not derive — and **favorability is in neither**, FPMT being its only witness. A subpath keeps that
+boundary visible at the import line. See [astrology.md](astrology.md).
 
 ## Core Types
 
@@ -302,6 +321,63 @@ interface ObservanceConfig {
   doubledDay: 'first' | 'second' | 'both';
   skippedDay: 'preceding' | 'omit';
   leapMonth: 'regular' | 'leap' | 'both';
+}
+
+interface YearAttributes {
+  cyclePosition: number;   // 1-60 in the Chinese cycle
+  animal: TibetanAnimal;
+  power: TibetanElement;   // the one the year's NAME carries
+  life: TibetanElement;    // srog, fixed by the animal
+  body: TibetanElement;    // lus, on a 30-year cycle
+  fortune: TibetanElement; // klung rta; never earth
+  spirit: TibetanElement;  // bla, the element preceding life
+  central: number;         // 1-9
+  lifeNumber: number;      // 1-9
+  powerNumber: number;     // 1-9
+}
+
+interface MonthAttributes {
+  animal: TibetanAnimal;
+  gender: TibetanGender;
+  element: TibetanElement;
+  number: number | null;   // null where the tradition does not number months — Phugpa
+}
+
+interface LunarDayAttributes {
+  animal: TibetanAnimal;
+  element: TibetanElement;
+  trigram: TibetanTrigram;
+  number: number;          // 1-9
+}
+
+interface CalendarDayAttributes {
+  element: TibetanElement;
+  gender: TibetanGender;
+  animal: TibetanAnimal;
+  trigram: TibetanTrigram;
+  number: number;          // 1-9
+  elements: Pick<YearAttributes, 'life' | 'body' | 'fortune' | 'spirit'>;
+}
+
+interface ElementalYoga {
+  elements: readonly [TibetanWeekdayElement, TibetanWeekdayElement];  // as Henning prints the pair
+  sanskrit: string;        // Henning's IAST
+  wylie: string;           // Henning's Wylie; he prints no Tibetan script
+  english: string;
+  favorable: boolean;      // FPMT's claim, in neither Janson nor Henning
+}
+
+interface DayAttributes {
+  date: TibetanDate;
+  year: YearAttributes;
+  month: MonthAttributes | null;       // null for the Bhutanese configs
+  lunarDay: LunarDayAttributes | null; // likewise
+  calendarDay: CalendarDayAttributes;
+  yoga: ElementalYoga;
+}
+
+interface AstrologyQueryOptions {
+  tradition?: TraditionConfig;
 }
 ```
 

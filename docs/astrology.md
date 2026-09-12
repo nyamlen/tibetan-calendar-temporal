@@ -6,16 +6,18 @@ trigram and number it carries, and whether the day is held favorable.
 Written for someone building an almanac view: the reader who has a date already and needs to know
 what else the day is held to be.
 
-**Status: partly built, and nothing is exported yet.**
-As of 2026-09-12 the engine computes the year, month, lunar-day and calendar-day attributes, the
-lunar mansion, and the element each mansion carries — and it refuses the month and lunar-day
-attributes for the Bhutanese configs, as the gap below describes. The yoga's names and favorability
-and the `./astrology` barrel itself are still to come, so **no consumer can reach any of this**; see
-[roadmap.md](roadmap.md)'s Pre-v1.0.0 checklist.
+**Status: built and exported as of 2026-09-12.**
+The whole layer is on the `tibetan-calendar-temporal/astrology` subpath: the year, month, lunar-day
+and calendar-day attributes, the lunar mansion, the element each mansion carries, and the elemental
+yoga with its names and favorability. The month and lunar-day attributes **refuse** for the Bhutanese
+configs, as the gap below describes.
 This document explains the *system*, which is stable knowledge independent of our implementation.
-It deliberately states **no API examples** — no function names, no call signatures — because a
-shipped example is contract here (see [../CLAUDE.md](../CLAUDE.md)) and there is nothing yet to hold
-to it. Those arrive with the module.
+It deliberately states **no API examples** — no function names, no call signatures — and that is now a
+division of labour rather than a wait: the consumer account lives in
+[guide.md](guide.md#what-kind-of-day-it-is) and the signatures in the README, both of which ship to
+npm and have their values asserted. **This file deliberately does not ship** (decided 2026-09-12, in
+[roadmap.md](roadmap.md)): it is the account of the system and its sourcing, reached from the README
+by absolute URL, and keeping it repo-only is what lets it stay free of contract examples.
 
 **Worked examples of the system are a different thing and are included**, below.
 They commit no signature: they are facts from Janson and Henning, checkable against the sources

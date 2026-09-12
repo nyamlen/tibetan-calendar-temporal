@@ -22,6 +22,7 @@ const check = (condition, message) => {
 
 const api = await import("tibetan-calendar-temporal");
 const observances = await import("tibetan-calendar-temporal/observances");
+const astrology = await import("tibetan-calendar-temporal/astrology");
 
 // A date the README prints and `test/readme.test.ts` asserts against `src/`. Recomputing it here
 // proves the *built* arithmetic survived compilation, not just that the module loaded.
@@ -62,6 +63,25 @@ check(
 	`observances subpath returned ${duchen.length} duchen for 2026, wanted 4`,
 );
 
+// The third subpath, whose arithmetic nothing else in the packed build exercises: the mansion is the
+// only part of this package that needs the *true* solar and lunar longitudes, so a compilation that
+// damaged the integer scaling would show here and nowhere else.
+const attributes = astrology.attributesFor(Temporal.PlainDate.from("2026-09-01"));
+check(
+	attributes.year.power === "fire" && attributes.yoga.english === "death",
+	`astrology subpath gave ${attributes.year.power}/${attributes.yoga.english}, wanted fire/death`,
+);
+check(
+	attributes.month !== null && attributes.lunarDay !== null,
+	"astrology subpath reported Phugpa's month or lunar-day attributes as unsourced",
+);
+check(
+	astrology.attributesFor(Temporal.PlainDate.from("2026-09-01"), { tradition: api.BHUTAN })
+		.month === null,
+	"astrology subpath did not report BHUTAN's month attributes as unsourced",
+);
+check(astrology.ELEMENTAL_YOGAS.length === 10, "the yoga table did not survive packing");
+
 // The error surface has to survive packing too: a consumer branching on `error.code` gets nothing
 // useful if the property was dropped somewhere between source and tarball.
 let thrown;
@@ -79,15 +99,21 @@ check(
 // The subpath must stay a subpath. If the root ever re-exports it, a date-only consumer starts
 // paying for the rule table, which is the reason for the split.
 check(!("getObservances" in api), "getObservances leaked onto the root export");
+check(!("attributesFor" in api), "attributesFor leaked onto the root export");
 
 // Where the `exports` map actually sent us. Asserted rather than assumed: a map pointing at `src/`
 // or at a path outside `files` resolves fine in a checkout and 404s once published.
 const entry = fileURLToPath(import.meta.resolve("tibetan-calendar-temporal"));
 const subpath = fileURLToPath(import.meta.resolve("tibetan-calendar-temporal/observances"));
+const astrologyPath = fileURLToPath(import.meta.resolve("tibetan-calendar-temporal/astrology"));
 check(entry.endsWith(join("dist", "index.js")), `root export resolved to ${entry}`);
 check(
 	subpath.endsWith(join("dist", "observances", "index.js")),
 	`observances subpath resolved to ${subpath}`,
+);
+check(
+	astrologyPath.endsWith(join("dist", "astrology", "index.js")),
+	`astrology subpath resolved to ${astrologyPath}`,
 );
 
 // Declarations ship alongside and the `types` condition points at them. A missing .d.ts is
@@ -97,7 +123,11 @@ check(
 // the manifest is deliberately not in the `exports` map, so asking for it by subpath throws
 // ERR_PACKAGE_PATH_NOT_EXPORTED. That is the map behaving correctly.
 const root = dirname(dirname(entry));
-for (const declaration of ["dist/index.d.ts", "dist/observances/index.d.ts"]) {
+for (const declaration of [
+	"dist/index.d.ts",
+	"dist/observances/index.d.ts",
+	"dist/astrology/index.d.ts",
+]) {
 	check(existsSync(join(root, declaration)), `${declaration} is missing from the tarball`);
 }
 
@@ -107,4 +137,4 @@ if (problems.length > 0) {
 	process.exit(1);
 }
 
-console.log("  ok  both subpaths import, compute and carry error codes");
+console.log("  ok  all three subpaths import, compute and carry error codes");

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { attributesFor, monthAttributesFor } from "../src/astrology/index.js";
 import {
 	isoToTibetan,
 	julianDayFromIso,
@@ -11,6 +12,7 @@ import { formatTibetanDate } from "../src/format.js";
 import { monthsFor } from "../src/months.js";
 import { DEFAULT_OBSERVANCES, getObservances, observancesOn } from "../src/observances/index.js";
 import { parseTibetanDate } from "../src/parse.js";
+import { BHUTAN } from "../src/traditions/bhutan.js";
 import { SkippedDayError } from "../src/types.js";
 
 const iso = (s: string) => Temporal.PlainDate.from(s);
@@ -199,5 +201,46 @@ describe("guide examples", () => {
 		expect(thrown).toBeInstanceOf(SkippedDayError);
 		expect((thrown as { code?: string }).code).toBe("TCT_SKIPPED_DAY");
 		expect((thrown as SkippedDayError).requested).toEqual({ year: 2150, month: 12, day: 29 });
+	});
+	/**
+	 * The `./astrology` section, added 2026-09-12. Every value it prints, asserted — `docs/guide.md`
+	 * ships in the tarball, so its examples are contract exactly as the README's are.
+	 */
+	describe("what kind of day it is", () => {
+		const day = attributesFor(iso("2026-09-01"));
+
+		it("states the year's power and body elements correctly", () => {
+			expect(day.year.power).toBe("fire");
+			expect(day.year.body).toBe("water");
+		});
+
+		it("states the yoga and its favorability correctly", () => {
+			expect(day.yoga.sanskrit).toBe("maraṇa");
+			expect(day.yoga.favorable).toBe(false);
+		});
+
+		it("is right that the lunar day and the calendar day disagree", () => {
+			expect(day.lunarDay?.animal).not.toBe(day.calendarDay.animal);
+		});
+
+		it("is right about what a doubled date shares and what it does not", () => {
+			const first = attributesFor(iso("2024-05-15"));
+			const second = attributesFor(iso("2024-05-16"));
+			expect(first.lunarDay).toEqual(second.lunarDay);
+			expect(first.month).toEqual(second.month);
+			expect(first.calendarDay).not.toEqual(second.calendarDay);
+			expect(first.yoga).not.toBe(second.yoga);
+		});
+
+		it("is right that Bhutan reports null and the primitive throws", () => {
+			expect(attributesFor(iso("2026-09-01"), { tradition: BHUTAN }).month).toBeNull();
+			let thrown: unknown;
+			try {
+				monthAttributesFor({ year: 2153, month: 1 }, { tradition: BHUTAN });
+			} catch (error) {
+				thrown = error;
+			}
+			expect((thrown as { code?: string }).code).toBe("TCT_ATTRIBUTE_NOT_SOURCED");
+		});
 	});
 });

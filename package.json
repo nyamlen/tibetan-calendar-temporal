@@ -36,6 +36,10 @@
     "./observances": {
       "types": "./dist/observances/index.d.ts",
       "default": "./dist/observances/index.js"
+    },
+    "./astrology": {
+      "types": "./dist/astrology/index.d.ts",
+      "default": "./dist/astrology/index.js"
     }
   },
   "files": [

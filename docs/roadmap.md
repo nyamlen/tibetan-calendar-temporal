@@ -330,8 +330,20 @@ edits, and moving files once after they have landed is one link-fixing commit in
       **Deferred, explicitly, not left ambiguous:** which config's `doubledDay`/`skippedDay`/
       `leapMonth` wins when two configs in `from` disagree. Decide this when the helper is actually
       designed, not before
-- [ ] **New subpath `./astrology`, computing Janson's Appendix E in full — placement, scope and
-      naming decided 2026-09-03; partly built as of 2026-09-12.**
+- [x] **New subpath `./astrology`, computing Janson's Appendix E in full — placement, scope and
+      naming decided 2026-09-03; built 2026-09-12.**
+
+      **Shipped 2026-09-12.** Six entry points plus the frozen yoga table, on
+      `tibetan-calendar-temporal/astrology`: the year's five elements and three numbers, the month's
+      and lunar day's labels, the calendar day's own, the lunar mansion, the elemental yoga, and
+      `attributesFor` composing the lot. Appendix D (planets) stays out of scope, as the Beyond v1
+      entry below records.
+
+      **Two things it does not claim.** The mansion agrees with FPMT on **97.6%** of 1,459 days and the
+      residual is characterised rather than excused — six days in four years have no explanation, and
+      `docs/testing.md` says so. And nothing here is corroborated the way the *dates* are: every
+      attribute check is Janson against Janson, except the mansion and the yoga's favorability, which
+      are FPMT.
 
       **Placement — settled, and it took three tries.** Not `nyamlen` (Andreas: the backend stays
       general-purpose open source; `nyamlen` is a front-end only). Not a sibling npm package
@@ -431,7 +443,7 @@ edits, and moving files once after they have landed is one link-fixing commit in
       date cross-checks; **do not seed data from it.** Recorded in
       [almanac-sources.md](almanac-sources.md)'s "Zurkhai" section
 
-- [ ] **Decide what `./astrology` does for Bhutan's month and lunar-day attributes.** Janson gives
+- [x] **Decide what `./astrology` does for Bhutan's month and lunar-day attributes.** Janson gives
       no month-animal list for Bhutan, and `BHUTAN`/`BHUTAN_HENNING` are both exported and
       day-validated, so the subpath has to do *something* when handed one. Three options, and only
       one is admissible: refuse with a coded error naming the gap; return an absent or `null` field;
@@ -444,12 +456,13 @@ edits, and moving files once after they have landed is one link-fixing commit in
       re-confirmed against the real types when the module is built. The decision stands; the box
       closes when it has survived contact with code.
 
-      **Half of it has now survived that contact, 2026-09-12.** `monthAttributes` and
-      `lunarDayAttributes` exist and throw `TCT_ATTRIBUTE_NOT_SOURCED` for both Bhutanese configs,
-      which is tested from inside and proved by mutation; the refusal needs no "is this Bhutan" check,
-      because a tradition nobody has sourced simply carries no `naming.months` block. **The other half
-      is untested until the composition exists**: `attributesFor` returning `null` for those two
-      members is what freezes at 1.0.0, and it lands with the barrel. The box stays open until then.
+      **Closed 2026-09-12, both halves having survived contact with code.** `monthAttributesFor` and
+      `lunarDayAttributesFor` throw `TCT_ATTRIBUTE_NOT_SOURCED` for both Bhutanese configs, and
+      `attributesFor` reports `month: null` and `lunarDay: null` while still answering everything
+      tradition-free. The refusal needs no "is this Bhutan" check: a tradition nobody has sourced
+      simply carries no `naming.months` block. Pinned in `test/public-api.test.ts`,
+      `test/astrology/index.test.ts` and `test/guide.test.ts`, and the error code is now reachable from
+      the public surface rather than sitting in that suite's unreachable list.
 
       **The ruling:** `monthAttributesFor` and `lunarDayAttributesFor` throw
       a coded error for Bhutan; `attributesFor` returns `null` for those two members and answers the
@@ -503,10 +516,26 @@ edits, and moving files once after they have landed is one link-fixing commit in
       justifies a shipped `TCT_SPAN_TOO_WIDE`, and the `monthsFor` cache. The first turned out to be
       wrong — about 270 ms, not the 190 ms the docblock claimed — and was corrected. Harness in
       `bench/RESULTS.md`; **no figure may be quoted without it**
-- [ ] **Announce `./astrology` in the README, and decide whether `docs/astrology.md` ships —
+- [x] **Announce `./astrology` in the README, and decide whether `docs/astrology.md` ships —
       both *after* the subpath's code lands, not before.** Scoped 2026-09-11 when Andreas asked
       whether to do it early, on the reasoning that the module will be built before 1.0.0 anyway.
       That reasoning is sound; the sequencing argument is not about it.
+
+      **Done 2026-09-12, with the subpath.** The README gained a capability row, a usage section and a
+      `### tibetan-calendar-temporal/astrology` API section with its own type list, and
+      `test/readme.test.ts` asserts every value the usage block prints. Rule 13 was reshaped to three
+      barrels and proved by three mutants plus a control — and it immediately earned its keep by
+      rejecting two types **declared** in the barrel rather than re-exported, which is how
+      `src/astrology/types.ts` came to exist.
+
+      **D7 decided 2026-09-12: `docs/astrology.md` does NOT ship, and `docs/guide.md` carries the
+      consumer account instead.** The need is real — a consumer has to know what the attributes mean
+      and where each piece comes from — but it is met better by a document already written in the
+      consumer register and already covered by `test/guide.test.ts`, which now asserts the new
+      section's five values. Shipping the scope document would have meant rewriting it and converting
+      six of its seven relative links, for prose a reader reaches from the README by absolute URL
+      anyway. **This is reversible and deliberately taken rather than deferred**: adding a file to
+      `files` later is additive, so nothing freezes at 1.0.0 either way.
 
       **Neither change is the one-liner it looks like.**
 

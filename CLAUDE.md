@@ -320,17 +320,25 @@ derivation; in `docs/` they are just noise.
   when `RabjungName` and `SanskritName` came off the surface and the only thing that caught the
   now-false type list in `README.md` was a grep.
 
-  **`check:conventions` rule 13 now closes the list half**, comparing both barrels' `export type`
-  blocks against `README.md`'s two "Type-only exports" lists as sets, so ordering is free. **It does
+  **`check:conventions` rule 13 now closes the list half**, comparing all three barrels' `export type`
+  blocks against `README.md`'s three "Type-only exports" lists as sets, so ordering within a list is
+  free. It held **two** barrels and a single boundary string until 2026-09-12, and a third entry point
+  broke the *shape* rather than the list: one boundary cannot separate three sections, and the failure
+  was silent — the unextended rule kept passing while checking nothing about `./astrology`. Each
+  barrel now declares the README heading its section opens with, and the rule refuses to guess if a
+  heading is missing or out of order. **A type declared in a barrel is invisible to it**, because it
+  reads `export type { … } from` blocks: that is why `DayAttributes` and `AstrologyQueryOptions` live
+  in `src/astrology/types.ts` rather than in the barrel, and the rule is what found them there. **It does
   not close the prose half.** A sentence describing a type's *fields* is still unguarded: the same
   README called `rabjungFor`'s `name` "the Tibetan and Sanskrit name" for hours after the Sanskrit
   came off, and the grep that found the stale list named the removed types rather than the field, so
   it sailed past. Removing or renaming a type therefore still needs the hand sweep for everything
-  except the list — `docs/architecture.md`'s shapes (**13** exported types defined as interface
+  except the list — `docs/architecture.md`'s shapes (**20** exported types defined as interface
   blocks, plus `TibetanAnimal`, `TibetanElement`, `TibetanGender`, `TibetanName`, `TibetanWeekday`,
   `TibetanWeekdayName` and `TibetanYearName` named in field positions), `docs/guide.md` (4), and any
-  docblock naming it. This figure read 7 until 2026-08-26, 10 until 2026-08-27 and 11 until
-  2026-09-12, when `TraditionNaming` and `TraditionMonthNaming` gained shapes; it moves whenever
+  docblock naming it. This figure read 7 until 2026-08-26, 10 until 2026-08-27, and moved twice on
+  2026-09-12 — 13 when `TraditionNaming` and `TraditionMonthNaming` gained shapes, then 20 with the
+  eight `./astrology` ones; it moves whenever
   a shape is added, so **re-count it rather than trusting the number written here** — the count is
   `grep -c '^interface ' docs/architecture.md`.
 
@@ -570,7 +578,9 @@ The last two are the only checks that see the **published** package. Every test 
 match `exports` is invisible to the suite and fails only for a consumer, after publishing.
 `check:publish` runs publint and attw against the manifest; `test:pack` packs the tarball, installs
 it into a scratch directory **outside** the repository — a `node_modules` copy inside the working
-tree would be picked up by Biome, the link checker and Vitest — and imports both subpaths.
+tree would be picked up by Biome, the link checker and Vitest — and imports all three subpaths,
+asserting real values through each so a compilation that damaged the arithmetic is caught rather than
+just a module that loaded.
 
 `attw` runs under `--profile esm-only`. Its `node10` and `node16-cjs` rows are the deliberate
 design, not defects: there is no `main` field and no CJS build. Do not add `main` to make a row
