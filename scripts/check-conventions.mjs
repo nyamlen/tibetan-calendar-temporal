@@ -25,6 +25,12 @@ const root = execFileSync("git", ["rev-parse", "--show-toplevel"], {
 // brand-new file is checked before it is ever `git add`-ed. Mirrors check-links.mjs, and for
 // the same reason: a check that only sees tracked files reports "all clear" on the file most
 // likely to be wrong.
+//
+// --cached also lists a path the index holds and the disk does not — a deletion or a rename staged
+// on only one side. Handing that path to a rule crashed the whole run on `ENOENT` and discarded
+// every finding collected before it, so it is dropped here and reported instead. Reported, not
+// silently dropped: the index and the working tree disagreeing is a real state worth being told
+// about, and a clean CI checkout can never reach it.
 function tracked(...patterns) {
 	return execFileSync(
 		"git",
@@ -35,10 +41,33 @@ function tracked(...patterns) {
 		},
 	)
 		.split("\n")
-		.filter(Boolean);
+		.filter(Boolean)
+		.filter((file) => {
+			if (existsSync(resolve(root, file))) return true;
+			if (!missingFromDisk.has(file)) {
+				missingFromDisk.add(file);
+				fail(
+					"the index and the working tree agree",
+					file,
+					"is tracked but missing from disk, so no rule read it. Stage the deletion or rename (`git add -A` on the path), or restore the file.",
+				);
+			}
+			return false;
+		});
 }
 
-const read = (file) => readFileSync(resolve(root, file), "utf8");
+const missingFromDisk = new Set();
+
+function read(file) {
+	try {
+		return readFileSync(resolve(root, file), "utf8");
+	} catch (error) {
+		if (error?.code !== "ENOENT") throw error;
+		throw new Error(
+			`cannot read ${file}: it does not exist on disk. The checker expects it — restore it, or update the rule that names it.`,
+		);
+	}
+}
 
 const failures = [];
 function fail(rule, where, message) {
