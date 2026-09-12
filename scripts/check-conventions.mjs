@@ -438,6 +438,33 @@ function selfTest() {
 		"prose with no interpolation states nothing the generator computed.",
 	);
 
+	// --- Rule 12, the invariant. ---
+	//
+	// A template parser that silently matches nothing passes every document, and reads as coverage
+	// while proving nothing. Derived from the tree so it needs no foresight: every generator that
+	// writes a docs/*.md must yield at least one template, and at least one of those must contain an
+	// interpolation — otherwise there was nothing for the rule to examine in the first place.
+	//
+	// It sat inside Rule 7 with a `process.exit` of its own until 2026-09-12 — a third exit path that
+	// bypassed both this self-test's report and every finding already collected.
+	for (const { file, source } of generators ?? []) {
+		// A cruder, independent signal than DOCUMENT_TEMPLATE, on purpose: if that pattern ever stops
+		// matching, this still fires and the invariant reports it instead of both falling silent.
+		// This checker is not a generator, but its source quotes the pattern above, so a plain textual
+		// signal cannot tell the description from the thing described. Excluded by name for that reason
+		// alone -- it holds no writeFileSync call at all.
+		if (file.endsWith("check-conventions.mjs")) continue;
+		// A cruder, independent signal than DOCUMENT_TEMPLATE, on purpose: if that pattern ever stops
+		// matching, this still fires and the invariant reports it rather than both falling silent.
+		if (!source.includes('join(root, "docs"')) continue;
+		check(
+			"documentTemplates invariant",
+			documentTemplates(source).some((template) => template.includes("${")),
+			true,
+			`${file} writes a document, but no interpolated template was recovered from it. Rule 12 would then pass vacuously for every generator, which reads as coverage while proving nothing.`,
+		);
+	}
+
 	// --- Rule 7. ---
 	check(
 		"carriesNoData",
@@ -987,33 +1014,6 @@ function rule6() {
 // ---------------------------------------------------------------------------------------
 function rule7() {
 	const HAND_CURATED = new Set(["fpmt-holy-days.ts", "rgob.ts"]);
-
-	// --- Rule 12, the invariant. ---
-	//
-	// A template parser that silently matches nothing passes every document, and reads as coverage
-	// while proving nothing. Derived from the tree so it needs no foresight: every generator that
-	// writes a docs/*.md must yield at least one template, and at least one of those must contain an
-	// interpolation — otherwise there was nothing for the rule to examine in the first place.
-	for (const { file, source } of generators) {
-		// A cruder, independent signal than DOCUMENT_TEMPLATE, on purpose: if that pattern ever stops
-		// matching, this still fires and the invariant reports it instead of both falling silent.
-		// This checker is not a generator, but its source quotes the pattern above, so a plain textual
-		// signal cannot tell the description from the thing described. Excluded by name for that reason
-		// alone -- it holds no writeFileSync call at all.
-		if (file.endsWith("check-conventions.mjs")) continue;
-		// A cruder, independent signal than DOCUMENT_TEMPLATE, on purpose: if that pattern ever stops
-		// matching, this still fires and the invariant reports it rather than both falling silent.
-		if (!source.includes('join(root, "docs"')) continue;
-		const templates = documentTemplates(source);
-		if (templates.length === 0 || !templates.some((template) => template.includes("${"))) {
-			console.error(
-				`the checker itself is broken: ${file} writes a document, but no interpolated template was ` +
-					"recovered from it. Rule 12 would then pass vacuously for every generator, which reads as " +
-					"coverage while proving nothing.",
-			);
-			process.exit(1);
-		}
-	}
 
 	for (const fixture of tracked("test/fixtures/*.ts")) {
 		const name = basename(fixture, ".ts");
