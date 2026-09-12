@@ -72,9 +72,23 @@ validation test.** `test/computation/conversion.test.ts` imports `losar` and
 are named for the module and stay where they are. A sweep that moved them would be applying the rule
 to the wrong half of the suite.
 
-One honest edge case: `test/validation/observances.test.ts` imports `fpmt-observances` while its
-subject is the observance engine. It sits in `validation/` for historical reasons and is left there
-rather than moved on a guess — recorded here so the next reader knows it was seen, not missed.
+**That edge case was real, and it is now fixed.** `test/validation/observances.test.ts` imported
+`fpmt-observances` while its subject was the observance *engine*. It sat in `validation/` because
+`src/observances/` had nowhere else to put a module suite, and it needed a hand-written exemption to
+stop the naming rule firing on it — an exemption recorded here, until 2026-09-12, as "seen, not
+missed".
+
+The cause was the sanctioned directory set being **hardcoded** as four names, of which only
+`computation` was a module-suite mirror. A directory under `test/` now earns its place by
+**mirroring one under `src/`**, so the suite could be split along the seam it always had:
+`test/validation/fpmt-observances.test.ts` holds the half that checks our labels against FPMT's
+printed calendars, and `test/observances/index.test.ts` holds the half whose subject is the engine —
+resolution, the span cap, argument and config validation, freezing. The exemption is deleted, and
+the rule was proved by mutation to still fire with the allowlist empty, because an allowlist emptied
+by a refactor is a standard way to make the rule consulting it vacuous.
+
+`test/bench/` is still rejected, and now for a stated reason rather than by omission from a list:
+there is no `src/bench/`, and a benchmark is neither a module suite nor an external-source suite.
 
 **Fixture provenance.** `test/fixtures/losar.ts`, `sixty-year-cycle.ts` and `janson-epoch.ts` are
 **generated**, not hand-written: run `node scripts/extract-janson-fixtures.mjs <path-to-tibet.tex>`
