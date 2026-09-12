@@ -4,28 +4,19 @@ import {
 	losarFor,
 	tibetanDateExists,
 	tibetanToIso,
-} from "../../src/computation/conversion.js";
-import { deriveScaling } from "../../src/computation/scaling.js";
-import { getObservances } from "../../src/observances/index.js";
-import { PHUGPA, PHUGPA_HENNING } from "../../src/traditions/phugpa.js";
-import type { TraditionConfig } from "../../src/traditions/types.js";
-import { assertTraditionConfig } from "../../src/traditions/validate.js";
+} from "../src/computation/conversion.js";
+import { deriveScaling } from "../src/computation/scaling.js";
+import { getObservances } from "../src/observances/index.js";
+import { PHUGPA, PHUGPA_HENNING } from "../src/traditions/phugpa.js";
+import type { TraditionConfig } from "../src/traditions/types.js";
+import { assertTraditionConfig } from "../src/traditions/validate.js";
+import { thrownBy } from "./support/thrown.js";
 
 const iso = (s: string) => Temporal.PlainDate.from(s);
 
 /** A config with one field replaced by something the arithmetic cannot use. */
 const broken = (patch: Record<string, unknown>): TraditionConfig =>
 	({ ...PHUGPA, ...patch }) as unknown as TraditionConfig;
-
-/** The error a call throws, or `undefined` if it does not throw. */
-const thrownBy = (call: () => unknown): (Error & { code?: string }) | undefined => {
-	try {
-		call();
-		return undefined;
-	} catch (error) {
-		return error as Error & { code?: string };
-	}
-};
 
 /**
  * `TraditionConfig` is the documented extension point and was accepted unchecked until now.

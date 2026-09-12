@@ -493,7 +493,7 @@ validation suite is named for the fixture it validates, that an exported **tradi
 imported by one — rule 10 matches only `export … from "./traditions/…"` in `src/index.ts`, so it
 does **not** see `ObservanceConfig` or anything on the `./observances` barrel, and rule 13 is
 type-only, so neither guards a runtime value export there —
-that a suite in `test/computation/` is named for a module there, and that **a generated document does
+that a suite in `test/<name>/` is named for a module in `src/<name>/`, and that **a generated document does
 not hardcode a count its generator computes** — `docs/names/rabjung.md` read "Four values are marked,
 at positions …" beside an interpolated list for three commits, and there were five positions and nine
 cells. Each of those fails silently
@@ -644,10 +644,19 @@ returning nothing says "this name has no meaning", which for an ordinary transpa
 false — but it is never allowed to look like a quotation.
 
 **`npm run bench` lives in `bench/` at the repo root, not under `test/`, and that is not a
-preference.** `check:conventions` sanctions exactly four directories under `test/` — `computation`,
-`fixtures`, `support`, `validation` — and scans **every** `.ts` beneath it, so `test/bench/` is
-rejected outright. Do not widen that set to make room: the rule's own message says a suite is either
-about a module or about an external source, and a benchmark is neither. A benchmark is not a test.
+preference.** A directory under `test/` earns its place by **mirroring one under `src/`** — plus
+`test/validation/` and the two infrastructure directories, `fixtures` and `support` — and
+`check:conventions` scans **every** `.ts` beneath it. So `test/bench/` is rejected because there is
+no `src/bench/`, which is the reason rather than an omission from a list: the rule's own message says
+a suite is either about a module or about an external source, and a benchmark is neither. A benchmark
+is not a test.
+
+**That set was four hardcoded names until 2026-09-12, and this passage stated the count as a fact.**
+Of the four, two held no suites and one was the external-source home, so exactly one — `computation` —
+was a module-suite mirror. The list went stale the moment `src/` grew a second subsystem, leaving
+`src/observances/` with nowhere to put a module suite and an exemption in the checker to hide it.
+Deriving the set from `src/` fixed that; **the count in this file was left behind**, which is this
+file's own warning about prose counts biting the file that gives it.
 `package.json#files` already excludes `bench/`, and `tsconfig.json` and `biome.json` include it
 deliberately so it is not an unchecked corner.
 

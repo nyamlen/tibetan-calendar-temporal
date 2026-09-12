@@ -8,6 +8,7 @@ trust the dates. Three tiers, all run in CI.
 ```text
 test/
 ├── computation/          # named for a src/computation module, or <module>-<concept>
+├── observances/          # named for a src/observances module — index.ts is the engine
 ├── validation/           # Tier 2, cross-checks against external sources
 ├── fixtures/             # generated — from Janson, and from external implementations
 ├── invariants.test.ts    # year lengths, safe-integer bound, §13 period
@@ -15,6 +16,7 @@ test/
 ├── navigation.test.ts    # arithmetic, the coordinate, the phases — and the naive versions
 ├── cycles.test.ts        # the year-name closed forms, including outside the exact range
 ├── leap-month-position.test.ts  # cross-cutting: calendar, scaling, months, observances
+├── tradition-config.test.ts  # cross-cutting: what a config does at the engine's boundary
 ├── public-api.test.ts    # the export surface, pinned
 ├── readme.test.ts        # every example the README states
 └── smoke.test.ts         # Temporal reachable as a global
@@ -23,16 +25,38 @@ test/
 Tiers 1 and 3 are interleaved with the unit suites rather than kept in separate directories —
 a property and the edge case it generalises belong next to the function they constrain.
 
-**Naming a computation suite.** A file in `test/computation/` is named for the `src/computation/`
-module it tests, optionally narrowed to a concept as `<module>-<concept>` — so
-`calendar-leap-index-threshold.test.ts` is a `calendar.ts` suite about one rule. The match is on the
+**Naming a module suite.** A directory under `test/` that mirrors one under `src/` holds suites
+named for the modules in it, optionally narrowed to a concept as `<module>-<concept>` — so
+`calendar-leap-index-threshold.test.ts` is a `calendar.ts` suite about one rule, and
+`test/observances/index.test.ts` is the suite for the engine in `src/observances/index.ts`. The match is on the
 longest module prefix, **not** the first `-`-delimited segment: `mean-astronomy.ts` is the one
 hyphenated module, and a segment rule rejects `mean-astronomy.test.ts`, which is already correct.
 
-A suite whose subject spans several modules is not a computation suite and belongs at `test/` root
+A suite whose subject spans several modules is not a module suite and belongs at `test/` root
 beside `invariants.test.ts`. `leap-month-position.test.ts` is the case: it reaches into `calendar`,
 `scaling`, `months` and `observances`, so naming it for any one of them would promise a subject it
 does not have — the same false promise the validation-suite rule catches one directory over.
+
+`tradition-config.test.ts` is the second case, moved out of `test/validation/` on 2026-09-12. It
+validated **nothing external** — no source, no lineage, no agreement claim — and it imported no
+fixture, which is why the naming rule never fired on it and nobody ever recorded it as seen. Its two
+halves look separable and are not: the search-window block builds configs with *wider correction
+tables* to check that `searchHalfWidth` is **derived from the config rather than hardcoded**, which
+is the same question the validation block asks from the other side. One subject — what a
+`TraditionConfig` does at the engine's boundary — spanning `traditions/validate` and
+`computation/scaling`, so it is named for the concept and lives at the root.
+
+Moving it does not weaken the export gate: every shipped config is imported by other suites in
+`test/validation/` — `PHUGPA` by four of them, `PHUGPA_HENNING` by three — so the rule that ties an
+exported config to external evidence still holds without it.
+
+**`index` is a valid module name, deliberately.** `src/observances/index.ts` carries the engine
+rather than being a bare barrel, so `test/observances/index.test.ts` is the honest name for its
+suite; forbidding `index` would leave no legal name and force `observances.test.ts`, a *concept*
+name in a module-parity directory — the exact drift this rule exists to catch. It loosens nothing:
+in a mirrored directory whose `src/` side holds only `index.ts`, every other suite name is still
+rejected. It is also a permission exercised once rather than routinely — `src/astrology/index.ts`
+is planned as a pure barrel, with the logic in modules beside it.
 
 **Before renaming or moving a suite, capture the inventory.** Not the count — the inventory:
 
@@ -72,9 +96,23 @@ validation test.** `test/computation/conversion.test.ts` imports `losar` and
 are named for the module and stay where they are. A sweep that moved them would be applying the rule
 to the wrong half of the suite.
 
-One honest edge case: `test/validation/observances.test.ts` imports `fpmt-observances` while its
-subject is the observance engine. It sits in `validation/` for historical reasons and is left there
-rather than moved on a guess — recorded here so the next reader knows it was seen, not missed.
+**That edge case was real, and it is now fixed.** `test/validation/observances.test.ts` imported
+`fpmt-observances` while its subject was the observance *engine*. It sat in `validation/` because
+`src/observances/` had nowhere else to put a module suite, and it needed a hand-written exemption to
+stop the naming rule firing on it — an exemption recorded here, until 2026-09-12, as "seen, not
+missed".
+
+The cause was the sanctioned directory set being **hardcoded** as four names, of which only
+`computation` was a module-suite mirror. A directory under `test/` now earns its place by
+**mirroring one under `src/`**, so the suite could be split along the seam it always had:
+`test/validation/fpmt-observances.test.ts` holds the half that checks our labels against FPMT's
+printed calendars, and `test/observances/index.test.ts` holds the half whose subject is the engine —
+resolution, the span cap, argument and config validation, freezing. The exemption is deleted, and
+the rule was proved by mutation to still fire with the allowlist empty, because an allowlist emptied
+by a refactor is a standard way to make the rule consulting it vacuous.
+
+`test/bench/` is still rejected, and now for a stated reason rather than by omission from a list:
+there is no `src/bench/`, and a benchmark is neither a module suite nor an external-source suite.
 
 **Fixture provenance.** `test/fixtures/losar.ts`, `sixty-year-cycle.ts` and `janson-epoch.ts` are
 **generated**, not hand-written: run `node scripts/extract-janson-fixtures.mjs <path-to-tibet.tex>`

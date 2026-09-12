@@ -262,14 +262,27 @@ function selfTest() {
 	};
 
 	// --- Rule 11, the invariant. Derived from the tree, so it needs no foresight. ---
-	const modules = tracked("src/computation/*.ts").map((file) => basename(file, ".ts"));
-	for (const module of modules) {
-		check(
-			"namedForModule invariant",
-			namedForModule(module, modules),
-			true,
-			`a module's own name must be an acceptable suite name; "${module}" was rejected. A first-\`-\`-segment predicate fails exactly here, on the hyphenated module, with no case naming it.`,
-		);
+	//
+	// Over **every** mirrored directory, not just computation. Pinning it to one directory is how
+	// the rule went stale before: the predicate stayed correct while the set of things it was
+	// applied to stopped matching src/.
+	const mirrored = [...new Set(tracked("src/*/*.ts").map((file) => file.split("/")[1]))];
+	check(
+		"mirrored directories are discovered",
+		mirrored.length > 0,
+		true,
+		"src/ has subdirectories, so the mirror extractor must find some. An empty set makes every parity check below pass vacuously.",
+	);
+	for (const directory of mirrored) {
+		const modules = tracked(`src/${directory}/*.ts`).map((file) => basename(file, ".ts"));
+		for (const module of modules) {
+			check(
+				"namedForModule invariant",
+				namedForModule(module, modules),
+				true,
+				`a module's own name must be an acceptable suite name; "src/${directory}/${module}" was rejected. A first-\`-\`-segment predicate fails exactly here, on a hyphenated module, with no case naming it.`,
+			);
+		}
 	}
 
 	// --- Rule 11, the cases the invariant cannot see. ---
@@ -908,32 +921,48 @@ for (const file of sources) {
 // are named for their module, correctly.
 // ---------------------------------------------------------------------------------------
 
-const TEST_DIRECTORIES = new Set(["computation", "fixtures", "support", "validation"]);
-const FIXTURE_IMPORT = /from\s+"(?:\.\.\/)+fixtures\/([a-z0-9-]+)\.js"/g;
+// Directories under test/ that hold no suites at all, so no parity question arises.
+const INFRASTRUCTURE_DIRECTORIES = new Set(["fixtures", "support"]);
 
-// observances.test.ts imports fpmt-observances while its subject is the observance engine. It
-// predates the rule and is left in place rather than moved on a guess; docs/testing.md records
-// it as seen rather than missed. Narrower than it looks — do not grow this to silence a name.
-const NOT_NAMED_FOR_ITS_FIXTURES = new Set(["observances.test.ts"]);
+// A directory under test/ earns its place by **mirroring a directory under src/**, rather than by
+// being on a list. That was not always so: the set was hardcoded as
+// `["computation", "fixtures", "support", "validation"]`, of which exactly one entry —
+// `computation` — was a module-suite mirror, and the other three were infrastructure or the
+// external-source home. So the "sanctioned set" was one name plus scaffolding, and it went stale
+// the moment src/ grew a second subsystem.
+//
+// It had already cost something. `src/observances/` had nowhere to put a module suite, so
+// `observances.test.ts` sat in test/validation/ with its subject recorded in a comment as the
+// observance *engine* and a hand-written exemption stopping Rule 9 firing on it. That exemption is
+// gone, and so is the file's misplacement — see docs/testing.md.
+//
+// Deriving the mirrors keeps every existing outcome and adds no licence: test/bench/ is still
+// rejected, because there is no src/bench/, which is the reason CLAUDE.md gives for refusing it —
+// a benchmark is neither a module suite nor an external-source suite.
+const mirroredDirectories = new Set(tracked("src/*/*.ts").map((file) => file.split("/")[1]));
+
+const FIXTURE_IMPORT = /from\s+"(?:\.\.\/)+fixtures\/([a-z0-9-]+)\.js"/g;
 
 const testFiles = tracked("test").filter((file) => file.endsWith(".ts"));
 const reportedDirectories = new Set();
 
 for (const file of testFiles) {
 	const [, directory] = file.split("/");
-	if (file.split("/").length < 3 || TEST_DIRECTORIES.has(directory)) continue;
+	if (file.split("/").length < 3) continue;
+	if (directory === "validation") continue;
+	if (INFRASTRUCTURE_DIRECTORIES.has(directory)) continue;
+	if (mirroredDirectories.has(directory)) continue;
 	if (reportedDirectories.has(directory)) continue;
 	reportedDirectories.add(directory);
 	fail(
 		"validation suites are named for their fixtures",
 		`test/${directory}/`,
-		`not one of the sanctioned test directories (${[...TEST_DIRECTORIES].join(", ")}). A suite validating the engine against an external source belongs in test/validation/, named for the fixture it validates; a suite whose subject is a module belongs beside that module. A third home means one of those two questions was not answered — see docs/testing.md.`,
+		`is neither test/validation/, nor infrastructure (${[...INFRASTRUCTURE_DIRECTORIES].join(", ")}), nor a mirror of a directory under src/ (${[...mirroredDirectories].join(", ")}). A suite validating the engine against an external source belongs in test/validation/, named for the fixture it validates; a suite whose subject is a module belongs in the directory mirroring that module's own. A third home means one of those two questions was not answered — see docs/testing.md.`,
 	);
 }
 
 for (const file of testFiles) {
 	if (!file.startsWith("test/validation/") || !file.endsWith(".test.ts")) continue;
-	if (NOT_NAMED_FOR_ITS_FIXTURES.has(basename(file))) continue;
 
 	const suite = basename(file, ".test.ts");
 	const fixtures = [...read(file).matchAll(FIXTURE_IMPORT)].map(([, fixture]) => fixture);
@@ -1020,20 +1049,36 @@ for (const [, names] of read("src/index.ts").matchAll(CONFIG_EXPORT)) {
 //
 // A focused suite may narrow a module — calendar-leap-index-threshold.test.ts is a calendar.ts
 // suite about one rule — but the module it narrows has to lead the name. A suite whose subject
-// spans several modules is not a computation suite at all and belongs at test/ root, beside
+// spans several modules is not a module suite at all and belongs at test/ root, beside
 // invariants.test.ts and regression.test.ts.
+//
+// This runs over **every mirrored directory**, not test/computation/ alone. It was written for
+// computation because that was the only mirror that existed; the examples above are still drawn
+// from there because that is where the two real drifts happened.
 // ---------------------------------------------------------------------------------------
 
-const computationModules = tracked("src/computation/*.ts").map((file) => basename(file, ".ts"));
+// Only directories that actually exist under test/, or `git ls-files` writes a warning per missing
+// path to stderr and CI output fills with noise about directories nobody has created yet.
+const testDirectories = new Set(
+	testFiles.filter((file) => file.split("/").length > 2).map((file) => file.split("/")[1]),
+);
 
-for (const file of tracked("test/computation/*.test.ts")) {
-	const suite = basename(file, ".test.ts");
-	if (namedForModule(suite, computationModules)) continue;
-	fail(
-		"computation suites are named for their module",
-		file,
-		`is not named for any module in src/computation/ (${computationModules.join(", ")}). Name it for the module it tests, optionally narrowed — calendar-leap-index-threshold.test.ts is a calendar.ts suite about one rule. If its subject spans several modules it is not a computation suite: move it to test/ root, where invariants.test.ts and regression.test.ts already live. See docs/testing.md.`,
-	);
+for (const directory of mirroredDirectories) {
+	if (!testDirectories.has(directory)) continue;
+	// `index` is kept, not filtered. A subsystem's engine lives in its barrel — getObservances is
+	// in src/observances/index.ts — so test/observances/index.test.ts is the honest name for its
+	// suite, and filtering the barrel out would reject the one file this rule most needs to admit.
+	const modules = tracked(`src/${directory}/*.ts`).map((file) => basename(file, ".ts"));
+
+	for (const file of tracked(`test/${directory}/*.test.ts`)) {
+		const suite = basename(file, ".test.ts");
+		if (namedForModule(suite, modules)) continue;
+		fail(
+			"module suites are named for their module",
+			file,
+			`is not named for any module in src/${directory}/ (${modules.join(", ")}). Name it for the module it tests, optionally narrowed — calendar-leap-index-threshold.test.ts is a calendar.ts suite about one rule. If its subject spans several modules it is not a module suite: move it to test/ root, where invariants.test.ts and regression.test.ts already live. See docs/testing.md.`,
+		);
+	}
 }
 
 // ---------------------------------------------------------------------------------------
