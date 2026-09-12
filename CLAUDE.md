@@ -557,6 +557,23 @@ grepping for. **So every mutation run includes an unmutated control expected to 
 on the failure *message*, not the exit code, is what makes the difference visible. The control
 failing is the only signal that the harness is measuring nothing.
 
+**An inequality is the weaker assertion, and for one bug shape it is no assertion at all.** Where a
+bug's signature is "two things that should differ stop differing", `expect(a).not.toBe(b)` usually
+cannot fail — something *else* already distinguishes them. The doubled-day yoga is the case: the two
+halves of a doubled date have different weekday elements whatever the mansion does, so
+`expect(first.yoga).not.toBe(second.yoga)` held with the bug reinstated, and deleting the fix left 990
+tests green while changing 19 of 31 doubled-first days. **Pin the value.** The plan that specified the
+inequality had the same blind spot, so this is a rule about the instruction as much as the test.
+
+**A new layer that reuses an existing accessor inherits its tradition-dependence, whether or not a
+source licenses that.** The elemental yoga read `weekdayNameFor(weekday, tradition)` for its weekday
+element, which applies `naming.weekdayOffset` — so Bhutan silently got a different yoga on 12 of 14
+consecutive days, from a naming fact Janson states separately and never connects to the yoga. Two
+shipped claims said it could not happen, including `weekdayOffset`'s own "applies to the name only".
+External validation is Phugpa-only, so nothing could catch it. When a new module reaches into the
+naming or config layer, ask which tradition-dependence comes with the call, and whether any source
+establishes it; the default is the table the paper actually prints.
+
 **And restore the mutant from a copy, never with `git checkout` — which silently cannot restore a file
 that is not yet tracked.** Proved on 2026-09-12: two mutations of a brand-new `src/astrology/` module
 were "reverted" by `git checkout <path>`, which failed with `pathspec did not match any file` while
