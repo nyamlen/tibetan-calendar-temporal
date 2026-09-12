@@ -194,9 +194,19 @@ function parseMonth(year, monthIndex, html, url) {
 		const afterHeader = cell.slice(cell.indexOf("</div>") + 6);
 		const labels = [];
 		let major = false;
+		let dayQuality;
 		for (const raw of afterHeader.split(/<br\s*\/?>/i)) {
 			const text = tidy(raw);
-			if (text === "" || CODE_LINE.test(text)) continue;
+			if (text === "") continue;
+			if (CODE_LINE.test(text)) {
+				// The elemental yoga, captured rather than discarded. FPMT prints exactly one FD-/UD-
+				// code per day, and it names the unordered pair of the weekday's element and the lunar
+				// mansion's — E earth, W water, F fire, A air, air being Janson's wind. It is the only
+				// external witness this package has for the mansion arithmetic.
+				const yoga = text.match(/\b(?:FD|UD)-[EWFA]{2}\b/);
+				if (yoga) dayQuality = yoga[0];
+				continue;
+			}
 			if (/<em[^>]*>/i.test(raw)) major = true;
 			labels.push(text);
 		}
@@ -208,6 +218,7 @@ function parseMonth(year, monthIndex, html, url) {
 			isLeapMonth: span[spanIndex].isLeapMonth,
 			labels,
 			major,
+			dayQuality,
 		});
 	}
 
@@ -260,8 +271,9 @@ const body = all
 		].filter(Boolean);
 		const labels =
 			r.labels.length > 0 ? `, labels: [${r.labels.map((l) => `"${quote(l)}"`).join(", ")}]` : "";
+		const quality = r.dayQuality ? `, dayQuality: "${r.dayQuality}"` : "";
 		const tail = flags.length > 0 ? `, ${flags.join(", ")}` : "";
-		return `\t{ iso: "${r.iso}", month: ${r.month}, day: ${r.day}${tail}${labels} },`;
+		return `\t{ iso: "${r.iso}", month: ${r.month}, day: ${r.day}${tail}${quality}${labels} },`;
 	})
 	.join("\n");
 
@@ -306,6 +318,15 @@ export interface FpmtObservanceRow {
 	 * holy days, but also teacher anniversaries — so this records the emphasis, not a category.
 	 */
 	major?: boolean;
+	/**
+	 * FPMT's day-quality code — the elemental yoga, as FD- or UD- plus two element letters.
+	 *
+	 * E earth, W water, F fire, A air; air is Janson's *wind*. The code names the **unordered pair**
+	 * of the weekday's element and the lunar mansion's, so with the weekday element known the
+	 * mansion's is forced — which is what makes this the only external check the mansion arithmetic
+	 * has. Omitted on the few days FPMT prints no code for.
+	 */
+	dayQuality?: string;
 	/** The observance labels FPMT prints, verbatim. Omitted where there are none. */
 	labels?: readonly string[];
 }
