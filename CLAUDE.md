@@ -614,6 +614,16 @@ the invariant cannot see: an equality-only predicate satisfies that invariant an
 `calendar-leap-index-threshold`. When this was demonstrated by mutation, the invariant caught the
 real bug and all three literal cases passed.
 
+**A throw inside the checker must not cost the report, and a rule must not be able to vanish.**
+Until 2026-09-12 one unreadable file — a deletion staged on one side only — crashed the run on
+`ENOENT` and discarded every finding already collected. Each rule is now a function in `RULES`, run
+under its own guard; each shared corpus is built under its own; a backstop prints what was collected
+before rethrowing anything else; and `tracked()` reports a path the index holds but the disk does not
+instead of handing it to a rule. The registry is the new silent failure — an unregistered rule
+collects nothing and the run reads "All conventions hold" — so the self-test refuses a registry
+missing any rule number. Proved by a mutation matrix with a control and a whole-report diff, as the
+commits for that work record.
+
 **A guard must not share its predicate with the thing it guards.** Rule 12 matches the markdown
 template a generator writes, and the invariant proving that rule is not passing vacuously used a
 second copy of the same path pattern. Moving the documents into `docs/names/` would have stopped
