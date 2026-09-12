@@ -62,7 +62,12 @@ export function mansionDenominator(scaled: ScaledTradition): number {
  *
  * Only the fractional part of a longitude means anything, so nothing is lost by reducing.
  */
-export function moonCalendarDay(scaled: ScaledTradition, day: number, monthCount: number): number {
+export function moonCalendarDay(
+	scaled: ScaledTradition,
+	day: number,
+	monthCount: number,
+	firstOfDoubledPair = false,
+): number {
 	const denominator = mansionDenominator(scaled);
 
 	// Reduced to its fractional part *first* — see the remark above.
@@ -76,13 +81,26 @@ export function moonCalendarDay(scaled: ScaledTradition, day: number, monthCount
 	// The moon's elongation is d/30 at the end of lunar day d, by definition.
 	const elongation = scaleTo(day, 30, denominator);
 
-	// FRAC(true_date) is the time from the start of the calendar day to the end of the lunar day;
-	// dividing by 27 turns it into the distance the moon covers in that time.
-	const backwards = scaleTo(
-		mod(trueDate(scaled, day, monthCount), scaled.commonDenominator),
-		scaled.commonDenominator * MANSION_COUNT,
-		denominator,
-	);
+	// How far back from the end of the lunar day to the start of the calendar day, as a distance the
+	// moon covers.
+	//
+	// **A doubled date is two calendar days sharing one lunar day, and they do not get the same
+	// answer.** For the ordinary case this is FRAC(true_date)/27 — the time from the start of the
+	// calendar day to the end of the lunar day. For the FIRST of a doubled pair that quantity is
+	// more than a whole day, and Janson gives the rule the almanac uses instead: `zla skar` is
+	// `moon_lunar_day − 1/27`, a flat day's worth of motion.
+	//
+	// Measured against FPMT's printed day-quality codes on 2026-09-12, before this branch existed:
+	// the second of a doubled pair was right 31/31 and the first only 12/31. The two halves share a
+	// Tibetan date, so nothing below the calendar day can tell them apart — which is why this is a
+	// parameter rather than something derived here.
+	const backwards = firstOfDoubledPair
+		? scaleTo(1, MANSION_COUNT, denominator)
+		: scaleTo(
+				mod(trueDate(scaled, day, monthCount), scaled.commonDenominator),
+				scaled.commonDenominator * MANSION_COUNT,
+				denominator,
+			);
 
 	return mod(sun + elongation - backwards, denominator);
 }
@@ -107,7 +125,12 @@ export function moonCalendarDay(scaled: ScaledTradition, day: number, monthCount
  * mansionNumber(scaled, 20, 1649); // 0…26
  * ```
  */
-export function mansionNumber(scaled: ScaledTradition, day: number, monthCount: number): number {
+export function mansionNumber(
+	scaled: ScaledTradition,
+	day: number,
+	monthCount: number,
+	firstOfDoubledPair = false,
+): number {
 	const denominator = mansionDenominator(scaled);
 
 	// Asserted rather than trusted: the product below is the largest intermediate in this module,
@@ -118,7 +141,10 @@ export function mansionNumber(scaled: ScaledTradition, day: number, monthCount: 
 			"mansion cannot be computed exactly for this tradition",
 	);
 
-	const mansion = floorDiv(moonCalendarDay(scaled, day, monthCount) * MANSION_COUNT, denominator);
+	const mansion = floorDiv(
+		moonCalendarDay(scaled, day, monthCount, firstOfDoubledPair) * MANSION_COUNT,
+		denominator,
+	);
 
 	/* c8 ignore next */
 	return assertInternal(

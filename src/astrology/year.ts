@@ -105,9 +105,9 @@ export interface YearAttributes {
 	/** Central number, also called the body or birth number, 1–9. */
 	central: number;
 	/** Life number, 1–9. */
-	life_number: number;
+	lifeNumber: number;
 	/** Power number, 1–9. */
-	power_number: number;
+	powerNumber: number;
 }
 
 const at = <T>(table: readonly T[], oneBased: number, what: string): T =>
@@ -156,7 +156,7 @@ export function yearAttributes(year: number): YearAttributes {
 		fortune,
 		spirit,
 		central: amod(2 - year, 9),
-		life_number: amod(8 - year, 9),
-		power_number: amod(5 - year, 9),
+		lifeNumber: amod(8 - year, 9),
+		powerNumber: amod(5 - year, 9),
 	};
 }

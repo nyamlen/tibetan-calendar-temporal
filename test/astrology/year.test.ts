@@ -65,9 +65,9 @@ describe("the three year numbers", () => {
 
 	it("keeps life three below the central number and power three above", () => {
 		for (let year = 1950; year < 2050; year++) {
-			const { central, life_number, power_number } = yearAttributes(year);
-			expect(life_number).toBe(((central - 3 + 8) % 9) + 1);
-			expect(power_number).toBe(((central + 3 - 1) % 9) + 1);
+			const { central, lifeNumber, powerNumber } = yearAttributes(year);
+			expect(lifeNumber).toBe(((central - 3 + 8) % 9) + 1);
+			expect(powerNumber).toBe(((central + 3 - 1) % 9) + 1);
 		}
 	});
 
@@ -83,8 +83,8 @@ describe("the three year numbers", () => {
 
 	it("stays in 1…9", () => {
 		for (let year = 1800; year < 2200; year++) {
-			const { central, life_number, power_number } = yearAttributes(year);
-			for (const n of [central, life_number, power_number]) {
+			const { central, lifeNumber, powerNumber } = yearAttributes(year);
+			for (const n of [central, lifeNumber, powerNumber]) {
 				expect(n).toBeGreaterThanOrEqual(1);
 				expect(n).toBeLessThanOrEqual(9);
 			}
