@@ -333,11 +333,22 @@ edits, and moving files once after they have landed is one link-fixing commit in
 - [x] **New subpath `./astrology`, computing Janson's Appendix E in full — placement, scope and
       naming decided 2026-09-03; built 2026-09-12.**
 
-      **Shipped 2026-09-12.** Six entry points plus the frozen yoga table, on
+      **Shipped 2026-09-12.** Six `*For` entry points, `elementalYoga` for a bare pair, and the frozen
+      yoga table — eight runtime names — on
       `tibetan-calendar-temporal/astrology`: the year's five elements and three numbers, the month's
       and lunar day's labels, the calendar day's own, the lunar mansion, the elemental yoga, and
       `attributesFor` composing the lot. Appendix D (planets) stays out of scope, as the Beyond v1
       entry below records.
+
+      **The mansion is deliberately not on the surface.** `MANSION_ELEMENTS`, `mansionElement` and
+      `MANSION_COUNT` were exported for a few hours on 2026-09-12 and withdrawn the same day, after a
+      code review observed that `mansionNumber` was not exported with them: a consumer could ask what
+      element mansion 17 carries and never learn that today is mansion 17. A dead export cannot be
+      removed after 1.0.0 and exposing the mansion later is additive, so withdrawing was the only
+      reversible move. **Whether to expose the mansion for a date is an open pre-1.0.0 question** —
+      "which mansion is the moon in" is something an almanac view prints, and a consumer cannot
+      compute it from anything published, which is the wrong-or-impossible test the public-surface
+      record asks for.
 
       **Two things it does not claim.** The mansion agrees with FPMT on **97.6%** of 1,459 days and the
       residual is characterised rather than excused — six days in four years have no explanation, and

@@ -515,7 +515,7 @@ property, an enum or a namespace fails at import with `ERR_UNSUPPORTED_TYPESCRIP
 under `noEmit`, which is why `tsconfig.build.json` turns it back off.
 
 **No bundler.** `tsc` alone emits ESM and declarations, which keeps `dist/` mirroring `src/` —
-the structure the `./observances` subpath export needs. Do not add tsup or similar. Both decisions:
+the structure the `./observances` and `./astrology` subpath exports need. Do not add tsup or similar. Both decisions:
 [docs/decisions/2026-08-11-build-tooling.md](docs/decisions/2026-08-11-build-tooling.md).
 
 ## Commands
@@ -530,8 +530,10 @@ decision-record format, fixture provenance, whether
 [docs/coding-standards.md](docs/coding-standards.md) still names real commands and paths, that a
 validation suite is named for the fixture it validates, that an exported **tradition** config is
 imported by one — rule 10 matches only `export … from "./traditions/…"` in `src/index.ts`, so it
-does **not** see `ObservanceConfig` or anything on the `./observances` barrel, and rule 13 is
-type-only, so neither guards a runtime value export there —
+does **not** see `ObservanceConfig` or anything on the `./observances` or `./astrology` barrels, and
+rule 13 is type-only, so neither guards a runtime value export on either — `DEFAULT_OBSERVANCES` and
+`ELEMENTAL_YOGAS` are held by `test/public-api.test.ts` alone, which is also the only thing that
+noticed `./astrology` had shipped three mansion names nobody could use —
 that a suite in `test/<name>/` is named for a module in `src/<name>/`, and that **a generated document does
 not hardcode a count its generator computes** — `docs/names/rabjung.md` read "Four values are marked,
 at positions …" beside an interpolated list for three commits, and there were five positions and nine
