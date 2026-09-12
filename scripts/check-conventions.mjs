@@ -177,7 +177,6 @@ const HARDCODED_COUNT =
 	/\b(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty)\b[^$`.\n]{0,80}\$\{/gi;
 
 /**
-/**
  * The markdown template a generator writes, for a document anywhere under docs/.
  *
  * The path part allows intermediate directory arguments, so a document that moves into
@@ -448,8 +447,6 @@ function selfTest() {
 	// It sat inside Rule 7 with a `process.exit` of its own until 2026-09-12 — a third exit path that
 	// bypassed both this self-test's report and every finding already collected.
 	for (const { file, source } of generators ?? []) {
-		// A cruder, independent signal than DOCUMENT_TEMPLATE, on purpose: if that pattern ever stops
-		// matching, this still fires and the invariant reports it instead of both falling silent.
 		// This checker is not a generator, but its source quotes the pattern above, so a plain textual
 		// signal cannot tell the description from the thing described. Excluded by name for that reason
 		// alone -- it holds no writeFileSync call at all.
