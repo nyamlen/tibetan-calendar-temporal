@@ -44,7 +44,7 @@ undifferentiated "FPMT says" citation.
 | "Tibetan Calendar calculation of Sojong" | Unpublished personal notes from an oral teaching, held outside this repo | Supplied privately, 2026-08-28 |
 | Svante Janson, "Tibetan Calendar Mathematics" (arXiv:1401.6285), Appendix E | The engine's own source, read from the LaTeX per the clean-room rule in [../CLAUDE.md](../CLAUDE.md), never PDF-extracted | 2026-08-28 |
 | [zurkhai.app](https://zurkhai.app/) | Third-party consumer app and website, public pages only — **a comparison target, never a source**; see [Zurkhai](#zurkhai-a-second-witness-to-the-attribute-layer) | 2026-09-10 |
-| [kalacakra.org/calendar/symlst.htm](http://www.kalacakra.org/calendar/symlst.htm) | Edward Henning's own website, "Symbolic details of the Kālacakra calendar", last updated 3 February 2010 — the reference tables Janson cites his 2007 book for, published free by their author | 2026-09-10 |
+| [kalacakra.org/calendar/symlst.htm](http://www.kalacakra.org/calendar/symlst.htm) ([2021 snapshot](https://web.archive.org/web/20210515040534/http://kalacakra.org/calendar/symlst.htm)) | Edward Henning's own website, "Symbolic details of the Kālacakra calendar", last updated 3 February 2010 — the reference tables Janson cites his 2007 book for, published free by their author | 2026-09-10 |
 
 **The key page was finally rendered on 2026-09-10, and the answer was better than expected.**
 `fpmt.org/media/resources/dharma-dates/` is indeed a client-rendered shell with no legend text, as
@@ -166,8 +166,10 @@ Three traps in that page, all of which would produce a plausible wrong answer:
   yogas, the 28 weekday×mansion yogas, and the 10 elemental yogas. Janson separately warns that the
   first two get confused.
 - **The site is HTTP-only.** Its TLS certificate is for `*.your-server.de`, so every HTTPS fetch
-  fails outright. Henning died in 2016 and the page was last updated in 2010; treat it as at risk
-  and keep the access date.
+  fails outright. Henning died in 2016 and the page was last updated in 2010, so treat it as at
+  risk: the source table above therefore carries a **Wayback snapshot from 15 May 2021** beside the
+  live URL, checked on 2026-09-12 to still contain both the mansion list and the ten yogas. Cite the
+  live page, and fall back to the snapshot if it goes.
 
 **The correspondence was then confirmed against FPMT's own calendars, and it found errors in them.**
 For every day of 2024 and 2026 carrying a code, the weekday element computed from the Julian day

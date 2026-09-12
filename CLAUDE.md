@@ -741,6 +741,18 @@ Markdown uses semantic line breaks — one sentence or clause per line, so diffs
 the sentence that changed. `.markdownlint.jsonc` disables the rules that fight this (`MD013`
 above all). Do not re-wrap prose to satisfy a linter, and do not remove those exclusions.
 
+**Two guards have been investigated and rejected, both with measurements, so neither is proposed
+again.** A **semantic-line-break check** is easy to write — a sentence terminator followed by a
+capital, mid-line — and fires **2,221 times across 41 files**, with this file third on the list at
+182. The convention is real but observed unevenly, no document is clean enough to ratchet from, and
+adopting it would mean reflowing every document in one unreviewable diff. A **path-liveness check
+over `CLAUDE.md`**, extending the one Rule 6 already runs over
+[docs/coding-standards.md](docs/coding-standards.md), fires exactly twice — on `test/bench/` and
+`src/bench/`, both named here precisely to say they must *not* exist — and would have caught **none**
+of the six drift findings a review turned up on 2026-09-12, because those were a stated count and a
+rule description rather than dead paths. Both measured 2026-09-12. This is the same
+"deliberately unguarded, and here is why" note the validation-window rule already carries.
+
 **Test files must not export, and a shared helper goes in `test/support/`.** Biome enforces the
 first; the second is what it forces. This is not cosmetic — `names.test.ts` briefly imported a guard
 from `unicode-tibetan.test.ts`, which made vitest **re-run that file's 28 tests** as part of the

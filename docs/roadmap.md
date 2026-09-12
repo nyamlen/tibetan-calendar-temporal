@@ -366,6 +366,15 @@ edits, and moving files once after they have landed is one link-fixing commit in
       not"). Both ship under `./astrology`. **Appendix D ("Planets") does not** — see the Beyond v1
       entry below for what it is and why it's excluded, not merely deferred by inertia.
 
+      **Release — `./astrology` ships in 1.0.0, and that is a choice rather than a constraint.**
+      Settled 2026-09-12. Worth stating the second half, because everything around it reads like a
+      deadline: **nothing in this work is a breaking change.** A new subpath is additive, the new
+      `TraditionNaming` members are additive, and making `weekdayOffset` optional is a widening — so
+      the whole layer could ship as 1.1.0 without touching a consumer. It goes in 1.0.0 because the
+      release should be complete, not because the timing forces it. What the decision *does* fix is
+      that the Bhutan refusal semantics above freeze at 1.0.0, which is why that item is pre-1.0 and
+      its sourcing half is not.
+
       **Naming — `./astrology`, chosen over `./almanac` and `./attributes`.** Matches Janson's own
       section title and stays disjoint from `./observances` (which "almanac" would not — both
       subpaths are almanac content under the definition this project settled on 2026-08-28).
@@ -429,9 +438,25 @@ edits, and moving files once after they have landed is one link-fixing commit in
       or silently fall back to Phugpa's list, which would hand one tradition's answers to another and
       is the config-blind-cache failure one level up. **This is a pre-1.0.0 item and not a Beyond v1
       one**, because the answer freezes into the surface at 1.0.0 and is breaking afterwards — the
-      *sourcing* half is filed separately under Beyond v1, where it has no deadline. The intended
-      answer is recorded in [astrology.md](astrology.md); what is not yet decided is the exact shape,
-      which the `./astrology` implementation plan settles
+      *sourcing* half is filed separately under Beyond v1, where it has no deadline.
+
+      **Settled 2026-09-12: coarse refusal — and left unticked deliberately**, because the shape is
+      re-confirmed against the real types when the module is built. The decision stands; the box
+      closes when it has survived contact with code.
+
+      **The ruling:** `monthAttributesFor` and `lunarDayAttributesFor` throw
+      a coded error for Bhutan; `attributesFor` returns `null` for those two members and answers the
+      rest. Chosen on **reversibility**, not taste — when Bhutan is eventually sourced, a throw
+      becoming a return is a widening and breaks nobody, whereas per-field nulls could not be removed
+      later without a breaking change and would tax every Phugpa consumer in the meantime.
+
+      **It over-refuses by exactly one field, deliberately.** Only the lunar day's *animal* is
+      tradition-free — `(D + 6M + 8) amod 12`, the day and month numbers alone. Its element, trigram
+      and number all reach through the month, so three of the four inherit the gap. Refusing the set
+      whole is safe and reversible; a seventh tradition-free export for the one computable field was
+      considered and rejected under the rule that a surface grows on demonstrated need, not
+      anticipation. Full reasoning in
+      [decisions/2026-09-12-absent-naming-members-refuse.md](decisions/2026-09-12-absent-naming-members-refuse.md)
 
 - [ ] **Establish Zurkhai's calculation lineage, or record that it cannot be established.** Its
       public pages state "the Phugpa school" and name no scholar, almanac edition or repository, so
