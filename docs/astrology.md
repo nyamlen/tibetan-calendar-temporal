@@ -1,15 +1,23 @@
 # Astrological attributes
 
-What a Tibetan almanac prints about a day **besides its date** — the element, animal, trigram and
-number it carries, and whether the day is held favorable.
+What a Tibetan almanac prints about a day **besides its date** — the elements, animal, gender,
+trigram and number it carries, and whether the day is held favorable.
+
+Written for someone building an almanac view: the reader who has a date already and needs to know
+what else the day is held to be.
 
 **Status: this describes a subpath that does not exist yet.**
 `./astrology` is scoped and sourced but unbuilt; see [roadmap.md](roadmap.md)'s Pre-v1.0.0
 checklist.
 This document explains the *system*, which is stable knowledge independent of our implementation.
-It deliberately states **no API examples**, because a shipped example is contract here — see
-[../CLAUDE.md](../CLAUDE.md) — and there is nothing yet to hold to it.
-Examples arrive with the module.
+It deliberately states **no API examples** — no function names, no call signatures — because a
+shipped example is contract here (see [../CLAUDE.md](../CLAUDE.md)) and there is nothing yet to hold
+to it. Those arrive with the module.
+
+**Worked examples of the system are a different thing and are included**, below.
+They commit no signature: they are facts from Janson and Henning, checkable against the sources
+today, and they are what turns the abstractions here — five elements, a 180-year return, a magic
+square — into something a reader can verify rather than take on trust.
 
 **Repo-only.** Not in `package.json#files`, so its relative links need not resolve inside the
 tarball.
@@ -57,7 +65,7 @@ than it is.
 
 ### Years — five elements at once, not one
 
-You already ship a year's name: **Fire Horse**, say.
+The package already gives a year its name: **Fire Horse**, say.
 That "Fire" is only the first of five elements a year carries, and the other four are routinely
 different.
 
@@ -93,6 +101,15 @@ the first.
 The Phugpa Tiger month is month **11 of the preceding year**, which is why its element formula
 carries a branch that Tsurphu's does not.
 
+**The element follows from the year's.**
+The Tiger month takes the element *after* the year's in the standard order — its "son", wood → fire
+→ earth → iron → water → wood.
+From there the months run two to an element, the first male and the second female, exactly as years
+do.
+That is the whole rule; the awkward branch above exists only because Phugpa's Tiger month sits in
+the *preceding* year, so months 1–10 are governed by one year's element and months 11–12 by the next.
+Tsurphu, whose Tiger month is month 1, needs no branch.
+
 The **number** is Tsurphu-only.
 Phugpa almanacs do not give months a number at all, so this is an attribute that is genuinely
 absent rather than merely different.
@@ -107,6 +124,20 @@ regular month sharing its number repeat the same run.
 The element cycles within each month, starting from the element after the month's own — so there is
 usually a visible jump at the start of a month rather than a smooth run.
 
+The **trigram** and the **number** behave like the animal: continuous cycles of 8 and 9, broken only
+at a leap month.
+Both are anchored to the Tiger month, which begins with trigram *li* and with number 1 — so where
+each month starts depends on **which animal that month carries**, and that is the
+tradition-dependent part.
+Tiger, Horse and Dog months open with *li*; Rabbit, Sheep and Pig with *zin*; Mouse, Dragon and
+Monkey with *kham*; Ox, Snake and Bird with *dwa*.
+
+So three of the four lunar-day attributes inherit the month's tradition-dependence — element through
+the month's element, trigram and number through its animal.
+**Only the animal does not**: it falls out of the day and month *numbers* alone.
+That asymmetry is why the Bhutan gap below refuses the lunar-day set as a whole rather than field by
+field.
+
 ### Calendar days — the same cycles again, on a different clock
 
 A *calendar day* is an actual sunrise-to-sunrise day; a *lunar day* is an astronomical division that
@@ -117,6 +148,12 @@ Calendar days carry their own element, gender, animal, trigram and number, and t
 off the **Julian day number** — meaning they are completely independent of the Tibetan calendar, and
 identical in every tradition.
 Gender is simply whether the Julian day number is odd.
+
+They need no more explanation than that, and the brevity is deliberate rather than an omission: each
+is a single cycle counted off one number, with none of the anchoring that makes the month and
+lunar-day rules awkward.
+Where a year needs a table because it carries five elements at once, a calendar day carries one of
+each.
 
 **So a single day carries two sets of labels that disagree**, one for the lunar day and one for the
 calendar day.
@@ -140,6 +177,15 @@ elements from the Indian set of four:
    occupies at the start of the calendar day.
    This is real astronomy, derived from the true solar and lunar longitudes the engine already
    computes.
+
+**There are 27 mansions here and 28 in the source, and the difference is a trap rather than a
+detail.**
+Henning's published list — the same page the table below comes from — prints **28**, including
+*Abhijit* at position 23; Janson numbers the mansions 0–26, so reaching 27 means dropping Abhijit.
+Its elements run seven each across the 28, so dropping it leaves six earth against seven of each
+other, which is how the drop can be checked rather than assumed.
+Drop the wrong one and every element from *Dhaniṣṭhā* onward shifts by one, silently, with nothing
+about the output looking wrong.
 
 The order of the pair does not matter, so there are exactly **ten** combinations: four matched pairs
 and six mixed.
@@ -169,6 +215,29 @@ stand for earth, water, fire and air — air being wind.
 That correspondence was found from Janson in August 2026 and independently confirmed in September
 against Henning and against FPMT's own published calendars; the evidence is in
 [almanac-sources.md](almanac-sources.md).
+
+## Three worked examples
+
+Facts, not API. Each is checkable against the source named beside it.
+
+**A year's five elements.** The first row of Janson's sixty-year table, Wood–Mouse:
+
+| Power | Life | Body | Fortune | Spirit |
+|---|---|---|---|---|
+| wood | water | iron | wood | iron |
+
+Four of the five disagree with the name, which is the point of the section above.
+
+**A weekday's element.**
+1 September 2026 has Julian day 2,461,285, and `(JD + 2) mod 7 = 3` — Tuesday, whose element is fire.
+
+**A yoga, end to end.**
+FPMT printed `UD-FW` for that same day: fire + water, *maraṇa*, "death", the most inauspicious of
+the ten.
+One half of the pair is the weekday element just computed, so the other half is forced — the mansion
+the moon occupied that morning must carry **water**.
+That is the whole chain in one day: weekday element from the Julian day, mansion element from the
+moon, and the pair read off the table.
 
 ## Where each piece comes from
 
