@@ -88,7 +88,7 @@ replaced diacritics with their absence while appearing to strengthen the provena
 | `crosscheck-lotsawa.ts` | independent impl. | HTML grid | 1,831 days, 2023–2027 | day numbers, doubled/skipped marks |
 | `crosscheck-steinert.ts` | independent impl. | JSON API | 1,461 days, 2024–2027 | day numbers, doubled + leap-month flags |
 | `crosscheck-eszthoff.ts` | independent impl. | npm package, run not read | 1,826 days, 2023–2027 | day numbers |
-| `fpmt-observances.ts` | **almanac** (Men-Tsee-Khang) | HTML tables | 1,461 days, 2022–2027 | day numbers — the source that settled `a₂` |
+| `fpmt-observances.ts` | **almanac** (Men-Tsee-Khang) | HTML tables | 1,461 days, 2022–2025 | day numbers — the source that settled `a₂`; since 2026-09-12 also the **lunar mansion**, via the day-quality codes |
 | `fpmt-holy-days.ts` | almanac, via prose | hand-curated | selected days | observance placement only |
 | `losar.ts`, `janson-epoch.ts`, `sixty-year-cycle.ts` | Janson | LaTeX, generated | 1927–2046 Losar; epoch | month count, leap rule, year naming |
 

@@ -6,9 +6,11 @@ trigram and number it carries, and whether the day is held favorable.
 Written for someone building an almanac view: the reader who has a date already and needs to know
 what else the day is held to be.
 
-**Status: this describes a subpath that does not exist yet.**
-`./astrology` is scoped and sourced but unbuilt; see [roadmap.md](roadmap.md)'s Pre-v1.0.0
-checklist.
+**Status: partly built, and nothing is exported yet.**
+As of 2026-09-12 the engine computes the year and calendar-day attributes, the lunar mansion, and
+the element each mansion carries. The month and lunar-day attributes, the yoga's names and
+favorability, and the `./astrology` barrel itself are still to come, so **no consumer can reach any
+of this**; see [roadmap.md](roadmap.md)'s Pre-v1.0.0 checklist.
 This document explains the *system*, which is stable knowledge independent of our implementation.
 It deliberately states **no API examples** — no function names, no call signatures — because a
 shipped example is contract here (see [../CLAUDE.md](../CLAUDE.md)) and there is nothing yet to hold
