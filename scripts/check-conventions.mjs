@@ -345,6 +345,9 @@ function selfTest() {
 	// Over **every** mirrored directory, not just computation. Pinning it to one directory is how
 	// the rule went stale before: the predicate stayed correct while the set of things it was
 	// applied to stopped matching src/.
+	//
+	// Recomputed here rather than read from the `mirroredDirectories` corpus, deliberately: a guard
+	// must not share its derivation with the thing it guards, or one bug silences both at once.
 	const mirrored = [...new Set(tracked("src/*/*.ts").map((file) => file.split("/")[1]))];
 	check(
 		"mirrored directories are discovered",
