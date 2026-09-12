@@ -282,7 +282,12 @@ const crossVersionLeap = [];
 const cells = (raw) =>
 	stripRowEnd(raw)
 		.split("&")
-		.map((cell) => cell.replace(/\\[a-zA-Z]+/g, "").replace(/[{}]/g, "").trim());
+		.map((cell) =>
+			cell
+				.replace(/\\[a-zA-Z]+/g, "")
+				.replace(/[{}]/g, "")
+				.trim(),
+		);
 
 // T60e — the 60-year cycle of every year element.
 const yearElements = [];
@@ -334,7 +339,8 @@ for (const raw of rowsBefore("Tlife", 12)) {
 	});
 }
 
-if (yearElements.length !== 60) throw new Error(`expected 60 T60e rows, got ${yearElements.length}`);
+if (yearElements.length !== 60)
+	throw new Error(`expected 60 T60e rows, got ${yearElements.length}`);
 const months = monthAnimals.map((row) => row.month).join(",");
 if (months !== "1,2,3,4,5,6,7,8,9,10,11,12") {
 	throw new Error(
