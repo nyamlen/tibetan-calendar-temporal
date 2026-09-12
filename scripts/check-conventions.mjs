@@ -643,13 +643,41 @@ function selfTest() {
 selfTest();
 
 // ---------------------------------------------------------------------------------------
+// The shared corpora
+//
+// What more than one rule reads, built once and before any of them. Each used to be declared
+// inside whichever rule needed it first — `generators` in Rule 7 and read again by Rule 12,
+// `testFiles` and `mirroredDirectories` in Rule 9 and read again by Rule 11 — so one rule's
+// dependency on another's section was implied by file position rather than stated, and reordering
+// the rules could break a rule that had not been touched.
+//
+// Building them reads files, so they are guarded here: a failure is reported rather than thrown,
+// and every rule that reads a corpus it could not get fails loudly on its own account.
+// ---------------------------------------------------------------------------------------
+
+const corpora = {};
+try {
+	corpora.manifest = JSON.parse(read("package.json"));
+	corpora.sources = tracked("src/*.ts", "src/**/*.ts");
+	corpora.generators = tracked("scripts/*.mjs").map((file) => ({ file, source: read(file) }));
+	corpora.testFiles = tracked("test").filter((file) => file.endsWith(".ts"));
+	corpora.mirroredDirectories = new Set(tracked("src/*/*.ts").map((file) => file.split("/")[1]));
+} catch (error) {
+	fail(
+		"the checker's shared corpora could be built",
+		"scripts/check-conventions.mjs",
+		`${error.message} Every rule reading a corpus that was not built could not run either.`,
+	);
+}
+const { manifest, sources, generators, testFiles, mirroredDirectories } = corpora;
+
+// ---------------------------------------------------------------------------------------
 // Rule 1 — zero runtime dependencies
 //
 // The package's headline claim, in the README and in CLAUDE.md, and until now asserted by
 // nothing. publint and attw check the manifest's shape, not its dependency count.
 // ---------------------------------------------------------------------------------------
 
-const manifest = JSON.parse(read("package.json"));
 for (const field of ["dependencies", "peerDependencies", "optionalDependencies"]) {
 	const entries = Object.keys(manifest[field] ?? {});
 	if (entries.length > 0) {
@@ -670,7 +698,6 @@ for (const field of ["dependencies", "peerDependencies", "optionalDependencies"]
 // ---------------------------------------------------------------------------------------
 
 const BARE_ERROR = /\bnew\s+(Error|RangeError|TypeError|SyntaxError)\s*\(/;
-const sources = tracked("src/*.ts", "src/**/*.ts");
 
 for (const file of sources) {
 	if (file === "src/errors.ts") continue;
@@ -921,7 +948,6 @@ if (existsSync(resolve(root, MAP))) {
 // ---------------------------------------------------------------------------------------
 
 const HAND_CURATED = new Set(["fpmt-holy-days.ts", "rgob.ts"]);
-const generators = tracked("scripts/*.mjs").map((file) => ({ file, source: read(file) }));
 
 // --- Rule 12, the invariant. ---
 //
@@ -1052,12 +1078,11 @@ const INFRASTRUCTURE_DIRECTORIES = new Set(["fixtures", "support"]);
 //
 // Deriving the mirrors keeps every existing outcome and adds no licence: test/bench/ is still
 // rejected, because there is no src/bench/, which is the reason CLAUDE.md gives for refusing it —
-// a benchmark is neither a module suite nor an external-source suite.
-const mirroredDirectories = new Set(tracked("src/*/*.ts").map((file) => file.split("/")[1]));
+// a benchmark is neither a module suite nor an external-source suite. The set is
+// `mirroredDirectories`, built with the shared corpora because Rule 11 reads it too.
 
 const FIXTURE_IMPORT = /from\s+"(?:\.\.\/)+fixtures\/([a-z0-9-]+)\.js"/g;
 
-const testFiles = tracked("test").filter((file) => file.endsWith(".ts"));
 const reportedDirectories = new Set();
 
 for (const file of testFiles) {
