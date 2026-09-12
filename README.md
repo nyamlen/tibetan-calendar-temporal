@@ -626,7 +626,7 @@ Type-only exports, erased at runtime: `TibetanDate`, `TibetanDateFields`, `Tibet
 `TibetanMonthFields`, `TibetanYearName`, `Rabjung`, `TibetanName`,
 `TibetanWeekdayName`, `TibetanWeekdayElement`, `TibetanWeekday`, `TibetanPlanet`, `TibetanElement`,
 `TibetanAnimal`,
-`TibetanGender`, `TraditionConfig`, `TraditionNaming`, `MeanMotion`, `Rational`,
+`TibetanGender`, `TraditionConfig`, `TraditionNaming`, `TraditionMonthNaming`, `MeanMotion`, `Rational`,
 `TibetanCalendarErrorCode`, `MonthOverflow`, `AddMonthsToDateOptions`.
 
 ### `tibetan-calendar-temporal/observances`

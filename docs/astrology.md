@@ -7,10 +7,11 @@ Written for someone building an almanac view: the reader who has a date already 
 what else the day is held to be.
 
 **Status: partly built, and nothing is exported yet.**
-As of 2026-09-12 the engine computes the year and calendar-day attributes, the lunar mansion, and
-the element each mansion carries. The month and lunar-day attributes, the yoga's names and
-favorability, and the `./astrology` barrel itself are still to come, so **no consumer can reach any
-of this**; see [roadmap.md](roadmap.md)'s Pre-v1.0.0 checklist.
+As of 2026-09-12 the engine computes the year, month, lunar-day and calendar-day attributes, the
+lunar mansion, and the element each mansion carries — and it refuses the month and lunar-day
+attributes for the Bhutanese configs, as the gap below describes. The yoga's names and favorability
+and the `./astrology` barrel itself are still to come, so **no consumer can reach any of this**; see
+[roadmap.md](roadmap.md)'s Pre-v1.0.0 checklist.
 This document explains the *system*, which is stable knowledge independent of our implementation.
 It deliberately states **no API examples** — no function names, no call signatures — because a
 shipped example is contract here (see [../CLAUDE.md](../CLAUDE.md)) and there is nothing yet to hold
@@ -295,8 +296,12 @@ PDF with no text layer.
 So the answer probably exists in a document we hold and cannot machine-read, which is a different
 problem from an unfindable one — see [validation-sources.md](validation-sources.md).
 
-Until it is sourced, the intended behaviour is to **refuse rather than guess**: Bhutan gets the year
+Until it is sourced, the behaviour is to **refuse rather than guess**: Bhutan gets the year
 attributes, the calendar-day attributes and the yoga, and a coded error for the month and lunar-day
 attributes naming the gap.
+That is implemented as of 2026-09-12 — `TCT_ATTRIBUTE_NOT_SOURCED`, thrown because a tradition whose
+month attributes nobody has sourced carries no month-naming block at all, rather than because any
+code asks "is this Bhutan"; see
+[decisions/2026-09-12-absent-naming-members-refuse.md](decisions/2026-09-12-absent-naming-members-refuse.md).
 Silently falling back to Phugpa's list would hand one tradition's answers to another, which is the
 failure this repository is most careful about.

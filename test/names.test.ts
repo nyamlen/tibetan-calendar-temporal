@@ -150,6 +150,9 @@ describe("Unicode safety", () => {
 
 describe("the shipped config", () => {
 	it("declares no naming offset, so Phugpa gets the Tibetan names", () => {
-		expect(PHUGPA.naming).toBeUndefined();
+		// `naming` itself is no longer absent — it carries the month-attribute rules as of 2026-09-12 —
+		// and the assertion is on the offset, which is the field this suite is about. An absent offset
+		// and an absent block both mean 0, and `weekdayNameFor` reads `naming?.weekdayOffset ?? 0`.
+		expect(PHUGPA.naming?.weekdayOffset).toBeUndefined();
 	});
 });

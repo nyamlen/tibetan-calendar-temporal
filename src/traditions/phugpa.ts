@@ -116,6 +116,18 @@ export const PHUGPA: TraditionConfig = deepFreeze({
 
 	/** sun_tab(0…3). Increments are at most 6, bounding the correction at 11/60 days. */
 	sunTab: [0, 6, 10, 11],
+
+	/**
+	 * The month-naming rules Janson's astrological appendix states for this version.
+	 *
+	 * @remarks
+	 * `weekdayOffset` is deliberately **not** spelled out: it is 0 here, and an explicit 0 would be
+	 * noise asserting nothing in the config the docs point at for `{ ...PHUGPA, … }`.
+	 *
+	 * `numbers: false` is a sourced fact rather than a gap — Janson: "only Tsurphu calendars give one
+	 * of the 9 numbers to each month".
+	 */
+	naming: { months: { tigerMonth: 11, elementRule: "son-of-year", numbers: false } },
 });
 
 /**

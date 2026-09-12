@@ -207,7 +207,18 @@ interface TraditionConfig {
   lunarAnomaly: MeanMotion;
   moonTab: readonly number[];          // 8 values, extended by symmetry to period 28
   sunTab: readonly number[];           // 4 values, extended to period 12
-  naming?: TraditionNaming;            // weekdayOffset — naming only, never the date
+  naming?: TraditionNaming;            // Naming only, never the date
+}
+
+interface TraditionNaming {
+  weekdayOffset?: number;              // Absent means 0 — Tibet's naming; Bhutan is 1
+  months?: TraditionMonthNaming;       // Absent means NOT SOURCED, and the astrology refuses
+}
+
+interface TraditionMonthNaming {
+  tigerMonth: number;                  // 11 Phugpa, 1 Tsurphu/Mongolia — anchors animal AND element
+  elementRule: "son-of-year" | "continuous";  // Restart from the year's element, or run on
+  numbers: boolean;                    // Only Tsurphu numbers its months; false is a sourced fact
 }
 
 interface TibetanDate {

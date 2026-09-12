@@ -212,6 +212,7 @@ describe("public API surface", () => {
  * reachable from the public API, and no call throws a code that is not documented.
  */
 const EXPECTED_ERROR_CODES = [
+	"TCT_ATTRIBUTE_NOT_SOURCED",
 	"TCT_FIELD_OUT_OF_RANGE",
 	"TCT_INTERNAL",
 	"TCT_INVALID_ARGUMENT",
@@ -277,9 +278,20 @@ describe("error codes", () => {
 		}
 	});
 
-	it("documents no code beyond the two that are unreachable by construction", () => {
+	/**
+	 * `TCT_ATTRIBUTE_NOT_SOURCED` is the third entry, and unreachable for a different reason from the
+	 * other two: the astrological attributes throw it today, but nothing exports them yet — the
+	 * `./astrology` barrel lands with the elemental yoga. `test/astrology/month.test.ts` covers the
+	 * behaviour from inside. **Move it into `REACHABLE` in the commit that exports the subpath**; this
+	 * assertion failing is the reminder.
+	 */
+	it("documents no code beyond the three that are unreachable by construction", () => {
 		const unreachable = EXPECTED_ERROR_CODES.filter((c) => !(c in REACHABLE));
-		expect([...unreachable]).toEqual(["TCT_INTERNAL", "TCT_MISSING_TEMPORAL"]);
+		expect([...unreachable]).toEqual([
+			"TCT_ATTRIBUTE_NOT_SOURCED",
+			"TCT_INTERNAL",
+			"TCT_MISSING_TEMPORAL",
+		]);
 	});
 
 	/**

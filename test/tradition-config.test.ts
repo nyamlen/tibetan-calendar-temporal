@@ -239,3 +239,90 @@ describe("derived search window", () => {
 		expect(error?.message).toContain("search window");
 	});
 });
+/**
+ * The `naming` block, which carries two kinds of optionality on purpose.
+ *
+ * `weekdayOffset` absent means 0 — every Tibetan version agrees on weekday naming and Bhutan is the
+ * documented exception, so a default is honest. `months` absent means **not sourced**, and the
+ * astrological layer refuses rather than answering: the month animals fork Dragon against Tiger with
+ * no majority, so there is no honest default to pick. The validator has to enforce both, and a
+ * present-but-partial `months` is the case these tests exist for.
+ */
+describe("the naming block", () => {
+	it("accepts a config with no naming at all", () => {
+		const { naming: _naming, ...bare } = PHUGPA;
+		expect(() => assertTraditionConfig(bare)).not.toThrow();
+	});
+
+	it("accepts a naming block that omits weekdayOffset", () => {
+		// PHUGPA itself is this case: it carries month naming and no offset, because an explicit 0
+		// would be noise in the config the docs point at for spreading.
+		expect(PHUGPA.naming?.weekdayOffset).toBeUndefined();
+		expect(() => assertTraditionConfig(PHUGPA)).not.toThrow();
+	});
+
+	it("rejects a weekdayOffset that is present and wrong", () => {
+		for (const offset of [-1, 7, 1.5, "1", null]) {
+			const error = thrownBy(() =>
+				assertTraditionConfig(broken({ naming: { weekdayOffset: offset } })),
+			);
+			expect(error?.code, `${offset}`).toBe("TCT_INVALID_TRADITION_CONFIG");
+			expect(error?.message).toContain("naming.weekdayOffset");
+		}
+	});
+
+	it("accepts a config whose months block is simply absent", () => {
+		const error = thrownBy(() => assertTraditionConfig(broken({ naming: { weekdayOffset: 1 } })));
+		expect(error).toBeUndefined();
+	});
+
+	it("rejects a months block that is present and not an object", () => {
+		for (const months of [null, 11, "phugpa"]) {
+			const error = thrownBy(() => assertTraditionConfig(broken({ naming: { months } })));
+			expect(error?.code, `${months}`).toBe("TCT_INVALID_TRADITION_CONFIG");
+			expect(error?.message).toContain("naming.months");
+		}
+	});
+
+	it("rejects a months block missing any one of its three fields", () => {
+		// CLAUDE.md's rule: a field the type declares required is rejected when **absent**, not merely
+		// when wrong. The block is the unit of "this tradition's months are sourced", so a half-filled
+		// one would let a tradition answer two attributes confidently and a third wrongly.
+		const full = { tigerMonth: 11, elementRule: "son-of-year", numbers: false };
+		for (const field of ["tigerMonth", "elementRule", "numbers"] as const) {
+			const months: Record<string, unknown> = { ...full };
+			delete months[field];
+			const error = thrownBy(() => assertTraditionConfig(broken({ naming: { months } })));
+			expect(error?.code, field).toBe("TCT_INVALID_TRADITION_CONFIG");
+			expect(error?.message, field).toContain(`naming.months.${field}`);
+		}
+	});
+
+	it("rejects a tigerMonth outside 1…12 and a non-integer one", () => {
+		for (const tigerMonth of [0, 13, 11.5, "11"]) {
+			const months = { tigerMonth, elementRule: "son-of-year", numbers: false };
+			const error = thrownBy(() => assertTraditionConfig(broken({ naming: { months } })));
+			expect(error?.code, `${tigerMonth}`).toBe("TCT_INVALID_TRADITION_CONFIG");
+			expect(error?.message).toContain("naming.months.tigerMonth");
+		}
+	});
+
+	it("rejects an element rule it does not know", () => {
+		// Including a tradition name, which is the anti-pattern the field spelling exists to prevent.
+		for (const elementRule of ["phugpa", "tsurphu", "son of year", ""]) {
+			const months = { tigerMonth: 11, elementRule, numbers: false };
+			const error = thrownBy(() => assertTraditionConfig(broken({ naming: { months } })));
+			expect(error?.code, elementRule).toBe("TCT_INVALID_TRADITION_CONFIG");
+			expect(error?.message).toContain("naming.months.elementRule");
+		}
+	});
+
+	it("rejects a non-boolean numbers flag", () => {
+		for (const numbers of [0, 1, "false", null]) {
+			const months = { tigerMonth: 1, elementRule: "continuous", numbers };
+			const error = thrownBy(() => assertTraditionConfig(broken({ naming: { months } })));
+			expect(error?.code, `${numbers}`).toBe("TCT_INVALID_TRADITION_CONFIG");
+			expect(error?.message).toContain("naming.months.numbers");
+		}
+	});
+});

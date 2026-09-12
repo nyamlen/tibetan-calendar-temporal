@@ -50,6 +50,12 @@
  * - `TCT_INVALID_TRADITION_CONFIG` — a `TraditionConfig` is malformed.
  * - `TCT_INVALID_OBSERVANCE_CONFIG` — an `ObservanceConfig` or one of its rules is malformed.
  * - `TCT_SPAN_TOO_WIDE` — `getObservances` was asked for more than 200 years at once.
+ * - `TCT_ATTRIBUTE_NOT_SOURCED` — an astrological attribute was asked for in a tradition no source
+ *   gives it for. Thrown by the month and lunar-day attributes for the Bhutanese configs, because
+ *   Janson tabulates no month-animal list for that version. **Nothing about the caller's input is
+ *   wrong** — it is `TCT_INVALID_ARGUMENT`'s neighbour rather than `TCT_FIELD_OUT_OF_RANGE`'s — and
+ *   it is deliberately **not** on `tibetanDateExists`'s allowlist: a Bhutanese date exists perfectly
+ *   well, only an attribute of it is unsourced.
  * - `TCT_MISSING_TEMPORAL` — the runtime has no `Temporal`. Thrown at **import** time.
  * - `TCT_INTERNAL` — an invariant this engine proves for itself did not hold. A bug here rather
  *   than a problem with the caller's input; please report it.
@@ -70,6 +76,7 @@ export type TibetanCalendarErrorCode =
 	| "TCT_INVALID_TRADITION_CONFIG"
 	| "TCT_INVALID_OBSERVANCE_CONFIG"
 	| "TCT_SPAN_TOO_WIDE"
+	| "TCT_ATTRIBUTE_NOT_SOURCED"
 	| "TCT_MISSING_TEMPORAL"
 	| "TCT_INTERNAL";
 

@@ -31,6 +31,22 @@ quietly hardcoded to Phugpa's, and a config that runs and is wrong.
 touching the algorithm" was false for three phases for exactly this reason, and the lesson it draws
 is to check that the **rules** are injected, not only the numbers.
 
+## Why these live on `TraditionNaming` rather than in a config of their own
+
+`TraditionNaming`'s docblock already anticipated these members, and it gives a reason that does
+**not** cover them: that `weekdayName` is populated inside the conversion, which receives only a
+`TraditionConfig`, so a separate config would mean threading two configs in to fill one field.
+Month attributes are never populated during conversion, so that argument is silent about them and
+citing it would be borrowing a justification.
+
+The reason they belong here anyway is narrower.
+`naming` is already the not-read-by-the-algorithm bucket — the one place in the config whose contents
+no formula touches — so a second config would duplicate the bucket rather than separate two concerns.
+And a caller asking for one tradition's attributes would then have to supply two objects that must
+agree about which tradition they describe, with nothing checking that they do.
+A `TraditionConfig` whose `naming.months` says Tsurphu while its `leapIndexThreshold` says Phugpa is
+at least a single object a validator can see.
+
 ## Why the asymmetry with `weekdayOffset` is principled rather than untidy
 
 A default is legitimate where there is **one dominant convention**, and illegitimate where there is
