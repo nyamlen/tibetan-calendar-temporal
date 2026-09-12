@@ -31,6 +31,8 @@ const root = execFileSync("git", ["rev-parse", "--show-toplevel"], {
 // every finding collected before it, so it is dropped here and reported instead. Reported, not
 // silently dropped: the index and the working tree disagreeing is a real state worth being told
 // about, and a clean CI checkout can never reach it.
+const missingFromDisk = new Set();
+
 function tracked(...patterns) {
 	return execFileSync(
 		"git",
@@ -49,14 +51,15 @@ function tracked(...patterns) {
 				fail(
 					"the index and the working tree agree",
 					file,
-					"is tracked but missing from disk, so no rule read it. Stage the deletion or rename (`git add -A` on the path), or restore the file.",
+					"is tracked but missing from disk, so it was not read. Stage the deletion or rename (`git add -A` on the path), or restore the file.",
 				);
 			}
 			return false;
 		});
 }
 
-const missingFromDisk = new Set();
+/** A caught throw as one sentence — a non-`Error` has no `message`, and most messages lack a stop. */
+const reasonOf = (error) => String(error?.message ?? error).replace(/(?<![.!?])$/, ".");
 
 function read(file) {
 	try {
@@ -560,7 +563,21 @@ function selfTest() {
 		),
 	);
 	for (const barrel of TYPE_BARRELS) {
-		const exported = exportedTypeNames(read(barrel.file));
+		// Contained here rather than left to the backstop, because a throw out of the self-test skips
+		// every rule — a barrel deleted and not yet staged would otherwise cost the whole report, the
+		// failure this runner was restructured to end. Rule 13 reads the same file and reports that it
+		// could not run, so skipping the invariant for this barrel cannot pass silently.
+		let exported;
+		try {
+			exported = exportedTypeNames(read(barrel.file));
+		} catch (error) {
+			fail(
+				"the checker's self-test could read its inputs",
+				barrel.file,
+				`${reasonOf(error)} The exportedTypeNames invariant was not proved for this barrel.`,
+			);
+			continue;
+		}
 		check(
 			"exportedTypeNames invariant",
 			exported.size > 0,
@@ -664,15 +681,15 @@ function selfTest() {
 	);
 	check(
 		"RULES registry",
-		RULES.every(({ run }) => typeof run === "function"),
+		RULES.every(({ number, run }) => typeof run === "function" && run.name === `rule${number}`),
 		true,
-		"each registry entry must name its rule's function.",
+		"each registry entry must name its own rule's function. `{ number: 8, run: rule9 }` passes the number check above while rule 8 never runs and rule 9 runs twice.",
 	);
 
 	if (broken.length > 0) {
 		console.error("The checker itself is broken.\n");
 		console.error(
-			"This is not a convention violation, and no rule was run. A predicate below no longer\nbehaves as specified, so every rule resting on it is unreliable.\n",
+			"This is not a convention violation, and no rule was run. A check below no longer\nbehaves as specified, so every rule resting on it is unreliable.\n",
 		);
 		for (const failure of broken) {
 			console.error(`  ${failure}\n`);
@@ -707,7 +724,7 @@ function corpus(name, build) {
 		fail(
 			"the checker's shared corpora could be built",
 			"scripts/check-conventions.mjs",
-			`\`${name}\` could not be built: ${error.message} Every rule reading it could not run either.`,
+			`\`${name}\` could not be built: ${reasonOf(error)} Every rule reading it could not run either.`,
 		);
 		return undefined;
 	}
@@ -1279,60 +1296,58 @@ function rule11() {
 // says so rather than letting this rule read as full coverage.
 // ---------------------------------------------------------------------------------------
 function rule13() {
-	{
-		const RULE = "README type lists match the barrels";
-		const readme = read("README.md");
-		const lists = documentedTypeLists(readme);
-		const ranges = typeSectionRanges(readme);
-		const declaredHeadings = TYPE_BARRELS.filter((barrel) => barrel.heading)
-			.map((barrel) => `\`${barrel.heading}\``)
-			.join(", ");
+	const RULE = "README type lists match the barrels";
+	const readme = read("README.md");
+	const lists = documentedTypeLists(readme);
+	const ranges = typeSectionRanges(readme);
+	const declaredHeadings = TYPE_BARRELS.filter((barrel) => barrel.heading)
+		.map((barrel) => `\`${barrel.heading}\``)
+		.join(", ");
 
-		if (ranges === null) {
-			fail(
-				RULE,
-				"README.md",
-				`does not carry every entry point's heading in order — ${declaredHeadings} — so the type lists cannot be told apart. Restore the headings in that order, or teach this rule the new ones.`,
-			);
-		} else if (lists.length !== TYPE_BARRELS.length) {
-			fail(
-				RULE,
-				"README.md",
-				`documents ${lists.length} "Type-only exports" list(s); ${TYPE_BARRELS.length} entry points publish types. A missing list leaves one entry point unguarded, which is the state this rule was written to end.`,
-			);
-		} else {
-			TYPE_BARRELS.forEach((barrel, index) => {
-				const range = ranges[index];
-				const doc = range && lists.find((list) => list.at >= range.from && list.at < range.to);
-				if (!doc) {
-					fail(
-						RULE,
-						"README.md",
-						`has no "Type-only exports" list for ${barrel.label} inside its own section of the README.`,
-					);
-					return;
-				}
+	if (ranges === null) {
+		fail(
+			RULE,
+			"README.md",
+			`does not carry every entry point's heading in order — ${declaredHeadings} — so the type lists cannot be told apart. Restore the headings in that order, or teach this rule the new ones.`,
+		);
+	} else if (lists.length !== TYPE_BARRELS.length) {
+		fail(
+			RULE,
+			"README.md",
+			`documents ${lists.length} "Type-only exports" list(s); ${TYPE_BARRELS.length} entry points publish types. A missing list leaves one entry point unguarded, which is the state this rule was written to end.`,
+		);
+	} else {
+		TYPE_BARRELS.forEach((barrel, index) => {
+			const range = ranges[index];
+			const doc = range && lists.find((list) => list.at >= range.from && list.at < range.to);
+			if (!doc) {
+				fail(
+					RULE,
+					"README.md",
+					`has no "Type-only exports" list for ${barrel.label} inside its own section of the README.`,
+				);
+				return;
+			}
 
-				const exported = exportedTypeNames(read(barrel.file));
-				const missing = [...exported].filter((name) => !doc.names.has(name)).sort();
-				const extra = [...doc.names].filter((name) => !exported.has(name)).sort();
+			const exported = exportedTypeNames(read(barrel.file));
+			const missing = [...exported].filter((name) => !doc.names.has(name)).sort();
+			const extra = [...doc.names].filter((name) => !exported.has(name)).sort();
 
-				if (missing.length > 0) {
-					fail(
-						RULE,
-						barrel.file,
-						`exports ${missing.map((n) => `\`${n}\``).join(", ")}, which README.md's list for ${barrel.label} does not document. Removing or renaming a type breaks no test — sweep README.md, docs/architecture.md, docs/guide.md and any docblock naming it.`,
-					);
-				}
-				if (extra.length > 0) {
-					fail(
-						RULE,
-						"README.md",
-						`documents ${extra.map((n) => `\`${n}\``).join(", ")} for ${barrel.label}, which ${barrel.file} does not export. A consumer following the README would fail to import it.`,
-					);
-				}
-			});
-		}
+			if (missing.length > 0) {
+				fail(
+					RULE,
+					barrel.file,
+					`exports ${missing.map((n) => `\`${n}\``).join(", ")}, which README.md's list for ${barrel.label} does not document. Removing or renaming a type breaks no test — sweep README.md, docs/architecture.md, docs/guide.md and any docblock naming it.`,
+				);
+			}
+			if (extra.length > 0) {
+				fail(
+					RULE,
+					"README.md",
+					`documents ${extra.map((n) => `\`${n}\``).join(", ")} for ${barrel.label}, which ${barrel.file} does not export. A consumer following the README would fail to import it.`,
+				);
+			}
+		});
 	}
 }
 
@@ -1400,7 +1415,7 @@ try {
 			fail(
 				`rule ${number} could not run`,
 				"scripts/check-conventions.mjs",
-				`rule ${number} could not run: ${error.message} Everything it guards is unchecked until this is fixed.`,
+				`${reasonOf(error)} Everything it guards is unchecked until this is fixed.`,
 			);
 		}
 	}
