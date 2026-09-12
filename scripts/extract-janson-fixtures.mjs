@@ -50,6 +50,36 @@ function rowsBefore(label, count) {
 }
 
 const BACKSLASH = String.fromCharCode(92);
+/**
+ * Every data row of the `tabular` whose caption carries `label`, header excluded.
+ *
+ * `rowsBefore` walks backwards collecting lines that carry both `&` and a row terminator, which
+ * **cannot see a table's final row when that row omits the terminator** — and T12months does
+ * exactly that, its month 12 sitting bare before `\end{tabular}`. Walking back 12 rows there
+ * collected months 1-11 plus the header, which has the right shape and the right count and is
+ * silently the wrong data.
+ *
+ * So this reads the block instead of the line endings: everything between `\begin{tabular}` and the
+ * label, split on the terminator, keeping rows whose first cell is a number. The header is dropped
+ * by that test rather than by counting, which is what makes it robust to the same trap in another
+ * table.
+ */
+function tableRows(label) {
+	const end = lines.findIndex((l) => l.includes(`\\label{${label}}`));
+	if (end === -1) throw new Error(`label ${label} not found — is this the right source file?`);
+	let start = end;
+	while (start >= 0 && !lines[start].includes("\\begin{tabular}")) start--;
+	if (start < 0) throw new Error(`no \\begin{tabular} before ${label}`);
+	// Line by line, not split on the row terminator. Each data row occupies its own line in these
+	// tables, and terminator-splitting is doubly wrong here: the last row omits its terminator, and
+	// `new RegExp("\\\\")` matches a SINGLE backslash, so the text fragments on every LaTeX macro —
+	// `\PH`, `\hline` — rather than on row ends.
+	return lines
+		.slice(start + 1, end)
+		.map((row) => row.replace(/\\hline/g, "").trim())
+		.filter((row) => row.includes("&") && /^\s*\d/.test(row));
+}
+
 const stripRowEnd = (s) => s.replace(new RegExp(`${BACKSLASH}${BACKSLASH}+\\s*$`), "").trim();
 
 // ---------------------------------------------------------------------------------------------
@@ -236,6 +266,104 @@ const crossVersionLeap = [];
 	}
 }
 
+// ---------------------------------------------------------------------------------------------
+// Appendix E attribute tables.
+//
+// These validate the astrological attribute layer, and they are the only external check it has:
+// Janson computes these tables from the formulas, but he computed them independently of *our*
+// implementation of those formulas, so agreement catches a transcription error or a misread
+// formula. It does not catch a shared misreading of the paper, and docs/testing.md says so.
+//
+// T60e is the one that matters most. It prints all five of a year's elements against the sixty-year
+// cycle, so a single table pins power, life, body, fortune and spirit at every cycle position.
+// ---------------------------------------------------------------------------------------------
+
+/** Strips a LaTeX row to its `&`-separated cells. */
+const cells = (raw) =>
+	stripRowEnd(raw)
+		.split("&")
+		.map((cell) =>
+			cell
+				.replace(/\\[a-zA-Z]+/g, "")
+				.replace(/[{}]/g, "")
+				.trim(),
+		);
+
+// T60e — the 60-year cycle of every year element.
+const yearElements = [];
+for (const raw of rowsBefore("T60e", 60)) {
+	const c = cells(raw);
+	if (c.length !== 7) throw new Error(`unparsable T60e row: ${raw}`);
+	const name = c[2].match(/^(\w+)--(\w+)$/);
+	if (!name) throw new Error(`unparsable T60e name: ${c[2]}`);
+	yearElements.push({
+		chinese: Number(c[0]),
+		indian: Number(c[1]),
+		power: name[1].toLowerCase(),
+		animal: name[2].toLowerCase(),
+		life: c[3].toLowerCase(),
+		body: c[4].toLowerCase(),
+		fortune: c[5].toLowerCase(),
+		spirit: c[6].toLowerCase(),
+	});
+}
+
+// T12months — which animal each month carries, and its gender. The sharpest fork in the layer:
+// Phugpa month 1 is Dragon, Tsurphu month 1 is Tiger.
+//
+// Read with `tableRows` rather than `rowsBefore`: month 12's row carries no terminator, so the
+// backwards walk silently returned months 1-11 plus the header.
+const monthAnimals = [];
+for (const raw of tableRows("T12months")) {
+	const c = cells(raw);
+	if (c.length !== 4) throw new Error(`unparsable T12months row: ${raw}`);
+	monthAnimals.push({
+		month: Number(c[0]),
+		phugpa: c[1].toLowerCase(),
+		tsurphu: c[2].toLowerCase(),
+		gender: c[3].toLowerCase(),
+	});
+}
+
+// Tlife — life and spirit element by animal, on a 12-year cycle.
+const lifeElements = [];
+for (const raw of rowsBefore("Tlife", 12)) {
+	const c = cells(raw);
+	if (c.length !== 5) throw new Error(`unparsable Tlife row: ${raw}`);
+	lifeElements.push({
+		chinese: Number(c[0]),
+		indian: Number(c[1]),
+		animal: c[2].toLowerCase(),
+		life: c[3].toLowerCase(),
+		spirit: c[4].toLowerCase(),
+	});
+}
+
+if (yearElements.length !== 60)
+	throw new Error(`expected 60 T60e rows, got ${yearElements.length}`);
+const months = monthAnimals.map((row) => row.month).join(",");
+if (months !== "1,2,3,4,5,6,7,8,9,10,11,12") {
+	throw new Error(
+		`T12months parsed as months ${months}, not 1-12. A count check alone passes when the header ` +
+			"is collected and the last row dropped, which is how this table first parsed.",
+	);
+}
+if (lifeElements.length !== 12) throw new Error(`expected 12 Tlife rows`);
+
+// The invariant that catches a silently-shifted column: T60e's life and spirit elements must agree
+// with Tlife at every one of the sixty positions, and the two tables are parsed independently.
+for (const row of yearElements) {
+	const byAnimal = lifeElements.find((entry) => entry.animal === row.animal);
+	if (!byAnimal) throw new Error(`T60e animal ${row.animal} is absent from Tlife`);
+	if (byAnimal.life !== row.life || byAnimal.spirit !== row.spirit) {
+		throw new Error(
+			`T60e and Tlife disagree for ${row.animal}: T60e says life=${row.life} spirit=${row.spirit}, ` +
+				`Tlife says life=${byAnimal.life} spirit=${byAnimal.spirit}. One of the two parses has ` +
+				"shifted a column.",
+		);
+	}
+}
+
 const header = (what) => `/**
  * ${what}
  *
@@ -395,6 +523,65 @@ ${crossVersionLeap
 	)
 	.join("\n")}
 ];
+`,
+);
+
+writeFileSync(
+	join(fixtures, "janson-attributes.ts"),
+	`${header(
+		"Janson's Appendix E attribute tables: the five elements a year carries, the animal and gender\n * of each month, and the life and spirit elements by animal.\n *\n * These check the astrological layer against tables Janson computed independently of our\n * implementation of his formulas. That catches a transcription error or a misread formula; it\n * cannot catch a shared misreading of the paper, so it is not external corroboration. See\n * docs/testing.md.",
+	)}
+export interface JansonYearElementsRow {
+	/** Position in the Chinese 60-year cycle, 1-60. */
+	chinese: number;
+	/** Position in the Indian (Prabhava) 60-year cycle, 1-60. */
+	indian: number;
+	/** The power element — the one that appears in the year's name. */
+	power: string;
+	/** The year's animal. */
+	animal: string;
+	/** Life element *srog*, fixed by the animal. */
+	life: string;
+	/** Body element *lus*, on a 30-year cycle. */
+	body: string;
+	/** Fortune element *klung rta*, on a 4-year cycle; earth never appears. */
+	fortune: string;
+	/** Spirit element *bla*, the element preceding the life element. */
+	spirit: string;
+}
+
+export interface JansonMonthAnimalRow {
+	/** Month number, 1-12. */
+	month: number;
+	/** The animal Phugpa gives this month — month 1 is Dragon. */
+	phugpa: string;
+	/** The animal Tsurphu gives it — month 1 is Tiger, matching the Chinese calendar. */
+	tsurphu: string;
+	/** Male for odd months, female for even. */
+	gender: string;
+}
+
+export interface JansonLifeElementRow {
+	/** Position mod 12 from the start of a Chinese cycle. */
+	chinese: number;
+	/** Position mod 12 from the start of a Prabhava cycle. */
+	indian: number;
+	/** The animal that fixes both elements below. */
+	animal: string;
+	/** Life element *srog*. */
+	life: string;
+	/** Spirit element *bla*. */
+	spirit: string;
+}
+
+/** All five year elements at every position of the sixty-year cycle. */
+export const JANSON_YEAR_ELEMENTS: readonly JansonYearElementsRow[] = ${JSON.stringify(yearElements, null, "\t")};
+
+/** The animal and gender of each month, in both traditions Janson tabulates. */
+export const JANSON_MONTH_ANIMALS: readonly JansonMonthAnimalRow[] = ${JSON.stringify(monthAnimals, null, "\t")};
+
+/** Life and spirit elements by animal, the 12-year cycle underlying two columns of T60e. */
+export const JANSON_LIFE_ELEMENTS: readonly JansonLifeElementRow[] = ${JSON.stringify(lifeElements, null, "\t")};
 `,
 );
 

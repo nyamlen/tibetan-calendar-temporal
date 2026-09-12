@@ -232,6 +232,27 @@ becomes 1927–2046 at one day per year, plus the epoch itself, plus those six y
 | `a₂` divergence dates | 2001, 2006, 2025 | Janson |
 | `a₂` divergence counts | 1027–1091, 1900–1999, 2000–2099 | Janson |
 
+**The astrological attributes have a third window, narrower than either, and confusing them is a
+live trap.** Dates are validated 2022–2027 and observances only 2022–2025; the attribute layer is
+narrower still.
+
+| Check | Range | Source | What it settles |
+|-------|-------|--------|-----------------|
+| Year and calendar-day attributes | all 60 cycle positions | Janson's own Table 60e | transcription and formula error — **not** external corroboration, since he computed it from the same formulas |
+| Lunar mansion, day by day | 2022–2025, Phugpa only | FPMT's day-quality codes | the mansion arithmetic, at **97.6%** — see below |
+
+**That 97.6% is a characterised figure, not a tolerance.** 1,424 of 1,459 days agree. Of the 35 that
+do not, 83% sit within 15% of a mansion boundary against 29% of the days that agree — Janson states
+the cause himself, since `moon_calendar_day` treats the moon as covering one full circle in 27 days,
+so his approximation and Men-Tsee-Khang's computation can straddle an edge. Six days in four years
+resist even that, at 0.4%, and are recorded as unexplained rather than dismissed. The suite asserts
+that **concentration**, not merely the score: a bare threshold would keep passing if a real bug
+scattered the failures away from the boundaries.
+
+**Quote the right window.** A claim about a Tibetan date has six years behind it, about an observance
+four, and about a mansion four *for Phugpa alone* — Bhutan's attributes have no external check at
+all.
+
 Those are all **Phugpa**. Bhutan has a window of its own, and a wider one:
 
 | Check | Range | Source |

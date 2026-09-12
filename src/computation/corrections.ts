@@ -22,7 +22,7 @@
 
 import { assertInternal } from "../errors.js";
 import { floorDiv, mod, scaleTo } from "./arithmetic.js";
-import { lunarAnomaly, meanDate, solarAnomaly } from "./mean-astronomy.js";
+import { lunarAnomaly, meanDate, meanSun, solarAnomaly } from "./mean-astronomy.js";
 import type { ScaledTradition } from "./scaling.js";
 
 /**
@@ -164,6 +164,56 @@ export function trueDate(scaled: ScaledTradition, day: number, monthCount: numbe
 		scaled.commonDenominator,
 	);
 	return d + moon - sun;
+}
+
+/**
+ * The denominator on which {@link trueSun} is an exact integer.
+ *
+ * @remarks
+ * `sun_tab`'s argument denominator times `27 · 60`, because Janson divides the solar equation by
+ * `27 · 60` here where the date formula divides both corrections by 60. Derived from the config
+ * rather than written as a literal, for the reason {@link scaleTo} gives: a constant baked in makes
+ * another tradition silently unrepresentable.
+ *
+ * It happens to equal `meanSun.den · 135` for both shipped traditions, since `sunTabArgDen` is
+ * `meanSun.den / 12` — but that relationship is a property of those configs rather than a rule, so
+ * the scaling below goes through {@link scaleTo}, which refuses inexactness instead of assuming it
+ * away.
+ */
+export function trueSunDenominator(scaled: ScaledTradition): number {
+	return scaled.sunTabArgDen * 27 * 60;
+}
+
+/**
+ * The true solar longitude — Janson's *nyi dag* — in units of full circles.
+ *
+ * @remarks
+ * Janson's §"the true solar longitude":
+ *
+ * ```text
+ * true_sun = mean_sun − sun_equ/(27·60)
+ * ```
+ *
+ * **Two things here differ from {@link trueDate} and both are easy to get wrong.** The solar
+ * equation is **subtracted**, and it is divided by `27 · 60` rather than by the 60 that the date
+ * formula uses for *both* its corrections. Janson notes the factors are a consequence of the
+ * mixed-radix positional system, so neither is derivable from the date formula — an implementation
+ * reasoning by analogy with `trueDate` gets the sign right and the scale wrong by a factor of 27,
+ * and still produces plausible longitudes.
+ *
+ * Returned as an exact integer numerator over {@link trueSunDenominator}. The value is **not**
+ * reduced to its fractional part: it grows without bound with the month count, and only the
+ * fractional part is meaningful as a longitude. Callers that scale it up must reduce first — see
+ * `src/astrology/mansions.ts`, where scaling before reducing would cost a factor of 27 on the
+ * safe-integer date bound.
+ */
+export function trueSun(scaled: ScaledTradition, day: number, monthCount: number): number {
+	const denominator = trueSunDenominator(scaled);
+	const mean = scaleTo(meanSun(scaled, day, monthCount), scaled.meanSun.den, denominator);
+	// Already over `sunTabArgDen`, and the denominator above is that times 27·60, so the equation's
+	// numerator needs no scaling at all — dividing by 27·60 *is* the change of denominator.
+	const equation = sunEquation(scaled, day, monthCount);
+	return mean - equation;
 }
 
 /**

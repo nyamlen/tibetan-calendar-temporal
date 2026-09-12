@@ -331,7 +331,7 @@ edits, and moving files once after they have landed is one link-fixing commit in
       `leapMonth` wins when two configs in `from` disagree. Decide this when the helper is actually
       designed, not before
 - [ ] **New subpath `./astrology`, computing Janson's Appendix E in full — placement, scope and
-      naming decided 2026-09-03; the module itself is not yet built.**
+      naming decided 2026-09-03; partly built as of 2026-09-12.**
 
       **Placement — settled, and it took three tries.** Not `nyamlen` (Andreas: the backend stays
       general-purpose open source; `nyamlen` is a front-end only). Not a sibling npm package

@@ -281,6 +281,14 @@ export function sharesNumberWithLeapMonth(
  * @param isLeap - Pass `true` for the leap month of a pair. Passing `true` for a month that is
  * not a leap month yields a count belonging to a different month; use {@link sharesNumberWithLeapMonth} to
  * check first.
+ *
+ * **Omitting it is the likelier mistake, and it is silent.** It defaults to `false`, so a caller
+ * deriving a count from a resolved date — `trueMonthCount(config, year, date.month)` — reads the
+ * *regular twin* of every leap month and gets a real count for the wrong month. Nothing throws and
+ * nothing looks wrong. On 2026-09-12 that produced 22 spurious failures while cross-checking the
+ * lunar mansion, every one of them inside leap month 6 of 2024, and it read as a 4% error in the
+ * astronomy until the failures were bucketed by month. **A `TibetanDate` carries `isLeapMonth`;
+ * pass it.**
  */
 export function trueMonthCount(
 	config: TraditionConfig,
