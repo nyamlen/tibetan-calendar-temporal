@@ -57,6 +57,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:pack": "node scripts/check-pack.mjs",
+    "test:conventions": "vitest run --config vitest.conventions.config.ts",
     "coverage": "vitest run --coverage",
     "bench": "vitest bench --run",
     "lint": "biome check .",
