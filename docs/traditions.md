@@ -103,7 +103,8 @@ Reconciling that offset is required before any of these becomes a config, and do
 validation data would only move the guess. **Three claims must be kept apart:**
 
 - *This tradition is expressible in `TraditionConfig`* — true for Tsurphu and the Mongolian version,
-  since the leap rule was the only thing missing.
+  since the leap rule was the only thing missing. That is a claim about **dates**: Tsurphu's calendar-day
+  number is not expressible at all, [below](#still-tsurphus-and-not-modelled).
 - *Its **leap months** are right* — **now established** for all four versions. See below.
 - *Its **dates** are right* — established for Phugpa and, since 2026-08-16, for Bhutan. Not for
   Tsurphu or the Mongolian version, and that is why neither is exported.
@@ -240,6 +241,17 @@ winter solstice computed at mean solar longitude 250° that has no counterpart i
 Bhutan names its **weekdays one planet ahead** of Tibet — Saturday is *nyi ma* there where Tibet has
 *spen pa*. That is `TraditionNaming.weekdayOffset`, a naming concern rather than a calendrical one,
 and it affects no date.
+
+## Still Tsurphu's, and not modelled
+
+**The calendar day's nine number.** Every shipped tradition takes it from a congruence on the Julian day,
+and so does this package. Janson remarks, under "Attributes for calendar days", that Tsurphu calendars
+restart it from the solstices instead — 5 on the first Wood–Mouse day after the true astronomical winter
+solstice, counting up, and 4 after the summer solstice, counting down — and that this "requires accurate
+astronomical calculations of the solstices", which are foreign to the Tibetan calculation. Nothing in
+`TraditionConfig` can express it, so a Tsurphu config built today would get the Julian-day number.
+The day's element, gender, animal and trigram are unaffected. What an almanac would need to settle is
+in the Tsurphu section of [validation-sources.md](validation-sources.md).
 
 ## Who uses which
 

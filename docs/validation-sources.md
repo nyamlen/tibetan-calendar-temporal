@@ -202,6 +202,13 @@ being treated as independent.
 Do not use a Drukpa Kagyu source for Tsurphu. Drukpa follows the derivative described above; Drikung
 Kagyu follows a Tsurphu/Phugpa hybrid. Neither is Tsurphu.
 
+**The calendar day's nine number needs day-level data too, and more of it than a date check.** Janson
+remarks that Tsurphu calendars restart it from the solstices — 5 on the first Wood–Mouse day after the
+true astronomical winter solstice, counting up, 4 after the summer solstice, counting down. Modelling it
+needs an almanac that settles what the remark leaves open: whether the solstice is astronomical or the
+calendar's own, for which meridian its date is fixed, and whether a Wood–Mouse day falling *on* the
+solstice counts. A printed number on a few days either side of a solstice answers all three.
+
 ## Mongolian — nothing day-level, and a structural obstacle
 
 Leap months only, via `cross-version-leap.ts`.
@@ -278,16 +285,19 @@ not looking.
 |---|---|
 | BhutanWiki, *Bhutanese Astrology* and *Bhutanese Astrology and Divination* | Cover the 12-animal/5-element **year** cycle and the *kartsi*/*nagtsi* split. Say nothing about month attribution, and cite nothing that does. |
 | General Bhutan calendar and tourism pages | The same year-cycle material, less carefully. No month attribution anywhere. |
+| The Royal Government's calendars, 2025 and 2026 (the PDFs [rgob.ts](../test/fixtures/rgob.ts) cites) | **No month animal printed.** Checked 2026-09-13. Every month header read — two pages of 2025 by eye, one page of 2026 from the extracted page image — follows one template: the year's name and the span of Tibetan dates the Gregorian month covers. |
+| Henning's Bhutanese calendar files (`kalacakra.org/calendar/tdata/bh_YYYY.txt`) | **Agree with Phugpa's month rules, and are not Bhutanese evidence.** Checked 2026-09-13: 332 month headers across 27 years, 12 of them leap months, all match Janson's Phugpa animal, gender and element rules, and two negative controls (the Tsurphu animal, a shifted element) each fail as they should. But the program that writes them applies those rules with no Bhutan-specific branch, beside a comment reading `HAVE NOT CHECKED THAT THIS WORKS FOR TSHUR LUGS` — which only makes sense in code written for the Tibetan versions — while code that *is* Bhutan-specific elsewhere in the same file is marked `FOR BHUTAN ONLY`. So the files show Henning's default carried over, not what a Bhutanese almanac prints. His C source (`calendar/tcb1111.zip`) was read for that provenance question only. |
 
-**The one source that would settle it is already in this repository and cannot be machine-read.**
-The Royal Government's *lo-tho* is the scanned PDF with no text layer that
-[testing.md](testing.md) and [../CLAUDE.md](../CLAUDE.md) already describe as the reason
-[rgob.ts](../test/fixtures/rgob.ts) is hand-curated.
-So the answer probably exists in a document we hold, behind OCR that is exactly the failure mode
-that fixture's exception was granted to avoid.
+**An earlier version of this section said the answer "probably exists in a document we hold"**, behind
+the Royal Government PDF's missing text layer. It does not: the pages carry no month animal to read.
+This is a dead end in the documents held, not a deferral.
 
-That makes this a **deferral, not a dead end**, and it is a different shape from the rows above: not
-"the source does not say", but "the source is unreadable by the means this repository permits".
+**Nor is a Phugpa default safe by elimination.** Janson has a commented-out line in his Bhutan appendix,
+citing Berzin, that the Bhutanese version follows a derivative of the **Tsurphu** system — and Tsurphu
+puts the Tiger at month 1 where Phugpa puts it at month 11. His published text says only that Bhutan's
+months are "numbered, as in Tibet" and that names "exist as in Tibet", which does not say which Tibet.
+An independent Bhutanese source is required, and Henning's software is not one.
+
 The consequence is recorded in [astrology.md](astrology.md) — Bhutan refuses the month and lunar-day
 attributes with a coded error rather than inheriting Phugpa's.
 
