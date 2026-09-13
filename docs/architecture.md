@@ -132,7 +132,7 @@ tibetan-calendar-temporal/
 │   │   ├── year.ts                 # the year's five elements and three numbers
 │   │   ├── month.ts                # the month's animal, gender, element; Tsurphu's number
 │   │   ├── lunar-day.ts            # the lunar day's animal, element, trigram, number
-│   │   ├── calendar-day.ts         # congruences on the Julian day; no tradition
+│   │   ├── calendar-day.ts         # congruences on the Julian day; Tsurphu's number unmodelled
 │   │   ├── mansions.ts             # trueSun, moonCalendarDay, mansionNumber — the astronomy
 │   │   ├── mansion-elements.ts     # HENNING's 28 reduced to Janson's 27, with the drop asserted
 │   │   └── yoga.ts                 # the ten pairings; names Henning's, favorability FPMT's

@@ -230,8 +230,10 @@ export function lunarDayAttributesFor(
  * The element, gender, animal, trigram and number of a calendar day, plus its four cycle elements.
  *
  * @remarks
- * Every one of these is a congruence on the **Julian day**, so they are identical in every tradition
- * and can be asked of any day at all — no tradition parameter, and no month count.
+ * Every one of these is a congruence on the **Julian day**, so they can be asked of any day at all —
+ * no tradition parameter, and no month count. The element, gender, animal and trigram are identical
+ * in every version Janson gives; the **number** is identical in every shipped tradition, but Tsurphu
+ * calendars assign it from the solstices, which is not modelled.
  *
  * Takes a `Temporal.PlainDate` or a resolved {@link TibetanDate}, and **not** loose
  * `{ year, month, day }` fields: that shape is a genuine value of both calendars, so accepting it

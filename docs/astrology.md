@@ -150,8 +150,10 @@ does not align with it, which is the whole reason this calendar has doubled and 
 (see [how-it-is-calculated.md](how-it-is-calculated.md)).
 
 Calendar days carry their own element, gender, animal, trigram and number, and these run straight
-off the **Julian day number** — meaning they are completely independent of the Tibetan calendar, and
-identical in every tradition.
+off the **Julian day number** — meaning they are completely independent of the Tibetan calendar.
+The element, gender, animal and trigram are identical in every version Janson gives.
+The **number** is not: Janson remarks that Tsurphu calendars restart it from the solstices — 5 on the first Wood–Mouse day after the true astronomical winter solstice, counting up, and 4 after the summer solstice, counting down — and that rule is not modelled.
+Every shipped tradition uses the Julian-day number.
 Gender is simply whether the Julian day number is odd.
 
 They need no more explanation than that, and the brevity is deliberate rather than an omission: each
@@ -252,7 +254,7 @@ layer.
 | Piece | Source | Character |
 |---|---|---|
 | Year attributes | Janson, Appendix E | Closed forms he derives himself, from the year number alone |
-| Calendar-day attributes | Janson, Appendix E | Closed forms from the Julian day number; no tradition involved |
+| Calendar-day attributes | Janson, Appendix E | Closed forms from the Julian day number; no tradition involved, except Tsurphu's unmodelled number |
 | Month and lunar-day attributes | Janson, Appendix E | Closed forms, but with a **different rule per tradition** |
 | Mansion arithmetic | Janson, "Further calculations" | Derived from longitudes this engine already produces |
 | Mansion-to-element table | **Henning** | A list, cited by Janson rather than derived by him |

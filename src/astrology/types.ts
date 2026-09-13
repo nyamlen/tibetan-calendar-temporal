@@ -55,7 +55,7 @@ export interface DayAttributes {
 	month: MonthAttributes | null;
 	/** The lunar day's four labels, or `null` where the tradition is unsourced. */
 	lunarDay: LunarDayAttributes | null;
-	/** The calendar day's own labels, which are the same in every tradition. */
+	/** The calendar day's own labels; Julian-day congruences, the same in every shipped tradition. */
 	calendarDay: CalendarDayAttributes;
 	/** The elemental yoga — the weekday's element paired with the lunar mansion's. */
 	yoga: ElementalYoga;

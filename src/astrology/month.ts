@@ -79,7 +79,7 @@ function monthNaming(config: TraditionConfig): TraditionMonthNaming {
 			`${config.name} has no sourced month attributes: Janson gives no month-animal list for ` +
 				"this version, and the element and number rules follow from that list. Nothing about the " +
 				"date you asked about is wrong — the attribute simply has no source. Year and " +
-				"calendar-day attributes are tradition-free and answer for every tradition",
+				"calendar-day attributes do not depend on the month-animal list and still answer",
 		);
 	}
 	return months;

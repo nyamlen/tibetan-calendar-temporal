@@ -3,8 +3,13 @@
  *
  * @remarks
  * These run straight off the **Julian day number**, which makes them independent of the Tibetan
- * calendar entirely: no tradition, no month count, no leap months. They are identical in every
- * version, and they can be asked of any day at all.
+ * calendar entirely: no tradition, no month count, no leap months, and they can be asked of any day
+ * at all. The element, gender, animal and trigram are identical in every version Janson gives.
+ *
+ * **The number is not.** Janson's remark under "Attributes for calendar days" states that Tsurphu
+ * calendars assign it from the solstices instead — 5 on the first Wood–Mouse day after the true
+ * astronomical winter solstice, counting up, and 4 after the summer solstice, counting down. That
+ * rule is not modelled; the number here is the Julian-day congruence every shipped tradition uses.
  *
  * **A single day carries two sets of labels that disagree** — these, and the lunar day's. That is
  * not a defect to reconcile; almanacs print both. See [docs/astrology.md](../../docs/astrology.md).
