@@ -6,7 +6,7 @@
  * **This is where the traditions genuinely fork**, and they fork on the *rules* rather than on
  * constants. Phugpa's month 1 is Dragon and Tsurphu's is Tiger; Phugpa restarts its element run from
  * the year's element every year while Tsurphu lets one cycle run on for ever; only Tsurphu numbers
- * its months at all. So every function here reads `config.naming.months`, and **refuses** when a
+ * its months at all. So every function here reads `config.naming.monthAnimals`, and **refuses** when a
  * tradition has no such block — which is the Bhutanese case, where Janson tabulates no month-animal
  * list and a Phugpa answer would be a confident invention.
  *
@@ -18,7 +18,7 @@
 
 import { amod, ceilDiv, floorDiv } from "../computation/arithmetic.js";
 import { assertInternal, rangeError } from "../errors.js";
-import type { TraditionConfig, TraditionMonthNaming } from "../traditions/types.js";
+import type { TraditionConfig, TraditionMonthAnimals } from "../traditions/types.js";
 import type { TibetanAnimal, TibetanElement, TibetanGender } from "../types.js";
 
 /** Janson's standard element order, his Table 5. One-based when indexed as he indexes it. */
@@ -66,14 +66,14 @@ export interface MonthAttributes {
 }
 
 /**
- * The month-naming block, or a refusal naming the tradition that lacks one.
+ * The month-animal block, or a refusal naming the tradition that lacks one.
  *
  * @throws RangeError with code `TCT_ATTRIBUTE_NOT_SOURCED` if the tradition has no sourced month
  * attributes — the Bhutanese configs, today.
  */
-function monthNaming(config: TraditionConfig): TraditionMonthNaming {
-	const months = config.naming?.months;
-	if (months === undefined) {
+function monthAnimals(config: TraditionConfig): TraditionMonthAnimals {
+	const animals = config.naming?.monthAnimals;
+	if (animals === undefined) {
 		throw rangeError(
 			"TCT_ATTRIBUTE_NOT_SOURCED",
 			`${config.name} has no sourced month attributes: Janson gives no month-animal list for ` +
@@ -82,7 +82,7 @@ function monthNaming(config: TraditionConfig): TraditionMonthNaming {
 				"calendar-day attributes do not depend on the month-animal list and still answer",
 		);
 	}
-	return months;
+	return animals;
 }
 
 /**
@@ -96,7 +96,7 @@ function monthNaming(config: TraditionConfig): TraditionMonthNaming {
  * attributes.
  */
 export function monthAnimalNumber(config: TraditionConfig, month: number): number {
-	return amod(month - monthNaming(config).tigerMonth + TIGER, 12);
+	return amod(month - monthAnimals(config).tigerMonth + TIGER, 12);
 }
 
 /**
@@ -129,7 +129,7 @@ export function monthAnimalNumber(config: TraditionConfig, month: number): numbe
  * attributes.
  */
 export function monthElementNumber(config: TraditionConfig, year: number, month: number): number {
-	const { tigerMonth, elementRule } = monthNaming(config);
+	const { tigerMonth, elementRule } = monthAnimals(config);
 	const stepsFromTiger = (offset: number) => floorDiv(month - tigerMonth + offset, 2);
 
 	if (elementRule === "continuous") return amod(year - 2 + stepsFromTiger(0), 5);
@@ -167,7 +167,7 @@ export function monthAttributes(
 	year: number,
 	month: number,
 ): MonthAttributes {
-	const { numbers } = monthNaming(config);
+	const numbered = config.naming?.nineNumbers?.months === "descending";
 
 	return {
 		animal: at(ANIMALS, monthAnimalNumber(config, month), "month animal"),
@@ -177,11 +177,12 @@ export function monthAttributes(
 		//
 		// **The `3` is an absolute phase, and it is the one value here not derived from `tigerMonth`.**
 		// Janson states the formula for the version that numbers its months — Tsurphu, whose Tiger month
-		// is month 1 — so the anchor holds for `tigerMonth: 1` and is unverified for any other. No
-		// exported config sets `numbers: true`, so nothing reaches it today; the tests check the −1 a
+		// is month 1 — so the anchor is attested for `tigerMonth: 1` and unverified for any other. No
+		// exported config numbers its months, so nothing reaches it today; the tests check the −1 a
 		// month and −3 a year steps, which hold at any phase, and **no source checks the phase itself**.
-		// Treat it the way `searchHalfWidth` is treated: if a config ever pairs `numbers: true` with a
-		// different Tiger month, derive the anchor rather than trusting this literal.
-		number: numbers ? amod(3 - (12 * year + month), 9) : null,
+		// The formula never reads the Tiger month, which is why `nineNumbers` is a member of its own;
+		// but if a config ever pairs `"descending"` with a different Tiger month, find a source for the
+		// phase rather than trusting this literal.
+		number: numbered ? amod(3 - (12 * year + month), 9) : null,
 	};
 }

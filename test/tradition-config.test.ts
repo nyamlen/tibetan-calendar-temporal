@@ -271,58 +271,81 @@ describe("the naming block", () => {
 		}
 	});
 
-	it("accepts a config whose months block is simply absent", () => {
+	it("accepts a config whose monthAnimals block is simply absent", () => {
 		const error = thrownBy(() => assertTraditionConfig(broken({ naming: { weekdayOffset: 1 } })));
 		expect(error).toBeUndefined();
 	});
 
-	it("rejects a months block that is present and not an object", () => {
-		for (const months of [null, 11, "phugpa"]) {
-			const error = thrownBy(() => assertTraditionConfig(broken({ naming: { months } })));
-			expect(error?.code, `${months}`).toBe("TCT_INVALID_TRADITION_CONFIG");
-			expect(error?.message).toContain("naming.months");
+	it("rejects the pre-2026-09-13 months block rather than ignoring it", () => {
+		// Nothing rejects an unknown key, so without this a config spreading PHUGPA.naming and adding
+		// Tsurphu's rules under the old name would keep Phugpa's animals — a plausible wrong answer.
+		const months = { tigerMonth: 1, elementRule: "continuous", numbers: true };
+		const naming = { ...PHUGPA.naming, months };
+		const error = thrownBy(() => assertTraditionConfig(broken({ naming })));
+		expect(error?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
+		expect(error?.message).toContain("naming.monthAnimals");
+		expect(error?.message).toContain("naming.nineNumbers.months");
+	});
+
+	it("rejects a monthAnimals block that is present and not an object", () => {
+		for (const monthAnimals of [null, 11, "phugpa"]) {
+			const error = thrownBy(() => assertTraditionConfig(broken({ naming: { monthAnimals } })));
+			expect(error?.code, `${monthAnimals}`).toBe("TCT_INVALID_TRADITION_CONFIG");
+			expect(error?.message).toContain("naming.monthAnimals");
 		}
 	});
 
-	it("rejects a months block missing any one of its three fields", () => {
+	it("rejects a monthAnimals block missing either of its two fields", () => {
 		// CLAUDE.md's rule: a field the type declares required is rejected when **absent**, not merely
-		// when wrong. The block is the unit of "this tradition's months are sourced", so a half-filled
-		// one would let a tradition answer two attributes confidently and a third wrongly.
-		const full = { tigerMonth: 11, elementRule: "son-of-year", numbers: false };
-		for (const field of ["tigerMonth", "elementRule", "numbers"] as const) {
-			const months: Record<string, unknown> = { ...full };
-			delete months[field];
-			const error = thrownBy(() => assertTraditionConfig(broken({ naming: { months } })));
+		// when wrong. The block is the unit of "this tradition's month animals are sourced", so a
+		// half-filled one would let a tradition answer some attributes confidently and others wrongly.
+		const full = { tigerMonth: 11, elementRule: "son-of-year" };
+		for (const field of ["tigerMonth", "elementRule"] as const) {
+			const monthAnimals: Record<string, unknown> = { ...full };
+			delete monthAnimals[field];
+			const error = thrownBy(() => assertTraditionConfig(broken({ naming: { monthAnimals } })));
 			expect(error?.code, field).toBe("TCT_INVALID_TRADITION_CONFIG");
-			expect(error?.message, field).toContain(`naming.months.${field}`);
+			expect(error?.message, field).toContain(`naming.monthAnimals.${field}`);
 		}
 	});
 
 	it("rejects a tigerMonth outside 1…12 and a non-integer one", () => {
 		for (const tigerMonth of [0, 13, 11.5, "11"]) {
-			const months = { tigerMonth, elementRule: "son-of-year", numbers: false };
-			const error = thrownBy(() => assertTraditionConfig(broken({ naming: { months } })));
+			const monthAnimals = { tigerMonth, elementRule: "son-of-year" };
+			const error = thrownBy(() => assertTraditionConfig(broken({ naming: { monthAnimals } })));
 			expect(error?.code, `${tigerMonth}`).toBe("TCT_INVALID_TRADITION_CONFIG");
-			expect(error?.message).toContain("naming.months.tigerMonth");
+			expect(error?.message).toContain("naming.monthAnimals.tigerMonth");
 		}
 	});
 
 	it("rejects an element rule it does not know", () => {
 		// Including a tradition name, which is the anti-pattern the field spelling exists to prevent.
 		for (const elementRule of ["phugpa", "tsurphu", "son of year", ""]) {
-			const months = { tigerMonth: 11, elementRule, numbers: false };
-			const error = thrownBy(() => assertTraditionConfig(broken({ naming: { months } })));
+			const monthAnimals = { tigerMonth: 11, elementRule };
+			const error = thrownBy(() => assertTraditionConfig(broken({ naming: { monthAnimals } })));
 			expect(error?.code, elementRule).toBe("TCT_INVALID_TRADITION_CONFIG");
-			expect(error?.message).toContain("naming.months.elementRule");
+			expect(error?.message).toContain("naming.monthAnimals.elementRule");
 		}
 	});
 
-	it("rejects a non-boolean numbers flag", () => {
-		for (const numbers of [0, 1, "false", null]) {
-			const months = { tigerMonth: 1, elementRule: "continuous", numbers };
-			const error = thrownBy(() => assertTraditionConfig(broken({ naming: { months } })));
-			expect(error?.code, `${numbers}`).toBe("TCT_INVALID_TRADITION_CONFIG");
-			expect(error?.message).toContain("naming.months.numbers");
+	it("accepts an absent nineNumbers block and an absent months member, which mean unnumbered", () => {
+		for (const naming of [{}, { nineNumbers: {} }, { nineNumbers: { months: "descending" } }]) {
+			expect(thrownBy(() => assertTraditionConfig(broken({ naming })))).toBeUndefined();
+		}
+	});
+
+	it("rejects a nineNumbers block or months rule that is present and wrong", () => {
+		for (const nineNumbers of [null, true, "descending"]) {
+			const error = thrownBy(() => assertTraditionConfig(broken({ naming: { nineNumbers } })));
+			expect(error?.code, `${nineNumbers}`).toBe("TCT_INVALID_TRADITION_CONFIG");
+			expect(error?.message).toContain("naming.nineNumbers");
+		}
+		// Including the old boolean, and a tradition name.
+		for (const months of [true, false, null, "tsurphu", "ascending"]) {
+			const naming = { nineNumbers: { months } };
+			const error = thrownBy(() => assertTraditionConfig(broken({ naming })));
+			expect(error?.code, `${months}`).toBe("TCT_INVALID_TRADITION_CONFIG");
+			expect(error?.message).toContain("naming.nineNumbers.months");
 		}
 	});
 });

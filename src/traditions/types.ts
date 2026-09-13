@@ -203,21 +203,25 @@ export interface TraditionConfig {
 	 * How this tradition *names* things, as distinct from how it computes them.
 	 *
 	 * @remarks
-	 * Optional, and **absence means two different things** depending on the member, because the two
-	 * rules behind them are different. For `weekdayOffset`, absence means the Tibetan convention,
-	 * which is right for every version but the Bhutanese. For {@link TraditionMonthNaming}, absence
-	 * means *not sourced for this tradition*, and the astrological layer refuses rather than
-	 * answering. A default is legitimate where there is one dominant convention and illegitimate
-	 * where there is a genuine fork: every Tibetan version agrees on weekday naming, while the month
-	 * animals fork Dragon against Tiger with no majority, so there is no honest default to pick.
+	 * Organised **by naming system** — Janson's own enumeration in his month-names section and the
+	 * astrological appendix — rather than by calendar unit, so that each system can be sourced, and
+	 * refused, on its own.
+	 *
+	 * Optional, and **absence means different things** depending on the member, because the rules
+	 * behind them are different. A default is legitimate where there is one dominant convention and
+	 * illegitimate where there is a genuine fork. Every Tibetan version agrees on weekday naming, so
+	 * `weekdayOffset` defaults; only Tsurphu numbers its months, so `nineNumbers` defaults to
+	 * unnumbered; but the month animals fork Dragon against Tiger with no majority, so an absent
+	 * {@link TraditionMonthAnimals} means *not sourced for this tradition*, and the astrological layer
+	 * refuses rather than answering.
+	 *
+	 * Janson's **seasonal** month names need no member here. Almanacs print several of his four
+	 * systems at once, so they are not a per-tradition choice; three are fixed functions of the month
+	 * number, and the fourth is anchored on the Tiger month `monthAnimals` already carries.
 	 *
 	 * Nested rather than flat, deliberately. Nothing in here is read by the algorithm, so a flat
 	 * field would sit among the constants claiming to be one. Nesting keeps the boundary visible at
-	 * the call site — `config.naming.weekdayOffset` reads as a naming concern — and gives the
-	 * tradition-dependent naming rules somewhere to go. The one member still expected and absent is
-	 * a **seasonal-system selector**: Janson's seasonal month names, which belong to his month-names
-	 * section rather than to the astrological appendix, and which several incompatible versions exist
-	 * of.
+	 * the call site — `config.naming.weekdayOffset` reads as a naming concern.
 	 *
 	 * A separate top-level config was considered and rejected, and the argument is not the one the
 	 * `weekdayOffset` docblock gives. That one — `weekdayName` is populated inside the conversion,
@@ -230,14 +234,14 @@ export interface TraditionConfig {
 }
 
 /**
- * The naming conventions of a tradition.
+ * The naming conventions of a tradition, one member per naming system.
  *
  * @remarks
  * Every member names what the rule **does**, never a tradition — a `"phugpa" | "tsurphu"` selector
  * inside a tradition-agnostic config is the same anti-pattern as branching on `config.id`, which is
  * consumer-settable and must not decide "is this Phugpa". Janson describes the month-element rules
  * functionally, as the *son* of the year's element against a continuous cycle, which is why
- * {@link TraditionMonthNaming.elementRule} spells them `"son-of-year" | "continuous"`.
+ * {@link TraditionMonthAnimals.elementRule} spells them `"son-of-year" | "continuous"`.
  */
 export interface TraditionNaming {
 	/**
@@ -252,19 +256,19 @@ export interface TraditionNaming {
 	 * tradition and the Western weekday is correct in both, which is why the difference is invisible
 	 * when dates are written in English.
 	 *
-	 * **Optional within `naming`, defaulting to 0**, so a config supplying only the month members
+	 * **Optional within `naming`, defaulting to 0**, so a config supplying only the other members
 	 * need not restate a shift it does not have. Absent `naming` already means offset 0, so this
 	 * makes the block internally consistent with the rule that governs it.
 	 */
 	readonly weekdayOffset?: number;
 
 	/**
-	 * How this tradition names its **months** astrologically, or absent if nobody has sourced it.
+	 * The **animal cycle** as this tradition applies it to months, or absent if nobody has sourced it.
 	 *
 	 * @remarks
 	 * Present for `PHUGPA` and `PHUGPA_HENNING`, and **absent for `BHUTAN` and `BHUTAN_HENNING`** —
 	 * Janson gives no month-animal list for the Bhutanese version, so there is nothing to put here
-	 * and the astrological layer refuses instead.
+	 * and the astrological layer refuses the month and lunar-day attributes instead.
 	 *
 	 * Absence is never a Phugpa fallback, and the reason is a tradition nobody has built yet: Janson
 	 * states that Mongolia uses **Tsurphu's** rules for the month animal, gender and element, and
@@ -273,22 +277,37 @@ export interface TraditionNaming {
 	 * with nothing about the output looking wrong — which is the `leapIndexThreshold` failure
 	 * verbatim.
 	 */
-	readonly months?: TraditionMonthNaming;
+	readonly monthAnimals?: TraditionMonthAnimals;
+
+	/**
+	 * Which units this tradition gives one of the **nine numbers** (*mewa*), and by what rule.
+	 *
+	 * @remarks
+	 * Optional, and absence means **the dominant convention**, not "unsourced": Janson states that
+	 * "only Tsurphu calendars give one of the 9 numbers to each month", so every other version is
+	 * unnumbered by his own statement. `PHUGPA` therefore carries no `nineNumbers` block at all.
+	 *
+	 * A separate member from {@link TraditionMonthAnimals} because it is a separate system: Janson's
+	 * month-number formula, `(3 − (12Y + M)) amod 9`, reads the year and month number and never the
+	 * Tiger month. Tsurphu's calendar days follow a nine-number rule of their own, from the solstices,
+	 * which is not modelled and would belong here beside the month rule.
+	 */
+	readonly nineNumbers?: TraditionNineNumbers;
 }
 
 /**
- * The month-naming rules Janson's astrological appendix needs, none of which the calendar reads.
+ * The month-animal rules Janson's astrological appendix needs, none of which the calendar reads.
  *
  * @remarks
- * Three members rather than one selector, because Janson states three independent things and a
- * tradition can differ on any of them. Mongolia shares all three with Tsurphu; Bhutan has none of
- * them sourced at all.
+ * Two members rather than one selector, because Janson states two independent things and a
+ * tradition can differ on either. Mongolia shares both with Tsurphu; Bhutan has neither sourced.
  *
  * Every field is required **once the block is present**. The block is the unit of "this tradition's
- * months are sourced": a half-filled one would be a claim nobody can make, since each rule is what
- * decides a different attribute and two of them also decide the lunar day's.
+ * month animals are sourced": a half-filled one would be a claim nobody can make, since the Tiger
+ * month decides the animals *and* anchors the elements, and the lunar day's trigram and number are
+ * derived from the month's animal.
  */
-export interface TraditionMonthNaming {
+export interface TraditionMonthAnimals {
 	/**
 	 * Which numbered month is the **Tiger** month — 11 in Phugpa, 1 in Tsurphu and Mongolia.
 	 *
@@ -318,17 +337,25 @@ export interface TraditionMonthNaming {
 	 * only on whether the year's element re-enters the computation.
 	 */
 	readonly elementRule: "son-of-year" | "continuous";
+}
 
+/**
+ * The nine-number rules a tradition applies. Every member is optional and defaults to the dominant
+ * convention.
+ */
+export interface TraditionNineNumbers {
 	/**
-	 * Whether this tradition gives each month one of the nine numbers.
+	 * Whether months carry a nine number, and how it runs.
 	 *
 	 * @remarks
-	 * `false` for Phugpa: "only Tsurphu calendars give one of the 9 numbers to each month". The
-	 * number decreases by one each month, and therefore by three each year.
+	 * `"unnumbered"` — the default — for every version but Tsurphu: "only Tsurphu calendars give one
+	 * of the 9 numbers to each month". `"descending"` is Tsurphu's rule: the number decreases by one
+	 * each month, leap months excepted, and therefore by three each year.
 	 *
-	 * A boolean rather than an absent field, because "this tradition does not number its months" is
-	 * something Janson **states** about Phugpa, while an absent block means nobody has looked. The
-	 * attribute is reported as `null` rather than refused for the same reason.
+	 * Named for what the rule does rather than as a boolean, so that a second numbering rule, if a
+	 * source ever gives one, is an added value rather than a changed type.
+	 *
+	 * @defaultValue `"unnumbered"`
 	 */
-	readonly numbers: boolean;
+	readonly months?: "unnumbered" | "descending";
 }

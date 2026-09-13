@@ -97,8 +97,9 @@ export type {
 	MeanMotion,
 	Rational,
 	TraditionConfig,
-	TraditionMonthNaming,
+	TraditionMonthAnimals,
 	TraditionNaming,
+	TraditionNineNumbers,
 } from "./traditions/types.js";
 export type {
 	Rabjung,

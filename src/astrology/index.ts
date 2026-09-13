@@ -322,7 +322,7 @@ export function attributesFor(
 	// The one place in this subpath that reports rather than refuses, so the refusal is caught here
 	// and nowhere else. Narrow: only the unsourced-attribute code becomes a null, and every other
 	// error — a malformed config, a date out of range — still propagates.
-	const sourced = tradition.naming?.months !== undefined;
+	const sourced = tradition.naming?.monthAnimals !== undefined;
 
 	return {
 		date: resolved,

@@ -168,6 +168,26 @@ describe("the month number, which only one tradition has", () => {
 		expect(bad).toEqual([]);
 	});
 
+	it("is null for Mongolia, which shares Tsurphu's animals but not its numbers", () => {
+		// Janson gives Mongolia Tsurphu's rules for animal, gender and element, and says only Tsurphu
+		// calendars number their months. The Mongolian test config reused Tsurphu's whole block until
+		// 2026-09-13, numbers included, and no test noticed.
+		const mongolian = VERSION_CONFIGS.mongolian;
+		const bad: string[] = [];
+		for (let month = 1; month <= 12; month++) {
+			const got = monthAttributes(mongolian, 2026, month);
+			if (got.number !== null) bad.push(`month ${month}: ${got.number}`);
+		}
+		expect(bad).toEqual([]);
+		expect(monthAttributes(mongolian, 2026, 1).animal).toBe("tiger");
+	});
+
+	it("reads Janson's (3 − (12Y + M)) amod 9 for Tsurphu at a pinned value", () => {
+		// 3 − (12·2026 + 1) = −24310 ≡ 8 (mod 9). The steps test below holds at any phase; this pins it.
+		expect(monthAttributes(TSURPHU, 2026, 1).number).toBe(8);
+		expect(monthAttributes(TSURPHU, 2026, 2).number).toBe(7);
+	});
+
 	it("decreases by one a month and by three a year for Tsurphu", () => {
 		const bad: string[] = [];
 		for (let year = 2000; year <= 2050; year++) {

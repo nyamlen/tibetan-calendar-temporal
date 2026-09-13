@@ -21,7 +21,13 @@
  */
 
 import { rangeError } from "../errors.js";
-import type { MeanMotion, Rational, TraditionConfig, TraditionMonthNaming } from "./types.js";
+import type {
+	MeanMotion,
+	Rational,
+	TraditionConfig,
+	TraditionMonthAnimals,
+	TraditionNineNumbers,
+} from "./types.js";
 
 /** `moonTab` covers arguments 0…7; `sunTab` covers 0…3. Janson §7. */
 const MOON_TAB_LENGTH = 8;
@@ -203,55 +209,86 @@ function assertNaming(config: TraditionConfig): void {
 				"it means 0",
 		);
 	}
-	assertMonthNaming(config, naming.months);
+	assertMonthAnimals(config, naming.monthAnimals);
+	assertNineNumbers(config, naming.nineNumbers);
 }
 
 /**
- * `naming.months` is optional, and absence is a **statement**: nobody has sourced this tradition's
- * month attributes, so the astrological layer refuses rather than guessing.
+ * `naming.monthAnimals` is optional, and absence is a **statement**: nobody has sourced this
+ * tradition's month animals, so the astrological layer refuses rather than guessing.
  *
  * @remarks
- * Present-and-partial is the case this exists for. The three fields are one claim — the Tiger month
+ * Present-and-partial is the case this exists for. The two fields are one claim — the Tiger month
  * decides the animals *and* anchors the elements, and the lunar day's trigram and number are derived
- * from the month's animal — so a block missing one of them would let a tradition answer two
- * attributes confidently and a third wrongly. Required-when-present, therefore, and `undefined` is
+ * from the month's animal — so a block missing one of them would let a tradition answer some
+ * attributes confidently and others wrongly. Required-when-present, therefore, and `undefined` is
  * rejected as CLAUDE.md's rule demands for a declared-required field.
+ *
+ * A present `naming.months` is rejected outright. It was this block's name until 2026-09-13, and
+ * nothing else rejects an unknown key: without this, a config spreading `PHUGPA.naming` and adding
+ * Tsurphu's rules under the old name would keep Phugpa's month animals, silently.
  */
-function assertMonthNaming(
+function assertMonthAnimals(
 	config: TraditionConfig,
-	months: TraditionMonthNaming | undefined,
+	animals: TraditionMonthAnimals | undefined,
 ): void {
-	if (months === undefined) return;
-	if (typeof months !== "object" || months === null) {
+	if ((config.naming as { months?: unknown }).months !== undefined) {
 		throw invalid(
 			config,
-			`naming.months must be an object when present, received ${describe(months)}. Omit it ` +
-				"entirely to say that this tradition's month attributes are not sourced",
+			"naming.months is no longer read. Its rules are split by naming system: tigerMonth and " +
+				"elementRule go in naming.monthAnimals, and a month nine-number rule in " +
+				'naming.nineNumbers.months ("descending" for Tsurphu, omitted otherwise)',
 		);
 	}
-	const tiger = months.tigerMonth;
+	if (animals === undefined) return;
+	if (typeof animals !== "object" || animals === null) {
+		throw invalid(
+			config,
+			`naming.monthAnimals must be an object when present, received ${describe(animals)}. Omit ` +
+				"it entirely to say that this tradition's month animals are not sourced",
+		);
+	}
+	const tiger = animals.tigerMonth;
 	if (!Number.isSafeInteger(tiger) || tiger < 1 || tiger > 12) {
 		throw invalid(
 			config,
-			`naming.months.tigerMonth must be an integer in 1…12, received ${describe(tiger)}. ` +
+			`naming.monthAnimals.tigerMonth must be an integer in 1…12, received ${describe(tiger)}. ` +
 				"It is 11 for Phugpa and 1 for Tsurphu and Mongolia",
 		);
 	}
-	const rule = months.elementRule;
+	const rule = animals.elementRule;
 	if (rule !== "son-of-year" && rule !== "continuous") {
 		throw invalid(
 			config,
-			`naming.months.elementRule must be "son-of-year" or "continuous", received ` +
+			`naming.monthAnimals.elementRule must be "son-of-year" or "continuous", received ` +
 				`${describe(rule)}. It names what the rule does, not whose it is: Phugpa restarts the ` +
 				"element run from the year's element, Tsurphu runs the cycle on continuously",
 		);
 	}
-	if (typeof months.numbers !== "boolean") {
+}
+
+/**
+ * `naming.nineNumbers` is optional and so is each member, and absence means the dominant convention
+ * — so only a present-and-wrong value is rejected, the `weekdayOffset` idiom.
+ */
+function assertNineNumbers(
+	config: TraditionConfig,
+	numbers: TraditionNineNumbers | undefined,
+): void {
+	if (numbers === undefined) return;
+	if (typeof numbers !== "object" || numbers === null) {
 		throw invalid(
 			config,
-			`naming.months.numbers must be a boolean, received ${describe(months.numbers)}. Only ` +
-				"Tsurphu calendars number their months, so it is false for Phugpa — which is a sourced " +
-				"fact, not an absence",
+			`naming.nineNumbers must be an object when present, received ${describe(numbers)}`,
+		);
+	}
+	const months = numbers.months;
+	if (months !== undefined && months !== "unnumbered" && months !== "descending") {
+		throw invalid(
+			config,
+			`naming.nineNumbers.months must be "unnumbered" or "descending" when present, received ` +
+				`${describe(months)}. Only Tsurphu calendars number their months, so omitting it means ` +
+				'"unnumbered" — which is a sourced fact, not an absence',
 		);
 	}
 }

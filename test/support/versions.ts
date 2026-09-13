@@ -27,17 +27,21 @@ import { PHUGPA } from "../../src/traditions/phugpa.js";
 import type { TraditionConfig } from "../../src/traditions/types.js";
 
 /**
- * The month-naming rules Tsurphu and Mongolia share, which are the Chinese calendar's.
+ * The month-animal rules Tsurphu and Mongolia share, which are the Chinese calendar's.
  *
  * @remarks
- * Month 1 is Tiger, the element cycle runs on continuously rather than restarting from the year's
- * element, and the months are numbered — all three the opposite of Phugpa's, which is why a config
- * spread from `PHUGPA` must replace the block rather than inherit it.
+ * Month 1 is Tiger and the element cycle runs on continuously rather than restarting from the year's
+ * element — both the opposite of Phugpa's, which is why a config spread from `PHUGPA` must replace
+ * the `naming` block rather than inherit it.
+ *
+ * The nine month numbers are **not** shared, and until 2026-09-13 this block wrongly carried them
+ * for Mongolia too. Janson: "The Tsurphu rules for animal, gender and element agree with the rules in
+ * the Chinese calendar … Mongolia uses also the same rules" — three rules, not four — and "only
+ * Tsurphu calendars give one of the 9 numbers to each month".
  */
-const TSURPHU_MONTHS = {
+const CHINESE_MONTH_ANIMALS = {
 	tigerMonth: 1,
 	elementRule: "continuous",
-	numbers: true,
 } as const;
 
 /** The four version names Janson gives, in the order his comparison tables use. */
@@ -52,7 +56,7 @@ export const VERSION_CONFIGS: Record<Version, TraditionConfig> = {
 		intercalationIndexAtEpoch: 0,
 		leapIndexThreshold: 0,
 		leapMonthPosition: "before",
-		naming: { months: TSURPHU_MONTHS },
+		naming: { monthAnimals: CHINESE_MONTH_ANIMALS, nineNumbers: { months: "descending" } },
 	},
 	/** Janson: Mongolia uses Tsurphu's rules for the month animal, gender and element. */
 	mongolian: {
@@ -60,7 +64,7 @@ export const VERSION_CONFIGS: Record<Version, TraditionConfig> = {
 		intercalationIndexAtEpoch: 46,
 		leapIndexThreshold: 46,
 		leapMonthPosition: "before",
-		naming: { months: TSURPHU_MONTHS },
+		naming: { monthAnimals: CHINESE_MONTH_ANIMALS },
 	},
 	/**
 	 * The simplified intercalation index, 57 — not the traditional 59 an almanac prints. Janson gives
