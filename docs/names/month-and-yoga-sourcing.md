@@ -263,13 +263,20 @@ Andreas confirmed against the scan that Henning prints `mi phrod` and `sreg pa`.
 - **`mi phrod` → `mi 'phrod`.**
   Both enumerations print `mi 'phrod`, and `mi phrod` is a headword in none of the dictionaries swept.
   The Mahāvyutpatti does have `mi 'phrod pa`, but as prativāṇi, "contradiction" — a different sense, so it attests the spelling and nothing about the yoga.
-- **`sreg pa` → a `b-` prefixed form.**
-  Both enumerations print the prefix: the *tshig mdzod chen mo* as `bsreg` (in `bsreg sbyor`), the *dung dkar* as `bsreg pa` (in `bsreg pa'i sbyor`).
-  The recorded decision is bare `bsreg`, which **rests on the *tshig mdzod chen mo* alone**; `bsreg pa` would match the *dung dkar* and keep the `-pa`/`-ba` of `'chi ba`, which stays as Henning prints it.
-  That choice is listed as open below.
+- **`sreg pa` → `bsreg pa`**, correcting the prefix and nothing else.
+  The two enumerations differ in form but not in the word.
+  The *tshig mdzod chen mo* compounds every name directly onto *sbyor*, and a Tibetan compound drops the `-pa`/`-ba` nominaliser, so its `bsreg sbyor` and `'chi sbyor` are the compound forms of `bsreg pa` and `'chi ba`.
+  The *dung dkar* keeps the full word and joins it with the genitive: `bsreg pa'i sbyor`, `'chi ba'i sbyor`.
+  Read that way, both print `bsreg pa`, and they part from Henning only in the prefix — so the prefix is all the correction changes.
+  It keeps the shipped names in one style, since `'chi ba` stays exactly as Henning prints it.
+  `bsreg pa` is also a headword in Jäschke, Das, the *tshig mdzod chen mo*, Rangjung Yeshe and Ives Waldo.
   Unprefixed `sreg pa` is itself a Mahāvyutpatti headword (as havana, oblation, and as tittiri, the partridge), so its existence says nothing either way.
+  Decided on 2026-09-13, after an earlier summary had wrongly reported bare `bsreg` in both enumerations.
 
 The corrected `mi 'phrod` sounds the same as the original — both are *mi trö* — so that change is visible in script only: མི་འཕྲོད, not མི་ཕྲོད.
+`bsreg pa` བསྲེག་པ is *sek pa*, the same as `sreg pa` སྲེག་པ, so it too changes only the script.
+
+`'chi ba` needs no correction: the dictionaries' `'chi sbyor` and `'chi ba'i sbyor` are the compound and genitive forms of exactly the name that ships.
 
 **What `'phel 'gyur` means.**
 Jäschke p. 357, s.v. *'phel-ba*: "to increase, augment, multiply, enlarge … to improve, to grow better", its root glossed as Sanskrit वृध *vṛdh*.
@@ -290,10 +297,9 @@ Approved on 2026-09-13; still never a gloss, and to be added to that table when 
 
 ## Still open
 
-- **`bsreg` or `bsreg pa`.**
-  The recorded correction is `bsreg`, decided when both enumerations were summarised as printing it; they differ, as the yoga table shows, and the choice needs re-confirming.
 - **The English of the yogas.**
   `ELEMENTAL_YOGAS` also ships Henning's English glosses (*accomplishment*, *deficiency*, *discord* …), and nothing here verifies them; they remain single-source.
+  The Monier-Williams senses in the yoga table already match nine of them, all but *progress*, so the yoga verifier can check that match mechanically, as the rabjung verifier does.
 - **Janson's other six-season sources**, Ginzel and Richards, which he cites for the system and which were not consulted.
 - **The Tibetan and Sanskrit of the six-season *system*** as Kongtrul names it in Kālacakra usage.
   Henning prints no Tibetan for it, so the six-season Tibetan above rests on the general lexicons, not on a Kālacakra text.
