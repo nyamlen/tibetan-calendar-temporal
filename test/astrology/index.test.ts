@@ -45,8 +45,8 @@ describe("the composition on a doubled date", () => {
 		// `isLeapDay` down to the mansion. A code review proved that on 2026-09-12 by deleting the flag
 		// and watching all 990 tests stay green, while 19 of 31 doubled-first days changed answer —
 		// including this one, from maraṇa to amṛta.
-		expect(first.yoga.sanskrit).toBe("maraṇa");
-		expect(second.yoga.sanskrit).toBe("pratikūla");
+		expect(first.yoga.sanskritName.iast).toBe("maraṇa");
+		expect(second.yoga.sanskritName.iast).toBe("pratikūla");
 	});
 
 	it("differs on the calendar day and the yoga, because there are two calendar days", () => {
@@ -188,8 +188,8 @@ describe("the yoga's weekday element is tradition-free", () => {
 		let differing = 0;
 		for (let i = 0; i < 28; i++) {
 			if (
-				elementalYogaFor(day, { tradition: PHUGPA }).sanskrit !==
-				elementalYogaFor(day, { tradition: BHUTAN }).sanskrit
+				elementalYogaFor(day, { tradition: PHUGPA }).sanskritName.iast !==
+				elementalYogaFor(day, { tradition: BHUTAN }).sanskritName.iast
 			) {
 				differing++;
 			}

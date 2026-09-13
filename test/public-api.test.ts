@@ -727,7 +727,7 @@ describe("astrology API surface", () => {
 		expect(attributes.lunarDay).toBeNull();
 		// Everything tradition-free still answers, which is the point of reporting rather than throwing.
 		expect(attributes.calendarDay.animal).toBeDefined();
-		expect(attributes.yoga.sanskrit).toBeDefined();
+		expect(attributes.yoga.sanskritName.iast).toBeDefined();
 		expect(attributes.year.power).toBeDefined();
 	});
 

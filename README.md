@@ -657,7 +657,7 @@ Codes are stable and part of the API. Message text is not — match on the code.
 #### Types
 
 Type-only exports, erased at runtime: `TibetanDate`, `TibetanDateFields`, `TibetanMonth`,
-`TibetanMonthFields`, `TibetanYearName`, `Rabjung`, `TibetanName`,
+`TibetanMonthFields`, `TibetanYearName`, `Rabjung`, `TibetanName`, `SanskritName`,
 `TibetanWeekdayName`, `TibetanWeekdayElement`, `TibetanWeekday`, `TibetanPlanet`, `TibetanElement`,
 `TibetanAnimal`,
 `TibetanGender`, `TraditionConfig`, `TraditionNaming`, `TraditionMonthAnimals`, `TraditionNineNumbers`, `MeanMotion`, `Rational`,

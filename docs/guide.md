@@ -228,7 +228,7 @@ const day = attributesFor(Temporal.PlainDate.from('2026-09-01'));
 
 day.year.power;      // 'fire'
 day.year.body;       // 'water' — each of the five elements runs on its own cycle
-day.yoga.sanskrit;   // 'maraṇa'
+day.yoga.sanskritName.iast;  // 'maraṇa'
 day.yoga.favorable;  // false
 ```
 

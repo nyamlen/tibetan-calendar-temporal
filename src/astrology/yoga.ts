@@ -23,7 +23,7 @@
 
 import { assertInternal } from "../errors.js";
 import { deepFreeze } from "../freeze.js";
-import type { TibetanWeekdayElement } from "../types.js";
+import type { SanskritName, TibetanName, TibetanWeekdayElement } from "../types.js";
 import { mansionElement } from "./mansion-elements.js";
 
 /** One of the ten pairings, with its names and whether it is held favorable. */
@@ -39,10 +39,27 @@ export interface ElementalYoga {
 	 * which would print a pair Henning's table does not.
 	 */
 	readonly elements: readonly [TibetanWeekdayElement, TibetanWeekdayElement];
-	/** Henning's Sanskrit name, in his IAST spelling. */
-	readonly sanskrit: string;
-	/** Henning's Tibetan name, in his Wylie. No Tibetan script: he prints none. */
-	readonly wylie: string;
+	/**
+	 * The Tibetan name — script, Wylie and THL phonetics.
+	 *
+	 * @remarks
+	 * Henning's, with two of his spellings corrected: *mi 'phrod* where he prints *mi phrod*, and
+	 * *bsreg pa* where he prints *sreg pa*. Both follow how the *tshig mdzod chen mo*'s own enumeration
+	 * of the ten spells them, which `scripts/verify-month-and-yoga-names.mjs` checks for every name. He
+	 * prints no Tibetan script; the script here is derived from the Wylie and verified.
+	 */
+	readonly tibetanName: TibetanName;
+	/**
+	 * The Sanskrit name, in Henning's spelling.
+	 *
+	 * @remarks
+	 * Nine of the ten are Monier-Williams headwords. **`pragati` is Henning's alone**: it is the stem,
+	 * and no Cologne dictionary carries it — not Monier-Williams 1899 or 1872, Böhtlingk and Roth, Apte
+	 * or Cappeller. Shipped as he prints it rather than replaced, because the two candidates found are
+	 * each worse: *pragamana* is paired with `'phel 'gyur` by no source, and *vṛddhi* is the name of
+	 * an unrelated astronomical yoga. See `docs/names/month-and-yoga-sourcing.md`.
+	 */
+	readonly sanskritName: SanskritName;
 	/** Henning's English gloss. */
 	readonly english: string;
 	/**
@@ -79,71 +96,71 @@ const ELEMENT_ORDER: readonly TibetanWeekdayElement[] = ["earth", "water", "fire
 export const ELEMENTAL_YOGAS: readonly ElementalYoga[] = deepFreeze([
 	{
 		elements: ["earth", "earth"],
-		sanskrit: "siddhi",
-		wylie: "dngos grub",
+		tibetanName: { tibetan: "དངོས་གྲུབ", wylie: "dngos grub", phonetic: "ngö drup" },
+		sanskritName: { iast: "siddhi", devanagari: "सिद्धि" },
 		english: "accomplishment",
 		favorable: true,
 	},
 	{
 		elements: ["water", "water"],
-		sanskrit: "amṛta",
-		wylie: "bdud rtsi",
+		tibetanName: { tibetan: "བདུད་རྩི", wylie: "bdud rtsi", phonetic: "dü tsi" },
+		sanskritName: { iast: "amṛta", devanagari: "अमृत" },
 		english: "nectar",
 		favorable: true,
 	},
 	{
 		elements: ["earth", "water"],
-		sanskrit: "yauvana",
-		wylie: "lang tsho",
+		tibetanName: { tibetan: "ལང་ཚོ", wylie: "lang tsho", phonetic: "lang tso" },
+		sanskritName: { iast: "yauvana", devanagari: "यौवन" },
 		english: "youth",
 		favorable: true,
 	},
 	{
 		elements: ["fire", "fire"],
-		sanskrit: "pragati",
-		wylie: "'phel 'gyur",
+		tibetanName: { tibetan: "འཕེལ་འགྱུར", wylie: "'phel 'gyur", phonetic: "pel gyur" },
+		sanskritName: { iast: "pragati", devanagari: "प्रगति" },
 		english: "progress",
 		favorable: true,
 	},
 	{
 		elements: ["wind", "wind"],
-		sanskrit: "saṃpanna",
-		wylie: "phun tshogs",
+		tibetanName: { tibetan: "ཕུན་ཚོགས", wylie: "phun tshogs", phonetic: "pün tsok" },
+		sanskritName: { iast: "saṃpanna", devanagari: "संपन्न" },
 		english: "excellence",
 		favorable: true,
 	},
 	{
 		elements: ["fire", "wind"],
-		sanskrit: "balayukta",
-		wylie: "stobs ldan",
+		tibetanName: { tibetan: "སྟོབས་ལྡན", wylie: "stobs ldan", phonetic: "top den" },
+		sanskritName: { iast: "balayukta", devanagari: "बलयुक्त" },
 		english: "powerful",
 		favorable: true,
 	},
 	{
 		elements: ["earth", "wind"],
-		sanskrit: "alābha",
-		wylie: "mi phrod",
+		tibetanName: { tibetan: "མི་འཕྲོད", wylie: "mi 'phrod", phonetic: "mi trö" },
+		sanskritName: { iast: "alābha", devanagari: "अलाभ" },
 		english: "deficiency",
 		favorable: false,
 	},
 	{
 		elements: ["water", "wind"],
-		sanskrit: "pratikūla",
-		wylie: "mi mthun",
+		tibetanName: { tibetan: "མི་མཐུན", wylie: "mi mthun", phonetic: "mi tün" },
+		sanskritName: { iast: "pratikūla", devanagari: "प्रतिकूल" },
 		english: "discord",
 		favorable: false,
 	},
 	{
 		elements: ["earth", "fire"],
-		sanskrit: "dahana",
-		wylie: "sreg pa",
+		tibetanName: { tibetan: "བསྲེག་པ", wylie: "bsreg pa", phonetic: "sek pa" },
+		sanskritName: { iast: "dahana", devanagari: "दहन" },
 		english: "burning",
 		favorable: false,
 	},
 	{
 		elements: ["fire", "water"],
-		sanskrit: "maraṇa",
-		wylie: "'chi ba",
+		tibetanName: { tibetan: "འཆི་བ", wylie: "'chi ba", phonetic: "chi ba" },
+		sanskritName: { iast: "maraṇa", devanagari: "मरण" },
 		english: "death",
 		favorable: false,
 	},
@@ -172,7 +189,7 @@ const BY_PAIR = new Map(
  * @example
  * ```ts
  * // 1 September 2026 is a Tuesday, whose element is fire; the mansion that morning carries water.
- * elementalYoga("fire", "water").sanskrit;   // "maraṇa"
+ * elementalYoga("fire", "water").sanskritName.iast;   // "maraṇa"
  * elementalYoga("water", "fire").favorable;  // false — and the same yoga, either way round
  * ```
  */

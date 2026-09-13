@@ -248,6 +248,29 @@ export function asTibetanWeekday(value: number): TibetanWeekday {
  * a year of dates costs pointer fields rather than thousands of strings — and freezing is what keeps
  * that sharing safe.
  */
+export interface SanskritName {
+	/** IAST, with full diacritics. */
+	iast: string;
+
+	/**
+	 * Devanāgarī.
+	 *
+	 * @remarks
+	 * Transliterated from the IAST by the verification script, never typed by hand, so the two
+	 * fields always spell the same word. Where Monier-Williams heads the word with a different
+	 * orthography — *saṃpanna* संपन्न against his सम्पन्न — this follows the IAST, and the dictionary
+	 * is reached through a stated normalisation rather than by changing the name.
+	 */
+	devanagari: string;
+}
+
+/**
+ * A name in Tibetan, rendered three ways.
+ *
+ * @remarks
+ * {@link SanskritName} is its counterpart, and an object carrying both keys them explicitly —
+ * `tibetanName` beside `sanskritName` — rather than calling either one `name`.
+ */
 export interface TibetanName {
 	/** Tibetan script. First, because it is the name; the other two are ways of reaching it. */
 	tibetan: string;

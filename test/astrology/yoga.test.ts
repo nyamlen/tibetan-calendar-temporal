@@ -9,6 +9,7 @@ import { scalingFor } from "../../src/computation/scaling.js";
 import { weekdayNameFor } from "../../src/cycles.js";
 import { PHUGPA } from "../../src/traditions/phugpa.js";
 import type { TibetanWeekdayElement } from "../../src/types.js";
+import { YOGA_NAMES } from "../fixtures/yoga-names.js";
 
 /**
  * The ten pairings, and the one structural property that matters: the pair is **unordered**.
@@ -33,10 +34,10 @@ describe("the ten yogas", () => {
 	it("cover every pairing of the four elements exactly once", () => {
 		const covered = new Set<string>();
 		for (const first of ELEMENTS) {
-			for (const second of ELEMENTS) covered.add(elementalYoga(first, second).sanskrit);
+			for (const second of ELEMENTS) covered.add(elementalYoga(first, second).sanskritName.iast);
 		}
 		expect(covered.size).toBe(10);
-		expect([...covered].sort()).toEqual(ELEMENTAL_YOGAS.map((y) => y.sanskrit).sort());
+		expect([...covered].sort()).toEqual(ELEMENTAL_YOGAS.map((y) => y.sanskritName.iast).sort());
 	});
 
 	it("are symmetric in their arguments", () => {
@@ -64,12 +65,9 @@ describe("the ten yogas", () => {
 		// this count is FPMT's sole claim. `test/validation/fpmt-observances.test.ts` checks it day by
 		// day against their printed prefixes.
 		expect(ELEMENTAL_YOGAS.filter((yoga) => yoga.favorable)).toHaveLength(6);
-		expect(ELEMENTAL_YOGAS.filter((yoga) => !yoga.favorable).map((yoga) => yoga.sanskrit)).toEqual([
-			"alābha",
-			"pratikūla",
-			"dahana",
-			"maraṇa",
-		]);
+		expect(
+			ELEMENTAL_YOGAS.filter((yoga) => !yoga.favorable).map((yoga) => yoga.sanskritName.iast),
+		).toEqual(["alābha", "pratikūla", "dahana", "maraṇa"]);
 	});
 
 	it("hold every matched pair favorable and no mixed pair involving fire and water", () => {
@@ -83,7 +81,7 @@ describe("the ten yogas", () => {
 
 	it("carry a name in all three columns for every row", () => {
 		const bad = ELEMENTAL_YOGAS.filter(
-			(yoga) => !yoga.sanskrit || !yoga.wylie || !yoga.english,
+			(yoga) => !yoga.sanskritName.iast || !yoga.tibetanName.wylie || !yoga.english,
 		).map((yoga) => yoga.elements.join("+"));
 		expect(bad).toEqual([]);
 	});
@@ -100,7 +98,7 @@ describe("a yoga from a mansion number", () => {
 		const bad: string[] = [];
 		for (let index = 0; index < MANSION_COUNT; index++) {
 			const yoga = yogaForMansion("fire", index);
-			if (!yoga.sanskrit) bad.push(`mansion ${index}`);
+			if (!yoga.sanskritName.iast) bad.push(`mansion ${index}`);
 			if (!yoga.elements.includes(mansionElement(index))) bad.push(`mansion ${index}: element`);
 		}
 		expect(bad).toEqual([]);
@@ -148,6 +146,36 @@ describe("the two halves of a doubled day", () => {
 		expect(weekdayNameFor(first.tibetanWeekday, PHUGPA).element).not.toBe(
 			weekdayNameFor(second.tibetanWeekday, PHUGPA).element,
 		);
-		expect(yogaOf(first).sanskrit).not.toBe(yogaOf(second).sanskrit);
+		expect(yogaOf(first).sanskritName.iast).not.toBe(yogaOf(second).sanskritName.iast);
+	});
+});
+
+describe("the yoga names match the verified fixture", () => {
+	// `scripts/verify-month-and-yoga-names.mjs` needs the network and two converters outside the repo,
+	// so it runs before a release. This is what stops a hand-edit to the table between runs, on the
+	// pattern `test/names.test.ts` set for the name vocabulary.
+	it("has one fixture row per shipped yoga, and no other", () => {
+		expect(YOGA_NAMES.map((row) => row.elements.join("+")).sort()).toEqual(
+			ELEMENTAL_YOGAS.map((yoga) => yoga.elements.join("+")).sort(),
+		);
+	});
+
+	it.each(YOGA_NAMES)("$wylie carries the verified Tibetan and Sanskrit", (row) => {
+		const yoga = ELEMENTAL_YOGAS.find((y) => y.elements.join("+") === row.elements.join("+"));
+		expect(yoga?.tibetanName).toEqual({
+			tibetan: row.tibetan,
+			wylie: row.wylie,
+			phonetic: row.phonetic,
+		});
+		expect(yoga?.sanskritName).toEqual({ iast: row.iast, devanagari: row.devanagari });
+	});
+
+	it("ships the two corrected spellings, not Henning's", () => {
+		// Pinned as values: a test asserting only that the fixture and the table agree would still pass
+		// if both were regenerated from an uncorrected source.
+		expect(elementalYoga("earth", "wind").tibetanName.wylie).toBe("mi 'phrod");
+		expect(elementalYoga("earth", "wind").tibetanName.tibetan).toBe("མི་འཕྲོད");
+		expect(elementalYoga("earth", "fire").tibetanName.wylie).toBe("bsreg pa");
+		expect(YOGA_NAMES.flatMap((row) => row.correctedFrom ?? [])).toEqual(["mi phrod", "sreg pa"]);
 	});
 });

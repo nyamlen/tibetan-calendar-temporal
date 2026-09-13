@@ -215,7 +215,7 @@ describe("guide examples", () => {
 		});
 
 		it("states the yoga and its favorability correctly", () => {
-			expect(day.yoga.sanskrit).toBe("maraṇa");
+			expect(day.yoga.sanskritName.iast).toBe("maraṇa");
 			expect(day.yoga.favorable).toBe(false);
 		});
 
