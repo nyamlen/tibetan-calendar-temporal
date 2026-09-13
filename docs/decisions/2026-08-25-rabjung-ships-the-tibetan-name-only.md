@@ -11,6 +11,7 @@ list ships in the type. `RabjungName` and `SanskritName` come off the public sur
 [names/rabjung.md](../names/rabjung.md), in `test/fixtures/rabjung-names.ts` and in
 `scripts/verify-rabjung-names.mjs`. This supersedes
 [2026-08-21-rabjung-names-carry-both.md](2026-08-21-rabjung-names-carry-both.md).
+**Amended 2026-09-13:** the field is now `Rabjung.tibetanName`, and the growth path below changed with it — see [the amendment](#amended-2026-09-13-the-field-is-tibetanname-and-sanskrit-would-be-a-sibling).
 
 ## The rule this follows
 
@@ -136,3 +137,16 @@ it — that `RabjungName.sanskrit` is one of two Sanskrit lists. Under this deci
 ships. The document stays shipped, because its two-lists section and its register section are the
 only place a consumer learns why a Tibetan year name is not a translation of the Sanskrit one they
 may know. **Rewrite the reason; do not leave it standing and false.**
+
+## Amended 2026-09-13: the field is `tibetanName`, and Sanskrit would be a sibling
+
+`Rabjung.name` became `Rabjung.tibetanName` when the month-names work fixed one rule for the whole
+surface: an object carrying names keys each language explicitly, `tibetanName: TibetanName` beside
+`sanskritName: SanskritName`, following `TibetanYearName`'s `elementName` and `animalName`.
+A bare `name` holding specifically the Tibetan name was the one exception.
+
+**The growth path above is superseded.** It planned for Sanskrit to return *inside* the name object.
+Under the surface-wide rule it would return as a sibling `sanskritName` on `Rabjung` — still additive,
+and still without flattening the Tibetan renderings onto `Rabjung`, which is the part of that section
+that stands.
+Nothing else in this record changes: neither Sanskrit list ships, for the reasons given.

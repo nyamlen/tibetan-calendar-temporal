@@ -133,7 +133,7 @@ export function yearFromRoyalEra(royalEraYear: number): number {
 export function rabjungFromYear(year: number): Rabjung {
 	const elapsed = year - (FIRST_RABJUNG_YEAR - 1);
 	const position = amod(elapsed, 60);
-	return { cycle: ceilDiv(elapsed, 60), year: position, name: rabjungNameOf(position) };
+	return { cycle: ceilDiv(elapsed, 60), year: position, tibetanName: rabjungNameOf(position) };
 }
 
 /**

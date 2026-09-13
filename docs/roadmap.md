@@ -791,7 +791,7 @@ edits, and moving files once after they have landed is one link-fixing commit in
       assertion sites while costing permanent narrowing under `exactOptionalPropertyTypes` for a
       field that is total over 1–60.
 - [x] **The rabjung name shape — settled 2026-08-25, and the answer was "neither list".**
-      `Rabjung.name` is a plain `TibetanName`. The item asked whether `sanskrit` sat at the right
+      `Rabjung.name` — `tibetanName` since 2026-09-13 — is a plain `TibetanName`. The item asked whether `sanskrit` sat at the right
       level; the answer is that it should not be there at all, because the cycle has **two** Sanskrit
       lists carrying different names at 16, 17, 18, 20 and 34, so any type pairing one of them with
       the Tibetan name misnames 8% of years with nothing about the output looking wrong. The
@@ -1109,17 +1109,17 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   unrelated web surfaces for one project is a maintenance surface nobody asked for. TypeDoc stays
   blocked on TypeScript 7 independently of this.
 
-- **The 60 rabjung cycle names — SHIPPED, Tibetan only.** `rabjungFor(year).name` carries a
+- **The 60 rabjung cycle names — SHIPPED, Tibetan only.** `rabjungFor(year).tibetanName` carries a
   `TibetanName` at every position — script, Wylie, phonetics. **Neither** of the cycle's two Sanskrit
   lists ships, because they carry different names at 16, 17, 18, 20 and 34 and a type pairing either
   with the Tibetan name would misname 8% of years silently
   ([decisions/2026-08-25-rabjung-ships-the-tibetan-name-only.md](decisions/2026-08-25-rabjung-ships-the-tibetan-name-only.md),
   which also records the shape both lists would take if they return). The Monier-Williams glosses and
   Csoma's columns stay sourced and regenerated in `test/fixtures/rabjung-names.ts` and
-  `docs/names/rabjung.md`. `name` is a **required** field, decided against the completed table.
+  `docs/names/rabjung.md`. `tibetanName` (`name` until 2026-09-13) is a **required** field, decided against the completed table.
 
   Additive, so not a breaking change. See
-  [architecture.md](architecture.md#why-rabjungname-carries-the-tibetan-name-and-neither-sanskrit-list)
+  [architecture.md](architecture.md#why-rabjungtibetanname-carries-the-tibetan-name-and-neither-sanskrit-list)
   for the shape and what it does and does not promise,
   [names/rabjung-sourcing.md](names/rabjung-sourcing.md) for the sourcing hunt — every source tried,
   the dead ends with their evidence, and the findings that changed the method — and

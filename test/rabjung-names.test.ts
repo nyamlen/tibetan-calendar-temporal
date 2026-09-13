@@ -196,18 +196,23 @@ describe("src/rabjung-names.ts matches the verified fixture", () => {
  * checking agreement is a real cross-check, not two views of one number.
  *
  * **State the limit**, since both fixtures ultimately anchor to Janson's own cycle-16/17 table:
- * this validates *wiring* -- that position N's row reaches year N's `Rabjung.name` -- not the
+ * this validates *wiring* -- that position N's row reaches year N's `Rabjung.tibetanName` -- not the
  * *content* of any individual row, which the suites above already cover from their own sources.
  */
-describe("rabjungFromYear(year).name wires the right row to the right year", () => {
+describe("rabjungFromYear(year).tibetanName wires the right row to the right year", () => {
 	it("agrees with the independently-sourced sixty-year-cycle fixture at every position", () => {
 		const wrong: unknown[] = [];
 		for (const row of SIXTY_YEAR_CYCLE) {
 			const expected = RABJUNG_NAMES[row.indian - 1];
 			for (const year of row.years) {
-				const { name } = rabjungFromYear(year);
-				if (name.wylie !== expected?.wylie) {
-					wrong.push({ year, position: row.indian, got: name.wylie, expected: expected?.wylie });
+				const { tibetanName } = rabjungFromYear(year);
+				if (tibetanName.wylie !== expected?.wylie) {
+					wrong.push({
+						year,
+						position: row.indian,
+						got: tibetanName.wylie,
+						expected: expected?.wylie,
+					});
 				}
 			}
 		}

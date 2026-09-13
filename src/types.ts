@@ -121,7 +121,7 @@ export interface Rabjung {
 	year: number;
 
 	/** The Tibetan tradition's name at this position. No Sanskrit — see the note above. */
-	name: TibetanName;
+	tibetanName: TibetanName;
 }
 
 /**

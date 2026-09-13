@@ -382,7 +382,7 @@ one tradition, and this package ships four.
 
 ### The year name you may know in Sanskrit is not shipped, and that is deliberate
 
-`rabjungFor(year).name` carries the Tibetan name of the year — script, Wylie and phonetics — and
+`rabjungFor(year).tibetanName` carries the Tibetan name of the year — script, Wylie and phonetics — and
 nothing else. If you were expecting *Prabhava* or *Parābhava* beside it, here is why they are absent.
 
 There are **two different lists** of sixty Sanskrit names for the one cycle, not two renderings of

@@ -293,7 +293,7 @@ interface TibetanDateFields {
 interface Rabjung {
   cycle: number;          // 17 for 1987-2046
   year: number;           // 1-60 position within the cycle
-  name: TibetanName;      // the Tibetan name only — neither Sanskrit list ships
+  tibetanName: TibetanName; // the Tibetan name only — neither Sanskrit list ships
 }
 
 interface TibetanYearName {
@@ -442,14 +442,14 @@ makes the mistake unbuildable.
 together — unlike `year` and `yearStartsIn`, each of which stands alone — and because it is where
 the Indian cycle names will go if they are ever added.
 
-### Why `rabjung.name` carries the Tibetan name and neither Sanskrit list
+### Why `rabjung.tibetanName` carries the Tibetan name and neither Sanskrit list
 
 `rabjung.year` is a position in two 60-year Sanskrit lists — the one Janson's Tibetan-lineage table
 descends from and the Indic saṃvatsara list — which carry **different names** at 16, 17, 18, 20 and
 34, the Tibetan following the second every time. At 34 the Indic Śārvarī, "belonging to night",
 stands against *kun ldan*, all-endowed, which renders *sarvapati*.
 
-`rabjung.name` therefore exposes **neither**: a type pairing one list with the Tibetan name would be
+`rabjung.tibetanName` therefore exposes **neither**: a type pairing one list with the Tibetan name would be
 naming something the Tibetan does not render at five of every sixty positions, and the only defence
 would be a docblock the reader has to have read. Both lists stay tabulated in
 [names/rabjung.md](names/rabjung.md), with [names/rabjung-sourcing.md](names/rabjung-sourcing.md) for

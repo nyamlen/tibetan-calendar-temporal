@@ -104,8 +104,8 @@ export function yearNameFor(year: number): TibetanYearName {
  *
  * // The Tibetan name only. The cycle has two Sanskrit name lists and neither ships on this type
  * // — see Rabjung's own docblock, and docs/names/rabjung.md, which tabulates both.
- * rabjungFor(2153).name.tibetan;     // ཟིལ་གནོན
- * rabjungFor(2153).name.wylie;       // "zil gnon"
+ * rabjungFor(2153).tibetanName.tibetan;     // ཟིལ་གནོན
+ * rabjungFor(2153).tibetanName.wylie;       // "zil gnon"
  * ```
  */
 export function rabjungFor(year: number): Rabjung {
