@@ -633,8 +633,8 @@ under its own guard; each shared corpus is built under its own; a backstop print
 before rethrowing anything else; and `tracked()` reports a path the index holds but the disk does not
 instead of handing it to a rule. The registry is the new silent failure — an unregistered rule
 collects nothing and the run reads "All conventions hold" — so the self-test refuses a registry
-missing any rule number or pairing one with another rule's function. Proved by a mutation matrix with a control and a whole-report diff, as the
-commits for that work record.
+missing any rule number or pairing one with another rule's function. Every one of those is a row in
+`npm run test:conventions`, which is what keeps them proved rather than recorded once in a commit.
 
 **A guard must not share its predicate with the thing it guards.** Rule 12 matches the markdown
 template a generator writes, and the invariant proving that rule is not passing vacuously used a

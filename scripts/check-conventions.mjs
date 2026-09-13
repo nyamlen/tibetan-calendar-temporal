@@ -1288,7 +1288,7 @@ function rule11() {
 //
 // `test/public-api.test.ts` pins the runtime surface by reading `Object.keys(api)` and `typeof`.
 // Types are erased at runtime, so removing or renaming an exported interface passes every one of
-// the nine CI commands. That is not hypothetical: `RabjungName` and `SanskritName` came off the
+// the CI commands. That is not hypothetical: `RabjungName` and `SanskritName` came off the
 // surface on 2026-08-25 and the only thing that caught the now-false type list in `README.md` was
 // a grep somebody happened to run. The README ships in the tarball and is what npmjs.com renders,
 // so a stale type list is a false contract statement rather than a tidying issue.
