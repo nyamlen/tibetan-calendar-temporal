@@ -231,13 +231,17 @@ interface TraditionConfig {
 
 interface TraditionNaming {
   weekdayOffset?: number;              // Absent means 0 — Tibet's naming; Bhutan is 1
-  months?: TraditionMonthNaming;       // Absent means NOT SOURCED, and the astrology refuses
+  monthAnimals?: TraditionMonthAnimals; // Absent means NOT SOURCED, and the astrology refuses
+  nineNumbers?: TraditionNineNumbers;  // Absent means unnumbered — Janson: "only Tsurphu"
 }
 
-interface TraditionMonthNaming {
+interface TraditionMonthAnimals {
   tigerMonth: number;                  // 11 Phugpa, 1 Tsurphu/Mongolia — anchors animal AND element
   elementRule: "son-of-year" | "continuous";  // Restart from the year's element, or run on
-  numbers: boolean;                    // Only Tsurphu numbers its months; false is a sourced fact
+}
+
+interface TraditionNineNumbers {
+  months?: "unnumbered" | "descending"; // Default "unnumbered"; "descending" is Tsurphu's
 }
 
 interface TibetanDate {

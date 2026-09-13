@@ -471,7 +471,7 @@ edits, and moving files once after they have landed is one link-fixing commit in
       `lunarDayAttributesFor` throw `TCT_ATTRIBUTE_NOT_SOURCED` for both Bhutanese configs, and
       `attributesFor` reports `month: null` and `lunarDay: null` while still answering everything
       tradition-free. The refusal needs no "is this Bhutan" check: a tradition nobody has sourced
-      simply carries no `naming.months` block. Pinned in `test/public-api.test.ts`,
+      simply carries no `naming.monthAnimals` block (`naming.months` until 2026-09-13). Pinned in `test/public-api.test.ts`,
       `test/astrology/index.test.ts` and `test/guide.test.ts`, and the error code is now reachable from
       the public surface rather than sitting in that suite's unreachable list.
 

@@ -8,6 +8,8 @@ status: accepted
 **Decision:** the month members of `TraditionNaming` are optional, and **absence means the attribute
 is not sourced for that tradition** — `./astrology` refuses with a coded error rather than falling
 back to Phugpa's list.
+**Amended 2026-09-13:** that rule now governs `naming.monthAnimals`, and the nine month numbers moved
+to `naming.nineNumbers`, whose absence means *unnumbered* — see [the amendment](#amended-2026-09-13-the-nine-numbers-default).
 `weekdayOffset` becomes optional within the same block, defaulting to 0, so a config supplying only
 month members need not restate a shift it does not have.
 
@@ -44,7 +46,7 @@ The reason they belong here anyway is narrower.
 no formula touches — so a second config would duplicate the bucket rather than separate two concerns.
 And a caller asking for one tradition's attributes would then have to supply two objects that must
 agree about which tradition they describe, with nothing checking that they do.
-A `TraditionConfig` whose `naming.months` says Tsurphu while its `leapIndexThreshold` says Phugpa is
+A `TraditionConfig` whose `naming.monthAnimals` says Tsurphu while its `leapIndexThreshold` says Phugpa is
 at least a single object a validator can see.
 
 ## Why the asymmetry with `weekdayOffset` is principled rather than untidy
@@ -87,3 +89,28 @@ over-refusal is safe and reversible, while per-field nulls would tax every Phugp
 three narrowings forever, for a case they never meet, and could not be removed later without a
 breaking change.
 See [../astrology.md](../astrology.md) for the attribute layer this governs.
+
+## Amended 2026-09-13: the nine numbers default
+
+The block this record governed, `naming.months`, held three rules: the Tiger month, the element rule,
+and a `numbers` boolean.
+It is now organised by naming system, as Janson enumerates them: `naming.monthAnimals` holds the first
+two, and `naming.nineNumbers.months` holds the third as `"unnumbered" | "descending"`.
+
+**`monthAnimals` keeps this record's rule unchanged** — absent means not sourced, and the astrology
+refuses — because the fork it rests on is unchanged.
+
+**`nineNumbers` defaults, by this record's own test.**
+Janson states that "only Tsurphu calendars give one of the 9 numbers to each month", so there is a
+dominant convention, and a default of `"unnumbered"` asserts exactly what he says about every other
+version.
+The formula he gives, `(3 − (12Y + M)) amod 9`, never reads the Tiger month, which is what makes the
+numbers a system of their own rather than a field of the animal block.
+
+What a contributor would otherwise do is make `nineNumbers` required-when-present beside
+`monthAnimals`, for symmetry.
+That would make `PHUGPA` restate a default and would make "unnumbered" look like a claim someone
+had to source per tradition, when Janson has already made it for all of them.
+A present `naming.months` is rejected by the validator rather than ignored, because nothing rejects
+unknown keys and a spread of `PHUGPA.naming` carrying Tsurphu's rules under the old name would
+otherwise keep Phugpa's animals.

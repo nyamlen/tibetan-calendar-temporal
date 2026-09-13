@@ -355,12 +355,13 @@ derivation; in `docs/` they are just noise.
   README called `rabjungFor`'s `name` "the Tibetan and Sanskrit name" for hours after the Sanskrit
   came off, and the grep that found the stale list named the removed types rather than the field, so
   it sailed past. Removing or renaming a type therefore still needs the hand sweep for everything
-  except the list — `docs/architecture.md`'s shapes (**20** exported types defined as interface
+  except the list — `docs/architecture.md`'s shapes (**21** exported types defined as interface
   blocks, plus `TibetanAnimal`, `TibetanElement`, `TibetanGender`, `TibetanName`, `TibetanWeekday`,
   `TibetanWeekdayName` and `TibetanYearName` named in field positions), `docs/guide.md` (4), and any
   docblock naming it. This figure read 7 until 2026-08-26, 10 until 2026-08-27, and moved twice on
   2026-09-12 — 13 when `TraditionNaming` and `TraditionMonthNaming` gained shapes, then 20 with the
-  seven `./astrology` ones; it moves whenever
+  seven `./astrology` ones — and to 21 on 2026-09-13, when `TraditionMonthNaming` split into
+  `TraditionMonthAnimals` and `TraditionNineNumbers`; it moves whenever
   a shape is added, so **re-count it rather than trusting the number written here** — the count is
   `grep -c '^interface ' docs/architecture.md`.
 
@@ -445,7 +446,7 @@ derivation; in `docs/` they are just noise.
   the Bhutanese month and lunar-day attributes, which Janson does not tabulate. It is
   `TCT_INVALID_ARGUMENT`'s neighbour rather than `TCT_FIELD_OUT_OF_RANGE`'s, it is deliberately
   **off** `tibetanDateExists`'s allowlist (a Bhutanese date exists; only an attribute of it is
-  unsourced), and the refusal is reached by a tradition carrying no `naming.months` block rather than
+  unsourced), and the refusal is reached by a tradition carrying no `naming.monthAnimals` block rather than
   by any code asking "is this Bhutan". A **composition** may report it as `null` where a primitive
   throws — `attributesFor` does — on the reasoning that a specific question with no answer is an
   error while "what is known about this day" is not. Reach for this code, not the range one, when the
