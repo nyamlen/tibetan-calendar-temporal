@@ -356,7 +356,7 @@ derivation; in `docs/` they are just noise.
   came off, and the grep that found the stale list named the removed types rather than the field, so
   it sailed past. Removing or renaming a type therefore still needs the hand sweep for everything
   except the list — `docs/architecture.md`'s shapes (**21** exported types defined as interface
-  blocks, plus `TibetanAnimal`, `TibetanElement`, `TibetanGender`, `TibetanName`, `TibetanWeekday`,
+  blocks, plus `SanskritName`, `TibetanAnimal`, `TibetanElement`, `TibetanGender`, `TibetanName`, `TibetanWeekday`,
   `TibetanWeekdayName` and `TibetanYearName` named in field positions), `docs/guide.md` (4), and any
   docblock naming it. This figure read 7 until 2026-08-26, 10 until 2026-08-27, and moved twice on
   2026-09-12 — 13 when `TraditionNaming` and `TraditionMonthNaming` gained shapes, then 20 with the
@@ -668,7 +668,7 @@ just a module that loaded.
 design, not defects: there is no `main` field and no CJS build. Do not add `main` to make a row
 green.
 
-**Four commands are deliberately outside CI, and all are release-time checks.** `npm run coverage`
+**Five commands are deliberately outside CI, and all are release-time checks.** `npm run coverage`
 (below), `npm run bench` (below), `npm run verify:names`, which re-derives the whole Tibetan name vocabulary from Janson and
 re-checks it against Wiktionary, THL and CLDR, and `npm run verify:rabjung-names`, which does the
 same for the sixty rabjung year names against Janson, the Indic saṃvatsara list, Sewell & Fleet,
@@ -676,9 +676,14 @@ same for the sixty rabjung year names against Janson, the Indic saṃvatsara lis
 **wisdomlib** (the Bṛhat Saṃhitā's cycle position, and which non-MW lexicons carry a headword) and
 Wiktionary — which is now only a second attestation, never the sense source, because its Sanskrit
 senses **are** Monier-Williams verbatim and corroborating it with anything MW-derived would be MW
-agreeing with itself. The two verifiers need the network and two converters installed outside the repo, so neither
-can gate a push — what gates a push is their committed output, `test/fixtures/names.ts` and
-`test/fixtures/rabjung-names.ts`, which the suite reads.
+agreeing with itself — and `npm run verify:month-and-yoga-names`, which verifies the mansion month names,
+the season names and the ten elemental yogas against the Mahāvyutpatti, Das, Jäschke, the two
+Tibetan–Tibetan dictionaries and Monier-Williams, built from
+[docs/names/month-and-yoga-sourcing.md](docs/names/month-and-yoga-sourcing.md). The three verifiers need the
+network and two converters installed outside the repo, so none can gate a push — what gates a push is
+their committed output, `test/fixtures/names.ts`, `test/fixtures/rabjung-names.ts`,
+`test/fixtures/month-names.ts` and `test/fixtures/yoga-names.ts`, which the suite reads. **Run Biome on
+the last two after every run**, for the same reason as below.
 
 **`verify:rabjung-names` emits one row per line and Biome reflows it, so run
 `npx biome check --write test/fixtures/rabjung-names.ts` after every run.** This has always been
@@ -691,10 +696,11 @@ integrity is checked on every push.
 licence line there is narrow.** Three dictionaries (Ives Waldo, Rangjung Yeshe, the *tshig mdzod chen
 mo*) may **gate** and may never be **quoted** — they are modern copyrighted works, so exactly four
 facts are taken: that a headword exists, the cycle position an entry states, the element–animal
-year an entry states, and the register tag on a sense. A fifth — the spelling of each member of a set
-an entry enumerates — was approved on 2026-09-13 for the elemental-yoga check and lands in the script's
-table with that verifier; see [docs/names/month-and-yoga-sourcing.md](docs/names/month-and-yoga-sourcing.md).
-This sentence said "three" while the script said four. **No gloss text is stored, printed or emitted**, and the year is computed from
+year an entry states, and the register tag on a sense — and a fifth, the spelling of each member of a
+set an entry enumerates, approved on 2026-09-13 for the elemental-yoga check and now in the script's
+table. **The enumerations that fifth fact reads also pair each name with its elements and rank the ten;
+neither is taken**, and taking either would be a sixth fact needing the same approval. This sentence
+said "three" while the script said four. **No gloss text is stored, printed or emitted**, and the year is computed from
 the cycle and never read off a dictionary, which is what stops the check being circular. The reading
 logic lives in `scripts/tibetan-dictionary.mjs`, shared with `scripts/survey-ngonjo.mjs`, and carries
 the traps that logic exists to avoid — chief among them that **a register tag has two scopes** and

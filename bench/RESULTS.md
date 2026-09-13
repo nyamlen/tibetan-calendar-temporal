@@ -60,6 +60,7 @@ would fire on the runner rather than on the change, and this project holds that 
 wrongly is worse than none — the same reasoning that leaves the validation-suite rule unguarded in
 `scripts/check-conventions.mjs`.
 
-`npm run bench` sits with `npm run coverage`, `verify:names` and `verify:rabjung-names`: release-time
+`npm run bench` sits with `npm run coverage`, `verify:names`, `verify:rabjung-names` and
+`verify:month-and-yoga-names`: release-time
 checks that gate nothing and are listed in
 [docs/roadmap.md](../docs/roadmap.md).

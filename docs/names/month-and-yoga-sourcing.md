@@ -1,8 +1,10 @@
 # Sourcing the month names, the season names and the elemental yogas
 
-**Status: authored, and ahead of the code.**
-Nothing described here ships yet.
-It records the evidence and the decisions for three sets of names before the verifier that will enforce them is written, so that verifier is built from a record rather than from memory.
+**Status: authored, and partly ahead of the code.**
+It records the evidence and the decisions for three sets of names, and was written before the verifier that enforces them, so that the verifier was built from a record rather than from memory.
+That verifier is now [scripts/verify-month-and-yoga-names.mjs](../../scripts/verify-month-and-yoga-names.mjs), and its output is `test/fixtures/month-names.ts` and `test/fixtures/yoga-names.ts`.
+**The yoga names ship** — corrected, with Tibetan script and Devanāgarī — and `ELEMENTAL_YOGAS` is held against the fixture.
+**The month and season names do not ship yet**; `monthNamesFor` is the next step.
 It follows [rabjung-sourcing.md](rabjung-sourcing.md), and the rule it inherits from [validation-sources.md](../validation-sources.md): **agreement is only evidence if the source did not reach its answer the way we did.**
 
 The three sets:
@@ -67,7 +69,7 @@ Each is a fixed rule, and `monthNamesFor` computes all four and returns them sid
 | Original Kālacakra | Month 1 = late winter | `fourSeasons.month1LateWinter` | Janson; the Mahāvyutpatti and Das — [below](#the-original-kālacakra-system-is-attested-outside-jansons-lineage) |
 | Phugpa's | Month 1 = early spring | `fourSeasons.month1EarlySpring` | Janson's month-names table; Henning p. 195 |
 | Anchored on the animals | The Tiger month = early spring | `fourSeasons.tigerEarlySpring` | Janson; the tradition's `monthAnimals` decides which month is Tiger, so it is `null` where that is unsourced |
-| Six seasons | Month 3 = early spring, two months to a season | `sixSeasons` | Henning pp. 358–359 — [below](#six-seasons) |
+| Six seasons | Month 3 = early spring, two months to a season | `sixSeasons.month3EarlySpring` | Henning pp. 358–359 — [below](#six-seasons) |
 
 The options bag's `tradition` defaults to `PHUGPA`, as it does everywhere on the surface.
 That is **not** a default *system*: the tradition only decides which month is Tiger, and every system is always returned.
@@ -186,9 +188,11 @@ The keys are contract.
 For month 1 of royal-era year 2153 (the Tibetan year that began at Losar 2026), with the default `PHUGPA`, the month is `mchu`:
 
 ```ts
-monthNamesFor({ year: 2153, month: 1 }).sixSeasons;
-// { season: "dewy", part: "early", name: { tibetan: "དགུན་སྨད", wylie: "dgun smad", phonetic: "gün mé" } }
-// — the first month of the dewy season
+monthNamesFor({ year: 2153, month: 1 }).sixSeasons.month3EarlySpring;
+// { season: "dewy", part: "early",
+//   tibetanName: { tibetan: "དགུན་སྨད", wylie: "dgun smad", phonetic: "gün mé" },
+//   sanskritName: { iast: "śiśira", devanagari: "शिशिर" } }
+// — the first month of the dewy season, under the six-season system that puts early spring at month 3
 ```
 
 The six-season Tibetan is the season's name alone.
@@ -293,7 +297,8 @@ Two replacements were rejected.
 **The licence line, widened by one fact.**
 The copyrighted dictionaries may gate and may never be quoted, and [scripts/tibetan-dictionary.mjs](../../scripts/tibetan-dictionary.mjs) lists the facts that may be taken.
 The yoga check needs one more: **the spelling of each member of a set that an entry enumerates** — which is what the table above records.
-Approved on 2026-09-13; still never a gloss, and to be added to that table when the verifier is built.
+Approved on 2026-09-13; still never a gloss, and now in that table.
+The same enumerations also pair each name with its elements and group the ten by favorability; neither is taken, since neither is on the list.
 
 ## Still open
 
@@ -304,5 +309,6 @@ Approved on 2026-09-13; still never a gloss, and to be added to that table when 
 - **The Tibetan and Sanskrit of the six-season *system*** as Kongtrul names it in Kālacakra usage.
   Henning prints no Tibetan for it, so the six-season Tibetan above rests on the general lexicons, not on a Kālacakra text.
 - **Mahāvyutpatti citation.**
-  It is cited here by entry; the aggregate indexes a 1989 edition that is not yet identified, and the verifier needs section numbers.
+  It is cited here, and in the verifier's output, by entry — the Tibetan and Sanskrit exactly as the aggregate prints them.
+  The aggregate's `63-Mahavyutpatti-Scan-1989` gives page references into a 1989 edition that is still not identified, and no section numbers were found, so none are claimed.
 - **Sanskrit month names**, pending the spellings listed above.

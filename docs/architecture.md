@@ -365,8 +365,8 @@ interface CalendarDayAttributes {
 
 interface ElementalYoga {
   elements: readonly [TibetanWeekdayElement, TibetanWeekdayElement];  // as Henning prints the pair
-  sanskrit: string;        // Henning's IAST
-  wylie: string;           // Henning's Wylie; he prints no Tibetan script
+  tibetanName: TibetanName;   // Henning's, two spellings corrected; script derived and verified
+  sanskritName: SanskritName; // Henning's IAST, with Devanāgarī transliterated from it
   english: string;
   favorable: boolean;      // FPMT's claim, in neither Janson nor Henning
 }
