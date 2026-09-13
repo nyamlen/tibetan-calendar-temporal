@@ -688,9 +688,12 @@ integrity is checked on every push.
 
 **`verify:rabjung-names` also gates the authored English on Tibetan-dictionary facts, and the
 licence line there is narrow.** Three dictionaries (Ives Waldo, Rangjung Yeshe, the *tshig mdzod chen
-mo*) may **gate** and may never be **quoted** — they are modern copyrighted works, so exactly three
-facts are taken: that a headword exists, the cycle position an entry states, and the element–animal
-year an entry states. **No gloss text is stored, printed or emitted**, and the year is computed from
+mo*) may **gate** and may never be **quoted** — they are modern copyrighted works, so exactly four
+facts are taken: that a headword exists, the cycle position an entry states, the element–animal
+year an entry states, and the register tag on a sense. A fifth — the spelling of each member of a set
+an entry enumerates — was approved on 2026-09-13 for the elemental-yoga check and lands in the script's
+table with that verifier; see [docs/names/month-and-yoga-sourcing.md](docs/names/month-and-yoga-sourcing.md).
+This sentence said "three" while the script said four. **No gloss text is stored, printed or emitted**, and the year is computed from
 the cycle and never read off a dictionary, which is what stops the check being circular. The reading
 logic lives in `scripts/tibetan-dictionary.mjs`, shared with `scripts/survey-ngonjo.mjs`, and carries
 the traps that logic exists to avoid — chief among them that **a register tag has two scopes** and
