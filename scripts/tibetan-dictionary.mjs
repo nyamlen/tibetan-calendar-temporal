@@ -19,7 +19,7 @@
  *
  * They are modern copyrighted works published through an aggregate whose README says, in capitals,
  * that copyright stays with the respective authors. So they may **gate** and may never be
- * **quoted** — the standing wisdomlib already has here. Exactly four facts are taken:
+ * **quoted** — the standing wisdomlib already has here. Exactly five facts are taken:
  *
  * | Takeable — fact | Not takeable — expression |
  * |---|---|
@@ -27,8 +27,14 @@
  * | The cycle position an entry states | The phrasing of a definition |
  * | The element–animal year an entry states | |
  * | The register tag on a sense | |
+ * | The spelling of each member of a set an entry enumerates | |
  *
  * Nothing here returns gloss text, and no caller may write one to a file.
+ *
+ * The fifth was approved on 2026-09-13 for `verify-month-and-yoga-names.mjs`, which reads the ten
+ * elemental-yoga names out of the enumerations under `'phrod sbyor` and `'phrod sbyor bcu`. An
+ * enumeration also pairs each name with its elements and ranks them; neither is on this list, so
+ * neither is taken.
  *
  * ## Three ways reading them goes wrong, each found the hard way
  *
