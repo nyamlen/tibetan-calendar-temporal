@@ -19,8 +19,14 @@ test/
 ├── tradition-config.test.ts  # cross-cutting: what a config does at the engine's boundary
 ├── public-api.test.ts    # the export surface, pinned
 ├── readme.test.ts        # every example the README states
-└── smoke.test.ts         # Temporal reachable as a global
+├── smoke.test.ts         # Temporal reachable as a global
+└── check-conventions.mutations.ts  # npm run test:conventions only — not part of npm test
 ```
+
+`check-conventions.mutations.ts` is not a `.test.ts` on purpose, so the default Vitest config never
+collects it. Its subject is `scripts/check-conventions.mjs` rather than the engine: it breaks each
+convention in a scratch copy of the working tree and asserts the checker reports it. CI runs it on
+every push through `vitest.conventions.config.ts`.
 
 Tiers 1 and 3 are interleaved with the unit suites rather than kept in separate directories —
 a property and the edge case it generalises belong next to the function they constrain.

@@ -369,7 +369,7 @@ derivation; in `docs/` they are just noise.
   you add a field to an exported type, the shape in `docs/architecture.md` is part of the change.
 
   **And a signature is not a runtime export either.** The suite pins *names* and *kinds* —
-  `Object.keys` and `typeof` — so changing a function's parameters passes every one of the nine
+  `Object.keys` and `typeof` — so changing a function's parameters passes every one of the ten
   commands as a **surface** check. When the reshape of `getObservances(from, to, config?,
   tradition?)` to an options bag was actually done on 2026-08-26 it broke **16 call sites**, one of
   them production code (`src/observances/index.ts`, where `observancesOn` delegates), and nothing
@@ -520,8 +520,20 @@ the structure the `./observances` and `./astrology` subpath exports need. Do not
 
 ## Commands
 
-`npm run lint`, `lint:md`, `check:links`, `check:conventions`, `typecheck`, `build`, `test`,
-`check:publish`, `test:pack` — CI runs all nine in that order.
+`npm run lint`, `lint:md`, `check:links`, `check:conventions`, `test:conventions`, `typecheck`,
+`build`, `test`, `check:publish`, `test:pack` — CI runs all ten in that order.
+
+**`test:conventions` is the only thing that proves `check:conventions` still reports.** It breaks
+each convention in a scratch copy of the working tree — one row per rule, plus the containment
+cases — and asserts on exit code **and** message, after an unmutated control. It is deliberately
+**not** part of `npm test`: its subject is one script, so running it on every local test run costs
+time for a result that changes only when the checker does. Run it locally when you touch
+`scripts/check-conventions.mjs`; CI runs it on every push, because several rows edit specific text
+(a README type name, a generator's template) and an ordinary commit can move it. That surfaces as
+"mutation target not found" — point the row at the new text; the checker is not broken. A new rule
+needs a new row: the suite holds its rows against the checker's `RULES` registry. It lives at
+`test/` root rather than in `scripts/` for a reason that is easy to undo: Rule 7 accepts a fixture if
+any script's source names it, and the harness names `fixtures/bhutan.js`.
 
 **`check:conventions` enforces the rules in this file that lint, typecheck and the suite cannot
 see**, which before it existed was all of them: the zero-dependency claim, integer-only arithmetic,
@@ -764,7 +776,7 @@ off the type — the document is shipped for what it explains, not for a field t
 the tarball, which `check-pack` enforces, so anything repo-only is linked by absolute URL — that is
 why that file's four internal links are absolute and the others' are not.
 
-**`npm run coverage` is not one of the nine, so nothing gates it.** It was broken on `main` for an
+**`npm run coverage` is not one of the ten, so nothing gates it.** It was broken on `main` for an
 unknown stretch and nobody noticed: the 200-year moon-phase sweep runs in well under a second bare
 but takes 5–8 seconds under v8 instrumentation, against Vitest's 5s default, so `test` passed while
 `coverage` failed. The long sweeps now carry explicit timeouts. Run it before a release, and give

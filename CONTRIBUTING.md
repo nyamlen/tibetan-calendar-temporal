@@ -46,7 +46,7 @@ one commit.
 ## Branching for work that cannot stay green commit-by-commit
 
 **`main` must be green at every commit.** Most changes fit that directly — write the code, run
-the nine checks, commit. Some do not: adding a required field to a shipped type breaks every
+the ten checks, commit. Some do not: adding a required field to a shipped type breaks every
 exact-equality assertion against the old shape until they are migrated, and the migration is
 worth its own commit rather than being buried in the type change's diff. That is a real,
 recurring shape in this project — the rabjung-names, conventions-enforcement,
@@ -56,7 +56,7 @@ When you can see in advance that a commit boundary you want will leave tests red
 commit in the same piece of work, **open a feature branch rather than committing the red state to
 `main`.** Land the sequence there, each commit still incremental and tied to what it does; only
 the requirement that *this specific commit* passes CI is relaxed, and only on the branch. Merge to
-`main` with `--no-ff` once the whole branch is green — run all nine checks against the merge
+`main` with `--no-ff` once the whole branch is green — run all ten checks against the merge
 result before pushing, since a clean merge does not guarantee that. `git branch -d` the branch
 locally and `git push origin --delete` it remotely once it is merged; there is no reason to keep
 a fully-merged branch around.
@@ -87,8 +87,9 @@ npm install
 npm test
 ```
 
-CI runs `lint`, `lint:md`, `check:links`, `check:conventions`, `typecheck`, `build`, `test`,
-`check:publish` and `test:pack`. All nine run locally with the same commands.
+CI runs `lint`, `lint:md`, `check:links`, `check:conventions`, `test:conventions`, `typecheck`,
+`build`, `test`, `check:publish` and `test:pack`. All ten run locally with the same commands.
+`test:conventions` is not part of `npm test`; run it when you change `scripts/check-conventions.mjs`.
 
 `check:conventions` covers the rules that lint, typecheck and the suite cannot see — the
 zero-dependency claim, integer-only arithmetic, coded errors, `{@link}` targets, whether every
