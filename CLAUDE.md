@@ -32,7 +32,10 @@ dependencies, built on Temporal.
   [rabjung.md](docs/names/rabjung.md) for the 60-name table, and
   **[rabjung-sourcing.md](docs/names/rabjung-sourcing.md) for the hunt behind it** — every source
   tried, the dead ends with their evidence, and the two findings that changed the method. Read the
-  last one before treating any new source as corroboration for a name
+  last one before treating any new source as corroboration for a name.
+  **[month-and-yoga-sourcing.md](docs/names/month-and-yoga-sourcing.md)** is the same record for the
+  lunar-mansion and seasonal month names and the ten elemental yogas — written **ahead of the code**,
+  so it holds decisions (variants, season keys, two yoga corrections) that nothing enforces yet
 - Implementation phases and the **pre-v1.0.0 checklist**: [docs/roadmap.md](docs/roadmap.md) —
   check it before any release; it holds deliberately deferred decisions
 - Contributor rules, dev setup: [CONTRIBUTING.md](CONTRIBUTING.md)
