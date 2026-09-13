@@ -42,6 +42,13 @@ jobs:
       - run: npm run check:links
       - run: npm run check:conventions
 
+      # Nothing above proves the checker still *reports*: a rule that stops firing prints "All
+      # conventions hold", which looks exactly like success. This breaks each convention in a
+      # scratch copy of the tree and asserts the checker says so. Kept out of `npm test`, whose
+      # subject is the engine; run on every push so a mutation whose target text has moved is
+      # caught the same day.
+      - run: npm run test:conventions
+
       - run: npm run typecheck
       - run: npm run build
       - run: npm test
