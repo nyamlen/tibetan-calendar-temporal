@@ -292,10 +292,10 @@ export function elementalYogaFor(
  *
  * @remarks
  * **Needs astronomy**, like the yoga it drives: the mansion comes from the same true longitudes the
- * calendar is built from. **It is not exact against an almanac**: Janson's formula approximates the
- * moon's motion, so days near a mansion boundary can disagree. How often, over which days and for which
- * tradition is stated once, in `docs/why-trust-these-dates.md`; cite it from there rather than
- * restating it.
+ * calendar is built from. **A published almanac can print a different mansion**, mostly on days when
+ * the moon is late in its mansion: FPMT's calendars run slightly ahead of the computation Janson
+ * describes, and no cause is established. How often, over which days and for which tradition is
+ * stated once, in `docs/why-trust-these-dates.md`; cite it from there rather than restating it.
  *
  * `index` runs **0 to 26**, as both Janson and Henning number the mansions. Names are not shipped yet.
  *

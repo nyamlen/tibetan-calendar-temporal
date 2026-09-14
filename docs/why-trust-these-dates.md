@@ -143,8 +143,10 @@ Stating this is the point of the page.
   day's labels, the calendar day's — are closed forms checked against Janson's own printed tables,
   which catches a transcription or formula error and is **not** external corroboration. The **lunar
   mansion** needs real astronomy and agrees with FPMT's published codes on **97.6%** of 1,459 days in
-  2022–2025; the disagreements crowd against mansion boundaries exactly as Janson's own stated
-  approximation predicts, and **six days in four years have no explanation at all**. Yoga
+  2022–2025. Henning's daily calendars agree with this engine's mansion on every one of those days
+  and disagree with FPMT on the same ones, so the difference is on FPMT's side: its moon runs slightly
+  ahead, mostly on days late in a mansion, and far more often in 2025 than in the three years before.
+  No cause is established, and **six days in four years fit no pattern at all**. Yoga
   **favorability** is FPMT's convention and nobody else's, and agrees with their printed prefixes on
   99.7% of those days. Month and lunar-day attributes **refuse** for the Bhutanese traditions,
   because no source gives them.

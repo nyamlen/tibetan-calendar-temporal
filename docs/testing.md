@@ -254,13 +254,25 @@ narrower still.
 **That 97.6% is a characterised figure, not a tolerance.** 1,424 of 1,459 days agree — a **2.4%**
 residual, re-measured 2026-09-12 rather than carried over: the plan's working figure of 3.9% predated
 both the doubled-day rule and a leap-month fix in the cross-check itself, and two files had inherited
-it. **All 31 doubled-first days now agree**, where before the doubled-day rule 19 of them did not. Of the 35 that
-do not, 83% sit within 15% of a mansion boundary against 29% of the days that agree — Janson states
-the cause himself, since `moon_calendar_day` treats the moon as covering one full circle in 27 days,
-so his approximation and Men-Tsee-Khang's computation can straddle an edge. Six days in four years
-resist even that, at 0.4%, and are recorded as unexplained rather than dismissed. The suite asserts
-that **concentration**, not merely the score: a bare threshold would keep passing if a real bug
-scattered the failures away from the boundaries.
+it. **All 31 doubled-first days now agree**, where before the doubled-day rule 19 of them did not.
+
+**The residual is FPMT's, not this arithmetic's.** Henning's daily Phugpa calendars give the same
+mansion as this engine on **all 1,459 days** and disagree with FPMT on exactly the same 35. That is
+the engine's own lineage, so it proves the implementation rather than the calendar — but it does
+locate the difference. Measured 2026-09-14.
+
+**And the 35 are one-sided.** 28 sit in the last 15% of the moon's mansion, and on 27 of those FPMT's
+element is the *next* mansion's; one sits at the start of a mansion; six are mid-mansion. FPMT's
+moon runs slightly ahead, and not by a constant amount: 2022, 2023 and 2024 have 6, 2 and 5
+disagreements, 2025 has 22. No cause is established. Ruled out — the karaṇa moon longitude, a
+constant offset, a later time of day, the other `a₂` — with the measurements in
+[validation-sources.md](validation-sources.md). **This corrects an earlier explanation** that blamed
+Janson's `/27` approximation of the moon's motion: Janson gives that approximation as the almanac's
+own method, and Henning uses it too, so it cannot be what separates an almanac from this engine.
+
+The six mid-mansion days fit neither pattern and are recorded as unexplained rather than dismissed;
+FPMT's calendars already carry four provably impossible codes. The suite **pins where the 35 sit**,
+not merely the score: a bare threshold would keep passing if a real bug scattered them elsewhere.
 
 **Three of those rows are checked against prose rather than a table, and that is weaker in a specific
 way.** Janson prints no month-element table and no lunar-day table, so what the suites hold are the
