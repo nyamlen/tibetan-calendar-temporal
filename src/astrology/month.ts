@@ -18,6 +18,7 @@
 
 import { amod, ceilDiv, floorDiv } from "../computation/arithmetic.js";
 import { assertInternal, rangeError } from "../errors.js";
+import { monthsAfterTigerMonth } from "../month-names.js";
 import type { TraditionConfig, TraditionMonthAnimals } from "../traditions/types.js";
 import type { TibetanAnimal, TibetanElement, TibetanGender } from "../types.js";
 
@@ -66,6 +67,21 @@ export interface MonthAttributes {
 }
 
 /**
+ * The refusal for a tradition with no month-animal block.
+ *
+ * @throws RangeError with code `TCT_ATTRIBUTE_NOT_SOURCED`, always.
+ */
+function unsourced(config: TraditionConfig): never {
+	throw rangeError(
+		"TCT_ATTRIBUTE_NOT_SOURCED",
+		`${config.name} has no sourced month attributes: Janson gives no month-animal list for ` +
+			"this version, and the element and number rules follow from that list. Nothing about the " +
+			"date you asked about is wrong — the attribute simply has no source. Year and " +
+			"calendar-day attributes do not depend on the month-animal list and still answer",
+	);
+}
+
+/**
  * The month-animal block, or a refusal naming the tradition that lacks one.
  *
  * @throws RangeError with code `TCT_ATTRIBUTE_NOT_SOURCED` if the tradition has no sourced month
@@ -73,16 +89,7 @@ export interface MonthAttributes {
  */
 function monthAnimals(config: TraditionConfig): TraditionMonthAnimals {
 	const animals = config.naming?.monthAnimals;
-	if (animals === undefined) {
-		throw rangeError(
-			"TCT_ATTRIBUTE_NOT_SOURCED",
-			`${config.name} has no sourced month attributes: Janson gives no month-animal list for ` +
-				"this version, and the element and number rules follow from that list. Nothing about the " +
-				"date you asked about is wrong — the attribute simply has no source. Year and " +
-				"calendar-day attributes do not depend on the month-animal list and still answer",
-		);
-	}
-	return animals;
+	return animals === undefined ? unsourced(config) : animals;
 }
 
 /**
@@ -90,13 +97,15 @@ function monthAnimals(config: TraditionConfig): TraditionMonthAnimals {
  *
  * @remarks
  * Internal, and shared with the lunar-day attributes, whose trigram and number are both functions of
- * this number rather than of the month. One definition, so the two cannot drift apart.
+ * this number rather than of the month. One definition, so the two cannot drift apart — and it reads
+ * the Tiger month through `monthsAfterTigerMonth`, which the root's `monthNamesFor` uses too.
  *
  * @throws RangeError with code `TCT_ATTRIBUTE_NOT_SOURCED` if the tradition has no sourced month
  * attributes.
  */
 export function monthAnimalNumber(config: TraditionConfig, month: number): number {
-	return amod(month - monthAnimals(config).tigerMonth + TIGER, 12);
+	const steps = monthsAfterTigerMonth(config, month);
+	return amod((steps === null ? unsourced(config) : steps) + TIGER, 12);
 }
 
 /**

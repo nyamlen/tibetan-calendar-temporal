@@ -68,6 +68,8 @@ export {
 } from "./cycles.js";
 export type { TibetanCalendarErrorCode } from "./errors.js";
 export { formatTibetanDate, formatTibetanMonth } from "./format.js";
+export type { FourSeasonMonthName, MonthNames, SixSeasonMonthName } from "./month-names.js";
+export { monthNamesFor } from "./month-names.js";
 export {
 	datesFor,
 	daysInMonth,

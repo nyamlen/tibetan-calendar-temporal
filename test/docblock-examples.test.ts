@@ -7,6 +7,7 @@ import { meanDate } from "../src/computation/mean-astronomy.js";
 import { deriveScaling } from "../src/computation/scaling.js";
 import { rabjungFor, weekdayNameFor, yearNameFor } from "../src/cycles.js";
 import { formatTibetanDate } from "../src/format.js";
+import { monthNamesFor } from "../src/month-names.js";
 import { daysInMonth, leapMonthNumberFor, monthsFor } from "../src/months.js";
 import {
 	addDays,
@@ -16,6 +17,7 @@ import {
 	monthsBetween,
 	nextFullMoon,
 } from "../src/navigation.js";
+import { BHUTAN } from "../src/traditions/bhutan.js";
 import { PHUGPA } from "../src/traditions/phugpa.js";
 import { asTibetanWeekday, type TibetanWeekday } from "../src/types.js";
 
@@ -147,6 +149,20 @@ describe("docblock examples", () => {
 		it("daysInMonth accepts a leap month and a date's own month", () => {
 			expect(daysInMonth({ year: 2151, month: 6, isLeapMonth: true })).toBeTypeOf("number");
 			expect(daysInMonth(isoToTibetan(Temporal.PlainDate.from("2026-08-12")))).toBeTypeOf("number");
+		});
+	});
+
+	describe("month-names.ts", () => {
+		it("monthNamesFor names Phugpa's month 1 in every system, and Bhutan's Tiger system null", () => {
+			const names = monthNamesFor({ year: 2153, month: 1 });
+			expect(names.mansion.tibetanName.wylie).toBe("mchu");
+			expect(names.fourSeasons.month1LateWinter.season).toBe("winter");
+			expect(names.fourSeasons.month1EarlySpring.tibetanName.wylie).toBe("dpyid zla ra ba");
+			expect(names.fourSeasons.tigerEarlySpring?.part).toBe("late");
+			expect(names.sixSeasons.month3EarlySpring.season).toBe("dewy");
+			expect(
+				monthNamesFor({ year: 2153, month: 1 }, { tradition: BHUTAN }).fourSeasons.tigerEarlySpring,
+			).toBeNull();
 		});
 	});
 
