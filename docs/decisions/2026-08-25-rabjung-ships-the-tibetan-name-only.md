@@ -11,7 +11,7 @@ list ships in the type. `RabjungName` and `SanskritName` come off the public sur
 [names/rabjung.md](../names/rabjung.md), in `test/fixtures/rabjung-names.ts` and in
 `scripts/verify-rabjung-names.mjs`. This supersedes
 [2026-08-21-rabjung-names-carry-both.md](2026-08-21-rabjung-names-carry-both.md).
-**Amended 2026-09-13:** the field is now `Rabjung.tibetanName`, and the growth path below changed with it — see [the amendment](#amended-2026-09-13-the-field-is-tibetanname-and-sanskrit-would-be-a-sibling).
+**Amended 2026-09-13, corrected 2026-09-14:** the field is now `Rabjung.tibetanName`, and if the Sanskrit returns it sits beside that field in the two-list shape below — see [the amendment](#amended-2026-09-13-the-field-is-tibetanname-and-the-two-lists-would-sit-beside-it).
 
 ## The rule this follows
 
@@ -138,15 +138,61 @@ ships. The document stays shipped, because its two-lists section and its registe
 only place a consumer learns why a Tibetan year name is not a translation of the Sanskrit one they
 may know. **Rewrite the reason; do not leave it standing and false.**
 
-## Amended 2026-09-13: the field is `tibetanName`, and Sanskrit would be a sibling
+## Amended 2026-09-13: the field is `tibetanName`, and the two lists would sit beside it
 
 `Rabjung.name` became `Rabjung.tibetanName` when the month-names work fixed one rule for the whole
-surface: an object carrying names keys each language explicitly, `tibetanName: TibetanName` beside
-`sanskritName: SanskritName`, following `TibetanYearName`'s `elementName` and `animalName`.
+surface: an object carrying names keys each language explicitly, as `TibetanYearName` already does
+with `elementName` and `animalName`.
 A bare `name` holding specifically the Tibetan name was the one exception.
+This is not the `name.tibetan.tibetan` path the 2026-08-21 record rejected as reading like a typo:
+the script is reached as `tibetanName.tibetan`.
 
-**The growth path above is superseded.** It planned for Sanskrit to return *inside* the name object.
-Under the surface-wide rule it would return as a sibling `sanskritName` on `Rabjung` — still additive,
-and still without flattening the Tibetan renderings onto `Rabjung`, which is the part of that section
-that stands.
-Nothing else in this record changes: neither Sanskrit list ships, for the reasons given.
+**Nothing about what ships changes.** Neither Sanskrit list is on the type, for the reasons above.
+
+**What changes is where the two-list shape would go if it returns.**
+The growth path above put it *inside* the name object, as `name.sanskrit`, because that object was
+the one place a field could be added without breaking anybody.
+With the object now called `tibetanName`, a Sanskrit field inside it would be Sanskrit filed under
+the Tibetan name, so it would sit on `Rabjung` beside `tibetanName` instead — still additive, and still
+without flattening the Tibetan renderings onto `Rabjung`, which is the part of that section that stands.
+The shape is otherwise exactly the one recorded above, and every requirement on it still holds:
+
+```ts
+// position 34, where the two lists name different things
+{
+  cycle: 17,
+  year: 34,
+  tibetanName: { tibetan: "ཀུན་ལྡན", wylie: "kun ldan", phonetic: "kün den" },
+  sanskritLists: {                              // working name
+    indic:    { devanagari: "शार्वरी", iast: "Śārvarī", meaning: "belonging to night, nocturnal" },
+    rendered: { tibetanScript: "སརྦཔཏི", roman: "Sarvapati" },
+    diverge:  true,
+  },
+}
+```
+
+Measured against the four implications listed above, the placement helps with two and leaves two:
+
+1. **The path shortens by a level**, to `sanskritLists.indic.meaning`.
+2. **The two Tibetan-script fields no longer share an object**: the Tibetan name is `tibetanName.tibetan`,
+   and the Sanskrit written in Tibetan script is `sanskritLists.rendered.tibetanScript`.
+3. `diverge` is still a flag warning about the type's own structure.
+4. A consumer still has to understand the two-list distinction to choose between `indic` and `rendered`.
+
+**It is not a `SanskritName`.** `SanskritName`, which joined the root barrel on 2026-09-13 for the yogas and
+the six seasons, is `{ iast, devanagari }`. It cannot carry this shape: `rendered` has no attested
+Devanāgarī, only `indic` has a Monier-Williams `meaning`, and `diverge` belongs to neither list.
+Reusing `SanskritName` for a rabjung would mean shipping one list, which is the thing this record rejects.
+
+**The working name is `sanskritLists`, deliberately not `sanskritNames`.** The plural of "name" reads as
+several names for one thing, which is precisely the misreading the two lists invite at 16, 17, 18, 20
+and 34, where they are different names. "Lists" names the structure a consumer has to understand to use
+the field. Rejected with it: `samvatsaraNames`, which is an ASCII Sanskrit key of the kind refused on
+2026-09-13, and `sanskritReadings`, because "reading" already means one of Csoma's braced alternatives at
+29 and 52, which is a different thing.
+
+**Corrected 2026-09-14.** The first version of this amendment said the Sanskrit "would return as a sibling
+`sanskritName` on `Rabjung`", implying the new `SanskritName` type. That silently replaced the two-list
+shape above with one that cannot express it, and it was written during an overnight session without
+being put to Andreas. The placement beside `tibetanName` stands; the claim that it would be a
+`SanskritName` was wrong, and the trigger for revisiting is unchanged — a stated consumer need.

@@ -246,6 +246,13 @@ Two Tibetan–Tibetan dictionaries enumerate the set under a headword of their o
 The *tshig mdzod chen mo* names all ten; the *dung dkar* names eight, so **three names rest on one list**.
 The two are not shown to be independent (see the lineage cautions above).
 
+**The *dung dkar*'s entry, as the aggregate carries it, is damaged, and its element pairings are not evidence.**
+It gives earth + water to *mi 'phrod*, where the *tshig mdzod chen mo* and Henning give it *lang tsho*, and it lacks *lang tsho*, *stobs ldan* and the earth + wind pairing altogether.
+All three differences are explained by one eye-skip between identical words (homeoteleuton): the full sequence runs `sa chu 'phrod pa lang tsho sbyor / me rlung 'phrod pa stobs ldan sbyor / sa rlung 'phrod pa mi 'phrod sbyor`, and a copyist's eye jumping from the first `'phrod pa` to the third drops two names and leaves *mi 'phrod* on the wrong pair.
+That is an inference, agreed with Andreas on 2026-09-14, and confirming it needs the printed *dung dkar* rather than the aggregate's text.
+Its **spellings** stand as attestation — they are unaffected by the skip — while its pairings are not counted as a witness.
+It also prints *tshogs* for *phun tshogs*, which is a separate variant and not part of the skip.
+
 Forms are recorded exactly as each entry prints them: every name is followed by *sbyor*, "conjunction", and the *dung dkar* joins two of them to it with a genitive particle.
 
 | Henning's Wylie | *tshig mdzod chen mo* | *dung dkar* | Henning's Sanskrit | Monier-Williams |
