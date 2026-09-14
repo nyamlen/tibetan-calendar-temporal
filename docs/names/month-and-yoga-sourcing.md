@@ -55,6 +55,8 @@ All the dictionaries come from the public aggregate that [scripts/tibetan-dictio
 **How the Jäschke and Das pages were read.**
 Their archive.org OCR is unusable as text — [rabjung-sourcing.md](rabjung-sourcing.md) records Jäschke returning 0 of 60 — so the OCR was used **only to find the page**, and every entry cited below was read from the page image.
 Two traps met on the way: the scan index in the aggregate is approximate, and archive.org's `page_numbers.json` maps printed page *n* to a leaf **one higher** than the image that actually carries it.
+The items and offsets, measured 2026-09-14 against pages already cited: Jäschke is `tibetanenglishdi00jsuoft`, where the image `page/nN` carries printed page N − 25 — p. 357 is `n382` — and the aggregate's index number is the **leaf**, 26 above the printed page, not a page at all; Das is `tibetanenglishdi00dassuoft`, where `nN` is printed page N − 39, and the index number is close to the printed page.
+So a Jäschke page taken from the index without that correction is off by 26.
 
 **Henning's copy is a scan with an OCR text layer**, and that layer scrambles tables — columns slide against rows.
 His month table and his yoga spellings were therefore confirmed by Andreas reading the scanned pages, not taken from the text.
@@ -263,7 +265,7 @@ Forms are recorded exactly as each entry prints them: every name is followed by 
 | 'phel 'gyur | `'phel 'gyur sbyor` | `'phel 'gyur sbyor` | pragati | **Not a headword** — see below |
 | phun tshogs | `phun tshogs sbyor` | `tshogs sbyor` | saṃpanna सम्पन्न | *sam-panna*, p. 1172: "perfect, excellent" |
 | stobs ldan | `stobs ldan sbyor` | — | balayukta बलयुक्त | p. 723: "powerful" |
-| mi phrod | `mi 'phrod sbyor` | `mi 'phrod sbyor` | alābha अलाभ | p. 95: "non-acquirement" |
+| mi phrod | `mi 'phrod sbyor` | `mi 'phrod sbyor` | alābha अलाभ | p. 95: "non-acquirement … want, deficiency" |
 | mi mthun | `mi mthun sbyor` | `mi mthun sbyor` | pratikūla प्रतिकूल | p. 661: "contrary, adverse"; the Mahāvyutpatti pairs `mi mthun pa` with pratikūla |
 | sreg pa | `bsreg sbyor` | `bsreg pa'i sbyor` | dahana दहन | p. 473: "burning" |
 | 'chi ba | `'chi sbyor` | `'chi ba'i sbyor` | maraṇa मरण | p. 789: "death" |
@@ -301,6 +303,26 @@ Two replacements were rejected.
 *pragamana* प्रगमन, which Monier-Williams glosses "progress, advance" on Wilson's authority alone, is paired with `'phel 'gyur` by no source, so using it would be a correction without authored evidence.
 *vṛddhi* वृद्धि fits Jäschke's root, but the only pairing found is Henning's (p. 359) of `'phel ba` with Vṛddhi **as the eleventh astronomical yoga** — a different set, and exactly the homograph a verifier would wrongly match.
 
+**The English of the ten, checked 2026-09-14.**
+`ELEMENTAL_YOGAS` ships Henning's English as `englishName`, and each word was looked for **verbatim** in the public-domain dictionaries: Monier-Williams under the Sanskrit name, Jäschke and Das under the Tibetan, both read from the page image.
+An earlier version of this record said the Monier-Williams senses "match nine"; read word for word they match seven, and one more is found in Jäschke.
+
+| Henning's English | Printed word for word by | Where no dictionary prints it, what they print instead |
+|---|---|---|
+| accomplishment | Monier-Williams p. 1216, s.v. *siddhi* | — |
+| nectar | Monier-Williams p. 82, s.v. *amṛta* | — |
+| youth | Monier-Williams p. 859, s.v. *yauvana* | — |
+| **progress** | **none** | Jäschke p. 357, s.v. *'phel-ba*: "to increase, augment, multiply, enlarge … to improve, to grow better"; as a noun "increase. 2. development". Das p. 849, s.v. *hphel-wa*: "to increase either in number or in size, to become more or larger"; "increase, development". Monier-Williams has no *pragati*. |
+| excellence | Jäschke p. 344, s.v. *phun(-sum)-tshogs(-pa)*: "2. sbst. perfection, excellence, superior good" | Monier-Williams p. 1172, s.v. *sam-panna*, prints only the adjective "excellent" |
+| powerful | Monier-Williams p. 723, s.v. *bala-yukta* | — |
+| deficiency | Monier-Williams p. 95, s.v. *a-lābha*: "want, deficiency" | — |
+| **discord** | **none** | Monier-Williams p. 661, s.v. *prati-kūla*: "contrary, adverse, opposite, inverted, wrong, refractory, inimical, disagreeable, unpleasant", and as a noun "opposition". Jäschke p. 241, s.v. *mtun-pa*: "to agree, to harmonize; agreement, harmony", with *mi mtun-pai pyogs* "the hostile parties". Das p. 600, s.v. *mthun-pa*: "to agree with, to be accordant … to live in harmony", whose Sanskrit column includes *anukūla*, the opposite of *pratikūla*. |
+| burning | Monier-Williams p. 473, s.v. *dahana* | — |
+| death | Monier-Williams p. 789, s.v. *maraṇa* | — |
+
+The verifier re-checks every Monier-Williams row against Cologne on each run, carries the Jäschke row as data with its page, and fails if Monier-Williams comes to print *progress* or *discord* — either would then need re-arguing.
+**Whether those two ship as Henning's words or are replaced is open for Andreas**; the candidates the dictionaries print are above.
+
 **The licence line, widened by one fact.**
 The copyrighted dictionaries may gate and may never be quoted, and [scripts/tibetan-dictionary.mjs](../../scripts/tibetan-dictionary.mjs) lists the facts that may be taken.
 The yoga check needs one more: **the spelling of each member of a set that an entry enumerates** — which is what the table above records.
@@ -309,9 +331,7 @@ The same enumerations also pair each name with its elements and group the ten by
 
 ## Still open
 
-- **The English of the yogas.**
-  `ELEMENTAL_YOGAS` also ships Henning's English glosses (*accomplishment*, *deficiency*, *discord* …), and nothing here verifies them; they remain single-source.
-  The Monier-Williams senses in the yoga table already match nine of them, all but *progress*, so the yoga verifier can check that match mechanically, as the rabjung verifier does.
+- **The English of *progress* and *discord*.** Eight of the ten are now printed word for word by a dictionary; these two are Henning's alone, and whether to keep them is undecided — see the table above.
 - **Janson's other six-season sources**, Ginzel and Richards, which he cites for the system and which were not consulted.
 - **The Tibetan and Sanskrit of the six-season *system*** as Kongtrul names it in Kālacakra usage.
   Henning prints no Tibetan for it, so the six-season Tibetan above rests on the general lexicons, not on a Kālacakra text.

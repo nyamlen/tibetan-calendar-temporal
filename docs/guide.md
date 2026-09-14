@@ -229,9 +229,22 @@ const day = attributesFor(Temporal.PlainDate.from('2026-09-01'));
 day.year.power;      // 'fire'
 day.year.body;       // 'water' — each of the five elements runs on its own cycle
 day.lunarMansion;    // { index: 26, element: 'water' } — Revatī, where the moon is that morning
+day.yoga.englishName;        // 'death'
 day.yoga.sanskritName.iast;  // 'maraṇa'
 day.yoga.favorable;  // false
 ```
+
+**What `yoga` is.** The day's *elemental yoga*: the pairing of two elements from the Indian set of
+four. One is the **weekday's** element — Tuesday is fire. The other is the element of the **lunar
+mansion** the moon is in at the start of the day — Revatī, water. The pair is unordered, so there are
+ten possible combinations, and each has a name: fire with water is *maraṇa*, "death". *Yoga* here
+means a union or combination, as in Monier-Williams' astronomical sense "conjunction, lucky
+conjuncture" (p. 856) — not the practice. `englishName`, `tibetanName` and `sanskritName` are the
+combination's one name in three languages; the English is Henning's translation of it.
+
+This is **not** the other yoga an almanac prints. Almanacs also give one of 27 *astronomical* yogas,
+found from the sum of the sun's and moon's longitudes, with a different list of names; that one is not
+computed here. The sun plays no part in the elemental yoga.
 
 **Three things about this layer are worth knowing before you display any of it.**
 

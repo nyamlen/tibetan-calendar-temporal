@@ -175,7 +175,19 @@ Everything above can be worked out with a calculator and a table.
 This cannot.
 
 A day's **elemental yoga** (*khams kyi sbyor ba*, also *'byung 'phrod*) is the pairing of two
-elements from the Indian set of four:
+elements from the Indian set of four.
+*Yoga* (योग) here is a union or combination — Monier-Williams p. 856, "any junction, union,
+combination", and in astronomy "conjunction, lucky conjuncture" — and the Mahāvyutpatti pairs it with
+Tibetan *sbyor ba*, joining.
+It names **the pairing**, not either half: the mansion is one input, not the thing named.
+
+**It is not the yoga of the "five components".** An almanac also prints one of 27 *astronomical*
+yogas, found from the sum of the sun's and the moon's longitudes, under a different list of names
+(Viṣkambha … Vaidhṛti); that one is not computed here, and the sun plays no part in the elemental
+yoga. Both are called *yoga*, and both lists contain a Siddhi, which is the homograph a verifier must
+not match.
+
+The two elements are:
 
 1. **the weekday's element** — Saturday earth, Sunday fire, Monday water, Tuesday fire, Wednesday
    water, Thursday wind, Friday earth.

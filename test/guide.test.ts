@@ -221,8 +221,16 @@ describe("guide examples", () => {
 		});
 
 		it("states the yoga and its favorability correctly", () => {
+			expect(day.yoga.englishName).toBe("death");
 			expect(day.yoga.sanskritName.iast).toBe("maraṇa");
 			expect(day.yoga.favorable).toBe(false);
+		});
+
+		it("is right that the yoga is Tuesday's fire paired with the water of Revatī", () => {
+			expect(day.date.isoDate.dayOfWeek).toBe(2);
+			expect(day.date.weekdayName.element).toBe("fire");
+			expect(day.lunarMansion).toEqual({ index: 26, element: "water" });
+			expect([...day.yoga.elements].sort()).toEqual(["fire", "water"]);
 		});
 
 		it("is right that the lunar day and the calendar day disagree", () => {
