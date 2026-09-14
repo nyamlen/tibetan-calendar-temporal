@@ -409,7 +409,13 @@ interface DayAttributes {
   month: MonthAttributes | null;       // null for the Bhutanese configs
   lunarDay: LunarDayAttributes | null; // likewise
   calendarDay: CalendarDayAttributes;
+  lunarMansion: LunarMansion;
   yoga: ElementalYoga;
+}
+
+interface LunarMansion {
+  index: number;                  // 0-26, Aśvinī to Revatī; Janson's 27, Henning's 28 without Abhijit
+  element: TibetanWeekdayElement; // Henning's table
 }
 
 interface AstrologyQueryOptions {

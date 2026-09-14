@@ -345,7 +345,7 @@ edits, and moving files once after they have landed is one link-fixing commit in
       code review observed that `mansionNumber` was not exported with them: a consumer could ask what
       element mansion 17 carries and never learn that today is mansion 17. A dead export cannot be
       removed after 1.0.0 and exposing the mansion later is additive, so withdrawing was the only
-      reversible move. **Whether to expose the mansion for a date is an open pre-1.0.0 question** —
+      reversible move. **Exposed for a date on 2026-09-14** as `lunarMansionFor`, returning `{ index, element }` with the index 0–26 as Janson and Henning number it, and as `attributesFor(…).lunarMansion`; the bare tables stay off the surface and the mansion names wait on verification. The question as it stood —
       "which mansion is the moon in" is something an almanac view prints, and a consumer cannot
       compute it from anything published, which is the wrong-or-impossible test the public-surface
       record asks for.

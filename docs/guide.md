@@ -228,6 +228,7 @@ const day = attributesFor(Temporal.PlainDate.from('2026-09-01'));
 
 day.year.power;      // 'fire'
 day.year.body;       // 'water' — each of the five elements runs on its own cycle
+day.lunarMansion;    // { index: 26, element: 'water' } — Revatī, where the moon is that morning
 day.yoga.sanskritName.iast;  // 'maraṇa'
 day.yoga.favorable;  // false
 ```
@@ -238,7 +239,8 @@ day.yoga.favorable;  // false
 lunar day is a thirtieth of a lunation; the calendar day runs sunrise to sunrise. So `lunarDay` and
 `calendarDay` give different animals for the same date, and an almanac prints both. On a **doubled**
 date the two halves share `year`, `month` and `lunarDay` — there is one lunar day — while
-`calendarDay` and `yoga` differ, because there are two calendar days.
+`calendarDay` and `yoga` differ, because there are two calendar days, and `lunarMansion` can differ
+too, because the moon moves between their mornings.
 
 *The sourcing is not uniform, and the package does not pretend otherwise.* The cycles are Janson's.
 The element each lunar mansion carries and the ten yoga names are **Henning's**, which Janson cites

@@ -365,13 +365,13 @@ derivation; in `docs/` they are just noise.
   README called `rabjungFor`'s `name` "the Tibetan and Sanskrit name" for hours after the Sanskrit
   came off, and the grep that found the stale list named the removed types rather than the field, so
   it sailed past. Removing or renaming a type therefore still needs the hand sweep for everything
-  except the list — `docs/architecture.md`'s shapes (**24** exported types defined as interface
+  except the list — `docs/architecture.md`'s shapes (**25** exported types defined as interface
   blocks, plus `SanskritName`, `TibetanAnimal`, `TibetanElement`, `TibetanGender`, `TibetanName`, `TibetanWeekday`,
   `TibetanWeekdayName` and `TibetanYearName` named in field positions), `docs/guide.md` (4), and any
   docblock naming it. This figure read 7 until 2026-08-26, 10 until 2026-08-27, and moved twice on
   2026-09-12 — 13 when `TraditionNaming` and `TraditionMonthNaming` gained shapes, then 20 with the
   seven `./astrology` ones — and to 21 on 2026-09-13, when `TraditionMonthNaming` split into
-  `TraditionMonthAnimals` and `TraditionNineNumbers`, and to 24 on 2026-09-14 with `monthNamesFor`'s three result types; it moves whenever
+  `TraditionMonthAnimals` and `TraditionNineNumbers`, and to 24 on 2026-09-14 with `monthNamesFor`'s three result types, then 25 with `LunarMansion`; it moves whenever
   a shape is added, so **re-count it rather than trusting the number written here** — the count is
   `grep -c '^interface ' docs/architecture.md`.
 

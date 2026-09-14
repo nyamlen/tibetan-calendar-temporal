@@ -216,6 +216,10 @@ describe("guide examples", () => {
 			expect(day.year.body).toBe("water");
 		});
 
+		it("states the lunar mansion correctly", () => {
+			expect(day.lunarMansion).toEqual({ index: 26, element: "water" });
+		});
+
 		it("states the yoga and its favorability correctly", () => {
 			expect(day.yoga.sanskritName.iast).toBe("maraṇa");
 			expect(day.yoga.favorable).toBe(false);
@@ -232,6 +236,8 @@ describe("guide examples", () => {
 			expect(first.month).toEqual(second.month);
 			expect(first.calendarDay).not.toEqual(second.calendarDay);
 			expect(first.yoga).not.toBe(second.yoga);
+			// "can differ", so pinned on a pair where it does, by value.
+			expect([first.lunarMansion.index, second.lunarMansion.index]).toEqual([7, 8]);
 		});
 
 		it("is right that Bhutan reports null and the primitive throws", () => {
