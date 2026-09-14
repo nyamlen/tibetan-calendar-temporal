@@ -306,9 +306,6 @@ edits, and moving files once after they have landed is one link-fixing commit in
       one-way door at 1.0.0**:
       - **`TibetanTrigram`** (`./astrology`) ships `"li" | "khon" | "dwa" | …` — ASCII Tibetan as
         *keys*, with no `tibetanName` and no verification. Janson's spellings, checked against nothing.
-      - **`ObservanceKind`** (`./observances`) mixes ASCII Tibetan (`"duchen"`, `"sojong"`, `"tsok"`),
-        a loanword (`"puja"`) and English (`"anniversary"`) as keys.
-      - **`ObservanceRule.name`** is a plain phonetic string (`"Chotrul Duchen"`) with no `tibetanName`.
       - **The attribute results** — `YearAttributes`, `MonthAttributes`, `LunarDayAttributes`,
         `CalendarDayAttributes` — carry `animal`, `element` and `gender` as keys only. `TibetanYearName`
         carries `animalName` for the same vocabulary, and nothing public gives a month's or a day's
@@ -321,9 +318,14 @@ edits, and moving files once after they have landed is one link-fixing commit in
       - Not shipped, but the same slip: `test/fixtures/janson-month-names.ts` names a Wylie field
         `tibetan`, where every other fixture means Tibetan script by it.
 
-      Each needs its names verified before it ships — the trigrams and the observance terms have never
-      been through a verifier — so this is sourcing work as well as a reshape. Count call sites before
-      each rename and say the number in its commit.
+      Each needs its names verified before it ships — the trigrams have never been through a
+      verifier — so this is sourcing work as well as a reshape. Count call sites before each rename
+      and say the number in its commit.
+
+      **Scoped to `./astrology` on 2026-09-14.** The survey also found two `./observances` items; they
+      moved to the composable-`ObservanceConfig` item below, because both reshape `ObservanceConfig`
+      and designing them apart would spend two breaking changes on one type. The guide's "three
+      renderings" sentence is therefore not true until both items land.
 - [ ] **Composable/additive `ObservanceConfig`s — decide before 1.0.0, not after.** Today, a
       consumer combining several institutions' rule sets (e.g. `DEFAULT_OBSERVANCES` plus a `TEACHERS` and a
       `TANTRA` config) hand-rolls
@@ -338,6 +340,18 @@ edits, and moving files once after they have landed is one link-fixing commit in
       below, in the research that became [almanac-sources.md](almanac-sources.md); that file's
       deliberation was dropped when it moved into this repo on 2026-09-05, because the decisions it
       argued toward are the ones recorded here.
+
+      **Outstanding with it: the observance names break the names-keyed-by-language rule**
+      ([decisions/2026-09-13-names-keyed-by-language.md](decisions/2026-09-13-names-keyed-by-language.md)),
+      moved here from the item above on 2026-09-14 so the rule shape and the merge shape are decided
+      together — the merge helper's semantics depend on what a rule carries. Both are one-way doors at 1.0.0:
+      - **`ObservanceKind`** mixes ASCII Tibetan (`"duchen"`, `"sojong"`, `"tsok"`), a loanword
+        (`"puja"`) and English (`"anniversary"`) as keys.
+      - **`ObservanceRule.name`** is a plain phonetic string (`"Chotrul Duchen"`) with no `tibetanName`.
+
+      Neither term set has been through a verifier, and its sources are FPMT and ordinary Buddhist
+      usage rather than Janson or Henning, so this needs its own verifier, not an extension of
+      `verify:month-and-yoga-names`.
 
       **Composed shape, proposed 2026-09-03, subtractive part settled, reconciliation part
       deferred 2026-09-04:**
