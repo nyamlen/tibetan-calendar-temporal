@@ -224,6 +224,7 @@ describe("guide examples", () => {
 			expect(day.yoga.englishName).toBe("death");
 			expect(day.yoga.sanskritName.iast).toBe("maraṇa");
 			expect(day.yoga.favorable).toBe(false);
+			expect(day.yoga.auspiciousness.englishName).toBe("worst");
 		});
 
 		it("is right that the yoga is Tuesday's fire paired with the water of Revatī", () => {
@@ -234,9 +235,9 @@ describe("guide examples", () => {
 		});
 
 		it("prints every cell of the ten-yoga table as the package ships it", () => {
-			// Read from the document: seventy cells restated here would pass while the guide drifted.
+			// Read from the document: ninety cells restated here would pass while the guide drifted.
 			const header =
-				"| Pair | `englishName` | Tibetan | Wylie | Phonetic | Sanskrit | Devanāgarī | `favorable` |";
+				"| Pair | `englishName` | Tibetan | Wylie | Phonetic | Sanskrit | Devanāgarī | `favorable` | `auspiciousness` |";
 			const lines = readFileSync(new URL("../docs/guide.md", import.meta.url), "utf8").split(
 				String.fromCharCode(10),
 			);
@@ -257,6 +258,7 @@ describe("guide examples", () => {
 				yoga.sanskritName.iast,
 				yoga.sanskritName.devanagari,
 				yoga.favorable ? "yes" : "no",
+				`${yoga.auspiciousness.englishName} (${yoga.auspiciousness.tibetanName.tibetan})`,
 			]);
 			expect(printed).toEqual(shipped);
 		});

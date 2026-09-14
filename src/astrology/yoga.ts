@@ -7,10 +7,12 @@
  * yoga as the **unordered pair** of the two elements, which gives exactly ten combinations — four
  * matched and six mixed.
  *
- * **Three sources meet here, and they carry different weights.** Janson defines the pairing and
+ * **Four sources meet here, and they carry different weights.** Janson defines the pairing and
  * gives the mansion arithmetic. Henning supplies the element each mansion carries *and* the ten
- * names — Janson cites him for both and derives neither. **Favorability is in neither**: FPMT is its
- * sole witness, through the `FD-`/`UD-` prefix of its published day-quality codes. See
+ * names — Janson cites him for both and derives neither. **Favorability is in neither**: FPMT is the
+ * witness for `favorable`, through the `FD-`/`UD-` prefix of its published day-quality codes. The
+ * *tshig mdzod chen mo*, a Tibetan dictionary outside Henning's lineage, states the same ten element
+ * pairs as Henning and grades the ten into four groups, which is `auspiciousness`. See
  * [docs/astrology.md](../../docs/astrology.md) for the reader-facing account and
  * [docs/almanac-sources.md](../../docs/almanac-sources.md) for the sourcing.
  *
@@ -26,7 +28,38 @@ import { deepFreeze } from "../freeze.js";
 import type { SanskritName, TibetanName, TibetanWeekdayElement } from "../types.js";
 import { mansionElement } from "./mansion-elements.js";
 
-/** One of the ten pairings, with its names and whether it is held favorable. */
+/**
+ * One of the four groups the *tshig mdzod chen mo* grades the ten yogas into.
+ *
+ * @remarks
+ * The entry closes its list of the ten with "three good, three restorative, three bad, one worst" —
+ * *bzang po gsum*, *gso thub gsum*, *ngan gsum*, *tha chad gcig*. The four values are shared frozen
+ * objects, so two yogas in one group hold the **same** object.
+ */
+export interface YogaAuspiciousness {
+	/**
+	 * The group's name in English, and the key a caller branches on.
+	 *
+	 * @remarks
+	 * The four are sourced at three strengths, and the difference is stated rather than hidden:
+	 *
+	 * - `"good"` and `"bad"` are printed word for word for the Tibetan: Jäschke p. 496 s.v. *bzang po*,
+	 *   p. 126 s.v. *ngan pa*.
+	 * - `"worst"` is printed for its Sanskrit equivalent: Das p. 564 gives *adhama* among the Sanskrit
+	 *   for *tha chad*, and Monier-Williams p. 19 glosses *adhama* "lowest, vilest, worst". Jäschke's own
+	 *   "very bad" (p. 226) is the rejected alternative.
+	 * - `"restorative"` is **composed**: no dictionary heads *gso thub*, so it joins *gso ba* "to restore"
+	 *   (Jäschke p. 590) and *thub pa* "to be able" (p. 234). Das's "healing" (p. 1312) is the rejected
+	 *   alternative, because it drops *thub*.
+	 *
+	 * `scripts/verify-month-and-yoga-names.mjs` re-checks each on every run.
+	 */
+	readonly englishName: "good" | "restorative" | "bad" | "worst";
+	/** The group's Tibetan name as the entry prints it — script, Wylie and THL phonetics. */
+	readonly tibetanName: TibetanName;
+}
+
+/** One of the ten pairings, with its names and how auspicious it is held to be. */
 export interface ElementalYoga {
 	/**
 	 * The yoga's name in English — eight of the ten Henning's translation (p. 204), two a dictionary's.
@@ -83,8 +116,30 @@ export interface ElementalYoga {
 	 * **FPMT's claim, not Janson's and not Henning's.** It is the `FD-`/`UD-` prefix of the codes in
 	 * their published monthly calendars, which `test/validation/fpmt-observances.test.ts` checks day
 	 * by day. Nothing in the paper ranks the ten.
+	 *
+	 * Independent of {@link ElementalYoga.auspiciousness} — neither is computed from the other — and
+	 * the two agree: the six favorable yogas are exactly the *good* and *restorative* ones.
 	 */
 	readonly favorable: boolean;
+	/**
+	 * Which of the *tshig mdzod chen mo*'s four groups the yoga is in.
+	 *
+	 * @remarks
+	 * **Read from list order, not stated.** The entry lists the ten and then says how many are in each
+	 * group — three, three, three, one — but never which yoga is in which. So the first three it lists
+	 * are taken as *good*, the next three as *restorative*, and so on. That order is not the order of
+	 * {@link ELEMENTAL_YOGAS}, which is Henning's.
+	 *
+	 * **The list has a second order, and it could be the one that matters.** The entry puts the four
+	 * same-element pairs first. If that is why they come first, the cut between *good* and
+	 * *restorative* is structure rather than rank, and **wind + wind, *phun tshogs* "excellence"** —
+	 * *restorative* here — would be *good*. That row is the one to check if a source ever states the
+	 * groups' members.
+	 *
+	 * Agrees with FPMT's independent {@link ElementalYoga.favorable} on all ten, and with Henning's one
+	 * statement on the matter, that earth + earth "is considered highly auspicious" (p. 204).
+	 */
+	readonly auspiciousness: YogaAuspiciousness;
 }
 
 /**
@@ -96,6 +151,23 @@ export interface ElementalYoga {
  */
 const ELEMENT_ORDER: readonly TibetanWeekdayElement[] = ["earth", "water", "fire", "wind"];
 
+const GOOD: YogaAuspiciousness = deepFreeze({
+	englishName: "good",
+	tibetanName: { tibetan: "བཟང་པོ", wylie: "bzang po", phonetic: "zang po" },
+});
+const RESTORATIVE: YogaAuspiciousness = deepFreeze({
+	englishName: "restorative",
+	tibetanName: { tibetan: "གསོ་ཐུབ", wylie: "gso thub", phonetic: "so tup" },
+});
+const BAD: YogaAuspiciousness = deepFreeze({
+	englishName: "bad",
+	tibetanName: { tibetan: "ངན", wylie: "ngan", phonetic: "ngen" },
+});
+const WORST: YogaAuspiciousness = deepFreeze({
+	englishName: "worst",
+	tibetanName: { tibetan: "ཐ་ཆད", wylie: "tha chad", phonetic: "ta ché" },
+});
+
 /**
  * All ten yogas, Henning's table in his own columns.
  *
@@ -105,7 +177,7 @@ const ELEMENT_ORDER: readonly TibetanWeekdayElement[] = ["earth", "water", "fire
  *
  * Six favorable against four unfavorable, and the division is FPMT's. The four unfavorable ones are
  * the pairs that mix elements held to fight: earth with wind, water with wind, earth with fire, and
- * fire with water — *maraṇa*, "death", the most inauspicious of the ten.
+ * fire with water — *maraṇa*, "death", which the *tshig mdzod chen mo* puts alone in its lowest group.
  */
 export const ELEMENTAL_YOGAS: readonly ElementalYoga[] = deepFreeze([
 	{
@@ -114,6 +186,7 @@ export const ELEMENTAL_YOGAS: readonly ElementalYoga[] = deepFreeze([
 		sanskritName: { iast: "siddhi", devanagari: "सिद्धि" },
 		elements: ["earth", "earth"],
 		favorable: true,
+		auspiciousness: GOOD,
 	},
 	{
 		englishName: "nectar",
@@ -121,6 +194,7 @@ export const ELEMENTAL_YOGAS: readonly ElementalYoga[] = deepFreeze([
 		sanskritName: { iast: "amṛta", devanagari: "अमृत" },
 		elements: ["water", "water"],
 		favorable: true,
+		auspiciousness: GOOD,
 	},
 	{
 		englishName: "youth",
@@ -128,6 +202,7 @@ export const ELEMENTAL_YOGAS: readonly ElementalYoga[] = deepFreeze([
 		sanskritName: { iast: "yauvana", devanagari: "यौवन" },
 		elements: ["earth", "water"],
 		favorable: true,
+		auspiciousness: RESTORATIVE,
 	},
 	{
 		englishName: "increase",
@@ -135,6 +210,7 @@ export const ELEMENTAL_YOGAS: readonly ElementalYoga[] = deepFreeze([
 		sanskritName: { iast: "pragati", devanagari: "प्रगति" },
 		elements: ["fire", "fire"],
 		favorable: true,
+		auspiciousness: GOOD,
 	},
 	{
 		englishName: "excellence",
@@ -142,6 +218,7 @@ export const ELEMENTAL_YOGAS: readonly ElementalYoga[] = deepFreeze([
 		sanskritName: { iast: "saṃpanna", devanagari: "संपन्न" },
 		elements: ["wind", "wind"],
 		favorable: true,
+		auspiciousness: RESTORATIVE,
 	},
 	{
 		englishName: "powerful",
@@ -149,6 +226,7 @@ export const ELEMENTAL_YOGAS: readonly ElementalYoga[] = deepFreeze([
 		sanskritName: { iast: "balayukta", devanagari: "बलयुक्त" },
 		elements: ["fire", "wind"],
 		favorable: true,
+		auspiciousness: RESTORATIVE,
 	},
 	{
 		englishName: "deficiency",
@@ -156,6 +234,7 @@ export const ELEMENTAL_YOGAS: readonly ElementalYoga[] = deepFreeze([
 		sanskritName: { iast: "alābha", devanagari: "अलाभ" },
 		elements: ["earth", "wind"],
 		favorable: false,
+		auspiciousness: BAD,
 	},
 	{
 		englishName: "opposition",
@@ -163,6 +242,7 @@ export const ELEMENTAL_YOGAS: readonly ElementalYoga[] = deepFreeze([
 		sanskritName: { iast: "pratikūla", devanagari: "प्रतिकूल" },
 		elements: ["water", "wind"],
 		favorable: false,
+		auspiciousness: BAD,
 	},
 	{
 		englishName: "burning",
@@ -170,6 +250,7 @@ export const ELEMENTAL_YOGAS: readonly ElementalYoga[] = deepFreeze([
 		sanskritName: { iast: "dahana", devanagari: "दहन" },
 		elements: ["earth", "fire"],
 		favorable: false,
+		auspiciousness: BAD,
 	},
 	{
 		englishName: "death",
@@ -177,6 +258,7 @@ export const ELEMENTAL_YOGAS: readonly ElementalYoga[] = deepFreeze([
 		sanskritName: { iast: "maraṇa", devanagari: "मरण" },
 		elements: ["fire", "water"],
 		favorable: false,
+		auspiciousness: WORST,
 	},
 ] as ElementalYoga[]);
 
