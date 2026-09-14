@@ -447,7 +447,7 @@ someone's implementation of Janson, and it tests a different thing: not "do we c
 engines compute" but "do our day numbers land on the days people actually observe". Each great
 holy day has a fixed Tibetan date, so each published Gregorian date is a direct assertion.
 
-It is **hand-curated**, the one exception to this directory's generated-only rule, because FPMT
+It is **hand-curated**, one of three exceptions to this directory's generated-only rule, because FPMT
 publishes these in prose announcements with no feed to parse. What keeps it safe: the list is
 short enough to check by eye, every row carries its source URL, and every row was confirmed
 against all three cross-check implementations before being written down. Rows whose source could

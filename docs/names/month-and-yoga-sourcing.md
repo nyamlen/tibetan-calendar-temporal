@@ -4,7 +4,7 @@
 It records the evidence and the decisions for three sets of names, and was written before the verifier that enforces them, so that the verifier was built from a record rather than from memory.
 That verifier is now [scripts/verify-month-and-yoga-names.mjs](../../scripts/verify-month-and-yoga-names.mjs), and its output is `test/fixtures/month-names.ts` and `test/fixtures/yoga-names.ts`.
 **The yoga names ship** — corrected, with Tibetan script and Devanāgarī — and `ELEMENTAL_YOGAS` is held against the fixture.
-**The month and season names do not ship yet**; `monthNamesFor` is the next step.
+The month and season names ship through `monthNamesFor`, whose tables `test/month-names.test.ts` holds against the fixture.
 It follows [rabjung-sourcing.md](rabjung-sourcing.md), and the rule it inherits from [validation-sources.md](../validation-sources.md): **agreement is only evidence if the source did not reach its answer the way we did.**
 
 The three sets:

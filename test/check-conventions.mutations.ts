@@ -21,6 +21,8 @@
  * - **X1–X7** prove the containment added on 2026-09-12: a throw must not cost the findings already
  *   collected, a path in the index but not on disk is reported rather than read, and the registry
  *   refuses a missing or mismatched rule.
+ * - **X8** proves the six-season fixture passes Rule 7 because it is allowlisted, not because some
+ *   script happens to mention its name.
  *
  * ## Why a copy of the working tree, and not a worktree or the checkout itself
  *
@@ -362,6 +364,19 @@ const X: readonly Row[] = [
 				"rule 8's registry entry",
 			),
 		must: ["The checker itself is broken", "must name its own rule's function"],
+	},
+	{
+		id: "X8",
+		what: "the six-season fixture, taken out of Rule 7's allowance",
+		// The allowance is what exempts it, not a coincidence: `source.includes(name)` would pass the
+		// file silently if any script ever mentioned its name in passing.
+		apply: (tree) =>
+			tree.edit(
+				CHECKER,
+				(source) => source.replace(', "henning-six-seasons.ts"', ""),
+				"henning-six-seasons.ts in HAND_CURATED",
+			),
+		must: ["fixture provenance", "test/fixtures/henning-six-seasons.ts"],
 	},
 ];
 

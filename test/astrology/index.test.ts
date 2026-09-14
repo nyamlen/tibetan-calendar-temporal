@@ -4,6 +4,7 @@ import {
 	calendarDayAttributesFor,
 	elementalYogaFor,
 	lunarDayAttributesFor,
+	lunarMansionFor,
 	monthAttributesFor,
 	yearAttributesFor,
 } from "../../src/astrology/index.js";
@@ -198,5 +199,40 @@ describe("the yoga's weekday element is tradition-free", () => {
 		expect(differing).toBeGreaterThan(0);
 		// And far fewer than the weekday offset produced: it moved 12 of every 14.
 		expect(differing).toBeLessThan(14);
+	});
+});
+
+describe("the lunar mansion for a date", () => {
+	it("gives the documented example's mansion by value", () => {
+		// 1 September 2026, whose yoga is "death": fire weekday against a water mansion.
+		expect(lunarMansionFor(iso("2026-09-01"))).toEqual({ index: 26, element: "water" });
+	});
+
+	it("puts the two halves of a doubled date in the mansions their own mornings fall in", () => {
+		// Pinned by value, not as an inequality: the pair's yogas differ through the weekday whatever
+		// the mansion does, so only the index itself can catch isLeapDay being dropped.
+		expect(lunarMansionFor(iso("2024-05-15"))).toEqual({ index: 7, element: "fire" });
+		expect(lunarMansionFor(iso("2024-05-16"))).toEqual({ index: 8, element: "water" });
+		expect(lunarMansionFor(isoToTibetan(iso("2024-05-15")))).toEqual({ index: 7, element: "fire" });
+	});
+
+	it("is the mansion the composition reports, and the one its yoga was built from", () => {
+		for (const day of ["2024-05-15", "2024-05-16", "2025-11-19", "2026-09-01"]) {
+			const attributes = attributesFor(iso(day));
+			expect(attributes.lunarMansion, day).toEqual(lunarMansionFor(iso(day)));
+			expect(attributes.yoga, day).toBe(elementalYogaFor(iso(day)));
+		}
+	});
+
+	it("refuses loose fields, which name neither calendar", () => {
+		expect(thrownBy(() => lunarMansionFor({ year: 2153, month: 1, day: 1 } as never))?.code).toBe(
+			"TCT_INVALID_ARGUMENT",
+		);
+	});
+
+	it("guards its options bag", () => {
+		expect(thrownBy(() => lunarMansionFor(iso("2026-09-01"), null as never))?.code).toBe(
+			"TCT_INVALID_ARGUMENT",
+		);
 	});
 });

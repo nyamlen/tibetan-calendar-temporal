@@ -487,8 +487,8 @@ day.yoga.favorable;      // false
 
 **A day carries two sets of labels that disagree, and almanacs print both.** The lunar day is the
 thirtieth of a lunation; the calendar day runs sunrise to sunrise. On a doubled date the two halves
-share `year`, `month` and `lunarDay` and differ in `calendarDay` and `yoga` — that is the calendar,
-not a bug.
+share `year`, `month` and `lunarDay` and differ in `calendarDay` and `yoga`, and can differ in
+`lunarMansion` — that is the calendar, not a bug.
 
 **`month` and `lunarDay` are `null` for the Bhutanese traditions.** Janson tabulates no month-animal
 list for that version, so the package refuses rather than handing over Phugpa's answers; the
@@ -589,6 +589,12 @@ for (let y = 2140; y <= 2160; y++) {
 }
 ```
 
+#### Month names
+
+| Export | Signature | Notes |
+|---|---|---|
+| `monthNamesFor` | `(month: TibetanMonthFields, options?: { tradition? }) => MonthNames` | The month's lunar-mansion name and its season in **all four** seasonal systems at once — `fourSeasons.month1LateWinter`, `fourSeasons.month1EarlySpring`, `fourSeasons.tigerEarlySpring` and `sixSeasons.month3EarlySpring` — because almanacs print several and no source makes one a tradition's only answer. The same `season` key names different months in different systems. `tigerEarlySpring` is `null` for a tradition without a sourced Tiger month (Bhutan). A leap month takes its regular month's names. See [the guide](docs/guide.md#naming-a-month) for the month-by-month table |
+
 #### Formatting
 
 The two are exact inverses: `formatTibetanDate(parseTibetanDate(s)) === s`. Neither takes a config,
@@ -661,7 +667,8 @@ Type-only exports, erased at runtime: `TibetanDate`, `TibetanDateFields`, `Tibet
 `TibetanWeekdayName`, `TibetanWeekdayElement`, `TibetanWeekday`, `TibetanPlanet`, `TibetanElement`,
 `TibetanAnimal`,
 `TibetanGender`, `TraditionConfig`, `TraditionNaming`, `TraditionMonthAnimals`, `TraditionNineNumbers`, `MeanMotion`, `Rational`,
-`TibetanCalendarErrorCode`, `MonthOverflow`, `AddMonthsToDateOptions`.
+`TibetanCalendarErrorCode`, `MonthOverflow`, `AddMonthsToDateOptions`, `MonthNames`,
+`FourSeasonMonthName`, `SixSeasonMonthName`.
 
 ### `tibetan-calendar-temporal/observances`
 
@@ -696,12 +703,13 @@ A separate subpath, like `./observances`. `options` is `{ tradition? }`, default
 | `monthAttributesFor` | `(month: TibetanMonthFields, options?) => MonthAttributes` | Throws `TCT_ATTRIBUTE_NOT_SOURCED` for the Bhutanese configs |
 | `lunarDayAttributesFor` | `(date: TibetanDateFields, options?) => LunarDayAttributes` | Tibetan fields in, so a **skipped** lunar day can be asked about |
 | `calendarDayAttributesFor` | `(date: Temporal.PlainDate \| TibetanDate) => CalendarDayAttributes` | Congruences on the Julian day; the number differs in Tsurphu calendars, which is not modelled |
-| `elementalYogaFor` | `(date: Temporal.PlainDate \| TibetanDate, options?) => ElementalYoga` | The one attribute needing the moon's real position |
+| `lunarMansionFor` | `(date: Temporal.PlainDate \| TibetanDate, options?) => LunarMansion` | `{ index, element }`, index 0–26 as Janson and Henning number them. Needs the moon's real position, and is not exact against an almanac near mansion boundaries — how often is in [why-trust-these-dates.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/why-trust-these-dates.md). Names not shipped yet |
+| `elementalYogaFor` | `(date: Temporal.PlainDate \| TibetanDate, options?) => ElementalYoga` | The weekday's element paired with the lunar mansion's |
 | `elementalYoga` | `(a: TibetanWeekdayElement, b: TibetanWeekdayElement) => ElementalYoga` | The pair alone, order-insensitive |
 | `ELEMENTAL_YOGAS` | | The ten, frozen: Henning's names, FPMT's favorability |
 
 Type-only exports: `DayAttributes`, `YearAttributes`, `MonthAttributes`, `LunarDayAttributes`,
-`CalendarDayAttributes`, `ElementalYoga`, `TibetanTrigram`, `AstrologyQueryOptions`.
+`CalendarDayAttributes`, `ElementalYoga`, `TibetanTrigram`, `AstrologyQueryOptions`, `LunarMansion`.
 
 A date argument is a `Temporal.PlainDate` or a resolved `TibetanDate` — never loose
 `{ year, month, day }`, which is a value of both calendars and would make the ambiguity silent.
@@ -713,7 +721,7 @@ day be named at all.
 
 **What ships:** the *Tibetan* name of a thing — Tibetan script, Wylie, and THL Simplified Phonetic
 Transcription — on `weekdayName`, and on `elementName` / `genderName` / `animalName` under the
-`TibetanYearName` that `yearNameFor` returns.
+`TibetanYearName` that `yearNameFor` returns; and on every member of `monthNamesFor`'s result.
 
 **What deliberately does not ship:** translations into any other language. What ships instead is a
 stable key your own i18n layer maps from — `TibetanElement`, `TibetanGender`, `TibetanAnimal` and

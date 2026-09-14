@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { lunarMansionFor } from "../../src/astrology/index.js";
 import { mansionElement } from "../../src/astrology/mansion-elements.js";
 import {
 	mansionDenominator,
@@ -183,6 +184,20 @@ describe("the elemental yoga against FPMT's day-quality codes", () => {
 		const stranded = mansionDisagreements().filter((d) => d.position >= 0.15 && d.position <= 0.85);
 		// Pinned rather than bounded loosely: if this grows, something changed and wants looking at.
 		expect(stranded.length).toBeLessThanOrEqual(6);
+	});
+
+	it("validates what the export returns, not only the internals", () => {
+		// The 97.6% is measured on `mansionNumber`, which needs internal inputs to report a position.
+		// `lunarMansionFor` is what a consumer calls, so it must return the same mansion on every day
+		// measured — or the published figure describes a function nobody can reach.
+		const bad = yogaDays
+			.filter((day) => {
+				const index = mansionNumber(scaled, day.date.day, day.monthCount, day.date.isLeapDay);
+				const exported = lunarMansionFor(iso(day.iso), { tradition: PHUGPA });
+				return exported.index !== index || exported.element !== mansionElement(index);
+			})
+			.map((day) => day.iso);
+		expect(bad).toEqual([]);
 	});
 
 	it("covers a useful number of days", () => {

@@ -81,6 +81,19 @@ check(
 	"astrology subpath did not report BHUTAN's month attributes as unsourced",
 );
 check(astrology.ELEMENTAL_YOGAS.length === 10, "the yoga table did not survive packing");
+const mansion = astrology.lunarMansionFor(Temporal.PlainDate.from("2026-09-01"));
+check(
+	mansion.index === 26 && mansion.element === "water",
+	`lunarMansionFor gave ${JSON.stringify(mansion)}, wanted index 26, water`,
+);
+
+// The root's month names, whose tables and Tiger-month reader are new to the root build.
+const monthNames = api.monthNamesFor({ year: 2153, month: 1 });
+check(
+	monthNames.fourSeasons.tigerEarlySpring?.part === "late" &&
+		monthNames.sixSeasons.month3EarlySpring.sanskritName.iast === "śiśira",
+	"monthNamesFor did not survive packing",
+);
 
 // The error surface has to survive packing too: a consumer branching on `error.code` gets nothing
 // useful if the property was dropped somewhere between source and tarball.

@@ -325,6 +325,55 @@ for (const raw of tableRows("T12months")) {
 	});
 }
 
+// Tmonths — the lunar-mansion month names and two seasonal columns. The Sanskrit column is not
+// emitted: it is TeX-accented and nothing here decodes accents, so it would arrive mangled.
+// "seasonal II" is the Tiger-anchored system under Phugpa only; Tsurphu's Tiger sits elsewhere.
+const monthNames = [];
+for (const raw of tableRows("Tmonths")) {
+	const c = cells(raw);
+	if (c.length !== 6) throw new Error(`unparsable Tmonths row: ${raw}`);
+	monthNames.push({
+		month: Number(c[0]),
+		tibetan: c[1],
+		seasonalI: c[3].toLowerCase(),
+		animal: c[4].toLowerCase(),
+		seasonalII: c[5].toLowerCase(),
+	});
+}
+
+// Janson's seasonal systems as prose: "Month 1 = \tibx{mchu} = late-winter". Two of the four have
+// no column in Tmonths — the original Kālacakra identification and the six seasons — so these are
+// their only statements in the paper. `\nag` is resolved through its own \newcommand rather than
+// spelled here, so a renamed macro fails instead of silently matching nothing.
+const macro = (name) => {
+	const m = text.match(new RegExp(`\\\\newcommand\\\\${name}\\{\\\\tibx\\{([^}]+)\\}\\}`));
+	if (!m) throw new Error(`\\newcommand\\${name} not found`);
+	return m[1];
+};
+const NAG = macro("nag");
+const monthItem = (marker) => {
+	const start = lines.findIndex((l) => l.includes(marker));
+	if (start === -1) throw new Error(`seasonal item "${marker}" not found`);
+	const statements = [];
+	// Bounded by the next item, so an item that lost a statement cannot borrow one from its neighbour.
+	for (let i = start; i < lines.length && statements.length < 2; i++) {
+		if (i > start && /^\s*\\item\b|\\end\{enumerate\}/.test(lines[i])) break;
+		const m = lines[i].match(
+			/^(?:thus )?Month (\d+) = (?:\\tibx\{([^}]+)\}|\\nag\{\}) = ([a-z]+-[a-z]+)/,
+		);
+		if (m) statements.push({ month: Number(m[1]), tibetan: m[2] ?? NAG, season: m[3] });
+	}
+	if (statements.map((s) => s.month).join() !== "1,3") {
+		throw new Error(`seasonal item "${marker}" parsed as months ${statements.map((s) => s.month)}`);
+	}
+	return statements;
+};
+const seasonalProse = {
+	month1LateWinter: monthItem("\\label{month-season-KT}"),
+	month1EarlySpring: monthItem("\\label{month-season-PH}"),
+	sixSeasons: monthItem("A different system with 6 seasons"),
+};
+
 // Tlife — life and spirit element by animal, on a 12-year cycle.
 const lifeElements = [];
 for (const raw of rowsBefore("Tlife", 12)) {
@@ -349,6 +398,32 @@ if (months !== "1,2,3,4,5,6,7,8,9,10,11,12") {
 	);
 }
 if (lifeElements.length !== 12) throw new Error(`expected 12 Tlife rows`);
+
+if (monthNames.map((row) => row.month).join() !== "1,2,3,4,5,6,7,8,9,10,11,12") {
+	throw new Error(`Tmonths parsed as months ${monthNames.map((row) => row.month)}, not 1-12`);
+}
+// Tmonths and T12months are parsed independently and both carry Phugpa's month animal, so a
+// shifted column in either shows up as a disagreement here.
+for (const row of monthNames) {
+	const phugpa = monthAnimals.find((entry) => entry.month === row.month)?.phugpa;
+	if (row.animal !== phugpa) {
+		throw new Error(
+			`Tmonths gives month ${row.month} the animal ${row.animal}, T12months gives ${phugpa}. ` +
+				"One of the two parses has shifted a column.",
+		);
+	}
+}
+// The Phugpa prose restates two cells of the table's seasonal I column, so it checks both the prose
+// parse and which column is seasonal I.
+for (const statement of seasonalProse.month1EarlySpring) {
+	const row = monthNames.find((entry) => entry.month === statement.month);
+	if (row.seasonalI !== statement.season || row.tibetan !== statement.tibetan) {
+		throw new Error(
+			`Janson's Phugpa prose says month ${statement.month} = ${statement.tibetan} = ${statement.season}, ` +
+				`Tmonths says ${row.tibetan} = ${row.seasonalI}. The prose or the column parse is wrong.`,
+		);
+	}
+}
 
 // The invariant that catches a silently-shifted column: T60e's life and spirit elements must agree
 // with Tlife at every one of the sixty positions, and the two tables are parsed independently.
@@ -585,8 +660,49 @@ export const JANSON_LIFE_ELEMENTS: readonly JansonLifeElementRow[] = ${JSON.stri
 `,
 );
 
+writeFileSync(
+	join(fixtures, "janson-month-names.ts"),
+	`${header(
+		"Janson's month-names table and his prose statements of the seasonal systems it does not\n * tabulate.\n *\n * Like the attribute tables, these were computed by Janson rather than read from an almanac, so\n * agreement catches a transcription or rule error and is not external corroboration.",
+	)}
+export interface JansonMonthNameRow {
+	/** Month number, 1-12. */
+	month: number;
+	/** The lunar-mansion month name, in Janson's Wylie. */
+	tibetan: string;
+	/** Phugpa's Kālacakra identification: month 1 is early-spring. Janson's own words, e.g. "mid-spring". */
+	seasonalI: string;
+	/** Phugpa's month animal; the generator checks it against T12months. */
+	animal: string;
+	/** Tiger = early-spring, **under Phugpa only**, whose Tiger month is 11. */
+	seasonalII: string;
+}
+
+export interface JansonSeasonalStatement {
+	month: number;
+	/** The month's lunar-mansion name, in Janson's Wylie. */
+	tibetan: string;
+	/** Janson's own words, e.g. "late-winter" — not this package's keys. */
+	season: string;
+}
+
+/** The twelve rows of Janson's month-names table, Sanskrit omitted. */
+export const JANSON_MONTH_NAMES: readonly JansonMonthNameRow[] = ${JSON.stringify(monthNames, null, "\t")};
+
+/**
+ * Months 1 and 3 of three seasonal systems, as Janson states them in prose. The first and the third
+ * have no column in the table; the second restates two of its cells, which the generator checks.
+ */
+export const JANSON_SEASONAL_STATEMENTS: {
+	readonly month1LateWinter: readonly JansonSeasonalStatement[];
+	readonly month1EarlySpring: readonly JansonSeasonalStatement[];
+	readonly sixSeasons: readonly JansonSeasonalStatement[];
+} = ${JSON.stringify(seasonalProse, null, "\t")};
+`,
+);
+
 console.log(
-	`wrote ${losar.length} Losar rows, ${cycle.length} cycle rows, ` +
+	`wrote ${monthNames.length} month-name rows, ${losar.length} Losar rows, ${cycle.length} cycle rows, ` +
 		`the epoch at JD ${epochMatch[1]}, ${divergenceDates.length} a2 divergence dates, ` +
 		`${divergenceCounts.length} divergence counts and ${crossVersionLeap.length} cross-version ` +
 		`leap rows (${crossVersionLeap.filter((r) => !r.commented).length} printed) to test/fixtures/`,

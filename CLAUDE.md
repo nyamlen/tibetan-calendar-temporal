@@ -148,9 +148,9 @@ list of observance dates cannot. Parse the markup, never a summarised rendering:
 fetch got the month-span caption wrong, reading the range `Tibetan Months 9-11` as two months
 rather than three. This is the same failure the LaTeX rule exists to prevent.
 
-There are **two** deliberate exceptions to the generated rule, and the test for both is narrow: the
-authority publishes the data with **nothing to parse**, so a generator could only wrap a lossy
-reading. "Parsing it is inconvenient" is not the test.
+There are **three** deliberate exceptions to the generated rule, and the test for all of them is
+narrow: the authority publishes the data with **nothing usable to parse**, so a generator could only
+wrap a lossy reading. "Parsing it is inconvenient" is not the test.
 
 `test/fixtures/fpmt-holy-days.ts` is hand-curated because FPMT publishes *those* dates in prose
 announcements with no feed. Its safeguards are that it is short enough to check by eye, every row
@@ -165,7 +165,18 @@ were read by a human on purpose** — a machine reading of the same document mis
 nineteen, all `༠` against `༤` or `༥` against `༆`. Do not regenerate it, and do not extend it from a
 machine reading.
 
-**A third provenance category, which is not a third exception.** A file in `test/fixtures/` that
+`test/fixtures/henning-six-seasons.ts` is hand-curated because its only full source, Henning's list
+of the Indian months (*Kālacakra and the Tibetan Calendar*, pp. 358–359), exists here as a **scanned
+book whose OCR layer shifts the table's columns against its rows** — so unlike `rgob.ts` there *is*
+text, and it is the wrong text: a generator would pair months with the wrong seasons, and nothing
+about the output would look wrong. Janson gives months 1 and 3 of the system and cites Henning for
+the rest, so his two statements check the file without being a second witness. **The pairing was
+confirmed against the scanned pages by eye**, it is twelve rows, and every row cites a page — taken
+from the OCR layer's placement, which was **not** checked by eye, as the file says. Added
+2026-09-14; `npm run test:conventions` row X8 proves it passes Rule 7 by the allowlist rather than by a
+script happening to mention its name. Do not regenerate it from the OCR.
+
+**A further provenance category, which is not an exception.** A file in `test/fixtures/` that
 declares **no data at all** — only types — is exempt, because there is nothing to transcribe and so
 the error the rule prevents cannot occur in it. `test/fixtures/crosscheck-row.ts` is the only one:
 the row type its three sibling fixtures share. `check:conventions` tests this **before** the
@@ -182,8 +193,8 @@ end that. The independence is load-bearing —
 [docs/decisions/2026-08-16-exported-means-validated.md](docs/decisions/2026-08-16-exported-means-validated.md)
 rests on it.
 
-Neither justification extends to the calendars above. Do not "fix" either by trying to generate it,
-and do not delete either for breaking the rule. See `docs/testing.md`, which also states the window
+None of these justifications extends to the calendars above. Do not "fix" any of the three by trying
+to generate it, and do not delete one for breaking the rule. See `docs/testing.md`, which also states the window
 each agreement actually covers — Phugpa's day-by-day external validation spans 2022–2027 against a
 documented range starting 1447, and Bhutan's spans 2000 to early 2030 against one lineage plus
 twenty-five government-published days — so cite the window whenever citing the agreement.
@@ -355,13 +366,13 @@ derivation; in `docs/` they are just noise.
   README called `rabjungFor`'s `name` "the Tibetan and Sanskrit name" for hours after the Sanskrit
   came off, and the grep that found the stale list named the removed types rather than the field, so
   it sailed past. Removing or renaming a type therefore still needs the hand sweep for everything
-  except the list — `docs/architecture.md`'s shapes (**21** exported types defined as interface
+  except the list — `docs/architecture.md`'s shapes (**25** exported types defined as interface
   blocks, plus `SanskritName`, `TibetanAnimal`, `TibetanElement`, `TibetanGender`, `TibetanName`, `TibetanWeekday`,
   `TibetanWeekdayName` and `TibetanYearName` named in field positions), `docs/guide.md` (4), and any
   docblock naming it. This figure read 7 until 2026-08-26, 10 until 2026-08-27, and moved twice on
   2026-09-12 — 13 when `TraditionNaming` and `TraditionMonthNaming` gained shapes, then 20 with the
   seven `./astrology` ones — and to 21 on 2026-09-13, when `TraditionMonthNaming` split into
-  `TraditionMonthAnimals` and `TraditionNineNumbers`; it moves whenever
+  `TraditionMonthAnimals` and `TraditionNineNumbers`, and to 24 on 2026-09-14 with `monthNamesFor`'s three result types, then 25 with `LunarMansion`; it moves whenever
   a shape is added, so **re-count it rather than trusting the number written here** — the count is
   `grep -c '^interface ' docs/architecture.md`.
 

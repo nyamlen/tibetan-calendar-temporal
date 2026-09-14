@@ -31,12 +31,11 @@
  * `TCT_ATTRIBUTE_NOT_SOURCED` for `BHUTAN` and `BHUTAN_HENNING` rather than handing over Phugpa's
  * answers. Everything else answers for every tradition.
  *
- * **The mansion itself is not on this surface, deliberately.** `elementalYogaFor` gives the yoga the
- * mansion produces, and nothing exports the mansion's *number* or its element table — because a
- * consumer holding `mansionElement` with no way to learn today's mansion index has a dead export, and
- * an export cannot be removed after 1.0.0. Exposing the mansion is additive and can be done the day
- * somebody asks for it; this is the repo's "expose when the workaround is wrong or impossible, not to
- * anticipate a need" rule, and the three mansion names were briefly exported in violation of it.
+ * **The mansion is exposed for a date, and only for a date.** {@link lunarMansionFor} gives its index
+ * and element. The element table on its own is not exported, because a consumer holding it with no
+ * way to learn a day's index would have a dead export — which is how three mansion names came to be
+ * exported on 2026-09-12 and withdrawn the same day. The mansions' **names** are not shipped yet; they
+ * need the same verification as every other name here.
  *
  * @packageDocumentation
  */
@@ -57,19 +56,21 @@ import {
 	type TibetanDate,
 	type TibetanDateFields,
 	type TibetanMonthFields,
+	type TibetanWeekdayElement,
 } from "../types.js";
 import { type CalendarDayAttributes, calendarDayAttributes } from "./calendar-day.js";
 import { type LunarDayAttributes, lunarDayAttributes } from "./lunar-day.js";
+import { mansionElement } from "./mansion-elements.js";
 import { mansionNumber } from "./mansions.js";
 import { type MonthAttributes, monthAttributes } from "./month.js";
-import type { AstrologyQueryOptions, DayAttributes } from "./types.js";
+import type { AstrologyQueryOptions, DayAttributes, LunarMansion } from "./types.js";
 import { type YearAttributes, yearAttributes } from "./year.js";
 import { type ElementalYoga, yogaForMansion } from "./yoga.js";
 
 export type { CalendarDayAttributes, TibetanTrigram } from "./calendar-day.js";
 export type { LunarDayAttributes } from "./lunar-day.js";
 export type { MonthAttributes } from "./month.js";
-export type { AstrologyQueryOptions, DayAttributes } from "./types.js";
+export type { AstrologyQueryOptions, DayAttributes, LunarMansion } from "./types.js";
 export type { YearAttributes } from "./year.js";
 export type { ElementalYoga } from "./yoga.js";
 export { ELEMENTAL_YOGAS, elementalYoga } from "./yoga.js";
@@ -287,6 +288,40 @@ export function elementalYogaFor(
 }
 
 /**
+ * The lunar mansion the moon is in at the start of a calendar day: its index and its element.
+ *
+ * @remarks
+ * **Needs astronomy**, like the yoga it drives: the mansion comes from the same true longitudes the
+ * calendar is built from. **It is not exact against an almanac**: Janson's formula approximates the
+ * moon's motion, so days near a mansion boundary can disagree. How often, over which days and for which
+ * tradition is stated once, in `docs/why-trust-these-dates.md`; cite it from there rather than
+ * restating it.
+ *
+ * `index` runs **0 to 26**, as both Janson and Henning number the mansions. Names are not shipped yet.
+ *
+ * **On a doubled date the two halves can be in different mansions.** Pass the `Temporal.PlainDate` of
+ * the half you mean, or a resolved `TibetanDate`, which carries `isLeapDay`. Loose `{ year, month,
+ * day }` fields are refused, because that shape is a value of both calendars.
+ *
+ * @throws RangeError with code `TCT_INVALID_ARGUMENT` for an argument that names no calendar day;
+ * `TCT_INVALID_TRADITION_CONFIG` for an invalid `tradition`; `TCT_OUTSIDE_EXACT_RANGE` past the
+ * tradition's exact range.
+ *
+ * @example
+ * ```ts
+ * // 1 September 2026: the Tuesday whose yoga is "death", fire against a water mansion.
+ * lunarMansionFor(Temporal.PlainDate.from("2026-09-01")).element; // "water"
+ * ```
+ */
+export function lunarMansionFor(
+	date: Temporal.PlainDate | TibetanDate,
+	options: AstrologyQueryOptions = {},
+): LunarMansion {
+	const tradition = traditionFrom("lunarMansionFor", options);
+	return lunarMansionOf(isoToTibetan(isoOf(date), tradition), tradition);
+}
+
+/**
  * Everything this subpath knows about one calendar day.
  *
  * @remarks
@@ -323,6 +358,9 @@ export function attributesFor(
 	// and nowhere else. Narrow: only the unsourced-attribute code becomes a null, and every other
 	// error — a malformed config, a date out of range — still propagates.
 	const sourced = tradition.naming?.monthAnimals !== undefined;
+	// Computed once and shared with the yoga, so the composition cannot report one mansion and a
+	// yoga derived from another.
+	const lunarMansion = lunarMansionOf(resolved, tradition);
 
 	return {
 		date: resolved,
@@ -330,12 +368,18 @@ export function attributesFor(
 		month: sourced ? monthAttributes(tradition, y, resolved.month) : null,
 		lunarDay: sourced ? lunarDayAttributes(tradition, y, resolved.month, resolved.day) : null,
 		calendarDay: calendarDayAttributes(julianDayFromIso(resolved.isoDate)),
-		yoga: yogaOf(resolved, tradition),
+		lunarMansion,
+		yoga: yogaForMansion(weekdayElementOf(resolved), lunarMansion.index),
 	};
 }
 
 /** The yoga of an already-resolved date, shared by the composition and the primitive. */
 function yogaOf(resolved: TibetanDate, tradition: TraditionConfig): ElementalYoga {
+	return yogaForMansion(weekdayElementOf(resolved), lunarMansionOf(resolved, tradition).index);
+}
+
+/** The mansion of an already-resolved date, shared by the compositions and the primitive. */
+function lunarMansionOf(resolved: TibetanDate, tradition: TraditionConfig): LunarMansion {
 	const scaled = scalingFor(tradition);
 	const monthCount = trueMonthCount(
 		tradition,
@@ -348,8 +392,12 @@ function yogaOf(resolved: TibetanDate, tradition: TraditionConfig): ElementalYog
 	// both days, which is wrong for the first and was measured wrong on 19 of 31 such days.
 	// `test/astrology/index.test.ts` pins both halves' yogas by VALUE for this reason: asserting only
 	// that the two differ cannot fail here, since their weekday elements differ either way.
-	const mansion = mansionNumber(scaled, resolved.day, monthCount, resolved.isLeapDay);
+	const index = mansionNumber(scaled, resolved.day, monthCount, resolved.isLeapDay);
+	return { index, element: mansionElement(index) };
+}
 
+/** The weekday element the yoga pairs with the mansion's. */
+function weekdayElementOf(resolved: TibetanDate): TibetanWeekdayElement {
 	// Offset **0**, deliberately, rather than `weekdayNameFor(…, tradition)` — which would apply
 	// `naming.weekdayOffset` and hand Bhutan a different yoga on most days. Janson gives the yoga's
 	// weekday element in one table, states Bhutan's name shift separately as a naming feature, and
@@ -358,8 +406,7 @@ function yogaOf(resolved: TibetanDate, tradition: TraditionConfig): ElementalYog
 	// Phugpa. Taking his printed table instead is the sourced answer, and it keeps two claims true
 	// that were briefly false: `TraditionNaming.weekdayOffset`'s "applies to the name only", and
 	// `docs/astrology.md`'s "the yoga varies only through the mansion".
-	const weekdayElement = weekdayNameWithOffset(resolved.tibetanWeekday, 0).element;
-	return yogaForMansion(weekdayElement, mansion);
+	return weekdayNameWithOffset(resolved.tibetanWeekday, 0).element;
 }
 
 /** A `Temporal.PlainDate` from either accepted shape, rejecting loose fields by name. */

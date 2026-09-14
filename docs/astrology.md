@@ -206,16 +206,16 @@ Each has a name, and six are held favorable against four unfavorable.
 | fire + fire | pragati | 'phel 'gyur | progress |
 | wind + wind | saṃpanna | phun tshogs | excellence |
 | fire + wind | balayukta | stobs ldan | powerful |
-| earth + wind | alābha | mi phrod | deficiency |
+| earth + wind | alābha | mi 'phrod | deficiency |
 | water + wind | pratikūla | mi mthun | discord |
-| earth + fire | dahana | sreg pa | burning |
+| earth + fire | dahana | bsreg pa | burning |
 | fire + water | maraṇa | 'chi ba | death |
 
-The table is Henning's, reproduced in his columns and his spellings — Sanskrit in IAST, Tibetan in
-Wylie.
-No Devanāgarī or Tibetan script is attached, because he prints none and this repository does not
-add a rendering it cannot verify; the same discipline
-[almanac-sources.md](almanac-sources.md) already applies to its own terms.
+The table is Henning's columns, with two of his Tibetan spellings corrected — he prints *mi phrod* and
+*sreg pa*, and both Tibetan–Tibetan dictionaries that enumerate the ten attest *mi 'phrod* and *bsreg pa* (the *tshig mdzod chen mo* in the compound *bsreg sbyor*, read as the sourcing record explains).
+The package carries each name in Tibetan script, Wylie and THL phonetics and in IAST and
+Devanāgarī, generated and verified by a script rather than typed; the evidence is in
+[names/month-and-yoga-sourcing.md](names/month-and-yoga-sourcing.md).
 
 **These ten are exactly FPMT's `FD-*` and `UD-*` day-quality codes**, where `E`, `W`, `F` and `A`
 stand for earth, water, fire and air — air being wind.
@@ -294,11 +294,11 @@ computes from each tradition's own constants.
 **Bhutan is an open gap.**
 Janson gives month-animal lists for Phugpa and Tsurphu and **none for Bhutan**, even though
 `BHUTAN` and `BHUTAN_HENNING` are both exported, validated configs.
-A search for a published Bhutanese month attribution found nothing usable; the one source that would
-settle it is the Royal Government's *lo-tho*, which this repository already knows to be a scanned
-PDF with no text layer.
-So the answer probably exists in a document we hold and cannot machine-read, which is a different
-problem from an unfindable one — see [validation-sources.md](validation-sources.md).
+A search for a published Bhutanese month attribution found nothing usable.
+The Royal Government's calendars, read page by page, print no month animal, and Henning's Bhutanese
+calendar files apply Phugpa's rules through code shared with his Tibetan program, so they are his
+default rather than Bhutanese evidence — see [validation-sources.md](validation-sources.md), under "Bhutan's month attributes".
+An independent Bhutanese source is required.
 
 Until it is sourced, the behaviour is to **refuse rather than guess**: Bhutan gets the year
 attributes, the calendar-day attributes and the yoga, and a coded error for the month and lunar-day

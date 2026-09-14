@@ -39,6 +39,7 @@ const EXPECTED_EXPORTS = [
 	"losarFor",
 	"lunationFromMonth",
 	"monthFromLunation",
+	"monthNamesFor",
 	"monthsBetween",
 	"monthsFor",
 	"monthsInYear",
@@ -88,6 +89,7 @@ describe("public API surface", () => {
 			losarFor: "function",
 			lunationFromMonth: "function",
 			monthFromLunation: "function",
+			monthNamesFor: "function",
 			monthsBetween: "function",
 			monthsFor: "function",
 			monthsInYear: "function",
@@ -649,6 +651,7 @@ const EXPECTED_ASTROLOGY_EXPORTS = [
 	"elementalYoga",
 	"elementalYogaFor",
 	"lunarDayAttributesFor",
+	"lunarMansionFor",
 	"monthAttributesFor",
 	"yearAttributesFor",
 ] as const;
@@ -668,6 +671,7 @@ const ASTROLOGY_KINDS: Record<string, string> = {
 	elementalYoga: "function",
 	elementalYogaFor: "function",
 	lunarDayAttributesFor: "function",
+	lunarMansionFor: "function",
 	monthAttributesFor: "function",
 	yearAttributesFor: "function",
 };
@@ -689,11 +693,11 @@ describe("astrology API surface", () => {
 		expect(Object.keys(ASTROLOGY_KINDS).sort()).toEqual([...EXPECTED_ASTROLOGY_EXPORTS]);
 	});
 
-	it("does not export the mansion, which would be a dead name", () => {
+	it("exposes the mansion only for a date, never its tables", () => {
 		// `mansionElement` and `MANSION_ELEMENTS` shipped briefly and were withdrawn the same day: with
 		// no exported way to learn today's mansion NUMBER, a consumer could ask what element mansion 17
-		// carries and never learn that today is mansion 17. Exposing the mansion later is additive;
-		// removing a dead export after 1.0.0 is not.
+		// carries and never learn that today is mansion 17. `lunarMansionFor` now answers for a date,
+		// which gives the index and element together; the bare tables stay off the surface.
 		for (const name of ["mansionElement", "MANSION_ELEMENTS", "MANSION_COUNT", "mansionNumber"]) {
 			expect(name in astrology, name).toBe(false);
 		}
