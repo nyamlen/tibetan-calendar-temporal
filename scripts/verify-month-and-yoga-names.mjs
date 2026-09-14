@@ -74,6 +74,7 @@ import {
 	slp1ToDevanagari,
 } from "./indic.ts";
 import {
+	fetchAggregate,
 	indexEntries,
 	provePredicates as proveDictionaryPredicates,
 } from "./tibetan-dictionary.mjs";
@@ -279,24 +280,6 @@ proveDictionaryPredicates();
 // Sources
 // ---------------------------------------------------------------------------------------------
 
-const RAW =
-	"https://raw.githubusercontent.com/christiansteinert/tibetan-dictionary/master/_input/dictionaries/public";
-
-/**
- * One aggregate file, retried, and refused if it is an error page. GitHub's raw host has answered
- * this very request with a 469-byte XHTML page and a 200, which would read as a dictionary with no
- * headwords and fail every existence check as if the words had vanished.
- */
-async function aggregate(file) {
-	for (let attempt = 0; attempt < 4; attempt++) {
-		const response = await fetch(`${RAW}/${file}`, { headers: { "User-Agent": UA } });
-		const text = response.ok ? await response.text() : "";
-		if (text.length > 10_000 && !text.startsWith("<?xml") && text.includes("|")) return text;
-		await sleep(1500 * (attempt + 1));
-	}
-	throw new Error(`${file}: no usable body after four attempts`);
-}
-
 async function fetchWithRetry(url, label) {
 	for (let attempt = 0; attempt < 3; attempt++) {
 		try {
@@ -312,11 +295,11 @@ async function fetchWithRetry(url, label) {
 }
 
 const [mvyText, tshigText, dungText, dasText, jaeschkeText] = await Promise.all([
-	aggregate("21-Mahavyutpatti-Skt"),
-	aggregate("25-tshig-mdzod-chen-mo-Tib"),
-	aggregate("34-dung-dkar-tshig-mdzod-chen-mo-Tib"),
-	aggregate("65-ChandraDas_Scan"),
-	aggregate("66-Jaeschke_Scan"),
+	fetchAggregate("21-Mahavyutpatti-Skt"),
+	fetchAggregate("25-tshig-mdzod-chen-mo-Tib"),
+	fetchAggregate("34-dung-dkar-tshig-mdzod-chen-mo-Tib"),
+	fetchAggregate("65-ChandraDas_Scan"),
+	fetchAggregate("66-Jaeschke_Scan"),
 ]);
 
 /** The Mahāvyutpatti as ordered pairs; a Tibetan headword can repeat with different Sanskrit. */

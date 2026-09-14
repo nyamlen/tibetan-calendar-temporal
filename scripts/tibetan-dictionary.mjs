@@ -265,13 +265,40 @@ export function senses(body) {
 	];
 }
 
-export async function fetchDictionary(dictionary) {
-	const response = await fetch(`${RAW}/${dictionary.file}`);
-	if (!response.ok) {
-		throw new Error(`${dictionary.label}: ${RAW}/${dictionary.file} answered ${response.status}`);
-	}
-	return await response.text();
+const UA = "tibetan-calendar-temporal fixture verification (https://github.com/nyamlen)";
+const ATTEMPTS = 4;
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Whether a body is an aggregate dictionary file rather than an error page.
+ *
+ * GitHub's raw host has answered these requests with a 469-byte XHTML page and a **200**, seen twice
+ * on 2026-09-13. Read as a dictionary it has no headwords, so every existence check fails as if the
+ * words had vanished from the source — a report indistinguishable from a real change. Every file
+ * here is megabytes of `headword|gloss` lines.
+ */
+export function isAggregateBody(text) {
+	return text.length > 10_000 && !text.startsWith("<?xml") && text.includes("|");
 }
+
+/** One aggregate file by name, retried, and refused if no attempt yields a dictionary body. */
+export async function fetchAggregate(file, label = file) {
+	let last = "no response";
+	for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
+		const response = await fetch(`${RAW}/${file}`, { headers: { "User-Agent": UA } });
+		const text = response.ok ? await response.text() : "";
+		if (isAggregateBody(text)) return text;
+		last = response.ok
+			? `a ${text.length}-byte body that is not a dictionary`
+			: `status ${response.status}`;
+		if (attempt < ATTEMPTS - 1) await sleep(1500 * (attempt + 1));
+	}
+	throw new Error(
+		`${label}: no usable body after ${ATTEMPTS} attempts from ${RAW}/${file} (last: ${last})`,
+	);
+}
+
+export const fetchDictionary = (dictionary) => fetchAggregate(dictionary.file, dictionary.label);
 
 /**
  * Prove the predicates before using them, and report a broken checker rather than a violation.
@@ -363,6 +390,17 @@ export function provePredicates() {
 		problems.push(
 			"senses() dropped the prefix, losing an entry whose gloss precedes its first numbered sense",
 		);
+	}
+
+	// The error page the raw host has served with a 200 must be refused, and a real file accepted.
+	const errorPage = `<?xml version="1.0" encoding="UTF-8"?><html><body>Error</body></html>`.padEnd(
+		469,
+	);
+	if (isAggregateBody(errorPage)) {
+		problems.push("isAggregateBody() accepted the 469-byte XHTML error page as a dictionary");
+	}
+	if (!isAggregateBody("rta|horse\n".repeat(2000))) {
+		problems.push("isAggregateBody() refused a headword|gloss body");
 	}
 
 	if (problems.length > 0) {
