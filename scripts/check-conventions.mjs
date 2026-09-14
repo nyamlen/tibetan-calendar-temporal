@@ -1011,13 +1011,15 @@ function rule6() {
 // provenance record. Hand-transcription is how a silent one-day error reaches the primary
 // correctness gate, which has happened.
 //
-// Two deliberate exceptions, and the test for one is narrow: the authority publishes the data in
-// a form with nothing to parse, so a generator could only wrap a lossy reading. FPMT publishes its
-// holy days in prose announcements. The Royal Government of Bhutan publishes its calendar as a
-// scanned PDF with no text layer at all, where a generator would be OCR — and an OCR misread of a
-// Tibetan numeral is a plausible wrong date, which is the failure this package exists to prevent.
+// Three deliberate exceptions, and the test for all of them is narrow: the authority publishes the
+// data in a form with nothing to parse, so a generator could only wrap a lossy reading. FPMT
+// publishes its holy days in prose announcements. The Royal Government of Bhutan publishes its
+// calendar as a scanned PDF with no text layer at all, where a generator would be OCR — and an OCR
+// misread of a Tibetan numeral is a plausible wrong date, which is the failure this package exists
+// to prevent. Henning's list of the six-season months is a scanned book whose OCR layer shifts the
+// table's columns against its rows, so a generator would pair months with the wrong seasons.
 //
-// "Parsing it is inconvenient" is not the test. Both of these have no markup whatsoever.
+// "Parsing it is inconvenient" is not the test. None of these has usable markup.
 //
 // A third category, and it is a category rather than a grown exception: a file that **carries no
 // data at all**. crosscheck-row.ts holds the row type its three sibling fixtures share and declares
@@ -1030,7 +1032,7 @@ function rule6() {
 // one that fails, so the category is stated rather than left to coincidence.
 // ---------------------------------------------------------------------------------------
 function rule7() {
-	const HAND_CURATED = new Set(["fpmt-holy-days.ts", "rgob.ts"]);
+	const HAND_CURATED = new Set(["fpmt-holy-days.ts", "rgob.ts", "henning-six-seasons.ts"]);
 
 	for (const fixture of tracked("test/fixtures/*.ts")) {
 		const name = basename(fixture, ".ts");
@@ -1040,7 +1042,7 @@ function rule7() {
 			fail(
 				"fixture provenance",
 				fixture,
-				`no script in scripts/ names this fixture, and it declares data. Fixtures are generated, not transcribed — add the generator and commit it alongside the output. The only exceptions are ${[...HAND_CURATED].join(" and ")}, and both earn it the same narrow way: their source has no markup at all, so a generator could only wrap a lossy reading. "Parsing it is inconvenient" is not the test. A file declaring only types is exempt, having nothing to transcribe.`,
+				`no script in scripts/ names this fixture, and it declares data. Fixtures are generated, not transcribed — add the generator and commit it alongside the output. The only exceptions are ${[...HAND_CURATED].join(", ")}, and each earns it the same narrow way: its source has no usable markup, so a generator could only wrap a lossy reading. "Parsing it is inconvenient" is not the test. A file declaring only types is exempt, having nothing to transcribe.`,
 			);
 		}
 	}
