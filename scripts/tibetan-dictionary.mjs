@@ -19,7 +19,7 @@
  *
  * They are modern copyrighted works published through an aggregate whose README says, in capitals,
  * that copyright stays with the respective authors. So they may **gate** and may never be
- * **quoted** — the standing wisdomlib already has here. Exactly five facts are taken:
+ * **quoted** — the standing wisdomlib already has here. Exactly seven facts are taken:
  *
  * | Takeable — fact | Not takeable — expression |
  * |---|---|
@@ -28,13 +28,17 @@
  * | The element–animal year an entry states | |
  * | The register tag on a sense | |
  * | The spelling of each member of a set an entry enumerates | |
+ * | The element pair an enumeration assigns to each member | |
+ * | The grouping an enumeration states — each group's name and size | |
  *
  * Nothing here returns gloss text, and no caller may write one to a file.
  *
  * The fifth was approved on 2026-09-13 for `verify-month-and-yoga-names.mjs`, which reads the ten
- * elemental-yoga names out of the enumerations under `'phrod sbyor` and `'phrod sbyor bcu`. An
- * enumeration also pairs each name with its elements and ranks them; neither is on this list, so
- * neither is taken.
+ * elemental-yoga names out of the enumerations under `'phrod sbyor` and `'phrod sbyor bcu`. The
+ * sixth and seventh were approved on 2026-09-14 for the same script: the *tshig mdzod chen mo*'s
+ * enumeration pairs each name with its elements, and closes by grouping the ten as three, three, three
+ * and one. It states the groups' sizes and never their members, so membership is not a fact taken
+ * from it — the script infers it from list order and says so in every output.
  *
  * ## Three ways reading them goes wrong, each found the hard way
  *

@@ -13,6 +13,10 @@
  *
  * `englishName` is printed word for word by `englishSource`, a public-domain dictionary. It is Henning's
  * English except where `englishReplaces` names the word of his that no dictionary prints.
+ *
+ * `elementsAttestedIn` names the Tibetan–Tibetan dictionary whose enumeration states the same element
+ * pair as Henning. `auspiciousness` is the group of that enumeration's closing sentence the yoga falls
+ * in — **read by list order**, because the entry states each group's size and never its members.
  */
 
 export const YOGA_NAMES: readonly {
@@ -28,6 +32,8 @@ export const YOGA_NAMES: readonly {
 	englishName: string;
 	englishReplaces: string | null;
 	englishSource: { dictionary: string; page: number };
+	elementsAttestedIn: readonly string[];
+	auspiciousness: string;
 }[] = [
 	{
 		elements: ["earth", "earth"],
@@ -42,6 +48,8 @@ export const YOGA_NAMES: readonly {
 		englishName: "accomplishment",
 		englishReplaces: null,
 		englishSource: { dictionary: "Monier-Williams 1899", page: 1216 },
+		elementsAttestedIn: ["tshig mdzod chen mo"],
+		auspiciousness: "good",
 	},
 	{
 		elements: ["water", "water"],
@@ -56,6 +64,8 @@ export const YOGA_NAMES: readonly {
 		englishName: "nectar",
 		englishReplaces: null,
 		englishSource: { dictionary: "Monier-Williams 1899", page: 82 },
+		elementsAttestedIn: ["tshig mdzod chen mo"],
+		auspiciousness: "good",
 	},
 	{
 		elements: ["earth", "water"],
@@ -70,6 +80,8 @@ export const YOGA_NAMES: readonly {
 		englishName: "youth",
 		englishReplaces: null,
 		englishSource: { dictionary: "Monier-Williams 1899", page: 859 },
+		elementsAttestedIn: ["tshig mdzod chen mo"],
+		auspiciousness: "restorative",
 	},
 	{
 		elements: ["fire", "fire"],
@@ -84,6 +96,8 @@ export const YOGA_NAMES: readonly {
 		englishName: "increase",
 		englishReplaces: "progress",
 		englishSource: { dictionary: "Jäschke 1881", page: 357 },
+		elementsAttestedIn: ["tshig mdzod chen mo"],
+		auspiciousness: "good",
 	},
 	{
 		elements: ["wind", "wind"],
@@ -98,6 +112,8 @@ export const YOGA_NAMES: readonly {
 		englishName: "excellence",
 		englishReplaces: null,
 		englishSource: { dictionary: "Jäschke 1881", page: 344 },
+		elementsAttestedIn: ["tshig mdzod chen mo"],
+		auspiciousness: "restorative",
 	},
 	{
 		elements: ["fire", "wind"],
@@ -112,6 +128,8 @@ export const YOGA_NAMES: readonly {
 		englishName: "powerful",
 		englishReplaces: null,
 		englishSource: { dictionary: "Monier-Williams 1899", page: 723 },
+		elementsAttestedIn: ["tshig mdzod chen mo"],
+		auspiciousness: "restorative",
 	},
 	{
 		elements: ["earth", "wind"],
@@ -126,6 +144,8 @@ export const YOGA_NAMES: readonly {
 		englishName: "deficiency",
 		englishReplaces: null,
 		englishSource: { dictionary: "Monier-Williams 1899", page: 95 },
+		elementsAttestedIn: ["tshig mdzod chen mo"],
+		auspiciousness: "bad",
 	},
 	{
 		elements: ["water", "wind"],
@@ -140,6 +160,8 @@ export const YOGA_NAMES: readonly {
 		englishName: "opposition",
 		englishReplaces: "discord",
 		englishSource: { dictionary: "Monier-Williams 1899", page: 661 },
+		elementsAttestedIn: ["tshig mdzod chen mo"],
+		auspiciousness: "bad",
 	},
 	{
 		elements: ["earth", "fire"],
@@ -154,6 +176,8 @@ export const YOGA_NAMES: readonly {
 		englishName: "burning",
 		englishReplaces: null,
 		englishSource: { dictionary: "Monier-Williams 1899", page: 473 },
+		elementsAttestedIn: ["tshig mdzod chen mo"],
+		auspiciousness: "bad",
 	},
 	{
 		elements: ["fire", "water"],
@@ -168,5 +192,96 @@ export const YOGA_NAMES: readonly {
 		englishName: "death",
 		englishReplaces: null,
 		englishSource: { dictionary: "Monier-Williams 1899", page: 789 },
+		elementsAttestedIn: ["tshig mdzod chen mo"],
+		auspiciousness: "worst",
+	},
+];
+
+/**
+ * The four groups of the *tshig mdzod chen mo*'s closing sentence, in its order, with the number of
+ * yogas it states for each. `groupedByOrder` is always true: which yogas are in a group is inferred.
+ *
+ * `englishTier` says how far the English is from the Tibetan. `printed`: `englishSource` prints it for
+ * the Tibetan. `through-sanskrit`: `englishThrough.equivalentIn` gives the Sanskrit and Monier-Williams
+ * prints the word for it. `composed`: no dictionary prints a word for the compound, and
+ * `composedFrom` cites its parts.
+ */
+export const YOGA_AUSPICIOUSNESS: readonly {
+	englishName: string;
+	tibetan: string;
+	wylie: string;
+	phonetic: string;
+	members: number;
+	groupedByOrder: true;
+	englishTier: "printed" | "through-sanskrit" | "composed";
+	englishSource: { dictionary: string; page: number } | null;
+	englishThrough: {
+		iast: string;
+		devanagari: string;
+		monierWilliamsPage: number;
+		equivalentIn: { dictionary: string; page: number };
+	} | null;
+	composedFrom: readonly { wylie: string; dictionary: string; page: number }[] | null;
+	alternative: { englishName: string; dictionary: string; page: number } | null;
+}[] = [
+	{
+		englishName: "good",
+		tibetan: "བཟང་པོ",
+		wylie: "bzang po",
+		phonetic: "zang po",
+		members: 3,
+		groupedByOrder: true,
+		englishTier: "printed",
+		englishSource: { dictionary: "Jäschke 1881", page: 496 },
+		englishThrough: null,
+		composedFrom: null,
+		alternative: null,
+	},
+	{
+		englishName: "restorative",
+		tibetan: "གསོ་ཐུབ",
+		wylie: "gso thub",
+		phonetic: "so tup",
+		members: 3,
+		groupedByOrder: true,
+		englishTier: "composed",
+		englishSource: null,
+		englishThrough: null,
+		composedFrom: [
+			{ wylie: "gso ba", dictionary: "Jäschke 1881", page: 590 },
+			{ wylie: "thub pa", dictionary: "Jäschke 1881", page: 234 },
+		],
+		alternative: { englishName: "healing", dictionary: "Das 1902", page: 1312 },
+	},
+	{
+		englishName: "bad",
+		tibetan: "ངན",
+		wylie: "ngan",
+		phonetic: "ngen",
+		members: 3,
+		groupedByOrder: true,
+		englishTier: "printed",
+		englishSource: { dictionary: "Jäschke 1881", page: 126 },
+		englishThrough: null,
+		composedFrom: null,
+		alternative: null,
+	},
+	{
+		englishName: "worst",
+		tibetan: "ཐ་ཆད",
+		wylie: "tha chad",
+		phonetic: "ta ché",
+		members: 1,
+		groupedByOrder: true,
+		englishTier: "through-sanskrit",
+		englishSource: null,
+		englishThrough: {
+			iast: "adhama",
+			devanagari: "अधम",
+			monierWilliamsPage: 19,
+			equivalentIn: { dictionary: "Das 1902", page: 564 },
+		},
+		composedFrom: null,
+		alternative: { englishName: "very bad", dictionary: "Jäschke 1881", page: 226 },
 	},
 ];
