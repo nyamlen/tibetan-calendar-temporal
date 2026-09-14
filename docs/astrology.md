@@ -258,7 +258,7 @@ layer.
 | Month and lunar-day attributes | Janson, Appendix E | Closed forms, but with a **different rule per tradition** |
 | Mansion arithmetic | Janson, "Further calculations" | Derived from longitudes this engine already produces |
 | Mansion-to-element table | **Henning** | A list, cited by Janson rather than derived by him |
-| The ten yoga names | **Henning** | Likewise cited, not derived |
+| The ten yoga names | **Henning**, verified | Likewise cited; two spellings corrected by the *tshig mdzod chen mo*'s own list of the ten, and every Sanskrit name but *pragati* a Monier-Williams headword |
 | Favorability | **FPMT** | Not in Janson at all; a convention, not arithmetic |
 
 The last three matter.

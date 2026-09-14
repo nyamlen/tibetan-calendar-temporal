@@ -139,6 +139,7 @@ The Wylie and Tibetan-script columns of the shipped vocabulary are **not** gover
 | Corrections to a name live in `scripts/verify-name-sources.mjs` as data carrying their evidence | **review** | Do not patch a name by editing `src/names.ts` |
 | Check whose **lineage** a source is before citing it as corroboration | **review** | Janson's sixty-year name table is "taken from [Henning]" by his own LaTeX, so his Sanskrit column and Henning's are one witness, not two. It was treated as the Tibetan-lineage authority for months. The independent witness is Csoma de Kőrös (Calcutta 1834) |
 | A check in a generator goes **above** the emit gate, and is proved by mutation | **review** — nothing can see an unreachable guard | `verify-rabjung-names.mjs` writes its fixture straight after the `problems` gate, and the divergence self-invalidation sat below that write. Its comment promised the run would fail; it never could, and only a deliberate mutation revealed it |
+| A shipped name is spelled as independent dictionaries spell it, not as one table prints it | `npm run verify:month-and-yoga-names`, whose committed `test/fixtures/yoga-names.ts` `test/astrology/yoga.test.ts` reads | Henning prints *mi phrod* and *sreg pa*; the *tshig mdzod chen mo*'s own list of the ten prints *mi 'phrod* and *bsreg* |
 | A hand-read source is checked mechanically, not trusted | `npm run verify:rabjung-names` | Csoma's sixty Tibetan-script readings cannot be OCR'd — no text layer, and the braces are typography. Each is reduced to a consonant skeleton that must match Janson's ASCII or Csoma's own Roman, so a misread glyph fails the run. `test/fixtures/rgob.ts` earns the same exception and has no such check, which is the difference to keep in mind |
 | Commits are incremental and tied to the paper's sections in `src/`, batched in `docs/` | **review** | Granular commits earn their place where they show derivation; in docs they are noise |
 
@@ -165,11 +166,13 @@ Every test imports from `src/`, so a broken `exports` map, a file missing from `
 
 `attw` runs under `--profile esm-only`. Its `node10` and `node16-cjs` rows are the deliberate design, not defects — there is no `main` field and no CJS build.
 
-### Three release-time checks, deliberately outside CI
+### Five release-time checks, deliberately outside CI
 
 | Command | Why it cannot gate a push |
 |---|---|
 | `npm run verify:names` | Needs the network and two EWTS converters installed outside the repo. What gates a push is its committed output; provenance is checked before a release, integrity on every push |
+| `npm run verify:rabjung-names` | The same, for the sixty rabjung names: network, converters, and a committed fixture the suite reads |
+| `npm run verify:month-and-yoga-names` | The same, for the mansion month names, the season names and the ten yogas. Its output, `test/fixtures/month-names.ts` and `test/fixtures/yoga-names.ts`, is what the suite reads; `ELEMENTAL_YOGAS` is held against the second |
 | `npm run coverage` | Not gated by anything, and was broken on `main` for an unknown stretch. Run it before a release, and run it for what it *reports* — an unreachable-line report is how a redundant config check was found |
 | `npm run bench` | Shared runners are noisy enough that a threshold would fire on the runner rather than on the change, and a guard that fires wrongly is worse than none. Run it before a release and record the harness in `bench/RESULTS.md`; it already corrected a shipped figure, the `getObservances` span cap's cost |
 

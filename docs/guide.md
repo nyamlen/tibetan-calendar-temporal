@@ -242,7 +242,8 @@ date the two halves share `year`, `month` and `lunarDay` — there is one lunar 
 
 *The sourcing is not uniform, and the package does not pretend otherwise.* The cycles are Janson's.
 The element each lunar mansion carries and the ten yoga names are **Henning's**, which Janson cites
-and does not derive. Whether a yoga is favorable is **FPMT's** convention and appears in neither of
+and does not derive. The names are checked against Tibetan dictionaries, which correct two of his
+spellings, and every Sanskrit name but *pragati* is a Monier-Williams headword. Whether a yoga is favorable is **FPMT's** convention and appears in neither of
 them. What is checked against what, over which years, is in
 [why-trust-these-dates.md](why-trust-these-dates.md).
 

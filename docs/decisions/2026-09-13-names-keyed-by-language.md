@@ -1,0 +1,60 @@
+---
+date: 2026-09-13
+status: accepted
+---
+
+# An object carrying names keys each language explicitly
+
+**Decision:** a shipped object that carries a name holds it as `tibetanName: TibetanName` and, where a
+sourced Sanskrit name exists, `sanskritName: SanskritName` beside it — never a bare `name`, never a
+language code. `SanskritName` is `{ iast, devanagari }`, with no `meaning`, and its Devanāgarī is
+transliterated from the IAST by a verifier rather than typed. `ElementalYoga` follows this, and
+`Rabjung.name` was renamed `tibetanName` to follow it.
+An object that *is* a name rather than carrying one — `TibetanWeekdayName extends TibetanName` — stays
+flat, and so does `TibetanYearName`, whose `elementName`, `genderName` and `animalName` are the precedent.
+
+## What a contributor would otherwise do
+
+**Add a field called `name`.** It reads naturally and it is what `Rabjung` had. It is wrong once a
+second language can exist: `name` beside `sanskrit` makes the Tibetan the unmarked default and the
+Sanskrit an attribute, and it says nothing about which language `name` is in.
+
+**Key the languages by code — `bo` and `sa`.** Short and standard, and rejected for four reasons:
+
+1. A language-keyed object reads as a **localisation map**, the way `Intl` and CLDR use one, inviting
+   `names[locale]` and an expected `en` sibling. These objects hold one name and its renderings; the
+   English lives in `season`, `english` and the other meaning keys.
+2. **`bo` is the wrong code.** In CLDR it is modern Standard Tibetan. These are Classical Tibetan
+   calendrical terms, ISO 639-3 `xct`, and Bhutan writes the same vocabulary under `dz`.
+3. **A language code does not say which script.** Sanskrit is attested in Tibetan script for the
+   rabjung names. Saying Devanāgarī and IAST precisely takes BCP 47 script subtags, which do not work
+   as keys.
+4. `bo: TibetanName` names one thing in two vocabularies on one line.
+
+**Nest the renderings as `tibetan: TibetanName`.** Rejected in
+[2026-08-21-rabjung-names-carry-both.md](2026-08-21-rabjung-names-carry-both.md) and still rejected:
+the script would be `x.tibetan.tibetan`. `tibetanName.tibetan` does not have that problem.
+
+**Flatten the Tibetan renderings onto the owning object.** Considered for the yogas as "shape ii", and
+rejected once the Sanskrit was decided to ship: the Tibetan would sit at one depth (`x.wylie`) and the
+Sanskrit at another (`x.sanskritName.iast`), where nesting puts both names at the same depth.
+
+## Why `SanskritName` has no `meaning`
+
+Every object that carries one already has exactly one English meaning beside it — `season` for a
+six-season name, `english` for a yoga — and a second can disagree with the first, forcing someone to
+decide which is authoritative. For a name in the lunar-mansion system the meaning would be circular
+("the month Māgha"), and *pragati* has no Monier-Williams entry to take one from. Adding the field later
+breaks nobody; removing it breaks everyone, and it has come off once already, with the rabjung Sanskrit.
+
+## Why the Devanāgarī follows the IAST
+
+Transliterating one from the other means the two fields always spell the same word. Where
+Monier-Williams heads the word differently — *saṃpanna* संपन्न against his सम्पन्न — the dictionary is
+reached through a stated normalisation rule, and the name is not changed to match the dictionary.
+
+## Scope
+
+This governs names. It does not reach the rabjung's two Sanskrit lists, which are not a
+`SanskritName` and would return, if ever, in the structure recorded in
+[2026-08-25-rabjung-ships-the-tibetan-name-only.md](2026-08-25-rabjung-ships-the-tibetan-name-only.md).
