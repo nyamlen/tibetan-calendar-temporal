@@ -854,6 +854,19 @@ calendrical system Janson describes — not one institution's convention among s
 disagree — see the "Kind of claim" distinction between `TraditionConfig` and `ObservanceConfig`
 already drawn elsewhere in this file.
 
+**A shipped name is keyed by language, and the key comes first.** An object carrying a name holds
+`englishName` (a translation of the name itself), `tibetanName: TibetanName` and, where sourced,
+`sanskritName: SanskritName` — never a bare `name`, a language code, or `meaning` — and the English key
+precedes the name objects it identifies, because an English word printed after two name blocks reads
+as describing the second. Both rules are surface-wide and one-way doors at 1.0.0:
+[docs/decisions/2026-09-13-names-keyed-by-language.md](docs/decisions/2026-09-13-names-keyed-by-language.md).
+The surface does not yet hold to them everywhere — `TibetanTrigram` and `ObservanceKind` use ASCII
+Tibetan as keys, and the attribute results carry no Tibetan names — which the pre-1.0.0 checklist in
+[docs/roadmap.md](docs/roadmap.md) tracks. **A shipped English name must be printed word for word by a
+public-domain dictionary, or be marked as authored**; `ELEMENTAL_YOGAS` meets that through
+`verify:month-and-yoga-names`, two of Henning's words having been replaced where no dictionary prints
+them.
+
 Technical identifiers are lowercase (`nyamlen`, `@nyamlen`); the brand is capitalised
 (`Nyamlen`). npm rejects uppercase package names, so this is a constraint, not a preference.
 
