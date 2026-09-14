@@ -26,7 +26,7 @@
  * |---|---|---|
  * | Janson's month-names table (LaTeX) | The derivation source | The twelve mansion month names, and each month's Sanskrit name — used only to number the Mahāvyutpatti's months |
  * | Mahāvyutpatti (aggregate `21-Mahavyutpatti-Skt`) | Public domain, independent of Janson and Henning | Tibetan–Sanskrit pairs: the nakṣatras, the six seasons, the season-months |
- * | Das and Jäschke scan indexes (`65-`, `66-`) | Public domain | That a headword exists, and its printed page |
+ * | Das and Jäschke scan indexes (`65-`, `66-`) | Public domain | That a headword exists — the index number is **not** a printed page: Jäschke's is the scan leaf, 26 above the printed page, and Das's is approximate |
  * | *tshig mdzod chen mo*, *dung dkar tshig mdzod chen mo* (`25-`, `34-`) | Copyrighted: **gate only** | That a headword exists; the spelling of each member of a set an entry enumerates |
  * | Monier-Williams, via Cologne | Public domain | That a Sanskrit headword exists, and its printed page |
  * | Henning, *Kālacakra and the Tibetan Calendar*, p. 204 | In copyright: facts only | The ten yogas' Wylie and IAST, confirmed against the scan by Andreas — carried as data below |
@@ -515,18 +515,78 @@ for (const row of SIX_SEASONS) {
 // 5. The elemental yogas
 // ---------------------------------------------------------------------------------------------
 
-/** Henning p. 204, as Andreas read it off the scan: his Wylie and IAST, and the element pair. */
+/** Henning p. 204, as Andreas read it off the scan: his Wylie, IAST and English, and the element pair. */
 const HENNING_YOGAS = [
-	{ elements: ["earth", "earth"], wylie: "dngos grub", iast: "siddhi", slp1: "sidDi" },
-	{ elements: ["water", "water"], wylie: "bdud rtsi", iast: "amṛta", slp1: "amfta" },
-	{ elements: ["earth", "water"], wylie: "lang tsho", iast: "yauvana", slp1: "yOvana" },
-	{ elements: ["fire", "fire"], wylie: "'phel 'gyur", iast: "pragati", slp1: "pragati" },
-	{ elements: ["wind", "wind"], wylie: "phun tshogs", iast: "saṃpanna", slp1: "saMpanna" },
-	{ elements: ["fire", "wind"], wylie: "stobs ldan", iast: "balayukta", slp1: "balayukta" },
-	{ elements: ["earth", "wind"], wylie: "mi phrod", iast: "alābha", slp1: "alABa" },
-	{ elements: ["water", "wind"], wylie: "mi mthun", iast: "pratikūla", slp1: "pratikUla" },
-	{ elements: ["earth", "fire"], wylie: "sreg pa", iast: "dahana", slp1: "dahana" },
-	{ elements: ["fire", "water"], wylie: "'chi ba", iast: "maraṇa", slp1: "maraRa" },
+	{
+		elements: ["earth", "earth"],
+		wylie: "dngos grub",
+		iast: "siddhi",
+		slp1: "sidDi",
+		english: "accomplishment",
+	},
+	{
+		elements: ["water", "water"],
+		wylie: "bdud rtsi",
+		iast: "amṛta",
+		slp1: "amfta",
+		english: "nectar",
+	},
+	{
+		elements: ["earth", "water"],
+		wylie: "lang tsho",
+		iast: "yauvana",
+		slp1: "yOvana",
+		english: "youth",
+	},
+	{
+		elements: ["fire", "fire"],
+		wylie: "'phel 'gyur",
+		iast: "pragati",
+		slp1: "pragati",
+		english: "progress",
+	},
+	{
+		elements: ["wind", "wind"],
+		wylie: "phun tshogs",
+		iast: "saṃpanna",
+		slp1: "saMpanna",
+		english: "excellence",
+	},
+	{
+		elements: ["fire", "wind"],
+		wylie: "stobs ldan",
+		iast: "balayukta",
+		slp1: "balayukta",
+		english: "powerful",
+	},
+	{
+		elements: ["earth", "wind"],
+		wylie: "mi phrod",
+		iast: "alābha",
+		slp1: "alABa",
+		english: "deficiency",
+	},
+	{
+		elements: ["water", "wind"],
+		wylie: "mi mthun",
+		iast: "pratikūla",
+		slp1: "pratikUla",
+		english: "discord",
+	},
+	{
+		elements: ["earth", "fire"],
+		wylie: "sreg pa",
+		iast: "dahana",
+		slp1: "dahana",
+		english: "burning",
+	},
+	{
+		elements: ["fire", "water"],
+		wylie: "'chi ba",
+		iast: "maraṇa",
+		slp1: "maraRa",
+		english: "death",
+	},
 ];
 
 const YOGA_CORRECTIONS = [
@@ -551,6 +611,46 @@ const YOGA_CORRECTIONS = [
  * asserted: if a Cologne dictionary ever heads it, S15's "Henning's alone" needs restating.
  */
 const EXPECTED_ABSENT_FROM_MW = new Set(["pragati"]);
+
+/**
+ * Where each of Henning's English glosses is printed **word for word** in a public-domain dictionary.
+ *
+ * - `"Monier-Williams"` — re-checked on every run: the word must occur in the Cologne entry for the
+ *   Sanskrit name, and the page is taken from the entry that carries it.
+ * - A Jäschke row was read from the page image, archive.org `tibetanenglishdi00jsuoft`, where image
+ *   `n` is printed page + 25. It cannot be re-read mechanically — the scan's OCR is unusable — so it is
+ *   data carrying its page and sense, and the run fails if Monier-Williams comes to print the word,
+ *   which would make it checkable.
+ * - `null` — no dictionary consulted prints the word, measured 2026-09-14: Monier-Williams, Jäschke
+ *   and Das. The run fails if Monier-Williams comes to print it, so the entry has to be re-argued
+ *   rather than silently staying Henning's alone.
+ */
+const ENGLISH_EVIDENCE = {
+	siddhi: "Monier-Williams",
+	amṛta: "Monier-Williams",
+	yauvana: "Monier-Williams",
+	pragati: null,
+	saṃpanna: {
+		dictionary: "Jäschke 1881",
+		page: 344,
+		headword: "phun(-sum)-tshogs(-pa)",
+		sense: "perfection, excellence, superior good",
+	},
+	balayukta: "Monier-Williams",
+	alābha: "Monier-Williams",
+	pratikūla: null,
+	dahana: "Monier-Williams",
+	maraṇa: "Monier-Williams",
+};
+
+/** The printed page of the Cologne entry in which `word` first occurs as a whole word, or null. */
+function pageOfWord(text, word) {
+	const parts = text.split(/Printed book page\s*(\d+)/);
+	for (let i = 1; i + 1 < parts.length; i += 2) {
+		if (new RegExp(`\\b${word}\\b`, "i").test(parts[i + 1])) return Number(parts[i]);
+	}
+	return null;
+}
 
 const tshigNames = enumeratedNames(
 	HEADWORDS["tshig mdzod chen mo"].get("'phrod sbyor")?.join(" ") ?? "",
@@ -601,6 +701,7 @@ for (const yoga of HENNING_YOGAS) {
 		correctedFrom: correction?.from ?? null,
 		iast: yoga.iast,
 		devanagari,
+		english: yoga.english,
 		attestedIn: [
 			"tshig mdzod chen mo",
 			...(enumerationPrints(dungNames, wylie) ? ["dung dkar tshig mdzod chen mo"] : []),
@@ -712,6 +813,21 @@ for (const term of yogaTerms) {
 	try {
 		const entry = await monierWilliams(term.devanagari);
 		const found = Boolean(entry?.headed);
+		const evidence = ENGLISH_EVIDENCE[term.iast];
+		if (evidence === undefined) fail(`yoga ${term.iast}: no English evidence row`);
+		const mwWordPage = entry ? pageOfWord(entry.text, term.english) : null;
+		if (evidence === "Monier-Williams") {
+			if (mwWordPage === null)
+				fail(`yoga ${term.iast}: Monier-Williams no longer prints Henning's "${term.english}"`);
+			term.englishSource = { dictionary: "Monier-Williams 1899", page: mwWordPage };
+		} else {
+			if (mwWordPage !== null)
+				fail(
+					`yoga ${term.iast}: Monier-Williams now prints "${term.english}" (p. ${mwWordPage}) — make it a Monier-Williams row`,
+				);
+			term.englishSource =
+				evidence === null ? null : { dictionary: evidence.dictionary, page: evidence.page };
+		}
 		if (EXPECTED_ABSENT_FROM_MW.has(term.iast)) {
 			if (found)
 				fail(
@@ -850,6 +966,9 @@ writeFileSync(
  * the input. Each Tibetan name must be spelled as the *tshig mdzod chen mo*'s enumeration of the ten
  * spells it — which is what corrects two of Henning's — and each Sanskrit name must be a
  * Monier-Williams headword, except *pragati*, whose absence is asserted.
+ *
+ * \`englishName\` is Henning's English, and \`englishSource\` the public-domain dictionary that prints it
+ * word for word; \`null\` where none consulted does.
  */
 
 export const YOGA_NAMES: readonly {
@@ -862,8 +981,10 @@ export const YOGA_NAMES: readonly {
 	devanagari: string;
 	monierWilliamsPage: number | null;
 	attestedIn: readonly string[];
+	englishName: string;
+	englishSource: { dictionary: string; page: number } | null;
 }[] = [
-${yogaTerms.map((t) => `\t{ elements: [${t.elements.map(q).join(", ")}], ${name(t)}, correctedFrom: ${q(t.correctedFrom)}, iast: ${q(t.iast)}, devanagari: ${q(t.devanagari)}, monierWilliamsPage: ${t.mwPage}, attestedIn: [${t.attestedIn.map(q).join(", ")}] },`).join("\n")}
+${yogaTerms.map((t) => `\t{ elements: [${t.elements.map(q).join(", ")}], ${name(t)}, correctedFrom: ${q(t.correctedFrom)}, iast: ${q(t.iast)}, devanagari: ${q(t.devanagari)}, monierWilliamsPage: ${t.mwPage}, attestedIn: [${t.attestedIn.map(q).join(", ")}], englishName: ${q(t.english)}, englishSource: ${t.englishSource === null ? "null" : `{ dictionary: ${q(t.englishSource.dictionary)}, page: ${t.englishSource.page} }`} },`).join("\n")}
 ];
 `,
 );

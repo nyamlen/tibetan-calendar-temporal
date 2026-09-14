@@ -13,7 +13,7 @@
  * const day = attributesFor(Temporal.PlainDate.from("2026-09-01"));
  * day.year.power;        // "fire" — 2026 is a Fire Horse year
  * day.calendarDay.animal;
- * day.yoga.english;      // "death" — the least auspicious of the ten
+ * day.yoga.englishName;      // "death" — the least auspicious of the ten
  * ```
  *
  * **A day carries two sets of labels that disagree**, and that is not a defect to reconcile:
@@ -275,7 +275,7 @@ export function calendarDayAttributesFor(
  * @example
  * ```ts
  * // 1 September 2026: a Tuesday, element fire, with the moon in a water mansion.
- * elementalYogaFor(Temporal.PlainDate.from("2026-09-01")).english; // "death"
+ * elementalYogaFor(Temporal.PlainDate.from("2026-09-01")).englishName; // "death"
  * ```
  */
 export function elementalYogaFor(
@@ -342,7 +342,7 @@ export function lunarMansionFor(
  * ```ts
  * const day = attributesFor(Temporal.PlainDate.from("2026-09-01"));
  * day.year.power;   // "fire"
- * day.yoga.english; // "death"
+ * day.yoga.englishName; // "death"
  * day.month;        // null under BHUTAN, where Janson gives no month-animal list
  * ```
  */

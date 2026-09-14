@@ -285,7 +285,7 @@ describe("README navigation examples", () => {
 		const day = attributesFor(Temporal.PlainDate.from("2026-09-01"));
 		expect(day.year.power).toBe("fire");
 		expect(day.year.life).toBe("fire");
-		expect(day.yoga.english).toBe("death");
+		expect(day.yoga.englishName).toBe("death");
 		expect(day.yoga.favorable).toBe(false);
 		// The README says the lunar day's animal is "a different label for the same date".
 		expect(day.lunarDay?.animal).not.toBe(day.calendarDay.animal);

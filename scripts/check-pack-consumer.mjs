@@ -68,8 +68,8 @@ check(
 // damaged the integer scaling would show here and nowhere else.
 const attributes = astrology.attributesFor(Temporal.PlainDate.from("2026-09-01"));
 check(
-	attributes.year.power === "fire" && attributes.yoga.english === "death",
-	`astrology subpath gave ${attributes.year.power}/${attributes.yoga.english}, wanted fire/death`,
+	attributes.year.power === "fire" && attributes.yoga.englishName === "death",
+	`astrology subpath gave ${attributes.year.power}/${attributes.yoga.englishName}, wanted fire/death`,
 );
 check(
 	attributes.month !== null && attributes.lunarDay !== null,

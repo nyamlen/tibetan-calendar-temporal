@@ -396,10 +396,10 @@ interface CalendarDayAttributes {
 }
 
 interface ElementalYoga {
-  elements: readonly [TibetanWeekdayElement, TibetanWeekdayElement];  // as Henning prints the pair
+  englishName: string;        // the yoga's name in English, Henning's translation — first, as the key
   tibetanName: TibetanName;   // Henning's, two spellings corrected; script derived and verified
   sanskritName: SanskritName; // Henning's IAST, with Devanāgarī transliterated from it
-  english: string;
+  elements: readonly [TibetanWeekdayElement, TibetanWeekdayElement];  // as Henning prints the pair
   favorable: boolean;      // FPMT's claim, in neither Janson nor Henning
 }
 
