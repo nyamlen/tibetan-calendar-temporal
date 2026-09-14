@@ -481,7 +481,7 @@ day.year.power;          // "fire" — 2026 is a Fire Horse year
 day.year.life;           // "fire", and body, fortune and spirit each run on their own cycle
 day.calendarDay.animal;  // the sunrise-to-sunrise day's animal
 day.lunarDay?.animal;    // the lunar day's, which is a different label for the same date
-day.yoga.english;        // "death" — the least auspicious of the ten
+day.yoga.englishName;    // "death" — the least auspicious of the ten
 day.yoga.favorable;      // false
 ```
 

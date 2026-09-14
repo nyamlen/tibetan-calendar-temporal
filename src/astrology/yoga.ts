@@ -29,16 +29,21 @@ import { mansionElement } from "./mansion-elements.js";
 /** One of the ten pairings, with its names and whether it is held favorable. */
 export interface ElementalYoga {
 	/**
-	 * The two elements, **as Henning prints the pair** — not in the order they were supplied.
+	 * The yoga's name in English — eight of the ten Henning's translation (p. 204), two a dictionary's.
 	 *
 	 * @remarks
-	 * The pair is unordered: a fire weekday with a water mansion and a water weekday with a fire
-	 * mansion are one yoga, not two. {@link elementalYoga} returns the **same frozen object** either
-	 * way round, so two days sharing a yoga share its identity, and nothing here has to normalise a
-	 * tuple to make them comparable. Deliberately not re-sorted into an internal canonical order,
-	 * which would print a pair Henning's table does not.
+	 * The third rendering of one name, beside {@link ElementalYoga.tibetanName} and
+	 * {@link ElementalYoga.sanskritName} — not the meaning of the mansion or of anything else. First,
+	 * because it is the key a reader recognises.
+	 *
+	 * **Every one is printed word for word by a public-domain dictionary.** Eight are Henning's
+	 * translation: seven printed by Monier-Williams under the Sanskrit name, *excellence* by Jäschke
+	 * under *phun sum tshogs*. **Two replace his**, because no dictionary consulted prints his word:
+	 * *increase* for his *progress* (Jäschke p. 357, s.v. *'phel-ba*; Das p. 849 agrees), and
+	 * *opposition* for his *discord* (Monier-Williams p. 661, s.v. *pratikūla*). See
+	 * `docs/names/month-and-yoga-sourcing.md`.
 	 */
-	readonly elements: readonly [TibetanWeekdayElement, TibetanWeekdayElement];
+	readonly englishName: string;
 	/**
 	 * The Tibetan name — script, Wylie and THL phonetics.
 	 *
@@ -60,8 +65,17 @@ export interface ElementalYoga {
 	 * an unrelated astronomical yoga. See `docs/names/month-and-yoga-sourcing.md`.
 	 */
 	readonly sanskritName: SanskritName;
-	/** Henning's English gloss. */
-	readonly english: string;
+	/**
+	 * The two elements, **as Henning prints the pair** — not in the order they were supplied.
+	 *
+	 * @remarks
+	 * The pair is unordered: a fire weekday with a water mansion and a water weekday with a fire
+	 * mansion are one yoga, not two. {@link elementalYoga} returns the **same frozen object** either
+	 * way round, so two days sharing a yoga share its identity, and nothing here has to normalise a
+	 * tuple to make them comparable. Deliberately not re-sorted into an internal canonical order,
+	 * which would print a pair Henning's table does not.
+	 */
+	readonly elements: readonly [TibetanWeekdayElement, TibetanWeekdayElement];
 	/**
 	 * Whether the day is held favorable — six of the ten are.
 	 *
@@ -95,73 +109,73 @@ const ELEMENT_ORDER: readonly TibetanWeekdayElement[] = ["earth", "water", "fire
  */
 export const ELEMENTAL_YOGAS: readonly ElementalYoga[] = deepFreeze([
 	{
-		elements: ["earth", "earth"],
+		englishName: "accomplishment",
 		tibetanName: { tibetan: "དངོས་གྲུབ", wylie: "dngos grub", phonetic: "ngö drup" },
 		sanskritName: { iast: "siddhi", devanagari: "सिद्धि" },
-		english: "accomplishment",
+		elements: ["earth", "earth"],
 		favorable: true,
 	},
 	{
-		elements: ["water", "water"],
+		englishName: "nectar",
 		tibetanName: { tibetan: "བདུད་རྩི", wylie: "bdud rtsi", phonetic: "dü tsi" },
 		sanskritName: { iast: "amṛta", devanagari: "अमृत" },
-		english: "nectar",
+		elements: ["water", "water"],
 		favorable: true,
 	},
 	{
-		elements: ["earth", "water"],
+		englishName: "youth",
 		tibetanName: { tibetan: "ལང་ཚོ", wylie: "lang tsho", phonetic: "lang tso" },
 		sanskritName: { iast: "yauvana", devanagari: "यौवन" },
-		english: "youth",
+		elements: ["earth", "water"],
 		favorable: true,
 	},
 	{
-		elements: ["fire", "fire"],
+		englishName: "increase",
 		tibetanName: { tibetan: "འཕེལ་འགྱུར", wylie: "'phel 'gyur", phonetic: "pel gyur" },
 		sanskritName: { iast: "pragati", devanagari: "प्रगति" },
-		english: "progress",
+		elements: ["fire", "fire"],
 		favorable: true,
 	},
 	{
-		elements: ["wind", "wind"],
+		englishName: "excellence",
 		tibetanName: { tibetan: "ཕུན་ཚོགས", wylie: "phun tshogs", phonetic: "pün tsok" },
 		sanskritName: { iast: "saṃpanna", devanagari: "संपन्न" },
-		english: "excellence",
+		elements: ["wind", "wind"],
 		favorable: true,
 	},
 	{
-		elements: ["fire", "wind"],
+		englishName: "powerful",
 		tibetanName: { tibetan: "སྟོབས་ལྡན", wylie: "stobs ldan", phonetic: "top den" },
 		sanskritName: { iast: "balayukta", devanagari: "बलयुक्त" },
-		english: "powerful",
+		elements: ["fire", "wind"],
 		favorable: true,
 	},
 	{
-		elements: ["earth", "wind"],
+		englishName: "deficiency",
 		tibetanName: { tibetan: "མི་འཕྲོད", wylie: "mi 'phrod", phonetic: "mi trö" },
 		sanskritName: { iast: "alābha", devanagari: "अलाभ" },
-		english: "deficiency",
+		elements: ["earth", "wind"],
 		favorable: false,
 	},
 	{
-		elements: ["water", "wind"],
+		englishName: "opposition",
 		tibetanName: { tibetan: "མི་མཐུན", wylie: "mi mthun", phonetic: "mi tün" },
 		sanskritName: { iast: "pratikūla", devanagari: "प्रतिकूल" },
-		english: "discord",
+		elements: ["water", "wind"],
 		favorable: false,
 	},
 	{
-		elements: ["earth", "fire"],
+		englishName: "burning",
 		tibetanName: { tibetan: "བསྲེག་པ", wylie: "bsreg pa", phonetic: "sek pa" },
 		sanskritName: { iast: "dahana", devanagari: "दहन" },
-		english: "burning",
+		elements: ["earth", "fire"],
 		favorable: false,
 	},
 	{
-		elements: ["fire", "water"],
+		englishName: "death",
 		tibetanName: { tibetan: "འཆི་བ", wylie: "'chi ba", phonetic: "chi ba" },
 		sanskritName: { iast: "maraṇa", devanagari: "मरण" },
-		english: "death",
+		elements: ["fire", "water"],
 		favorable: false,
 	},
 ] as ElementalYoga[]);

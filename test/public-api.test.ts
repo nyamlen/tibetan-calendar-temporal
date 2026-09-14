@@ -719,7 +719,7 @@ describe("astrology API surface", () => {
 	it("answers the whole row for one day", () => {
 		const attributes = astrology.attributesFor(day);
 		expect(attributes.year.power).toBe("fire");
-		expect(attributes.yoga.english).toBe("death");
+		expect(attributes.yoga.englishName).toBe("death");
 		expect(attributes.month).not.toBeNull();
 		expect(attributes.lunarDay).not.toBeNull();
 		expect(attributes.date.isoDate.toString()).toBe("2026-09-01");

@@ -229,9 +229,44 @@ const day = attributesFor(Temporal.PlainDate.from('2026-09-01'));
 day.year.power;      // 'fire'
 day.year.body;       // 'water' — each of the five elements runs on its own cycle
 day.lunarMansion;    // { index: 26, element: 'water' } — Revatī, where the moon is that morning
+day.yoga.englishName;        // 'death'
 day.yoga.sanskritName.iast;  // 'maraṇa'
 day.yoga.favorable;  // false
 ```
+
+**What `yoga` is.** The day's *elemental yoga*: the pairing of two elements from the Indian set of
+four. One is the **weekday's** element — Tuesday is fire. The other is the element of the **lunar
+mansion** the moon is in at the start of the day — Revatī, water. The pair is unordered, so there are
+ten possible combinations, and each has a name: fire with water is *maraṇa*, "death". *Yoga* here
+means a union or combination, as in Monier-Williams' astronomical sense "conjunction, lucky
+conjuncture" (p. 856) — not the practice. `englishName`, `tibetanName` and `sanskritName` are the
+combination's one name in three languages.
+
+The ten, in the order the package ships them — a pair in either order is the same yoga:
+
+| Pair | `englishName` | Tibetan | Wylie | Phonetic | Sanskrit | Devanāgarī | `favorable` |
+|---|---|---|---|---|---|---|---|
+| earth + earth | accomplishment | དངོས་གྲུབ | dngos grub | ngö drup | siddhi | सिद्धि | yes |
+| water + water | nectar | བདུད་རྩི | bdud rtsi | dü tsi | amṛta | अमृत | yes |
+| earth + water | youth | ལང་ཚོ | lang tsho | lang tso | yauvana | यौवन | yes |
+| fire + fire | increase | འཕེལ་འགྱུར | 'phel 'gyur | pel gyur | pragati | प्रगति | yes |
+| wind + wind | excellence | ཕུན་ཚོགས | phun tshogs | pün tsok | saṃpanna | संपन्न | yes |
+| fire + wind | powerful | སྟོབས་ལྡན | stobs ldan | top den | balayukta | बलयुक्त | yes |
+| earth + wind | deficiency | མི་འཕྲོད | mi 'phrod | mi trö | alābha | अलाभ | no |
+| water + wind | opposition | མི་མཐུན | mi mthun | mi tün | pratikūla | प्रतिकूल | no |
+| earth + fire | burning | བསྲེག་པ | bsreg pa | sek pa | dahana | दहन | no |
+| fire + water | death | འཆི་བ | 'chi ba | chi ba | maraṇa | मरण | no |
+
+The English is Henning's translation except *increase* and *opposition*, which replace his *progress*
+and *discord* because no dictionary prints those; every English name here is printed word for word
+by Monier-Williams, Jäschke or Das. Two of the Tibetan spellings correct his, following the
+Tibetan dictionaries' own lists of the ten. `favorable` is FPMT's convention, not Henning's or
+Janson's. The evidence for every cell is in
+[names/month-and-yoga-sourcing.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/month-and-yoga-sourcing.md).
+
+This is **not** the other yoga an almanac prints. Almanacs also give one of 27 *astronomical* yogas,
+found from the sum of the sun's and moon's longitudes, with a different list of names; that one is not
+computed here. The sun plays no part in the elemental yoga.
 
 **Three things about this layer are worth knowing before you display any of it.**
 

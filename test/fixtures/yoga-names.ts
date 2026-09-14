@@ -10,6 +10,9 @@
  * the input. Each Tibetan name must be spelled as the *tshig mdzod chen mo*'s enumeration of the ten
  * spells it — which is what corrects two of Henning's — and each Sanskrit name must be a
  * Monier-Williams headword, except *pragati*, whose absence is asserted.
+ *
+ * `englishName` is printed word for word by `englishSource`, a public-domain dictionary. It is Henning's
+ * English except where `englishReplaces` names the word of his that no dictionary prints.
  */
 
 export const YOGA_NAMES: readonly {
@@ -22,6 +25,9 @@ export const YOGA_NAMES: readonly {
 	devanagari: string;
 	monierWilliamsPage: number | null;
 	attestedIn: readonly string[];
+	englishName: string;
+	englishReplaces: string | null;
+	englishSource: { dictionary: string; page: number };
 }[] = [
 	{
 		elements: ["earth", "earth"],
@@ -33,6 +39,9 @@ export const YOGA_NAMES: readonly {
 		devanagari: "सिद्धि",
 		monierWilliamsPage: 1215,
 		attestedIn: ["tshig mdzod chen mo", "dung dkar tshig mdzod chen mo"],
+		englishName: "accomplishment",
+		englishReplaces: null,
+		englishSource: { dictionary: "Monier-Williams 1899", page: 1216 },
 	},
 	{
 		elements: ["water", "water"],
@@ -44,6 +53,9 @@ export const YOGA_NAMES: readonly {
 		devanagari: "अमृत",
 		monierWilliamsPage: 82,
 		attestedIn: ["tshig mdzod chen mo", "dung dkar tshig mdzod chen mo"],
+		englishName: "nectar",
+		englishReplaces: null,
+		englishSource: { dictionary: "Monier-Williams 1899", page: 82 },
 	},
 	{
 		elements: ["earth", "water"],
@@ -55,6 +67,9 @@ export const YOGA_NAMES: readonly {
 		devanagari: "यौवन",
 		monierWilliamsPage: 859,
 		attestedIn: ["tshig mdzod chen mo"],
+		englishName: "youth",
+		englishReplaces: null,
+		englishSource: { dictionary: "Monier-Williams 1899", page: 859 },
 	},
 	{
 		elements: ["fire", "fire"],
@@ -66,6 +81,9 @@ export const YOGA_NAMES: readonly {
 		devanagari: "प्रगति",
 		monierWilliamsPage: null,
 		attestedIn: ["tshig mdzod chen mo", "dung dkar tshig mdzod chen mo"],
+		englishName: "increase",
+		englishReplaces: "progress",
+		englishSource: { dictionary: "Jäschke 1881", page: 357 },
 	},
 	{
 		elements: ["wind", "wind"],
@@ -77,6 +95,9 @@ export const YOGA_NAMES: readonly {
 		devanagari: "संपन्न",
 		monierWilliamsPage: 1172,
 		attestedIn: ["tshig mdzod chen mo"],
+		englishName: "excellence",
+		englishReplaces: null,
+		englishSource: { dictionary: "Jäschke 1881", page: 344 },
 	},
 	{
 		elements: ["fire", "wind"],
@@ -88,6 +109,9 @@ export const YOGA_NAMES: readonly {
 		devanagari: "बलयुक्त",
 		monierWilliamsPage: 723,
 		attestedIn: ["tshig mdzod chen mo"],
+		englishName: "powerful",
+		englishReplaces: null,
+		englishSource: { dictionary: "Monier-Williams 1899", page: 723 },
 	},
 	{
 		elements: ["earth", "wind"],
@@ -99,6 +123,9 @@ export const YOGA_NAMES: readonly {
 		devanagari: "अलाभ",
 		monierWilliamsPage: 95,
 		attestedIn: ["tshig mdzod chen mo", "dung dkar tshig mdzod chen mo"],
+		englishName: "deficiency",
+		englishReplaces: null,
+		englishSource: { dictionary: "Monier-Williams 1899", page: 95 },
 	},
 	{
 		elements: ["water", "wind"],
@@ -110,6 +137,9 @@ export const YOGA_NAMES: readonly {
 		devanagari: "प्रतिकूल",
 		monierWilliamsPage: 661,
 		attestedIn: ["tshig mdzod chen mo", "dung dkar tshig mdzod chen mo"],
+		englishName: "opposition",
+		englishReplaces: "discord",
+		englishSource: { dictionary: "Monier-Williams 1899", page: 661 },
 	},
 	{
 		elements: ["earth", "fire"],
@@ -121,6 +151,9 @@ export const YOGA_NAMES: readonly {
 		devanagari: "दहन",
 		monierWilliamsPage: 473,
 		attestedIn: ["tshig mdzod chen mo", "dung dkar tshig mdzod chen mo"],
+		englishName: "burning",
+		englishReplaces: null,
+		englishSource: { dictionary: "Monier-Williams 1899", page: 473 },
 	},
 	{
 		elements: ["fire", "water"],
@@ -132,5 +165,8 @@ export const YOGA_NAMES: readonly {
 		devanagari: "मरण",
 		monierWilliamsPage: 789,
 		attestedIn: ["tshig mdzod chen mo", "dung dkar tshig mdzod chen mo"],
+		englishName: "death",
+		englishReplaces: null,
+		englishSource: { dictionary: "Monier-Williams 1899", page: 789 },
 	},
 ];

@@ -76,14 +76,22 @@ describe("the ten yogas", () => {
 		const matched = ELEMENTAL_YOGAS.filter((yoga) => yoga.elements[0] === yoga.elements[1]);
 		expect(matched).toHaveLength(4);
 		expect(matched.every((yoga) => yoga.favorable)).toBe(true);
-		expect(elementalYoga("fire", "water").english).toBe("death");
+		expect(elementalYoga("fire", "water").englishName).toBe("death");
 	});
 
 	it("carry a name in all three columns for every row", () => {
 		const bad = ELEMENTAL_YOGAS.filter(
-			(yoga) => !yoga.sanskritName.iast || !yoga.tibetanName.wylie || !yoga.english,
+			(yoga) => !yoga.sanskritName.iast || !yoga.tibetanName.wylie || !yoga.englishName,
 		).map((yoga) => yoga.elements.join("+"));
 		expect(bad).toEqual([]);
+	});
+
+	it("prints the English key first, then the names, on every row", () => {
+		// Key-first is a surface-wide rule (docs/decisions/2026-09-13-names-keyed-by-language.md): an
+		// English word printed after two name blocks reads as describing the second of them. Property
+		// order is what a console or JSON.stringify shows, so it is pinned rather than left to chance.
+		const orders = new Set(ELEMENTAL_YOGAS.map((yoga) => Object.keys(yoga).join(",")));
+		expect([...orders]).toEqual(["englishName,tibetanName,sanskritName,elements,favorable"]);
 	});
 
 	it("is frozen, like every other shipped table here", () => {
@@ -168,6 +176,26 @@ describe("the yoga names match the verified fixture", () => {
 			phonetic: row.phonetic,
 		});
 		expect(yoga?.sanskritName).toEqual({ iast: row.iast, devanagari: row.devanagari });
+		expect(yoga?.englishName).toBe(row.englishName);
+	});
+
+	it("has a word-for-word dictionary source for every English name, two replacing Henning's", () => {
+		// Pinned as values: a regenerated fixture that dropped a replacement would still pass the
+		// per-row comparison above, and so would one that quietly reinstated Henning's word.
+		expect(YOGA_NAMES.filter((row) => row.englishSource === null)).toEqual([]);
+		expect(
+			YOGA_NAMES.filter((row) => row.englishReplaces !== null).map((row) => [
+				row.englishReplaces,
+				row.englishName,
+				row.englishSource.dictionary,
+				row.englishSource.page,
+			]),
+		).toEqual([
+			["progress", "increase", "Jäschke 1881", 357],
+			["discord", "opposition", "Monier-Williams 1899", 661],
+		]);
+		expect(elementalYoga("fire", "fire").englishName).toBe("increase");
+		expect(elementalYoga("water", "wind").englishName).toBe("opposition");
 	});
 
 	it("ships the two corrected spellings, not Henning's", () => {

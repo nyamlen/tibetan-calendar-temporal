@@ -13,6 +13,18 @@ transliterated from the IAST by a verifier rather than typed. `ElementalYoga` fo
 An object that *is* a name rather than carrying one — `TibetanWeekdayName extends TibetanName` — stays
 flat, and so does `TibetanYearName`, whose `elementName`, `genderName` and `animalName` are the precedent.
 
+**Amended 2026-09-14, two rules added:**
+
+- **The key comes first.** In every shipped object, the English key a reader recognises precedes the
+  name objects it identifies — `{ season, part, tibetanName }`, `{ englishName, tibetanName,
+  sanskritName, … }`. A global rule, not a yoga one: an English word printed after two name blocks
+  reads as describing the second of them.
+- **A name's English rendering is `englishName`.** Where the English is a translation of the name
+  itself — a yoga's *siddhi* as "accomplishment" — it ships as `englishName: string` beside
+  `tibetanName` and `sanskritName`, first by the rule above. It replaced `ElementalYoga.english`.
+  `meaning` was rejected because it reads as the meaning of something else. A key that is not a
+  translation of a name — `season`, `part` — keeps its own word.
+
 ## What a contributor would otherwise do
 
 **Add a field called `name`.** It reads naturally and it is what `Rabjung` had. It is wrong once a
@@ -23,7 +35,7 @@ Sanskrit an attribute, and it says nothing about which language `name` is in.
 
 1. A language-keyed object reads as a **localisation map**, the way `Intl` and CLDR use one, inviting
    `names[locale]` and an expected `en` sibling. These objects hold one name and its renderings; the
-   English lives in `season`, `english` and the other meaning keys.
+   English lives in `season`, `englishName` and the other keys.
 2. **`bo` is the wrong code.** In CLDR it is modern Standard Tibetan. These are Classical Tibetan
    calendrical terms, ISO 639-3 `xct`, and Bhutan writes the same vocabulary under `dz`.
 3. **A language code does not say which script.** Sanskrit is attested in Tibetan script for the
@@ -42,7 +54,7 @@ Sanskrit at another (`x.sanskritName.iast`), where nesting puts both names at th
 ## Why `SanskritName` has no `meaning`
 
 Every object that carries one already has exactly one English meaning beside it — `season` for a
-six-season name, `english` for a yoga — and a second can disagree with the first, forcing someone to
+six-season name, `englishName` for a yoga — and a second can disagree with the first, forcing someone to
 decide which is authoritative. For a name in the lunar-mansion system the meaning would be circular
 ("the month Māgha"), and *pragati* has no Monier-Williams entry to take one from. Adding the field later
 breaks nobody; removing it breaks everyone, and it has come off once already, with the rabjung Sanskrit.
