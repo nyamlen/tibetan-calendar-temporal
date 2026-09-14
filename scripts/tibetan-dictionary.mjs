@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Reading Tibetan dictionaries for **facts**, shared by `survey-ngonjo.mjs` and
- * `verify-rabjung-names.mjs`.
+ * Reading Tibetan dictionaries for **facts**, shared by `survey-ngonjo.mjs`,
+ * `verify-rabjung-names.mjs` and `verify-month-and-yoga-names.mjs`.
  *
  * ## The plain version
  *

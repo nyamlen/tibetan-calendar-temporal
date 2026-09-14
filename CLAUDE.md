@@ -620,6 +620,15 @@ the loop carried on, so the next mutant ran on top of the previous one. The tell
 *more* failures than the mutation could explain — not an error, and not a pass. `cp` the file aside
 first, restore from that, and re-run the control after every restore.
 
+**Mutate a guard's input, not the predicate it calls, or a self-test answers instead of the guard.**
+On 2026-09-14 a mutant for the yoga verifier's "group counts sum to ten" check edited the count table
+`statedGrouping` reads. The script's own predicate proof rejected it first — exit 2, "the checker itself
+is broken" — so the run-level guard was never reached, and a harness asserting only "non-zero exit"
+would have counted it proved. Asserting on the expected message is what exposed it. The re-run
+altered the dictionary text the predicate is handed (`tha chad gcig` → `gnyis`) and the guard refused
+as intended. A generator that proves its predicates up front needs its mutants aimed downstream of
+that proof.
+
 **And run the generator unchanged *before* you edit it.** A baseline that reproduces the committed
 fixture byte-for-byte is what makes any later diff attributable to your change rather than to a
 source that has moved since the last run — these generators read five live sources, and none of them
@@ -714,8 +723,8 @@ rather than the one the generator rewrote. Provenance is checked before a releas
 integrity is checked on every push.
 
 **`verify:rabjung-names` also gates the authored English on Tibetan-dictionary facts, and the
-licence line there is narrow.** Three dictionaries (Ives Waldo, Rangjung Yeshe, the *tshig mdzod chen
-mo*) may **gate** and may never be **quoted** — they are modern copyrighted works, so exactly four
+licence line there is narrow.** The copyrighted dictionaries — Ives Waldo, Rangjung Yeshe and the *tshig
+mdzod chen mo* here, and the *dung dkar tshig mdzod chen mo* in `verify:month-and-yoga-names` — may **gate** and may never be **quoted** — they are modern copyrighted works, so exactly four
 facts are taken: that a headword exists, the cycle position an entry states, the element–animal
 year an entry states, and the register tag on a sense — and a fifth, the spelling of each member of a
 set an entry enumerates, approved on 2026-09-13 for the elemental-yoga check and now in the script's
