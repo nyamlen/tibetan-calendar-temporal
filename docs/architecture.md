@@ -135,7 +135,7 @@ tibetan-calendar-temporal/
 │   │   ├── calendar-day.ts         # congruences on the Julian day; Tsurphu's number unmodelled
 │   │   ├── mansions.ts             # trueSun, moonCalendarDay, mansionNumber — the astronomy
 │   │   ├── mansion-elements.ts     # HENNING's 28 reduced to Janson's 27, with the drop asserted
-│   │   └── yoga.ts                 # the ten pairings; names Henning's, favorability FPMT's
+│   │   └── yoga.ts                 # the ten pairings; names Henning's, favorability FPMT's, grading a dictionary's
 │   ├── errors.ts                   # Error codes, and the constructors that attach them
 │   ├── format.ts                   # formatTibetanDate, monthCodeOf — the canonical string form
 │   ├── parse.ts                    # parseTibetanDate — its inverse
@@ -200,7 +200,8 @@ terms come from dictionaries rather than Janson; that provenance lives in its do
 
 `./astrology` does still carry a sourcing boundary worth keeping visible. Its pieces do not carry equal weight: Janson gives every cycle and the mansion arithmetic,
 Henning gives the element each mansion carries and the ten yoga names — which Janson cites and does
-not derive — and **favorability is in neither**, FPMT being its only witness. A subpath keeps that
+not derive — and **favorability is in neither**, FPMT being its witness, with the *tshig mdzod chen
+mo* a second witness for the yoga pairs and the source of their four-way grading. A subpath keeps that
 boundary visible at the import line. See [astrology.md](astrology.md).
 
 ## Core Types
@@ -401,6 +402,12 @@ interface ElementalYoga {
   sanskritName: SanskritName; // Henning's IAST, with Devanāgarī transliterated from it
   elements: readonly [TibetanWeekdayElement, TibetanWeekdayElement];  // as Henning prints the pair
   favorable: boolean;      // FPMT's claim, in neither Janson nor Henning
+  auspiciousness: YogaAuspiciousness;  // the tshig mdzod chen mo's grading; membership read by list order
+}
+
+interface YogaAuspiciousness {
+  englishName: 'good' | 'restorative' | 'bad' | 'worst';  // good, bad printed; worst via Sanskrit adhama; restorative composed
+  tibetanName: TibetanName;   // bzang po, gso thub, ngan, tha chad, as the entry prints them
 }
 
 interface DayAttributes {

@@ -24,7 +24,8 @@
  * **Sourcing is not uniform across this subpath, and the docs say where each piece comes from.**
  * Janson gives every cycle and the mansion arithmetic; Henning gives the element each mansion
  * carries and the ten yoga names, which Janson cites and does not derive; **favorability is in
- * neither source** and is FPMT's alone. `docs/astrology.md` is the reader-facing account.
+ * neither source** and is FPMT's; the *tshig mdzod chen mo* states the same ten yoga pairs and grades
+ * the ten, which is `auspiciousness`. `docs/astrology.md` is the reader-facing account.
  *
  * **Two traditions answer and two refuse.** Janson tabulates no month-animal list for the Bhutanese
  * version, so {@link monthAttributesFor} and {@link lunarDayAttributesFor} throw
@@ -72,7 +73,7 @@ export type { LunarDayAttributes } from "./lunar-day.js";
 export type { MonthAttributes } from "./month.js";
 export type { AstrologyQueryOptions, DayAttributes, LunarMansion } from "./types.js";
 export type { YearAttributes } from "./year.js";
-export type { ElementalYoga } from "./yoga.js";
+export type { ElementalYoga, YogaAuspiciousness } from "./yoga.js";
 export { ELEMENTAL_YOGAS, elementalYoga } from "./yoga.js";
 
 function assertQueryOptions(functionName: string, options: unknown): void {
@@ -263,7 +264,7 @@ export function calendarDayAttributesFor(
  * unlike every other cycle in this subpath it cannot be worked out with a table.
  *
  * The pair is unordered, which is Janson's definition: ten combinations rather than sixteen.
- * Favorability comes from FPMT and from no other source.
+ * `favorable` comes from FPMT; `auspiciousness`, the four-way grading, from the *tshig mdzod chen mo*.
  *
  * **On a doubled date the two halves get different yogas**, because their Julian days differ and so
  * do their weekday elements. Pass the `Temporal.PlainDate` of the half you mean, or a resolved

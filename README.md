@@ -494,7 +494,8 @@ share `year`, `month` and `lunarDay` and differ in `calendarDay` and `yoga`, and
 list for that version, so the package refuses rather than handing over Phugpa's answers; the
 primitives throw `TCT_ATTRIBUTE_NOT_SOURCED` where the composition reports `null`.
 
-Favorability is FPMT's convention and is in neither Janson nor Henning. What is validated, over which
+Favorability is FPMT's convention and is in neither Janson nor Henning; `auspiciousness` is a Tibetan
+dictionary's four-way grading of the same ten yogas, with its groups read from the order it lists them in. What is validated, over which
 years, and against what, is in
 [docs/why-trust-these-dates.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/why-trust-these-dates.md).
 
@@ -706,10 +707,11 @@ A separate subpath, like `./observances`. `options` is `{ tradition? }`, default
 | `lunarMansionFor` | `(date: Temporal.PlainDate \| TibetanDate, options?) => LunarMansion` | `{ index, element }`, index 0–26 as Janson and Henning number them. Needs the moon's real position; a published almanac sometimes prints the next mansion, late in a mansion — how often is in [why-trust-these-dates.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/why-trust-these-dates.md). Names not shipped yet |
 | `elementalYogaFor` | `(date: Temporal.PlainDate \| TibetanDate, options?) => ElementalYoga` | The weekday's element paired with the lunar mansion's |
 | `elementalYoga` | `(a: TibetanWeekdayElement, b: TibetanWeekdayElement) => ElementalYoga` | The pair alone, order-insensitive |
-| `ELEMENTAL_YOGAS` | | The ten, frozen: Henning's names, FPMT's favorability |
+| `ELEMENTAL_YOGAS` | | The ten, frozen: Henning's names, FPMT's favorability, and the *tshig mdzod chen mo*'s four-way grading as `auspiciousness` |
 
 Type-only exports: `DayAttributes`, `YearAttributes`, `MonthAttributes`, `LunarDayAttributes`,
-`CalendarDayAttributes`, `ElementalYoga`, `TibetanTrigram`, `AstrologyQueryOptions`, `LunarMansion`.
+`CalendarDayAttributes`, `ElementalYoga`, `YogaAuspiciousness`, `TibetanTrigram`, `AstrologyQueryOptions`,
+`LunarMansion`.
 
 A date argument is a `Temporal.PlainDate` or a resolved `TibetanDate` — never loose
 `{ year, month, day }`, which is a value of both calendars and would make the ambiguity silent.

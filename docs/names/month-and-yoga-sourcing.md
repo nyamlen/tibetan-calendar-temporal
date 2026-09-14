@@ -328,7 +328,60 @@ The replacements self-invalidate: the run fails if Henning's table stops saying 
 The copyrighted dictionaries may gate and may never be quoted, and [scripts/tibetan-dictionary.mjs](../../scripts/tibetan-dictionary.mjs) lists the facts that may be taken.
 The yoga check needs one more: **the spelling of each member of a set that an entry enumerates** — which is what the table above records.
 Approved on 2026-09-13; still never a gloss, and now in that table.
-The same enumerations also pair each name with its elements and group the ten by favorability; neither is taken, since neither is on the list.
+The same enumerations also pair each name with its elements and group the ten; those became the sixth and seventh facts on 2026-09-14, below.
+
+## The yoga pairs and the grading
+
+**Two more facts, approved by Andreas on 2026-09-14:** the element pair an enumeration assigns each member, and the grouping it states.
+Both are read from the *tshig mdzod chen mo*'s `'phrod sbyor` alone.
+The *dung dkar* is not read for either: its enumeration has the eye-skip described above, which leaves *mi 'phrod* on earth + water.
+
+**The pairs.**
+The entry names each yoga by its pair — `sa gnyis` "earth, two", `sa rlung` earth and wind — and the pairs agree with Henning's at all ten.
+Until then the table's pairs rested on Henning alone, whom Janson cites.
+The verifier refuses to write if any pair differs.
+
+**The grading.**
+The entry closes: three good (*bzang po gsum*), three restorative (*gso thub gsum*), three bad (*ngan gsum*), one worst (*tha chad gcig*), ten in all.
+**No source consulted says which yoga is in which group.**
+*bod yig tshig gter rgya mtsho* reproduces the *tshig mdzod chen mo* entry word for word, and Ives Waldo translates the same entry, so neither is a witness.
+*chos rnam kun btus* has a different fifteen-member list.
+Twelve other dictionaries in the aggregate have no entry.
+Henning p. 204 says only that earth + earth "is considered highly auspicious".
+
+So membership is **read from the list order**, applying the counts to the entry's sequence:
+
+| Group | Members, in the entry's order |
+|---|---|
+| good | *dngos grub* (earth + earth), *bdud rtsi* (water + water), *'phel 'gyur* (fire + fire) |
+| restorative | *phun tshogs* (wind + wind), *lang tsho* (earth + water), *stobs ldan* (fire + wind) |
+| bad | *mi 'phrod* (earth + wind), *mi mthun* (water + wind), *bsreg* (earth + fire) |
+| worst | *'chi* (fire + water) |
+
+The reading is consistent with FPMT, whose six favorable yogas are exactly good + restorative, and with Henning's one statement.
+**But the order has a structural explanation too**: the four same-element pairs come first.
+If that is why, the cut between good and restorative is structure, not rank, and *phun tshogs* (wind + wind) would be good.
+That is the row to check first if a source ever states membership.
+Shipped anyway, as `ElementalYoga.auspiciousness`, by Andreas's decision, with the inference stated in its docblock and in the guide; a wrong reading is a breaking change after 1.0.0.
+
+**The four group names.**
+Each English name is re-checked by the verifier on every run, at the strength its evidence has.
+Jäschke's pages were read from the page images (`tibetanenglishdi00jsuoft`, image `n` = printed page + 25) and are held against the aggregate's index, whose Jäschke number is printed page + 26.
+
+| Tibetan | English | Evidence | Tier |
+|---|---|---|---|
+| *bzang po* | **good** | Jäschke p. 496, "1. good (भद्र), in every respect … excellent, suited, morally good" | printed for the Tibetan |
+| *gso thub* | **restorative** | No headword in Jäschke, Das, the *tshig mdzod chen mo*, the *dung dkar* or the Mahāvyutpatti. *gso ba*: "to cure … to mend, to repair, to restore" (Jäschke p. 590); *thub pa* after a verb root: "to be able" (Jäschke p. 234) | composed |
+| *ngan* | **bad** | Jäschke p. 126, s.v. *ngan-pa*, "bad, of food etc.; mean, miserable … wicked"; bare *ngan* is "evil, mischief, misfortune" | printed for the Tibetan |
+| *tha chad* | **worst** | Das p. 564, s.v. *tha-cad* or *tha-chad*, gives the Sanskrit खल, प्रतिक्रुष्ट, अधम, क्षुद्र, then "base, sordid, vile" (read from the page image, `tibetanenglishdi00dassuoft`, image `n603`); Monier-Williams p. 19, s.v. अधम *adhama*: "lowest, vilest, worst, very low or vile or bad" | through the Sanskrit |
+
+The alternatives not taken, each carried in the fixture:
+
+- **"very bad"** for *tha chad* — Jäschke p. 226, printed for the Tibetan itself ("very bad, mean", after Csoma). Chosen first, then replaced by *worst* on 2026-09-14 (Andreas): "very bad" reads as a step beyond *bad* rather than the end of a scale, and *adhama* is itself the bottom of the Sanskrit *uttama / madhyama / adhama* ranking.
+- **"healing"** for *gso thub* — Das p. 1312 prints "curing, healing" for *gso ba*, the only word printed for the root. Rejected because it drops *thub*, "able to".
+- **"recoverable"** and **"remediable"** for *gso thub* — rejected by Andreas; neither is printed either.
+
+The Mahāvyutpatti pairs *tha chad* with *pratikruṣṭa*, not *adhama*; *pratikruṣṭa* is also in Das's list, so the two agree that *tha chad* has more than one Sanskrit equivalent, and *worst* rests on Das's.
 
 ## Still open
 

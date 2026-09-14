@@ -250,6 +250,7 @@ narrower still.
 | Lunar-day attributes | every day of every month | Janson's **prose** | the opening animal of odd and even months, and the opening trigram and number he names for each month animal |
 | Lunar mansion, day by day | 2022–2025, Phugpa only | FPMT's day-quality codes | the mansion arithmetic, at **97.6%** — see below |
 | Yoga favorability, day by day | 2022–2025, and tradition-free | FPMT's `FD-`/`UD-` prefixes | the favorability table, at **99.7%** — it reads FPMT's own pair letters, so the mansion residual cannot reach it, and the four disagreements are days FPMT contradicts itself on |
+| Yoga element pairs and grading | the ten rows; no window | the *tshig mdzod chen mo*'s `'phrod sbyor`, through `verify:month-and-yoga-names` | that Henning's ten pairs are the dictionary's, and that `auspiciousness` is its grading — **membership read by list order**, since it states group sizes only. `test/astrology/yoga.test.ts` pins that good + restorative are exactly the favorable six |
 
 **That 97.6% is a characterised figure, not a tolerance.** 1,424 of 1,459 days agree — a **2.4%**
 residual, re-measured 2026-09-12 rather than carried over: the plan's working figure of 3.9% predated
@@ -285,8 +286,9 @@ independently of that sentence.
 **Quote the right window.** A claim about a Tibetan date has six years behind it, about an observance
 four, and about a mansion four *for Phugpa alone* — Bhutan's attributes have no external check at all.
 Of the rows above, the three **cycle** rows are Janson against Janson and are not external
-corroboration; only the **mansion** and the **yoga's favorability** have an outside witness, and that
-witness is FPMT in both cases. An earlier draft of this sentence said every row was Janson against
+corroboration; only the **mansion** and the **yoga's favorability** have an outside witness over
+days, and that witness is FPMT in both cases. The yoga table's pairs and grading also have the *tshig
+mdzod chen mo*, but over ten rows rather than any span of dates. An earlier draft of this sentence said every row was Janson against
 Janson, which contradicted the table two lines above it.
 
 Those are all **Phugpa**. Bhutan has a window of its own, and a wider one:

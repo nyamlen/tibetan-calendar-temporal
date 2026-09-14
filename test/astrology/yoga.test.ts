@@ -9,7 +9,7 @@ import { scalingFor } from "../../src/computation/scaling.js";
 import { weekdayNameFor } from "../../src/cycles.js";
 import { PHUGPA } from "../../src/traditions/phugpa.js";
 import type { TibetanWeekdayElement } from "../../src/types.js";
-import { YOGA_NAMES } from "../fixtures/yoga-names.js";
+import { YOGA_AUSPICIOUSNESS, YOGA_NAMES } from "../fixtures/yoga-names.js";
 
 /**
  * The ten pairings, and the one structural property that matters: the pair is **unordered**.
@@ -62,8 +62,8 @@ describe("the ten yogas", () => {
 
 	it("hold six of the ten favorable, which is FPMT's division", () => {
 		// Janson ranks none of them and Henning's page carries the names rather than the judgement, so
-		// this count is FPMT's sole claim. `test/validation/fpmt-observances.test.ts` checks it day by
-		// day against their printed prefixes.
+		// this binary is FPMT's claim. `test/validation/fpmt-observances.test.ts` checks it day by day
+		// against their printed prefixes. The tshig mdzod chen mo's grading is a separate field, below.
 		expect(ELEMENTAL_YOGAS.filter((yoga) => yoga.favorable)).toHaveLength(6);
 		expect(
 			ELEMENTAL_YOGAS.filter((yoga) => !yoga.favorable).map((yoga) => yoga.sanskritName.iast),
@@ -91,13 +91,93 @@ describe("the ten yogas", () => {
 		// English word printed after two name blocks reads as describing the second of them. Property
 		// order is what a console or JSON.stringify shows, so it is pinned rather than left to chance.
 		const orders = new Set(ELEMENTAL_YOGAS.map((yoga) => Object.keys(yoga).join(",")));
-		expect([...orders]).toEqual(["englishName,tibetanName,sanskritName,elements,favorable"]);
+		expect([...orders]).toEqual([
+			"englishName,tibetanName,sanskritName,elements,favorable,auspiciousness",
+		]);
 	});
 
 	it("is frozen, like every other shipped table here", () => {
 		expect(Object.isFrozen(ELEMENTAL_YOGAS)).toBe(true);
 		expect(Object.isFrozen(ELEMENTAL_YOGAS[0])).toBe(true);
 		expect(Object.isFrozen(ELEMENTAL_YOGAS[0]?.elements)).toBe(true);
+	});
+});
+
+describe("auspiciousness, the tshig mdzod chen mo's grading", () => {
+	const groupOf = (yoga: (typeof ELEMENTAL_YOGAS)[number]) => yoga.auspiciousness.englishName;
+
+	it("puts each yoga in the group list order gives it", () => {
+		// Pinned as values, per yoga. The grouping is an inference from the dictionary's list order, so
+		// the assignment is the claim; a test comparing only against the fixture would pass if both were
+		// regenerated from a different reading.
+		expect(
+			Object.fromEntries(ELEMENTAL_YOGAS.map((yoga) => [yoga.englishName, groupOf(yoga)])),
+		).toEqual({
+			accomplishment: "good",
+			nectar: "good",
+			increase: "good",
+			excellence: "restorative",
+			youth: "restorative",
+			powerful: "restorative",
+			deficiency: "bad",
+			opposition: "bad",
+			burning: "bad",
+			death: "worst",
+		});
+	});
+
+	it("never diverges from FPMT's favorable: good and restorative are exactly the favorable six", () => {
+		// Two independent claims — FPMT's day-quality prefix and a Tibetan dictionary's grading — that
+		// are held to be one judgement. Neither is computed from the other, so a disagreement surfaces
+		// here instead of being reconciled.
+		const diverging = ELEMENTAL_YOGAS.filter(
+			(yoga) => yoga.favorable !== (groupOf(yoga) === "good" || groupOf(yoga) === "restorative"),
+		).map((yoga) => yoga.englishName);
+		expect(diverging).toEqual([]);
+	});
+
+	it("shares one frozen object per group", () => {
+		const good = elementalYoga("earth", "earth").auspiciousness;
+		expect(elementalYoga("water", "water").auspiciousness).toBe(good);
+		expect(new Set(ELEMENTAL_YOGAS.map((yoga) => yoga.auspiciousness)).size).toBe(4);
+		expect(Object.isFrozen(good)).toBe(true);
+		expect(Object.isFrozen(good.tibetanName)).toBe(true);
+		expect(Object.keys(good)).toEqual(["englishName", "tibetanName"]);
+	});
+
+	it("carries the verified group names, in the dictionary's group sizes", () => {
+		const shipped = [...new Set(ELEMENTAL_YOGAS.map((yoga) => yoga.auspiciousness))];
+		expect(
+			YOGA_AUSPICIOUSNESS.map((row) => ({
+				englishName: row.englishName,
+				tibetanName: { tibetan: row.tibetan, wylie: row.wylie, phonetic: row.phonetic },
+			})),
+		).toEqual(
+			["good", "restorative", "bad", "worst"].map((name) =>
+				shipped.find((a) => a.englishName === name),
+			),
+		);
+		expect(YOGA_AUSPICIOUSNESS.map((row) => row.members)).toEqual(
+			["good", "restorative", "bad", "worst"].map(
+				(name) => ELEMENTAL_YOGAS.filter((yoga) => groupOf(yoga) === name).length,
+			),
+		);
+	});
+
+	it("marks how far each English name is from the Tibetan, and that membership is inferred", () => {
+		expect(YOGA_AUSPICIOUSNESS.every((row) => row.groupedByOrder)).toBe(true);
+		expect(YOGA_AUSPICIOUSNESS.map((row) => [row.englishName, row.englishTier])).toEqual([
+			["good", "printed"],
+			["restorative", "composed"],
+			["bad", "printed"],
+			["worst", "through-sanskrit"],
+		]);
+		expect(YOGA_AUSPICIOUSNESS.map((row) => row.alternative?.englishName ?? null)).toEqual([
+			null,
+			"healing",
+			null,
+			"very bad",
+		]);
 	});
 });
 
@@ -177,6 +257,15 @@ describe("the yoga names match the verified fixture", () => {
 		});
 		expect(yoga?.sanskritName).toEqual({ iast: row.iast, devanagari: row.devanagari });
 		expect(yoga?.englishName).toBe(row.englishName);
+		expect(yoga?.auspiciousness.englishName).toBe(row.auspiciousness);
+	});
+
+	it("has every element pair stated by the tshig mdzod chen mo as well as Henning", () => {
+		// The pairs rested on Henning alone, whom Janson cites. The verifier refuses to write unless the
+		// dictionary's enumeration states the same pair for every yoga; this pins that it did.
+		expect(
+			YOGA_NAMES.filter((row) => !row.elementsAttestedIn.includes("tshig mdzod chen mo")),
+		).toEqual([]);
 	});
 
 	it("has a word-for-word dictionary source for every English name, two replacing Henning's", () => {

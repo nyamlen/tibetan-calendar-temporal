@@ -27,14 +27,15 @@
  * | Janson's month-names table (LaTeX) | The derivation source | The twelve mansion month names, and each month's Sanskrit name — used only to number the Mahāvyutpatti's months |
  * | Mahāvyutpatti (aggregate `21-Mahavyutpatti-Skt`) | Public domain, independent of Janson and Henning | Tibetan–Sanskrit pairs: the nakṣatras, the six seasons, the season-months |
  * | Das and Jäschke scan indexes (`65-`, `66-`) | Public domain | That a headword exists — the index number is **not** a printed page: Jäschke's is the scan leaf, 26 above the printed page, and Das's is approximate |
- * | *tshig mdzod chen mo*, *dung dkar tshig mdzod chen mo* (`25-`, `34-`) | Copyrighted: **gate only** | That a headword exists; the spelling of each member of a set an entry enumerates |
+ * | *tshig mdzod chen mo*, *dung dkar tshig mdzod chen mo* (`25-`, `34-`) | Copyrighted: **gate only** | That a headword exists; the spelling of each member of a set an entry enumerates; from the *tshig mdzod chen mo* alone, the element pair it assigns each member and the grouping it states |
  * | Monier-Williams, via Cologne | Public domain | That a Sanskrit headword exists, and its printed page |
  * | Henning, *Kālacakra and the Tibetan Calendar*, p. 204 | In copyright: facts only | The ten yogas' Wylie and IAST, confirmed against the scan by Andreas — carried as data below |
  *
  * From the two copyrighted dictionaries **no gloss text is read into any output**: only whether a
- * headword exists and how an enumerated member is spelled. The element pairing and the favorability
- * grouping the *tshig mdzod chen mo* also states are deliberately not taken — neither is on the list
- * of takeable facts in `scripts/tibetan-dictionary.mjs`.
+ * headword exists, how an enumerated member is spelled, which element pair the enumeration gives it,
+ * and the grouping its closing sentence states — the fifth, sixth and seventh takeable facts in
+ * `scripts/tibetan-dictionary.mjs`. The grouping names each group's size, never its members, so
+ * which yoga is in which group is **read by list order** and marked as such everywhere it is emitted.
  *
  * ## Checks, and why each exists
  *
@@ -49,7 +50,11 @@
  * 4. **Six seasons**: each Tibetan name is paired with its Sanskrit in the Mahāvyutpatti, and the
  *    Sanskrit stem is a Monier-Williams headword.
  * 5. **Yogas**: each name is spelled as the *tshig mdzod chen mo*'s enumeration spells it, and each
- *    Sanskrit name is a Monier-Williams headword — except *pragati*, whose absence is asserted.
+ *    Sanskrit name is a Monier-Williams headword — except *pragati*, whose absence is asserted. The
+ *    same enumeration's element pair must equal Henning's for every yoga, and its closing grouping
+ *    must still name the four groups with counts summing to ten; each group's English is re-checked
+ *    against its dictionary index, or through Monier-Williams, or — when composed — against every
+ *    dictionary coming to head the compound.
  * 6. **Phonetics** from THL's own converter.
  *
  * Every choice between attested spellings, and every correction, is **data carrying its evidence and
@@ -149,6 +154,48 @@ function enumeratedNames(body, joiner) {
 		.filter(Boolean);
 }
 
+const ELEMENT_WORD = { sa: "earth", chu: "water", me: "fire", rlung: "wind" };
+
+/**
+ * Each member of an enumeration with the element pair it states: `sa rlung` is earth and wind, and
+ * `sa gnyis` — "earth, two" — is earth twice. An element word outside the four reads as `undefined`,
+ * which the caller refuses, rather than being skipped.
+ */
+function enumeratedPairs(body, joiner) {
+	return body
+		.replace(/[{}]/g, "")
+		.split("/")
+		.map((item) => item.trim())
+		.map((item) => new RegExp(`^(\\S+) (\\S+) ${joiner}\\s+(.+?)\\s+sbyor(?:\\s|$)`).exec(item))
+		.filter(Boolean)
+		.map(([, first, second, name]) => ({
+			name,
+			elements: [
+				ELEMENT_WORD[first],
+				second === "gnyis" ? ELEMENT_WORD[first] : ELEMENT_WORD[second],
+			],
+		}));
+}
+
+const COUNT_WORD = { gcig: 1, gnyis: 2, gsum: 3, bzhi: 4 };
+
+/**
+ * The grouping an enumeration closes with — `bzang po gsum dang/ gso thub gsum/ … dang bcu zhes
+ * grags` — as `{ wylie, count }` in the order stated, plus the total it names. Null when the sentence
+ * is absent; a group it cannot read comes back as `null` in place, so a changed shape is refused
+ * rather than silently shortening the list.
+ */
+function statedGrouping(body) {
+	const m = /rnams la (.+?) dang (bcu) zhes grags/.exec(body.replace(/[{}]/g, ""));
+	if (!m) return null;
+	const groups = m[1]
+		.split("/")
+		.map((part) => part.trim().replace(/ dang$/, ""))
+		.map((part) => /^(.+) (gcig|gnyis|gsum|bzhi)$/.exec(part))
+		.map((g) => (g ? { wylie: g[1], count: COUNT_WORD[g[2]] } : null));
+	return { groups, total: { bcu: 10 }[m[2]] };
+}
+
 /** Does an enumeration's spelling print this name — whole, as a compound, or with a genitive? */
 function enumerationPrints(names, wylie) {
 	const compound = wylie.replace(/ (?:pa|ba)$/, "");
@@ -189,6 +236,34 @@ function proveOwnPredicates() {
 	if (!enumerationPrints(["bsreg pa'i"], "bsreg pa"))
 		broken.push("a genitive form was not recognised");
 	if (enumerationPrints(["bsreg"], "sreg pa")) broken.push("a prefix difference was accepted");
+	const pairs = enumeratedPairs(
+		"{gza' dang rgyu skar rnams kyi sbyor ba ste/ sa gnyis 'phrad pa dngos grub sbyor/ sa rlung 'phrad pa mi 'phrod sbyor/ me chu 'phrad pa 'chi sbyor rnams la}",
+		"'phrad pa",
+	);
+	if (
+		pairs.map((p) => `${p.name}=${p.elements.join("+")}`).join("|") !==
+		"dngos grub=earth+earth|mi 'phrod=earth+wind|'chi=fire+water"
+	)
+		broken.push(`enumeratedPairs read ${JSON.stringify(pairs)}`);
+	if (enumeratedPairs("{shing me 'phrad pa x sbyor/}", "'phrad pa")[0]?.elements[0] !== undefined)
+		broken.push("enumeratedPairs accepted an element outside the Indian four");
+	const grouping = statedGrouping(
+		"{… 'chi sbyor rnams la bzang po gsum dang/ gso thub gsum/ ngan gsum/ tha chad gcig dang bcu zhes grags/}",
+	);
+	if (
+		grouping?.total !== 10 ||
+		grouping.groups.map((g) => `${g?.wylie}:${g?.count}`).join("|") !==
+			"bzang po:3|gso thub:3|ngan:3|tha chad:1"
+	)
+		broken.push(`statedGrouping read ${JSON.stringify(grouping)}`);
+	if (
+		!statedGrouping(
+			"{rnams la bzang po gsum dang/ ngan ma lags dang bcu zhes grags/}",
+		)?.groups.includes(null)
+	)
+		broken.push("statedGrouping read a group with no count instead of refusing it");
+	if (statedGrouping("{rnams la bzang po gsum dang/ ngan bdun}") !== null)
+		broken.push("statedGrouping read a grouping with no closing total");
 	if (broken.length > 0) {
 		console.error(
 			`the checker itself is broken, so nothing below can be trusted:\n  - ${broken.join("\n  - ")}`,
@@ -676,6 +751,165 @@ if (tshigNames.length !== 10)
 	);
 if (dungNames.length === 0) fail("the dung dkar's 'phrod sbyor bcu enumeration read as empty");
 
+// The tshig mdzod chen mo's element pairs (the sixth takeable fact). The dung dkar's are not read: its
+// enumeration is damaged — eight members, with mi 'phrod paired with sa chu where the tshig mdzod and
+// Henning both have earth and wind — so it is a spelling witness only.
+const tshigBody = HEADWORDS["tshig mdzod chen mo"].get("'phrod sbyor")?.join(" ") ?? "";
+const tshigPairs = enumeratedPairs(tshigBody, "'phrad pa");
+if (tshigPairs.map((p) => p.name).join("|") !== tshigNames.join("|"))
+	fail(
+		`the tshig mdzod chen mo's pairs name ${tshigPairs.map((p) => p.name)}, but its enumeration names ${tshigNames}`,
+	);
+for (const pair of tshigPairs) {
+	if (pair.elements.includes(undefined))
+		fail(`the tshig mdzod chen mo pairs "${pair.name}" with an element word outside the four`);
+}
+
+/**
+ * The four groups the *tshig mdzod chen mo* closes its enumeration with (the seventh takeable fact),
+ * and the English each ships under. **The entry states how many yogas are in each group, never which**:
+ * membership is read by applying the counts to the enumeration's own order, and every output carries
+ * that as `groupedByOrder`. The order has a second, structural explanation — the four same-element
+ * pairs come first — under which *phun tshogs* (wind + wind) would be good rather than restorative, so
+ * that row is the one to check first if a source ever states membership.
+ *
+ * Three tiers of English, never collapsed:
+ * - `printed` — the word is printed for the Tibetan itself. Jäschke's page is re-checked against the
+ *   aggregate's index, whose Jäschke number is the scan leaf, printed page + 26.
+ * - `through-sanskrit` — Das gives a Sanskrit equivalent (read from his page image), and Monier-Williams
+ *   prints the word for that Sanskrit, which is re-checked through Cologne on every run.
+ * - `composed` — no dictionary prints a word for the compound; the English is composed from the glosses
+ *   of its parts, and the run fails if a dictionary comes to head the compound.
+ *
+ * Decided by Andreas on 2026-09-14.
+ */
+const AUSPICIOUSNESS = [
+	{
+		wylie: "bzang po",
+		englishName: "good",
+		tier: "printed",
+		source: { dictionary: "Jäschke 1881", page: 496, headword: "bzang po", sense: "1. good (भद्र)" },
+	},
+	{
+		wylie: "gso thub",
+		englishName: "restorative",
+		tier: "composed",
+		composedFrom: [
+			{ dictionary: "Jäschke 1881", page: 590, headword: "gso ba", sense: "to cure … to restore" },
+			{
+				dictionary: "Jäschke 1881",
+				page: 234,
+				headword: "thub pa",
+				sense: "with a verb root: to be able",
+			},
+		],
+		alternative: {
+			englishName: "healing",
+			dictionary: "Das 1902",
+			page: 1312,
+			headword: "gso ba",
+			why: "the only word printed for the root (curing, healing), rejected because it drops thub",
+		},
+	},
+	{
+		wylie: "ngan",
+		englishName: "bad",
+		tier: "printed",
+		source: { dictionary: "Jäschke 1881", page: 126, headword: "ngan pa", sense: "bad" },
+	},
+	{
+		wylie: "tha chad",
+		englishName: "worst",
+		tier: "through-sanskrit",
+		through: {
+			slp1: "aDama",
+			equivalentIn: {
+				dictionary: "Das 1902",
+				page: 564,
+				headword: "tha cad",
+				sense: "खल, प्रतिक्रुष्ट, अधम, क्षुद्र",
+			},
+		},
+		alternative: {
+			englishName: "very bad",
+			dictionary: "Jäschke 1881",
+			page: 226,
+			headword: "tha chad",
+			why: "printed for tha chad itself, rejected as reading like a step up from bad rather than the end of the scale",
+		},
+	},
+];
+
+/** Where the aggregate's index puts a headword, as a printed page, or null. Das's index is approximate. */
+function indexedPage(dictionary, headword) {
+	const raw = HEADWORDS[dictionary].get(headword)?.[0];
+	if (raw === undefined) return null;
+	const leaf = Number(raw.replace("?", ""));
+	return dictionary === "Jäschke 1881" ? leaf - 26 : leaf;
+}
+function checkCitation(label, citation) {
+	const page = indexedPage(citation.dictionary, citation.headword);
+	if (page === null)
+		fail(`${label}: "${citation.headword}" is no longer a headword in ${citation.dictionary}`);
+	else if (Math.abs(page - citation.page) > 2)
+		fail(
+			`${label}: ${citation.dictionary} indexes "${citation.headword}" at p. ${page}, not p. ${citation.page}`,
+		);
+}
+
+const grouping = statedGrouping(tshigBody);
+const groupOfName = new Map();
+if (grouping === null) {
+	fail("the tshig mdzod chen mo's 'phrod sbyor no longer closes with a grouping sentence");
+} else if (grouping.groups.includes(null)) {
+	fail(
+		"the tshig mdzod chen mo's grouping sentence has changed shape — a group no longer reads as name + count",
+	);
+} else {
+	const stated = grouping.groups.map((g) => g.wylie).join("|");
+	if (stated !== AUSPICIOUSNESS.map((a) => a.wylie).join("|"))
+		fail(`the tshig mdzod chen mo now groups the ten as ${stated}`);
+	const sum = grouping.groups.reduce((n, g) => n + g.count, 0);
+	if (sum !== grouping.total || sum !== tshigNames.length)
+		fail(
+			`the grouping counts sum to ${sum}, against a stated total of ${grouping.total} and ${tshigNames.length} names`,
+		);
+	let at = 0;
+	for (const group of grouping.groups) {
+		for (const name of tshigNames.slice(at, at + group.count)) groupOfName.set(name, group);
+		at += group.count;
+	}
+}
+
+const auspiciousnessTerms = [];
+for (const row of AUSPICIOUSNESS) {
+	const group = grouping?.groups?.find((g) => g?.wylie === row.wylie);
+	if (row.source) checkCitation(`auspiciousness ${row.englishName}`, row.source);
+	if (row.composedFrom) {
+		for (const part of row.composedFrom) checkCitation(`auspiciousness ${row.englishName}`, part);
+		const heads = [
+			...headwordIn(row.wylie),
+			...(mvyPairs(row.wylie).length > 0 ? ["Mahāvyutpatti"] : []),
+		];
+		if (heads.length > 0)
+			fail(
+				`auspiciousness ${row.englishName}: "${row.wylie}" is now a headword in ${heads} — re-argue the composed English`,
+			);
+	}
+	if (row.through) checkCitation(`auspiciousness ${row.englishName}`, row.through.equivalentIn);
+	if (row.alternative)
+		checkCitation(`auspiciousness ${row.englishName} (alternative)`, row.alternative);
+	auspiciousnessTerms.push({
+		kind: "auspicious",
+		key: row.englishName,
+		wylie: row.wylie,
+		englishName: row.englishName,
+		tier: row.tier,
+		members: group?.count ?? null,
+		row,
+	});
+}
+
 const yogaTerms = [];
 for (const yoga of HENNING_YOGAS) {
 	const correction = YOGA_CORRECTIONS.find((c) => c.from === yoga.wylie);
@@ -697,6 +931,20 @@ for (const yoga of HENNING_YOGAS) {
 		fail(
 			`yoga ${yoga.elements.join("+")}: the tshig mdzod chen mo's enumeration does not print "${wylie}"`,
 		);
+	const pair = tshigPairs.find((p) => enumerationPrints([p.name], wylie));
+	const sorted = (elements) => [...elements].sort().join("+");
+	if (!pair)
+		fail(
+			`yoga ${yoga.elements.join("+")}: the tshig mdzod chen mo states no element pair for "${wylie}"`,
+		);
+	else if (sorted(pair.elements) !== sorted(yoga.elements))
+		fail(
+			`yoga ${wylie}: the tshig mdzod chen mo pairs it with ${pair.elements.join("+")}, Henning with ${yoga.elements.join("+")}`,
+		);
+	const group = pair ? groupOfName.get(pair.name) : undefined;
+	const auspiciousness = AUSPICIOUSNESS.find((a) => a.wylie === group?.wylie);
+	if (!auspiciousness)
+		fail(`yoga ${wylie}: falls in no group of the tshig mdzod chen mo's grouping`);
 	const devanagari = slp1ToDevanagari(yoga.slp1);
 	if (devanagariToIast(devanagari) !== yoga.iast) {
 		fail(
@@ -716,6 +964,9 @@ for (const yoga of HENNING_YOGAS) {
 			"tshig mdzod chen mo",
 			...(enumerationPrints(dungNames, wylie) ? ["dung dkar tshig mdzod chen mo"] : []),
 		],
+		elementsAttestedIn:
+			pair && sorted(pair.elements) === sorted(yoga.elements) ? ["tshig mdzod chen mo"] : [],
+		auspiciousness: auspiciousness?.englishName ?? null,
 	});
 }
 for (const correction of YOGA_CORRECTIONS) {
@@ -730,7 +981,13 @@ for (const correction of YOGA_CORRECTIONS) {
 // ---------------------------------------------------------------------------------------------
 
 const DISCOURAGED = ["ཱི", "ཷ", "ཹ", "ཱྀ"];
-const tibetanTerms = [...mansionTerms, ...compoundTerms, ...sixSeasonTerms, ...yogaTerms];
+const tibetanTerms = [
+	...mansionTerms,
+	...compoundTerms,
+	...sixSeasonTerms,
+	...yogaTerms,
+	...auspiciousnessTerms,
+];
 for (const term of tibetanTerms) {
 	const first = fromWylie(term.wylie);
 	const second = secondConverter.to_unicode(term.wylie);
@@ -871,6 +1128,20 @@ for (const term of yogaTerms) {
 		fail(`yoga ${term.iast}: Cologne lookup failed — ${error.message}`);
 	}
 }
+for (const term of auspiciousnessTerms.filter((t) => t.row.through)) {
+	const devanagari = slp1ToDevanagari(term.row.through.slp1);
+	try {
+		const entry = await monierWilliams(devanagari);
+		const page = entry?.headed ? pageOfWord(entry.text, term.englishName) : null;
+		if (page === null)
+			fail(
+				`auspiciousness ${term.englishName}: Monier-Williams no longer prints "${term.englishName}" under ${devanagari}`,
+			);
+		term.englishThrough = { devanagari, iast: devanagariToIast(devanagari), page };
+	} catch (error) {
+		fail(`auspiciousness ${term.englishName}: Cologne lookup failed — ${error.message}`);
+	}
+}
 
 // ---------------------------------------------------------------------------------------------
 // Phonetics, from THL's converter
@@ -995,6 +1266,10 @@ writeFileSync(
  *
  * \`englishName\` is printed word for word by \`englishSource\`, a public-domain dictionary. It is Henning's
  * English except where \`englishReplaces\` names the word of his that no dictionary prints.
+ *
+ * \`elementsAttestedIn\` names the Tibetan–Tibetan dictionary whose enumeration states the same element
+ * pair as Henning. \`auspiciousness\` is the group of that enumeration's closing sentence the yoga falls
+ * in — **read by list order**, because the entry states each group's size and never its members.
  */
 
 export const YOGA_NAMES: readonly {
@@ -1010,13 +1285,46 @@ export const YOGA_NAMES: readonly {
 	englishName: string;
 	englishReplaces: string | null;
 	englishSource: { dictionary: string; page: number };
+	elementsAttestedIn: readonly string[];
+	auspiciousness: string;
 }[] = [
-${yogaTerms.map((t) => `\t{ elements: [${t.elements.map(q).join(", ")}], ${name(t)}, correctedFrom: ${q(t.correctedFrom)}, iast: ${q(t.iast)}, devanagari: ${q(t.devanagari)}, monierWilliamsPage: ${t.mwPage}, attestedIn: [${t.attestedIn.map(q).join(", ")}], englishName: ${q(t.englishName)}, englishReplaces: ${q(t.englishReplaces)}, englishSource: ${t.englishSource === null ? "null" : `{ dictionary: ${q(t.englishSource.dictionary)}, page: ${t.englishSource.page} }`} },`).join("\n")}
+${yogaTerms.map((t) => `\t{ elements: [${t.elements.map(q).join(", ")}], ${name(t)}, correctedFrom: ${q(t.correctedFrom)}, iast: ${q(t.iast)}, devanagari: ${q(t.devanagari)}, monierWilliamsPage: ${t.mwPage}, attestedIn: [${t.attestedIn.map(q).join(", ")}], englishName: ${q(t.englishName)}, englishReplaces: ${q(t.englishReplaces)}, englishSource: ${t.englishSource === null ? "null" : `{ dictionary: ${q(t.englishSource.dictionary)}, page: ${t.englishSource.page} }`}, elementsAttestedIn: [${t.elementsAttestedIn.map(q).join(", ")}], auspiciousness: ${q(t.auspiciousness)} },`).join("\n")}
+];
+
+/**
+ * The four groups of the *tshig mdzod chen mo*'s closing sentence, in its order, with the number of
+ * yogas it states for each. \`groupedByOrder\` is always true: which yogas are in a group is inferred.
+ *
+ * \`englishTier\` says how far the English is from the Tibetan. \`printed\`: \`englishSource\` prints it for
+ * the Tibetan. \`through-sanskrit\`: \`englishThrough.equivalentIn\` gives the Sanskrit and Monier-Williams
+ * prints the word for it. \`composed\`: no dictionary prints a word for the compound, and
+ * \`composedFrom\` cites its parts.
+ */
+export const YOGA_AUSPICIOUSNESS: readonly {
+	englishName: string;
+	tibetan: string;
+	wylie: string;
+	phonetic: string;
+	members: number;
+	groupedByOrder: true;
+	englishTier: "printed" | "through-sanskrit" | "composed";
+	englishSource: { dictionary: string; page: number } | null;
+	englishThrough: { iast: string; devanagari: string; monierWilliamsPage: number; equivalentIn: { dictionary: string; page: number } } | null;
+	composedFrom: readonly { wylie: string; dictionary: string; page: number }[] | null;
+	alternative: { englishName: string; dictionary: string; page: number } | null;
+}[] = [
+${auspiciousnessTerms
+	.map((t) => {
+		const cite = (c) => `{ dictionary: ${q(c.dictionary)}, page: ${c.page} }`;
+		const r = t.row;
+		return `\t{ englishName: ${q(t.englishName)}, ${name(t)}, members: ${t.members}, groupedByOrder: true, englishTier: ${q(t.tier)}, englishSource: ${r.source ? cite(r.source) : "null"}, englishThrough: ${t.englishThrough ? `{ iast: ${q(t.englishThrough.iast)}, devanagari: ${q(t.englishThrough.devanagari)}, monierWilliamsPage: ${t.englishThrough.page}, equivalentIn: ${cite(r.through.equivalentIn)} }` : "null"}, composedFrom: ${r.composedFrom ? `[${r.composedFrom.map((c) => `{ wylie: ${q(c.headword)}, dictionary: ${q(c.dictionary)}, page: ${c.page} }`).join(", ")}]` : "null"}, alternative: ${r.alternative ? `{ englishName: ${q(r.alternative.englishName)}, ${cite(r.alternative).slice(2)}` : "null"} },`;
+	})
+	.join("\n")}
 ];
 `,
 );
 
 console.log(
-	`\nall ${tibetanTerms.length} Tibetan terms and ${sixSeasonTerms.length + yogaTerms.length} Sanskrit names passed; ` +
+	`\nall ${tibetanTerms.length} Tibetan terms and ${sixSeasonTerms.length + yogaTerms.length + auspiciousnessTerms.filter((t) => t.englishThrough).length} Sanskrit names passed; ` +
 		"wrote test/fixtures/month-names.ts and test/fixtures/yoga-names.ts",
 );

@@ -1,7 +1,7 @@
 # Astrological attributes
 
 What a Tibetan almanac prints about a day **besides its date** — the elements, animal, gender,
-trigram and number it carries, and whether the day is held favorable.
+trigram and number it carries, and how favorable the day is held to be.
 
 Written for someone building an almanac view: the reader who has a date already and needs to know
 what else the day is held to be.
@@ -9,7 +9,7 @@ what else the day is held to be.
 **Status: built and exported as of 2026-09-12.**
 The whole layer is on the `tibetan-calendar-temporal/astrology` subpath: the year, month, lunar-day
 and calendar-day attributes, the lunar mansion, the element each mansion carries, and the elemental
-yoga with its names and favorability. The month and lunar-day attributes **refuse** for the Bhutanese
+yoga with its names, favorability and four-way grading. The month and lunar-day attributes **refuse** for the Bhutanese
 configs, as the gap below describes.
 This document explains the *system*, which is stable knowledge independent of our implementation.
 It deliberately states **no API examples** — no function names, no call signatures — and that is now a
@@ -210,18 +210,18 @@ The order of the pair does not matter, so there are exactly **ten** combinations
 and six mixed.
 Each has a name, and six are held favorable against four unfavorable.
 
-| Pair | Sanskrit | Tibetan | English |
-|---|---|---|---|
-| earth + earth | siddhi | dngos grub | accomplishment |
-| water + water | amṛta | bdud rtsi | nectar |
-| earth + water | yauvana | lang tsho | youth |
-| fire + fire | pragati | 'phel 'gyur | increase |
-| wind + wind | saṃpanna | phun tshogs | excellence |
-| fire + wind | balayukta | stobs ldan | powerful |
-| earth + wind | alābha | mi 'phrod | deficiency |
-| water + wind | pratikūla | mi mthun | opposition |
-| earth + fire | dahana | bsreg pa | burning |
-| fire + water | maraṇa | 'chi ba | death |
+| Pair | Sanskrit | Tibetan | English | Grading |
+|---|---|---|---|---|
+| earth + earth | siddhi | dngos grub | accomplishment | good |
+| water + water | amṛta | bdud rtsi | nectar | good |
+| earth + water | yauvana | lang tsho | youth | restorative |
+| fire + fire | pragati | 'phel 'gyur | increase | good |
+| wind + wind | saṃpanna | phun tshogs | excellence | restorative |
+| fire + wind | balayukta | stobs ldan | powerful | restorative |
+| earth + wind | alābha | mi 'phrod | deficiency | bad |
+| water + wind | pratikūla | mi mthun | opposition | bad |
+| earth + fire | dahana | bsreg pa | burning | bad |
+| fire + water | maraṇa | 'chi ba | death | worst |
 
 The table is Henning's columns, with two of his English words replaced — *increase* for *progress*
 and *opposition* for *discord*, since no dictionary prints his — and two of his Tibetan spellings corrected — he prints *mi phrod* and
@@ -229,6 +229,12 @@ and *opposition* for *discord*, since no dictionary prints his — and two of hi
 The package carries each name in Tibetan script, Wylie and THL phonetics and in IAST and
 Devanāgarī, generated and verified by a script rather than typed; the evidence is in
 [names/month-and-yoga-sourcing.md](names/month-and-yoga-sourcing.md).
+
+The grading column is the *tshig mdzod chen mo*'s, from the same entry that spells the ten, and ships as `auspiciousness`.
+The entry lists the ten by element pair — the same pairs as Henning, for all ten — and closes "three good, three restorative, three bad, one worst", in Tibetan *bzang po*, *gso thub*, *ngan* and *tha chad*.
+**It gives each group's size and never its members**, so the column applies the sizes to the entry's own order: *dngos grub*, *bdud rtsi*, *'phel 'gyur*, *phun tshogs*, *lang tsho*, *stobs ldan*, *mi 'phrod*, *mi mthun*, *bsreg*, *'chi*.
+That order has a second explanation — the four same-element pairs come first — under which wind + wind, *excellence*, would be good rather than restorative; if a source ever names the members, check that row first.
+The grading agrees with FPMT's favorable six on all ten without either being derived from the other.
 
 **These ten are exactly FPMT's `FD-*` and `UD-*` day-quality codes**, where `E`, `W`, `F` and `A`
 stand for earth, water, fire and air — air being wind.
@@ -273,15 +279,16 @@ layer.
 | Mansion-to-element table | **Henning** | A list, cited by Janson rather than derived by him |
 | The ten yoga names | **Henning**, verified | Likewise cited; two spellings corrected by the *tshig mdzod chen mo*'s own list of the ten, and every Sanskrit name but *pragati* a Monier-Williams headword |
 | Favorability | **FPMT** | Not in Janson at all; a convention, not arithmetic |
+| Pairs and grading, second witness | ***tshig mdzod chen mo*** | A Tibetan dictionary outside Henning's lineage; its grading's membership is read by list order |
 
-The last three matter.
+The last four matter.
 Janson is this project's sole source for the calendar *arithmetic*, and deliberately so — but he is
 explicit that he does not derive the mansion-to-element table or the yoga names, and points to
 Henning for both.
 Citing Henning there is an ordinary citation chain rather than two sources competing to define one
 number, which is the risk that rule actually guards against.
-Favorability comes from neither: Janson never states it, so FPMT is the sole witness, exactly as it
-already is for the observance layer.
+Favorability comes from neither: Janson never states it, so FPMT is the witness for the binary `favorable`, exactly as it already is for the observance layer.
+The *tshig mdzod chen mo* is the fourth source: it states the ten element pairs, which corroborates Henning's, and grades the ten, which ships beside FPMT's binary rather than replacing it.
 
 ## What is deliberately excluded
 

@@ -232,6 +232,7 @@ day.lunarMansion;    // { index: 26, element: 'water' } — Revatī, where the m
 day.yoga.englishName;        // 'death'
 day.yoga.sanskritName.iast;  // 'maraṇa'
 day.yoga.favorable;  // false
+day.yoga.auspiciousness.englishName;  // 'worst'
 ```
 
 **What `yoga` is.** The day's *elemental yoga*: the pairing of two elements from the Indian set of
@@ -244,24 +245,34 @@ combination's one name in three languages.
 
 The ten, in the order the package ships them — a pair in either order is the same yoga:
 
-| Pair | `englishName` | Tibetan | Wylie | Phonetic | Sanskrit | Devanāgarī | `favorable` |
-|---|---|---|---|---|---|---|---|
-| earth + earth | accomplishment | དངོས་གྲུབ | dngos grub | ngö drup | siddhi | सिद्धि | yes |
-| water + water | nectar | བདུད་རྩི | bdud rtsi | dü tsi | amṛta | अमृत | yes |
-| earth + water | youth | ལང་ཚོ | lang tsho | lang tso | yauvana | यौवन | yes |
-| fire + fire | increase | འཕེལ་འགྱུར | 'phel 'gyur | pel gyur | pragati | प्रगति | yes |
-| wind + wind | excellence | ཕུན་ཚོགས | phun tshogs | pün tsok | saṃpanna | संपन्न | yes |
-| fire + wind | powerful | སྟོབས་ལྡན | stobs ldan | top den | balayukta | बलयुक्त | yes |
-| earth + wind | deficiency | མི་འཕྲོད | mi 'phrod | mi trö | alābha | अलाभ | no |
-| water + wind | opposition | མི་མཐུན | mi mthun | mi tün | pratikūla | प्रतिकूल | no |
-| earth + fire | burning | བསྲེག་པ | bsreg pa | sek pa | dahana | दहन | no |
-| fire + water | death | འཆི་བ | 'chi ba | chi ba | maraṇa | मरण | no |
+| Pair | `englishName` | Tibetan | Wylie | Phonetic | Sanskrit | Devanāgarī | `favorable` | `auspiciousness` |
+|---|---|---|---|---|---|---|---|---|
+| earth + earth | accomplishment | དངོས་གྲུབ | dngos grub | ngö drup | siddhi | सिद्धि | yes | good (བཟང་པོ) |
+| water + water | nectar | བདུད་རྩི | bdud rtsi | dü tsi | amṛta | अमृत | yes | good (བཟང་པོ) |
+| earth + water | youth | ལང་ཚོ | lang tsho | lang tso | yauvana | यौवन | yes | restorative (གསོ་ཐུབ) |
+| fire + fire | increase | འཕེལ་འགྱུར | 'phel 'gyur | pel gyur | pragati | प्रगति | yes | good (བཟང་པོ) |
+| wind + wind | excellence | ཕུན་ཚོགས | phun tshogs | pün tsok | saṃpanna | संपन्न | yes | restorative (གསོ་ཐུབ) |
+| fire + wind | powerful | སྟོབས་ལྡན | stobs ldan | top den | balayukta | बलयुक्त | yes | restorative (གསོ་ཐུབ) |
+| earth + wind | deficiency | མི་འཕྲོད | mi 'phrod | mi trö | alābha | अलाभ | no | bad (ངན) |
+| water + wind | opposition | མི་མཐུན | mi mthun | mi tün | pratikūla | प्रतिकूल | no | bad (ངན) |
+| earth + fire | burning | བསྲེག་པ | bsreg pa | sek pa | dahana | दहन | no | bad (ངན) |
+| fire + water | death | འཆི་བ | 'chi ba | chi ba | maraṇa | मरण | no | worst (ཐ་ཆད) |
 
 The English is Henning's translation except *increase* and *opposition*, which replace his *progress*
 and *discord* because no dictionary prints those; every English name here is printed word for word
-by Monier-Williams, Jäschke or Das. Two of the Tibetan spellings correct his, following the
+by Monier-Williams, Jäschke or Das — the `englishName` column, that is; the `auspiciousness` names are covered below. Two of the Tibetan spellings correct his, following the
 Tibetan dictionaries' own lists of the ten. `favorable` is FPMT's convention, not Henning's or
-Janson's. The evidence for every cell is in
+Janson's.
+
+`auspiciousness` is the grading the *tshig mdzod chen mo*, a Tibetan dictionary, gives in the same entry that lists the ten: three good, three restorative, three bad and one worst.
+**It says how many are in each group, not which**, so the groups here are read from the order it lists the yogas in — which is not the order above.
+That reading has a rival: the entry lists the four same-element pairs first, so the split between good and restorative could be structural, in which case wind + wind, *excellence*, would be good.
+The group names are sourced unevenly.
+*good* and *bad* are printed for the Tibetan by Jäschke.
+*worst* is Monier-Williams' word for *adhama*, which Das gives as the Sanskrit for *tha chad*; Jäschke's own word is "very bad".
+*restorative* is composed, because no dictionary heads *gso thub*: *gso ba* is "to restore", *thub* "to be able".
+The grading agrees with `favorable` on all ten, although neither is derived from the other.
+The evidence for every cell is in
 [names/month-and-yoga-sourcing.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/month-and-yoga-sourcing.md).
 
 This is **not** the other yoga an almanac prints. Almanacs also give one of 27 *astronomical* yogas,
@@ -281,7 +292,7 @@ too, because the moon moves between their mornings.
 The element each lunar mansion carries and the ten yoga names are **Henning's**, which Janson cites
 and does not derive. The names are checked against Tibetan dictionaries, which correct two of his
 spellings, and every Sanskrit name but *pragati* is a Monier-Williams headword. Whether a yoga is favorable is **FPMT's** convention and appears in neither of
-them. What is checked against what, over which years, is in
+them; the four-way `auspiciousness` grading is a Tibetan dictionary's, read by list order. What is checked against what, over which years, is in
 [why-trust-these-dates.md](why-trust-these-dates.md).
 
 *Two traditions answer and two refuse.* Janson tabulates no month-animal list for the Bhutanese
