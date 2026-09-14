@@ -29,17 +29,18 @@ import { mansionElement } from "./mansion-elements.js";
 /** One of the ten pairings, with its names and whether it is held favorable. */
 export interface ElementalYoga {
 	/**
-	 * The yoga's name in English: Henning's translation of it, p. 204.
+	 * The yoga's name in English — eight of the ten Henning's translation (p. 204), two a dictionary's.
 	 *
 	 * @remarks
 	 * The third rendering of one name, beside {@link ElementalYoga.tibetanName} and
 	 * {@link ElementalYoga.sanskritName} — not the meaning of the mansion or of anything else. First,
 	 * because it is the key a reader recognises.
 	 *
-	 * Eight of the ten are printed word for word by a public-domain dictionary — seven by
-	 * Monier-Williams under the Sanskrit name, *excellence* by Jäschke under *phun sum tshogs*. **Two are
-	 * Henning's alone**: *progress*, where Jäschke and Das give "increase" and "development", and
-	 * *discord*, where Monier-Williams gives "contrary, adverse" and "opposition". See
+	 * **Every one is printed word for word by a public-domain dictionary.** Eight are Henning's
+	 * translation: seven printed by Monier-Williams under the Sanskrit name, *excellence* by Jäschke
+	 * under *phun sum tshogs*. **Two replace his**, because no dictionary consulted prints his word:
+	 * *increase* for his *progress* (Jäschke p. 357, s.v. *'phel-ba*; Das p. 849 agrees), and
+	 * *opposition* for his *discord* (Monier-Williams p. 661, s.v. *pratikūla*). See
 	 * `docs/names/month-and-yoga-sourcing.md`.
 	 */
 	readonly englishName: string;
@@ -129,7 +130,7 @@ export const ELEMENTAL_YOGAS: readonly ElementalYoga[] = deepFreeze([
 		favorable: true,
 	},
 	{
-		englishName: "progress",
+		englishName: "increase",
 		tibetanName: { tibetan: "འཕེལ་འགྱུར", wylie: "'phel 'gyur", phonetic: "pel gyur" },
 		sanskritName: { iast: "pragati", devanagari: "प्रगति" },
 		elements: ["fire", "fire"],
@@ -157,7 +158,7 @@ export const ELEMENTAL_YOGAS: readonly ElementalYoga[] = deepFreeze([
 		favorable: false,
 	},
 	{
-		englishName: "discord",
+		englishName: "opposition",
 		tibetanName: { tibetan: "མི་མཐུན", wylie: "mi mthun", phonetic: "mi tün" },
 		sanskritName: { iast: "pratikūla", devanagari: "प्रतिकूल" },
 		elements: ["water", "wind"],

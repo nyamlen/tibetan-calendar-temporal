@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { attributesFor, monthAttributesFor } from "../src/astrology/index.js";
+import { attributesFor, ELEMENTAL_YOGAS, monthAttributesFor } from "../src/astrology/index.js";
 import {
 	isoToTibetan,
 	julianDayFromIso,
@@ -231,6 +231,34 @@ describe("guide examples", () => {
 			expect(day.date.weekdayName.element).toBe("fire");
 			expect(day.lunarMansion).toEqual({ index: 26, element: "water" });
 			expect([...day.yoga.elements].sort()).toEqual(["fire", "water"]);
+		});
+
+		it("prints every cell of the ten-yoga table as the package ships it", () => {
+			// Read from the document: seventy cells restated here would pass while the guide drifted.
+			const header =
+				"| Pair | `englishName` | Tibetan | Wylie | Phonetic | Sanskrit | Devanāgarī | `favorable` |";
+			const lines = readFileSync(new URL("../docs/guide.md", import.meta.url), "utf8").split(
+				String.fromCharCode(10),
+			);
+			const start = lines.indexOf(header);
+			expect(start).toBeGreaterThan(-1);
+			const printed = lines.slice(start + 2, start + 12).map((line) =>
+				line
+					.split("|")
+					.slice(1, -1)
+					.map((cell) => cell.trim()),
+			);
+			const shipped = ELEMENTAL_YOGAS.map((yoga) => [
+				yoga.elements.join(" + "),
+				yoga.englishName,
+				yoga.tibetanName.tibetan,
+				yoga.tibetanName.wylie,
+				yoga.tibetanName.phonetic,
+				yoga.sanskritName.iast,
+				yoga.sanskritName.devanagari,
+				yoga.favorable ? "yes" : "no",
+			]);
+			expect(printed).toEqual(shipped);
 		});
 
 		it("is right that the lunar day and the calendar day disagree", () => {

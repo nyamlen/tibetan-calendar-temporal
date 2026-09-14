@@ -215,15 +215,16 @@ Each has a name, and six are held favorable against four unfavorable.
 | earth + earth | siddhi | dngos grub | accomplishment |
 | water + water | amṛta | bdud rtsi | nectar |
 | earth + water | yauvana | lang tsho | youth |
-| fire + fire | pragati | 'phel 'gyur | progress |
+| fire + fire | pragati | 'phel 'gyur | increase |
 | wind + wind | saṃpanna | phun tshogs | excellence |
 | fire + wind | balayukta | stobs ldan | powerful |
 | earth + wind | alābha | mi 'phrod | deficiency |
-| water + wind | pratikūla | mi mthun | discord |
+| water + wind | pratikūla | mi mthun | opposition |
 | earth + fire | dahana | bsreg pa | burning |
 | fire + water | maraṇa | 'chi ba | death |
 
-The table is Henning's columns, with two of his Tibetan spellings corrected — he prints *mi phrod* and
+The table is Henning's columns, with two of his English words replaced — *increase* for *progress*
+and *opposition* for *discord*, since no dictionary prints his — and two of his Tibetan spellings corrected — he prints *mi phrod* and
 *sreg pa*, and both Tibetan–Tibetan dictionaries that enumerate the ten attest *mi 'phrod* and *bsreg pa* (the *tshig mdzod chen mo* in the compound *bsreg sbyor*, read as the sourcing record explains).
 The package carries each name in Tibetan script, Wylie and THL phonetics and in IAST and
 Devanāgarī, generated and verified by a script rather than typed; the evidence is in

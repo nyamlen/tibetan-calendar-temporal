@@ -312,16 +312,17 @@ An earlier version of this record said the Monier-Williams senses "match nine"; 
 | accomplishment | Monier-Williams p. 1216, s.v. *siddhi* | — |
 | nectar | Monier-Williams p. 82, s.v. *amṛta* | — |
 | youth | Monier-Williams p. 859, s.v. *yauvana* | — |
-| **progress** | **none** | Jäschke p. 357, s.v. *'phel-ba*: "to increase, augment, multiply, enlarge … to improve, to grow better"; as a noun "increase. 2. development". Das p. 849, s.v. *hphel-wa*: "to increase either in number or in size, to become more or larger"; "increase, development". Monier-Williams has no *pragati*. |
+| **progress** → ships as **increase** | **none**; *increase* is Jäschke p. 357 and Das p. 849 | Jäschke p. 357, s.v. *'phel-ba*: "to increase, augment, multiply, enlarge … to improve, to grow better"; as a noun "increase. 2. development". Das p. 849, s.v. *hphel-wa*: "to increase either in number or in size, to become more or larger"; "increase, development". Monier-Williams has no *pragati*. |
 | excellence | Jäschke p. 344, s.v. *phun(-sum)-tshogs(-pa)*: "2. sbst. perfection, excellence, superior good" | Monier-Williams p. 1172, s.v. *sam-panna*, prints only the adjective "excellent" |
 | powerful | Monier-Williams p. 723, s.v. *bala-yukta* | — |
 | deficiency | Monier-Williams p. 95, s.v. *a-lābha*: "want, deficiency" | — |
-| **discord** | **none** | Monier-Williams p. 661, s.v. *prati-kūla*: "contrary, adverse, opposite, inverted, wrong, refractory, inimical, disagreeable, unpleasant", and as a noun "opposition". Jäschke p. 241, s.v. *mtun-pa*: "to agree, to harmonize; agreement, harmony", with *mi mtun-pai pyogs* "the hostile parties". Das p. 600, s.v. *mthun-pa*: "to agree with, to be accordant … to live in harmony", whose Sanskrit column includes *anukūla*, the opposite of *pratikūla*. |
+| **discord** → ships as **opposition** | **none**; *opposition* is Monier-Williams p. 661 | Monier-Williams p. 661, s.v. *prati-kūla*: "contrary, adverse, opposite, inverted, wrong, refractory, inimical, disagreeable, unpleasant", and as a noun "opposition". Jäschke p. 241, s.v. *mtun-pa*: "to agree, to harmonize; agreement, harmony", with *mi mtun-pai pyogs* "the hostile parties". Das p. 600, s.v. *mthun-pa*: "to agree with, to be accordant … to live in harmony", whose Sanskrit column includes *anukūla*, the opposite of *pratikūla*. |
 | burning | Monier-Williams p. 473, s.v. *dahana* | — |
 | death | Monier-Williams p. 789, s.v. *maraṇa* | — |
 
-The verifier re-checks every Monier-Williams row against Cologne on each run, carries the Jäschke row as data with its page, and fails if Monier-Williams comes to print *progress* or *discord* — either would then need re-arguing.
-**Whether those two ship as Henning's words or are replaced is open for Andreas**; the candidates the dictionaries print are above.
+The verifier re-checks every Monier-Williams row against Cologne on each run, including *opposition*, and carries the Jäschke rows as data with their pages.
+**Decided by Andreas on 2026-09-14: *increase* and *opposition* replace Henning's two**, each a noun like the other eight and each printed word for word — *increase* by both Tibetan dictionaries, *opposition* by Monier-Williams under the yoga's own Sanskrit name.
+The replacements self-invalidate: the run fails if Henning's table stops saying *progress* or *discord*, or if Monier-Williams comes to print either word, which would make his attested after all.
 
 **The licence line, widened by one fact.**
 The copyrighted dictionaries may gate and may never be quoted, and [scripts/tibetan-dictionary.mjs](../../scripts/tibetan-dictionary.mjs) lists the facts that may be taken.
@@ -331,7 +332,6 @@ The same enumerations also pair each name with its elements and group the ten by
 
 ## Still open
 
-- **The English of *progress* and *discord*.** Eight of the ten are now printed word for word by a dictionary; these two are Henning's alone, and whether to keep them is undecided — see the table above.
 - **Janson's other six-season sources**, Ginzel and Richards, which he cites for the system and which were not consulted.
 - **The Tibetan and Sanskrit of the six-season *system*** as Kongtrul names it in Kālacakra usage.
   Henning prints no Tibetan for it, so the six-season Tibetan above rests on the general lexicons, not on a Kālacakra text.

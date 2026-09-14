@@ -621,15 +621,25 @@ const EXPECTED_ABSENT_FROM_MW = new Set(["pragati"]);
  *   `n` is printed page + 25. It cannot be re-read mechanically — the scan's OCR is unusable — so it is
  *   data carrying its page and sense, and the run fails if Monier-Williams comes to print the word,
  *   which would make it checkable.
- * - `null` — no dictionary consulted prints the word, measured 2026-09-14: Monier-Williams, Jäschke
- *   and Das. The run fails if Monier-Williams comes to print it, so the entry has to be re-argued
- *   rather than silently staying Henning's alone.
+ * - A row with `replaces` ships a dictionary's word **instead of** Henning's, where no dictionary
+ *   consulted prints his (Monier-Williams, Jäschke, Das; measured 2026-09-14). Decided by Andreas on
+ *   2026-09-14. It self-invalidates like the spelling corrections: Henning's word must still be the
+ *   one this table replaces, and the run fails if Monier-Williams comes to print it — then his word is
+ *   attested after all, and the replacement needs re-arguing.
  */
 const ENGLISH_EVIDENCE = {
 	siddhi: "Monier-Williams",
 	amṛta: "Monier-Williams",
 	yauvana: "Monier-Williams",
-	pragati: null,
+	pragati: {
+		word: "increase",
+		replaces: "progress",
+		dictionary: "Jäschke 1881",
+		page: 357,
+		headword: "'phel-ba",
+		sense: "to increase, augment, multiply, enlarge … II. sbst. … increase",
+		alsoIn: "Das 1902 p. 849, s.v. hphel-wa: increase, development",
+	},
 	saṃpanna: {
 		dictionary: "Jäschke 1881",
 		page: 344,
@@ -638,7 +648,7 @@ const ENGLISH_EVIDENCE = {
 	},
 	balayukta: "Monier-Williams",
 	alābha: "Monier-Williams",
-	pratikūla: null,
+	pratikūla: { word: "opposition", replaces: "discord", dictionary: "Monier-Williams" },
 	dahana: "Monier-Williams",
 	maraṇa: "Monier-Williams",
 };
@@ -815,19 +825,35 @@ for (const term of yogaTerms) {
 		const found = Boolean(entry?.headed);
 		const evidence = ENGLISH_EVIDENCE[term.iast];
 		if (evidence === undefined) fail(`yoga ${term.iast}: no English evidence row`);
-		const mwWordPage = entry ? pageOfWord(entry.text, term.english) : null;
-		if (evidence === "Monier-Williams") {
-			if (mwWordPage === null)
-				fail(`yoga ${term.iast}: Monier-Williams no longer prints Henning's "${term.english}"`);
-			term.englishSource = { dictionary: "Monier-Williams 1899", page: mwWordPage };
-		} else {
-			if (mwWordPage !== null)
+		const pageOf = (word) => (entry ? pageOfWord(entry.text, word) : null);
+		const replacement = typeof evidence === "object" && evidence?.replaces ? evidence : null;
+		if (replacement) {
+			if (replacement.replaces !== term.english)
 				fail(
-					`yoga ${term.iast}: Monier-Williams now prints "${term.english}" (p. ${mwWordPage}) — make it a Monier-Williams row`,
+					`yoga ${term.iast}: the English replacement expects Henning's "${replacement.replaces}", but his table now says "${term.english}"`,
 				);
-			term.englishSource =
-				evidence === null ? null : { dictionary: evidence.dictionary, page: evidence.page };
+			const hennings = pageOf(term.english);
+			if (hennings !== null)
+				fail(
+					`yoga ${term.iast}: Monier-Williams now prints Henning's "${term.english}" (p. ${hennings}) — the replacement by "${replacement.word}" needs re-arguing`,
+				);
 		}
+		const word = replacement ? replacement.word : term.english;
+		const dictionary = typeof evidence === "string" ? evidence : evidence?.dictionary;
+		if (dictionary === "Monier-Williams") {
+			const page = pageOf(word);
+			if (page === null) fail(`yoga ${term.iast}: Monier-Williams no longer prints "${word}"`);
+			term.englishSource = { dictionary: "Monier-Williams 1899", page };
+		} else {
+			const page = pageOf(word);
+			if (page !== null)
+				fail(
+					`yoga ${term.iast}: Monier-Williams now prints "${word}" (p. ${page}) — make it a Monier-Williams row`,
+				);
+			term.englishSource = { dictionary, page: evidence.page };
+		}
+		term.englishName = word;
+		term.englishReplaces = replacement ? replacement.replaces : null;
 		if (EXPECTED_ABSENT_FROM_MW.has(term.iast)) {
 			if (found)
 				fail(
@@ -967,8 +993,8 @@ writeFileSync(
  * spells it — which is what corrects two of Henning's — and each Sanskrit name must be a
  * Monier-Williams headword, except *pragati*, whose absence is asserted.
  *
- * \`englishName\` is Henning's English, and \`englishSource\` the public-domain dictionary that prints it
- * word for word; \`null\` where none consulted does.
+ * \`englishName\` is printed word for word by \`englishSource\`, a public-domain dictionary. It is Henning's
+ * English except where \`englishReplaces\` names the word of his that no dictionary prints.
  */
 
 export const YOGA_NAMES: readonly {
@@ -982,9 +1008,10 @@ export const YOGA_NAMES: readonly {
 	monierWilliamsPage: number | null;
 	attestedIn: readonly string[];
 	englishName: string;
-	englishSource: { dictionary: string; page: number } | null;
+	englishReplaces: string | null;
+	englishSource: { dictionary: string; page: number };
 }[] = [
-${yogaTerms.map((t) => `\t{ elements: [${t.elements.map(q).join(", ")}], ${name(t)}, correctedFrom: ${q(t.correctedFrom)}, iast: ${q(t.iast)}, devanagari: ${q(t.devanagari)}, monierWilliamsPage: ${t.mwPage}, attestedIn: [${t.attestedIn.map(q).join(", ")}], englishName: ${q(t.english)}, englishSource: ${t.englishSource === null ? "null" : `{ dictionary: ${q(t.englishSource.dictionary)}, page: ${t.englishSource.page} }`} },`).join("\n")}
+${yogaTerms.map((t) => `\t{ elements: [${t.elements.map(q).join(", ")}], ${name(t)}, correctedFrom: ${q(t.correctedFrom)}, iast: ${q(t.iast)}, devanagari: ${q(t.devanagari)}, monierWilliamsPage: ${t.mwPage}, attestedIn: [${t.attestedIn.map(q).join(", ")}], englishName: ${q(t.englishName)}, englishReplaces: ${q(t.englishReplaces)}, englishSource: ${t.englishSource === null ? "null" : `{ dictionary: ${q(t.englishSource.dictionary)}, page: ${t.englishSource.page} }`} },`).join("\n")}
 ];
 `,
 );

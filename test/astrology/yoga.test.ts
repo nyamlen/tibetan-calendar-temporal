@@ -179,17 +179,23 @@ describe("the yoga names match the verified fixture", () => {
 		expect(yoga?.englishName).toBe(row.englishName);
 	});
 
-	it("has a word-for-word dictionary source for eight English names, and none for two", () => {
-		// Pinned as values: *progress* and *discord* are Henning's alone — Monier-Williams, Jäschke and
-		// Das all print other words — and a table edit that swapped either for a sourced word would pass
-		// the per-row comparison above if the fixture were regenerated with it.
+	it("has a word-for-word dictionary source for every English name, two replacing Henning's", () => {
+		// Pinned as values: a regenerated fixture that dropped a replacement would still pass the
+		// per-row comparison above, and so would one that quietly reinstated Henning's word.
+		expect(YOGA_NAMES.filter((row) => row.englishSource === null)).toEqual([]);
 		expect(
-			YOGA_NAMES.filter((row) => row.englishSource === null).map((row) => row.englishName),
-		).toEqual(["progress", "discord"]);
-		expect(YOGA_NAMES.find((row) => row.iast === "saṃpanna")?.englishSource).toEqual({
-			dictionary: "Jäschke 1881",
-			page: 344,
-		});
+			YOGA_NAMES.filter((row) => row.englishReplaces !== null).map((row) => [
+				row.englishReplaces,
+				row.englishName,
+				row.englishSource.dictionary,
+				row.englishSource.page,
+			]),
+		).toEqual([
+			["progress", "increase", "Jäschke 1881", 357],
+			["discord", "opposition", "Monier-Williams 1899", 661],
+		]);
+		expect(elementalYoga("fire", "fire").englishName).toBe("increase");
+		expect(elementalYoga("water", "wind").englishName).toBe("opposition");
 	});
 
 	it("ships the two corrected spellings, not Henning's", () => {

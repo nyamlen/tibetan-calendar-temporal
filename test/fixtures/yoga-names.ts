@@ -11,8 +11,8 @@
  * spells it — which is what corrects two of Henning's — and each Sanskrit name must be a
  * Monier-Williams headword, except *pragati*, whose absence is asserted.
  *
- * `englishName` is Henning's English, and `englishSource` the public-domain dictionary that prints it
- * word for word; `null` where none consulted does.
+ * `englishName` is printed word for word by `englishSource`, a public-domain dictionary. It is Henning's
+ * English except where `englishReplaces` names the word of his that no dictionary prints.
  */
 
 export const YOGA_NAMES: readonly {
@@ -26,7 +26,8 @@ export const YOGA_NAMES: readonly {
 	monierWilliamsPage: number | null;
 	attestedIn: readonly string[];
 	englishName: string;
-	englishSource: { dictionary: string; page: number } | null;
+	englishReplaces: string | null;
+	englishSource: { dictionary: string; page: number };
 }[] = [
 	{
 		elements: ["earth", "earth"],
@@ -39,6 +40,7 @@ export const YOGA_NAMES: readonly {
 		monierWilliamsPage: 1215,
 		attestedIn: ["tshig mdzod chen mo", "dung dkar tshig mdzod chen mo"],
 		englishName: "accomplishment",
+		englishReplaces: null,
 		englishSource: { dictionary: "Monier-Williams 1899", page: 1216 },
 	},
 	{
@@ -52,6 +54,7 @@ export const YOGA_NAMES: readonly {
 		monierWilliamsPage: 82,
 		attestedIn: ["tshig mdzod chen mo", "dung dkar tshig mdzod chen mo"],
 		englishName: "nectar",
+		englishReplaces: null,
 		englishSource: { dictionary: "Monier-Williams 1899", page: 82 },
 	},
 	{
@@ -65,6 +68,7 @@ export const YOGA_NAMES: readonly {
 		monierWilliamsPage: 859,
 		attestedIn: ["tshig mdzod chen mo"],
 		englishName: "youth",
+		englishReplaces: null,
 		englishSource: { dictionary: "Monier-Williams 1899", page: 859 },
 	},
 	{
@@ -77,8 +81,9 @@ export const YOGA_NAMES: readonly {
 		devanagari: "प्रगति",
 		monierWilliamsPage: null,
 		attestedIn: ["tshig mdzod chen mo", "dung dkar tshig mdzod chen mo"],
-		englishName: "progress",
-		englishSource: null,
+		englishName: "increase",
+		englishReplaces: "progress",
+		englishSource: { dictionary: "Jäschke 1881", page: 357 },
 	},
 	{
 		elements: ["wind", "wind"],
@@ -91,6 +96,7 @@ export const YOGA_NAMES: readonly {
 		monierWilliamsPage: 1172,
 		attestedIn: ["tshig mdzod chen mo"],
 		englishName: "excellence",
+		englishReplaces: null,
 		englishSource: { dictionary: "Jäschke 1881", page: 344 },
 	},
 	{
@@ -104,6 +110,7 @@ export const YOGA_NAMES: readonly {
 		monierWilliamsPage: 723,
 		attestedIn: ["tshig mdzod chen mo"],
 		englishName: "powerful",
+		englishReplaces: null,
 		englishSource: { dictionary: "Monier-Williams 1899", page: 723 },
 	},
 	{
@@ -117,6 +124,7 @@ export const YOGA_NAMES: readonly {
 		monierWilliamsPage: 95,
 		attestedIn: ["tshig mdzod chen mo", "dung dkar tshig mdzod chen mo"],
 		englishName: "deficiency",
+		englishReplaces: null,
 		englishSource: { dictionary: "Monier-Williams 1899", page: 95 },
 	},
 	{
@@ -129,8 +137,9 @@ export const YOGA_NAMES: readonly {
 		devanagari: "प्रतिकूल",
 		monierWilliamsPage: 661,
 		attestedIn: ["tshig mdzod chen mo", "dung dkar tshig mdzod chen mo"],
-		englishName: "discord",
-		englishSource: null,
+		englishName: "opposition",
+		englishReplaces: "discord",
+		englishSource: { dictionary: "Monier-Williams 1899", page: 661 },
 	},
 	{
 		elements: ["earth", "fire"],
@@ -143,6 +152,7 @@ export const YOGA_NAMES: readonly {
 		monierWilliamsPage: 473,
 		attestedIn: ["tshig mdzod chen mo", "dung dkar tshig mdzod chen mo"],
 		englishName: "burning",
+		englishReplaces: null,
 		englishSource: { dictionary: "Monier-Williams 1899", page: 473 },
 	},
 	{
@@ -156,6 +166,7 @@ export const YOGA_NAMES: readonly {
 		monierWilliamsPage: 789,
 		attestedIn: ["tshig mdzod chen mo", "dung dkar tshig mdzod chen mo"],
 		englishName: "death",
+		englishReplaces: null,
 		englishSource: { dictionary: "Monier-Williams 1899", page: 789 },
 	},
 ];
