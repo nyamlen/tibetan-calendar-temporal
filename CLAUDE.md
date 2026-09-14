@@ -226,6 +226,12 @@ attributes are **not** covered by either figure above, and the differences are n
   Before explaining a residual by a formula, check whether the source uses the same formula.
 - **Yoga favorability** agrees with FPMT's printed prefixes on 99.7% of the same days, and that check
   is independent of the mansion because it reads FPMT's own pair letters.
+- **The yoga table's element pairs and its grading** have, since 2026-09-14, a Tibetan witness outside
+  Henning: the *tshig mdzod chen mo*'s `'phrod sbyor` states the same pair for all ten, and grades the
+  ten into good, restorative, bad and worst, which ships as `auspiciousness`. It is a check on **ten
+  table rows**, not on days, so it has no window. **The grading's membership is inferred from list
+  order** — the entry gives each group's size and never its members — and `favorable` agreeing with it
+  on all ten is two claims coinciding, not a validation of either.
 
 So never answer an attribute question with the date window, and never call the mansion "validated"
 without the 97.6% and its six unexplained days. `docs/testing.md` holds the table;
@@ -370,13 +376,13 @@ derivation; in `docs/` they are just noise.
   README called `rabjungFor`'s `name` "the Tibetan and Sanskrit name" for hours after the Sanskrit
   came off, and the grep that found the stale list named the removed types rather than the field, so
   it sailed past. Removing or renaming a type therefore still needs the hand sweep for everything
-  except the list — `docs/architecture.md`'s shapes (**25** exported types defined as interface
+  except the list — `docs/architecture.md`'s shapes (**26** exported types defined as interface
   blocks, plus `SanskritName`, `TibetanAnimal`, `TibetanElement`, `TibetanGender`, `TibetanName`, `TibetanWeekday`,
   `TibetanWeekdayName` and `TibetanYearName` named in field positions), `docs/guide.md` (4), and any
   docblock naming it. This figure read 7 until 2026-08-26, 10 until 2026-08-27, and moved twice on
   2026-09-12 — 13 when `TraditionNaming` and `TraditionMonthNaming` gained shapes, then 20 with the
   seven `./astrology` ones — and to 21 on 2026-09-13, when `TraditionMonthNaming` split into
-  `TraditionMonthAnimals` and `TraditionNineNumbers`, and to 24 on 2026-09-14 with `monthNamesFor`'s three result types, then 25 with `LunarMansion`; it moves whenever
+  `TraditionMonthAnimals` and `TraditionNineNumbers`, and to 24 on 2026-09-14 with `monthNamesFor`'s three result types, then 25 with `LunarMansion`, and to 26 with `YogaAuspiciousness`; it moves whenever
   a shape is added, so **re-count it rather than trusting the number written here** — the count is
   `grep -c '^interface ' docs/architecture.md`.
 
@@ -713,9 +719,12 @@ mo*) may **gate** and may never be **quoted** — they are modern copyrighted wo
 facts are taken: that a headword exists, the cycle position an entry states, the element–animal
 year an entry states, and the register tag on a sense — and a fifth, the spelling of each member of a
 set an entry enumerates, approved on 2026-09-13 for the elemental-yoga check and now in the script's
-table. **The enumerations that fifth fact reads also pair each name with its elements and rank the ten;
-neither is taken**, and taking either would be a sixth fact needing the same approval. This sentence
-said "three" while the script said four. **No gloss text is stored, printed or emitted**, and the year is computed from
+table. A sixth and seventh were approved on 2026-09-14: **the element pair an enumeration assigns each
+member, and the grouping it states** — the *tshig mdzod chen mo*'s `'phrod sbyor` closes "three good,
+three restorative, three bad, one worst". **The grouping gives sizes, never members**, so which yoga is
+in which group is not a taken fact but an inference from list order, and it is marked as one in the
+fixture, the `auspiciousness` docblock and the guide. This sentence said "three" while the script said
+four. **No gloss text is stored, printed or emitted**, and the year is computed from
 the cycle and never read off a dictionary, which is what stops the check being circular. The reading
 logic lives in `scripts/tibetan-dictionary.mjs`, shared with `scripts/survey-ngonjo.mjs`, and carries
 the traps that logic exists to avoid — chief among them that **a register tag has two scopes** and

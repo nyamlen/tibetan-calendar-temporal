@@ -147,8 +147,12 @@ Stating this is the point of the page.
   and disagree with FPMT on the same ones, so the difference is on FPMT's side: its moon runs slightly
   ahead, mostly on days late in a mansion, and far more often in 2025 than in the three years before.
   No cause is established, and **six days in four years fit no pattern at all**. Yoga
-  **favorability** is FPMT's convention and nobody else's, and agrees with their printed prefixes on
-  99.7% of those days. Month and lunar-day attributes **refuse** for the Bhutanese traditions,
+  **favorability** is FPMT's convention, and agrees with their printed prefixes on 99.7% of those
+  days. A Tibetan dictionary, the *tshig mdzod chen mo*, states the same element pair for each of the
+  ten yogas and grades them into four groups, shipped as `auspiciousness`; its grading agrees with
+  FPMT's favorable six. That is a check on the ten rows of a table, not on any date, and which yoga
+  is in which group is read from the order the dictionary lists them, because it states only how
+  many are in each. Month and lunar-day attributes **refuse** for the Bhutanese traditions,
   because no source gives them.
 - **Planetary positions and karaṇa are still not computed**, nor eclipses. Janson's Appendix D is
   deliberately out of scope. Sources that print those are computing something this package does not.

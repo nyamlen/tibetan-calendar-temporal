@@ -640,8 +640,8 @@ describe("observances API surface", () => {
  * The `./astrology` subpath, pinned separately for the same reason `./observances` is.
  *
  * A third one-way door, and the one whose sourcing is least uniform: Janson gives the cycles and the
- * mansion arithmetic, Henning the mansion elements and the yoga names, and FPMT the favorability
- * alone. That is why it is a subpath rather than part of the root — the root's claims are all
+ * mansion arithmetic, Henning the mansion elements and the yoga names, FPMT the favorability, and
+ * the *tshig mdzod chen mo* the yoga grading. That is why it is a subpath rather than part of the root — the root's claims are all
  * checkable against Janson.
  */
 const EXPECTED_ASTROLOGY_EXPORTS = [

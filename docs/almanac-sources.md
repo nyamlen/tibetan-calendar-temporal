@@ -153,8 +153,9 @@ tradition", and the ten elemental yogas with their Tibetan, Sanskrit and English
 The ten are reproduced in [astrology.md](astrology.md), which is the reader-facing account of the
 whole attribute layer.
 **Favorability is in neither Janson nor Henning** — Henning gives names and senses, not a verdict —
-so FPMT remains the sole witness for which pairs are favorable, exactly as it already is for the
-observance rules.
+so FPMT remains the witness for which pairs are favorable, exactly as it already is for the
+observance rules. Since 2026-09-14 the *tshig mdzod chen mo* also grades the ten, in four groups rather
+than two, and ships beside FPMT's binary as `auspiciousness`; see [astrology.md](astrology.md).
 
 Three traps in that page, all of which would produce a plausible wrong answer:
 
