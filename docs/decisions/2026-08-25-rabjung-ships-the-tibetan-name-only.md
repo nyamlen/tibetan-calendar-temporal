@@ -163,7 +163,7 @@ The shape is otherwise exactly the one recorded above, and every requirement on 
   cycle: 17,
   year: 34,
   tibetanName: { tibetan: "ཀུན་ལྡན", wylie: "kun ldan", phonetic: "kün den" },
-  sanskritLists: {                              // working name
+  sanskritByList: {                             // working name
     indic:    { devanagari: "शार्वरी", iast: "Śārvarī", meaning: "belonging to night, nocturnal" },
     rendered: { tibetanScript: "སརྦཔཏི", roman: "Sarvapati" },
     diverge:  true,
@@ -173,9 +173,9 @@ The shape is otherwise exactly the one recorded above, and every requirement on 
 
 Measured against the four implications listed above, the placement helps with two and leaves two:
 
-1. **The path shortens by a level**, to `sanskritLists.indic.meaning`.
+1. **The path shortens by a level**, to `sanskritByList.indic.meaning`.
 2. **The two Tibetan-script fields no longer share an object**: the Tibetan name is `tibetanName.tibetan`,
-   and the Sanskrit written in Tibetan script is `sanskritLists.rendered.tibetanScript`.
+   and the Sanskrit written in Tibetan script is `sanskritByList.rendered.tibetanScript`.
 3. `diverge` is still a flag warning about the type's own structure.
 4. A consumer still has to understand the two-list distinction to choose between `indic` and `rendered`.
 
@@ -184,12 +184,8 @@ the six seasons, is `{ iast, devanagari }`. It cannot carry this shape: `rendere
 Devanāgarī, only `indic` has a Monier-Williams `meaning`, and `diverge` belongs to neither list.
 Reusing `SanskritName` for a rabjung would mean shipping one list, which is the thing this record rejects.
 
-**The working name is `sanskritLists`, deliberately not `sanskritNames`.** The plural of "name" reads as
-several names for one thing, which is precisely the misreading the two lists invite at 16, 17, 18, 20
-and 34, where they are different names. "Lists" names the structure a consumer has to understand to use
-the field. Rejected with it: `samvatsaraNames`, which is an ASCII Sanskrit key of the kind refused on
-2026-09-13, and `sanskritReadings`, because "reading" already means one of Csoma's braced alternatives at
-29 and 52, which is a different thing.
+**The working name is `sanskritByList`** — "the Sanskrit, by list" — because the object is this position's entry in each of two lists, keyed by which list.
+Rejected: `sanskritNames`, whose plural reads as several names for one thing, precisely the misreading the two lists invite at 16, 17, 18, 20 and 34, where they are different names; `sanskritLists`, which names the structure but claims to hold the lists rather than one entry from each (used in the first version of this correction, same day); `sanskritListEntries`, accurate and too long; `samvatsaraNames`, an ASCII Sanskrit key of the kind refused on 2026-09-13; and `sanskritReadings`, because "reading" already means one of Csoma's braced alternatives at 29 and 52, which is a different thing.
 
 **Corrected 2026-09-14.** The first version of this amendment said the Sanskrit "would return as a sibling
 `sanskritName` on `Rabjung`", implying the new `SanskritName` type. That silently replaced the two-list
