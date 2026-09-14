@@ -1315,15 +1315,16 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   `spen pa` in his Bhutan appendix, and the wrong one had been sitting in a shipped docblock. That
   is why the harness exists.
 
-  **Still outstanding: month names.** The twelve lunar-mansion names are sourced and unambiguous.
+  **Month names — shipped 2026-09-14 as `monthNamesFor`.** The twelve lunar-mansion names are sourced and unambiguous.
   Janson lists **four seasonal identifications**, none of which he reports as current usage, and
   almanacs "often give two or several different versions" at once — so they are **not a per-tradition
   selector**, as this item used to say. Three are fixed functions of the month number; only the one
   anchored on the Tiger month depends on a tradition, through the month-animal rule the config already
-  carries. The planned shape therefore returns every system and chooses none, which needs no seasonal
-  member in `naming` at all. The evidence for the names is in
-  [names/month-and-yoga-sourcing.md](names/month-and-yoga-sourcing.md); the verifier that will enforce
-  it is not built, and nothing ships until it is.
+  carries. The shape therefore returns every system and chooses none, which needs no seasonal
+  member in `naming` at all, and that is what shipped: see
+  [decisions/2026-09-14-month-names-return-every-system.md](decisions/2026-09-14-month-names-return-every-system.md).
+  The evidence for the names is in [names/month-and-yoga-sourcing.md](names/month-and-yoga-sourcing.md),
+  and `npm run verify:month-and-yoga-names` is the verifier that enforces it.
 
 - **Safari has not shipped Temporal, so a browser consumer needs a polyfill.** Checked 2026-08-22.
   Temporal ships natively in Chrome 144 (13 January 2026), Firefox 139 and Edge 144, and reached

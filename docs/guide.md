@@ -381,6 +381,49 @@ what it is for — store the tradition with it, exactly as you would store a cur
 amount. A column holding the bare integer is ambiguous in any application that offers more than
 one tradition, and this package ships four.
 
+### Naming a month
+
+A Tibetan month has more than one name, and an almanac often prints several.
+`monthNamesFor` returns all of them at once: the lunar mansion the month is named for, and the month's place in each of four seasonal systems.
+
+```js
+const names = monthNamesFor({ year: 2153, month: 1 });
+
+names.mansion.tibetanName.wylie;                        // "mchu"
+names.fourSeasons.month1EarlySpring.season;             // "spring"
+names.fourSeasons.month1EarlySpring.tibetanName.wylie;  // "dpyid zla ra ba"
+names.sixSeasons.month3EarlySpring.sanskritName.iast;   // "śiśira"
+```
+
+**Choose a system; the package does not choose one for you.**
+The seasonal names have been matched to the months in several ways, the sources disagree about which one a tradition uses, and so there is no default.
+Each system is named for the rule that defines it:
+
+| Month | `mansion` | `month1LateWinter` | `month1EarlySpring` | `tigerEarlySpring`, Phugpa | `sixSeasons.month3EarlySpring` |
+|---|---|---|---|---|---|
+| 1 | mchu | late winter | early spring | late spring | early dewy |
+| 2 | dbo | early spring | middle spring | early summer | late dewy |
+| 3 | nag pa | middle spring | late spring | middle summer | early spring |
+| 4 | sa ga | late spring | early summer | late summer | late spring |
+| 5 | snron | early summer | middle summer | early autumn | early summer |
+| 6 | chu stod | middle summer | late summer | middle autumn | late summer |
+| 7 | gro bzhin | late summer | early autumn | late autumn | early rains |
+| 8 | khrums | early autumn | middle autumn | early winter | late rains |
+| 9 | tha skar | middle autumn | late autumn | middle winter | early autumn |
+| 10 | smin drug | late autumn | early winter | late winter | late autumn |
+| 11 | mgo | early winter | middle winter | early spring | early cold |
+| 12 | rgyal | middle winter | late winter | middle spring | late cold |
+
+Three things that table makes easy to get wrong:
+
+- **The same key names different months in different systems.** `spring` is months 2–4 in one column, 1–3 in the next, and 3–4 in the last. A `season` is only meaningful together with the system it came from.
+- **`tigerEarlySpring` depends on the tradition**, because it counts from the Tiger month: Phugpa's is month 11, Tsurphu's month 1. It is `null` under `BHUTAN`, whose Tiger month no independent source gives. The column above is Phugpa's.
+- **The six-season Tibetan is the season's name, not the month's**, and can read against the key: month 1 is `{ season: "dewy", part: "early" }`, and its Tibetan *dgun smad* means "late winter", because *dewy* (śiśira) is the later half of the Tibetan winter.
+
+A leap month takes the names of the regular month sharing its number, in every system.
+The mansion names are printed bare — *mchu*, not *mchu zla ba* — as every source prints them, which makes some of them ordinary words too: *mchu* is also "lip".
+The sources and the variants not chosen are in [names/month-and-yoga-sourcing.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/month-and-yoga-sourcing.md).
+
 ### The year name you may know in Sanskrit is not shipped, and that is deliberate
 
 `rabjungFor(year).tibetanName` carries the Tibetan name of the year — script, Wylie and phonetics — and

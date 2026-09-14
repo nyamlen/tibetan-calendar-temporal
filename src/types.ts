@@ -11,9 +11,10 @@
  *   `.day`, `.monthCode`. This package is Temporal-native, and a consumer moving between a
  *   `TibetanDate` and a `Temporal.PlainDate` should not have to learn a second access
  *   pattern.
- * - **Naming systems are grouped under a `*Name` field.** Today that is
- *   {@link TibetanYearName}. If Janson's Appendix E month-level and day-level naming is ever
- *   added, it lands as `monthName` and `dayName` — parallel, and a non-breaking addition.
+ * - **Naming systems are grouped under a `*Name` field** — `weekdayName` on the date,
+ *   `yearName` on a {@link TibetanMonth}. Names a date can regenerate from its own fields are
+ *   lookups instead: `yearNameFor`, `rabjungFor`, and `monthNamesFor`, which returns every
+ *   month-naming system at once and so could not be one `monthName` field without choosing a system.
  *
  * Grouping everything instead — `year.number`, `month.code`, `day.isLeap` — was considered and
  * rejected. It is more uniform, but it makes `month` an object where `Temporal.PlainDate.month`

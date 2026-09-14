@@ -140,6 +140,8 @@ tibetan-calendar-temporal/
 │   ├── format.ts                   # formatTibetanDate, monthCodeOf — the canonical string form
 │   ├── parse.ts                    # parseTibetanDate — its inverse
 │   ├── months.ts                   # monthsFor, datesFor, daysInMonth, the three closed-form scalars
+│   ├── month-names.ts              # monthNamesFor — the mansion name and all four seasonal systems;
+│   │                               #   also the Tiger-month reader ./astrology shares
 │   ├── navigation.ts               # the lunation coordinate, day and month arithmetic, the phases
 │   ├── cycles.ts                   # the cyclic names: year, rabjung, weekday, element, gender, animal
 │   ├── names.ts                    # the frozen name vocabulary — internal; cycles.ts, epoch.ts,
@@ -186,12 +188,17 @@ when its directory came to exist — an export pointing at a file the build cann
 `npm pack`, so the entry and the directory land together. `npm pack --dry-run` is the check, and
 `npm run test:pack` imports all three as a consumer would.
 
-The split is not packaging convenience. Everything on `.` makes a falsifiable claim, checkable
-against Janson or an almanac; `./observances` holds conventions that published sources disagree
-about. See [decisions/2026-08-12-observance-policy.md](decisions/2026-08-12-observance-policy.md).
+The split is not packaging convenience. `./observances` holds conventions that published sources
+disagree about, and the root does not. See [decisions/2026-08-12-observance-policy.md](decisions/2026-08-12-observance-policy.md).
 
-`./astrology` is a third kind again, and the reason it is not on the root is **sourcing rather than
-size**. Its pieces do not carry equal weight: Janson gives every cycle and the mansion arithmetic,
+What separates the root from `./astrology` is **what a thing is for**, not how it is sourced. The
+root says *which* year, month or day something is — its date and its names — and `./astrology` what
+that year, month or day carries. `monthNamesFor` is on the root on that reasoning, parallel to
+`yearNameFor` against `yearAttributesFor`, although its six-season list is Henning's and its season
+terms come from dictionaries rather than Janson; that provenance lives in its docblock and in
+[names/month-and-yoga-sourcing.md](names/month-and-yoga-sourcing.md) rather than in the import line.
+
+`./astrology` does still carry a sourcing boundary worth keeping visible. Its pieces do not carry equal weight: Janson gives every cycle and the mansion arithmetic,
 Henning gives the element each mansion carries and the ten yoga names — which Janson cites and does
 not derive — and **favorability is in neither**, FPMT being its only witness. A subpath keeps that
 boundary visible at the import line. See [astrology.md](astrology.md).
@@ -294,6 +301,31 @@ interface Rabjung {
   cycle: number;          // 17 for 1987-2046
   year: number;           // 1-60 position within the cycle
   tibetanName: TibetanName; // the Tibetan name only — neither Sanskrit list ships
+}
+
+interface MonthNames {
+  mansion: { tibetanName: TibetanName };  // mchu … rgyal, bare — mchu is also "lip"
+  fourSeasons: {
+    month1LateWinter: FourSeasonMonthName;         // the original Kālacakra identification
+    month1EarlySpring: FourSeasonMonthName;        // Phugpa's; Janson's "seasonal I"
+    tigerEarlySpring: FourSeasonMonthName | null;  // counts from the Tiger month; null for Bhutan
+  };
+  sixSeasons: {
+    month3EarlySpring: SixSeasonMonthName;         // Henning pp. 358–359
+  };
+}
+
+interface FourSeasonMonthName {
+  season: 'spring' | 'summer' | 'autumn' | 'winter';
+  part: 'early' | 'middle' | 'late';
+  tibetanName: TibetanName;  // དཔྱིད་ཟླ་ར་བ *dpyid zla ra ba* for early spring
+}
+
+interface SixSeasonMonthName {
+  season: 'spring' | 'summer' | 'rains' | 'autumn' | 'cold' | 'dewy';
+  part: 'early' | 'late';
+  tibetanName: TibetanName;    // the season's name — དགུན་སྨད *dgun smad* for dewy
+  sanskritName: SanskritName;  // śiśira शिशिर
 }
 
 interface TibetanYearName {
@@ -399,9 +431,10 @@ Settled at the start of Phase 1. The rule is two-axis:
 - **Date components stay flat**, because `Temporal.PlainDate` is flat — `.year`, `.month`,
   `.day`, `.monthCode`. This package is Temporal-native and a consumer moving between the two
   should not learn a second access pattern.
-- **Naming systems group under a `*Name` field.** Stated that way the rule extends: if Janson
-  App. E month-level and day-level naming is ever added, it lands as `monthName` and `dayName`,
-  parallel and non-breaking.
+- **Naming systems group under a `*Name` field.** Stated that way the rule extends to any name a
+  date carries. It no longer predicts `monthName` and `dayName` on the date: year naming came off
+  `TibetanDate` on 2026-08-24, and month naming shipped as the lookup `monthNamesFor` for the same
+  reason (below).
 
 Grouping everything — `year.number`, `month.code`, `day.isLeap` — was rejected. It is more
 uniform, but `d.month` as an object where `PlainDate.month` is a number generates silent
@@ -416,6 +449,12 @@ it — together more than half of a serialised year. `yearNameFor(year)` and `ra
 closed forms over the year alone, so nothing is lost: a date carries `year`, and both are one call
 away. `TibetanMonth` keeps `yearName`, where the repetition is thirteen-fold rather than
 354-fold and the `monthsFor` → `datesFor` path wants it to hand.
+
+**Month names follow the same rule.** `monthNamesFor(month)` needs only the month number (and, for
+`tigerEarlySpring`, the tradition), so a date repeating them thirty times would cost bytes and buy
+nothing. And there are five of them per month — one per naming system — which is five fields no single
+`monthName` could hold without choosing a system. See
+[decisions/2026-09-14-month-names-return-every-system.md](decisions/2026-09-14-month-names-return-every-system.md).
 
 `weekdayName` stays on the date, and the line is not arbitrary: it is the only name a date cannot
 regenerate from itself, because `weekdayNameFor` takes a `TraditionConfig` and a serialised date

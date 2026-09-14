@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { attributesFor, monthAttributesFor } from "../src/astrology/index.js";
 import {
@@ -9,6 +10,7 @@ import {
 } from "../src/computation/conversion.js";
 import { yearNameFor } from "../src/cycles.js";
 import { formatTibetanDate } from "../src/format.js";
+import { monthNamesFor } from "../src/month-names.js";
 import { monthsFor } from "../src/months.js";
 import { DEFAULT_OBSERVANCES, getObservances, observancesOn } from "../src/observances/index.js";
 import { parseTibetanDate } from "../src/parse.js";
@@ -241,6 +243,65 @@ describe("guide examples", () => {
 				thrown = error;
 			}
 			expect((thrown as { code?: string }).code).toBe("TCT_ATTRIBUTE_NOT_SOURCED");
+		});
+	});
+
+	describe("naming a month", () => {
+		it("prints the example's values", () => {
+			const names = monthNamesFor({ year: 2153, month: 1 });
+			expect(names.mansion.tibetanName.wylie).toBe("mchu");
+			expect(names.fourSeasons.month1EarlySpring.season).toBe("spring");
+			expect(names.fourSeasons.month1EarlySpring.tibetanName.wylie).toBe("dpyid zla ra ba");
+			expect(names.sixSeasons.month3EarlySpring.sanskritName.iast).toBe("śiśira");
+		});
+
+		it("prints every cell of the month-by-month table as the engine computes it", () => {
+			// Read from the document rather than restated here: seventy-two cells are too many to
+			// keep in step by hand, and a restated copy would pass while the guide drifted.
+			const header =
+				"| Month | `mansion` | `month1LateWinter` | `month1EarlySpring` | `tigerEarlySpring`, Phugpa | `sixSeasons.month3EarlySpring` |";
+			const lines = readFileSync(new URL("../docs/guide.md", import.meta.url), "utf8").split("\n");
+			const start = lines.indexOf(header);
+			expect(start).toBeGreaterThan(-1);
+			const printed = lines.slice(start + 2, start + 14).map((line) =>
+				line
+					.split("|")
+					.slice(1, -1)
+					.map((cell) => cell.trim()),
+			);
+
+			const words = (entry: { season: string; part: string } | null) =>
+				entry === null ? "null" : `${entry.part} ${entry.season}`;
+			const computed = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((month) => {
+				const { mansion, fourSeasons, sixSeasons } = monthNamesFor({ year: 2153, month });
+				return [
+					String(month),
+					mansion.tibetanName.wylie,
+					words(fourSeasons.month1LateWinter),
+					words(fourSeasons.month1EarlySpring),
+					words(fourSeasons.tigerEarlySpring),
+					words(sixSeasons.month3EarlySpring),
+				];
+			});
+			expect(printed).toEqual(computed);
+		});
+
+		it("is right about spring's months in three columns, and Bhutan's null", () => {
+			const springs = (pick: (month: number) => { season: string }) =>
+				[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].filter((month) => pick(month).season === "spring");
+			const of = (month: number) => monthNamesFor({ year: 2153, month });
+			expect(springs((m) => of(m).fourSeasons.month1LateWinter)).toEqual([2, 3, 4]);
+			expect(springs((m) => of(m).fourSeasons.month1EarlySpring)).toEqual([1, 2, 3]);
+			expect(springs((m) => of(m).sixSeasons.month3EarlySpring)).toEqual([3, 4]);
+			expect(
+				monthNamesFor({ year: 2153, month: 1 }, { tradition: BHUTAN }).fourSeasons.tigerEarlySpring,
+			).toBeNull();
+			const month1 = of(1).sixSeasons.month3EarlySpring;
+			expect([month1.season, month1.part, month1.tibetanName.wylie]).toEqual([
+				"dewy",
+				"early",
+				"dgun smad",
+			]);
 		});
 	});
 });
