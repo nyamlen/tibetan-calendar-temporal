@@ -487,8 +487,8 @@ day.yoga.favorable;      // false
 
 **A day carries two sets of labels that disagree, and almanacs print both.** The lunar day is the
 thirtieth of a lunation; the calendar day runs sunrise to sunrise. On a doubled date the two halves
-share `year`, `month` and `lunarDay` and differ in `calendarDay` and `yoga` — that is the calendar,
-not a bug.
+share `year`, `month` and `lunarDay` and differ in `calendarDay` and `yoga`, and can differ in
+`lunarMansion` — that is the calendar, not a bug.
 
 **`month` and `lunarDay` are `null` for the Bhutanese traditions.** Janson tabulates no month-animal
 list for that version, so the package refuses rather than handing over Phugpa's answers; the
@@ -703,12 +703,13 @@ A separate subpath, like `./observances`. `options` is `{ tradition? }`, default
 | `monthAttributesFor` | `(month: TibetanMonthFields, options?) => MonthAttributes` | Throws `TCT_ATTRIBUTE_NOT_SOURCED` for the Bhutanese configs |
 | `lunarDayAttributesFor` | `(date: TibetanDateFields, options?) => LunarDayAttributes` | Tibetan fields in, so a **skipped** lunar day can be asked about |
 | `calendarDayAttributesFor` | `(date: Temporal.PlainDate \| TibetanDate) => CalendarDayAttributes` | Congruences on the Julian day; the number differs in Tsurphu calendars, which is not modelled |
-| `elementalYogaFor` | `(date: Temporal.PlainDate \| TibetanDate, options?) => ElementalYoga` | The one attribute needing the moon's real position |
+| `lunarMansionFor` | `(date: Temporal.PlainDate \| TibetanDate, options?) => LunarMansion` | `{ index, element }`, index 0–26 as Janson and Henning number them. Needs the moon's real position; agrees with FPMT's almanac on 97.6% of days — see [why-trust-these-dates.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/why-trust-these-dates.md). Names not shipped yet |
+| `elementalYogaFor` | `(date: Temporal.PlainDate \| TibetanDate, options?) => ElementalYoga` | The weekday's element paired with the lunar mansion's |
 | `elementalYoga` | `(a: TibetanWeekdayElement, b: TibetanWeekdayElement) => ElementalYoga` | The pair alone, order-insensitive |
 | `ELEMENTAL_YOGAS` | | The ten, frozen: Henning's names, FPMT's favorability |
 
 Type-only exports: `DayAttributes`, `YearAttributes`, `MonthAttributes`, `LunarDayAttributes`,
-`CalendarDayAttributes`, `ElementalYoga`, `TibetanTrigram`, `AstrologyQueryOptions`.
+`CalendarDayAttributes`, `ElementalYoga`, `TibetanTrigram`, `AstrologyQueryOptions`, `LunarMansion`.
 
 A date argument is a `Temporal.PlainDate` or a resolved `TibetanDate` — never loose
 `{ year, month, day }`, which is a value of both calendars and would make the ambiguity silent.

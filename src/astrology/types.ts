@@ -17,7 +17,7 @@
  */
 
 import type { TraditionConfig } from "../traditions/types.js";
-import type { TibetanDate } from "../types.js";
+import type { TibetanDate, TibetanWeekdayElement } from "../types.js";
 import type { CalendarDayAttributes } from "./calendar-day.js";
 import type { LunarDayAttributes } from "./lunar-day.js";
 import type { MonthAttributes } from "./month.js";
@@ -35,6 +35,31 @@ import type { ElementalYoga } from "./yoga.js";
 export interface AstrologyQueryOptions {
 	/** Astronomical constants and naming rules. Defaults to `PHUGPA`. */
 	tradition?: TraditionConfig;
+}
+
+/**
+ * The lunar mansion the moon is in at the start of a calendar day.
+ *
+ * @remarks
+ * Composed from two sources, which is why it is declared here rather than beside either: Janson gives
+ * the arithmetic that finds the mansion, and Henning the element each mansion carries.
+ *
+ * **Agreement with an almanac is 97.6%, not 100%**: FPMT's printed codes for 1,459 days, 2022–2025,
+ * Phugpa only. The failures crowd against mansion boundaries, as Janson's stated approximation — the
+ * moon taken to circle in 27 days — predicts, and six days in those four years have no explanation.
+ */
+export interface LunarMansion {
+	/**
+	 * The mansion, **0 to 26**: 0 is Aśvinī, 26 Revatī.
+	 *
+	 * @remarks
+	 * Zero-based because both sources number them so: Janson "from 0 to 26", and Henning's list, headed
+	 * *Index*, from 0. Henning's list has 28 entries, two of them at 21 — Śravaṇa and Abhijit — and this
+	 * numbering is the 27 without Abhijit.
+	 */
+	index: number;
+	/** The mansion's element, from Henning's table: one of the four Indian elements, as for a weekday. */
+	element: TibetanWeekdayElement;
 }
 
 /** Everything this subpath knows about one calendar day. */
@@ -57,6 +82,8 @@ export interface DayAttributes {
 	lunarDay: LunarDayAttributes | null;
 	/** The calendar day's own labels; Julian-day congruences, the same in every shipped tradition. */
 	calendarDay: CalendarDayAttributes;
+	/** The lunar mansion at the start of the calendar day. */
+	lunarMansion: LunarMansion;
 	/** The elemental yoga — the weekday's element paired with the lunar mansion's. */
 	yoga: ElementalYoga;
 }
