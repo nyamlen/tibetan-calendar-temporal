@@ -292,9 +292,10 @@ export function elementalYogaFor(
  *
  * @remarks
  * **Needs astronomy**, like the yoga it drives: the mansion comes from the same true longitudes the
- * calendar is built from. Agreement with FPMT's almanac is **97.6%** of 1,459 days, 2022–2025, Phugpa
- * only; the failures crowd against mansion boundaries, as Janson's own approximation predicts, and six
- * days have no explanation. Quote that figure with the result.
+ * calendar is built from. **It is not exact against an almanac**: Janson's formula approximates the
+ * moon's motion, so days near a mansion boundary can disagree. How often, over which days and for which
+ * tradition is stated once, in `docs/why-trust-these-dates.md`; cite it from there rather than
+ * restating it.
  *
  * `index` runs **0 to 26**, as both Janson and Henning number the mansions. Names are not shipped yet.
  *
@@ -303,7 +304,8 @@ export function elementalYogaFor(
  * day }` fields are refused, because that shape is a value of both calendars.
  *
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` for an argument that names no calendar day;
- * `TCT_OUTSIDE_EXACT_RANGE` past the tradition's exact range.
+ * `TCT_INVALID_TRADITION_CONFIG` for an invalid `tradition`; `TCT_OUTSIDE_EXACT_RANGE` past the
+ * tradition's exact range.
  *
  * @example
  * ```ts

@@ -44,9 +44,8 @@ export interface AstrologyQueryOptions {
  * Composed from two sources, which is why it is declared here rather than beside either: Janson gives
  * the arithmetic that finds the mansion, and Henning the element each mansion carries.
  *
- * **Agreement with an almanac is 97.6%, not 100%**: FPMT's printed codes for 1,459 days, 2022–2025,
- * Phugpa only. The failures crowd against mansion boundaries, as Janson's stated approximation — the
- * moon taken to circle in 27 days — predicts, and six days in those four years have no explanation.
+ * Not exact against an almanac; see `lunarMansionFor` for why, and `docs/why-trust-these-dates.md`
+ * for how often.
  */
 export interface LunarMansion {
 	/**

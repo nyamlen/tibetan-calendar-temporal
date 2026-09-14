@@ -268,7 +268,7 @@ function assertOptions(options: unknown): void {
  * @remarks
  * **All four seasonal systems at once**, because almanacs print several side by side and no source
  * makes one of them a tradition's only answer. Read the one you want. The same `season` key names
- * different months in different systems — month 1 is `winter` in one, `spring` in two, and `dewy` in
+ * different months in different systems — under Phugpa, month 1 is `winter` in one, `spring` in two, and `dewy` in
  * the six-season list — so a key is only meaningful together with the system it came from.
  *
  * **A leap month takes its regular month's names**, in every system. `isLeapMonth` is still validated,
@@ -284,7 +284,7 @@ function assertOptions(options: unknown): void {
  *
  * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` for a non-integer or out-of-range field;
  * `TCT_INVALID_ARGUMENT` if `month` is not an object naming a Tibetan month or `options` is not an
- * object; `TCT_NO_SUCH_LEAP_MONTH` if `isLeapMonth` is set for a month with no leap twin that year; or
+ * object; `TCT_INVALID_TRADITION_CONFIG` if `tradition` is not a valid config; `TCT_NO_SUCH_LEAP_MONTH` if `isLeapMonth` is set for a month with no leap twin that year; or
  * `TCT_OUTSIDE_EXACT_RANGE` past the tradition's exact range.
  *
  * @example

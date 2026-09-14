@@ -355,7 +355,9 @@ const monthItem = (marker) => {
 	const start = lines.findIndex((l) => l.includes(marker));
 	if (start === -1) throw new Error(`seasonal item "${marker}" not found`);
 	const statements = [];
+	// Bounded by the next item, so an item that lost a statement cannot borrow one from its neighbour.
 	for (let i = start; i < lines.length && statements.length < 2; i++) {
+		if (i > start && /^\s*\\item\b|\\end\{enumerate\}/.test(lines[i])) break;
 		const m = lines[i].match(
 			/^(?:thus )?Month (\d+) = (?:\\tibx\{([^}]+)\}|\\nag\{\}) = ([a-z]+-[a-z]+)/,
 		);

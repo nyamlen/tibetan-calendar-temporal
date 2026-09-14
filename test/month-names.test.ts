@@ -132,14 +132,19 @@ describe("the six-season system", () => {
 
 	it("agrees with Janson's two statements, which cite Henning", () => {
 		expect(
-			JANSON_SEASONAL_STATEMENTS.sixSeasons.map(({ month, season }) => ({
+			JANSON_SEASONAL_STATEMENTS.sixSeasons.map(({ month, tibetan, season }) => ({
 				month,
+				tibetan,
 				expected: fromHenning(season),
 			})),
 		).toEqual(
 			JANSON_SEASONAL_STATEMENTS.sixSeasons.map(({ month }) => {
 				const { season, part } = namesOf(month).sixSeasons.month3EarlySpring;
-				return { month, expected: { season, part } };
+				return {
+					month,
+					tibetan: namesOf(month).mansion.tibetanName.wylie,
+					expected: { season, part },
+				};
 			}),
 		);
 	});
@@ -205,6 +210,9 @@ describe("month 1 in three traditions", () => {
 		});
 	});
 
+	// Janson's Bhutan appendix: "The months in Bhutan are numbered, as in Tibet. (Names exist as in
+	// Tibet, see [his month-names section], but are usually not used.)" It does not say which seasonal
+	// version, which is why nothing here defaults one.
 	it("Bhutan, whose Tiger month no independent source gives", () => {
 		expect(summary(BHUTAN)).toEqual({
 			month1LateWinter: "late-winter",

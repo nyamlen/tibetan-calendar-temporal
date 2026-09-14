@@ -418,7 +418,7 @@ Each system is named for the rule that defines it:
 
 Three things that table makes easy to get wrong:
 
-- **The same key names different months in different systems.** `spring` is months 2–4 in one column, 1–3 in the next, and 3–4 in the last. A `season` is only meaningful together with the system it came from.
+- **The same key names different months in different systems.** `spring` is months 2–4 under `month1LateWinter`, 1–3 under `month1EarlySpring`, and 3–4 under `sixSeasons`. A `season` is only meaningful together with the system it came from.
 - **`tigerEarlySpring` depends on the tradition**, because it counts from the Tiger month: Phugpa's is month 11, Tsurphu's month 1. It is `null` under `BHUTAN`, whose Tiger month no independent source gives. The column above is Phugpa's.
 - **The six-season Tibetan is the season's name, not the month's**, and can read against the key: month 1 is `{ season: "dewy", part: "early" }`, and its Tibetan *dgun smad* means "late winter", because *dewy* (śiśira) is the later half of the Tibetan winter.
 

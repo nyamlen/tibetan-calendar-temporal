@@ -171,7 +171,8 @@ book whose OCR layer shifts the table's columns against its rows** — so unlike
 text, and it is the wrong text: a generator would pair months with the wrong seasons, and nothing
 about the output would look wrong. Janson gives months 1 and 3 of the system and cites Henning for
 the rest, so his two statements check the file without being a second witness. **The pairing was
-confirmed against the scanned pages by eye**, it is twelve rows, and every row cites its page. Added
+confirmed against the scanned pages by eye**, it is twelve rows, and every row cites a page — taken
+from the OCR layer's placement, which was **not** checked by eye, as the file says. Added
 2026-09-14; `npm run test:conventions` row X8 proves it passes Rule 7 by the allowlist rather than by a
 script happening to mention its name. Do not regenerate it from the OCR.
 

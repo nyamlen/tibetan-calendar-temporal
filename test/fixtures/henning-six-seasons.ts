@@ -13,9 +13,12 @@
  * statements, pinned in `janson-month-names.ts`, are a check on this file and not a second witness.
  *
  * `season` is Henning's own English, which he says he chose over translating the Tibetan: an authored
- * gloss, not a sourced term, and not this package's keys. The page split is where the OCR places each
- * row — months 3–5 on p. 358, the rest on p. 359 — and holds three rows of each column on the first
- * page, so the scrambling does not reach it.
+ * gloss, not a sourced term, and not this package's keys.
+ *
+ * **`page` was not checked by eye; only the pairing was.** It is where the OCR layer places each row —
+ * months 3–5 on p. 358, the rest on p. 359. The scrambling shifts columns against rows, not rows
+ * between pages, and the OCR puts three month names and three season words on p. 358, so the split is
+ * probably right; confirm it against the scan before citing a single row's page.
  *
  * The list is in Kālacakra order, starting at *nag pa*; it is kept in that order here.
  */
@@ -27,7 +30,7 @@ export interface HenningSixSeasonRow {
 	mansion: string;
 	/** Henning's English, e.g. "Early-pre-winter". */
 	season: string;
-	/** Printed page. */
+	/** Printed page, as the OCR layer places the row — see the note above. */
 	page: 358 | 359;
 }
 

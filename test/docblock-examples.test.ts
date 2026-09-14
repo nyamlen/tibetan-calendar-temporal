@@ -252,9 +252,8 @@ describe("docblock examples", () => {
 			expect(Temporal.PlainDate.compare(second.isoDate, first.isoDate)).toBeGreaterThan(0);
 		});
 	});
-	// `src/astrology/` is not on the public surface yet — the barrel and the `./astrology` subpath
-	// land with the yoga — but its docblocks compile into `dist/*.d.ts` the moment it is exported, and
-	// an example written now is the one that ships. Asserted from the day it is written, therefore.
+	// `src/astrology/`'s docblocks compile into `dist/astrology/*.d.ts`, so their examples ship as
+	// contract like every other module's.
 	describe("astrology/month.ts and astrology/lunar-day.ts", () => {
 		it("states Phugpa's month 1 of 2026 correctly", () => {
 			expect(monthAttributes(PHUGPA, 2026, 1)).toEqual({

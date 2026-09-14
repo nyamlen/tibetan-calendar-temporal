@@ -1316,7 +1316,7 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   is why the harness exists.
 
   **Month names — shipped 2026-09-14 as `monthNamesFor`.** The twelve lunar-mansion names are sourced and unambiguous.
-  Janson lists **four seasonal identifications**, none of which he reports as current usage, and
+  Janson lists **four seasonal identifications**, says "none of them is really used today" while calling one "now used by the Tsurphu tradition" (which Henning disputes), and
   almanacs "often give two or several different versions" at once — so they are **not a per-tradition
   selector**, as this item used to say. Three are fixed functions of the month number; only the one
   anchored on the Tiger month depends on a tradition, through the month-animal rule the config already
