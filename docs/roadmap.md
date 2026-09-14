@@ -298,6 +298,32 @@ edits, and moving files once after they have landed is one link-fixing commit in
       return type, taken now because the package is pre-v1.0.0. Took a serialised year from 293,009
       to 126,629 bytes. Constraint and the rule it follows in
       [decisions/2026-08-24-year-naming-off-the-date.md](decisions/2026-08-24-year-naming-off-the-date.md)
+- [ ] **Make every shipped name follow the names-keyed-by-language rule — decide and fix before
+      1.0.0.** [decisions/2026-09-13-names-keyed-by-language.md](decisions/2026-09-13-names-keyed-by-language.md)
+      says a name ships as `tibetanName: TibetanName` (script, Wylie, THL phonetics), plus
+      `sanskritName` where one is sourced, and S15's rule says keys are English, never ASCII Tibetan.
+      A survey on 2026-09-14 found the surface does not hold to either, and **every item below is a
+      one-way door at 1.0.0**:
+      - **`TibetanTrigram`** (`./astrology`) ships `"li" | "khon" | "dwa" | …` — ASCII Tibetan as
+        *keys*, with no `tibetanName` and no verification. Janson's spellings, checked against nothing.
+      - **`ObservanceKind`** (`./observances`) mixes ASCII Tibetan (`"duchen"`, `"sojong"`, `"tsok"`),
+        a loanword (`"puja"`) and English (`"anniversary"`) as keys.
+      - **`ObservanceRule.name`** is a plain phonetic string (`"Chotrul Duchen"`) with no `tibetanName`.
+      - **The attribute results** — `YearAttributes`, `MonthAttributes`, `LunarDayAttributes`,
+        `CalendarDayAttributes` — carry `animal`, `element` and `gender` as keys only. `TibetanYearName`
+        carries `animalName` for the same vocabulary, and nothing public gives a month's or a day's
+        animal or element in Tibetan, because `src/names.ts` is internal.
+      - **`LunarMansion`** has no name at all (deferred until the 27 names are verified), and
+        **`monthNamesFor`** has `sanskritName` only under `sixSeasons` — both within the rule's "where
+        sourced", but uneven.
+      - **`docs/guide.md`** says "Every name the engine returns carries three renderings", which the
+        trigrams and observance names make false; its month-names table prints Wylie only.
+      - Not shipped, but the same slip: `test/fixtures/janson-month-names.ts` names a Wylie field
+        `tibetan`, where every other fixture means Tibetan script by it.
+
+      Each needs its names verified before it ships — the trigrams and the observance terms have never
+      been through a verifier — so this is sourcing work as well as a reshape. Count call sites before
+      each rename and say the number in its commit.
 - [ ] **Composable/additive `ObservanceConfig`s — decide before 1.0.0, not after.** Today, a
       consumer combining several institutions' rule sets (e.g. `DEFAULT_OBSERVANCES` plus a `TEACHERS` and a
       `TANTRA` config) hand-rolls
