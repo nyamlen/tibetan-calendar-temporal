@@ -218,8 +218,12 @@ attributes are **not** covered by either figure above, and the differences are n
   transcription or formula error and is **not external corroboration**. There is no window to quote,
   because there is no external source.
 - The **lunar mansion** agrees with FPMT on **97.6%** of 1,459 days, 2022–2025, Phugpa only — and the
-  residual is characterised rather than excused: the failures crowd against mansion boundaries as
-  Janson's own stated approximation predicts, and **six days in four years have no explanation**.
+  residual is characterised rather than excused. **It is FPMT's, not the arithmetic's**: Henning's daily
+  Phugpa calendars match this engine on all 1,459 days and fail on the same 35. The 35 are one-sided
+  (FPMT gives the *next* mansion late in a mansion), cluster in 2025, have no established cause, and
+  **six of them fit no pattern**. This replaced, on 2026-09-14, an explanation blaming Janson's `/27`
+  approximation — which he gives as the almanac's own method, so it could never have separated the two.
+  Before explaining a residual by a formula, check whether the source uses the same formula.
 - **Yoga favorability** agrees with FPMT's printed prefixes on 99.7% of the same days, and that check
   is independent of the mansion because it reads FPMT's own pair letters.
 

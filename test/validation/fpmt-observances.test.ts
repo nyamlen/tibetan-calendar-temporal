@@ -88,19 +88,29 @@ describe("observances against FPMT's published calendars, 2022-2025", () => {
  *
  * ## What the measured 97.6% actually says
  *
- * 1,424 of 1,459 days agree. The 35 that do not are **overwhelmingly days where the moon sits near
- * a mansion boundary**: 83% of them fall within 15% of an edge, against 29% of the days that agree,
- * and at 5% the enrichment is nearly sixfold. Janson states the reason himself — `moon_calendar_day`
- * treats the moon as moving uniformly, one full circle in 27 days — so where his approximation and
- * Men-Tsee-Khang's computation straddle an edge they can land on opposite sides.
+ * 1,424 of 1,459 days agree. **The residual is on FPMT's side, not in this arithmetic**: Henning's own
+ * daily Phugpa calendars (`kalacakra.org/calendar/tdata/pl_YYYY.txt`) give the same mansion as this
+ * engine on all 1,459 days, and fail against FPMT on exactly the same 35. Henning is this engine's
+ * lineage, so that is a check on the implementation rather than corroboration of the calendar.
  *
- * Six days in four years resist even that, at 0.4%. The calendar is hand-prepared and already
- * carries four provably impossible codes, so a handful of ordinary mistakes is the likeliest reading
- * — but it is recorded as unexplained rather than dismissed.
+ * **The 35 are one-sided.** 28 sit in the last 15% of the moon's mansion, and on 27 of those FPMT's
+ * element is the *next* mansion's; one sits at the start of a mansion; six are mid-mansion. FPMT's
+ * moon runs slightly ahead of the one Janson describes the almanac computing. And the failures are
+ * **not spread evenly over time**: 2022, 2023 and 2024 have 6, 2 and 5, and 2025 has 22.
+ *
+ * **Not Janson's approximation.** `moon_calendar_day` treats the moon as circling in 27 days, but
+ * Janson gives that as the almanac's own method, and Henning uses it too, so it cannot separate an
+ * almanac from this engine. Also ruled out, 2026-09-14, recorded in `docs/validation-sources.md`: the
+ * karaṇa moon longitude almanacs also print, a constant offset, a later time of day, and the other
+ * value of `a₂`.
+ *
+ * The six mid-mansion days fit neither pattern. The calendar is hand-prepared and already carries
+ * four provably impossible codes, so ordinary mistakes are the likeliest reading — but they are
+ * recorded as unexplained rather than dismissed.
  *
  * **The shape is asserted, not just the score.** A bare threshold would keep passing if a real bug
- * appeared and moved the failures away from the boundaries. Requiring the concentration is what
- * makes this a test rather than a tolerance.
+ * appeared and moved the failures elsewhere. Pinning where they sit is what makes this a test rather
+ * than a tolerance, and it fails if FPMT's data or this arithmetic changes.
  */
 
 /** E earth, W water, F fire, A air — air being Janson's *wind*. */
@@ -172,12 +182,16 @@ describe("the elemental yoga against FPMT's day-quality codes", () => {
 		expect(agreed / yogaDays.length).toBeGreaterThan(0.97);
 	});
 
-	it("concentrates its disagreements at mansion boundaries", () => {
+	it("puts its disagreements at the late edge of a mansion, on one side only", () => {
 		// The structural claim, and the one that would break if the arithmetic were actually wrong:
-		// a real bug scatters failures, an approximation crowds them against the edges.
+		// a real bug scatters failures, while FPMT's moon running slightly ahead crowds them against
+		// the END of a mansion and not its start. Pinned by value — the fixture is static.
 		const disagreements = mansionDisagreements();
-		const nearEdge = disagreements.filter((d) => d.position < 0.15 || d.position > 0.85);
-		expect(nearEdge.length / disagreements.length).toBeGreaterThan(0.7);
+		expect({
+			late: disagreements.filter((d) => d.position > 0.85).length,
+			early: disagreements.filter((d) => d.position < 0.15).length,
+			middle: disagreements.filter((d) => d.position >= 0.15 && d.position <= 0.85).length,
+		}).toEqual({ late: 28, early: 1, middle: 6 });
 	});
 
 	it("leaves only a handful of days unexplained by either", () => {

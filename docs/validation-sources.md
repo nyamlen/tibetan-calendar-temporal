@@ -301,6 +301,39 @@ An independent Bhutanese source is required, and Henning's software is not one.
 The consequence is recorded in [astrology.md](astrology.md) — Bhutan refuses the month and lunar-day
 attributes with a coded error rather than inheriting Phugpa's.
 
+### The lunar-mansion residual — where it is, and five explanations that fail
+
+Measured 2026-09-14, against the 1,459 days of `fpmt-observances.ts` that carry a usable
+day-quality code. The engine's mansion agrees with the element FPMT's code forces on 1,424 of them.
+
+**Where the difference is.** Henning's daily Phugpa calendars, `kalacakra.org/calendar/tdata/pl_YYYY.txt`,
+print each day's mansion and its element pair. Their mansion equals this engine's on **all 1,459
+days**, and they disagree with FPMT on exactly the same 35. Henning is this engine's lineage — the
+same computation Janson describes — so this is not corroboration of the calendar. It **locates** the
+difference: it is not in this implementation.
+
+**What the 35 look like.** The moon sits in the last 15% of its mansion on 28 of them, and on 27 of
+those FPMT's element is the *next* mansion's. One sits in the first 15%; six are mid-mansion. Where the
+previous mansion has a different element and the moon is in the first 10% of its own, FPMT agrees
+with the engine on all 101 such days. By year: 6, 2, 5 and **22** for 2022–2025. FPMT's moon runs
+ahead of the siddhānta computation, rarely before 2025 and often in it.
+
+| Explanation | Test | Result |
+|---|---|---|
+| Janson's `/27` approximation of the moon's motion | Read Janson | **Fails in principle.** He gives `moon_calendar_day = moon_lunar_day − FRAC(true_date)/27` as the almanac's own computation, and Henning uses it. It cannot separate the two. The docs blamed it until this date. |
+| The karaṇa (*byed rtsis*) moon longitude, which almanacs also print | Janson's appendix on the Kālacakra Tantra version: `m₁ = 10631/360`, `s₁ = 1277/15795`, `a₁` unchanged, `m₂ = m₁/30`, `s₂ = s₁/30`, `a₂ = 1/28`, epoch values `m₀ = 2015531 + 1/2`, `s₀ = 809/810`, `a₀ = 53/252`, computed for the correct calendar day | **Fails: 29.6%**, about chance. It runs 1.13–1.32 mansions ahead of the siddhānta value. On the 35 it matches FPMT on 9. The implementation reproduces one of Janson's two commented 2013 almanac values exactly (`11 37 36`) and the other to 10 units in the third place (`21 24 52` against `21 24 42`), so the result is not an implementation slip. |
+| A constant forward offset | Best offset per year, in steps of 0.005 mansion | **Fails.** 2022–2024: best offset is zero. 2025: +0.05 gives 350/365, still 15 disagreements. |
+| The moon taken later in the calendar day | `moon_lunar_day − k · FRAC(true_date)/27` for `k` from 1 (start of day) down to 0 (end of lunar day) | **Fails.** `k = 1` is best for 2022–2024 and every smaller `k` is worse. 2025 peaks near `k = 0.8` at 96.2%, below the other years at `k = 1`. |
+| The other value of `a₂` | `PHUGPA_HENNING` | **No change** on any year. |
+| Codes copied from a neighbouring row | Code equal to the previous or next day's | **Weak.** 7 of 35 equal the previous day's and 7 the next day's, against a 9.3% base rate. Suggestive of some transcription, too few to explain the pattern. |
+
+**Sources that could settle it, and why they did not.** FPMT's monthly pages state no source or
+method for the codes, and their layout is unchanged between 2024 and 2025. Men-Tsee-Khang, whose
+almanac FPMT is taken to follow, sells its almanac, pocket diary and desk calendar and publishes no daily
+data. The Tibetan Nuns Project's calendars take their dates from Men-Tsee-Khang but print holy days
+only. **The next step is a printed 2025 Men-Tsee-Khang almanac, or asking FPMT** where the codes come
+from and whether anything changed for 2025.
+
 ### Corpus occurrence is not lexical existence
 
 BDRC's chunk counts look like a better attestation check than an exact-title dictionary lookup,
