@@ -37,7 +37,7 @@ dependencies, built on Temporal.
   lunar-mansion and seasonal month names and the ten elemental yogas — written **ahead of the code**,
   so it holds decisions (variants, season keys, two yoga corrections) that nothing enforces yet
   **[mansion-and-trigram-sourcing.md](docs/names/mansion-and-trigram-sourcing.md)** is the same for the
-  eight trigrams and the 27 lunar mansions — also ahead of the code, and it holds the table of
+  eight trigrams and the 27 lunar mansions, and it holds the table of
   every English candidate for a mansion behind the decision that none ships
 - Implementation phases and the **pre-v1.0.0 checklist**: [docs/roadmap.md](docs/roadmap.md) —
   check it before any release; it holds deliberately deferred decisions
@@ -719,8 +719,7 @@ eight trigram names, built from
 network and two converters installed outside the repo, so none can gate a push — what gates a push is
 their committed output, `test/fixtures/names.ts`, `test/fixtures/rabjung-names.ts`,
 `test/fixtures/month-names.ts`, `test/fixtures/yoga-names.ts`, `test/fixtures/mansion-names.ts` and
-`test/fixtures/trigram-names.ts`. The suite reads the first four; the last two land ahead of the code
-that ships them. **Run Biome on the last four after every run**, for the same reason as below.
+`test/fixtures/trigram-names.ts`, which the suite reads. **Run Biome on the last four after every run**, for the same reason as below.
 
 **`verify:rabjung-names` emits one row per line and Biome reflows it, so run
 `npx biome check --write test/fixtures/rabjung-names.ts` after every run.** This has always been
@@ -885,9 +884,9 @@ already drawn elsewhere in this file.
 precedes the name objects it identifies, because an English word printed after two name blocks reads
 as describing the second. Both rules are surface-wide and one-way doors at 1.0.0:
 [docs/decisions/2026-09-13-names-keyed-by-language.md](docs/decisions/2026-09-13-names-keyed-by-language.md).
-The surface does not yet hold to them everywhere — `TibetanTrigram` and `ObservanceKind` use ASCII
-Tibetan as keys, and the attribute results carry no Tibetan names — which the pre-1.0.0 checklist in
-[docs/roadmap.md](docs/roadmap.md) tracks. **A shipped English name must be printed word for word by a
+The surface does not yet hold to them everywhere — `ObservanceKind` uses ASCII Tibetan as keys and
+`ObservanceRule.name` is a bare string — which the pre-1.0.0 checklist in [docs/roadmap.md](docs/roadmap.md)
+tracks; `./astrology` has held to them since 2026-09-15. **A shipped English name must be printed word for word by a
 public-domain dictionary, or be marked as authored**; `ELEMENTAL_YOGAS` meets that through
 `verify:month-and-yoga-names`, two of Henning's words having been replaced where no dictionary prints
 them.

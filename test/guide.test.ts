@@ -308,10 +308,10 @@ describe("guide examples", () => {
 		});
 
 		it("prints every cell of the month-by-month table as the engine computes it", () => {
-			// Read from the document rather than restated here: seventy-two cells are too many to
+			// Read from the document rather than restated here: ninety-six cells are too many to
 			// keep in step by hand, and a restated copy would pass while the guide drifted.
 			const header =
-				"| Month | `mansion` | `month1LateWinter` | `month1EarlySpring` | `tigerEarlySpring`, Phugpa | `sixSeasons.month3EarlySpring` |";
+				"| Month | `mansion` | Tibetan | Phonetic | `month1LateWinter` | `month1EarlySpring` | `tigerEarlySpring`, Phugpa | `sixSeasons.month3EarlySpring` |";
 			const lines = readFileSync(new URL("../docs/guide.md", import.meta.url), "utf8").split("\n");
 			const start = lines.indexOf(header);
 			expect(start).toBeGreaterThan(-1);
@@ -329,6 +329,8 @@ describe("guide examples", () => {
 				return [
 					String(month),
 					mansion.tibetanName.wylie,
+					mansion.tibetanName.tibetan,
+					mansion.tibetanName.phonetic,
 					words(fourSeasons.month1LateWinter),
 					words(fourSeasons.month1EarlySpring),
 					words(fourSeasons.tigerEarlySpring),

@@ -1,9 +1,9 @@
 # Sourcing the lunar-mansion names and the trigram names
 
-**Status: authored, and ahead of the code; the verifier exists.**
-It records the evidence and the decisions for two sets of names that `./astrology` will carry, written before the verifier so that the verifier was built from a record rather than from memory.
+**Status: shipped 2026-09-15.**
+It records the evidence and the decisions for two sets of names that `./astrology` carries, written before the verifier so that the verifier was built from a record rather than from memory.
 That verifier is [scripts/verify-mansion-and-trigram-names.mjs](../../scripts/verify-mansion-and-trigram-names.mjs), and its output is `test/fixtures/mansion-names.ts` and `test/fixtures/trigram-names.ts`.
-Nothing described here ships yet: `LunarMansion` is `{ index, element }` and `TibetanTrigram` is still Janson's ASCII spellings.
+`TibetanTrigram` is Janson's English words with the Tibetan on `tibetanNames.trigram`, and `LunarMansion` is `{ index, tibetanName, sanskritName, element }`; the suite holds both tables against the fixtures.
 It follows [month-and-yoga-sourcing.md](month-and-yoga-sourcing.md), whose source table, lineage cautions and page-reading method apply here unchanged, and the rule both inherit from [validation-sources.md](../validation-sources.md): **agreement is only evidence if the source did not reach its answer the way we did.**
 
 The two sets:
@@ -215,6 +215,5 @@ Rejected before the table was built: the Sanskrit name itself as English usage w
 
 ## Still open
 
-- **The code that ships these names** — strand I of the stage-2 plan: `TibetanTrigram` as Janson's English words with `tibetanNames.trigram`, and `LunarMansion`'s `tibetanName` and `sanskritName`, held against the two fixtures.
 - **The unread parts in column 2**, marked (unread) above; they decide nothing now, since no column ships.
 - **Jäschke's "Wdk."**, presumed to be the *Vaiḍūrya dkar po* and not yet checked against his list of abbreviations.

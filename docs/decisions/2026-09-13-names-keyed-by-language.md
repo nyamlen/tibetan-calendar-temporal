@@ -25,6 +25,28 @@ flat, and so does `TibetanYearName`, whose `elementName`, `genderName` and `anim
   `meaning` was rejected because it reads as the meaning of something else. A key that is not a
   translation of a name — `season`, `part` — keeps its own word.
 
+**Amended 2026-09-15: three shapes, and which one applies.** Decided by Andreas while applying the rule
+to `./astrology`.
+
+| Shape | When | Precedent |
+|---|---|---|
+| Flat sibling fields — `element` + `elementName` | An object that **is** a name, whose parts are each named | `TibetanYearName` |
+| Nested `{ englishName, tibetanName, … }` | A value with its own name, inside an object that has its own `tibetanName` | `ElementalYoga`, `ElementalYoga.auspiciousness` |
+| A `tibetanNames` object, last, keyed by the English fields it names | A block of **several labels** that are not names of the block itself | `YearAttributes`, `MonthAttributes`, `LunarDayAttributes`, `CalendarDayAttributes` |
+
+The third was chosen over sibling fields (`animalName`, `powerName`, …) because an English reader sees
+the block unchanged, a Tibetan reader looks a label up by the same word, and the year would otherwise
+have gained `powerName` and `lifeName`, which read as "the name of the power". Its cost is a one-letter
+neighbour: `yoga.tibetanName` is the yoga's own name and `month.tibetanNames` is a set of names for the
+month's labels. And because nothing ties the two halves of a block together, **a label added without
+its Tibetan entry would ship unnamed** — `test/astrology/index.test.ts` derives each block's labels
+from its own string fields and fails on any mismatch, and was proved by mutation.
+
+A value that has an English name in no source ships **without** `englishName` rather than with an
+authored one, when an identifier already keys it: `LunarMansion` carries `index`, `tibetanName` and
+`sanskritName`. The evidence is in
+[names/mansion-and-trigram-sourcing.md](../names/mansion-and-trigram-sourcing.md).
+
 ## What a contributor would otherwise do
 
 **Add a field called `name`.** It reads naturally and it is what `Rabjung` had. It is wrong once a

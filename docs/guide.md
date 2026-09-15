@@ -454,20 +454,20 @@ names.sixSeasons.month3EarlySpring.sanskritName.iast;   // "śiśira"
 The seasonal names have been matched to the months in several ways, the sources disagree about which one a tradition uses, and so there is no default.
 Each system is named for the rule that defines it:
 
-| Month | `mansion` | `month1LateWinter` | `month1EarlySpring` | `tigerEarlySpring`, Phugpa | `sixSeasons.month3EarlySpring` |
-|---|---|---|---|---|---|
-| 1 | mchu | late winter | early spring | late spring | early dewy |
-| 2 | dbo | early spring | middle spring | early summer | late dewy |
-| 3 | nag pa | middle spring | late spring | middle summer | early spring |
-| 4 | sa ga | late spring | early summer | late summer | late spring |
-| 5 | snron | early summer | middle summer | early autumn | early summer |
-| 6 | chu stod | middle summer | late summer | middle autumn | late summer |
-| 7 | gro bzhin | late summer | early autumn | late autumn | early rains |
-| 8 | khrums | early autumn | middle autumn | early winter | late rains |
-| 9 | tha skar | middle autumn | late autumn | middle winter | early autumn |
-| 10 | smin drug | late autumn | early winter | late winter | late autumn |
-| 11 | mgo | early winter | middle winter | early spring | early cold |
-| 12 | rgyal | middle winter | late winter | middle spring | late cold |
+| Month | `mansion` | Tibetan | Phonetic | `month1LateWinter` | `month1EarlySpring` | `tigerEarlySpring`, Phugpa | `sixSeasons.month3EarlySpring` |
+|---|---|---|---|---|---|---|---|
+| 1 | mchu | མཆུ | chu | late winter | early spring | late spring | early dewy |
+| 2 | dbo | དབོ | wo | early spring | middle spring | early summer | late dewy |
+| 3 | nag pa | ནག་པ | nak pa | middle spring | late spring | middle summer | early spring |
+| 4 | sa ga | ས་ག | sa ga | late spring | early summer | late summer | late spring |
+| 5 | snron | སྣྲོན | nön | early summer | middle summer | early autumn | early summer |
+| 6 | chu stod | ཆུ་སྟོད | chu tö | middle summer | late summer | middle autumn | late summer |
+| 7 | gro bzhin | གྲོ་བཞིན | dro zhin | late summer | early autumn | late autumn | early rains |
+| 8 | khrums | ཁྲུམས | trum | early autumn | middle autumn | early winter | late rains |
+| 9 | tha skar | ཐ་སྐར | ta kar | middle autumn | late autumn | middle winter | early autumn |
+| 10 | smin drug | སྨིན་དྲུག | min druk | late autumn | early winter | late winter | late autumn |
+| 11 | mgo | མགོ | go | early winter | middle winter | early spring | early cold |
+| 12 | rgyal | རྒྱལ | gyel | middle winter | late winter | middle spring | late cold |
 
 Three things that table makes easy to get wrong:
 
@@ -666,8 +666,15 @@ mechanical to declare it with.
 
 ### Displaying Tibetan names
 
-Every name the engine returns carries three renderings — Tibetan script, Wylie transliteration and
-a phonetic form — so a consumer chooses which to display rather than transliterating themselves.
+Every Tibetan name the engine returns is a `TibetanName` with three renderings — Tibetan script,
+Wylie transliteration and THL phonetics — so a consumer chooses which to display rather than
+transliterating themselves.
+The one exception today is an observance's `name`, a plain phonetic string, which is due to change
+before 1.0.0.
+
+In `./astrology` an English label and its Tibetan name sit side by side: every attribute block has a
+`tibetanNames` object keyed by the field it names, so `day.calendarDay.tibetanNames.trigram` is the
+Tibetan for `day.calendarDay.trigram`.
 
 ```js
 const date = isoToTibetan(Temporal.PlainDate.from('2026-08-12'));

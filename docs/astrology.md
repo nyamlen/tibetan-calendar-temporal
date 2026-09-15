@@ -45,7 +45,7 @@ astrology, turning independently like odometer wheels.
 |---|---|---|
 | Animals | 12 | mouse, ox, tiger, rabbit, dragon, snake, horse, sheep, monkey, bird, dog, pig |
 | Elements | 5 | wood, fire, earth, iron, water |
-| Trigrams | 8 | the *I Ching* three-line figures — li, khon, dwa, khen, kham, gin, zin, zon |
+| Trigrams | 8 | the *I Ching* three-line figures, keyed by Janson's English — fire, earth, iron, sky, water, mountain, wood, wind; in Tibetan *li, khon, dwa, khen, kham, gin, zin, zon* |
 | Numbers | 9 | 1–9, each carrying a colour and a compass direction |
 
 Two traps sit in that table, and both are live.
@@ -131,11 +131,11 @@ usually a visible jump at the start of a month rather than a smooth run.
 
 The **trigram** and the **number** behave like the animal: continuous cycles of 8 and 9, broken only
 at a leap month.
-Both are anchored to the Tiger month, which begins with trigram *li* and with number 1 — so where
+Both are anchored to the Tiger month, which begins with trigram *li* (`"fire"`) and with number 1 — so where
 each month starts depends on **which animal that month carries**, and that is the
 tradition-dependent part.
-Tiger, Horse and Dog months open with *li*; Rabbit, Sheep and Pig with *zin*; Mouse, Dragon and
-Monkey with *kham*; Ox, Snake and Bird with *dwa*.
+Tiger, Horse and Dog months open with *li*, `"fire"`; Rabbit, Sheep and Pig with *zin*, `"wood"`;
+Mouse, Dragon and Monkey with *kham*, `"water"`; Ox, Snake and Bird with *dwa*, `"iron"`.
 
 So three of the four lunar-day attributes inherit the month's tradition-dependence — element through
 the month's element, trigram and number through its animal.
