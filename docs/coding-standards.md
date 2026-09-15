@@ -166,13 +166,14 @@ Every test imports from `src/`, so a broken `exports` map, a file missing from `
 
 `attw` runs under `--profile esm-only`. Its `node10` and `node16-cjs` rows are the deliberate design, not defects — there is no `main` field and no CJS build.
 
-### Five release-time checks, deliberately outside CI
+### Six release-time checks, deliberately outside CI
 
 | Command | Why it cannot gate a push |
 |---|---|
 | `npm run verify:names` | Needs the network and two EWTS converters installed outside the repo. What gates a push is its committed output; provenance is checked before a release, integrity on every push |
 | `npm run verify:rabjung-names` | The same, for the sixty rabjung names: network, converters, and a committed fixture the suite reads |
 | `npm run verify:month-and-yoga-names` | The same, for the mansion month names, the season names and the ten yogas. Its output, `test/fixtures/month-names.ts` and `test/fixtures/yoga-names.ts`, is what the suite reads; `ELEMENTAL_YOGAS` is held against the second |
+| `npm run verify:mansion-and-trigram-names` | The same, for the 27 lunar-mansion names and the eight trigram names. Its output, `test/fixtures/mansion-names.ts` and `test/fixtures/trigram-names.ts`, lands ahead of the code that ships those names |
 | `npm run coverage` | Not gated by anything, and was broken on `main` for an unknown stretch. Run it before a release, and run it for what it *reports* — an unreachable-line report is how a redundant config check was found |
 | `npm run bench` | Shared runners are noisy enough that a threshold would fire on the runner rather than on the change, and a guard that fires wrongly is worse than none. Run it before a release and record the harness in `bench/RESULTS.md`; it already corrected a shipped figure, the `getObservances` span cap's cost |
 

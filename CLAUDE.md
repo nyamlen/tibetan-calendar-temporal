@@ -701,7 +701,7 @@ just a module that loaded.
 design, not defects: there is no `main` field and no CJS build. Do not add `main` to make a row
 green.
 
-**Five commands are deliberately outside CI, and all are release-time checks.** `npm run coverage`
+**Six commands are deliberately outside CI, and all are release-time checks.** `npm run coverage`
 (below), `npm run bench` (below), `npm run verify:names`, which re-derives the whole Tibetan name vocabulary from Janson and
 re-checks it against Wiktionary, THL and CLDR, and `npm run verify:rabjung-names`, which does the
 same for the sixty rabjung year names against Janson, the Indic saṃvatsara list, Sewell & Fleet,
@@ -712,11 +712,15 @@ senses **are** Monier-Williams verbatim and corroborating it with anything MW-de
 agreeing with itself — and `npm run verify:month-and-yoga-names`, which verifies the mansion month names,
 the season names and the ten elemental yogas against the Mahāvyutpatti, Das, Jäschke, the two
 Tibetan–Tibetan dictionaries and Monier-Williams, built from
-[docs/names/month-and-yoga-sourcing.md](docs/names/month-and-yoga-sourcing.md). The three verifiers need the
+[docs/names/month-and-yoga-sourcing.md](docs/names/month-and-yoga-sourcing.md) — and
+`npm run verify:mansion-and-trigram-names`, which does the same for the 27 lunar-mansion names and the
+eight trigram names, built from
+[docs/names/mansion-and-trigram-sourcing.md](docs/names/mansion-and-trigram-sourcing.md). The four verifiers need the
 network and two converters installed outside the repo, so none can gate a push — what gates a push is
 their committed output, `test/fixtures/names.ts`, `test/fixtures/rabjung-names.ts`,
-`test/fixtures/month-names.ts` and `test/fixtures/yoga-names.ts`, which the suite reads. **Run Biome on
-the last two after every run**, for the same reason as below.
+`test/fixtures/month-names.ts`, `test/fixtures/yoga-names.ts`, `test/fixtures/mansion-names.ts` and
+`test/fixtures/trigram-names.ts`. The suite reads the first four; the last two land ahead of the code
+that ships them. **Run Biome on the last four after every run**, for the same reason as below.
 
 **`verify:rabjung-names` emits one row per line and Biome reflows it, so run
 `npx biome check --write test/fixtures/rabjung-names.ts` after every run.** This has always been
