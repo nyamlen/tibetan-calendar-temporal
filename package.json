@@ -66,6 +66,7 @@
     "verify:names": "node scripts/verify-name-sources.mjs",
     "verify:rabjung-names": "node scripts/verify-rabjung-names.mjs",
     "verify:month-and-yoga-names": "node scripts/verify-month-and-yoga-names.mjs",
+    "verify:mansion-and-trigram-names": "node scripts/verify-mansion-and-trigram-names.mjs",
     "check:links": "node scripts/check-links.mjs",
     "check:conventions": "node scripts/check-conventions.mjs",
     "check:publish": "npm run build && publint && attw --pack . --profile esm-only"
