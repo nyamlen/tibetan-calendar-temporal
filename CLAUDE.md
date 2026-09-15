@@ -36,6 +36,9 @@ dependencies, built on Temporal.
   **[month-and-yoga-sourcing.md](docs/names/month-and-yoga-sourcing.md)** is the same record for the
   lunar-mansion and seasonal month names and the ten elemental yogas — written **ahead of the code**,
   so it holds decisions (variants, season keys, two yoga corrections) that nothing enforces yet
+  **[mansion-and-trigram-sourcing.md](docs/names/mansion-and-trigram-sourcing.md)** is the same for the
+  eight trigrams and the 27 lunar mansions — also ahead of the code, and it holds the table of
+  every English candidate for a mansion behind the decision that none ships
 - Implementation phases and the **pre-v1.0.0 checklist**: [docs/roadmap.md](docs/roadmap.md) —
   check it before any release; it holds deliberately deferred decisions
 - Contributor rules, dev setup: [CONTRIBUTING.md](CONTRIBUTING.md)

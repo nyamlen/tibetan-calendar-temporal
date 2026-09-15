@@ -319,7 +319,9 @@ edits, and moving files once after they have landed is one link-fixing commit in
         `tibetan`, where every other fixture means Tibetan script by it.
 
       Each needs its names verified before it ships — the trigrams have never been through a
-      verifier — so this is sourcing work as well as a reshape. Count call sites before each rename
+      verifier — so this is sourcing work as well as a reshape.
+      The evidence and the decisions taken so far — Janson's English words for the trigrams, no
+      `englishName` on a mansion — are in [names/mansion-and-trigram-sourcing.md](names/mansion-and-trigram-sourcing.md). Count call sites before each rename
       and say the number in its commit.
 
       **Scoped to `./astrology` on 2026-09-14.** The survey also found two `./observances` items; they

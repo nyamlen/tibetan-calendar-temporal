@@ -391,4 +391,6 @@ The Mahāvyutpatti pairs *tha chad* with *pratikruṣṭa*, not *adhama*; *prati
 - **Mahāvyutpatti citation.**
   It is cited here, and in the verifier's output, by entry — the Tibetan and Sanskrit exactly as the aggregate prints them.
   The aggregate's `63-Mahavyutpatti-Scan-1989` gives page references into a 1989 edition that is still not identified, and no section numbers were found, so none are claimed.
+  **Partly resolved 2026-09-15** for the nakṣatras: Sakaki's 1916 printing is on archive.org and numbers every entry, and [mansion-and-trigram-sourcing.md](mansion-and-trigram-sourcing.md) cites §CLXVI by entry number.
+  The month and season entries have not yet been looked up there.
 - **Sanskrit month names**, pending the spellings listed above.
