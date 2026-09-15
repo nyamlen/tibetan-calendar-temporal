@@ -16,7 +16,7 @@ export interface JansonMonthNameRow {
 	/** Month number, 1-12. */
 	month: number;
 	/** The lunar-mansion month name, in Janson's Wylie. */
-	tibetan: string;
+	wylie: string;
 	/** Phugpa's Kālacakra identification: month 1 is early-spring. Janson's own words, e.g. "mid-spring". */
 	seasonalI: string;
 	/** Phugpa's month animal; the generator checks it against T12months. */
@@ -28,7 +28,7 @@ export interface JansonMonthNameRow {
 export interface JansonSeasonalStatement {
 	month: number;
 	/** The month's lunar-mansion name, in Janson's Wylie. */
-	tibetan: string;
+	wylie: string;
 	/** Janson's own words, e.g. "late-winter" — not this package's keys. */
 	season: string;
 }
@@ -37,84 +37,84 @@ export interface JansonSeasonalStatement {
 export const JANSON_MONTH_NAMES: readonly JansonMonthNameRow[] = [
 	{
 		month: 1,
-		tibetan: "mchu",
+		wylie: "mchu",
 		seasonalI: "early-spring",
 		animal: "dragon",
 		seasonalII: "late-spring",
 	},
 	{
 		month: 2,
-		tibetan: "dbo",
+		wylie: "dbo",
 		seasonalI: "mid-spring",
 		animal: "snake",
 		seasonalII: "early-summer",
 	},
 	{
 		month: 3,
-		tibetan: "nag pa",
+		wylie: "nag pa",
 		seasonalI: "late-spring",
 		animal: "horse",
 		seasonalII: "mid-summer",
 	},
 	{
 		month: 4,
-		tibetan: "sa ga",
+		wylie: "sa ga",
 		seasonalI: "early-summer",
 		animal: "sheep",
 		seasonalII: "late-summer",
 	},
 	{
 		month: 5,
-		tibetan: "snron",
+		wylie: "snron",
 		seasonalI: "mid-summer",
 		animal: "monkey",
 		seasonalII: "early-autumn",
 	},
 	{
 		month: 6,
-		tibetan: "chu stod",
+		wylie: "chu stod",
 		seasonalI: "late-summer",
 		animal: "bird",
 		seasonalII: "mid-autumn",
 	},
 	{
 		month: 7,
-		tibetan: "gro bzhin",
+		wylie: "gro bzhin",
 		seasonalI: "early-autumn",
 		animal: "dog",
 		seasonalII: "late-autumn",
 	},
 	{
 		month: 8,
-		tibetan: "khrums",
+		wylie: "khrums",
 		seasonalI: "mid-autumn",
 		animal: "pig",
 		seasonalII: "early-winter",
 	},
 	{
 		month: 9,
-		tibetan: "tha skar",
+		wylie: "tha skar",
 		seasonalI: "late-autumn",
 		animal: "mouse",
 		seasonalII: "mid-winter",
 	},
 	{
 		month: 10,
-		tibetan: "smin drug",
+		wylie: "smin drug",
 		seasonalI: "early-winter",
 		animal: "ox",
 		seasonalII: "late-winter",
 	},
 	{
 		month: 11,
-		tibetan: "mgo",
+		wylie: "mgo",
 		seasonalI: "mid-winter",
 		animal: "tiger",
 		seasonalII: "early-spring",
 	},
 	{
 		month: 12,
-		tibetan: "rgyal",
+		wylie: "rgyal",
 		seasonalI: "late-winter",
 		animal: "rabbit",
 		seasonalII: "mid-spring",
@@ -133,36 +133,36 @@ export const JANSON_SEASONAL_STATEMENTS: {
 	month1LateWinter: [
 		{
 			month: 1,
-			tibetan: "mchu",
+			wylie: "mchu",
 			season: "late-winter",
 		},
 		{
 			month: 3,
-			tibetan: "nag pa",
+			wylie: "nag pa",
 			season: "mid-spring",
 		},
 	],
 	month1EarlySpring: [
 		{
 			month: 1,
-			tibetan: "mchu",
+			wylie: "mchu",
 			season: "early-spring",
 		},
 		{
 			month: 3,
-			tibetan: "nag pa",
+			wylie: "nag pa",
 			season: "late-spring",
 		},
 	],
 	sixSeasons: [
 		{
 			month: 1,
-			tibetan: "mchu",
+			wylie: "mchu",
 			season: "early-winter",
 		},
 		{
 			month: 3,
-			tibetan: "nag pa",
+			wylie: "nag pa",
 			season: "early-spring",
 		},
 	],

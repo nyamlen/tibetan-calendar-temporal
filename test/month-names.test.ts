@@ -58,7 +58,7 @@ describe("the lunar-mansion names", () => {
 
 	it("spell Janson's month-names table", () => {
 		expect(MONTHS.map((month) => namesOf(month).mansion.tibetanName.wylie)).toEqual(
-			JANSON_MONTH_NAMES.map((row) => row.tibetan),
+			JANSON_MONTH_NAMES.map((row) => row.wylie),
 		);
 	});
 });
@@ -90,7 +90,7 @@ describe("the four-season systems", () => {
 			expect(
 				JANSON_SEASONAL_STATEMENTS[system].map(({ month }) => ({
 					month,
-					tibetan: namesOf(month).mansion.tibetanName.wylie,
+					wylie: namesOf(month).mansion.tibetanName.wylie,
 					season: jansonWords(namesOf(month).fourSeasons[system]),
 				})),
 			).toEqual(JANSON_SEASONAL_STATEMENTS[system]);
@@ -132,9 +132,9 @@ describe("the six-season system", () => {
 
 	it("agrees with Janson's two statements, which cite Henning", () => {
 		expect(
-			JANSON_SEASONAL_STATEMENTS.sixSeasons.map(({ month, tibetan, season }) => ({
+			JANSON_SEASONAL_STATEMENTS.sixSeasons.map(({ month, wylie, season }) => ({
 				month,
-				tibetan,
+				wylie,
 				expected: fromHenning(season),
 			})),
 		).toEqual(
@@ -142,7 +142,7 @@ describe("the six-season system", () => {
 				const { season, part } = namesOf(month).sixSeasons.month3EarlySpring;
 				return {
 					month,
-					tibetan: namesOf(month).mansion.tibetanName.wylie,
+					wylie: namesOf(month).mansion.tibetanName.wylie,
 					expected: { season, part },
 				};
 			}),
