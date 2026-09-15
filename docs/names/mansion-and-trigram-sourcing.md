@@ -18,11 +18,12 @@ Page numbers below are **printed** pages.
 Monier-Williams was read from the Cologne 2020 digitisation, whose entries carry the printed page.
 Henning is in copyright, so only facts and page numbers are taken from him.
 
-One source is new here:
+Two sources are new here, both printings of the Mahāvyutpatti:
 
 | Source | Standing | Trusted for |
 |---|---|---|
 | **Mahāvyutpatti**, ed. Sakaki Ryōzaburō, *Bon-Zō-Kan-Wa shiyaku taikō* (Kyoto 1916), vol. 1 | Public domain; archive.org `kanwashiyakutaik01mahauoft`, printed pp. 225–226 are images `n293`–`n294` | The printed text behind the aggregate's `21-Mahavyutpatti-Skt`: §CLXVI *Aṣṭāviṃśati-nakṣatrāṇi*, entries 3187–3214 |
+| **Mahāvyutpatti**, ed. Mironov (St Petersburg 1910–11), Bibliotheca Buddhica XIII | Public domain; archive.org `mahavyutpatti00minauoft`, printed p. 47 is image `n54` | The Sanskrit alone, edited from manuscripts whose readings its footnotes cite: §१६५, the 28 nakṣatras numbered 1–28, with no Tibetan |
 
 It settles whether a disagreement in the aggregate is the source's or the digitisation's.
 For the 28 nakṣatras it is the source's: Sakaki prints every pair the aggregate does, including the two below that disagree with every other witness.
@@ -115,6 +116,9 @@ The Mahāvyutpatti puts *mon gre* 22nd and *mon gru* 23rd as well, so no witness
 
 **The Sanskrit at 22 and 23 is a genuine disagreement, and it is in the printed Mahāvyutpatti.**
 Sakaki prints 3208 (22) *Çata-bhiṣā* — *Mon-gre, Mon-dre* and 3209 (23) *Dhaniṣṭhā* — *Mon-gru*.
+Mironov prints the Sanskrit in the same order, with no variant reading noted: श्रवणाः ।२० अभिजित् ।२१ शतभिषा ।२२ धनिष्ठा ।२३ (p. 47, §१६५).
+So the order is the Mahāvyutpatti's own and not a slip of one edition, though the two are not shown to be independent: Sakaki's edition is the later, and may have used Mironov's.
+Mironov carries no Tibetan, so he attests the Sanskrit **order** only; the pairing of *mon gre* with Śatabhiṣā rests on Sakaki.
 Against it: Henning, Das p. 976, and the Indian order Monier-Williams states — Śravaṇa "the 20th (or 23rd) Nakṣatra" (p. 1097), Dhaniṣṭhā "24th lunar mansion" (p. 509) — all put Dhaniṣṭhā directly after Śravaṇa.
 Two cautions on weighing them.
 The Mahāvyutpatti is the stronger authority for which Tibetan word translates which Sanskrit word, being the 9th-century translators' own glossary.
