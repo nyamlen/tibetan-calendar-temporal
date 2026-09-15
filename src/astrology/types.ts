@@ -17,7 +17,7 @@
  */
 
 import type { TraditionConfig } from "../traditions/types.js";
-import type { TibetanDate, TibetanWeekdayElement } from "../types.js";
+import type { SanskritName, TibetanDate, TibetanName, TibetanWeekdayElement } from "../types.js";
 import type { CalendarDayAttributes } from "./calendar-day.js";
 import type { LunarDayAttributes } from "./lunar-day.js";
 import type { MonthAttributes } from "./month.js";
@@ -41,8 +41,13 @@ export interface AstrologyQueryOptions {
  * The lunar mansion the moon is in at the start of a calendar day.
  *
  * @remarks
- * Composed from two sources, which is why it is declared here rather than beside either: Janson gives
- * the arithmetic that finds the mansion, and Henning the element each mansion carries.
+ * Composed from three sources, which is why it is declared here rather than beside any one: Janson
+ * gives the arithmetic that finds the mansion, Henning the element each mansion carries, and the
+ * dictionaries `docs/names/mansion-and-trigram-sourcing.md` records the names.
+ *
+ * **No English name, deliberately.** No source prints one for a mansion, and translating either name
+ * would pair English with a Tibetan word it does not render. `index` is the key a translation table
+ * maps from.
  *
  * Not exact against an almanac; see `lunarMansionFor` for why, and `docs/why-trust-these-dates.md`
  * for how often.
@@ -57,6 +62,16 @@ export interface LunarMansion {
 	 * numbering is the 27 without Abhijit.
 	 */
 	index: number;
+	/** The mansion's Tibetan name — *tha skar* at 0, *nam gru* at 26. */
+	tibetanName: TibetanName;
+	/**
+	 * The mansion's Sanskrit name, as the Mahāvyutpatti gives it reduced to its stem.
+	 *
+	 * @remarks
+	 * At 22 and 23 the pairing follows Das — Dhaniṣṭhā then Śatabhiṣā — where the Mahāvyutpatti lists
+	 * them the other way round.
+	 */
+	sanskritName: SanskritName;
 	/** The mansion's element, from Henning's table: one of the four Indian elements, as for a weekday. */
 	element: TibetanWeekdayElement;
 }

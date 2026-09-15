@@ -24,9 +24,10 @@
 
 import { amod } from "../computation/arithmetic.js";
 import { assertInternal } from "../errors.js";
+import { animalNameOf, elementNameOf } from "../names.js";
 import type { TraditionConfig } from "../traditions/types.js";
-import type { TibetanAnimal, TibetanElement } from "../types.js";
-import type { TibetanTrigram } from "./calendar-day.js";
+import type { TibetanAnimal, TibetanElement, TibetanName } from "../types.js";
+import { type TibetanTrigram, TRIGRAM_NAMES, TRIGRAMS } from "./calendar-day.js";
 import { monthAnimalNumber, monthElementNumber } from "./month.js";
 
 const ELEMENTS: readonly TibetanElement[] = ["wood", "fire", "earth", "iron", "water"];
@@ -46,17 +47,6 @@ const ANIMALS: readonly TibetanAnimal[] = [
 	"pig",
 ];
 
-const TRIGRAMS: readonly TibetanTrigram[] = [
-	"li",
-	"khon",
-	"dwa",
-	"khen",
-	"kham",
-	"gin",
-	"zin",
-	"zon",
-];
-
 const at = <T>(table: readonly T[], oneBased: number, what: string): T =>
 	assertInternal(table[oneBased - 1], `${what}: index ${oneBased} is outside the cycle`);
 
@@ -70,6 +60,12 @@ export interface LunarDayAttributes {
 	trigram: TibetanTrigram;
 	/** The day's number, 1–9. */
 	number: number;
+	/** The Tibetan name of every labelled attribute above, keyed by the field it names. */
+	tibetanNames: {
+		animal: TibetanName;
+		element: TibetanName;
+		trigram: TibetanName;
+	};
 }
 
 /**
@@ -99,9 +95,10 @@ export interface LunarDayAttributes {
  * ```ts
  * // Phugpa. Day 1 of month 1 of the year beginning in 2026 — a Dragon month of iron. Tiger,
  * // because every odd month opens on Tiger; water as the element after the month's iron; and
- * // Kham and 7, which are what Janson says a Dragon month opens with.
- * lunarDayAttributes(PHUGPA, 2026, 1, 1);
- * // { animal: "tiger", element: "water", trigram: "kham", number: 7 }
+ * // water (Janson's Kham) and 7, which are what he says a Dragon month opens with.
+ * const day = lunarDayAttributes(PHUGPA, 2026, 1, 1);
+ * // { animal: "tiger", element: "water", trigram: "water", number: 7, tibetanNames: { … } }
+ * day.tibetanNames.trigram.wylie; // "kham"
  * ```
  *
  * @throws RangeError with code `TCT_ATTRIBUTE_NOT_SOURCED` if the tradition has no sourced month
@@ -116,10 +113,23 @@ export function lunarDayAttributes(
 	const animalNumber = monthAnimalNumber(config, month);
 	const elementNumber = monthElementNumber(config, year, month);
 
+	const animal = at(ANIMALS, amod(day + 6 * month + 8, 12), "lunar-day animal");
+	const element = at(ELEMENTS, amod(elementNumber + day, 5), "lunar-day element");
+	const trigram: TibetanTrigram = at(
+		TRIGRAMS,
+		amod(day + 6 * animalNumber + 6, 8),
+		"lunar-day trigram",
+	);
+
 	return {
-		animal: at(ANIMALS, amod(day + 6 * month + 8, 12), "lunar-day animal"),
-		element: at(ELEMENTS, amod(elementNumber + day, 5), "lunar-day element"),
-		trigram: at(TRIGRAMS, amod(day + 6 * animalNumber + 6, 8), "lunar-day trigram"),
+		animal,
+		element,
+		trigram,
 		number: amod(day + 3 * animalNumber, 9),
+		tibetanNames: {
+			animal: animalNameOf(animal),
+			element: elementNameOf(element),
+			trigram: TRIGRAM_NAMES[trigram],
+		},
 	};
 }

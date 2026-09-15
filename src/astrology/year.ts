@@ -15,7 +15,8 @@
 
 import { amod, ceilDiv, mod } from "../computation/arithmetic.js";
 import { assertInternal } from "../errors.js";
-import type { TibetanAnimal, TibetanElement } from "../types.js";
+import { animalNameOf, elementNameOf } from "../names.js";
+import type { TibetanAnimal, TibetanElement, TibetanName } from "../types.js";
 
 /**
  * The five elements in Janson's standard order — his Table 5, and the order every cycle here runs
@@ -108,6 +109,15 @@ export interface YearAttributes {
 	lifeNumber: number;
 	/** Power number, 1–9. */
 	powerNumber: number;
+	/** The Tibetan name of every labelled attribute above, keyed by the field it names. */
+	tibetanNames: {
+		animal: TibetanName;
+		power: TibetanName;
+		life: TibetanName;
+		body: TibetanName;
+		fortune: TibetanName;
+		spirit: TibetanName;
+	};
 }
 
 const at = <T>(table: readonly T[], oneBased: number, what: string): T =>
@@ -158,5 +168,13 @@ export function yearAttributes(year: number): YearAttributes {
 		central: amod(2 - year, 9),
 		lifeNumber: amod(8 - year, 9),
 		powerNumber: amod(5 - year, 9),
+		tibetanNames: {
+			animal: animalNameOf(animal),
+			power: elementNameOf(power),
+			life: elementNameOf(life),
+			body: elementNameOf(body),
+			fortune: elementNameOf(fortune),
+			spirit: elementNameOf(spirit),
+		},
 	};
 }

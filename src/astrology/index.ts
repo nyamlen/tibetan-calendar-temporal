@@ -32,11 +32,14 @@
  * `TCT_ATTRIBUTE_NOT_SOURCED` for `BHUTAN` and `BHUTAN_HENNING` rather than handing over Phugpa's
  * answers. Everything else answers for every tradition.
  *
- * **The mansion is exposed for a date, and only for a date.** {@link lunarMansionFor} gives its index
- * and element. The element table on its own is not exported, because a consumer holding it with no
- * way to learn a day's index would have a dead export — which is how three mansion names came to be
- * exported on 2026-09-12 and withdrawn the same day. The mansions' **names** are not shipped yet; they
- * need the same verification as every other name here.
+ * **The mansion is exposed for a date, and only for a date.** {@link lunarMansionFor} gives its index,
+ * its Tibetan and Sanskrit names, and its element. The tables on their own are not exported, because a
+ * consumer holding them with no way to learn a day's index would have a dead export — which is how
+ * three mansion names came to be exported on 2026-09-12 and withdrawn the same day. The names shipped
+ * once verified; a mansion has **no English name**, because no source prints one.
+ *
+ * **Every attribute block carries `tibetanNames`**, keyed by the English field it names —
+ * `day.month.tibetanNames.animal` is the Tibetan for `day.month.animal`.
  *
  * @packageDocumentation
  */
@@ -62,6 +65,7 @@ import {
 import { type CalendarDayAttributes, calendarDayAttributes } from "./calendar-day.js";
 import { type LunarDayAttributes, lunarDayAttributes } from "./lunar-day.js";
 import { mansionElement } from "./mansion-elements.js";
+import { mansionNames } from "./mansion-names.js";
 import { mansionNumber } from "./mansions.js";
 import { type MonthAttributes, monthAttributes } from "./month.js";
 import type { AstrologyQueryOptions, DayAttributes, LunarMansion } from "./types.js";
@@ -200,8 +204,9 @@ export function monthAttributesFor(
  *
  * @example
  * ```ts
- * lunarDayAttributesFor({ year: 2153, month: 1, day: 1 });
- * // { animal: "tiger", element: "water", trigram: "kham", number: 7 }
+ * const day = lunarDayAttributesFor({ year: 2153, month: 1, day: 1 });
+ * // { animal: "tiger", element: "water", trigram: "water", number: 7, tibetanNames: { … } }
+ * day.tibetanNames.trigram.wylie; // "kham"
  * ```
  */
 export function lunarDayAttributesFor(
@@ -289,7 +294,7 @@ export function elementalYogaFor(
 }
 
 /**
- * The lunar mansion the moon is in at the start of a calendar day: its index and its element.
+ * The lunar mansion the moon is in at the start of a calendar day: its index, names and element.
  *
  * @remarks
  * **Needs astronomy**, like the yoga it drives: the mansion comes from the same true longitudes the
@@ -298,7 +303,8 @@ export function elementalYogaFor(
  * describes, and no cause is established. How often, over which days and for which tradition is
  * stated once, in `docs/why-trust-these-dates.md`; cite it from there rather than restating it.
  *
- * `index` runs **0 to 26**, as both Janson and Henning number the mansions. Names are not shipped yet.
+ * `index` runs **0 to 26**, as both Janson and Henning number the mansions. There is no English name:
+ * no source prints one, so `index` is what a translation table keys on.
  *
  * **On a doubled date the two halves can be in different mansions.** Pass the `Temporal.PlainDate` of
  * the half you mean, or a resolved `TibetanDate`, which carries `isLeapDay`. Loose `{ year, month,
@@ -311,7 +317,10 @@ export function elementalYogaFor(
  * @example
  * ```ts
  * // 1 September 2026: the Tuesday whose yoga is "death", fire against a water mansion.
- * lunarMansionFor(Temporal.PlainDate.from("2026-09-01")).element; // "water"
+ * const mansion = lunarMansionFor(Temporal.PlainDate.from("2026-09-01"));
+ * mansion.element;             // "water"
+ * mansion.sanskritName.iast;   // "revatī"
+ * mansion.tibetanName.wylie;   // "nam gru"
  * ```
  */
 export function lunarMansionFor(
@@ -394,7 +403,8 @@ function lunarMansionOf(resolved: TibetanDate, tradition: TraditionConfig): Luna
 	// `test/astrology/index.test.ts` pins both halves' yogas by VALUE for this reason: asserting only
 	// that the two differ cannot fail here, since their weekday elements differ either way.
 	const index = mansionNumber(scaled, resolved.day, monthCount, resolved.isLeapDay);
-	return { index, element: mansionElement(index) };
+	const { tibetanName, sanskritName } = mansionNames(index);
+	return { index, tibetanName, sanskritName, element: mansionElement(index) };
 }
 
 /** The weekday element the yoga pairs with the mansion's. */

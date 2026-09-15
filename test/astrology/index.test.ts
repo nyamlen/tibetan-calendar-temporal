@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { TRIGRAM_NAMES } from "../../src/astrology/calendar-day.js";
 import {
 	attributesFor,
 	calendarDayAttributesFor,
@@ -10,6 +11,7 @@ import {
 } from "../../src/astrology/index.js";
 import { isoToTibetan, tibetanDateExists } from "../../src/computation/conversion.js";
 import { weekdayNameFor } from "../../src/cycles.js";
+import { NAME_TABLES } from "../../src/names.js";
 import { BHUTAN } from "../../src/traditions/bhutan.js";
 import { PHUGPA, PHUGPA_HENNING } from "../../src/traditions/phugpa.js";
 import { thrownBy } from "../support/thrown.js";
@@ -202,18 +204,93 @@ describe("the yoga's weekday element is tradition-free", () => {
 	});
 });
 
+describe("every attribute block names its labels in Tibetan", () => {
+	/**
+	 * `tibetanNames` sits beside the English fields rather than replacing them, so nothing structural
+	 * ties the two together: a label added to a block without its Tibetan entry would ship unnamed, and
+	 * a stale entry would name a field that is gone. So the expected keys are **derived from each block's
+	 * own string fields** — never listed — and every value must be the shared name object for that
+	 * field's word, looked up by the field's vocabulary: a trigram's "fire" is not the element's.
+	 */
+	const vocabulary = (field: string): Readonly<Record<string, unknown>> =>
+		field === "trigram"
+			? TRIGRAM_NAMES
+			: field === "animal"
+				? NAME_TABLES.ANIMALS
+				: field === "gender"
+					? NAME_TABLES.GENDERS
+					: NAME_TABLES.ELEMENTS;
+
+	it("has one name per English label, and only those, on every block over four years", () => {
+		const bad: string[] = [];
+		for (let offset = 0; offset < 4 * 365; offset += 5) {
+			const date = iso("2024-01-01").add({ days: offset });
+			const day = attributesFor(date);
+			const blocks: [string, object | null][] = [
+				["year", day.year],
+				["month", day.month],
+				["lunarDay", day.lunarDay],
+				["calendarDay", day.calendarDay],
+			];
+			for (const [name, block] of blocks) {
+				if (block === null) {
+					bad.push(`${date} ${name} is null under Phugpa`);
+					continue;
+				}
+				const { tibetanNames, ...rest } = block as Record<string, unknown> & {
+					tibetanNames: Record<string, unknown>;
+				};
+				const labels: Record<string, unknown> = Object.fromEntries(
+					Object.entries(rest).filter(([, value]) => typeof value === "string"),
+				);
+				if (name === "calendarDay") Object.assign(labels, rest.elements);
+				const expected = Object.keys(labels).sort().join(",");
+				const got = Object.keys(tibetanNames).sort().join(",");
+				if (got !== expected) bad.push(`${date} ${name}: names ${got}, labels ${expected}`);
+				for (const [field, word] of Object.entries(labels)) {
+					if (tibetanNames[field] !== vocabulary(field)[word as string])
+						bad.push(`${date} ${name}.${field} "${word}" carries the wrong Tibetan name`);
+				}
+				if (Object.keys(block).at(-1) !== "tibetanNames")
+					bad.push(`${date} ${name}: tibetanNames is not the last key`);
+			}
+		}
+		expect(bad).toEqual([]);
+	});
+});
+
 describe("the lunar mansion for a date", () => {
 	it("gives the documented example's mansion by value", () => {
 		// 1 September 2026, whose yoga is "death": fire weekday against a water mansion.
-		expect(lunarMansionFor(iso("2026-09-01"))).toEqual({ index: 26, element: "water" });
+		expect(lunarMansionFor(iso("2026-09-01"))).toEqual({
+			index: 26,
+			tibetanName: { tibetan: "ནམ་གྲུ", wylie: "nam gru", phonetic: "nam dru" },
+			sanskritName: { iast: "revatī", devanagari: "रेवती" },
+			element: "water",
+		});
+	});
+
+	it("prints the index first and the names before the element", () => {
+		// The key-first rule: a mansion has no English name, so its identifying key is the index.
+		expect(Object.keys(lunarMansionFor(iso("2026-09-01")))).toEqual([
+			"index",
+			"tibetanName",
+			"sanskritName",
+			"element",
+		]);
 	});
 
 	it("puts the two halves of a doubled date in the mansions their own mornings fall in", () => {
 		// Pinned by value, not as an inequality: the pair's yogas differ through the weekday whatever
 		// the mansion does, so only the index itself can catch isLeapDay being dropped.
-		expect(lunarMansionFor(iso("2024-05-15"))).toEqual({ index: 7, element: "fire" });
-		expect(lunarMansionFor(iso("2024-05-16"))).toEqual({ index: 8, element: "water" });
-		expect(lunarMansionFor(isoToTibetan(iso("2024-05-15")))).toEqual({ index: 7, element: "fire" });
+		const brief = (m: ReturnType<typeof lunarMansionFor>) => [
+			m.index,
+			m.sanskritName.iast,
+			m.element,
+		];
+		expect(brief(lunarMansionFor(iso("2024-05-15")))).toEqual([7, "puṣya", "fire"]);
+		expect(brief(lunarMansionFor(iso("2024-05-16")))).toEqual([8, "aśleṣā", "water"]);
+		expect(brief(lunarMansionFor(isoToTibetan(iso("2024-05-15"))))).toEqual([7, "puṣya", "fire"]);
 	});
 
 	it("is the mansion the composition reports, and the one its yoga was built from", () => {

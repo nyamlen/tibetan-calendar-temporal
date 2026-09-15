@@ -19,8 +19,9 @@
 import { amod, ceilDiv, floorDiv } from "../computation/arithmetic.js";
 import { assertInternal, rangeError } from "../errors.js";
 import { monthsAfterTigerMonth } from "../month-names.js";
+import { animalNameOf, elementNameOf, genderNameOf } from "../names.js";
 import type { TraditionConfig, TraditionMonthAnimals } from "../traditions/types.js";
-import type { TibetanAnimal, TibetanElement, TibetanGender } from "../types.js";
+import type { TibetanAnimal, TibetanElement, TibetanGender, TibetanName } from "../types.js";
 
 /** Janson's standard element order, his Table 5. One-based when indexed as he indexes it. */
 const ELEMENTS: readonly TibetanElement[] = ["wood", "fire", "earth", "iron", "water"];
@@ -64,6 +65,12 @@ export interface MonthAttributes {
 	 * instead of reporting nulls.
 	 */
 	number: number | null;
+	/** The Tibetan name of every labelled attribute above, keyed by the field it names. */
+	tibetanNames: {
+		animal: TibetanName;
+		gender: TibetanName;
+		element: TibetanName;
+	};
 }
 
 /**
@@ -177,11 +184,14 @@ export function monthAttributes(
 	month: number,
 ): MonthAttributes {
 	const numbered = config.naming?.nineNumbers?.months === "descending";
+	const animal = at(ANIMALS, monthAnimalNumber(config, month), "month animal");
+	const gender: TibetanGender = month % 2 === 1 ? "male" : "female";
+	const element = at(ELEMENTS, monthElementNumber(config, year, month), "month element");
 
 	return {
-		animal: at(ANIMALS, monthAnimalNumber(config, month), "month animal"),
-		gender: month % 2 === 1 ? "male" : "female",
-		element: at(ELEMENTS, monthElementNumber(config, year, month), "month element"),
+		animal,
+		gender,
+		element,
 		// Janson: the number decreases by 1 each month, and so by 12 ≡ 3 (mod 9) each year.
 		//
 		// **The `3` is an absolute phase, and it is the one value here not derived from `tigerMonth`.**
@@ -193,5 +203,10 @@ export function monthAttributes(
 		// but if a config ever pairs `"descending"` with a different Tiger month, find a source for the
 		// phase rather than trusting this literal.
 		number: numbered ? amod(3 - (12 * year + month), 9) : null,
+		tibetanNames: {
+			animal: animalNameOf(animal),
+			gender: genderNameOf(gender),
+			element: elementNameOf(element),
+		},
 	};
 }

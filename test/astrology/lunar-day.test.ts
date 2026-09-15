@@ -112,28 +112,33 @@ describe("the lunar-day element", () => {
 describe("the lunar-day trigram and number, against the lists Janson spells out", () => {
 	it("opens each month on the trigram he names for its animal", () => {
 		// "Months Tiger, Horse, Dog begin with Li; Rabbit, Sheep, Pig begin with Zin; Mouse, Dragon,
-		// Monkey begin with Kham; Ox, Snake, Bird begin with Dwa."
-		const opening: Record<string, string> = {
-			tiger: "li",
-			horse: "li",
-			dog: "li",
-			rabbit: "zin",
-			sheep: "zin",
-			pig: "zin",
-			mouse: "kham",
-			dragon: "kham",
-			monkey: "kham",
-			ox: "dwa",
-			snake: "dwa",
-			bird: "dwa",
+		// Monkey begin with Kham; Ox, Snake, Bird begin with Dwa." He names them in Tibetan; the
+		// package keys them by his table's English — Li fire, Zin wood, Kham water, Dwa iron — and the
+		// Tibetan is checked through tibetanNames below, so the quotation is tested as he wrote it.
+		const opening: Record<string, [string, string]> = {
+			tiger: ["fire", "li"],
+			horse: ["fire", "li"],
+			dog: ["fire", "li"],
+			rabbit: ["wood", "zin"],
+			sheep: ["wood", "zin"],
+			pig: ["wood", "zin"],
+			mouse: ["water", "kham"],
+			dragon: ["water", "kham"],
+			monkey: ["water", "kham"],
+			ox: ["iron", "dwa"],
+			snake: ["iron", "dwa"],
+			bird: ["iron", "dwa"],
 		};
 		const bad: string[] = [];
 		for (const config of [PHUGPA, TSURPHU]) {
 			for (let month = 1; month <= 12; month++) {
 				const animal = monthAttributes(config, 2026, month).animal;
-				const got = lunarDayAttributes(config, 2026, month, 1).trigram;
-				if (got !== opening[animal]) {
-					bad.push(`${config.id} month ${month} (${animal}) opens on ${got}`);
+				const day = lunarDayAttributes(config, 2026, month, 1);
+				const [english, wylie] = opening[animal] ?? [];
+				if (day.trigram !== english || day.tibetanNames.trigram.wylie !== wylie) {
+					bad.push(
+						`${config.id} month ${month} (${animal}) opens on ${day.trigram} / ${day.tibetanNames.trigram.wylie}`,
+					);
 				}
 			}
 		}

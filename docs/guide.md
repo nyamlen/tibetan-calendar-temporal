@@ -228,7 +228,11 @@ const day = attributesFor(Temporal.PlainDate.from('2026-09-01'));
 
 day.year.power;      // 'fire'
 day.year.body;       // 'water' — each of the five elements runs on its own cycle
-day.lunarMansion;    // { index: 26, element: 'water' } — Revatī, where the moon is that morning
+day.year.tibetanNames.body.wylie;  // 'chu' — every block names its labels in Tibetan
+day.lunarMansion.index;              // 26 — where the moon is that morning
+day.lunarMansion.sanskritName.iast;  // 'revatī'
+day.lunarMansion.tibetanName.wylie;  // 'nam gru'
+day.lunarMansion.element;            // 'water'
 day.yoga.englishName;        // 'death'
 day.yoga.sanskritName.iast;  // 'maraṇa'
 day.yoga.favorable;  // false
@@ -288,9 +292,12 @@ date the two halves share `year`, `month` and `lunarDay` — there is one lunar 
 `calendarDay` and `yoga` differ, because there are two calendar days, and `lunarMansion` can differ
 too, because the moon moves between their mornings.
 
-*The sourcing is not uniform, and the package does not pretend otherwise.* The cycles are Janson's.
+*The sourcing is not uniform, and the package does not pretend otherwise.* The cycles are Janson's,
+and so are the trigrams' English words — `'fire'`, `'earth'`, `'iron'`, `'sky'`, `'water'`,
+`'mountain'`, `'wood'`, `'wind'` — five of which are also element words, naming a different attribute.
 The element each lunar mansion carries and the ten yoga names are **Henning's**, which Janson cites
-and does not derive. The names are checked against Tibetan dictionaries, which correct two of his
+and does not derive. The mansions' names are the Mahāvyutpatti's, checked against Das, Jäschke and
+Monier-Williams, and a mansion has **no English name**, because no source prints one. The names are checked against Tibetan dictionaries, which correct two of his
 spellings, and every Sanskrit name but *pragati* is a Monier-Williams headword. Whether a yoga is favorable is **FPMT's** convention and appears in neither of
 them; the four-way `auspiciousness` grading is a Tibetan dictionary's, read by list order. What is checked against what, over which years, is in
 [why-trust-these-dates.md](why-trust-these-dates.md).
