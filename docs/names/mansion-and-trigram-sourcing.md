@@ -125,6 +125,11 @@ The Mahāvyutpatti is the stronger authority for which Tibetan word translates w
 And Henning and Das cannot be shown to be independent of each other: Henning names a source only for the *gro bzhin* question, and Das cites Jäschke and, for these two entries, a source he abbreviates *Rtsii.*, so they count as one witness, not two.
 Monier-Williams' order is Indian astronomy's, not a Tibetan source's.
 
+**Decided by Andreas on 2026-09-15: Dhaniṣṭhā at 22 and Śatabhiṣaj at 23, following Das.**
+`sanskritName` names the mansion at a computed position, so it follows the order that fixes the position: the Tibetan ordering puts *mon gre* at 22, and Indian order puts Dhaniṣṭhā directly after Śravaṇa.
+A glossary's list order is not an order of mansions in the sky, so the Mahāvyutpatti's is recorded here as its own attested order, not as an error and not as the pairing that ships.
+The **spelling** of 23 is still to settle: Das prints शतभिषा *śatabhiṣā*, as the Mahāvyutpatti does, and Henning *Śatabhiṣaj*.
+
 ### The English: none ships
 
 Decided by Andreas on 2026-09-15: **`LunarMansion` carries no `englishName`.**
@@ -186,7 +191,7 @@ Rejected before the table was built: the Sanskrit name itself as English usage w
 
 ## Still open
 
-- **The Sanskrit at 22 and 23**, between the printed Mahāvyutpatti and Henning, Das and Indian order, before any `sanskritName` ships.
+- **The Sanskrit spellings**, which the verifier settles as it did for the months: at 23 *śatabhiṣā* (Das, the Mahāvyutpatti) against *Śatabhiṣaj* (Henning), and the forms Sakaki and Monier-Williams head differently elsewhere.
 - **The THL phonetics** for the eight trigram names and the 27 mansion names, from THL's converter as for the shipped vocabulary.
 - **The unread parts in column 2**, marked (unread) above; they decide nothing now, since no column ships.
 - **The verifier** that carries all of this as data and fails when a source moves, in the pattern of `verify:month-and-yoga-names`.
