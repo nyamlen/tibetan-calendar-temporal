@@ -730,7 +730,7 @@ integrity is checked on every push.
 
 **`verify:rabjung-names` also gates the authored English on Tibetan-dictionary facts, and the
 licence line there is narrow.** The copyrighted dictionaries — Ives Waldo, Rangjung Yeshe and the *tshig
-mdzod chen mo* here, and the *dung dkar tshig mdzod chen mo* in `verify:month-and-yoga-names` — may **gate** and may never be **quoted** — they are modern copyrighted works, so exactly four
+mdzod chen mo* here, and the *dung dkar tshig mdzod chen mo* in `verify:month-and-yoga-names` and `verify:mansion-and-trigram-names` — may **gate** and may never be **quoted** — they are modern copyrighted works, so exactly four
 facts are taken: that a headword exists, the cycle position an entry states, the element–animal
 year an entry states, and the register tag on a sense — and a fifth, the spelling of each member of a
 set an entry enumerates, approved on 2026-09-13 for the elemental-yoga check and now in the script's
@@ -741,7 +741,9 @@ in which group is not a taken fact but an inference from list order, and it is m
 fixture, the `auspiciousness` docblock and the guide. This sentence said "three" while the script said
 four. **No gloss text is stored, printed or emitted**, and the year is computed from
 the cycle and never read off a dictionary, which is what stops the check being circular. The reading
-logic lives in `scripts/tibetan-dictionary.mjs`, shared with `scripts/survey-ngonjo.mjs`, and carries
+logic lives in `scripts/tibetan-dictionary.mjs`, shared with `scripts/survey-ngonjo.mjs` and both
+newer verifiers — including, since 2026-09-15, `fetchAggregate`, which refuses the 469-byte error page
+the aggregate's host serves with a 200 rather than reading it as a dictionary with no headwords — and carries
 the traps that logic exists to avoid — chief among them that **a register tag has two scopes** and
 that **the prefix before an entry's first numbered sense is a sense**, not merely where a tag lives.
 The second was live through the whole ngönjö survey and cost nothing there, because the *tshig mdzod
@@ -759,6 +761,14 @@ does not reach (4 प्रमोदूत → प्रमोद), a homograph 
 presence of an entry (9 युव, the dual pronoun, → युवन्; 56 दुन्दुभी, a Gandharvī's name, → दुन्दुभि), and a
 typo the source contradicts itself about (57 रूधिर → रुधिर), and an entry that is a bare stub where a
 near neighbour is glossed (58 रक्ताक्षि → रक्ताक्ष). Do not patch a name by editing the output.
+
+**A correction that rests on a dictionary *lacking* a sense is the least reliable kind, so write it as
+self-invalidating data before anyone decides it.** On 2026-09-15 mansion 21 was decided as *śravaṇa*
+because Monier-Williams, read by hand, gave *śravaṇā* only as "a female monk or nun" — the rabjung 9
+and 56 trap. The correction's own check refused on its first run: a separate entry on p. 1097 gives
+*śravaṇā* as the nakṣatra, and the hand reading had seen two of five entries. The decision was taken
+back. An absence is established only by a reader that sees every entry, and the verifier's
+"a headword **whose entry names the sense**" check, not the headword's presence, is what caught it.
 
 **A correction is not a lookup rung, and conflating them inflates both.** A correction changes what
 the table *prints* and needs authored evidence; a rung of the ladder in `scripts/indic.ts` changes
@@ -886,7 +896,13 @@ as describing the second. Both rules are surface-wide and one-way doors at 1.0.0
 [docs/decisions/2026-09-13-names-keyed-by-language.md](docs/decisions/2026-09-13-names-keyed-by-language.md).
 The surface does not yet hold to them everywhere — `ObservanceKind` uses ASCII Tibetan as keys and
 `ObservanceRule.name` is a bare string — which the pre-1.0.0 checklist in [docs/roadmap.md](docs/roadmap.md)
-tracks; `./astrology` has held to them since 2026-09-15. **A shipped English name must be printed word for word by a
+tracks; `./astrology` has held to them since 2026-09-15. **Three shapes are in use, and the record's
+2026-09-15 amendment says which applies where**: sibling `*Name` fields for an object that is a name
+(`TibetanYearName`), a nested `{ englishName, tibetanName }` for a value inside an object with its own
+name (`yoga.auspiciousness`), and a trailing `tibetanNames` block for a block of labels (the four
+attribute results). The third has nothing structural tying a label to its name, so
+`test/astrology/index.test.ts` derives each block's labels from its own string fields — **add a label
+to one of those blocks and the test fails until its Tibetan name is added too**. **A shipped English name must be printed word for word by a
 public-domain dictionary, or be marked as authored**; `ELEMENTAL_YOGAS` meets that through
 `verify:month-and-yoga-names`, two of Henning's words having been replaced where no dictionary prints
 them.
