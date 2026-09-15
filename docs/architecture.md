@@ -371,6 +371,7 @@ interface YearAttributes {
   central: number;         // 1-9
   lifeNumber: number;      // 1-9
   powerNumber: number;     // 1-9
+  tibetanNames: { animal, power, life, body, fortune, spirit: TibetanName };  // last, keyed by the field named
 }
 
 interface MonthAttributes {
@@ -378,13 +379,15 @@ interface MonthAttributes {
   gender: TibetanGender;
   element: TibetanElement;
   number: number | null;   // null where the tradition does not number months — Phugpa
+  tibetanNames: { animal, gender, element: TibetanName };
 }
 
 interface LunarDayAttributes {
   animal: TibetanAnimal;
   element: TibetanElement;
-  trigram: TibetanTrigram;
+  trigram: TibetanTrigram; // Janson's English: fire earth iron sky water mountain wood wind
   number: number;          // 1-9
+  tibetanNames: { animal, element, trigram: TibetanName };
 }
 
 interface CalendarDayAttributes {
@@ -394,6 +397,7 @@ interface CalendarDayAttributes {
   trigram: TibetanTrigram;
   number: number;          // 1-9
   elements: Pick<YearAttributes, 'life' | 'body' | 'fortune' | 'spirit'>;
+  tibetanNames: { element, gender, animal, trigram, life, body, fortune, spirit: TibetanName };
 }
 
 interface ElementalYoga {
@@ -422,6 +426,8 @@ interface DayAttributes {
 
 interface LunarMansion {
   index: number;                  // 0-26, Aśvinī to Revatī; Janson's 27, Henning's 28 without Abhijit
+  tibetanName: TibetanName;       // the Mahāvyutpatti's; no englishName, because no source prints one
+  sanskritName: SanskritName;     // the Mahāvyutpatti's form as a stem; 22 and 23 paired as Das pairs them
   element: TibetanWeekdayElement; // Henning's table
 }
 

@@ -328,6 +328,14 @@ edits, and moving files once after they have landed is one link-fixing commit in
       moved to the composable-`ObservanceConfig` item below, because both reshape `ObservanceConfig`
       and designing them apart would spend two breaking changes on one type. The guide's "three
       renderings" sentence is therefore not true until both items land.
+
+      **Landed for `./astrology` on 2026-09-15** (branch `feat/mansion-trigram-names`): `TibetanTrigram`
+      is Janson's English words, every attribute block carries `tibetanNames`, `LunarMansion` carries
+      `tibetanName` and `sanskritName`, the guide's sentence is corrected and names the observance
+      exception, its month table prints script and phonetics, and the fixture field is `wylie`. The
+      three shapes now in use are recorded in the names-keyed-by-language record. **Not done, and not
+      decided:** `monthNamesFor`'s mansion month name still has no `sanskritName`, which the rule allows
+      as "where sourced" — left unticked until that is ruled on.
 - [ ] **Composable/additive `ObservanceConfig`s — decide before 1.0.0, not after.** Today, a
       consumer combining several institutions' rule sets (e.g. `DEFAULT_OBSERVANCES` plus a `TEACHERS` and a
       `TANTRA` config) hand-rolls

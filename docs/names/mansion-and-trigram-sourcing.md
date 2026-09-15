@@ -1,8 +1,9 @@
 # Sourcing the lunar-mansion names and the trigram names
 
-**Status: authored, and ahead of the code.**
-It records the evidence and the decisions for two sets of names that `./astrology` will carry once they are verified, written before the verifier so that the verifier is built from a record rather than from memory.
-Nothing described here ships yet: `LunarMansion` is `{ index, element }` and `TibetanTrigram` is still Janson's ASCII spellings.
+**Status: shipped 2026-09-15.**
+It records the evidence and the decisions for two sets of names that `./astrology` carries, written before the verifier so that the verifier was built from a record rather than from memory.
+That verifier is [scripts/verify-mansion-and-trigram-names.mjs](../../scripts/verify-mansion-and-trigram-names.mjs), and its output is `test/fixtures/mansion-names.ts` and `test/fixtures/trigram-names.ts`.
+`TibetanTrigram` is Janson's English words with the Tibetan on `tibetanNames.trigram`, and `LunarMansion` is `{ index, tibetanName, sanskritName, element }`; the suite holds both tables against the fixtures.
 It follows [month-and-yoga-sourcing.md](month-and-yoga-sourcing.md), whose source table, lineage cautions and page-reading method apply here unchanged, and the rule both inherit from [validation-sources.md](../validation-sources.md): **agreement is only evidence if the source did not reach its answer the way we did.**
 
 The two sets:
@@ -102,7 +103,7 @@ The engine computes an index, 0–26, and the question is which names belong the
 | 21 | *gro bzhin* | Śravaṇā | 3206 | p. 249 |
 | (21) | *byi bzhin* | Abhijit, not in the 27 | 3207 | p. 887 |
 | 22 | *mon gre* | **Dhaniṣṭhā**, but Sakaki **Śatabhiṣā** | 3208 | p. 976, as *mon-dre* धनिष्ठा |
-| 23 | *mon gru* | **Śatabhiṣaj**, but Sakaki **Dhaniṣṭhā** | 3209 | p. 976, शतभिषा |
+| 23 | *mon gru* | **Śatabhiṣā**, but Sakaki **Dhaniṣṭhā** | 3209 | p. 976, शतभिषा |
 | 24 | *khrums stod* | Pūrvabhādrapadā | 3210 | p. 173 |
 | 25 | *khrums smad* | Uttarabhādrapadā | 3211 | p. 173 |
 | 26 | *nam gru* | Revatī | 3212 | p. 738 |
@@ -125,10 +126,32 @@ The Mahāvyutpatti is the stronger authority for which Tibetan word translates w
 And Henning and Das cannot be shown to be independent of each other: Henning names a source only for the *gro bzhin* question, and Das cites Jäschke and, for these two entries, a source he abbreviates *Rtsii.*, so they count as one witness, not two.
 Monier-Williams' order is Indian astronomy's, not a Tibetan source's.
 
-**Decided by Andreas on 2026-09-15: Dhaniṣṭhā at 22 and Śatabhiṣaj at 23, following Das.**
+**Decided by Andreas on 2026-09-15: Dhaniṣṭhā at 22 and Śatabhiṣā at 23, following Das.**
 `sanskritName` names the mansion at a computed position, so it follows the order that fixes the position: the Tibetan ordering puts *mon gre* at 22, and Indian order puts Dhaniṣṭhā directly after Śravaṇa.
 A glossary's list order is not an order of mansions in the sky, so the Mahāvyutpatti's is recorded here as its own attested order, not as an error and not as the pairing that ships.
-The **spelling** of 23 is still to settle: Das prints शतभिषा *śatabhiṣā*, as the Mahāvyutpatti does, and Henning *Śatabhiṣaj*.
+
+### The Sanskrit spellings: the Mahāvyutpatti's, as stems
+
+Decided by Andreas on 2026-09-15, **rule (A)**: each name is the Mahāvyutpatti's form reduced to its stem, as the shipped Sanskrit already is (*śarad*, not *śarat*), with Monier-Williams cited where he heads it **in the nakṣatra sense**.
+The reduction is one of three rules of Sanskrit and nothing looser: a vowel stem that is its own nominative once the visarga goes (*puṣyaḥ* → *puṣya*), a neuter *-aṃ* (*mūlaṃ* → *mūla*), and an *-as* bahuvrīhi's feminine *-āḥ* (*mṛgaśirāḥ* → *mṛgaśiras*).
+The alternatives were Monier-Williams' defining headword for each mansion, and Henning's forms, which exist here only in his OCR layer.
+
+Where the result and Monier-Williams part company:
+
+| # | Shipped | Monier-Williams |
+|---|---|---|
+| 8 | aśleṣā | *a-śleṣā* f. "(= *ā-śleṣā*) N. of the seventh … lunar mansion", p. 114 |
+| 12 | hastā | *hastā* f. "the hand … the Nakṣatra Hasta", p. 1294, beside *hasta* m. |
+| 14 | svātī | not a headword; *svāti* f. "N. of the star Arcturus (as forming the 13th and 15th lunar asterism; also svātī …)", p. 1283 |
+| 21 | śravaṇā | *śravaṇā* f. "N. of a Nakṣatra (= 2. śravaṇa)", p. 1097 — and also, p. 1096, "a female monk or nun" |
+| 23 | śatabhiṣā | *śata-bhiṣā* f. "= śatabhiṣaj N. of a Nakṣatra", p. 1049, beside the defining *śata-bhiṣaj*, Henning's form |
+| 24 | pūrvabhadrapadā | not a headword; *pūrva-bhadra-pada* m. "(and f. ā) = -bhādrap˚", p. 644, pointing to *pūrva-bhādrapada* "the 25th Nakṣatra" |
+
+**21 was nearly shipped as *śravaṇa*, on a misreading, and the verifier caught it.**
+Reading Monier-Williams by hand, only the "nun" entry and the nakṣatra under *śravaṇa* m. were seen, so *śravaṇā* looked like the rabjung 9 and 56 trap and was decided as a correction.
+The correction's own self-check refused on its first run: a separate entry on p. 1097 gives *śravaṇā* as the nakṣatra, citing the Bṛhat Saṃhitā and the Purāṇas.
+The correction was withdrawn and rule (A) stands at 21, confirmed by Andreas.
+This is why the verifier asks for a headword **whose entry names a nakṣatra**, not only a headword: the nun would have satisfied the weaker check.
 
 ### The English: none ships
 
@@ -162,26 +185,27 @@ J is Jäschke, D is Das, MW is Monier-Williams.
 | 18 | snrubs | mūla | P "a root" p. 826 | — (J p. 320; D p. 772) | — |
 | 19 | chu stod | pūrvāṣāḍhā | C pūrva (unread) + a-ṣāḍha "not to be overcome, invincible" p. 116 | C chu + stod (unread) | — |
 | 20 | chu smad | uttarāṣāḍhā | C uttara (unread) + a-ṣāḍha p. 116 | C chu + smad (unread) | — |
-| 21 | gro bzhin | śravaṇa | P "the act of hearing" p. 1096, but MW files the nakṣatra under the homonym "limping, lame" p. 1097 | — (D p. 249); C gro + bzhin (unread) | "containing the three stars α, β …" MW p. 1097 |
+| 21 | gro bzhin | śravaṇa | P "the act of hearing" p. 1096, but MW files the nakṣatra under the homonym "limping, lame" p. 1097 | — (D p. 249); C gro + bzhin (unread) | "containing the three stars, α, β, and γ Aquilae, supposed to represent three footsteps" MW p. 1097 |
 | 22 | mon gre | dhaniṣṭhā | P dhaniṣṭha "very swift" p. 509 | — (D p. 976, as *mon-dre*) | — |
-| 23 | mon gru | śatabhiṣaj | C śata "a hundred" p. 1048 + bhiṣaj "curing, healing" p. 757 | — (D p. 976) | — |
+| 23 | mon gru | śatabhiṣaj | P "'requiring a h˚ physicians'" p. 1049 | — (D p. 976) | "containing 100 stars, one of which is λ Aquarii" MW p. 1049 |
 | 24 | khrums stod | pūrvabhādrapadā | P proṣṭhapada "'the foot of a stool'" p. 714; bhadra "blessed, auspicious" p. 745 | — (D p. 173); C khrums + stod (unread) | — |
 | 25 | khrums smad | uttarabhādrapadā | as 24 | — (D p. 173); C khrums + smad (unread) | "figured by a conch, and comprehending two stars, of which one is Andromeda" D p. 173 |
 | 26 | nam gru | revatī | P revat "wealthy, opulent, rich" p. 888 | — (D p. 738); C nam + gru (unread) | "two elliptical groups of thirty-two stars" D p. 738 |
 
+The Sanskrit column here is the headword the senses were read under, not the shipped spelling, which is in the table above and the fixture.
 Rows 22 and 23 give the Sanskrit in the Henning and Das pairing; the Mahāvyutpatti's swaps them, as above.
 
 **What the table shows, and why no column became `englishName`.**
 
 1. **No source prints an English name for a mansion.**
    All three dictionaries give "n. of a lunar mansion" or "N. of a Nakṣatra"; every candidate above is either a sense of the word or a description of the stars.
-2. **Column 1 is the fullest — 19 of 27 printed — and pairs English with a Tibetan name it does not render.**
+2. **Column 1 is the fullest — 20 of 27 printed — and pairs English with a Tibetan name it does not render.**
    *mchu* "lip" would sit beside "a gift, reward, bounty", and *nag pa* "black" beside "conspicuous, excellent".
    That is the failure [2026-08-25-rabjung-ships-the-tibetan-name-only.md](../decisions/2026-08-25-rabjung-ships-the-tibetan-name-only.md) refuses: a type that silently pairs a Tibetan name with a name it does not translate.
    Some senses would also read as nonsense for a mansion — *dhaniṣṭha* "very swift", and Śravaṇa filed under "limping, lame".
 3. **Column 2 is printed for 7 of 27.**
    Most Tibetan mansion names are words with no other sense in either dictionary, and where one exists it rarely matches the Sanskrit: *lag* "hand" at Ārdrā "moist", while the mansion whose Sanskrit means "hand", Hastā, is *me bzhi*.
-4. **Column 3 covers 14 of 27** and describes stars rather than translating a name, so it is not what `englishName` means.
+4. **Column 3 covers 15 of 27** and describes stars rather than translating a name, so it is not what `englishName` means.
    If it ever ships it belongs in a field of its own.
 5. **A mansion does not need an English key.**
    The trigram did, because its key is a string and internationalisation needs that string in English; a mansion is keyed by `index`, which is language-neutral.
@@ -191,7 +215,5 @@ Rejected before the table was built: the Sanskrit name itself as English usage w
 
 ## Still open
 
-- **The Sanskrit spellings**, which the verifier settles as it did for the months: at 23 *śatabhiṣā* (Das, the Mahāvyutpatti) against *Śatabhiṣaj* (Henning), and the forms Sakaki and Monier-Williams head differently elsewhere.
-- **The THL phonetics** for the eight trigram names and the 27 mansion names, from THL's converter as for the shipped vocabulary.
 - **The unread parts in column 2**, marked (unread) above; they decide nothing now, since no column ships.
-- **The verifier** that carries all of this as data and fails when a source moves, in the pattern of `verify:month-and-yoga-names`.
+- **Jäschke's "Wdk."**, presumed to be the *Vaiḍūrya dkar po* and not yet checked against his list of abbreviations.

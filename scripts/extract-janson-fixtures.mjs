@@ -334,7 +334,7 @@ for (const raw of tableRows("Tmonths")) {
 	if (c.length !== 6) throw new Error(`unparsable Tmonths row: ${raw}`);
 	monthNames.push({
 		month: Number(c[0]),
-		tibetan: c[1],
+		wylie: c[1],
 		seasonalI: c[3].toLowerCase(),
 		animal: c[4].toLowerCase(),
 		seasonalII: c[5].toLowerCase(),
@@ -361,7 +361,7 @@ const monthItem = (marker) => {
 		const m = lines[i].match(
 			/^(?:thus )?Month (\d+) = (?:\\tibx\{([^}]+)\}|\\nag\{\}) = ([a-z]+-[a-z]+)/,
 		);
-		if (m) statements.push({ month: Number(m[1]), tibetan: m[2] ?? NAG, season: m[3] });
+		if (m) statements.push({ month: Number(m[1]), wylie: m[2] ?? NAG, season: m[3] });
 	}
 	if (statements.map((s) => s.month).join() !== "1,3") {
 		throw new Error(`seasonal item "${marker}" parsed as months ${statements.map((s) => s.month)}`);
@@ -417,10 +417,10 @@ for (const row of monthNames) {
 // parse and which column is seasonal I.
 for (const statement of seasonalProse.month1EarlySpring) {
 	const row = monthNames.find((entry) => entry.month === statement.month);
-	if (row.seasonalI !== statement.season || row.tibetan !== statement.tibetan) {
+	if (row.seasonalI !== statement.season || row.wylie !== statement.wylie) {
 		throw new Error(
-			`Janson's Phugpa prose says month ${statement.month} = ${statement.tibetan} = ${statement.season}, ` +
-				`Tmonths says ${row.tibetan} = ${row.seasonalI}. The prose or the column parse is wrong.`,
+			`Janson's Phugpa prose says month ${statement.month} = ${statement.wylie} = ${statement.season}, ` +
+				`Tmonths says ${row.wylie} = ${row.seasonalI}. The prose or the column parse is wrong.`,
 		);
 	}
 }
@@ -669,7 +669,7 @@ export interface JansonMonthNameRow {
 	/** Month number, 1-12. */
 	month: number;
 	/** The lunar-mansion month name, in Janson's Wylie. */
-	tibetan: string;
+	wylie: string;
 	/** Phugpa's Kālacakra identification: month 1 is early-spring. Janson's own words, e.g. "mid-spring". */
 	seasonalI: string;
 	/** Phugpa's month animal; the generator checks it against T12months. */
@@ -681,7 +681,7 @@ export interface JansonMonthNameRow {
 export interface JansonSeasonalStatement {
 	month: number;
 	/** The month's lunar-mansion name, in Janson's Wylie. */
-	tibetan: string;
+	wylie: string;
 	/** Janson's own words, e.g. "late-winter" — not this package's keys. */
 	season: string;
 }

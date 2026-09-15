@@ -216,8 +216,15 @@ describe("guide examples", () => {
 			expect(day.year.body).toBe("water");
 		});
 
+		it("states a block's Tibetan label correctly", () => {
+			expect(day.year.tibetanNames.body.wylie).toBe("chu");
+		});
+
 		it("states the lunar mansion correctly", () => {
-			expect(day.lunarMansion).toEqual({ index: 26, element: "water" });
+			expect(day.lunarMansion.index).toBe(26);
+			expect(day.lunarMansion.sanskritName.iast).toBe("revatī");
+			expect(day.lunarMansion.tibetanName.wylie).toBe("nam gru");
+			expect(day.lunarMansion.element).toBe("water");
 		});
 
 		it("states the yoga and its favorability correctly", () => {
@@ -230,7 +237,8 @@ describe("guide examples", () => {
 		it("is right that the yoga is Tuesday's fire paired with the water of Revatī", () => {
 			expect(day.date.isoDate.dayOfWeek).toBe(2);
 			expect(day.date.weekdayName.element).toBe("fire");
-			expect(day.lunarMansion).toEqual({ index: 26, element: "water" });
+			expect(day.lunarMansion.element).toBe("water");
+			expect(day.lunarMansion.sanskritName.iast).toBe("revatī");
 			expect([...day.yoga.elements].sort()).toEqual(["fire", "water"]);
 		});
 
@@ -300,10 +308,10 @@ describe("guide examples", () => {
 		});
 
 		it("prints every cell of the month-by-month table as the engine computes it", () => {
-			// Read from the document rather than restated here: seventy-two cells are too many to
+			// Read from the document rather than restated here: ninety-six cells are too many to
 			// keep in step by hand, and a restated copy would pass while the guide drifted.
 			const header =
-				"| Month | `mansion` | `month1LateWinter` | `month1EarlySpring` | `tigerEarlySpring`, Phugpa | `sixSeasons.month3EarlySpring` |";
+				"| Month | `mansion` | Tibetan | Phonetic | `month1LateWinter` | `month1EarlySpring` | `tigerEarlySpring`, Phugpa | `sixSeasons.month3EarlySpring` |";
 			const lines = readFileSync(new URL("../docs/guide.md", import.meta.url), "utf8").split("\n");
 			const start = lines.indexOf(header);
 			expect(start).toBeGreaterThan(-1);
@@ -321,6 +329,8 @@ describe("guide examples", () => {
 				return [
 					String(month),
 					mansion.tibetanName.wylie,
+					mansion.tibetanName.tibetan,
+					mansion.tibetanName.phonetic,
 					words(fourSeasons.month1LateWinter),
 					words(fourSeasons.month1EarlySpring),
 					words(fourSeasons.tigerEarlySpring),

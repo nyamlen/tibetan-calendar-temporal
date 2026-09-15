@@ -256,7 +256,7 @@ describe("docblock examples", () => {
 	// contract like every other module's.
 	describe("astrology/month.ts and astrology/lunar-day.ts", () => {
 		it("states Phugpa's month 1 of 2026 correctly", () => {
-			expect(monthAttributes(PHUGPA, 2026, 1)).toEqual({
+			expect(monthAttributes(PHUGPA, 2026, 1)).toMatchObject({
 				animal: "dragon",
 				gender: "male",
 				element: "iron",
@@ -265,12 +265,14 @@ describe("docblock examples", () => {
 		});
 
 		it("states the four labels of its first lunar day correctly", () => {
-			expect(lunarDayAttributes(PHUGPA, 2026, 1, 1)).toEqual({
+			const day = lunarDayAttributes(PHUGPA, 2026, 1, 1);
+			expect(day).toMatchObject({
 				animal: "tiger",
 				element: "water",
-				trigram: "kham",
+				trigram: "water",
 				number: 7,
 			});
+			expect(day.tibetanNames.trigram.wylie).toBe("kham");
 		});
 	});
 });

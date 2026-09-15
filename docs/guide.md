@@ -228,7 +228,11 @@ const day = attributesFor(Temporal.PlainDate.from('2026-09-01'));
 
 day.year.power;      // 'fire'
 day.year.body;       // 'water' — each of the five elements runs on its own cycle
-day.lunarMansion;    // { index: 26, element: 'water' } — Revatī, where the moon is that morning
+day.year.tibetanNames.body.wylie;  // 'chu' — every block names its labels in Tibetan
+day.lunarMansion.index;              // 26 — where the moon is that morning
+day.lunarMansion.sanskritName.iast;  // 'revatī'
+day.lunarMansion.tibetanName.wylie;  // 'nam gru'
+day.lunarMansion.element;            // 'water'
 day.yoga.englishName;        // 'death'
 day.yoga.sanskritName.iast;  // 'maraṇa'
 day.yoga.favorable;  // false
@@ -288,9 +292,12 @@ date the two halves share `year`, `month` and `lunarDay` — there is one lunar 
 `calendarDay` and `yoga` differ, because there are two calendar days, and `lunarMansion` can differ
 too, because the moon moves between their mornings.
 
-*The sourcing is not uniform, and the package does not pretend otherwise.* The cycles are Janson's.
+*The sourcing is not uniform, and the package does not pretend otherwise.* The cycles are Janson's,
+and so are the trigrams' English words — `'fire'`, `'earth'`, `'iron'`, `'sky'`, `'water'`,
+`'mountain'`, `'wood'`, `'wind'` — five of which are also element words, naming a different attribute.
 The element each lunar mansion carries and the ten yoga names are **Henning's**, which Janson cites
-and does not derive. The names are checked against Tibetan dictionaries, which correct two of his
+and does not derive. The mansions' names are the Mahāvyutpatti's, checked against Das, Jäschke and
+Monier-Williams, and a mansion has **no English name**, because no source prints one. The names are checked against Tibetan dictionaries, which correct two of his
 spellings, and every Sanskrit name but *pragati* is a Monier-Williams headword. Whether a yoga is favorable is **FPMT's** convention and appears in neither of
 them; the four-way `auspiciousness` grading is a Tibetan dictionary's, read by list order. What is checked against what, over which years, is in
 [why-trust-these-dates.md](why-trust-these-dates.md).
@@ -447,20 +454,20 @@ names.sixSeasons.month3EarlySpring.sanskritName.iast;   // "śiśira"
 The seasonal names have been matched to the months in several ways, the sources disagree about which one a tradition uses, and so there is no default.
 Each system is named for the rule that defines it:
 
-| Month | `mansion` | `month1LateWinter` | `month1EarlySpring` | `tigerEarlySpring`, Phugpa | `sixSeasons.month3EarlySpring` |
-|---|---|---|---|---|---|
-| 1 | mchu | late winter | early spring | late spring | early dewy |
-| 2 | dbo | early spring | middle spring | early summer | late dewy |
-| 3 | nag pa | middle spring | late spring | middle summer | early spring |
-| 4 | sa ga | late spring | early summer | late summer | late spring |
-| 5 | snron | early summer | middle summer | early autumn | early summer |
-| 6 | chu stod | middle summer | late summer | middle autumn | late summer |
-| 7 | gro bzhin | late summer | early autumn | late autumn | early rains |
-| 8 | khrums | early autumn | middle autumn | early winter | late rains |
-| 9 | tha skar | middle autumn | late autumn | middle winter | early autumn |
-| 10 | smin drug | late autumn | early winter | late winter | late autumn |
-| 11 | mgo | early winter | middle winter | early spring | early cold |
-| 12 | rgyal | middle winter | late winter | middle spring | late cold |
+| Month | `mansion` | Tibetan | Phonetic | `month1LateWinter` | `month1EarlySpring` | `tigerEarlySpring`, Phugpa | `sixSeasons.month3EarlySpring` |
+|---|---|---|---|---|---|---|---|
+| 1 | mchu | མཆུ | chu | late winter | early spring | late spring | early dewy |
+| 2 | dbo | དབོ | wo | early spring | middle spring | early summer | late dewy |
+| 3 | nag pa | ནག་པ | nak pa | middle spring | late spring | middle summer | early spring |
+| 4 | sa ga | ས་ག | sa ga | late spring | early summer | late summer | late spring |
+| 5 | snron | སྣྲོན | nön | early summer | middle summer | early autumn | early summer |
+| 6 | chu stod | ཆུ་སྟོད | chu tö | middle summer | late summer | middle autumn | late summer |
+| 7 | gro bzhin | གྲོ་བཞིན | dro zhin | late summer | early autumn | late autumn | early rains |
+| 8 | khrums | ཁྲུམས | trum | early autumn | middle autumn | early winter | late rains |
+| 9 | tha skar | ཐ་སྐར | ta kar | middle autumn | late autumn | middle winter | early autumn |
+| 10 | smin drug | སྨིན་དྲུག | min druk | late autumn | early winter | late winter | late autumn |
+| 11 | mgo | མགོ | go | early winter | middle winter | early spring | early cold |
+| 12 | rgyal | རྒྱལ | gyel | middle winter | late winter | middle spring | late cold |
 
 Three things that table makes easy to get wrong:
 
@@ -659,8 +666,15 @@ mechanical to declare it with.
 
 ### Displaying Tibetan names
 
-Every name the engine returns carries three renderings — Tibetan script, Wylie transliteration and
-a phonetic form — so a consumer chooses which to display rather than transliterating themselves.
+Every Tibetan name the engine returns is a `TibetanName` with three renderings — Tibetan script,
+Wylie transliteration and THL phonetics — so a consumer chooses which to display rather than
+transliterating themselves.
+The one exception today is an observance's `name`, a plain phonetic string, which is due to change
+before 1.0.0.
+
+In `./astrology` an English label and its Tibetan name sit side by side: every attribute block has a
+`tibetanNames` object keyed by the field it names, so `day.calendarDay.tibetanNames.trigram` is the
+Tibetan for `day.calendarDay.trigram`.
 
 ```js
 const date = isoToTibetan(Temporal.PlainDate.from('2026-08-12'));
