@@ -828,8 +828,35 @@ by `check:conventions`, because every available predicate fires on `docs/validat
 itself. Both in
 [docs/decisions/2026-08-23-readme-is-the-landing-page.md](docs/decisions/2026-08-23-readme-is-the-landing-page.md).
 `package.json#files` ships `docs/guide.md`, `docs/why-trust-these-dates.md` and — since 2026-08-24 —
-`docs/how-it-is-calculated.md`, so **their examples are contract exactly as the README's are**;
-`test/guide.test.ts` asserts every one that states a value. The third joined them to answer a
+`docs/how-it-is-calculated.md`, so **their examples are contract exactly as the README's are**.
+
+**One suite per shipped document, and the third has none.** This passage read "`test/guide.test.ts`
+asserts every one that states a value" until 2026-09-17, which was true of `docs/guide.md` and of
+nothing else: that suite reads only its own document, by deliberate design — "a suite named for one
+document while guarding another names the wrong file when it fails". So `docs/how-it-is-calculated.md`
+went unasserted from the day it shipped, and it cost a figure — it said a doubled or skipped day
+occurs in "roughly a quarter of all months" where the true rate is **94% skipped, 64% doubled**, a
+claim that also contradicted the arithmetic the same document teaches. It now has
+`test/how-it-is-calculated.test.ts`. **`docs/why-trust-these-dates.md` still has no suite at all**,
+which is the worst of the three to leave: its whole content is windows and agreement percentages,
+the values likeliest to drift. When a document joins `files`, it needs its own suite in the same
+commit.
+
+**A suite guarding a document reads it; it never restates it.** A hand copy of a table or a figure
+passes while the document drifts, which is the failure the suite exists to prevent — so parse the
+table out of the markdown and regex the figure out of the prose, as `test/guide.test.ts` does. A
+first draft of the how-it-is-calculated suite restated twelve rows and two percentages, and a code
+review caught it; two of its assertions were comparing the copy against itself.
+
+**A year in this repository is a Tibetan year unless it says otherwise, and a prose window must say
+which era it is.** `monthsFor(1900)` is Tibetan 1900, which runs from **1773-02-22 to 1974-02-21 CE**.
+A sweep written as "1900–2100" and described in a shipped document as "the two centuries 1900–2100"
+therefore measured one window and claimed another, on 2026-09-17. **No measurement can catch this**:
+both windows round to the same 94% and 64%, so the mutant that swapped them passed. What catches it
+is stating the window **twice, in both eras**, and having the test check the correspondence — that
+Tibetan 2027 begins in 1900 CE and 2227 ends in 2101. Do that for any measured figure in a document.
+
+The third document joined them to answer a
 question the shipped types raise and cannot answer: a `Rabjung` carries a Tibetan year name and **no**
 Sanskrit one, and a consumer who expected *Prabhava* beside it needs to be told that the cycle has
 **two** Sanskrit name lists which disagree at five positions, so pairing either with the Tibetan name
