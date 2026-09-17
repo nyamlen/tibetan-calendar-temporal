@@ -418,3 +418,32 @@ export const MANSION_NAMES: readonly {
 		attestedIn: ["tshig mdzod chen mo", "Das 1902"],
 	},
 ];
+
+/**
+ * A stem that names two mansions at once, which no single row above supplies.
+ *
+ * @remarks
+ * Month 8 of the Tibetan year is named *khrums*, the stem `khrums stod` and `khrums smad` share, so
+ * its Sanskrit is the stem those two share in turn. This is a stated exception to rule A — the
+ * Mahāvyutpatti has no bare headword to reduce — and it rests on Monier-Williams heading the bare
+ * form and glossing it as the pair's name, on `monierWilliamsPage`. His ordinal, in
+ * `monierWilliamsSense`, counts the mansions from a different starting point than `members` does and
+ * is quoted only to prove the pair sense.
+ */
+export const MANSION_PAIR_STEMS: readonly {
+	wylie: string;
+	iast: string;
+	devanagari: string;
+	members: readonly number[];
+	monierWilliamsPage: number;
+	monierWilliamsSense: string;
+}[] = [
+	{
+		wylie: "khrums",
+		iast: "bhadrapadā",
+		devanagari: "भद्रपदा",
+		members: [24, 25],
+		monierWilliamsPage: 746,
+		monierWilliamsSense: "3rd and 4th",
+	},
+];

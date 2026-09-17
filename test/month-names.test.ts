@@ -4,6 +4,7 @@ import { BHUTAN } from "../src/traditions/bhutan.js";
 import { PHUGPA } from "../src/traditions/phugpa.js";
 import { HENNING_SIX_SEASONS } from "./fixtures/henning-six-seasons.js";
 import { JANSON_MONTH_NAMES, JANSON_SEASONAL_STATEMENTS } from "./fixtures/janson-month-names.js";
+import { MANSION_NAMES, MANSION_PAIR_STEMS } from "./fixtures/mansion-names.js";
 import {
 	FOUR_SEASON_MONTH_NAMES,
 	KALACAKRA_SEASON_MONTHS,
@@ -60,6 +61,46 @@ describe("the lunar-mansion names", () => {
 		expect(MONTHS.map((month) => namesOf(month).mansion.tibetanName.wylie)).toEqual(
 			JANSON_MONTH_NAMES.map((row) => row.wylie),
 		);
+	});
+
+	/**
+	 * The Sanskrit is the mansion's own, never the Indian month's — *maghā*, not *māgha*. Eleven
+	 * months name a mansion outright and are checked against the verified 27-name table by Wylie, so
+	 * the two tables cannot drift apart. Month 8 is the exception and has its own case below.
+	 */
+	it("carry the mansion's Sanskrit, taken from the verified 27-name table", () => {
+		const bad = MONTHS.filter((month) => {
+			const { tibetanName, sanskritName } = namesOf(month).mansion;
+			const row = MANSION_NAMES.find((r) => r.wylie === tibetanName.wylie);
+			if (row === undefined) return month !== 8;
+			return (
+				JSON.stringify(sanskritName) !==
+				JSON.stringify({ iast: row.iast, devanagari: row.devanagari })
+			);
+		});
+		expect(bad).toEqual([]);
+	});
+
+	/**
+	 * *khrums* is the stem shared by mansions 24 and 25, so no single mansion's Sanskrit fits it.
+	 * Sanskrit drops *pūrva* and *uttara* exactly as Tibetan drops *stod* and *smad*, and
+	 * Monier-Williams p. 746 prints the result with the pair sense.
+	 */
+	it("give month 8 the pair's name, because khrums names two mansions", () => {
+		const stem = MANSION_PAIR_STEMS.find((row) => row.wylie === "khrums");
+		if (stem === undefined) throw new Error("the verifier emitted no khrums stem");
+		expect(namesOf(8).mansion.sanskritName).toEqual({
+			iast: stem.iast,
+			devanagari: stem.devanagari,
+		});
+		expect(namesOf(8).mansion.tibetanName.wylie).toBe(stem.wylie);
+		expect(MANSION_NAMES.filter((r) => r.wylie.startsWith("khrums")).map((r) => r.index)).toEqual(
+			stem.members,
+		);
+	});
+
+	it("freezes the Sanskrit it hands out", () => {
+		expect(Object.isFrozen(namesOf(1).mansion.sanskritName)).toBe(true);
 	});
 });
 
