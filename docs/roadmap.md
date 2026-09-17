@@ -298,7 +298,7 @@ edits, and moving files once after they have landed is one link-fixing commit in
       return type, taken now because the package is pre-v1.0.0. Took a serialised year from 293,009
       to 126,629 bytes. Constraint and the rule it follows in
       [decisions/2026-08-24-year-naming-off-the-date.md](decisions/2026-08-24-year-naming-off-the-date.md)
-- [ ] **Make every shipped name follow the names-keyed-by-language rule — decide and fix before
+- [x] **Make every shipped name follow the names-keyed-by-language rule — decide and fix before
       1.0.0.** [decisions/2026-09-13-names-keyed-by-language.md](decisions/2026-09-13-names-keyed-by-language.md)
       says a name ships as `tibetanName: TibetanName` (script, Wylie, THL phonetics), plus
       `sanskritName` where one is sourced, and S15's rule says keys are English, never ASCII Tibetan.
@@ -340,8 +340,13 @@ edits, and moving files once after they have landed is one link-fixing commit in
       name block holds one name in several languages. Month 8's *khrums* names mansions 24 and 25
       together and takes the pair's own name *bhadrapadā*, verified as a stated exception to rule (A);
       no mansion index ships on this member. An `indianMonth` sibling may follow and is additive.
-      The `./astrology` half of this item is therefore complete; it stays unticked only for the
-      `./observances` half, which the composable-`ObservanceConfig` item below carries.
+      `fourSeasons` still carries no `sanskritName`, and that is the rule's "where sourced" holding
+      rather than a gap: no source gives Sanskrit for the Tibetan season-month compounds.
+
+      **Done — every bullet above is `./astrology`, and the `./observances` two left this item on
+      2026-09-14** for the composable-`ObservanceConfig` item below, which is where `ObservanceKind`
+      and `ObservanceRule.name` are now tracked. A draft of this line first held the item open for
+      them, which would have kept a completed item unticked against work it no longer covers.
 - [ ] **Composable/additive `ObservanceConfig`s — decide before 1.0.0, not after.** Today, a
       consumer combining several institutions' rule sets (e.g. `DEFAULT_OBSERVANCES` plus a `TEACHERS` and a
       `TANTRA` config) hand-rolls
