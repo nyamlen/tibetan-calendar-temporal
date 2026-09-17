@@ -305,7 +305,10 @@ interface Rabjung {
 }
 
 interface MonthNames {
-  mansion: { tibetanName: TibetanName };  // mchu … rgyal, bare — mchu is also "lip"
+  mansion: {
+    tibetanName: TibetanName;    // mchu … rgyal, bare — mchu is also "lip"
+    sanskritName: SanskritName;  // the mansion's: maghā, not the month māgha. No index: month 8 names two
+  };
   fourSeasons: {
     month1LateWinter: FourSeasonMonthName;         // the original Kālacakra identification
     month1EarlySpring: FourSeasonMonthName;        // Phugpa's; Janson's "seasonal I"

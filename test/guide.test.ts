@@ -302,6 +302,7 @@ describe("guide examples", () => {
 		it("prints the example's values", () => {
 			const names = monthNamesFor({ year: 2153, month: 1 });
 			expect(names.mansion.tibetanName.wylie).toBe("mchu");
+			expect(names.mansion.sanskritName.iast).toBe("maghā");
 			expect(names.fourSeasons.month1EarlySpring.season).toBe("spring");
 			expect(names.fourSeasons.month1EarlySpring.tibetanName.wylie).toBe("dpyid zla ra ba");
 			expect(names.sixSeasons.month3EarlySpring.sanskritName.iast).toBe("śiśira");
@@ -311,7 +312,7 @@ describe("guide examples", () => {
 			// Read from the document rather than restated here: ninety-six cells are too many to
 			// keep in step by hand, and a restated copy would pass while the guide drifted.
 			const header =
-				"| Month | `mansion` | Tibetan | Phonetic | `month1LateWinter` | `month1EarlySpring` | `tigerEarlySpring`, Phugpa | `sixSeasons.month3EarlySpring` |";
+				"| Month | `mansion` | Tibetan | Phonetic | Sanskrit | `month1LateWinter` | `month1EarlySpring` | `tigerEarlySpring`, Phugpa | `sixSeasons.month3EarlySpring` |";
 			const lines = readFileSync(new URL("../docs/guide.md", import.meta.url), "utf8").split("\n");
 			const start = lines.indexOf(header);
 			expect(start).toBeGreaterThan(-1);
@@ -331,6 +332,7 @@ describe("guide examples", () => {
 					mansion.tibetanName.wylie,
 					mansion.tibetanName.tibetan,
 					mansion.tibetanName.phonetic,
+					`*${mansion.sanskritName.iast}*`,
 					words(fourSeasons.month1LateWinter),
 					words(fourSeasons.month1EarlySpring),
 					words(fourSeasons.tigerEarlySpring),
