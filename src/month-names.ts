@@ -13,6 +13,10 @@
  * written down, and `test/month-names.test.ts` holds each table against that script's emitted fixture
  * — see `docs/names/month-and-yoga-sourcing.md` for the evidence and the variants not chosen.
  *
+ * The mansion's Sanskrit comes from the other verifier, `scripts/verify-mansion-and-trigram-names.mjs`,
+ * because it is the same string that script emits for the mansion itself; its evidence is in
+ * `docs/names/mansion-and-trigram-sourcing.md`.
+ *
  * @packageDocumentation
  */
 
@@ -77,8 +81,16 @@ export interface MonthNames {
 	 * makes several of them **homographs** — *mchu* is also "lip", and *mgo* and *rgyal* are ordinary words too. Month
 	 * 8's *khrums* is not itself a mansion name but the stem the mansions *khrums stod* and *khrums smad*
 	 * share.
+	 *
+	 * `sanskritName` is the **mansion's** name, not the Indian month's: month 1 is *maghā*, where the
+	 * month derived from it is *māgha*. Sanskrit has two words where Tibetan has one, and this member
+	 * holds the one its `tibetanName` renders. Month 8 carries the pair's name *bhadrapadā*, which
+	 * drops *pūrva* and *uttara* exactly as *khrums* drops *stod* and *smad*.
+	 *
+	 * There is deliberately **no mansion index here**, though {@link LunarMansion} has one: a day is
+	 * in exactly one mansion, while a month can be named for two.
 	 */
-	readonly mansion: { readonly tibetanName: TibetanName };
+	readonly mansion: { readonly tibetanName: TibetanName; readonly sanskritName: SanskritName };
 	/** The three systems naming twelve months as early, middle and late of four seasons. */
 	readonly fourSeasons: {
 		/** Month 1 is late winter: the original Kālacakra identification, which Janson attributes to Tsurphu. */
@@ -109,22 +121,36 @@ const tibetan = (script: string, wylie: string, phonetic: string): TibetanName =
 	phonetic,
 });
 
-/** Months 1–12. */
-const MANSIONS: readonly { readonly tibetanName: TibetanName }[] = freeze(
-	[
-		tibetan("མཆུ", "mchu", "chu"),
-		tibetan("དབོ", "dbo", "wo"),
-		tibetan("ནག་པ", "nag pa", "nak pa"),
-		tibetan("ས་ག", "sa ga", "sa ga"),
-		tibetan("སྣྲོན", "snron", "nön"),
-		tibetan("ཆུ་སྟོད", "chu stod", "chu tö"),
-		tibetan("གྲོ་བཞིན", "gro bzhin", "dro zhin"),
-		tibetan("ཁྲུམས", "khrums", "trum"),
-		tibetan("ཐ་སྐར", "tha skar", "ta kar"),
-		tibetan("སྨིན་དྲུག", "smin drug", "min druk"),
-		tibetan("མགོ", "mgo", "go"),
-		tibetan("རྒྱལ", "rgyal", "gyel"),
-	].map((tibetanName) => ({ tibetanName })),
+/**
+ * Months 1–12, each with the mansion it is named for in both languages.
+ *
+ * @remarks
+ * The Sanskrit is the mansion's, so eleven of these are the same strings
+ * `scripts/verify-mansion-and-trigram-names.mjs` emits for the 27 mansions, and
+ * `test/month-names.test.ts` holds them against that fixture by Wylie so the two cannot drift.
+ * Month 8 is the twelfth: *khrums* names mansions 24 and 25 together, so it takes the pair's own
+ * name, which Monier-Williams prints on p. 746 as "N. of the 3rd and 4th lunar asterisms".
+ */
+const MANSIONS: readonly {
+	readonly tibetanName: TibetanName;
+	readonly sanskritName: SanskritName;
+}[] = freeze(
+	(
+		[
+			[tibetan("མཆུ", "mchu", "chu"), "maghā", "मघा"],
+			[tibetan("དབོ", "dbo", "wo"), "uttaraphalgunī", "उत्तरफल्गुनी"],
+			[tibetan("ནག་པ", "nag pa", "nak pa"), "citrā", "चित्रा"],
+			[tibetan("ས་ག", "sa ga", "sa ga"), "viśākhā", "विशाखा"],
+			[tibetan("སྣྲོན", "snron", "nön"), "jyeṣṭhā", "ज्येष्ठा"],
+			[tibetan("ཆུ་སྟོད", "chu stod", "chu tö"), "pūrvāṣāḍhā", "पूर्वाषाढा"],
+			[tibetan("གྲོ་བཞིན", "gro bzhin", "dro zhin"), "śravaṇā", "श्रवणा"],
+			[tibetan("ཁྲུམས", "khrums", "trum"), "bhadrapadā", "भद्रपदा"],
+			[tibetan("ཐ་སྐར", "tha skar", "ta kar"), "aśvinī", "अश्विनी"],
+			[tibetan("སྨིན་དྲུག", "smin drug", "min druk"), "kṛttikā", "कृत्तिका"],
+			[tibetan("མགོ", "mgo", "go"), "mṛgaśiras", "मृगशिरस्"],
+			[tibetan("རྒྱལ", "rgyal", "gyel"), "puṣya", "पुष्य"],
+		] as const
+	).map(([tibetanName, iast, devanagari]) => ({ tibetanName, sanskritName: { iast, devanagari } })),
 );
 
 /** Early spring first, then every later month of the four-season year. */

@@ -298,7 +298,7 @@ edits, and moving files once after they have landed is one link-fixing commit in
       return type, taken now because the package is pre-v1.0.0. Took a serialised year from 293,009
       to 126,629 bytes. Constraint and the rule it follows in
       [decisions/2026-08-24-year-naming-off-the-date.md](decisions/2026-08-24-year-naming-off-the-date.md)
-- [ ] **Make every shipped name follow the names-keyed-by-language rule — decide and fix before
+- [x] **Make every shipped name follow the names-keyed-by-language rule — decide and fix before
       1.0.0.** [decisions/2026-09-13-names-keyed-by-language.md](decisions/2026-09-13-names-keyed-by-language.md)
       says a name ships as `tibetanName: TibetanName` (script, Wylie, THL phonetics), plus
       `sanskritName` where one is sourced, and S15's rule says keys are English, never ASCII Tibetan.
@@ -333,9 +333,20 @@ edits, and moving files once after they have landed is one link-fixing commit in
       is Janson's English words, every attribute block carries `tibetanNames`, `LunarMansion` carries
       `tibetanName` and `sanskritName`, the guide's sentence is corrected and names the observance
       exception, its month table prints script and phonetics, and the fixture field is `wylie`. The
-      three shapes now in use are recorded in the names-keyed-by-language record. **Not done, and not
-      decided:** `monthNamesFor`'s mansion month name still has no `sanskritName`, which the rule allows
-      as "where sourced" — left unticked until that is ruled on.
+      three shapes now in use are recorded in the names-keyed-by-language record.
+
+      **Ruled on 2026-09-17:** `monthNamesFor`'s `mansion` now carries `sanskritName`, and it is the
+      **mansion's** name (*maghā*), not the Indian month's (*māgha*) — the two are different words, and a
+      name block holds one name in several languages. Month 8's *khrums* names mansions 24 and 25
+      together and takes the pair's own name *bhadrapadā*, verified as a stated exception to rule (A);
+      no mansion index ships on this member. An `indianMonth` sibling may follow and is additive.
+      `fourSeasons` still carries no `sanskritName`, and that is the rule's "where sourced" holding
+      rather than a gap: no source gives Sanskrit for the Tibetan season-month compounds.
+
+      **Done — every bullet above is `./astrology`, and the `./observances` two left this item on
+      2026-09-14** for the composable-`ObservanceConfig` item below, which is where `ObservanceKind`
+      and `ObservanceRule.name` are now tracked. A draft of this line first held the item open for
+      them, which would have kept a completed item unticked against work it no longer covers.
 - [ ] **Composable/additive `ObservanceConfig`s — decide before 1.0.0, not after.** Today, a
       consumer combining several institutions' rule sets (e.g. `DEFAULT_OBSERVANCES` plus a `TEACHERS` and a
       `TANTRA` config) hand-rolls

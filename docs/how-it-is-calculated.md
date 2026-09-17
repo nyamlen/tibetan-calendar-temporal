@@ -74,6 +74,41 @@ system rather than the Indian, and appears to be the original Kālacakra one. It
 decides which physical lunar month a date like "the 15th of month 6" refers to — a whole month's
 difference. In this package it is `TraditionConfig.leapMonthPosition`.
 
+## Three lengths, all called a month
+
+Three different periods get called "a month", and the numbers only make sense once they are kept
+apart.
+
+**The moon's circuit — about 27.32 days.** The time the moon takes to return to the same place
+against the stars. This is the period the lunar mansions divide: the moon's path is cut into 27
+mansions, so the moon crosses about one of them per day. A Tibetan astronomer states a position in
+mansions and fractions of a mansion, the way a Western astrologer uses the twelve signs.
+
+**The cycle of phases — about 29.53 days.** The time from one new moon to the next. It is longer than
+the circuit, and the reason is worth following slowly, because nearly everything else follows from
+it. A phase does not depend on where the moon is among the stars. It depends on where the moon is
+relative to the **sun** — new moon when the two are together, full moon when they are opposite. In
+the 27.32 days the moon takes to go once round, the sun has itself moved on about 27° along the same
+path. So the moon arrives back at the star it started from and the sun is no longer there; it needs a
+further 2.2 days to catch up. 27.32 + 2.2 ≈ 29.53.
+
+**Thirty lunar days — a division, not a length.** The calendar's month is the cycle of phases, and it
+is cut into **thirty equal parts**. One part, a lunar day, is the time the moon takes to gain 12° on
+the sun, and 30 × 12° = 360°, one whole cycle of phases. So thirty lunar days *are* one cycle of
+phases — 29.53 solar days — and one lunar day averages about 23 hours 37 minutes, a little less than
+a solar day.
+
+| | Length | What comes back |
+|---|---|---|
+| The moon's circuit | 27.32 days | the same star — the period the 27 mansions divide |
+| The cycle of phases | 29.53 days | the same phase — the calendar's month |
+| Thirty lunar days | 29.53 days | nothing: not a period at all, but the phase cycle cut in thirty |
+
+That is the answer to the obvious question. A Tibetan month always has exactly thirty numbered days,
+and it always lasts about twenty-nine and a half solar days. Thirty numbers cannot each have a solar
+day of their own in twenty-nine and a half days, and the next section is what the calendar does about
+it.
+
 ## Doubled and skipped days — the part that surprises everyone
 
 Here is the feature with no counterpart in Western calendars.
@@ -97,8 +132,10 @@ Now consider what happens when lunar days drift against civil days:
   day 21 occurs twice.
 
 This is not an error or a correction. It is what the rule produces, and Tibetan almanacs print it
-plainly. Roughly a quarter of all months contain one. A month therefore has 29 or 30 *calendar* days
-while always having exactly 30 *lunar* days.
+plainly. Nor is it rare — it is the normal case, which follows directly from the half-day shortfall
+above. Over the two centuries 1900–2100 under Phugpa, **94% of months have a skipped day** and **64%
+have a doubled one as well**; a month comes out 30 calendar days slightly more often than 29. A month
+therefore has 29 or 30 *calendar* days while always having exactly 30 *lunar* days.
 
 It matters enormously in practice, because a practice day tied to "the 10th" either happens twice, or
 does not happen, in the months where the 10th is doubled or skipped. This package exposes it as
@@ -184,6 +221,69 @@ The mean motion rates `m₁`, `s₁`, `a₁` and the correction tables are **sha
 Janson documents. The traditions are closer than the list suggests — but each difference is enough to
 produce a calendar that looks entirely reasonable and is wrong for its intended community, which is
 why this package injects all of them as configuration rather than assuming any.
+
+## Why the months are named after stars
+
+Tibetan months are usually just numbered, but they have names too, and an almanac prints them. The
+oldest of those systems names each month after a **lunar mansion**, which looks arbitrary until you
+see what it is for.
+
+Start from the marker. A month is a cycle of phases, and its most visible moment is the **full moon**.
+At full moon the moon stands opposite the sun, and that position does two useful things at once. The
+moon is above the horizon all night, so you can see plainly which mansion it is sitting in — at new
+moon it is lost in the sun's glare and you can see nothing at all. And because it is opposite the sun,
+where it sits also tells you where the sun is, and therefore the season.
+
+So "the month whose full moon falls in *maghā*" is a name anchored to something a person can go
+outside and look at. In Sanskrit that month becomes *māgha*; in Tibetan it takes the mansion's name
+unchanged, *mchu*.
+
+Twelve months, twelve names — but there are 27 mansions, so only twelve of them are ever used, and
+which twelve is decided by arithmetic. Each month the full moon lands about 27 ÷ 12 = **2.25 mansions**
+further on. Since the calendar cannot use a quarter of a mansion, the real steps are mostly 2 with an
+occasional 3:
+
+| Month | Sanskrit | Mansion | Step from the month before |
+|---|---|---|---|
+| 1 | *maghā* | 9 | 2 |
+| 2 | *uttaraphalgunī* | 11 | 2 |
+| 3 | *citrā* | 13 | 2 |
+| 4 | *viśākhā* | 15 | 2 |
+| 5 | *jyeṣṭhā* | 17 | 2 |
+| 6 | *pūrvāṣāḍhā* | 19 | 2 |
+| 7 | *śravaṇā* | 21 | 2 |
+| 8 | *bhadrapadā* | 24 + 25 | 3 |
+| 9 | *aśvinī* | 0 | 3 |
+| 10 | *kṛttikā* | 2 | 2 |
+| 11 | *mṛgaśiras* | 4 | 2 |
+| 12 | *puṣya* | 7 | 3 |
+
+Nine steps of 2 and three of 3, which sum to 27 and close the circle. Month 8's step is counted from
+24, the first of the two mansions it is named for, and month 1's from month 12 of the year before.
+
+The three wide steps are where the quarter-mansions have piled up into a whole one, and **month 8
+sits on one of them**. Its full moon falls in the gap around the two Bhādrapadā mansions rather than
+squarely in either, so the tradition names the month after the *pair*. Both languages do it the same
+way, by dropping the word that distinguishes the two: Tibetan *khrums stod* and *khrums smad* become
+bare *khrums*, and Sanskrit *pūrvabhadrapadā* and *uttarabhadrapadā* become *bhadrapadā*. That is why
+this package returns the pair's name for month 8 rather than picking one of them.
+
+Two last things stop this being more precise than it is.
+
+**The names no longer track the sky.** The correspondence is approximate and always was — Janson says
+the mansions are "chosen to be approximatively where the full moon occurs that month". A cycle of
+phases is 29.53 days against a circuit of 27.32, and leap months shift things further, so the full
+moon does not land in the same mansion every year. The names long ago became fixed labels for month
+numbers.
+
+**So the engine looks them up rather than computing them.** `monthNamesFor` takes a month number and
+reads the table above; `lunarMansionFor` takes a date and computes where the moon actually is. One
+is a name, the other is a position, and they will often disagree — which is correct, not a bug.
+
+It also explains why the mansion names and the seasonal month names line up at all. Both are
+ultimately keyed to where the sun is, one by way of the full moon opposite it and the other directly.
+That is one fact told two ways, which is why an almanac prints both and why `monthNamesFor` returns
+every system side by side.
 
 ## The sixty-year cycle: one cycle, two reckonings, two name lists
 

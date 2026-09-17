@@ -617,6 +617,84 @@ for (const term of mansionTerms) {
 }
 
 // ---------------------------------------------------------------------------------------------
+// The stem that names a pair — month 8's khrums, whose Sanskrit no single mansion supplies
+// ---------------------------------------------------------------------------------------------
+
+/**
+ * Month 8 is named for two mansions at once, and both languages say so the same way: Tibetan drops
+ * *stod* and *smad* to leave *khrums*, Sanskrit drops *pūrva* and *uttara* to leave *bhadrapadā*.
+ *
+ * This is a **stated exception to rule A**, not rule A applied. Rule A reduces the Mahāvyutpatti's
+ * nominative to a stem, and the Mahāvyutpatti has no bare *khrums* to reduce. The value rests on
+ * Monier-Williams printing the bare form with the pair sense, so every part of that is checked here
+ * and the run refuses if any of it stops being true: the two members must still be the mansions
+ * named, their names must still end in this stem in both languages, the Mahāvyutpatti must still
+ * lack the bare Tibetan, and Monier-Williams must still head the bare Sanskrit and gloss it as the
+ * name of the pair.
+ */
+const PAIR_STEMS = [
+	{
+		key: "khrums",
+		wylie: "khrums",
+		slp1: "BadrapadA",
+		members: [24, 25],
+		// Monier-Williams p. 746 numbers this pair from a different starting mansion than the engine
+		// does, so his ordinal is quoted to prove the pair sense, never to confirm our 24 and 25.
+		expects: "3rd and 4th",
+	},
+];
+
+const stemTerms = [];
+for (const stem of PAIR_STEMS) {
+	const label = `pair stem ${stem.wylie}`;
+	const devanagari = slp1ToDevanagari(stem.slp1);
+	const iast = devanagariToIast(devanagari);
+	const members = stem.members.map((index) => mansionTerms.find((t) => t.index === index));
+
+	if (members.some((member) => member === undefined)) {
+		fail(`${label}: mansions ${stem.members.join(" and ")} are not both in the verified table`);
+		continue;
+	}
+	for (const member of members) {
+		if (!member.wylie.startsWith(`${stem.wylie} `))
+			fail(
+				`${label}: mansion ${member.index} is "${member.wylie}", which does not extend the stem`,
+			);
+		if (!member.iast.endsWith(iast))
+			fail(
+				`${label}: mansion ${member.index} is "${member.iast}", which does not end in "${iast}"`,
+			);
+	}
+	if (mvyNaksatras.some((n) => n.tibetan === stem.wylie))
+		fail(
+			`${label}: the Mahāvyutpatti now lists "${stem.wylie}" as a nakṣatra of its own — it is no longer only a stem, so rule A may now reach it`,
+		);
+
+	try {
+		const entries = entriesHeadedBy(await cologne(stem.slp1), iast);
+		if (entries.length === 0) fail(`${label}: "${iast}" is not a Monier-Williams headword`);
+		const pair = entries.filter(
+			(entry) => NAKSATRA_SENSE.test(entry.body) && entry.body.includes(stem.expects),
+		);
+		if (entries.length > 0 && pair.length === 0)
+			fail(
+				`${label}: Monier-Williams heads "${iast}" (p. ${entries[0].page}) but no entry there names the "${stem.expects}" nakṣatras — the pair sense this value rests on is gone`,
+			);
+		stemTerms.push({
+			key: stem.key,
+			wylie: stem.wylie,
+			iast,
+			devanagari,
+			members: stem.members,
+			monierWilliamsPage: pair[0]?.page ?? null,
+			monierWilliamsSense: stem.expects,
+		});
+	} catch (error) {
+		fail(`${label}: Cologne lookup failed — ${error.message}`);
+	}
+}
+
+// ---------------------------------------------------------------------------------------------
 // Phonetics, from THL's converter
 // ---------------------------------------------------------------------------------------------
 
@@ -706,6 +784,28 @@ export const MANSION_NAMES: readonly {
 	attestedIn: readonly string[];
 }[] = [
 ${mansionTerms.map((t) => `\t{ index: ${t.index}, ${name(t)}, iast: ${q(t.iast)}, devanagari: ${q(t.devanagari)}, monierWilliamsPage: ${t.mwPage}, monierWilliamsThrough: ${q(t.mwThroughIast)}, mahavyutpatti: ${q(t.mahavyutpatti)}, sakakiEntry: ${t.sakakiEntry}, pairingFollows: ${q(t.pairingFollows)}, attestedIn: [${t.attestedIn.map(q).join(", ")}] },`).join("\n")}
+];
+
+/**
+ * A stem that names two mansions at once, which no single row above supplies.
+ *
+ * @remarks
+ * Month 8 of the Tibetan year is named *khrums*, the stem \`khrums stod\` and \`khrums smad\` share, so
+ * its Sanskrit is the stem those two share in turn. This is a stated exception to rule A — the
+ * Mahāvyutpatti has no bare headword to reduce — and it rests on Monier-Williams heading the bare
+ * form and glossing it as the pair's name, on \`monierWilliamsPage\`. His ordinal, in
+ * \`monierWilliamsSense\`, counts the mansions from a different starting point than \`members\` does and
+ * is quoted only to prove the pair sense.
+ */
+export const MANSION_PAIR_STEMS: readonly {
+	wylie: string;
+	iast: string;
+	devanagari: string;
+	members: readonly number[];
+	monierWilliamsPage: number;
+	monierWilliamsSense: string;
+}[] = [
+${stemTerms.map((t) => `\t{ wylie: ${q(t.wylie)}, iast: ${q(t.iast)}, devanagari: ${q(t.devanagari)}, members: [${t.members.join(", ")}], monierWilliamsPage: ${t.monierWilliamsPage}, monierWilliamsSense: ${q(t.monierWilliamsSense)} },`).join("\n")}
 ];
 `,
 );

@@ -153,6 +153,48 @@ The correction's own self-check refused on its first run: a separate entry on p.
 The correction was withdrawn and rule (A) stands at 21, confirmed by Andreas.
 This is why the verifier asks for a headword **whose entry names a nakṣatra**, not only a headword: the nun would have satisfied the weaker check.
 
+### The months named after mansions, and the one that names two
+
+Decided by Andreas on 2026-09-17: `monthNamesFor`'s `mansion` member carries the **mansion's** Sanskrit, not the Indian month's.
+Sanskrit derives the month name from the mansion name — *maghā* gives *māgha*, *citrā* gives *caitra*, *kṛttikā* gives *kārttika* — while Tibetan uses the bare mansion name as the month name.
+So the two languages do not have the same word here, and the member holds the one its `tibetanName` renders.
+
+The evidence that settled it is which Tibetan strings each source attaches its Sanskrit to.
+The Mahāvyutpatti's nakṣatra section pairs Sanskrit with **exactly the bare strings the engine ships** — `mchu|maghā`, `dbo|uttaraphalgunī`, `nag pa|citrā` — while its month section pairs month Sanskrit with seasonal compounds the engine does not ship in this member: `dgun zla tha chung mchu|māghaḥ`, `dpyid zla 'bring po nag pa|caitraḥ`.
+Janson's `Tmonths` prints the month forms (`M\=agha`, `Ph\=alguna`, `Pau\d{s}a`) under a caption calling them "Tibetan and Sanskrit lunar mansion names" — an inconsistency of his own, recorded here because it is the obvious counter-evidence and it does not survive reading the table.
+
+Eleven months name a mansion outright, so their Sanskrit is the row above, matched by Wylie and never retyped:
+
+| Month | Tibetan | Mansion | Sanskrit |
+|---|---|---|---|
+| 1 | mchu | 9 | maghā |
+| 2 | dbo | 11 | uttaraphalgunī |
+| 3 | nag pa | 13 | citrā |
+| 4 | sa ga | 15 | viśākhā |
+| 5 | snron | 17 | jyeṣṭhā |
+| 6 | chu stod | 19 | pūrvāṣāḍhā |
+| 7 | gro bzhin | 21 | śravaṇā |
+| 8 | khrums | 24 + 25 | bhadrapadā |
+| 9 | tha skar | 0 | aśvinī |
+| 10 | smin drug | 2 | kṛttikā |
+| 11 | mgo | 4 | mṛgaśiras |
+| 12 | rgyal | 7 | puṣya |
+
+**Month 8 is a stated exception to rule (A).**
+*khrums* is the stem `khrums stod` and `khrums smad` share, and the Mahāvyutpatti has no bare *khrums* headword to reduce, so rule (A) cannot reach it.
+Sanskrit forms the same stem the same way, by dropping *pūrva* and *uttara*, and Monier-Williams prints the result: *bhadra-padā* (ā), f. "N. of the 3rd and 4th lunar asterisms", p. 746.
+His long-vowel *bhādra-padā* on p. 752 is defined as "= bhadra-padā", and its neighbour *bhādra-pada* m. is "the month Bhādra", so the long form leans toward the month word; the short form also matches the stems shipped at 24 and 25.
+`scripts/verify-mansion-and-trigram-names.mjs` re-checks every part of that on each run and refuses to write if any of it changes — that the two members still extend the stem in both languages, that the Mahāvyutpatti still lacks the bare Tibetan, and that Monier-Williams still heads the bare Sanskrit and glosses it as the pair's.
+His ordinal "3rd and 4th" counts the mansions from a different starting point than the engine's 24 and 25, and is quoted to prove the pair sense, never to confirm an index.
+
+**Mansion 24 was considered for month 8 and rejected.**
+Nothing sources it, and the one witness that resolves bare *khrums* to a single member points the other way: the Mahāvyutpatti's month section reads `khrum smad|bhādrapadaḥ`, which is *smad* — uttara, mansion 25.
+There is also no Tibetan rule to extrapolate from, because the two months that do name one member of a pair go opposite ways: month 2 *dbo* is the uttara of the Phalgunī pair, month 6 *chu stod* the pūrva of the Āṣāḍhā pair.
+
+Two further variants from the Mahāvyutpatti's month section, recorded and not acted on.
+It gives `dpyid zla ra ba gre can|phālgunaḥ`, pairing the first spring month with *gre* (mansion 10) where the engine, following Janson and Henning, has *dbo* (mansion 11) — the same slot and the other member of the same pair.
+And its month list runs from *mchu* as the last winter month, which is the late-winter identification the engine returns as `month1LateWinter`.
+
 ### The English: none ships
 
 Decided by Andreas on 2026-09-15: **`LunarMansion` carries no `englishName`.**
