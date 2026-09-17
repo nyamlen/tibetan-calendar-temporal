@@ -133,8 +133,9 @@ Now consider what happens when lunar days drift against civil days:
 
 This is not an error or a correction. It is what the rule produces, and Tibetan almanacs print it
 plainly. Nor is it rare — it is the normal case, which follows directly from the half-day shortfall
-above. Over the two centuries 1900–2100 under Phugpa, **94% of months have a skipped day** and **64%
-have a doubled one as well**; a month comes out 30 calendar days slightly more often than 29. A month
+above. Over Tibetan years 2027–2227 under Phugpa, which run from 1900 to 2101 CE, **94% of
+months have a skipped day** and **64% have a doubled one as well**; a month comes out 30 calendar days
+slightly more often than 29. A month
 therefore has 29 or 30 *calendar* days while always having exactly 30 *lunar* days.
 
 It matters enormously in practice, because a practice day tied to "the 10th" either happens twice, or
@@ -239,9 +240,9 @@ outside and look at. In Sanskrit that month becomes *māgha*; in Tibetan it take
 unchanged, *mchu*.
 
 Twelve months, twelve names — but there are 27 mansions, so only twelve of them are ever used, and
-which twelve is decided by arithmetic. Each month the full moon lands about 27 ÷ 12 = **2.25 mansions**
-further on. Since the calendar cannot use a quarter of a mansion, the real steps are mostly 2 with an
-occasional 3:
+which twelve is decided by arithmetic. Twelve names spread across 27 mansions is **2.25 mansions
+apiece on average**, and since the calendar cannot use a quarter of a mansion, the real steps are
+mostly 2 with an occasional 3:
 
 | Month | Sanskrit | Mansion | Step from the month before |
 |---|---|---|---|
@@ -261,12 +262,16 @@ occasional 3:
 Nine steps of 2 and three of 3, which sum to 27 and close the circle. Month 8's step is counted from
 24, the first of the two mansions it is named for, and month 1's from month 12 of the year before.
 
-The three wide steps are where the quarter-mansions have piled up into a whole one, and **month 8
-sits on one of them**. Its full moon falls in the gap around the two Bhādrapadā mansions rather than
-squarely in either, so the tradition names the month after the *pair*. Both languages do it the same
-way, by dropping the word that distinguishes the two: Tibetan *khrums stod* and *khrums smad* become
-bare *khrums*, and Sanskrit *pūrvabhadrapadā* and *uttarabhadrapadā* become *bhadrapadā*. That is why
-this package returns the pair's name for month 8 rather than picking one of them.
+The three wide steps are where the quarter-mansions have piled up into a whole one.
+
+**Month 8 is the one named after a pair.** Where the other eleven take a single mansion's name, this
+one is called *khrums*, which is not a mansion name at all but the word *khrums stod* and *khrums
+smad* share. Sanskrit does the same thing to the same pair: *pūrvabhadrapadā* and *uttarabhadrapadā*
+become *bhadrapadā*, which Monier-Williams prints as the name common to the two. Why the tradition
+names this month after both and not one of them is not something the sources here settle — months 9
+and 12 sit on wide steps too and take a single name, so the step is not the reason. What is
+established is that both languages drop the distinguishing word, which is why this package returns
+the pair's name rather than picking a member.
 
 Two last things stop this being more precise than it is.
 

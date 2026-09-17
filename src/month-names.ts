@@ -87,7 +87,7 @@ export interface MonthNames {
 	 * holds the one its `tibetanName` renders. Month 8 carries the pair's name *bhadrapadā*, which
 	 * drops *pūrva* and *uttara* exactly as *khrums* drops *stod* and *smad*.
 	 *
-	 * There is deliberately **no mansion index here**, though {@link LunarMansion} has one: a day is
+	 * There is deliberately **no mansion index here**, though `./astrology`'s `LunarMansion` has one: a day is
 	 * in exactly one mansion, while a month can be named for two.
 	 */
 	readonly mansion: { readonly tibetanName: TibetanName; readonly sanskritName: SanskritName };
@@ -318,6 +318,7 @@ function assertOptions(options: unknown): void {
  * // Phugpa. Month 1 of the Fire Horse year beginning in 2026.
  * const names = monthNamesFor({ year: 2153, month: 1 });
  * names.mansion.tibetanName.wylie;                   // "mchu"
+ * names.mansion.sanskritName.iast;                   // "maghā" — the mansion, not the month māgha
  * names.fourSeasons.month1LateWinter.season;         // "winter"
  * names.fourSeasons.month1EarlySpring.tibetanName.wylie;   // "dpyid zla ra ba"
  * names.fourSeasons.tigerEarlySpring?.part;          // "late" — Phugpa's Tiger month is month 11

@@ -676,17 +676,22 @@ for (const stem of PAIR_STEMS) {
 		const pair = entries.filter(
 			(entry) => NAKSATRA_SENSE.test(entry.body) && entry.body.includes(stem.expects),
 		);
-		if (entries.length > 0 && pair.length === 0)
-			fail(
-				`${label}: Monier-Williams heads "${iast}" (p. ${entries[0].page}) but no entry there names the "${stem.expects}" nakṣatras — the pair sense this value rests on is gone`,
-			);
+		if (pair.length === 0) {
+			if (entries.length > 0)
+				fail(
+					`${label}: Monier-Williams heads "${iast}" (p. ${entries[0].page}) but no entry there names the "${stem.expects}" nakṣatras — the pair sense this value rests on is gone`,
+				);
+			// Nothing to emit without a page: the row's whole claim is that entry. Matching the members
+			// branch above, which also fails and moves on rather than writing a partial row.
+			continue;
+		}
 		stemTerms.push({
 			key: stem.key,
 			wylie: stem.wylie,
 			iast,
 			devanagari,
 			members: stem.members,
-			monierWilliamsPage: pair[0]?.page ?? null,
+			monierWilliamsPage: pair[0].page,
 			monierWilliamsSense: stem.expects,
 		});
 	} catch (error) {

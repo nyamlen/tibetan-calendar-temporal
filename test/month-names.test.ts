@@ -100,7 +100,9 @@ describe("the lunar-mansion names", () => {
 	});
 
 	it("freezes the Sanskrit it hands out", () => {
-		expect(Object.isFrozen(namesOf(1).mansion.sanskritName)).toBe(true);
+		expect(MONTHS.filter((month) => !Object.isFrozen(namesOf(month).mansion.sanskritName))).toEqual(
+			[],
+		);
 	});
 });
 
