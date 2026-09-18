@@ -708,6 +708,7 @@ A separate subpath, like `./observances`. `options` is `{ tradition? }`, default
 | `elementalYogaFor` | `(date: Temporal.PlainDate \| TibetanDate, options?) => ElementalYoga` | The weekday's element paired with the lunar mansion's |
 | `elementalYoga` | `(a: TibetanWeekdayElement, b: TibetanWeekdayElement) => ElementalYoga` | The pair alone, order-insensitive |
 | `ELEMENTAL_YOGAS` | | The ten, frozen: Henning's names, FPMT's favorability, and the *tshig mdzod chen mo*'s four-way grading as `auspiciousness` |
+| `LUNAR_MANSIONS` | | All 27, frozen, in index order — the table `lunarMansionFor` looks a day up in |
 
 Type-only exports: `DayAttributes`, `YearAttributes`, `MonthAttributes`, `LunarDayAttributes`,
 `CalendarDayAttributes`, `ElementalYoga`, `YogaAuspiciousness`, `TibetanTrigram`, `AstrologyQueryOptions`,

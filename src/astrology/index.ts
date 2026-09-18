@@ -32,11 +32,10 @@
  * `TCT_ATTRIBUTE_NOT_SOURCED` for `BHUTAN` and `BHUTAN_HENNING` rather than handing over Phugpa's
  * answers. Everything else answers for every tradition.
  *
- * **The mansion is exposed for a date, and only for a date.** {@link lunarMansionFor} gives its index,
- * its Tibetan and Sanskrit names, and its element. The tables on their own are not exported, because a
- * consumer holding them with no way to learn a day's index would have a dead export — which is how
- * three mansion names came to be exported on 2026-09-12 and withdrawn the same day. The names shipped
- * once verified; a mansion has **no English name**, because no source prints one.
+ * **The mansion table ships as `LUNAR_MANSIONS`**, all 27 in index order, mirroring `ELEMENTAL_YOGAS`.
+ * It didn't ship until 2026-09-18: an early attempt exported three bare mansion names with no way to
+ * learn a day's index, which was a dead export and was withdrawn the same day, 2026-09-12. The names
+ * shipped once verified; a mansion has **no English name**, because no source prints one.
  *
  * **Every attribute block carries `tibetanNames`**, keyed by the English field it names —
  * `day.month.tibetanNames.animal` is the Tibetan for `day.month.animal`.
@@ -49,6 +48,7 @@ import { asPlainDate, isoToTibetan, julianDayFromIso } from "../computation/conv
 import { yearFromRoyalEra } from "../computation/epoch.js";
 import { scalingFor } from "../computation/scaling.js";
 import { rangeError } from "../errors.js";
+import { deepFreeze } from "../freeze.js";
 import { daysInMonth } from "../months.js";
 import { weekdayNameWithOffset } from "../names.js";
 import { PHUGPA } from "../traditions/phugpa.js";
@@ -66,7 +66,7 @@ import { type CalendarDayAttributes, calendarDayAttributes } from "./calendar-da
 import { type LunarDayAttributes, lunarDayAttributes } from "./lunar-day.js";
 import { mansionElement } from "./mansion-elements.js";
 import { mansionNames } from "./mansion-names.js";
-import { mansionNumber } from "./mansions.js";
+import { MANSION_COUNT, mansionNumber } from "./mansions.js";
 import { type MonthAttributes, monthAttributes } from "./month.js";
 import type { AstrologyQueryOptions, DayAttributes, LunarMansion } from "./types.js";
 import { type YearAttributes, yearAttributes } from "./year.js";
@@ -79,6 +79,29 @@ export type { AstrologyQueryOptions, DayAttributes, LunarMansion } from "./types
 export type { YearAttributes } from "./year.js";
 export type { ElementalYoga, YogaAuspiciousness } from "./yoga.js";
 export { ELEMENTAL_YOGAS, elementalYoga } from "./yoga.js";
+
+/**
+ * All 27 lunar mansions, in index order — the table `lunarMansionFor` looks a day's mansion up in.
+ *
+ * @remarks
+ * Mirrors {@link ELEMENTAL_YOGAS}: a consumer building a reference view (a legend, a translation
+ * table) can enumerate every mansion without needing a date for each one. Composed here, not in
+ * `mansion-names.ts` or `mansion-elements.ts`, because those two modules are deliberately separate —
+ * the names and the elements are Mahāvyutpatti-and-friends versus Henning, different sources — and
+ * this table is the same merge {@link lunarMansionFor} does for a single index, run over all 27.
+ *
+ * @example
+ * ```ts
+ * LUNAR_MANSIONS[0].tibetanName.wylie;    // "tha skar"
+ * LUNAR_MANSIONS[26].sanskritName.iast;   // "revatī"
+ * ```
+ */
+export const LUNAR_MANSIONS: readonly LunarMansion[] = deepFreeze(
+	Array.from({ length: MANSION_COUNT }, (_, index) => {
+		const { tibetanName, sanskritName } = mansionNames(index);
+		return { index, tibetanName, sanskritName, element: mansionElement(index) };
+	}),
+);
 
 function assertQueryOptions(functionName: string, options: unknown): void {
 	// `=== undefined`, never `??`: nullish-coalescing would read an explicit `{ tradition: null }` as
@@ -145,6 +168,9 @@ export function yearAttributesFor(year: number): YearAttributes {
  * The animal, gender, element and — in one tradition only — number of a Tibetan month.
  *
  * @remarks
+ * `month.year` is the **royal era**, matching {@link TibetanDate.year} and {@link yearAttributesFor}
+ * — not Janson's Gregorian `Y`, which this function converts to internally.
+ *
  * **A leap month takes the same attributes as the regular month sharing its number**, which Janson
  * states outright. `isLeapMonth` is therefore accepted and validated like everywhere else in this
  * package, and makes no difference to the answer; it is not ignored silently, because a leap flag on
@@ -186,6 +212,9 @@ export function monthAttributesFor(
  * The animal, element, trigram and number of a lunar day.
  *
  * @remarks
+ * `date.year` is the **royal era**, matching {@link TibetanDate.year} and {@link yearAttributesFor} —
+ * not Janson's Gregorian `Y`.
+ *
  * Takes the **Tibetan** `(year, month, day)` and never a Western date, which is deliberate in two
  * ways. There is no calendar ambiguity to resolve — a lunar day is a Tibetan notion, so loose fields
  * say everything — and it is what lets a **skipped** lunar day be asked about at all: the day no

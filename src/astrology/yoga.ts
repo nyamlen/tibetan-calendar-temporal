@@ -282,6 +282,15 @@ const BY_PAIR = new Map(
  * pair". So this is symmetric in its arguments — it returns the **same object** for `(fire, water)`
  * and `(water, fire)`, which is what makes two days' yogas comparable by identity.
  *
+ * **The one primitive in this subpath exported alongside its `*For` sibling, deliberately.** Every
+ * other pair here — `monthAttributes`/`monthAttributesFor`, `yearAttributes`/`yearAttributesFor` and
+ * so on — keeps the primitive internal, because the `*For` wrapper validates a raw number against a
+ * real range. This primitive takes two {@link TibetanWeekdayElement}s, a four-member closed union
+ * TypeScript already fully constrains at the call site, so there is no validation for a wrapper to be
+ * doing on its behalf — and exporting it lets a caller build the weekday×mansion matrix without
+ * reimplementing the unordered-pair lookup. Decided 2026-09-18, on Andreas' reasoning that a consumer
+ * may want to enumerate it directly.
+ *
  * @example
  * ```ts
  * // 1 September 2026 is a Tuesday, whose element is fire; the mansion that morning carries water.

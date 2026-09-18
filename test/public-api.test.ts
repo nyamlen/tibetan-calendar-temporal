@@ -646,6 +646,7 @@ describe("observances API surface", () => {
  */
 const EXPECTED_ASTROLOGY_EXPORTS = [
 	"ELEMENTAL_YOGAS",
+	"LUNAR_MANSIONS",
 	"attributesFor",
 	"calendarDayAttributesFor",
 	"elementalYoga",
@@ -666,6 +667,7 @@ const EXPECTED_ASTROLOGY_EXPORTS = [
  */
 const ASTROLOGY_KINDS: Record<string, string> = {
 	ELEMENTAL_YOGAS: "object",
+	LUNAR_MANSIONS: "object",
 	attributesFor: "function",
 	calendarDayAttributesFor: "function",
 	elementalYoga: "function",
@@ -693,14 +695,27 @@ describe("astrology API surface", () => {
 		expect(Object.keys(ASTROLOGY_KINDS).sort()).toEqual([...EXPECTED_ASTROLOGY_EXPORTS]);
 	});
 
-	it("exposes the mansion only for a date, never its tables", () => {
+	it("keeps the raw mansion primitives off the surface, only the merged table", () => {
 		// `mansionElement` and `MANSION_ELEMENTS` shipped briefly and were withdrawn the same day: with
 		// no exported way to learn today's mansion NUMBER, a consumer could ask what element mansion 17
-		// carries and never learn that today is mansion 17. `lunarMansionFor` now answers for a date,
-		// which gives the index and element together; the bare tables stay off the surface.
+		// carries and never learn that today is mansion 17. `LUNAR_MANSIONS` (added 2026-09-18) is the
+		// fix: the merged {index, tibetanName, sanskritName, element} table, not the bare source tables
+		// or the arithmetic that finds a day's index.
 		for (const name of ["mansionElement", "MANSION_ELEMENTS", "MANSION_COUNT", "mansionNumber"]) {
 			expect(name in astrology, name).toBe(false);
 		}
+	});
+
+	it("ships the 27 mansions frozen and in index order, like ELEMENTAL_YOGAS", () => {
+		expect(Object.isFrozen(astrology.LUNAR_MANSIONS)).toBe(true);
+		expect(astrology.LUNAR_MANSIONS).toHaveLength(27);
+		astrology.LUNAR_MANSIONS.forEach((mansion, index) => {
+			expect(mansion.index).toBe(index);
+		});
+		// Cross-checked against the primitive that resolves a real date, not just self-consistent.
+		expect(astrology.LUNAR_MANSIONS[astrology.lunarMansionFor(day).index]).toEqual(
+			astrology.lunarMansionFor(day),
+		);
 	});
 
 	it("keeps every name off the root export", () => {
