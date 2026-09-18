@@ -215,10 +215,10 @@ number, everywhere else before. That shifts day-level dates and the true month c
 
 | Source | Range | Agreement |
 |--------|-------|-----------|
-| Lotsawa House | 2023–2027, 1,831 days | **all** |
-| eszthoff | 2023–2027, 1,826 days | **all** |
-| christian-steinert | 2024–2027, 1,461 days | 1,438 — see below |
-| FPMT monthly calendars | 2022–2025, 1,461 days | 1,458 — see below |
+| Lotsawa House | 21 Feb 2023 – 25 Feb 2028, 1,831 days | **all** |
+| eszthoff | 1 Jan 2023 – 31 Dec 2027, 1,826 days | **all** |
+| christian-steinert | 1 Jan 2024 – 31 Dec 2027, 1,461 days | 1,438 — see below |
+| FPMT monthly calendars | 1 Jan 2022 – 31 Dec 2025, 1,461 days | 1,458 — see below |
 
 Two of the three implementations agree with the engine on every single day, including every
 doubled date, both leap months, and every skipped-date gap. The fourth source is not an
@@ -226,20 +226,22 @@ implementation at all — see below.
 
 #### What that does and does not cover
 
-Day-by-day external agreement spans **2022–2027**, six years.
+Day-by-day external agreement spans **1 January 2022 to 25 February 2028**, just over six years —
+the union of the four sources' windows, each of which is narrower; the table above gives each.
 Add Janson's Losar table and the epoch-era worked values and the *externally checked* evidence
-becomes 1927–2046 at one day per year, plus the epoch itself, plus those six years in full.
+becomes 1927–2046 at one day per year, plus the epoch itself, plus that window in full.
 
 | Check | Range | Source |
 |-------|-------|--------|
-| Cross-check fixtures, day by day | 2022–2027 | three implementations + FPMT |
+| Cross-check fixtures, day by day | 1 Jan 2022 – 25 Feb 2028, between them | three implementations + FPMT |
 | Losar table, one day per year | 1927–2046 | Janson |
 | Epoch constants to six decimals | 806 | Janson |
 | `a₂` divergence dates | 2001, 2006, 2025 | Janson |
 | `a₂` divergence counts | 1027–1091, 1900–1999, 2000–2099 | Janson |
 
 **The astrological attributes have a third window, narrower than either, and confusing them is a
-live trap.** Dates are validated 2022–2027 and observances only 2022–2025; the attribute layer is
+live trap.** Dates are validated from 1 January 2022 to 25 February 2028 and observances only
+2022–2025; the attribute layer is
 narrower still.
 
 | Check | Range | Source | What it settles |
@@ -283,7 +285,7 @@ of them paid for themselves on first run: the lunar day's trigram and number cam
 for a Dragon month, which is what he says a Dragon month opens with, from a formula transcribed
 independently of that sentence.
 
-**Quote the right window.** A claim about a Tibetan date has six years behind it, about an observance
+**Quote the right window.** A claim about a Tibetan date has just over six years behind it, about an observance
 four, and about a mansion four *for Phugpa alone* — Bhutan's attributes have no external check at all.
 Of the rows above, the three **cycle** rows are Janson against Janson and are not external
 corroboration; only the **mansion** and the **yoga's favorability** have an outside witness over
@@ -295,13 +297,13 @@ Those are all **Phugpa**. Bhutan has a window of its own, and a wider one:
 
 | Check | Range | Source |
 |-------|-------|--------|
-| `BHUTAN_HENNING`, day by day | 2000 – early 2030 | Henning's software, via `test/fixtures/bhutan.ts` |
-| Month sequence, at one unique offset | 2000 – early 2030 | the same, reduced to months |
+| `BHUTAN_HENNING`, day by day | 1 Jan 2000 – 2 Apr 2030 | Henning's software, via `test/fixtures/bhutan.ts` |
+| Month sequence, at one unique offset | 1 Jan 2000 – 2 Apr 2030 | the same, reduced to months |
 | Leap months | 2000–2030 | Janson's four-version table — a separate lineage |
 | Losar 2003 | 2003 | Janson's Bhutan appendix |
 | `BHUTAN`, twenty-five days | 2025-2026 | **the Royal Government of Bhutan's own calendar**, via `test/fixtures/rgob.ts` |
 
-Three things to keep straight about that window. It ends in **early 2030**, not at the end of 2030,
+Three things to keep straight about that window. It ends on **2 April 2030**, not at the end of 2030,
 because the source carries one leap month Janson does not list — see the remarks in
 `test/validation/bhutan.test.ts`. It validates **`BHUTAN_HENNING`**, not `BHUTAN`: the data descends
 from Henning's software and so follows his `a₂`, and the two differ on three days in the window. And

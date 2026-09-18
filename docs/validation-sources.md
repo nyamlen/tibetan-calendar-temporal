@@ -85,9 +85,9 @@ replaced diacritics with their absence while appearing to strengthen the provena
 
 | Source | Lineage | Format | Coverage | Settles |
 |---|---|---|---|---|
-| `crosscheck-lotsawa.ts` | independent impl. | HTML grid | 1,831 days, 2023–2027 | day numbers, doubled/skipped marks |
-| `crosscheck-steinert.ts` | independent impl. | JSON API | 1,461 days, 2024–2027 | day numbers, doubled + leap-month flags |
-| `crosscheck-eszthoff.ts` | independent impl. | npm package, run not read | 1,826 days, 2023–2027 | day numbers |
+| `crosscheck-lotsawa.ts` | independent impl. | HTML grid | 1,831 days, 21 Feb 2023 – 25 Feb 2028 | day numbers, doubled/skipped marks |
+| `crosscheck-steinert.ts` | independent impl. | JSON API | 1,461 days, 1 Jan 2024 – 31 Dec 2027 | day numbers, doubled + leap-month flags |
+| `crosscheck-eszthoff.ts` | independent impl. | npm package, run not read | 1,826 days, 1 Jan 2023 – 31 Dec 2027 | day numbers |
 | `fpmt-observances.ts` | **almanac** (Men-Tsee-Khang) | HTML tables | 1,461 days, 2022–2025 | day numbers — the source that settled `a₂`; since 2026-09-12 also the **lunar mansion**, via the day-quality codes |
 | `fpmt-holy-days.ts` | almanac, via prose | hand-curated | selected days | observance placement only |
 | `losar.ts`, `janson-epoch.ts`, `sixty-year-cycle.ts` | Janson | LaTeX, generated | 1927–2046 Losar; epoch | month count, leap rule, year naming |
@@ -107,7 +107,7 @@ is evidence.
 
 | Source | Lineage | Format | Coverage | Settles |
 |---|---|---|---|---|
-| `bhutan.ts` | **Henning** | SQL tuples via a WordPress plugin | 11,323 days, 2000 – early 2030 | day numbers, months, leap months |
+| `bhutan.ts` | **Henning** | SQL tuples via a WordPress plugin | 11,050 days compared, 1 Jan 2000 – 2 Apr 2030; the file holds 11,323, to 31 Dec 2030 | day numbers, months, leap months |
 | `rgob.ts` | **almanac** (Ministry of Home Affairs) | scanned PDF, hand-read | 25 days, 2025–2026 | day numbers, 3 skipped + 2 doubled days, Losar |
 | `cross-version-leap.ts` | Janson | LaTeX, generated | 2000–2030 | leap-month numbers and years |
 
@@ -116,7 +116,7 @@ non-Henning check on Bhutanese day numbers here. Its rows were chosen for the do
 days, which is where Janson §8 warns published tables go wrong.
 
 **`a₂` is NOT settled for Bhutan, and no source available today can settle it.** `BHUTAN` and
-`BHUTAN_HENNING` agree on all 25 government-published days, and the 11,323-day fixture validates
+`BHUTAN_HENNING` agree on all 25 government-published days, and the fixture's 11,050 trusted days validate
 `BHUTAN_HENNING` only because it descends from Henning — which is circular. Settling it needs a
 **Bhutanese state** day-by-day grid covering a date where the two values disagree. The Ministry
 publishes 2025 and 2026 only, neither of which contains one, and the Drukpa calendar is a different

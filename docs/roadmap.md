@@ -51,7 +51,7 @@ otherwise.
   year-numbering record both said.
 
 **Phase 2 outcome.** The engine now validates against three independent implementations and
-against the almanac, day by day across 2022–2027 — see
+against the almanac, day by day across 1 January 2022 to 25 February 2028 between them — see
 [testing.md](testing.md#what-that-does-and-does-not-cover) for what that window does and does not
 establish. Four things came out differently from the plan:
 

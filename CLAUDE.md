@@ -198,19 +198,20 @@ rests on it.
 
 None of these justifications extends to the calendars above. Do not "fix" any of the three by trying
 to generate it, and do not delete one for breaking the rule. See `docs/testing.md`, which also states the window
-each agreement actually covers — Phugpa's day-by-day external validation spans 2022–2027 against a
-documented range starting 1447, and Bhutan's spans 2000 to early 2030 against one lineage plus
+each agreement actually covers — Phugpa's day-by-day external validation spans 1 January 2022 to
+25 February 2028, between four sources, against a documented range starting 1447, and Bhutan's spans
+1 January 2000 to 2 April 2030 against one lineage plus
 twenty-five government-published days — so cite the window whenever citing the agreement.
 
 **The observance window is narrower than the date window, and quoting the wrong one is a live
-trap.** 2022–2027 is the *union* of four sources and covers **dates**. The only source carrying
+trap.** 1 January 2022 to 25 February 2028 is the *union* of four sources and covers **dates**. The only source carrying
 observance labels is `test/fixtures/fpmt-observances.ts`, and it runs **2022–2025** — so a claim
 about which days carry a puja has three fewer years behind it than a claim about which Tibetan day a
 date is. `docs/why-trust-these-dates.md` states both correctly; the trap is that this file states
 only the wider one, and an agent answering an observance question reaches for what it read here.
 Done on 2026-09-10, answering which days carried Tara puja in late 2026: the dates were corroborated
 by three external calendars and the *labels* by nothing, and the reply claimed FPMT coverage that
-stops a year earlier. Cite 2022–2025 for an observance, 2022–2027 for a date.
+stops a year earlier. Cite 2022–2025 for an observance, 1 January 2022 to 25 February 2028 for a date.
 
 **Since 2026-09-12 there is a third tier, and it is the weakest of the three.** The `./astrology`
 attributes are **not** covered by either figure above, and the differences are not about years:
@@ -227,8 +228,10 @@ attributes are **not** covered by either figure above, and the differences are n
   **six of them fit no pattern**. This replaced, on 2026-09-14, an explanation blaming Janson's `/27`
   approximation — which he gives as the almanac's own method, so it could never have separated the two.
   Before explaining a residual by a formula, check whether the source uses the same formula.
-- **Yoga favorability** agrees with FPMT's printed prefixes on 99.7% of the same days, and that check
-  is independent of the mansion because it reads FPMT's own pair letters.
+- **Yoga favorability** agrees with FPMT's printed prefixes on 99.7% of **its own 1,460 days** — every
+  day whose code has a readable prefix and pair, one more than the mansion's, because 2024-09-12's
+  `UD-EW` names no yoga and so cannot force a mansion element but is still a favorability claim. That
+  check is independent of the mansion because it reads FPMT's own pair letters.
 - **The yoga table's element pairs and its grading** have, since 2026-09-14, a Tibetan witness outside
   Henning: the *tshig mdzod chen mo*'s `'phrod sbyor` states the same pair for all ten, and grades the
   ten into good, restorative, bad and worst, which ships as `auspiciousness`. It is a check on **ten
