@@ -4,7 +4,7 @@
 It records the evidence and the decisions for three sets of names, and was written before the verifier that enforces them, so that the verifier was built from a record rather than from memory.
 That verifier is now [scripts/verify-month-and-yoga-names.mjs](../../scripts/verify-month-and-yoga-names.mjs), and its output is `test/fixtures/month-names.ts` and `test/fixtures/yoga-names.ts`.
 **The yoga names ship** — corrected, with Tibetan script and Devanāgarī — and `ELEMENTAL_YOGAS` is held against the fixture.
-The month and season names ship through `monthNamesFor`, whose tables `test/month-names.test.ts` holds against the fixture.
+The month and season names ship through `monthNamesFor`, whose tables `test/month-names.test.ts` holds against the fixture — since 2026-09-18 including the twelve [Indian month names](#the-indian-month-names).
 It follows [rabjung-sourcing.md](rabjung-sourcing.md), and the rule it inherits from [validation-sources.md](../validation-sources.md): **agreement is only evidence if the source did not reach its answer the way we did.**
 
 The three sets:
@@ -236,10 +236,70 @@ Janson and Henning give `dbo` (Uttaraphalgunī).
 Das p. 913 has it in full as "*dwo-zla-wa* the 11th month of the Tibetan calendar corresponding to फाल्गुन of the Hindus (S. Lex.)" — the same month and the same Sanskrit, but numbered 11, as his p. 268 numbers the winter months 10 to 12; his numbering is not Phugpa's, and his source is a Sanskrit lexicon, so this is dependent corroboration.
 The Mahāvyutpatti's month list gives `gre can` for Phālguna; its nakṣatra list spells that mansion `gre` (Pūrvaphalgunī).
 
-**The Sanskrit month names follow the Tibetan** in a later step, as the rabjung names did, once the verifier settles spellings the sources vary on.
-Henning (p. 359) prints *Kārtikka* and notes that the Vimalaprabhā usually has *Kārtika*, and uses both *Puṣya* and *Pauṣa*; Monier-Williams heads the month *Kārttika*.
-That is three spellings of one month.
-The Mahāvyutpatti has *jeṣṭhaḥ*, *aśviniḥ*, and *mṛgaśīrṣaḥ* beside *mārgaśīrṣaḥ*.
+## The Indian month names
+
+`MonthNames.indianMonth` carries the Sanskrit name of the **month**, beside `mansion`, which carries the **mansion's**: month 1 is *māgha* there and *maghā* here.
+Decided by Andreas on 2026-09-17 that it is a sibling member and never folded into `mansion`, and on 2026-09-18 that it carries `sanskritName` alone — no `tibetanName`, because the Tibetan for a month *is* its mansion name, which `mansion` already carries, and no `englishName`, because no source prints one.
+
+### The rule: Monier-Williams' defining entry
+
+Decided by Andreas on 2026-09-18.
+Each name is the headword of the Monier-Williams entry that **defines** the month, not of one that points to another word.
+The distinction is real: *āśvayuja* is "the month Āśvina", *prauṣṭhapada* "the month Bhādra or August-September", and *jyeṣṭha*, for the month, is only "for jyaiṣṭha".
+
+**Rule (A), which reduces the Mahāvyutpatti's form to a stem for the mansions, cannot be reused here**, because the Mahāvyutpatti's month column is not a set of stems of the names Monier-Williams defines: it prints *jeṣṭhaḥ* where he defines *jyaiṣṭha*, and *aśviniḥ*, a form of the mansion's name, where he defines *āśvina*.
+
+"Defining" is a judgement, not a pattern: *bhādrapada* is defined as "the month Bhādra (a rainy month …)", which has the shape of a pointer.
+So each row records the words that were read and judged to be the definition, and the verifier refuses unless an entry headed by the shipped form still prints them.
+
+| Month | Tibetan | Ships | Monier-Williams, the words judged defining |
+|---|---|---|---|
+| 1 | *mchu* | *māgha* माघ | p. 805, "the month Māgha (which has its full moon in the const˚ M˚" |
+| 2 | *dbo* | *phālguna* फाल्गुन | p. 718, "the month during which the full moon stands in the N˚ Ph˚" |
+| 3 | *nag pa* | *caitra* चैत्र | p. 402, "N. of the 2nd spring month (its full moon standing in the constellation Citrā" |
+| 4 | *sa ga* | *vaiśākha* वैशाख | p. 1026, "one of the 12 months constituting the Hindū lunar year" |
+| 5 | *snron* | ***jyeṣṭha*** ज्येष्ठ | **the exception below**: p. 426, "for jyaiṣṭha"; he defines *jyaiṣṭha* on p. 427 |
+| 6 | *chu stod* | *āṣāḍha* आषाढ | p. 159, "N. of a month (corresponding to part of June and July)" |
+| 7 | *gro bzhin* | *śrāvaṇa* श्रावण | p. 1097, "N. of one of the twelve Hindū months" |
+| 8 | *khrums* | *bhādrapada* भाद्रपद | p. 752, "the month Bhādra (a rainy month" |
+| 9 | *tha skar* | *āśvina* आश्विन | p. 159, "N. of a month in the rainy season" |
+| 10 | *smin drug* | *kārttika* कार्त्तिक | p. 275, "N. of a month corresponding to part of October and November" |
+| 11 | *mgo* | *mārgaśīrṣa* मार्गशीर्ष | p. 812, "N. of the month in which the full moon enters the const˚ Mṛga-śiras" |
+| 12 | *rgyal* | *pauṣa* पौष | p. 652, "the month Pauṣa (December-January" |
+
+Janson's table prints all twelve, except month 10 as *Kārtikka*.
+
+### Month 5 is *jyeṣṭha*, a stated exception
+
+Decided by Andreas on 2026-09-18.
+Monier-Williams defines the month as *jyaiṣṭha* (p. 427, "N. of a month (May-June, the full moon standing in the constellation Jyeṣṭhā)"), and gives *jyeṣṭha* for the month only as "for jyaiṣṭha, VarBṛS.; Rājat." (p. 426) — attested, in Varāhamihira among others, but secondary.
+Every source that reached this calendar through the Kālacakra or through Tibet lacks the *ai*:
+
+- **The Vimalaprabhā** prints ज्येष्ठ for the month three times, in three separate passages of its first chapter, and spells the neighbouring months with the *ai* in the same lines — so the short vowel is the text's reading and not the press's.
+  Read from the page images of Upadhyaya's edition (Sarnath 1986), Part I, archive.org `kalachakra-colour-1`: image `n147` द्वितीयखण्डे ज्येष्ठमासं करोति; `n180` एवं वैशाखान्ते ज्येष्ठादिवृषभे दिने; `n243` चैत्रनाड्यः, वामोपबाहुसन्धौ वैशाखनाड्यः, दक्षिणकरोपबाहुसन्धौ ज्येष्ठनाड्यः.
+  The edition's apparatus records month spellings elsewhere (`n147`, note 5–6: क. फाल्गुणं) and none at these three words.
+  The archive.org OCR cannot be used for this: it drops the *ai* sign throughout, printing वेशाख for वैशाख.
+- **Janson's table** prints *Jyeṣṭha*; his column is Henning's, as the shared *Kārtikka* shows, so the two are one witness.
+- **The Mahāvyutpatti** prints *Jeṣṭhaḥ* — neither form, but without the *ai*.
+
+*jyeṣṭha* still keeps the month apart from the mansion: the mansion is *jyeṣṭhā*, feminine, with a long final vowel.
+Banerjee's 1985 edition of the Kālacakratantra was also consulted, for the root verse *caitra vaiśākha jyeṣṭhe*, and could not decide it: its scan shows a single stroke on *caitra* and *vaiśākha* too, so it cannot tell *e* from *ai*.
+
+### Month 10 is *kārttika*, and needs no exception
+
+Henning (p. 359) notes that the Vimalaprabhā usually has *Kārtika*.
+The same edition prints both: कार्तिकं on `n147` and कार्तिक on `n243`, but कार्त्तिकादि and कार्त्तिकान्ते on `n180`.
+The two differ only in doubling the consonant after *r*, which Sanskrit spelling permits and scribes use freely (as *dharma* and *dharmma*), so they are one word written two ways and not two readings — unlike month 5, where the vowel itself differs.
+There is no distinct Kālacakra form to follow, and Monier-Williams heads *kārttika* alone; *kārtika* is not a headword there.
+Janson's *Kārtikka*, which Henning also prints, is a transposition of the doubling and is recorded as a divergence, not followed.
+
+### The two witnesses, and where they diverge
+
+Both are checked month by month, and each divergence is carried as data stating the exact spelling it expects, so the run fails if a source changes rather than passing silently.
+
+- **The Mahāvyutpatti**, entries 8261–8272, read from Sakaki's printing (p. 524, archive.org `kanwashiyakutaik01mahauoft` image `n592`), which agrees with the aggregate at every one: *jeṣṭhaḥ* (8264, month 5), *açviniḥ* with short *a* and *i* (8268, month 9), and *mṛga-çīrṣaḥ (mārga-çīrṣaḥ)* (8270, month 11), where the bracketed form is the one that ships.
+  The aggregate splits 8267 into two rows, *ston zla ra ba* and *khrum smad*, both *bhādrapadaḥ*; Sakaki prints them as one entry.
+- **Janson's table**, `Tmonths`: *Jyeṣṭha* (month 5) is the shipped form, and *Kārtikka* (month 10) the one divergence.
 
 ## The elemental yogas
 
@@ -392,5 +452,4 @@ The Mahāvyutpatti pairs *tha chad* with *pratikruṣṭa*, not *adhama*; *prati
   It is cited here, and in the verifier's output, by entry — the Tibetan and Sanskrit exactly as the aggregate prints them.
   The aggregate's `63-Mahavyutpatti-Scan-1989` gives page references into a 1989 edition that is still not identified, and no section numbers were found, so none are claimed.
   **Partly resolved 2026-09-15** for the nakṣatras: Sakaki's 1916 printing is on archive.org and numbers every entry, and [mansion-and-trigram-sourcing.md](mansion-and-trigram-sourcing.md) cites §CLXVI by entry number.
-  The month and season entries have not yet been looked up there.
-- **Sanskrit month names**, pending the spellings listed above.
+  The month entries have since been read there too (p. 524, entries 8261–8272, [above](#the-two-witnesses-and-where-they-diverge)); the season entries have not.

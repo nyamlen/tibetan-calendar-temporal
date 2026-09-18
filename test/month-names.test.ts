@@ -7,6 +7,7 @@ import { JANSON_MONTH_NAMES, JANSON_SEASONAL_STATEMENTS } from "./fixtures/janso
 import { MANSION_NAMES, MANSION_PAIR_STEMS } from "./fixtures/mansion-names.js";
 import {
 	FOUR_SEASON_MONTH_NAMES,
+	INDIAN_MONTH_NAMES,
 	KALACAKRA_SEASON_MONTHS,
 	MANSION_MONTH_NAMES,
 	SIX_SEASON_NAMES,
@@ -103,6 +104,51 @@ describe("the lunar-mansion names", () => {
 		expect(MONTHS.filter((month) => !Object.isFrozen(namesOf(month).mansion.sanskritName))).toEqual(
 			[],
 		);
+	});
+});
+
+describe("the Indian month names", () => {
+	it("are the verified fixture's, month by month", () => {
+		const bad = MONTHS.filter((month) => {
+			const row = INDIAN_MONTH_NAMES.find((r) => r.month === month);
+			return (
+				JSON.stringify(namesOf(month).indianMonth.sanskritName) !==
+				JSON.stringify({ iast: row?.iast, devanagari: row?.devanagari })
+			);
+		});
+		expect(bad).toEqual([]);
+	});
+
+	it("name the month, not its mansion: māgha beside maghā", () => {
+		const names = namesOf(1);
+		expect(names.indianMonth.sanskritName).toEqual({ iast: "māgha", devanagari: "माघ" });
+		expect(names.mansion.sanskritName.iast).toBe("maghā");
+	});
+
+	/**
+	 * The one stated exception to the rule. Monier-Williams defines the month as *jyaiṣṭha*; the
+	 * Vimalaprabhā, Janson and the Mahāvyutpatti all lack the *ai*, and the verifier holds the pointer
+	 * and the definition it departs from.
+	 */
+	it("give month 5 as jyeṣṭha, departing from Monier-Williams' jyaiṣṭha", () => {
+		expect(namesOf(5).indianMonth.sanskritName).toEqual({ iast: "jyeṣṭha", devanagari: "ज्येष्ठ" });
+		expect(INDIAN_MONTH_NAMES.filter((r) => r.definedAs !== null)).toEqual([
+			expect.objectContaining({ month: 5, definedAs: { iast: "jyaiṣṭha", page: 427 } }),
+		]);
+		expect(namesOf(5).mansion.sanskritName.iast).toBe("jyeṣṭhā");
+	});
+
+	it("give month 10 as kārttika, not Janson's Kārtikka", () => {
+		expect(namesOf(10).indianMonth.sanskritName).toEqual({
+			iast: "kārttika",
+			devanagari: "कार्त्तिक",
+		});
+	});
+
+	it("freezes the Sanskrit it hands out", () => {
+		expect(
+			MONTHS.filter((month) => !Object.isFrozen(namesOf(month).indianMonth.sanskritName)),
+		).toEqual([]);
 	});
 });
 

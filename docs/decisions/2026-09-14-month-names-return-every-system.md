@@ -31,7 +31,13 @@ A per-system function, `monthNameFor(month, { system })`, was considered beside 
 The constraint this protects is the one in
 [2026-09-13-names-keyed-by-language.md](2026-09-13-names-keyed-by-language.md): a name block holds one name in several languages, so `tibetanName` and `sanskritName` must render *the same name*. Tibetan uses the bare mansion name as the month name and Sanskrit derives a second word for it, so pairing *mchu* with *māgha* would put two different names in one block. Do not "complete" the block by swapping in the month form.
 
-An Indian month name may still ship, but as a sibling member — working name `indianMonth` — never inside `mansion`. It needs its own sourcing rule: the Mahāvyutpatti's month column prints `jeṣṭhaḥ`, `aśviniḥ` and a marked `mṛgaśīrṣaḥ`/`mārgaśīrṣaḥ` variant, so rule (A) cannot simply be reused, and Janson's column has the typo `Kārttikka`.
+An Indian month name may still ship, but as a sibling member — working name `indianMonth` — never inside `mansion`. It needs its own sourcing rule: the Mahāvyutpatti's month column prints `jeṣṭhaḥ`, `aśviniḥ` and a marked `mṛgaśīrṣaḥ`/`mārgaśīrṣaḥ` variant, so rule (A) cannot simply be reused, and Janson's column has the typo `Kārtikka`.
+
+## Amended 2026-09-18: `indianMonth` shipped, with `sanskritName` alone
+
+It carries each month's Sanskrit name under Monier-Williams' defining entry, with month 5 *jyeṣṭha* a stated exception; the evidence is in [../names/month-and-yoga-sourcing.md](../names/month-and-yoga-sourcing.md#the-indian-month-names).
+
+**Do not give it a `tibetanName`.** The block rule above applies in reverse: Tibetan has no word for the Indian month apart from the mansion name, so the only Tibetan available is `mansion.tibetanName`, and pairing *mchu* with *māgha* is exactly the two-names-in-one-block error that rule forbids.
 
 Month 8 carries the pair name *bhadrapadā* rather than either member, and there is deliberately **no mansion index on this member** though `LunarMansion` has one: a day is in exactly one mansion, while a month can be named for two. Both, and the evidence, are in
 [../names/mansion-and-trigram-sourcing.md](../names/mansion-and-trigram-sourcing.md).

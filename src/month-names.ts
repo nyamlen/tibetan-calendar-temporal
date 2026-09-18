@@ -1,6 +1,6 @@
 /**
- * The names of a Tibetan month: its lunar mansion, and its season in each of the four seasonal
- * systems Janson enumerates.
+ * The names of a Tibetan month: its lunar mansion, its Indian month name, and its season in each of
+ * the four seasonal systems Janson enumerates.
  *
  * @remarks
  * **Every system is returned, and none is chosen.** Janson's month-names section says almanacs "often
@@ -9,8 +9,8 @@
  * one). So there is no selector and no tradition default: picking a system is a property read, and a
  * default can be added later as an optional config member without breaking anyone.
  *
- * Every Tibetan string here was verified by `scripts/verify-month-and-yoga-names.mjs` before it was
- * written down, and `test/month-names.test.ts` holds each table against that script's emitted fixture
+ * Every Tibetan string here, and every Indian month name, was verified by
+ * `scripts/verify-month-and-yoga-names.mjs` before it was written down, and `test/month-names.test.ts` holds each table against that script's emitted fixture
  * — see `docs/names/month-and-yoga-sourcing.md` for the evidence and the variants not chosen.
  *
  * The mansion's Sanskrit comes from the other verifier, `scripts/verify-mansion-and-trigram-names.mjs`,
@@ -84,13 +84,28 @@ export interface MonthNames {
 	 *
 	 * `sanskritName` is the **mansion's** name, not the Indian month's: month 1 is *maghā*, where the
 	 * month derived from it is *māgha*. Sanskrit has two words where Tibetan has one, and this member
-	 * holds the one its `tibetanName` renders. Month 8 carries the pair's name *bhadrapadā*, which
+	 * holds the one its `tibetanName` renders; {@link MonthNames.indianMonth} holds the other. Month 8 carries the pair's name *bhadrapadā*, which
 	 * drops *pūrva* and *uttara* exactly as *khrums* drops *stod* and *smad*.
 	 *
 	 * There is deliberately **no mansion index here**, though `./astrology`'s `LunarMansion` has one: a day is
 	 * in exactly one mansion, while a month can be named for two.
 	 */
 	readonly mansion: { readonly tibetanName: TibetanName; readonly sanskritName: SanskritName };
+	/**
+	 * The month's own Sanskrit name, as the Indian calendar names it: *māgha* for month 1, where
+	 * {@link MonthNames.mansion} carries the mansion *maghā*.
+	 *
+	 * @remarks
+	 * Sanskrit only. Tibetan has no separate word for the month — it calls the month by its mansion,
+	 * which `mansion.tibetanName` already carries — and no source prints an English name.
+	 *
+	 * Each is the name Monier-Williams defines the month by, except **month 5, *jyeṣṭha***, where he
+	 * defines *jyaiṣṭha* and gives *jyeṣṭha* only as a variant. It ships as the Vimalaprabhā, Janson and
+	 * the Mahāvyutpatti print it — none has the *ai* — and still differs from the mansion, *jyeṣṭhā*.
+	 * Month 10 is *kārttika*; *kārtika*, which the Vimalaprabhā also prints, is the same word spelled
+	 * without the doubled consonant.
+	 */
+	readonly indianMonth: { readonly sanskritName: SanskritName };
 	/** The three systems naming twelve months as early, middle and late of four seasons. */
 	readonly fourSeasons: {
 		/** Month 1 is late winter: the original Kālacakra identification, which Janson attributes to Tsurphu. */
@@ -151,6 +166,33 @@ const MANSIONS: readonly {
 			[tibetan("རྒྱལ", "rgyal", "gyel"), "puṣya", "पुष्य"],
 		] as const
 	).map(([tibetanName, iast, devanagari]) => ({ tibetanName, sanskritName: { iast, devanagari } })),
+);
+
+/**
+ * Months 1–12, each with the Indian month's Sanskrit name.
+ *
+ * @remarks
+ * Verified by `scripts/verify-month-and-yoga-names.mjs` and held against its fixture by
+ * `test/month-names.test.ts`; the rule, the month-5 exception and both witnesses' divergences are in
+ * `docs/names/month-and-yoga-sourcing.md`.
+ */
+const INDIAN_MONTHS: readonly { readonly sanskritName: SanskritName }[] = freeze(
+	(
+		[
+			["māgha", "माघ"],
+			["phālguna", "फाल्गुन"],
+			["caitra", "चैत्र"],
+			["vaiśākha", "वैशाख"],
+			["jyeṣṭha", "ज्येष्ठ"],
+			["āṣāḍha", "आषाढ"],
+			["śrāvaṇa", "श्रावण"],
+			["bhādrapada", "भाद्रपद"],
+			["āśvina", "आश्विन"],
+			["kārttika", "कार्त्तिक"],
+			["mārgaśīrṣa", "मार्गशीर्ष"],
+			["pauṣa", "पौष"],
+		] as const
+	).map(([iast, devanagari]) => ({ sanskritName: { iast, devanagari } })),
 );
 
 /** Early spring first, then every later month of the four-season year. */
@@ -289,7 +331,8 @@ function assertOptions(options: unknown): void {
 }
 
 /**
- * Every name of a Tibetan month: its lunar mansion, and its season in each seasonal system.
+ * Every name of a Tibetan month: its lunar mansion, its Indian month name, and its season in each
+ * seasonal system.
  *
  * @remarks
  * **All four seasonal systems at once**, because almanacs print several side by side and no source
@@ -318,7 +361,8 @@ function assertOptions(options: unknown): void {
  * // Phugpa. Month 1 of the Fire Horse year beginning in 2026.
  * const names = monthNamesFor({ year: 2153, month: 1 });
  * names.mansion.tibetanName.wylie;                   // "mchu"
- * names.mansion.sanskritName.iast;                   // "maghā" — the mansion, not the month māgha
+ * names.mansion.sanskritName.iast;                   // "maghā" — the mansion
+ * names.indianMonth.sanskritName.iast;               // "māgha" — the month named for it
  * names.fourSeasons.month1LateWinter.season;         // "winter"
  * names.fourSeasons.month1EarlySpring.tibetanName.wylie;   // "dpyid zla ra ba"
  * names.fourSeasons.tigerEarlySpring?.part;          // "late" — Phugpa's Tiger month is month 11
@@ -346,6 +390,7 @@ export function monthNamesFor(
 
 	return {
 		mansion: at(MANSIONS, m - 1, "mansion"),
+		indianMonth: at(INDIAN_MONTHS, m - 1, "indianMonth"),
 		fourSeasons: {
 			month1LateWinter: at(FOUR_SEASONS, mod(m - 2, 12), "month1LateWinter"),
 			month1EarlySpring: at(FOUR_SEASONS, mod(m - 1, 12), "month1EarlySpring"),
