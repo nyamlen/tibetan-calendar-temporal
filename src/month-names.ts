@@ -84,7 +84,7 @@ export interface MonthNames {
 	 *
 	 * `sanskritName` is the **mansion's** name, not the Indian month's: month 1 is *maghā*, where the
 	 * month derived from it is *māgha*. Sanskrit has two words where Tibetan has one, and this member
-	 * holds the one its `tibetanName` renders. Month 8 carries the pair's name *bhadrapadā*, which
+	 * holds the one its `tibetanName` renders; {@link MonthNames.indianMonth} holds the other. Month 8 carries the pair's name *bhadrapadā*, which
 	 * drops *pūrva* and *uttara* exactly as *khrums* drops *stod* and *smad*.
 	 *
 	 * There is deliberately **no mansion index here**, though `./astrology`'s `LunarMansion` has one: a day is
