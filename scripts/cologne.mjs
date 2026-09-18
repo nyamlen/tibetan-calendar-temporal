@@ -18,8 +18,21 @@
  * parentheses (`māgha mf( ī )n.`), which must end the head like any other mark. So the head — everything before the first gender or
  * part-of-speech mark — loses its brackets and is split on commas, "or" and parentheses, and each piece
  * compared whole with its spaces removed, so that *hasta* never heads *hastā*.
+ *
+ * One record can also carry a second form's sense after a sense boundary: *prati-kūlam* ind. is
+ * followed, in the same record, by `[ ID=131428 ] prati —kūla n. inverted order, opposition`. A segment
+ * after an `[ ID=… ]` marker heads the entry too, but only when a mark ends its head and every piece of
+ * that head is letters alone and opens with the record head's first three — a variant of the same
+ * stem, so an English sense never reads as a headword, even one a gender mark follows.
  */
 export function entriesHeadedBy(text, iast) {
+	const mark = /\s(?:mf\s*\(\s*[^)]*\)\s*n|mfn|mf|m|f|n|ind)\.(?:\s|$)/;
+	const piecesOf = (head) =>
+		head
+			.replace(/\[[^\]]*\]/g, "")
+			.split(/,|\s+or\s+|[()]/)
+			.map((piece) => piece.replace(/\s+/g, ""))
+			.filter(Boolean);
 	return text
 		.split("[Printed book page")
 		.slice(1)
@@ -29,14 +42,18 @@ export function entriesHeadedBy(text, iast) {
 				.slice(chunk.indexOf("]") + 1)
 				.replace(/\s*[—–-]\s*/g, "")
 				.trim();
-			const head = body
-				.replace(/^\d+\.\s*/, "")
-				.split(/\s(?:mf\s*\(\s*[^)]*\)\s*n|mfn|mf|m|f|n|ind)\.(?:\s|$)/)[0];
-			const headwords = head
-				.replace(/\[[^\]]*\]/g, "")
-				.split(/,|\s+or\s+|[()]/)
-				.map((piece) => piece.replace(/\s+/g, ""))
-				.filter(Boolean);
+			const headwords = piecesOf(body.replace(/^\d+\.\s*/, "").split(mark)[0]);
+			const stem = headwords[0]?.slice(0, 3);
+			for (const segment of body.split(/\[\s*ID=[^\]]*\]/).slice(1)) {
+				const found = mark.exec(segment.trim());
+				if (!found) continue;
+				const pieces = piecesOf(segment.trim().slice(0, found.index));
+				if (
+					pieces.length > 0 &&
+					pieces.every((p) => /^[\p{L}\p{M}]+$/u.test(p) && p.startsWith(stem))
+				)
+					headwords.push(...pieces);
+			}
 			return { page, headwords, body };
 		})
 		.filter((entry) => entry.headwords.includes(iast));
@@ -77,6 +94,20 @@ export function provePredicates() {
 	);
 	if (feminine[0]?.page !== 805 || !feminine[0].body.includes("the month Māgha"))
 		broken.push("entriesHeadedBy missed a headword whose gender mark carries its feminine");
+	const serial =
+		"[Printed book page 661 ,3] prati —kūlam ind. contrarily, against [ ID=131427 ] prati —kūla n. inverted order, opposition [ ID=131428 ]" +
+		" [Printed book page 82 ,2] a-mṛtā f. a goddess, RV. &c. [ ID=14198.20 ] immortal m. a god [ ID=14198.21 ] N. of a Ṛṣi , n. [ ID=14198.22 ]";
+	if (entriesHeadedBy(serial, "pratikūla")[0]?.page !== 661)
+		broken.push("entriesHeadedBy missed a form headed after a sense boundary");
+	if (entriesHeadedBy(serial, "pratikūlam")[0]?.page !== 661)
+		broken.push("entriesHeadedBy lost a record's own head when it carries a second form");
+	if (entriesHeadedBy(serial, "immortal").length !== 0)
+		broken.push("entriesHeadedBy read an English sense ending in a mark as a headword");
+	if (
+		entriesHeadedBy(serial, "N.ofaṚṣi").length !== 0 ||
+		entriesHeadedBy(serial, "Ṛṣi").length !== 0
+	)
+		broken.push("entriesHeadedBy read a sense with punctuation as a headword");
 	if (entriesHeadedBy(several, "uttara").length !== 0)
 		broken.push("entriesHeadedBy matched a compound's first member as a headword");
 	if (broken.length > 0) {

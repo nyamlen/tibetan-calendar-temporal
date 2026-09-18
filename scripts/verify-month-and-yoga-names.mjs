@@ -54,10 +54,12 @@
  *    except where a divergence states the exact form they print. Month 5 is a stated exception whose
  *    pointer, and the definition it departs from, are both re-checked.
  * 4. **Six seasons**: each Tibetan name is paired with its Sanskrit in the Mahāvyutpatti, and the
- *    Sanskrit stem is a Monier-Williams headword.
+ *    Sanskrit stem heads a Monier-Williams entry that still prints the season's recorded sense —
+ *    every entry Cologne returns is read, as for the Indian months.
  * 5. **Yogas**: each name is spelled as the *tshig mdzod chen mo*'s enumeration spells it, and each
- *    Sanskrit name is a Monier-Williams headword — except *pragati*, whose absence is asserted. The
- *    same enumeration's element pair must equal Henning's for every yoga, and its closing grouping
+ *    Sanskrit name is a Monier-Williams headword — except *pragati*, whose absence is asserted, and
+ *    which no rung of the lookup ladder reaches. Where Monier-Williams prints the yoga's English, the
+ *    page cited is that entry's. The same enumeration's element pair must equal Henning's for every yoga, and its closing grouping
  *    must still name the four groups with counts summing to ten; each group's English is re-checked
  *    against its dictionary index, or through Monier-Williams, or — when composed — against every
  *    dictionary coming to head the compound.
@@ -241,6 +243,17 @@ function proveOwnPredicates() {
 		prints(mw, "N. of the month in which the full moon enters the const˚ Mṛga-śira,").length !== 0
 	)
 		broken.push("prints matched words the entry does not print");
+	const siddhi = entriesHeadedBy(
+		"[Printed book page 1215 ,1] 1. siddhi f. driving off [ ID=1 ]" +
+			" [Printed book page 1216 ,2] 2. siddhi f. accomplishment, performance [ ID=2 ]" +
+			" [Printed book page 1217 ,1] siddhi —kara mfn. causing success [ ID=3 ]",
+		"siddhi",
+	);
+	if (pageOfWord(siddhi, "accomplishment") !== 1216)
+		broken.push("pageOfWord did not read past a homograph to the entry printing the word");
+	if (pageOfWord(siddhi, "success") !== null)
+		broken.push("pageOfWord read a word from an entry the name does not head");
+	if (pageOfWord(siddhi, "perform") !== null) broken.push("pageOfWord matched part of a word");
 	for (const [sense, want] of [
 		["N. of a month in the rainy season", true],
 		["one of the 12 months constituting", true],
@@ -702,23 +715,29 @@ for (const [witness, rows] of Object.entries(INDIAN_MONTH_DIVERGENCES)) {
  * what ships. They differ once, for hemanta, and that choice (S14) is data re-checked below.
  */
 const SIX_SEASONS = [
-	{ season: "spring", wylie: "dpyid", mvy: "dpyid", slp1: "vasanta" },
-	{ season: "summer", wylie: "sos ka", mvy: "sos ka", slp1: "grIzma" },
+	{ season: "spring", wylie: "dpyid", mvy: "dpyid", slp1: "vasanta", defines: "spring" },
+	{
+		season: "summer",
+		wylie: "sos ka",
+		mvy: "sos ka",
+		slp1: "grIzma",
+		defines: "the summer, hot season",
+	},
 	{
 		season: "rains",
 		wylie: "dbyar",
 		mvy: "dbyar",
 		slp1: "varzA",
-		// Monier-Williams has no entry headed वर्षा; Cologne answers with वर्ष, whose plural is "the
-		// rains". The page is cited through that entry, and the expected text is re-checked.
-		mwThrough: { devanagari: "वर्ष", expects: "the rains" },
+		// Not the first entry headed वर्षा, which is a bare "See p. 927".
+		defines: "the rains, rainy season",
 	},
-	{ season: "autumn", wylie: "ston", mvy: "ston", slp1: "Sarad" },
+	{ season: "autumn", wylie: "ston", mvy: "ston", slp1: "Sarad", defines: "autumn" },
 	{
 		season: "cold",
 		wylie: "dgun stod",
 		mvy: "dgun",
 		slp1: "hemanta",
+		defines: "winter, the cold season",
 		preferred: {
 			requireHeadwordIn: ["tshig mdzod chen mo", "Das 1902"],
 			why:
@@ -726,7 +745,13 @@ const SIX_SEASONS = [
 				"ambiguous between the sources: the Mahāvyutpatti glosses it hemanta, Das glosses it शिशिर",
 		},
 	},
-	{ season: "dewy", wylie: "dgun smad", mvy: "dgun smad", slp1: "SiSira" },
+	{
+		season: "dewy",
+		wylie: "dgun smad",
+		mvy: "dgun smad",
+		slp1: "SiSira",
+		defines: "the cool or dewy season",
+	},
 ];
 
 const sixSeasonTerms = [];
@@ -865,8 +890,8 @@ const EXPECTED_ABSENT_FROM_MW = new Set(["pragati"]);
 /**
  * Where each of Henning's English glosses is printed **word for word** in a public-domain dictionary.
  *
- * - `"Monier-Williams"` — re-checked on every run: the word must occur in the Cologne entry for the
- *   Sanskrit name, and the page is taken from the entry that carries it.
+ * - `"Monier-Williams"` — re-checked on every run: the word must occur in a Cologne entry headed by
+ *   the Sanskrit name, and the page is taken from the entry that carries it.
  * - A Jäschke row was read from the page image, archive.org `tibetanenglishdi00jsuoft`, where image
  *   `n` is printed page + 25. It cannot be re-read mechanically — the scan's OCR is unusable — so it is
  *   data carrying its page and sense, and the run fails if Monier-Williams comes to print the word,
@@ -903,13 +928,9 @@ const ENGLISH_EVIDENCE = {
 	maraṇa: "Monier-Williams",
 };
 
-/** The printed page of the Cologne entry in which `word` first occurs as a whole word, or null. */
-function pageOfWord(text, word) {
-	const parts = text.split(/Printed book page\s*(\d+)/);
-	for (let i = 1; i + 1 < parts.length; i += 2) {
-		if (new RegExp(`\\b${word}\\b`, "i").test(parts[i + 1])) return Number(parts[i]);
-	}
-	return null;
+/** The printed page of the first of `entries` in which `word` occurs as a whole word, or null. */
+function pageOfWord(entries, word) {
+	return entries.find((e) => new RegExp(`\\b${word}\\b`, "i").test(e.body))?.page ?? null;
 }
 
 const tshigNames = enumeratedNames(
@@ -1196,31 +1217,32 @@ const stripHtml = (html) =>
 		.replace(/\s{2,}/g, " ")
 		.trim();
 
-/** The entry a Devanāgarī headword resolves to, walking the lookup ladder, headed by it or not. */
+/** Every Cologne entry for an SLP1 key, in the romanised text `entriesHeadedBy` reads. */
+async function cologneRoman(slp1) {
+	const html = await fetchWithRetry(
+		`https://www.sanskrit-lexicon.uni-koeln.de/scans/MWScan/2020/web/webtc/getword.php?key=${encodeURIComponent(slp1)}&filter=roman`,
+		"Cologne",
+	);
+	await sleep(150);
+	return /not found:/.test(html) ? "" : stripHtml(html);
+}
+
+/**
+ * Every Monier-Williams entry headed by a Devanāgarī name, at the first rung of the lookup ladder that
+ * heads any, or null. The ladder changes only what is queried, so the entries are matched against
+ * the rung's own form — Cologne prints संपन्न as *sam-panna*.
+ *
+ * This replaced a reader that took the first entry Cologne returned, which cited the homograph *1.
+ * siddhi* "driving off" for the yoga and read वर्षा as absent because वर्ष came first.
+ */
 async function monierWilliams(devanagari) {
 	for (const candidate of lookupCandidates(devanagari)) {
-		const key = devanagariToSlp1(candidate.devanagari);
-		const html = await fetchWithRetry(
-			`https://www.sanskrit-lexicon.uni-koeln.de/scans/MWScan/2020/web/webtc/getword.php?key=${encodeURIComponent(key)}&filter=deva`,
-			"Cologne",
+		const iast = devanagariToIast(candidate.devanagari);
+		const entries = entriesHeadedBy(
+			await cologneRoman(devanagariToSlp1(candidate.devanagari)),
+			iast,
 		);
-		await sleep(150);
-		if (/not found:/.test(html)) continue;
-		const text = stripHtml(html);
-		const page = Number(/Printed book page\s*(\d+)/.exec(text)?.[1] ?? Number.NaN);
-		// The first sense, after the page bracket and any homonym number. Monier-Williams spaces and
-		// dashes a compound ("बल —युक्त"), so the comparison strips both, as the rabjung verifier does;
-		// taking only the first word read बलयुक्त's own entry as बल's.
-		const firstSense = text.slice(text.indexOf("]") + 1).replace(/^\s*\d+\.\s*/, "");
-		const bare = (s) => s.replace(/[\s—–―-]/g, "");
-		return {
-			page,
-			rung: candidate.rung,
-			headed: bare(firstSense).startsWith(bare(candidate.devanagari)),
-			headedBy: (devanagari) => bare(firstSense).startsWith(bare(devanagari)),
-			headword: firstSense.slice(0, 24),
-			text,
-		};
+		if (entries.length > 0) return { rung: candidate.rung, iast, entries };
 	}
 	return null;
 }
@@ -1228,25 +1250,18 @@ async function monierWilliams(devanagari) {
 for (const term of sixSeasonTerms) {
 	try {
 		const entry = await monierWilliams(term.devanagari);
-		if (term.mwThrough) {
-			if (
-				!entry ||
-				entry.headed ||
-				!entry.headedBy(term.mwThrough.devanagari) ||
-				!entry.text.includes(term.mwThrough.expects)
-			) {
-				fail(
-					`${term.season}: Monier-Williams no longer answers ${term.devanagari} through ${term.mwThrough.devanagari} with "${term.mwThrough.expects}"`,
-				);
-				continue;
-			}
-		} else if (!entry?.headed) {
+		if (!entry) {
+			fail(`${term.season}: ${term.iast} is not a Monier-Williams headword`);
+			continue;
+		}
+		const defining = prints(entry.entries, term.defines);
+		if (defining.length === 0) {
 			fail(
-				`${term.season}: ${term.devanagari} is not a Monier-Williams headword (got ${entry?.headword ?? "nothing"})`,
+				`${term.season}: no Monier-Williams entry headed ${entry.iast} prints "${term.defines}" (found on pp. ${entry.entries.map((e) => e.page)})`,
 			);
 			continue;
 		}
-		term.mwPage = entry.page;
+		term.mwPage = defining[0].page;
 	} catch (error) {
 		fail(`${term.season}: Cologne lookup failed — ${error.message}`);
 	}
@@ -1254,10 +1269,10 @@ for (const term of sixSeasonTerms) {
 for (const term of yogaTerms) {
 	try {
 		const entry = await monierWilliams(term.devanagari);
-		const found = Boolean(entry?.headed);
+		const found = entry !== null;
 		const evidence = ENGLISH_EVIDENCE[term.iast];
 		if (evidence === undefined) fail(`yoga ${term.iast}: no English evidence row`);
-		const pageOf = (word) => (entry ? pageOfWord(entry.text, word) : null);
+		const pageOf = (word) => (entry ? pageOfWord(entry.entries, word) : null);
 		const replacement = typeof evidence === "object" && evidence?.replaces ? evidence : null;
 		if (replacement) {
 			if (replacement.replaces !== term.english)
@@ -1293,11 +1308,18 @@ for (const term of yogaTerms) {
 				);
 			term.mwPage = null;
 		} else if (!found) {
-			fail(
-				`yoga ${term.iast}: ${term.devanagari} is not a Monier-Williams headword (got ${entry?.headword ?? "nothing"})`,
-			);
+			fail(`yoga ${term.iast}: ${term.devanagari} is not a Monier-Williams headword`);
+		} else if (dictionary === "Monier-Williams") {
+			// The entry that prints the English is the sense the yoga is named for.
+			term.mwPage = term.englishSource.page;
 		} else {
-			term.mwPage = entry.page;
+			// No printed English picks the sense, so homographs on different pages cannot be told apart.
+			const pages = [...new Set(entry.entries.map((e) => e.page))];
+			if (pages.length !== 1)
+				fail(
+					`yoga ${term.iast}: Monier-Williams heads ${entry.iast} on pp. ${pages}, and nothing chooses between them`,
+				);
+			term.mwPage = pages[0];
 		}
 	} catch (error) {
 		fail(`yoga ${term.iast}: Cologne lookup failed — ${error.message}`);
@@ -1307,7 +1329,7 @@ for (const term of auspiciousnessTerms.filter((t) => t.row.through)) {
 	const devanagari = slp1ToDevanagari(term.row.through.slp1);
 	try {
 		const entry = await monierWilliams(devanagari);
-		const page = entry?.headed ? pageOfWord(entry.text, term.englishName) : null;
+		const page = entry ? pageOfWord(entry.entries, term.englishName) : null;
 		if (page === null)
 			fail(
 				`auspiciousness ${term.englishName}: Monier-Williams no longer prints "${term.englishName}" under ${devanagari}`,
@@ -1316,16 +1338,6 @@ for (const term of auspiciousnessTerms.filter((t) => t.row.through)) {
 	} catch (error) {
 		fail(`auspiciousness ${term.englishName}: Cologne lookup failed — ${error.message}`);
 	}
-}
-
-/** Every Cologne entry for an SLP1 key, in the romanised text `entriesHeadedBy` reads. */
-async function cologneRoman(slp1) {
-	const html = await fetchWithRetry(
-		`https://www.sanskrit-lexicon.uni-koeln.de/scans/MWScan/2020/web/webtc/getword.php?key=${encodeURIComponent(slp1)}&filter=roman`,
-		"Cologne",
-	);
-	await sleep(150);
-	return /not found:/.test(html) ? "" : stripHtml(html);
 }
 
 for (const term of indianMonthTerms) {

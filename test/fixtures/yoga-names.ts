@@ -43,7 +43,7 @@ export const YOGA_NAMES: readonly {
 		correctedFrom: null,
 		iast: "siddhi",
 		devanagari: "सिद्धि",
-		monierWilliamsPage: 1215,
+		monierWilliamsPage: 1216,
 		attestedIn: ["tshig mdzod chen mo", "dung dkar tshig mdzod chen mo"],
 		englishName: "accomplishment",
 		englishReplaces: null,

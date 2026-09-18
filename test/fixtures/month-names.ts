@@ -220,7 +220,7 @@ export const SIX_SEASON_NAMES: readonly (MonthNameFixtureRow & {
 		phonetic: "yar",
 		iast: "varṣā",
 		devanagari: "वर्षा",
-		monierWilliamsPage: 926,
+		monierWilliamsPage: 927,
 	},
 	{
 		season: "autumn",

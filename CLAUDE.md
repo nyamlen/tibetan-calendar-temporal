@@ -789,15 +789,23 @@ back. An absence is established only by a reader that sees every entry, and the 
 "a headword **whose entry names the sense**" check, not the headword's presence, is what caught it.
 
 **That reader is `entriesHeadedBy` in `scripts/cologne.mjs`, shared since 2026-09-18, and it is the
-only one that sees every entry.** `verify-month-and-yoga-names.mjs` still has an older
-`monierWilliams()` that reads only the **first** entry Cologne returns, and the six-season names and
-the yogas are checked through it — so those checks still have the homograph blind spot. Nothing is
-known to be wrong there; move them to the shared reader before trusting a new absence they report.
-The shared reader's head-splitting has also been wrong once: it did not end a headword at a gender
-mark carrying its feminine (`māgha mf( ī )n.`), so the head ran on into the definition. Here that
+only one that sees every entry.** Every Monier-Williams check in the mansion and month-and-yoga
+verifiers now goes through it; `verify-rabjung-names.mjs` keeps its own. The six-season and yoga checks were the last to move, on 2026-09-18, off an older
+reader that took the **first** entry Cologne returned, and the move found two wrong citations that
+had shipped in fixtures. The yoga *siddhi* was cited at p. 1215, which is *1. siddhi* "driving off",
+a homograph, while its own English was cited from p. 1216. The rains were routed through *varṣa*
+under the stated belief that no entry is headed *varṣā*, and p. 927 heads it with "the rains,
+rainy season". Nothing had flagged either one. **Choose a page by the sense it prints, never by
+position**: the first entry headed *varṣā* is a bare "See p. 927".
+
+The shared reader's head-splitting has been wrong twice, and each time on a head shape nobody had
+listed. The first time, it did not end a headword at a gender mark carrying its feminine
+(`māgha mf( ī )n.`), so the head ran on into the definition. Here that
 failed closed — four month names read as absent — but the same bug can make a word printed in a
-definition ("relating to the constellation Maghā") count as a headword, which passes silently. Give
-every new head shape a self-proof case.
+definition ("relating to the constellation Maghā") count as a headword, which passes silently. The
+second time, it missed a form headed **inside another record**, after a sense boundary:
+`prati —kūlam ind. … [ ID=131428 ] prati —kūla n. inverted order, opposition`. The old whole-text
+search had found "opposition" there only by accident. Give every new head shape a self-proof case.
 
 **A correction is not a lookup rung, and conflating them inflates both.** A correction changes what
 the table *prints* and needs authored evidence; a rung of the ladder in `scripts/indic.ts` changes

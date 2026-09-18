@@ -128,7 +128,7 @@ Henning (p. 195) makes Tsurphu's month 1 *early spring*, and reports late winter
 |---|---|---|---|---|---|---|
 | vasanta वसन्त | Caitra, Vaiśākha (p. 930) | March, April | `dpyid` | *dpyid* "spring" | — | `dpyid` |
 | grīṣma ग्रीष्म | Jyeṣṭha, Āṣāḍha (p. 374) | May, June | `sos ka`, `so ka` | *sos-ka* "hot season" | — | **`sos ka`** |
-| varṣā वर्षा | none given; "the rains" under *varṣa* (p. 926) | July, August | `dbyar` | *dbyar* "rainy season" | — | `dbyar` |
+| varṣā वर्षा | Śrāvaṇa and Bhādra, **or** Bhādra and Āśvina by region, or longer (p. 927) | July, August | `dbyar` | *dbyar* "rainy season" | — | `dbyar` |
 | śarad शरद् | Bhādra and Āśvina, **or** Āśvina and Kārttika by region (p. 1057) | September, October | `ston` | *ston* "damp season" | — | `ston` |
 | hemanta हेमन्त | Agrahāyaṇa (= Mārgaśīrṣa), Pauṣa (p. 1304) | November, December | `dgun` | *dgun-stod* "first part of winter" | *dgun-stod*; bare *dgun* glossed शिशिर | **`dgun stod`** |
 | śiśira शिशिर | Māgha, Phālguna (p. 1076) | January, February | `dgun smad` | *dgun-smad* "last part of winter" | *dgun-smad* शिशिर | `dgun smad` |
@@ -159,7 +159,8 @@ The Mahāvyutpatti gives both spellings and Jäschke gives *sos-ka*.
 **How far the other sources bear it out, stated narrowly.**
 
 - **Monier-Williams** gives months for four of the six seasons that match this table exactly (vasanta, grīṣma, hemanta, śiśira).
-  It gives none for varṣā, and for śarad it gives two regional reckonings, of which Henning follows Āśvina and Kārttika.
+  For varṣā and śarad it gives two regional reckonings each, and Henning follows the first for varṣā (Śrāvaṇa and Bhādra) and the second for śarad (Āśvina and Kārttika).
+  This read "it gives none for varṣā" until 2026-09-18: the reader then in use took only the first entry Cologne returns, which is *varṣa*, and so never reached *varṣā* on p. 927.
   Its own entry for Āśvina (p. 159) calls it "a month in the rainy season", which sits against Henning's early autumn.
 - **Jäschke** gives Western months for all six, and they line up with this table once each Tibetan month is read as roughly the Western month it mostly falls in.
 - **Janson** states months 1 and 3 in prose and cites Henning for the complete list, and Ginzel (§75, pp. 345–346) and Richards (p. 195) for the system — two sources not consulted here.
@@ -182,7 +183,7 @@ The keys are contract.
 |---|---|
 | `spring` | vasanta वसन्त, p. 930: "spring" |
 | `summer` | grīṣma ग्रीष्म, p. 374: "the summer, hot season" |
-| `rains` | *varṣa* वर्ष (plural), p. 926: "the rains", cross-referred to varṣā वर्षा |
+| `rains` | varṣā वर्षा, p. 927: "the rains, rainy season" |
 | `autumn` | śarad शरद्, p. 1057: "autumn" |
 | `cold` | hemanta हेमन्त, p. 1304: "winter, the cold season" |
 | `dewy` | śiśira शिशिर, p. 1076: "the cool or dewy season" |
