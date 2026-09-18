@@ -401,15 +401,22 @@ edits, and moving files once after they have landed is one link-fixing commit in
       `attributesFor` composing the lot. Appendix D (planets) stays out of scope, as the Beyond v1
       entry below records.
 
-      **The mansion is deliberately not on the surface.** `MANSION_ELEMENTS`, `mansionElement` and
-      `MANSION_COUNT` were exported for a few hours on 2026-09-12 and withdrawn the same day, after a
-      code review observed that `mansionNumber` was not exported with them: a consumer could ask what
-      element mansion 17 carries and never learn that today is mansion 17. A dead export cannot be
-      removed after 1.0.0 and exposing the mansion later is additive, so withdrawing was the only
-      reversible move. **Exposed for a date on 2026-09-14** as `lunarMansionFor`, returning `{ index, element }` with the index 0–26 as Janson and Henning number it, and as `attributesFor(…).lunarMansion`; the bare tables stay off the surface and the mansion names wait on verification. The question as it stood —
-      "which mansion is the moon in" is something an almanac view prints, and a consumer cannot
-      compute it from anything published, which is the wrong-or-impossible test the public-surface
-      record asks for.
+      **The mansion tables were deliberately not on the surface, until strand G's review reversed
+      that.** `MANSION_ELEMENTS`, `mansionElement` and `MANSION_COUNT` were exported for a few hours
+      on 2026-09-12 and withdrawn the same day, after a code review observed that `mansionNumber` was
+      not exported with them: a consumer could ask what element mansion 17 carries and never learn
+      that today is mansion 17. A dead export cannot be removed after 1.0.0 and exposing the mansion
+      later is additive, so withdrawing was the only reversible move. **Exposed for a date on
+      2026-09-14** as `lunarMansionFor`, returning `{ index, element }` with the index 0–26 as Janson
+      and Henning number it, and as `attributesFor(…).lunarMansion`. **The full table shipped
+      2026-09-18** as `LUNAR_MANSIONS` — nine runtime names now — the same `{ index, tibetanName,
+      sanskritName, element }` merge `lunarMansionFor` does for one index, run over all 27 and frozen
+      like `ELEMENTAL_YOGAS`. The raw source tables (`mansionElement`, `MANSION_ELEMENTS`,
+      `MANSION_COUNT`, `mansionNumber`) stay internal; only the merged, verified table is public,
+      which is what the 2026-09-12 withdrawal was actually objecting to — a table with no way to
+      learn a day's index, not a table at all. The question as it stood — "which mansion is the moon
+      in" is something an almanac view prints, and a consumer cannot compute it from anything
+      published, which is the wrong-or-impossible test the public-surface record asks for.
 
       **Two things it does not claim.** The mansion agrees with FPMT on **97.6%** of 1,459 days and the
       residual is characterised rather than excused — six days in four years have no explanation, and
