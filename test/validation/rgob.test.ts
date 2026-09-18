@@ -22,6 +22,7 @@ import { describe, expect, it } from "vitest";
 import { isoToTibetan } from "../../src/computation/conversion.js";
 import { BHUTAN, BHUTAN_HENNING } from "../../src/traditions/bhutan.js";
 import { RGOB_DAYS } from "../fixtures/rgob.js";
+import { a2ForkDiffers } from "../support/bhutan.js";
 
 describe("the fixture is worth checking against", () => {
 	it("covers the phenomena that discriminate a calendar, not just easy days", () => {
@@ -144,12 +145,7 @@ describe("what this cannot settle", () => {
 		// Stated as an assertion so it cannot rot. If a future row ever *does* separate the two
 		// configs, this fails and the fixture's docblock — which claims the fork stays open — has to be
 		// rewritten rather than silently outgrown.
-		const differing = RGOB_DAYS.filter((row) => {
-			const iso = Temporal.PlainDate.from(row.iso);
-			const a = isoToTibetan(iso, BHUTAN);
-			const b = isoToTibetan(iso, BHUTAN_HENNING);
-			return a.day !== b.day || a.month !== b.month;
-		});
+		const differing = RGOB_DAYS.filter((row) => a2ForkDiffers(Temporal.PlainDate.from(row.iso)));
 		expect(differing).toEqual([]);
 	});
 });

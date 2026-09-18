@@ -1,21 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { lunarMansionFor } from "../../src/astrology/index.js";
 import { mansionElement } from "../../src/astrology/mansion-elements.js";
-import {
-	mansionDenominator,
-	mansionNumber,
-	moonCalendarDay,
-} from "../../src/astrology/mansions.js";
-import { elementalYoga } from "../../src/astrology/yoga.js";
-import { trueMonthCount } from "../../src/computation/calendar.js";
-import { isoToTibetan } from "../../src/computation/conversion.js";
-import { yearFromRoyalEra } from "../../src/computation/epoch.js";
-import { scalingFor } from "../../src/computation/scaling.js";
-import { weekdayNameFor } from "../../src/cycles.js";
+import { mansionNumber } from "../../src/astrology/mansions.js";
 import { getObservances } from "../../src/observances/index.js";
 import { PHUGPA } from "../../src/traditions/phugpa.js";
-import type { TibetanWeekdayElement } from "../../src/types.js";
 import { FPMT_OBSERVANCES } from "../fixtures/fpmt-observances.js";
+import {
+	favorabilityDays,
+	favorabilityDisagreements,
+	mansionDisagreements,
+	scaled,
+	yogaDays,
+} from "../support/fpmt-yoga.js";
 
 const iso = (s: string) => Temporal.PlainDate.from(s);
 
@@ -113,48 +109,6 @@ describe("observances against FPMT's published calendars, 2022-2025", () => {
  * than a tolerance, and it fails if FPMT's data or this arithmetic changes.
  */
 
-/** E earth, W water, F fire, A air — air being Janson's *wind*. */
-const ELEMENT_LETTERS: Record<string, TibetanWeekdayElement> = {
-	E: "earth",
-	W: "water",
-	F: "fire",
-	A: "wind",
-};
-
-const scaled = scalingFor(PHUGPA);
-
-/** Every day carrying a code, with the element the code forces on the mansion. */
-const yogaDays = FPMT_OBSERVANCES.flatMap((row) => {
-	if (!row.dayQuality) return [];
-	const date = isoToTibetan(iso(row.iso), PHUGPA);
-	const weekday = weekdayNameFor(date.tibetanWeekday, PHUGPA).element;
-	const pair = row.dayQuality
-		.slice(-2)
-		.split("")
-		.map((letter) => ELEMENT_LETTERS[letter]);
-	if (pair.some((element) => element === undefined)) return [];
-
-	// `isLeapMonth` is not optional here. `trueMonthCount` defaults it to false, and a leap month
-	// shares its number with a regular twin — so omitting it silently reads the twin's month and
-	// was worth 22 spurious failures, all in leap month 6 of 2024, before this was caught.
-	const monthCount = trueMonthCount(
-		PHUGPA,
-		yearFromRoyalEra(date.year),
-		date.month,
-		date.isLeapMonth,
-	);
-	return [
-		{
-			iso: row.iso,
-			code: row.dayQuality,
-			weekday,
-			pair: pair as TibetanWeekdayElement[],
-			date,
-			monthCount,
-		},
-	];
-});
-
 describe("the elemental yoga against FPMT's day-quality codes", () => {
 	it("always names the weekday's element as one of the pair", () => {
 		// The half needing no mansion arithmetic, and the observation that first identified these
@@ -220,29 +174,6 @@ describe("the elemental yoga against FPMT's day-quality codes", () => {
 	});
 });
 
-/** Days where the computed mansion's element is not the one FPMT's code forces. */
-function mansionDisagreements() {
-	const denominator = mansionDenominator(scaled);
-	const out: { iso: string; position: number }[] = [];
-	for (const day of yogaDays) {
-		if (!day.pair.includes(day.weekday)) continue;
-		const remaining = [...day.pair];
-		remaining.splice(remaining.indexOf(day.weekday), 1);
-		const forced = remaining[0];
-
-		const mansion = mansionNumber(scaled, day.date.day, day.monthCount, day.date.isLeapDay);
-		if (mansionElement(mansion) === forced) continue;
-
-		// How far through the mansion the moon sits: 0 just entered, 1 about to leave.
-		const position =
-			((moonCalendarDay(scaled, day.date.day, day.monthCount, day.date.isLeapDay) * 27) %
-				denominator) /
-			denominator;
-		out.push({ iso: day.iso, position });
-	}
-	return out;
-}
-
 /**
  * The yoga's **favorability** against FPMT's `FD-`/`UD-` prefix — the one day-by-day check the
  * favorability table has.
@@ -265,29 +196,8 @@ function mansionDisagreements() {
  * found by a different check, over a different window.
  */
 
-/** `FD-` is favorable, `UD-` unfavorable. Anything else is not one of FPMT's day-quality codes. */
-const PREFIX_FAVORABLE: Record<string, boolean> = { "FD-": true, "UD-": false };
-
-/** Every day whose code parses into a prefix and a pair of known element letters. */
-const favorabilityDays = FPMT_OBSERVANCES.flatMap((row) => {
-	if (!row.dayQuality) return [];
-	const favorable = PREFIX_FAVORABLE[row.dayQuality.slice(0, 3)];
-	const pair = row.dayQuality
-		.slice(-2)
-		.split("")
-		.map((letter) => ELEMENT_LETTERS[letter]);
-	if (favorable === undefined || pair.some((element) => element === undefined)) return [];
-	return [{ iso: row.iso, code: row.dayQuality, favorable, pair: pair as TibetanWeekdayElement[] }];
-});
-
 describe("the yoga's favorability against FPMT's published prefixes", () => {
-	/** Days where our table and FPMT's prefix disagree about the same pair. */
-	const disagreements = favorabilityDays.filter((day) => {
-		const first = day.pair[0];
-		const second = day.pair[1];
-		if (first === undefined || second === undefined) return false;
-		return elementalYoga(first, second).favorable !== day.favorable;
-	});
+	const disagreements = favorabilityDisagreements;
 
 	it("agrees on every day but the four FPMT contradicts itself about", () => {
 		expect(disagreements.map((day) => `${day.iso} ${day.code}`)).toEqual([

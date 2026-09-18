@@ -3,6 +3,7 @@ import { isoToTibetan, tibetanToIso } from "../../src/computation/conversion.js"
 import { PHUGPA, PHUGPA_HENNING } from "../../src/traditions/phugpa.js";
 import { FPMT_HOLY_DAYS } from "../fixtures/fpmt-holy-days.js";
 import { FPMT_OBSERVANCES } from "../fixtures/fpmt-observances.js";
+import { fpmtNumberingMismatches } from "../support/fpmt.js";
 
 const iso = (s: string) => Temporal.PlainDate.from(s);
 
@@ -80,13 +81,7 @@ describe("FPMT published holy days", () => {
  * which was written when no such source was to hand.
  */
 describe("FPMT monthly calendars, 2022-2025", () => {
-	const numbering = (config = PHUGPA) =>
-		FPMT_OBSERVANCES.filter((row) => {
-			const t = isoToTibetan(iso(row.iso), config);
-			return (
-				t.month !== row.month || t.day !== row.day || t.isLeapMonth !== (row.isLeapMonth ?? false)
-			);
-		});
+	const numbering = fpmtNumberingMismatches;
 
 	it("agrees on all but three of 1,461 days", () => {
 		expect(numbering().map((r) => r.iso)).toEqual(["2022-12-03", "2023-11-09", "2024-12-08"]);

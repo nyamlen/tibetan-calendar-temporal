@@ -5,56 +5,9 @@ import { ESZTHOFF_DATES } from "../fixtures/crosscheck-eszthoff.js";
 import { LOTSAWA_DATES } from "../fixtures/crosscheck-lotsawa.js";
 import type { CrosscheckRow } from "../fixtures/crosscheck-row.js";
 import { STEINERT_DATES } from "../fixtures/crosscheck-steinert.js";
+import { computed, mismatchesIn, resolve } from "../support/crosscheck.js";
 
 const iso = (s: string) => Temporal.PlainDate.from(s);
-
-/** A row with the optional flags resolved, so a missing flag and an explicit `false` compare equal. */
-interface Resolved {
-	iso: string;
-	month: number;
-	day: number;
-	isLeapMonth: boolean;
-	isDoubledDay: boolean;
-	isLeapDay: boolean;
-}
-
-/** The fixtures omit false flags to stay inside the formatter's line limit. */
-function resolve(row: CrosscheckRow): Resolved {
-	return {
-		iso: row.iso,
-		month: row.month,
-		day: row.day,
-		isLeapMonth: row.isLeapMonth ?? false,
-		isDoubledDay: row.isDoubledDay ?? false,
-		isLeapDay: row.isLeapDay ?? false,
-	};
-}
-
-/** The engine's own view of a day, in the fixture's shape, so mismatches diff readably. */
-function computed(row: CrosscheckRow): Resolved {
-	const t = isoToTibetan(iso(row.iso));
-	return {
-		iso: row.iso,
-		month: t.month,
-		day: t.day,
-		isLeapMonth: t.isLeapMonth,
-		isDoubledDay: t.isDoubledDay,
-		isLeapDay: t.isLeapDay,
-	};
-}
-
-function mismatchesIn(rows: readonly CrosscheckRow[]) {
-	return rows
-		.map((row) => ({ expected: resolve(row), actual: computed(row) }))
-		.filter(
-			({ expected, actual }) =>
-				actual.month !== expected.month ||
-				actual.day !== expected.day ||
-				actual.isLeapMonth !== expected.isLeapMonth ||
-				actual.isDoubledDay !== expected.isDoubledDay ||
-				actual.isLeapDay !== expected.isLeapDay,
-		);
-}
 
 // Tier 2. The Losar table proves the engine agrees with Janson; this proves it agrees with an
 // independent implementation of the same tradition, day by day, including everything Losar never

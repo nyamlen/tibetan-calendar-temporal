@@ -22,10 +22,20 @@
 
 import { describe, expect, it } from "vitest";
 import { monthFromCount, trueMonthCount } from "../../src/computation/calendar.js";
-import { isoToTibetan, losarFor } from "../../src/computation/conversion.js";
-import { BHUTAN, BHUTAN_HENNING } from "../../src/traditions/bhutan.js";
+import { losarFor } from "../../src/computation/conversion.js";
+import { BHUTAN_HENNING } from "../../src/traditions/bhutan.js";
 import { BHUTAN_DAYS, BHUTAN_END, BHUTAN_START } from "../fixtures/bhutan.js";
 import { CROSS_VERSION_LEAP } from "../fixtures/cross-version-leap.js";
+import {
+	ALL_BLOCKS,
+	a2ForkDivergences,
+	BLOCKS,
+	type Block,
+	bhutanDayMismatches,
+	TRUSTED_BLOCKS,
+	trustedEnd,
+	unpairedLeapBlocks,
+} from "../support/bhutan.js";
 import { VERSION_CONFIGS } from "../support/versions.js";
 
 const start = Temporal.PlainDate.from(BHUTAN_START);
@@ -117,30 +127,6 @@ describe("the phenomena a day-level check needs", () => {
  */
 const BHUTAN_RULES = VERSION_CONFIGS.bhutanese;
 
-interface Block {
-	month: number;
-	isLeap: boolean;
-}
-
-/**
- * The fixture's day rows collapsed to one entry per month, in order.
- *
- * A row is `[day, month, leapMonthNumber]`, where `leapMonthNumber` is 0 in a regular month and
- * otherwise the number of the leap month the day falls in — so it equals `month` exactly when the
- * month is a leap one. A new block starts whenever either changes.
- */
-function fixtureBlocks(): Block[] {
-	const blocks: Block[] = [];
-	for (const [, month, leapNumber] of BHUTAN_DAYS) {
-		const isLeap = leapNumber !== 0;
-		const last = blocks[blocks.length - 1];
-		if (last === undefined || last.month !== month || last.isLeap !== isLeap) {
-			blocks.push({ month, isLeap });
-		}
-	}
-	return blocks;
-}
-
 /** The engine's own month sequence, `length` months starting at true month count `from`. */
 function engineBlocks(from: number, length: number): Block[] {
 	const blocks: Block[] = [];
@@ -153,46 +139,6 @@ function engineBlocks(from: number, length: number): Block[] {
 
 const same = (a: Block[], b: Block[]) =>
 	a.length === b.length && a.every((x, i) => x.month === b[i]?.month && x.isLeap === b[i]?.isLeap);
-
-const ALL_BLOCKS = fixtureBlocks();
-
-/**
- * The last block the fixture can be trusted for, exclusive.
- *
- * @remarks
- * **A defect in the upstream data, found on 2026-08-16 and recorded rather than smoothed.** The
- * fixture's leap months reproduce Janson's four-version table exactly for twelve of thirteen —
- * 2000/4, 2002/12, 2005/9, 2008/5, 2011/2, 2013/10, 2016/7, 2019/3, 2021/12, 2024/8, 2027/5,
- * 2030/1. It then carries a **thirteenth he does not list**: a leap month 2 running 2030-04-03 to
- * 2030-05-02, directly after the leap month 1.
- *
- * That year would hold regular 1, leap 1, leap 2, regular 3 — two consecutive leap months, and no
- * regular month 2 at all. No calendar has that. The upstream leaves its leap flag set one month too
- * long, once, near the end of the window.
- *
- * `scripts/fetch-bhutan-fixtures.mjs` did not catch it because its Janson cross-check asserts that
- * his leap months *appear*, not that no others do. The assertions below pin the anomaly exactly, so
- * a re-fetch that fixes it fails here and prompts this window to be reopened rather than quietly
- * keeping a narrower check than the data supports.
- */
-const TRUSTED_BLOCKS = 375;
-
-const BLOCKS = ALL_BLOCKS.slice(0, TRUSTED_BLOCKS);
-
-/** The day index where the anomalous block begins, so the day check stops where the month one does. */
-const TRUSTED_DAYS = (() => {
-	let blocks = 0;
-	let previous: Block | undefined;
-	for (const [index, [, month, leapNumber]] of BHUTAN_DAYS.entries()) {
-		const isLeap = leapNumber !== 0;
-		if (previous === undefined || previous.month !== month || previous.isLeap !== isLeap) {
-			blocks += 1;
-			if (blocks > TRUSTED_BLOCKS) return index;
-			previous = { month, isLeap };
-		}
-	}
-	return BHUTAN_DAYS.length;
-})();
 
 // The window opens on 2000-01-01, inside the Tibetan year that began in 1999. Searching two years
 // either side of that is generous and still narrow enough that a match is meaningful.
@@ -211,13 +157,7 @@ describe("the upstream anomaly this file works around", () => {
 	// Pinned precisely, so it cannot drift and cannot be forgotten. If a re-fetch fixes the upstream
 	// these fail, and TRUSTED_BLOCKS should then be raised to cover the whole window.
 	it("is a single spurious leap month, and it is the last one", () => {
-		const unpairedLeap = ALL_BLOCKS.map((block, index) => ({ block, index })).filter(
-			({ block, index }) => {
-				if (!block.isLeap) return false;
-				const previous = ALL_BLOCKS[index - 1];
-				return previous?.month !== block.month || previous.isLeap;
-			},
-		);
+		const unpairedLeap = unpairedLeapBlocks();
 		expect(unpairedLeap).toHaveLength(1);
 		expect(unpairedLeap[0]?.index).toBe(TRUSTED_BLOCKS);
 		expect(unpairedLeap[0]?.block).toEqual({ month: 2, isLeap: true });
@@ -327,19 +267,7 @@ describe("the runnable Bhutanese config, day by day", () => {
 	// so says nothing about m₀, s₀ or a₀; this one is about nothing else. A failure here is the
 	// epoch data, because the convention is already settled.
 	it("reproduces every day of the fixture", () => {
-		const bad: string[] = [];
-		for (const [index, [day, month, leapNumber]] of BHUTAN_DAYS.entries()) {
-			if (index >= TRUSTED_DAYS) break;
-			const iso = start.add({ days: index });
-			const date = isoToTibetan(iso, BHUTAN_HENNING);
-			const expectedLeap = leapNumber !== 0;
-			if (date.day !== day || date.month !== month || date.isLeapMonth !== expectedLeap) {
-				bad.push(
-					`${iso.toString()}: fixture ${day}/${month}${expectedLeap ? "L" : ""}, ` +
-						`engine ${date.day}/${date.month}${date.isLeapMonth ? "L" : ""}`,
-				);
-			}
-		}
+		const bad = bhutanDayMismatches(BHUTAN_HENNING);
 		// Collected, not asserted per row: eleven thousand rows times three assertions each, with a
 		// message built from a Temporal date, is enough to kill a vitest worker.
 		expect(bad.slice(0, 20)).toEqual([]);
@@ -354,15 +282,7 @@ describe("the runnable Bhutanese config, day by day", () => {
 		// and so follows his value — which is why it validates the variant and not the default. Three
 		// misses in 11,050 days is about one in 3,700, the rate PHUGPA's docblock records for this
 		// fork. Concluding from this which value Bhutanese *almanacs* print would be circular.
-		const differing: string[] = [];
-		for (let index = 0; index < TRUSTED_DAYS; index += 1) {
-			const iso = start.add({ days: index });
-			const rounded = isoToTibetan(iso, BHUTAN);
-			const exact = isoToTibetan(iso, BHUTAN_HENNING);
-			if (rounded.day !== exact.day || rounded.month !== exact.month) {
-				differing.push(iso.toString());
-			}
-		}
+		const differing = a2ForkDivergences(start, trustedEnd);
 		expect(differing).toEqual(["2001-12-10", "2004-04-10", "2020-04-23"]);
 	}, 30_000);
 
