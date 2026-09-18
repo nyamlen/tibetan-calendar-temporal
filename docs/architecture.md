@@ -140,7 +140,7 @@ tibetan-calendar-temporal/
 │   ├── format.ts                   # formatTibetanDate, monthCodeOf — the canonical string form
 │   ├── parse.ts                    # parseTibetanDate — its inverse
 │   ├── months.ts                   # monthsFor, datesFor, daysInMonth, the three closed-form scalars
-│   ├── month-names.ts              # monthNamesFor — the mansion name and all four seasonal systems;
+│   ├── month-names.ts              # monthNamesFor — the mansion, the Indian month and all four seasonal systems;
 │   │                               #   also the Tiger-month reader ./astrology shares
 │   ├── navigation.ts               # the lunation coordinate, day and month arithmetic, the phases
 │   ├── cycles.ts                   # the cyclic names: year, rabjung, weekday, element, gender, animal
@@ -308,6 +308,9 @@ interface MonthNames {
   mansion: {
     tibetanName: TibetanName;    // mchu … rgyal, bare — mchu is also "lip"
     sanskritName: SanskritName;  // the mansion's: maghā, not the month māgha. No index: month 8 names two
+  };
+  indianMonth: {
+    sanskritName: SanskritName;  // the month's: māgha. No Tibetan (the month is called by its mansion); month 5 jyeṣṭha
   };
   fourSeasons: {
     month1LateWinter: FourSeasonMonthName;         // the original Kālacakra identification

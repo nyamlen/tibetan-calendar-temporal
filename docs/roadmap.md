@@ -339,7 +339,10 @@ edits, and moving files once after they have landed is one link-fixing commit in
       **mansion's** name (*maghā*), not the Indian month's (*māgha*) — the two are different words, and a
       name block holds one name in several languages. Month 8's *khrums* names mansions 24 and 25
       together and takes the pair's own name *bhadrapadā*, verified as a stated exception to rule (A);
-      no mansion index ships on this member. An `indianMonth` sibling may follow and is additive.
+      no mansion index ships on this member. The `indianMonth` sibling shipped on 2026-09-18 with
+      `sanskritName` alone: Monier-Williams' defining entry for each month, month 5 *jyeṣṭha* a stated
+      exception on the Vimalaprabhā's evidence — see
+      [names/month-and-yoga-sourcing.md](names/month-and-yoga-sourcing.md#the-indian-month-names).
       `fourSeasons` still carries no `sanskritName`, and that is the rule's "where sourced" holding
       rather than a gap: no source gives Sanskrit for the Tibetan season-month compounds.
 

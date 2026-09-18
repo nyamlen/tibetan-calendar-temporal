@@ -439,13 +439,14 @@ one tradition, and this package ships four.
 ### Naming a month
 
 A Tibetan month has more than one name, and an almanac often prints several.
-`monthNamesFor` returns all of them at once: the lunar mansion the month is named for, and the month's place in each of four seasonal systems.
+`monthNamesFor` returns all of them at once: the lunar mansion the month is named for, the Indian month's Sanskrit name, and the month's place in each of four seasonal systems.
 
 ```js
 const names = monthNamesFor({ year: 2153, month: 1 });
 
 names.mansion.tibetanName.wylie;                        // "mchu"
-names.mansion.sanskritName.iast;                        // "maghā" — the mansion, not the month māgha
+names.mansion.sanskritName.iast;                        // "maghā" — the mansion
+names.indianMonth.sanskritName.iast;                    // "māgha" — the month named for it
 names.fourSeasons.month1EarlySpring.season;             // "spring"
 names.fourSeasons.month1EarlySpring.tibetanName.wylie;  // "dpyid zla ra ba"
 names.sixSeasons.month3EarlySpring.sanskritName.iast;   // "śiśira"
@@ -455,20 +456,20 @@ names.sixSeasons.month3EarlySpring.sanskritName.iast;   // "śiśira"
 The seasonal names have been matched to the months in several ways, the sources disagree about which one a tradition uses, and so there is no default.
 Each system is named for the rule that defines it:
 
-| Month | `mansion` | Tibetan | Phonetic | Sanskrit | `month1LateWinter` | `month1EarlySpring` | `tigerEarlySpring`, Phugpa | `sixSeasons.month3EarlySpring` |
-|---|---|---|---|---|---|---|---|---|
-| 1 | mchu | མཆུ | chu | *maghā* | late winter | early spring | late spring | early dewy |
-| 2 | dbo | དབོ | wo | *uttaraphalgunī* | early spring | middle spring | early summer | late dewy |
-| 3 | nag pa | ནག་པ | nak pa | *citrā* | middle spring | late spring | middle summer | early spring |
-| 4 | sa ga | ས་ག | sa ga | *viśākhā* | late spring | early summer | late summer | late spring |
-| 5 | snron | སྣྲོན | nön | *jyeṣṭhā* | early summer | middle summer | early autumn | early summer |
-| 6 | chu stod | ཆུ་སྟོད | chu tö | *pūrvāṣāḍhā* | middle summer | late summer | middle autumn | late summer |
-| 7 | gro bzhin | གྲོ་བཞིན | dro zhin | *śravaṇā* | late summer | early autumn | late autumn | early rains |
-| 8 | khrums | ཁྲུམས | trum | *bhadrapadā* | early autumn | middle autumn | early winter | late rains |
-| 9 | tha skar | ཐ་སྐར | ta kar | *aśvinī* | middle autumn | late autumn | middle winter | early autumn |
-| 10 | smin drug | སྨིན་དྲུག | min druk | *kṛttikā* | late autumn | early winter | late winter | late autumn |
-| 11 | mgo | མགོ | go | *mṛgaśiras* | early winter | middle winter | early spring | early cold |
-| 12 | rgyal | རྒྱལ | gyel | *puṣya* | middle winter | late winter | middle spring | late cold |
+| Month | `mansion` | Tibetan | Phonetic | Sanskrit | `indianMonth` | `month1LateWinter` | `month1EarlySpring` | `tigerEarlySpring`, Phugpa | `sixSeasons.month3EarlySpring` |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | mchu | མཆུ | chu | *maghā* | *māgha* | late winter | early spring | late spring | early dewy |
+| 2 | dbo | དབོ | wo | *uttaraphalgunī* | *phālguna* | early spring | middle spring | early summer | late dewy |
+| 3 | nag pa | ནག་པ | nak pa | *citrā* | *caitra* | middle spring | late spring | middle summer | early spring |
+| 4 | sa ga | ས་ག | sa ga | *viśākhā* | *vaiśākha* | late spring | early summer | late summer | late spring |
+| 5 | snron | སྣྲོན | nön | *jyeṣṭhā* | *jyeṣṭha* | early summer | middle summer | early autumn | early summer |
+| 6 | chu stod | ཆུ་སྟོད | chu tö | *pūrvāṣāḍhā* | *āṣāḍha* | middle summer | late summer | middle autumn | late summer |
+| 7 | gro bzhin | གྲོ་བཞིན | dro zhin | *śravaṇā* | *śrāvaṇa* | late summer | early autumn | late autumn | early rains |
+| 8 | khrums | ཁྲུམས | trum | *bhadrapadā* | *bhādrapada* | early autumn | middle autumn | early winter | late rains |
+| 9 | tha skar | ཐ་སྐར | ta kar | *aśvinī* | *āśvina* | middle autumn | late autumn | middle winter | early autumn |
+| 10 | smin drug | སྨིན་དྲུག | min druk | *kṛttikā* | *kārttika* | late autumn | early winter | late winter | late autumn |
+| 11 | mgo | མགོ | go | *mṛgaśiras* | *mārgaśīrṣa* | early winter | middle winter | early spring | early cold |
+| 12 | rgyal | རྒྱལ | gyel | *puṣya* | *pauṣa* | middle winter | late winter | middle spring | late cold |
 
 Three things that table makes easy to get wrong:
 
@@ -478,8 +479,10 @@ Three things that table makes easy to get wrong:
 
 A leap month takes the names of the regular month sharing its number, in every system.
 The mansion names are printed bare — *mchu*, not *mchu zla ba* — as every source prints them, which makes some of them ordinary words too: *mchu* is also "lip".
-The Sanskrit is the **mansion's** name and not the Indian month's: month 1 is *maghā*, and the month named after that mansion is *māgha*.
-Sanskrit has two words where Tibetan has one, and this member holds the one its Tibetan renders.
+The Sanskrit column is the **mansion's** name and not the Indian month's: month 1 is *maghā*, and the month named after that mansion is *māgha*.
+Sanskrit has two words where Tibetan has one, so `mansion` holds the one its Tibetan renders and `indianMonth` holds the other.
+`indianMonth` has no Tibetan of its own, because Tibetan calls the month by its mansion.
+Its names are the ones Monier-Williams defines each month by, except month 5: he defines *jyaiṣṭha*, and it ships as *jyeṣṭha*, the form the Kālacakra's own commentary, the Vimalaprabhā, prints.
 Month 8 is the exception that proves the rule — *khrums* names mansions 24 and 25 together, so it carries the pair's own name *bhadrapadā*, which drops *pūrva* and *uttara* exactly as *khrums* drops *stod* and *smad*.
 There is no mansion index here, though a day's `lunarMansion` has one: a day is in exactly one mansion, while a month can be named for two.
 The sources and the variants not chosen are in [names/month-and-yoga-sourcing.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/month-and-yoga-sourcing.md).
