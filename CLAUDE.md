@@ -613,6 +613,14 @@ halves of a doubled date have different weekday elements whatever the mansion do
 tests green while changing 19 of 31 doubled-first days. **Pin the value.** The plan that specified the
 inequality had the same blind spot, so this is a rule about the instruction as much as the test.
 
+**A comparison that agrees everywhere cannot detect being weakened, so mutate it to disagree.** The
+first mutant written for `mismatchesIn` on 2026-09-18 dropped its `isLeapDay` field, and no test
+could fail: against Lotsawa House and eszthoff it already reports nothing, and a predicate that
+compares less can only report less. The mutant that proved it **inverted** the field instead. The
+same fact limits what the suites claim: "agrees on every day" guards against a predicate that
+fabricates mismatches, and nothing today would notice one quietly narrowed to the day number. The
+fields a shared predicate compares are held by review and by its docblock, not by a test.
+
 **A new layer that reuses an existing accessor inherits its tradition-dependence, whether or not a
 source licenses that.** The elemental yoga read `weekdayNameFor(weekday, tradition)` for its weekday
 element, which applies `naming.weekdayOffset` — so Bhutan silently got a different yoga on 12 of 14
