@@ -8,6 +8,7 @@ import { FPMT_OBSERVANCES } from "../fixtures/fpmt-observances.js";
 import {
 	favorabilityDays,
 	favorabilityDisagreements,
+	mansionDays,
 	mansionDisagreements,
 	scaled,
 	yogaDays,
@@ -132,8 +133,11 @@ describe("the elemental yoga against FPMT's day-quality codes", () => {
 
 	it("puts the mansion in the element the code forces, on at least 97% of days", () => {
 		const disagreements = mansionDisagreements();
-		const agreed = yogaDays.length - disagreements.length;
-		expect(agreed / yogaDays.length).toBeGreaterThan(0.97);
+		const agreed = mansionDays.length - disagreements.length;
+		expect(agreed / mansionDays.length).toBeGreaterThan(0.97);
+		// Measured over the days whose code can force a mansion element, and pinned by value: the
+		// fixture is static, and the shipped page quotes both numbers.
+		expect({ agreed, of: mansionDays.length }).toEqual({ agreed: 1424, of: 1459 });
 	});
 
 	it("puts its disagreements at the late edge of a mansion, on one side only", () => {

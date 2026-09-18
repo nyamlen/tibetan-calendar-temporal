@@ -66,12 +66,24 @@ export const yogaDays = FPMT_OBSERVANCES.flatMap((row) => {
 	];
 });
 
+/**
+ * The days whose code can say anything about the mansion: those naming the weekday's element as one
+ * of the pair, so that the other is forced on the mansion.
+ *
+ * @remarks
+ * One day with a code is not among them, 2024-09-12, printed `UD-EW` on a wind weekday — not one of
+ * the ten yogas at all. Until 2026-09-18 it was counted in the denominator and so as a mansion
+ * *agreement*, by accident, which put the mansion over 1,460 days while every document said 1,459.
+ * Its prefix is still a readable favorability claim, so {@link favorabilityDays} keeps it: each check
+ * is measured over exactly the days that can bear on it.
+ */
+export const mansionDays = yogaDays.filter((day) => day.pair.includes(day.weekday));
+
 /** Days where the computed mansion's element is not the one FPMT's code forces. */
 export function mansionDisagreements() {
 	const denominator = mansionDenominator(scaled);
 	const out: { iso: string; position: number }[] = [];
-	for (const day of yogaDays) {
-		if (!day.pair.includes(day.weekday)) continue;
+	for (const day of mansionDays) {
 		const remaining = [...day.pair];
 		remaining.splice(remaining.indexOf(day.weekday), 1);
 		const forced = remaining[0];
