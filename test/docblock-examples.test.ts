@@ -156,6 +156,8 @@ describe("docblock examples", () => {
 		it("monthNamesFor names Phugpa's month 1 in every system, and Bhutan's Tiger system null", () => {
 			const names = monthNamesFor({ year: 2153, month: 1 });
 			expect(names.mansion.tibetanName.wylie).toBe("mchu");
+			expect(names.mansion.sanskritName.iast).toBe("maghā");
+			expect(names.indianMonth.sanskritName.iast).toBe("māgha");
 			expect(names.fourSeasons.month1LateWinter.season).toBe("winter");
 			expect(names.fourSeasons.month1EarlySpring.tibetanName.wylie).toBe("dpyid zla ra ba");
 			expect(names.fourSeasons.tigerEarlySpring?.part).toBe("late");

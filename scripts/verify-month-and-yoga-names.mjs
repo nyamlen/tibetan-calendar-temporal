@@ -219,7 +219,12 @@ function prints(entries, words) {
 	return entries.filter((e) => bare(e.body).includes(bare(words)));
 }
 
-const MONTH_SENSE = /\bmonths?\b/i;
+/**
+ * A month sense, in English or as Monier-Williams' own `scil. māsa` — the word *māsa* alone. `\b`
+ * cannot bound it: a diacritic letter is a non-word character to `\b`, so it finds a boundary inside
+ * *ṣaṇmāsa* and reads the compound as the word.
+ */
+const MONTH_SENSE = /\bmonths?\b|(?<!\p{L})māsa(?!\p{L})/iu;
 
 function proveOwnPredicates() {
 	const broken = [];
@@ -241,6 +246,11 @@ function proveOwnPredicates() {
 		["one of the 12 months constituting", true],
 		["for jyaiṣṭha , VarBṛS.", false],
 		["the 16th lunar mansion", false],
+		["( scil. māsa ) the month", true],
+		["m. ( scil. māsa )", true],
+		["a compound, samāsa", false],
+		["a compound, ṣaṇmāsa", false],
+		["the day of full moon, paurṇa-māsī", false],
 	]) {
 		if (MONTH_SENSE.test(sense) !== want) broken.push(`MONTH_SENSE read "${sense}" wrongly`);
 	}
@@ -590,7 +600,7 @@ const INDIAN_MONTHS = [
 				"Vimalaprabhā three times, beside the neighbouring months' ai; Janson/Henning Jyeṣṭha; the " +
 				"Mahāvyutpatti jeṣṭhaḥ",
 			// Read by eye from page images; the scan's OCR drops the ai sign, so this cannot be re-read
-			// mechanically and is carried as data, like a Jäschke page.
+			// mechanically and is carried as data for the record, like a Jäschke page — no check reads it.
 			readIn: {
 				edition: "Vimalaprabhā, ed. Upadhyaya (Sarnath 1986), Part I",
 				item: "archive.org kalachakra-colour-1",
@@ -624,6 +634,10 @@ const INDIAN_MONTHS = [
  * divergence that a source corrects fails the run instead of silently agreeing, and a witness agreeing
  * everywhere else is checked rather than assumed. Sakaki's printing (p. 524, entries 8261–8272) was
  * read to confirm that the Mahāvyutpatti's two are the text's and not the aggregate's.
+ *
+ * The same three spellings appear in `MONTH_SPELLING_VARIANTS`, which pairs the two witnesses with each
+ * other to number the months; this table pairs each with what ships. A source change to one of them
+ * therefore needs correcting in both.
  */
 const INDIAN_MONTH_DIVERGENCES = {
 	mahavyutpatti: [

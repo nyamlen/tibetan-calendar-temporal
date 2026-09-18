@@ -310,7 +310,7 @@ describe("guide examples", () => {
 		});
 
 		it("prints every cell of the month-by-month table as the engine computes it", () => {
-			// Read from the document rather than restated here: ninety-six cells are too many to
+			// Read from the document rather than restated here: there are too many cells to
 			// keep in step by hand, and a restated copy would pass while the guide drifted.
 			const header =
 				"| Month | `mansion` | Tibetan | Phonetic | Sanskrit | `indianMonth` | `month1LateWinter` | `month1EarlySpring` | `tigerEarlySpring`, Phugpa | `sixSeasons.month3EarlySpring` |";

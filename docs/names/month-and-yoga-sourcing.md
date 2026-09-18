@@ -298,6 +298,7 @@ Janson's *Kārtikka*, which Henning also prints, is a transposition of the doubl
 Both are checked month by month, and each divergence is carried as data stating the exact spelling it expects, so the run fails if a source changes rather than passing silently.
 
 - **The Mahāvyutpatti**, entries 8261–8272, read from Sakaki's printing (p. 524, archive.org `kanwashiyakutaik01mahauoft` image `n592`), which agrees with the aggregate at every one: *jeṣṭhaḥ* (8264, month 5), *açviniḥ* with short *a* and *i* (8268, month 9), and *mṛga-çīrṣaḥ (mārga-çīrṣaḥ)* (8270, month 11), where the bracketed form is the one that ships.
+  So month 11 needs no divergence: the Mahāvyutpatti prints the shipped form, as its alternative.
   The aggregate splits 8267 into two rows, *ston zla ra ba* and *khrum smad*, both *bhādrapadaḥ*; Sakaki prints them as one entry.
 - **Janson's table**, `Tmonths`: *Jyeṣṭha* (month 5) is the shipped form, and *Kārtikka* (month 10) the one divergence.
 
