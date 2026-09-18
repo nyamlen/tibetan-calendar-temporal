@@ -46,7 +46,7 @@ astrology, turning independently like odometer wheels.
 | Animals | 12 | mouse, ox, tiger, rabbit, dragon, snake, horse, sheep, monkey, bird, dog, pig |
 | Elements | 5 | wood, fire, earth, iron, water |
 | Trigrams | 8 | the *I Ching* three-line figures, keyed by Janson's English — fire, earth, iron, sky, water, mountain, wood, wind; in Tibetan *li, khon, dwa, khen, kham, gin, zin, zon* |
-| Numbers | 9 | 1–9, each carrying a colour and a compass direction |
+| Numbers | 9 | 1–9, each carrying a colour and a compass direction in Janson's tables — neither of which is in the output |
 
 Two traps sit in that table, and both are live.
 

@@ -394,7 +394,7 @@ edits, and moving files once after they have landed is one link-fixing commit in
       **Deferred, explicitly, not left ambiguous:** which config's `doubledDay`/`skippedDay`/
       `leapMonth` wins when two configs in `from` disagree. Decide this when the helper is actually
       designed, not before
-- [x] **New subpath `./astrology`, computing Janson's Appendix E in full — placement, scope and
+- [x] **New subpath `./astrology`, computing Janson's Appendix E's calculations — placement, scope and
       naming decided 2026-09-03; built 2026-09-12.**
 
       **Shipped 2026-09-12.** Six `*For` entry points, `elementalYoga` for a bare pair, and the frozen
@@ -450,7 +450,7 @@ edits, and moving files once after they have landed is one link-fixing commit in
       that one table is safe and necessary, documented the same way `default-observances.ts` already
       documents its FPMT citation.
 
-      **Scope — Appendix E in full, Appendix D explicitly deferred.** Appendix E ("Further
+      **Scope — Appendix E's calculations, Appendix D explicitly deferred.** Appendix E ("Further
       astrological calculations") defines two things: full year/month/lunar-day/calendar-day
       attribute sets (element, animal, gender, trigram, number — closed-form, cyclic, entirely
       self-derived by Janson, no second source needed) and the "elemental yoga" — the unordered
@@ -586,6 +586,20 @@ edits, and moving files once after they have landed is one link-fixing commit in
 - [x] **`docs/why-trust-these-dates.md`** — the reader-facing account of what has been validated and
       over which years, written for a non-programmer. It is the only document besides
       [testing.md](testing.md) permitted to quote a validation window; everything else links to it
+- [ ] **Extend FPMT's calendars through 2026, once December 2026 is published — after the
+      why-trust suite, which landed 2026-09-18.** Run `scripts/fetch-fpmt-observances.mjs` with
+      `2022 2026`. Not before: the script takes whole years only, deliberately, since its day-count
+      check assumes them and a partial year would let the fixture shrink silently, and months not yet
+      past are forecasts FPMT can revise. As of 2026-09-18 it publishes through October 2026.
+      The order matters because `test/why-trust-these-dates.test.ts` computes every figure the
+      extension moves — the windows, the mansion's 1,459 days and 97.6%, favorability's 1,460 and
+      99.7%, the FPMT disagreement dates — so it names each one that needs rewriting rather than leaving
+      them to be hunted by hand.
+      **Re-run the Henning mansion comparison over 2026 (`kalacakra.org/calendar/tdata/pl_2026.txt`) at
+      the same time**: the page ties its "all 1,459 of those days" to the computed mansion day count,
+      so the suite fails until the comparison is re-measured and the sentence updated. Worth doing for
+      the mansion residual above all, which ran 6, 2, 5 and 22 over 2022–2025: if 2026 keeps rising,
+      "the difference is FPMT's" is a trend rather than a figure.
 - [x] **`docs/other-implementations.md`** — a survey of the other software that computes Tibetan
       dates, framed as "when to use which" rather than as a comparison. Every claim from public
       metadata, with an access date; no competitor source read
@@ -1148,6 +1162,32 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   computational character (iterative vs. closed-form), different validation burden, different and
   narrower audience. If it ever ships, it gets its own subpath, its own name, and its own
   brainstorm — not a module bolted onto this one.
+
+- **Appendix E's association tables — not shipped, and recorded so the absence is a decision.**
+  Janson prints three lookups beside the attribute calculations: element → colour, trigram → direction
+  and associated element, and number → colour, element and direction. `./astrology` computes every
+  value those tables are keyed by and ships none of the tables. Two reasons. They are lookups over values
+  already returned, so a consumer who wants them loses nothing but a table. And the **colours are
+  contested**: Janson's own LaTeX comment beside the colour table cites "Henning p. 167 and 177 for
+  different colours", and under this project's rule a convention with two defensible answers belongs in
+  injected config or nowhere, not in a fixed export. The directions look uncontested and could ship
+  alone; nobody has asked for them. [astrology.md](astrology.md) says the colours and directions are not
+  in the output, so a reader of its cycle table does not go looking for them.
+
+- **The almanac's twenty-seven astronomical yogas and eleven karaṇas.** Janson's main text, "Further
+  calculations", defines the five daily quantities an almanac prints; `./astrology` computes three —
+  the weekday, the lunar day and the lunar mansion. The other two are the **astronomical yoga**
+  (*yoga* योग; སྦྱོར་བ *jorwa*), from the summed longitudes of sun and moon, and the **karaṇa**
+  (*karaṇa* करण; བྱེད་པ *chépa*), a half lunar day.
+  Both would be additive. The only check available today is Henning's daily calendars, which print both
+  but are this engine's own lineage, as for the mansion — so shipping either would add a claim
+  with less behind it than anything `./astrology` ships now. Until 2026-09-18
+  [why-trust-these-dates.md](why-trust-these-dates.md) filed karaṇa under Appendix D, which is wrong.
+
+- **"Some special days": the sun entering a sign, the definition points and their midpoints.** Janson's
+  section on the days the mean sun enters each sign, and on the definition points (སྒང *gang*) and
+  their midpoints (དབུགས *uk*).
+  Calendar astronomy rather than astrology, so if it is ever built it does not belong in `./astrology`.
 
 - **Source Bhutan's month animals and elements.** Janson gives month-animal lists for Phugpa and
   Tsurphu and none for Bhutan, so `./astrology` refuses that attribute for a tradition this package
