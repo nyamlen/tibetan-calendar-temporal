@@ -571,9 +571,9 @@ decision-record format, fixture provenance, whether
 validation suite is named for the fixture it validates, that an exported **tradition** config is
 imported by one — rule 10 matches only `export … from "./traditions/…"` in `src/index.ts`, so it
 does **not** see `ObservanceConfig` or anything on the `./observances` or `./astrology` barrels, and
-rule 13 is type-only, so neither guards a runtime value export on either — `DEFAULT_OBSERVANCES` and
-`ELEMENTAL_YOGAS` are held by `test/public-api.test.ts` alone, which is also the only thing that
-noticed `./astrology` had shipped three mansion names nobody could use —
+rule 13 is type-only, so neither guards a runtime value export on either — `DEFAULT_OBSERVANCES`,
+`ELEMENTAL_YOGAS` and `LUNAR_MANSIONS` are held by `test/public-api.test.ts` alone, which is also the
+only thing that noticed `./astrology` had shipped three mansion names nobody could use —
 that a suite in `test/<name>/` is named for a module in `src/<name>/`, and that **a generated document does
 not hardcode a count its generator computes** — `docs/names/rabjung.md` read "Four values are marked,
 at positions …" beside an interpolated list for three commits, and there were five positions and nine
