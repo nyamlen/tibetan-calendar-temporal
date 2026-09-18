@@ -14,7 +14,8 @@
  * Cologne prints a compound with a dash (`mṛga —śiras`, `ā-śleṣā`) or, across a vowel sandhi, with a
  * bare space (`pūrvā ṣāḍhā`); numbers homonyms (`2. śravaṇa`); and heads several forms in one entry
  * (`uttara —proṣṭhapadā , uttara —phalgunī or uttara —phālgunī , f.`), sometimes with a bracketed
- * citation (`anu-rādhā [ AV. &c.] f.`). So the head — everything before the first gender or
+ * citation (`anu-rādhā [ AV. &c.] f.`). An adjective's gender mark can carry its feminine in
+ * parentheses (`māgha mf( ī )n.`), which must end the head like any other mark. So the head — everything before the first gender or
  * part-of-speech mark — loses its brackets and is split on commas, "or" and parentheses, and each piece
  * compared whole with its spaces removed, so that *hasta* never heads *hastā*.
  */
@@ -28,7 +29,9 @@ export function entriesHeadedBy(text, iast) {
 				.slice(chunk.indexOf("]") + 1)
 				.replace(/\s*[—–-]\s*/g, "")
 				.trim();
-			const head = body.replace(/^\d+\.\s*/, "").split(/\s(?:mfn|mf|m|f|n|ind)\.(?:\s|$)/)[0];
+			const head = body
+				.replace(/^\d+\.\s*/, "")
+				.split(/\s(?:mf\s*\(\s*[^)]*\)\s*n|mfn|mf|m|f|n|ind)\.(?:\s|$)/)[0];
 			const headwords = head
 				.replace(/\[[^\]]*\]/g, "")
 				.split(/,|\s+or\s+|[()]/)
@@ -68,6 +71,12 @@ export function provePredicates() {
 		)[0]?.page !== 37
 	)
 		broken.push("entriesHeadedBy missed a headword followed by a bracketed citation");
+	const feminine = entriesHeadedBy(
+		"[Printed book page 805 ,3] māgha mf( ī )n. relating to the constellation Maghā [ ID=1 ] māgha m. the month Māgha",
+		"māgha",
+	);
+	if (feminine[0]?.page !== 805 || !feminine[0].body.includes("the month Māgha"))
+		broken.push("entriesHeadedBy missed a headword whose gender mark carries its feminine");
 	if (entriesHeadedBy(several, "uttara").length !== 0)
 		broken.push("entriesHeadedBy matched a compound's first member as a headword");
 	if (broken.length > 0) {

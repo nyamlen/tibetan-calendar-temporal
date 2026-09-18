@@ -24,11 +24,12 @@
  *
  * | Source | Standing | Read for |
  * |---|---|---|
- * | Janson's month-names table (LaTeX) | The derivation source | The twelve mansion month names, and each month's Sanskrit name — used only to number the Mahāvyutpatti's months |
+ * | Janson's month-names table (LaTeX) | The derivation source | The twelve mansion month names, and each month's Sanskrit name — to number the Mahāvyutpatti's months, and as a witness to the Indian month names, one with Henning |
+ * | Vimalaprabhā, ed. Upadhyaya (Sarnath 1986), Part I | Read by eye from page images: **carried as data** | That month 5 is ज्येष्ठ — the one exception to the Indian-month rule |
  * | Mahāvyutpatti (aggregate `21-Mahavyutpatti-Skt`) | Public domain, independent of Janson and Henning | Tibetan–Sanskrit pairs: the nakṣatras, the six seasons, the season-months |
  * | Das and Jäschke scan indexes (`65-`, `66-`) | Public domain | That a headword exists — the index number is **not** a printed page: Jäschke's is the scan leaf, 26 above the printed page, and Das's is approximate |
  * | *tshig mdzod chen mo*, *dung dkar tshig mdzod chen mo* (`25-`, `34-`) | Copyrighted: **gate only** | That a headword exists; the spelling of each member of a set an entry enumerates; from the *tshig mdzod chen mo* alone, the element pair it assigns each member and the grouping it states |
- * | Monier-Williams, via Cologne | Public domain | That a Sanskrit headword exists, and its printed page |
+ * | Monier-Williams, via Cologne | Public domain | That a Sanskrit headword exists, and its printed page; for each Indian month, the entry that defines it |
  * | Henning, *Kālacakra and the Tibetan Calendar*, p. 204 | In copyright: facts only | The ten yogas' Wylie and IAST, confirmed against the scan by Andreas — carried as data below |
  *
  * From the two copyrighted dictionaries **no gloss text is read into any output**: only whether a
@@ -47,6 +48,11 @@
  *    their Sanskrit month against Janson's table, give every (season, part) exactly once. That list
  *    is emitted as the pin for the original Kālacakra system, because nothing in Janson's table
  *    carries that system.
+ * 3b. **Indian month names**: each is the headword of the Monier-Williams entry that defines the
+ *    month, and the words judged defining must still be printed in an entry it heads — every entry
+ *    Cologne returns is read, not the first. Janson's table and the Mahāvyutpatti must agree with it
+ *    except where a divergence states the exact form they print. Month 5 is a stated exception whose
+ *    pointer, and the definition it departs from, are both re-checked.
  * 4. **Six seasons**: each Tibetan name is paired with its Sanskrit in the Mahāvyutpatti, and the
  *    Sanskrit stem is a Monier-Williams headword.
  * 5. **Yogas**: each name is spelled as the *tshig mdzod chen mo*'s enumeration spells it, and each
@@ -66,6 +72,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { entriesHeadedBy, provePredicates as proveColognePredicates } from "./cologne.mjs";
 import {
 	devanagariToIast,
 	devanagariToSlp1,
@@ -203,8 +210,40 @@ function enumerationPrints(names, wylie) {
 	return names.some((n) => n === wylie || n === compound || n === `${wylie}'i`);
 }
 
+/**
+ * The entries whose text prints `words`. `entriesHeadedBy` strips Cologne's compound dashes from an
+ * entry body, so both sides are compared with dashes and all spacing removed.
+ */
+function prints(entries, words) {
+	const bare = (s) => s.replace(/[\s—–-]/g, "");
+	return entries.filter((e) => bare(e.body).includes(bare(words)));
+}
+
+const MONTH_SENSE = /\bmonths?\b/i;
+
 function proveOwnPredicates() {
 	const broken = [];
+	const mw = entriesHeadedBy(
+		"[Printed book page 812 ,3] mārga —śīrṣa m. (also with māsa ) N. of the month in which the full moon enters the const˚ Mṛga-śiras , the 10th" +
+			" [Printed book page 426 ,3] jyeṣṭha mfn. most excellent … for jyaiṣṭha , VarBṛS.",
+		"mārgaśīrṣa",
+	);
+	if (
+		prints(mw, "N. of the month in which the full moon enters the const˚ Mṛga-śiras").length !== 1
+	)
+		broken.push("prints missed recorded words across Cologne's dash and spacing");
+	if (
+		prints(mw, "N. of the month in which the full moon enters the const˚ Mṛga-śira,").length !== 0
+	)
+		broken.push("prints matched words the entry does not print");
+	for (const [sense, want] of [
+		["N. of a month in the rainy season", true],
+		["one of the 12 months constituting", true],
+		["for jyaiṣṭha , VarBṛS.", false],
+		["the 16th lunar mansion", false],
+	]) {
+		if (MONTH_SENSE.test(sense) !== want) broken.push(`MONTH_SENSE read "${sense}" wrongly`);
+	}
 	for (const [tex, want] of [
 		["M\\=agha", "Māgha"],
 		["Jye{\\d s}{\\d t}ha", "Jyeṣṭha"],
@@ -275,6 +314,7 @@ function proveOwnPredicates() {
 
 proveOwnPredicates();
 proveDictionaryPredicates();
+proveColognePredicates();
 
 // ---------------------------------------------------------------------------------------------
 // Sources
@@ -410,7 +450,9 @@ const MONTH_SPELLING_VARIANTS = [
 	{
 		mvy: "jeṣṭha",
 		janson: "jyeṣṭha",
-		why: "the Mahāvyutpatti drops the y; Monier-Williams heads the month Jyeṣṭha",
+		why:
+			"the Mahāvyutpatti drops the y. Monier-Williams defines the month as jyaiṣṭha and gives " +
+			"jyeṣṭha only 'for jyaiṣṭha'; jyeṣṭha ships as a stated exception, in INDIAN_MONTHS",
 	},
 	{ mvy: "aśvini", janson: "āśvina", why: "the Mahāvyutpatti's aśviniḥ against Janson's Āśvina" },
 	{
@@ -499,6 +541,142 @@ for (const season of Object.keys(SEASON_OF)) {
 for (const word of [...Object.keys(SEASON_OF), "ra ba", "'bring po", "tha chung"]) {
 	if (headwordIn(word).length === 0)
 		fail(`"${word}" is a headword in none of the dictionaries read`);
+}
+
+// ---------------------------------------------------------------------------------------------
+// 3b. The Indian month names — the witnesses (Monier-Williams is read further down)
+// ---------------------------------------------------------------------------------------------
+
+/**
+ * The Sanskrit name of each month, as distinct from its mansion's: *māgha*, not *maghā*.
+ *
+ * **The rule is Monier-Williams' defining entry** — decided by Andreas on 2026-09-18. "Defining" is a
+ * judgement rather than a pattern (*bhādrapada* is "the month Bhādra (a rainy month …)", the shape of a
+ * pointer), so `defines` is the words that were read and judged to be the definition, and the run
+ * refuses unless an entry headed by the shipped form still prints them.
+ *
+ * Month 5 is the one stated exception, with its own evidence. It self-invalidates on both sides: the
+ * pointer and the definition it departs from must still be printed, and if Monier-Williams ever came to
+ * define *jyeṣṭha* as a month itself, the exception would be unneeded and the run says so.
+ */
+const INDIAN_MONTHS = [
+	{ month: 1, slp1: "mAGa", defines: "the month Māgha (which has its full moon in the const˚ M˚" },
+	{
+		month: 2,
+		slp1: "PAlguna",
+		defines: "the month during which the full moon stands in the N˚ Ph˚",
+	},
+	{
+		month: 3,
+		slp1: "cEtra",
+		defines: "N. of the 2nd spring month (its full moon standing in the constellation Citrā",
+	},
+	{
+		month: 4,
+		slp1: "vESAKa",
+		defines: "one of the 12 months constituting the Hindū lunar year",
+	},
+	{
+		month: 5,
+		slp1: "jyezWa",
+		exception: {
+			pointer: "for jyaiṣṭha",
+			departsFrom: {
+				slp1: "jyEzWa",
+				defines: "N. of a month (May-June, the full moon standing in the constellation Jyeṣṭhā)",
+			},
+			why:
+				"every source that reached this calendar through the Kālacakra or Tibet lacks the ai: the " +
+				"Vimalaprabhā three times, beside the neighbouring months' ai; Janson/Henning Jyeṣṭha; the " +
+				"Mahāvyutpatti jeṣṭhaḥ",
+			// Read by eye from page images; the scan's OCR drops the ai sign, so this cannot be re-read
+			// mechanically and is carried as data, like a Jäschke page.
+			readIn: {
+				edition: "Vimalaprabhā, ed. Upadhyaya (Sarnath 1986), Part I",
+				item: "archive.org kalachakra-colour-1",
+				readings: [
+					{ image: "n147", text: "ज्येष्ठमासं" },
+					{ image: "n180", text: "ज्येष्ठादिवृषभे", control: "वैशाखान्ते" },
+					{ image: "n243", text: "ज्येष्ठनाड्यः", control: "वैशाखनाड्यः" },
+				],
+			},
+		},
+	},
+	{ month: 6, slp1: "AzAQa", defines: "N. of a month (corresponding to part of June and July)" },
+	{ month: 7, slp1: "SrAvaRa", defines: "N. of one of the twelve Hindū months" },
+	{ month: 8, slp1: "BAdrapada", defines: "the month Bhādra (a rainy month" },
+	{ month: 9, slp1: "ASvina", defines: "N. of a month in the rainy season" },
+	{
+		month: 10,
+		slp1: "kArttika",
+		defines: "N. of a month corresponding to part of October and November",
+	},
+	{
+		month: 11,
+		slp1: "mArgaSIrza",
+		defines: "N. of the month in which the full moon enters the const˚ Mṛga-śiras",
+	},
+	{ month: 12, slp1: "pOza", defines: "the month Pauṣa (December-January" },
+];
+
+/**
+ * Where a witness prints a month other than as it ships. Each states the exact form it expects, so a
+ * divergence that a source corrects fails the run instead of silently agreeing, and a witness agreeing
+ * everywhere else is checked rather than assumed. Sakaki's printing (p. 524, entries 8261–8272) was
+ * read to confirm that the Mahāvyutpatti's two are the text's and not the aggregate's.
+ */
+const INDIAN_MONTH_DIVERGENCES = {
+	mahavyutpatti: [
+		{ month: 5, prints: "jeṣṭha", why: "Sakaki 8264 Jeṣṭhaḥ: neither jyeṣṭha nor jyaiṣṭha" },
+		{ month: 9, prints: "aśvini", why: "Sakaki 8268 Açviniḥ: a form of the mansion's name" },
+	],
+	janson: [
+		{
+			month: 10,
+			prints: "kārtikka",
+			why: "a transposition of kārttika's doubling, which Henning (p. 359) also prints",
+		},
+	],
+};
+
+const indianMonthTerms = INDIAN_MONTHS.map((row) => {
+	const devanagari = slp1ToDevanagari(row.slp1);
+	return { ...row, key: String(row.month), devanagari, iast: devanagariToIast(devanagari) };
+});
+if (indianMonthTerms.map((t) => t.month).join() !== "1,2,3,4,5,6,7,8,9,10,11,12")
+	fail(`INDIAN_MONTHS numbers the months ${indianMonthTerms.map((t) => t.month)}, not 1-12`);
+
+for (const term of indianMonthTerms) {
+	const label = `indian month ${term.month}`;
+	const janson = jansonMonths.find((m) => m.month === term.month)?.sanskrit;
+	const jansonDivergence = INDIAN_MONTH_DIVERGENCES.janson.find((d) => d.month === term.month);
+	if (jansonDivergence) {
+		if (janson !== jansonDivergence.prints)
+			fail(
+				`${label}: Janson's divergence expects "${jansonDivergence.prints}", but his table now prints "${janson}"`,
+			);
+	} else if (janson !== term.iast) {
+		fail(`${label}: Janson prints "${janson}", not the "${term.iast}" that ships`);
+	}
+
+	const mvyRow = seasonMonths.find((r) => r.month === term.month);
+	const mvyNames = mvyRow ? mvyForms(mvyRow.mahavyutpatti.split("|")[1]) : [];
+	const mvyDivergence = INDIAN_MONTH_DIVERGENCES.mahavyutpatti.find((d) => d.month === term.month);
+	if (!mvyRow) fail(`${label}: no Mahāvyutpatti season-month is numbered ${term.month}`);
+	else if (mvyDivergence) {
+		if (!mvyNames.includes(mvyDivergence.prints) || mvyNames.includes(term.iast))
+			fail(
+				`${label}: the Mahāvyutpatti's divergence expects "${mvyDivergence.prints}", but it now prints ${mvyNames}`,
+			);
+	} else if (!mvyNames.includes(term.iast)) {
+		fail(`${label}: the Mahāvyutpatti prints ${mvyNames}, not "${term.iast}"`);
+	}
+	term.mahavyutpatti = mvyNames;
+}
+for (const [witness, rows] of Object.entries(INDIAN_MONTH_DIVERGENCES)) {
+	for (const row of rows)
+		if (!indianMonthTerms.some((t) => t.month === row.month))
+			fail(`${witness} divergence for month ${row.month} matches no month`);
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -1126,6 +1304,58 @@ for (const term of auspiciousnessTerms.filter((t) => t.row.through)) {
 	}
 }
 
+/** Every Cologne entry for an SLP1 key, in the romanised text `entriesHeadedBy` reads. */
+async function cologneRoman(slp1) {
+	const html = await fetchWithRetry(
+		`https://www.sanskrit-lexicon.uni-koeln.de/scans/MWScan/2020/web/webtc/getword.php?key=${encodeURIComponent(slp1)}&filter=roman`,
+		"Cologne",
+	);
+	await sleep(150);
+	return /not found:/.test(html) ? "" : stripHtml(html);
+}
+
+for (const term of indianMonthTerms) {
+	const label = `indian month ${term.month}`;
+	try {
+		const entries = entriesHeadedBy(await cologneRoman(term.slp1), term.iast);
+		if (entries.length === 0) {
+			fail(`${label}: "${term.iast}" is not a Monier-Williams headword`);
+			continue;
+		}
+		if (term.exception) {
+			const { pointer, departsFrom } = term.exception;
+			const pointing = prints(entries, pointer);
+			if (pointing.length === 0)
+				fail(`${label}: Monier-Williams no longer prints "${pointer}" under ${term.iast}`);
+			if (entries.some((e) => MONTH_SENSE.test(e.body)))
+				fail(
+					`${label}: Monier-Williams now names a month under ${term.iast} itself — the exception is no longer needed`,
+				);
+			const target = devanagariToIast(slp1ToDevanagari(departsFrom.slp1));
+			const defining = prints(
+				entriesHeadedBy(await cologneRoman(departsFrom.slp1), target),
+				departsFrom.defines,
+			);
+			if (defining.length === 0)
+				fail(
+					`${label}: Monier-Williams no longer defines ${target} as "${departsFrom.defines}" — the exception departs from nothing`,
+				);
+			term.monierWilliamsPage = pointing[0]?.page ?? null;
+			term.definedAs = { iast: target, page: defining[0]?.page ?? null };
+		} else {
+			const defining = prints(entries, term.defines);
+			if (defining.length === 0)
+				fail(
+					`${label}: no Monier-Williams entry headed ${term.iast} prints "${term.defines}" (found on pp. ${entries.map((e) => e.page)})`,
+				);
+			term.monierWilliamsPage = defining[0]?.page ?? null;
+			term.definedAs = null;
+		}
+	} catch (error) {
+		fail(`${label}: Cologne lookup failed — ${error.message}`);
+	}
+}
+
 // ---------------------------------------------------------------------------------------------
 // Phonetics, from THL's converter
 // ---------------------------------------------------------------------------------------------
@@ -1164,7 +1394,9 @@ for (const term of tibetanTerms.filter((t) => t.tibetan)) {
 // Report, then emit only if everything held
 // ---------------------------------------------------------------------------------------------
 
-proveIndicPredicates([...sixSeasonTerms, ...yogaTerms].map((t) => t.devanagari));
+proveIndicPredicates(
+	[...sixSeasonTerms, ...yogaTerms, ...indianMonthTerms].map((t) => t.devanagari),
+);
 
 for (const term of tibetanTerms) {
 	console.log(
@@ -1174,6 +1406,10 @@ for (const term of tibetanTerms) {
 for (const row of seasonMonths)
 	console.log(
 		`  kalacakra   ${String(row.month).padEnd(3)} ${row.season} ${row.part}  ${row.mahavyutpatti}`,
+	);
+for (const term of indianMonthTerms)
+	console.log(
+		`  indian      ${term.key.padEnd(3)} ${term.iast.padEnd(12)} ${term.devanagari.padEnd(10)} MW p. ${term.monierWilliamsPage}${term.exception ? `  (exception: MW defines ${term.definedAs?.iast}, p. ${term.definedAs?.page})` : ""}`,
 	);
 
 if (problems.length > 0) {
@@ -1205,6 +1441,10 @@ writeFileSync(
  *   Janson's table does not carry.
  * - **Six seasons** — each Tibetan paired with its Sanskrit in the Mahāvyutpatti, and each Sanskrit
  *   stem a Monier-Williams headword, cited by printed page.
+ * - **Indian month names** — each the headword of the Monier-Williams entry recorded as defining the
+ *   month, cited by printed page, and checked against Janson's table and the Mahāvyutpatti with every
+ *   divergence stated. Month 5 is the one exception: \`definedAs\` names the form Monier-Williams
+ *   defines, and \`monierWilliamsPage\` is the page of his pointer to it.
  */
 
 export interface MonthNameFixtureRow {
@@ -1228,6 +1468,10 @@ ${seasonMonths.map((r) => `\t{ month: ${r.month}, season: ${q(r.season)}, part: 
 
 export const SIX_SEASON_NAMES: readonly (MonthNameFixtureRow & { season: string; iast: string; devanagari: string; monierWilliamsPage: number })[] = [
 ${sixSeasonTerms.map((t) => `\t{ season: ${q(t.season)}, ${name(t)}, iast: ${q(t.iast)}, devanagari: ${q(t.devanagari)}, monierWilliamsPage: ${t.mwPage} },`).join("\n")}
+];
+
+export const INDIAN_MONTH_NAMES: readonly { month: number; iast: string; devanagari: string; monierWilliamsPage: number; definedAs: { iast: string; page: number } | null }[] = [
+${indianMonthTerms.map((t) => `\t{ month: ${t.month}, iast: ${q(t.iast)}, devanagari: ${q(t.devanagari)}, monierWilliamsPage: ${t.monierWilliamsPage}, definedAs: ${t.definedAs ? `{ iast: ${q(t.definedAs.iast)}, page: ${t.definedAs.page} }` : "null"} },`).join("\n")}
 ];
 `,
 );
@@ -1308,6 +1552,6 @@ ${auspiciousnessTerms
 );
 
 console.log(
-	`\nall ${tibetanTerms.length} Tibetan terms and ${sixSeasonTerms.length + yogaTerms.length + auspiciousnessTerms.filter((t) => t.englishThrough).length} Sanskrit names passed; ` +
+	`\nall ${tibetanTerms.length} Tibetan terms and ${sixSeasonTerms.length + yogaTerms.length + indianMonthTerms.length + auspiciousnessTerms.filter((t) => t.englishThrough).length} Sanskrit names passed; ` +
 		"wrote test/fixtures/month-names.ts and test/fixtures/yoga-names.ts",
 );

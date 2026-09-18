@@ -16,6 +16,10 @@
  *   Janson's table does not carry.
  * - **Six seasons** — each Tibetan paired with its Sanskrit in the Mahāvyutpatti, and each Sanskrit
  *   stem a Monier-Williams headword, cited by printed page.
+ * - **Indian month names** — each the headword of the Monier-Williams entry recorded as defining the
+ *   month, cited by printed page, and checked against Janson's table and the Mahāvyutpatti with every
+ *   divergence stated. Month 5 is the one exception: `definedAs` names the form Monier-Williams
+ *   defines, and `monierWilliamsPage` is the page of his pointer to it.
  */
 
 export interface MonthNameFixtureRow {
@@ -245,4 +249,37 @@ export const SIX_SEASON_NAMES: readonly (MonthNameFixtureRow & {
 		devanagari: "शिशिर",
 		monierWilliamsPage: 1076,
 	},
+];
+
+export const INDIAN_MONTH_NAMES: readonly {
+	month: number;
+	iast: string;
+	devanagari: string;
+	monierWilliamsPage: number;
+	definedAs: { iast: string; page: number } | null;
+}[] = [
+	{ month: 1, iast: "māgha", devanagari: "माघ", monierWilliamsPage: 805, definedAs: null },
+	{ month: 2, iast: "phālguna", devanagari: "फाल्गुन", monierWilliamsPage: 718, definedAs: null },
+	{ month: 3, iast: "caitra", devanagari: "चैत्र", monierWilliamsPage: 402, definedAs: null },
+	{ month: 4, iast: "vaiśākha", devanagari: "वैशाख", monierWilliamsPage: 1026, definedAs: null },
+	{
+		month: 5,
+		iast: "jyeṣṭha",
+		devanagari: "ज्येष्ठ",
+		monierWilliamsPage: 426,
+		definedAs: { iast: "jyaiṣṭha", page: 427 },
+	},
+	{ month: 6, iast: "āṣāḍha", devanagari: "आषाढ", monierWilliamsPage: 159, definedAs: null },
+	{ month: 7, iast: "śrāvaṇa", devanagari: "श्रावण", monierWilliamsPage: 1097, definedAs: null },
+	{ month: 8, iast: "bhādrapada", devanagari: "भाद्रपद", monierWilliamsPage: 752, definedAs: null },
+	{ month: 9, iast: "āśvina", devanagari: "आश्विन", monierWilliamsPage: 159, definedAs: null },
+	{ month: 10, iast: "kārttika", devanagari: "कार्त्तिक", monierWilliamsPage: 275, definedAs: null },
+	{
+		month: 11,
+		iast: "mārgaśīrṣa",
+		devanagari: "मार्गशीर्ष",
+		monierWilliamsPage: 812,
+		definedAs: null,
+	},
+	{ month: 12, iast: "pauṣa", devanagari: "पौष", monierWilliamsPage: 652, definedAs: null },
 ];
