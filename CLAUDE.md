@@ -865,28 +865,66 @@ them; the guide takes the long form in three sections. Related and load-bearing:
 window is stated in `docs/testing.md`, quoted only by `docs/why-trust-these-dates.md`, and linked to
 by everything else** — five copies of a number is a number that will drift. Deliberately unguarded
 by `check:conventions`, because every available predicate fires on `docs/validation-sources.md`
-itself. Both in
+itself; `test/why-trust-these-dates.test.ts` guards the two documents allowed to state one, against
+the fixtures, and nothing guards the rest. Both in
 [docs/decisions/2026-08-23-readme-is-the-landing-page.md](docs/decisions/2026-08-23-readme-is-the-landing-page.md).
 `package.json#files` ships `docs/guide.md`, `docs/why-trust-these-dates.md` and — since 2026-08-24 —
 `docs/how-it-is-calculated.md`, so **their examples are contract exactly as the README's are**.
 
-**One suite per shipped document, and the third has none.** This passage read "`test/guide.test.ts`
+**One suite per shipped document, and each now has one.** This passage read "`test/guide.test.ts`
 asserts every one that states a value" until 2026-09-17, which was true of `docs/guide.md` and of
 nothing else: that suite reads only its own document, by deliberate design — "a suite named for one
 document while guarding another names the wrong file when it fails". So `docs/how-it-is-calculated.md`
 went unasserted from the day it shipped, and it cost a figure — it said a doubled or skipped day
 occurs in "roughly a quarter of all months" where the true rate is **94% skipped, 64% doubled**, a
 claim that also contradicted the arithmetic the same document teaches. It now has
-`test/how-it-is-calculated.test.ts`. **`docs/why-trust-these-dates.md` still has no suite at all**,
-which is the worst of the three to leave: its whole content is windows and agreement percentages,
-the values likeliest to drift. When a document joins `files`, it needs its own suite in the same
-commit.
+`test/how-it-is-calculated.test.ts`. `docs/why-trust-these-dates.md` had none until 2026-09-18,
+the worst of the three to leave, since its whole content is windows and agreement percentages; building
+`test/why-trust-these-dates.test.ts` found **four false statements** on the page.
+When a document joins `files`, it needs its own suite in the same commit.
 
 **A suite guarding a document reads it; it never restates it.** A hand copy of a table or a figure
 passes while the document drifts, which is the failure the suite exists to prevent — so parse the
 table out of the markdown and regex the figure out of the prose, as `test/guide.test.ts` does. A
 first draft of the how-it-is-calculated suite restated twelve rows and two percentages, and a code
 review caught it; two of its assertions were comparing the copy against itself.
+
+**And it measures with the validation suites' own predicates, from `test/support/`.** "Agrees",
+"differs" and "the trusted window" each have one definition, and the why-trust suite calls it: a
+second definition — the day number alone, say — is a weaker claim under the same word, and cannot see
+a doubled-flag mismatch behind "agrees on every day". Moving a comparison into `test/support/` is a
+refactor to prove by mutation in **both** suites that call it.
+
+**A guard comparing two documents is no guard if they share an error.** Anchor every figure to data,
+and treat document-against-document agreement as a secondary check. `docs/testing.md` carried the
+same window errors as the page it was meant to check — Lotsawa House's window given as 2023–2027 where
+the fixture runs 21 February 2023 to 25 February 2028 — so equality between them would have passed.
+This is the lineage rule applied to the project's own documents.
+
+**Inventory a document line by line, not figure by figure.** On why-trust-these-dates the claims that
+were false were as often **quantifiers** as numbers — "the three other implementations side with the
+engine on each of these days" (none has data for the first), four sources that "overlap across the
+same period" (all four share only two years), "the first sixty-year cycle" (Janson's is 65) — and a
+hunt for figures walked past every one of them. The suite now fails on any digit or number word not
+inside a claim, asserted or listed with its reason, which closes for that document the gap the
+docblock suite still has.
+
+**A percentage names its day set, and two figures may not share "of those days" unless they are
+measured over the same days.** The mansion's 97.6% is over the 1,459 days whose code can force a
+mansion element; favorability's 99.7% is over its own 1,460, because 2024-09-12's `UD-EW` names no
+yoga but is still a favorability claim. The page said "99.7% of those days" beside the 1,459, where
+the figure over those days is 99.8%, and the mansion computation was quietly counting that day as an
+agreement.
+
+**Prose windows are as exact as the table beside them; only durations are rounded.** "2022–2027" and
+"early 2030" could not be checked by the reader the page is written for, and both hid an error:
+2022–2027 was a union no single source reaches, and the early-2030 table count included 273 days no
+test compares. "1 January 2022 to 25 February 2028" is as safe, being true, and checkable.
+
+**An independent review of a plan finds what its author's passes do not.** The why-trust plan had
+two self-reviews and a simulated expert panel behind it; a fresh agent given only the plan and the
+repository then found six errors, one of which (the mansion's day set) no earlier pass had any way
+to see. For a plan whose output is a claim to readers, run one before building.
 
 **A year in this repository is a Tibetan year unless it says otherwise, and a prose window must say
 which era it is.** `monthsFor(1900)` is Tibetan 1900, which runs from **1773-02-22 to 1974-02-21 CE**.
