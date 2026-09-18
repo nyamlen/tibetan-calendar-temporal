@@ -358,7 +358,10 @@ derivation; in `docs/` they are just noise.
   whose semantics are contested: two defensible answers means it belongs in injected config.
   `test/public-api.test.ts` pins the list and each name's kind, and `test/docblock-examples.test.ts`
   asserts every `@example` in `src/` that states a value — docblocks compile into `dist/*.d.ts`, so
-  a stale one ships as contract. A failure in the first means the surface
+  a stale one ships as contract. **That suite is maintained by hand and nothing checks it is
+  complete**: `monthNamesFor`'s `mansion.sanskritName` example line went unasserted from 2026-09-17
+  until a code review found it on 2026-09-18. Adding an `@example` line means adding its `expect` in
+  the same commit. A failure in the first means the surface
   changed, so decide whether that was intended before editing the list.
 
   **But it sees runtime exports only, and a type is not one.** It reads `Object.keys(api)` and
@@ -623,6 +626,21 @@ the loop carried on, so the next mutant ran on top of the previous one. The tell
 *more* failures than the mutation could explain — not an error, and not a pass. `cp` the file aside
 first, restore from that, and re-run the control after every restore.
 
+**Take the original from a pristine copy made before the harness exists, and refuse to start if the
+live file differs from it.** A harness that writes mutants in place restores in a `finally` that an
+interrupted run never reaches. On 2026-09-18 the Claude pane in VS Code hung and was closed mid-run,
+which kills the session's background shells, and `verify-month-and-yoga-names.mjs` was left carrying
+a mutant. A harness that copied the live file as its "original" on the next start would have made that
+mutant permanent. After any interruption, compare the files a harness edits against the saved copies
+before doing anything else. Run long harnesses in the foreground, in batches under the tool's
+10-minute limit.
+
+**`\b` does not bound a Sanskrit word in IAST, because JavaScript's `\b` treats a diacritic letter as
+a non-word character.** `/\bmāsa\b/` matches inside *ṣaṇmāsa*: `\b` sees a boundary after *ṇ*. Use
+`(?<!\p{L})…(?!\p{L})` with the `u` flag. Prove the predicate with a case that actually separates the
+two: the first one written here, *samāsa*, has a plain *a* before *māsa*, so both regexes rejected it
+and the mutant passed.
+
 **Mutate a guard's input, not the predicate it calls, or a self-test answers instead of the guard.**
 On 2026-09-14 a mutant for the yoga verifier's "group counts sum to ten" check edited the count table
 `statedGrouping` reads. The script's own predicate proof rejected it first — exit 2, "the checker itself
@@ -710,7 +728,7 @@ same for the sixty rabjung year names against Janson, the Indic saṃvatsara lis
 Wiktionary — which is now only a second attestation, never the sense source, because its Sanskrit
 senses **are** Monier-Williams verbatim and corroborating it with anything MW-derived would be MW
 agreeing with itself — and `npm run verify:month-and-yoga-names`, which verifies the mansion month names,
-the season names and the ten elemental yogas against the Mahāvyutpatti, Das, Jäschke, the two
+the season names, the ten elemental yogas and the twelve Indian month names against the Mahāvyutpatti, Das, Jäschke, the two
 Tibetan–Tibetan dictionaries and Monier-Williams, built from
 [docs/names/month-and-yoga-sourcing.md](docs/names/month-and-yoga-sourcing.md) — and
 `npm run verify:mansion-and-trigram-names`, which does the same for the 27 lunar-mansion names and the
@@ -769,6 +787,17 @@ and 56 trap. The correction's own check refused on its first run: a separate ent
 *śravaṇā* as the nakṣatra, and the hand reading had seen two of five entries. The decision was taken
 back. An absence is established only by a reader that sees every entry, and the verifier's
 "a headword **whose entry names the sense**" check, not the headword's presence, is what caught it.
+
+**That reader is `entriesHeadedBy` in `scripts/cologne.mjs`, shared since 2026-09-18, and it is the
+only one that sees every entry.** `verify-month-and-yoga-names.mjs` still has an older
+`monierWilliams()` that reads only the **first** entry Cologne returns, and the six-season names and
+the yogas are checked through it — so those checks still have the homograph blind spot. Nothing is
+known to be wrong there; move them to the shared reader before trusting a new absence they report.
+The shared reader's head-splitting has also been wrong once: it did not end a headword at a gender
+mark carrying its feminine (`māgha mf( ī )n.`), so the head ran on into the definition. Here that
+failed closed — four month names read as absent — but the same bug can make a word printed in a
+definition ("relating to the constellation Maghā") count as a headword, which passes silently. Give
+every new head shape a self-proof case.
 
 **A correction is not a lookup rung, and conflating them inflates both.** A correction changes what
 the table *prints* and needs authored evidence; a rung of the ladder in `scripts/indic.ts` changes
