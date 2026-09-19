@@ -88,7 +88,7 @@ replaced diacritics with their absence while appearing to strengthen the provena
 | `crosscheck-lotsawa.ts` | independent impl. | HTML grid | 1,831 days, 21 Feb 2023 – 25 Feb 2028 | day numbers, doubled/skipped marks |
 | `crosscheck-steinert.ts` | independent impl. | JSON API | 1,461 days, 1 Jan 2024 – 31 Dec 2027 | day numbers, doubled + leap-month flags |
 | `crosscheck-eszthoff.ts` | independent impl. | npm package, run not read | 1,826 days, 1 Jan 2023 – 31 Dec 2027 | day numbers |
-| `fpmt-observances.ts` | **almanac** (Men-Tsee-Khang) | HTML tables | 1,461 days, 2022–2025 | day numbers — the source that settled `a₂`; since 2026-09-12 also the **lunar mansion**, via the day-quality codes |
+| `fpmt-observances.ts` | **almanac** (Men-Tsee-Khang) | HTML tables | 1,461 days, 2022–2025 | day numbers — the source that settled `a₂`; since 2026-09-12 also the **lunar mansion**, via the day-quality codes; since 2026-09-19 the **full and new moons**, via its moon icons, whose own lineage is unknown — see [below](#fpmts-moon-icons-lineage-unknown) |
 | `fpmt-holy-days.ts` | almanac, via prose | hand-curated | selected days | observance placement only |
 | `losar.ts`, `janson-epoch.ts`, `sixty-year-cycle.ts` | Janson | LaTeX, generated | 1927–2046 Losar; epoch | month count, leap rule, year naming |
 
@@ -102,6 +102,24 @@ day by day.
 Janson's whole 1927–2046 table) and any list of *practice days* (the 11 divergences in 1950–2050 are
 each self-correcting within a day). Only a **day-by-day grid printing the doubled or skipped number**
 is evidence.
+
+### FPMT's moon icons: lineage unknown
+
+FPMT prints a full- or new-moon icon in the day's cell, and since 2026-09-19 the fixture records it.
+**Nothing on the pages says where the icons come from.** They may be copied from the Men-Tsee-Khang
+almanac with the day numbers, or added by FPMT from astronomical tables, and the two would be
+different evidence: the first checks the engine against the tradition, the second against astronomy.
+
+There is one piece of evidence, and it is an **inference, not a measurement**. `isFullMoon`'s docblock
+records, after Janson, that the Tibetan true phase differs from the astronomical one by about four
+hours. Icons placed astronomically would then be expected to fall on a different calendar day from
+the engine's for several of the 99 moons in 2022–2025; one does, the new moon of February 2025.
+That suggests the icons are computed the Tibetan way, and that February 2025 — the only skipped-30
+new moon in the window — may be the one place they are not. Nothing here has timed a moon
+astronomically, so treat this as a direction for the next check, not a finding.
+
+Until it is settled, the agreement figures in [testing.md](testing.md) are agreement **with FPMT's
+icons**, not with the almanac.
 
 ## Bhutan
 

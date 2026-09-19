@@ -1125,13 +1125,17 @@ nothing and reports success.
       shape section above, since both bear on this package's stated scope and surface before that
       freezes. Both still need their own brainstorm and spec, in that order; see
       [almanac-sources.md](almanac-sources.md).
-- [ ] **Record FPMT's second line of codes and its moon icons in the fixture.**
-      `scripts/fetch-fpmt-observances.mjs` keeps only the labels and the FD/UD code, so everything in
-      the 2026-09-19 measurement above was parsed ad hoc from the pages. Capturing the code line and
-      the new- and full-moon icons turns it into tests. Needs a short plan: the generator rules
-      (baseline run first, byte-identical output, mutation-proved checks, Biome) apply. Independent of
-      the design. The moon icons agree with `isNewMoon`/`isFullMoon` on 43 of 46; all three
-      disagreements are at a skipped or doubled day 30, to be catalogued, not fitted.
+- [x] **Record FPMT's second line of codes and its moon icons in the fixture.** Done 2026-09-19.
+      The fixture carries `codes` (verbatim, with FPMT's two misprints `NPG` and `ED-EW` kept as
+      printed) and `moon`, an icon rather than a moon. The generator refuses any code its page's own
+      key does not define, and each new check was proved by mutation against recorded pages. The
+      moons are tested in `test/validation/fpmt-observances.test.ts`: over 2022–2025, 98 of the
+      engine's 99 moons fall on a day FPMT marks, the exception being the new moon of February 2025
+      at a skipped 30; FPMT also marks the first half of two of the four doubled dates carrying a
+      moon. See [testing.md](testing.md#fpmts-moon-icons). The earlier "43 of 46, all at a skipped
+      or doubled day 30" was an ad-hoc measurement over 2025–26 and is superseded: one of its three
+      was at a doubled 15, and two of the three were not disagreements at all. The advice-code day
+      rules are **not** tested here; they wait for the FPMT config (decided 2026-09-19).
 
       **Sweep run 2026-09-05: clean.** Every export on both barrels
       (`src/index.ts`, `src/observances/index.ts`) was read against the rule in

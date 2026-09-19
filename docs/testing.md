@@ -234,6 +234,7 @@ becomes 1927–2046 at one day per year, plus the epoch itself, plus that window
 | Check | Range | Source |
 |-------|-------|--------|
 | Cross-check fixtures, day by day | 1 Jan 2022 – 25 Feb 2028, between them | three implementations + FPMT |
+| Full and new moons, day by day | 1 Jan 2022 – 31 Dec 2025 | FPMT's moon icons — see [below](#fpmts-moon-icons) |
 | Losar table, one day per year | 1927–2046 | Janson |
 | Epoch constants to six decimals | 806 | Janson |
 | `a₂` divergence dates | 2001, 2006, 2025 | Janson |
@@ -394,6 +395,47 @@ So this is a property of the published calendar rather than of the engine, and
 Steinert, what is pinned is the **shape**: never in the month, never in the leap-month flag, never
 more than one in the day number, always resolved by the next day. That is what would change if the
 cause were something other than a one-off difference in which number a date consumes.
+
+### FPMT's moon icons
+
+The same pages print a full- or new-moon icon in the day's cell. They are the first external check
+of the `isFullMoon` and `isNewMoon` fields, and through them of `nextFullMoon` and `nextNewMoon`.
+Where the icons come from is not known —
+[validation-sources.md](validation-sources.md#fpmts-moon-icons-lineage-unknown) — so this is
+agreement with FPMT's icons, not with the almanac.
+
+**The unit is the moon, not the icon.** Over 1 January 2022 to 31 December 2025 the engine computes
+**99** full and new moons and FPMT prints **101** icons, 50 full and 51 new. **98 of the 99 moons**
+fall on a day FPMT marks with an icon of the same kind. The other is the new moon of February 2025:
+day 30 is skipped that month, so the engine's new moon falls in the day numbered 29, 27 February,
+and FPMT marks 28 February, the first of the next month. It is the only skipped-30 new moon in
+January 2022 to October 2026, so one case cannot say whether it is a convention or a slip; the
+next moon on a skipped day is the full moon of 23 December 2026, a skipped 15.
+
+**The two extra icons are FPMT's practice on doubled dates, not disagreements.** Four doubled dates
+carry a moon in the window, and FPMT marks each on the engine's day, the second half. On two it
+also marks the first half:
+
+| Doubled pair | Tibetan date | Icon on first half | Icon on second half |
+|---|---|---|---|
+| 2022-06-28 / 29 | 4/30 | no | yes |
+| 2023-04-05 / 06 | 2/15 | yes | yes |
+| 2024-11-30 / 12-01 | 9/30 | no | yes |
+| 2025-11-19 / 20 | 9/30 | yes | yes |
+
+No rule for which doubled dates get the second icon is known. An earlier reading, that the icon
+marks the Tibetan date rather than the calendar day, fitted the two both-halves pairs and is
+falsified by the other two — which were invisible to a list of mismatches, because they are not
+mismatches. So the comparison matches an icon to an engine moon of its kind on the icon's own day
+**or on that day's doubled twin**, and reports the twin matches separately rather than absorbing
+them. Decided with Andreas, 2026-09-19: these two are recorded here, and the consumer-facing page
+counts moons without mentioning them.
+
+`fpmtMoonComparison` in `test/support/fpmt.ts` is the one definition, shared with the page's suite,
+and it returns both directions — a one-way check sees only one side of February 2025.
+`test/validation/fpmt-observances.test.ts` pins every figure above and the four doubled dates by
+value. FPMT's data never puts an icon on a moon of the other kind, so the real rows cannot show that
+the kind is compared at all; one test swaps a row to show it.
 
 ### Where christian-steinert differs
 
