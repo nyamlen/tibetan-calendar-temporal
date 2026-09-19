@@ -217,6 +217,10 @@ only the wider one, and an agent answering an observance question reaches for wh
 Done on 2026-09-10, answering which days carried Tara puja in late 2026: the dates were corroborated
 by three external calendars and the *labels* by nothing, and the reply claimed FPMT coverage that
 stops a year earlier. Cite 2022–2025 for an observance, 1 January 2022 to 25 February 2028 for a date.
+**A full or new moon has the observance window too**, 2022–2025, from the same fixture's moon icons
+since 2026-09-19 — and it is agreement with FPMT's icons, whose own source is unrecorded, not with
+the almanac. Count moons, not icons: FPMT marks both halves of some doubled dates, and those extra
+icons are recorded in `docs/testing.md`, deliberately not on the shipped page.
 
 **Before calling a source falsified, test every reading its words allow — and read it to the end.**
 The sojong teaching said sojong "at the end of the odd months" is "the 14th". On 2026-09-04 that was
