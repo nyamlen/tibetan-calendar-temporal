@@ -20,13 +20,16 @@
  *
  * ## What it yields
  *
- * Two independent checks from one fetch:
+ * Three independent checks from one fetch:
  *
  * 1. **A fourth cross-check of the calendar itself** — `iso` to `month`/`day`/`isLeapMonth`,
  *    from an almanac-derived source rather than another implementation of Janson.
  * 2. **The observance rules** — which day numbers carry which practices, and, on doubled days,
  *    which half FPMT actually prints them on. That last question is the one no arithmetic can
  *    settle and the reason Phase 3 makes it configurable.
+ * 3. **The full and new moons** — FPMT's moon icons against `isFullMoon`/`isNewMoon`.
+ *
+ * It also records the day-quality and advice codes verbatim, for the tests to read.
  *
  * ## Clean-room boundary
  *
@@ -50,7 +53,13 @@
  * GCH NMP PP <strong>B</strong><br>                         <!-- short astrological codes -->
  * Precepts<br>                                              <!-- practice labels, one per line -->
  * <em>Lord Buddha's first teaching</em><br>                 <!-- <em> marks a great holy day -->
+ * <div …><IMG src="…/fullmoon_new.gif" alt="Full Moon"></div>  <!-- moon icon, where printed -->
  * ```
+ *
+ * Below the table, a **KEY** defines every short code as `<p><strong>NB</strong> …</p>`. Codes are
+ * checked against the key of the page they appear on, so FPMT's own definition is the reference
+ * rather than a list typed here. The key lists only some of the yoga pairs FPMT prints, so yoga
+ * codes are checked by their shape instead.
  *
  * Skipped dates carry no marker at all — the number simply jumps, as 1 to 3 across
  * 16-17 June 2026. Doubled dates repeat the number on consecutive cells, as 19-20 November 2025.
@@ -87,6 +96,38 @@ const toYear = Number(process.argv[3] ?? 2025);
 
 /** Lines that are purely astrological codes, which are not observances. */
 const CODE_LINE = /^(?:[A-Z]{1,4}(?:-[A-Z]{2})?)(?:\s+[A-Z]{1,4}(?:-[A-Z]{2})?)*$/;
+
+/** The elemental yoga: FD- or UD- plus the two element letters. */
+const YOGA = /^(?:FD|UD)-[EWFA]{2}$/;
+
+/**
+ * Any hyphenated code. FPMT prints one per day, on its own line: the yoga, or on 2022-07-11 the
+ * misprint `ED-EW` in its place. Only the yoga shape goes to `dayQuality`; anything else in that
+ * slot is kept in `codes`, as printed.
+ */
+const YOGA_SLOT = /^[A-Z]{1,4}-[A-Z]{2}$/;
+
+/**
+ * Codes every page's key has carried since 2022. A key that parses without them has not parsed,
+ * and must stop the run rather than make every code look unknown — or, worse, none.
+ */
+const KNOWN_KEY_CODES = ["B", "GCH", "NCH", "PF", "PP", "UD", "VUD"];
+
+/**
+ * The only codes allowed outside the key: FPMT's own misprints, recorded as printed. Each states
+ * the day it expects to find the misprint on, and the run refuses if the page no longer carries
+ * it, so an entry that stops being needed fails loudly instead of lingering as a licence.
+ */
+const KNOWN_MISPRINTS = [
+	{ iso: "2022-05-31", code: "NPG", likely: "NPF" },
+	{ iso: "2022-07-11", code: "ED-EW", likely: "FD-EW" },
+];
+
+/** The two moon icons, by their `alt` text. Any other image in a day cell stops the run. */
+const MOON_ALT = { "Full Moon": "full", "New Moon": "new" };
+
+/** Which `KNOWN_MISPRINTS` entries the pages actually carried; checked once every page is read. */
+const misprintsSeen = new Set();
 
 function stripTags(s) {
 	return s.replace(/<[^>]+>/g, "");
@@ -151,9 +192,25 @@ async function fetchMonth(year, monthName) {
 	return { url, html: await response.text() };
 }
 
+/** The codes the page's own KEY defines, read from below the calendar table. */
+function parseKey(html, tableEnd, url) {
+	const start = html.slice(tableEnd).search(/<strong>\s*KEY\s*<\/strong>/i);
+	if (start < 0) throw new Error(`${url}: no KEY below the calendar table`);
+	const key = new Set(
+		[...html.slice(tableEnd + start).matchAll(/<p>\s*<strong>([^<]+)<\/strong>/gi)].map((m) =>
+			tidy(m[1]),
+		),
+	);
+	const missing = KNOWN_KEY_CODES.filter((code) => !key.has(code));
+	if (missing.length > 0)
+		throw new Error(`${url}: the KEY parsed without ${missing.join(", ")}, so it has not parsed`);
+	return key;
+}
+
 function parseMonth(year, monthIndex, html, url) {
 	const table = /<TABLE id="cal_table"[\s\S]*?<\/TABLE>/i.exec(html);
 	if (table === null) throw new Error(`no cal_table in ${url}`);
+	const key = parseKey(html, table.index + table[0].length, url);
 
 	const caption = /<em[^>]*>([\s\S]*?)<\/em>/i.exec(table[0]);
 	if (caption === null) throw new Error(`no month-span caption in ${url}`);
@@ -175,6 +232,7 @@ function parseMonth(year, monthIndex, html, url) {
 	const rows = [];
 	let spanIndex = 0;
 	let previousDay = 0;
+	let moonIcons = 0;
 
 	for (const cell of cells) {
 		const gregorian = /<span class="h1_bold">(\d+)<\/span>/i.exec(cell);
@@ -186,6 +244,27 @@ function parseMonth(year, monthIndex, html, url) {
 		// The day number resets at a month boundary; that is the only signal the cells carry.
 		if (day < previousDay) spanIndex += 1;
 		previousDay = day;
+		const iso = `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(Number(gregorian[1])).padStart(2, "0")}`;
+
+		// FPMT marks the full and new moon with an icon in the cell. It is an icon, not a moon:
+		// some doubled dates carry one on both halves.
+		const images = [...cell.matchAll(/<img\b[^>]*>/gi)].map(
+			(m) => /\balt="([^"]*)"/i.exec(m[0])?.[1],
+		);
+		const unknownImage = images.find((alt) => !Object.hasOwn(MOON_ALT, alt ?? ""));
+		if (unknownImage !== undefined || images.includes(undefined))
+			throw new Error(
+				`${url}: ${iso} carries an image that is not a moon icon (alt "${unknownImage}")`,
+			);
+		if (images.length > 1) throw new Error(`${url}: ${iso} carries ${images.length} moon icons`);
+		const moon = images.length === 1 ? MOON_ALT[images[0]] : undefined;
+		if (moon !== undefined) moonIcons += 1;
+
+		// `B` (Buddha days) is the only code FPMT prints in bold. If anything else is ever bolded
+		// the emphasis may mean something, so stop and find out rather than lose it.
+		for (const bold of cell.matchAll(/<strong>([\s\S]*?)<\/strong>/gi))
+			if (tidy(bold[1]) !== "B")
+				throw new Error(`${url}: ${iso} prints "${tidy(bold[1])}" in bold`);
 
 		// Everything that is not a line of astrological codes is an observance label. FPMT
 		// italicises the ones it treats as headline entries — the great holy days, but also
@@ -195,6 +274,9 @@ function parseMonth(year, monthIndex, html, url) {
 		const labels = [];
 		let major = false;
 		let dayQuality;
+		const codes = [];
+		let codeLines = 0;
+		let slotFilled = false;
 		for (const raw of afterHeader.split(/<br\s*\/?>/i)) {
 			const text = tidy(raw);
 			if (text === "") continue;
@@ -203,8 +285,32 @@ function parseMonth(year, monthIndex, html, url) {
 				// code per day, and it names the unordered pair of the weekday's element and the lunar
 				// mansion's — E earth, W water, F fire, A air, air being Janson's wind. It is the only
 				// external witness this package has for the mansion arithmetic.
-				const yoga = text.match(/\b(?:FD|UD)-[EWFA]{2}\b/);
-				if (yoga) dayQuality = yoga[0];
+				const tokens = text.split(" ");
+				for (const slot of tokens.filter((token) => YOGA_SLOT.test(token))) {
+					if (slotFilled) throw new Error(`${url}: ${iso} carries two hyphenated codes`);
+					slotFilled = true;
+					if (YOGA.test(slot)) dayQuality = slot;
+				}
+				if (tokens.some((token) => !YOGA_SLOT.test(token))) {
+					codeLines += 1;
+					if (codeLines > 1) throw new Error(`${url}: ${iso} carries two lines of codes`);
+				}
+				// Every other code is the almanac's advice for the day, kept verbatim. A misprint stays
+				// as printed: this fixture records what FPMT published, and does not correct it.
+				const advice = tokens.filter((token) => !YOGA.test(token));
+				if (advice.length === 0) continue;
+				for (const code of advice) {
+					if (key.has(code)) continue;
+					const misprint = KNOWN_MISPRINTS.find((m) => m.iso === iso && m.code === code);
+					if (misprint === undefined)
+						throw new Error(
+							`${url}: ${iso} carries "${code}", which the page's KEY does not define`,
+						);
+					misprintsSeen.add(misprint);
+				}
+				if (advice.includes("B") && !/<strong>\s*B\s*<\/strong>/i.test(raw))
+					throw new Error(`${url}: ${iso} prints B without bold`);
+				codes.push(...advice);
 				continue;
 			}
 			if (/<em[^>]*>/i.test(raw)) major = true;
@@ -212,15 +318,22 @@ function parseMonth(year, monthIndex, html, url) {
 		}
 
 		rows.push({
-			iso: `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(Number(gregorian[1])).padStart(2, "0")}`,
+			iso,
 			month: span[spanIndex].month,
 			day,
 			isLeapMonth: span[spanIndex].isLeapMonth,
 			labels,
 			major,
 			dayQuality,
+			codes,
+			moon,
 		});
 	}
+
+	// Every Gregorian month holds at least one full or new moon. A page with no icon at all means
+	// the icon is no longer being recognised — which the tests would otherwise report as the
+	// engine disagreeing with FPMT, not as a broken parser.
+	if (moonIcons === 0) throw new Error(`${url}: no moon icon on the page`);
 
 	return rows;
 }
@@ -247,6 +360,16 @@ const expectedDays =
 if (all.length !== expectedDays)
 	throw new Error(`parsed ${all.length} days, expected ${expectedDays} for ${fromYear}-${toYear}`);
 
+const inRange = KNOWN_MISPRINTS.filter((m) => {
+	const year = Number(m.iso.slice(0, 4));
+	return year >= fromYear && year <= toYear;
+});
+for (const misprint of inRange)
+	if (!misprintsSeen.has(misprint))
+		throw new Error(
+			`the known misprint "${misprint.code}" is no longer on ${misprint.iso}: remove it from KNOWN_MISPRINTS`,
+		);
+
 // Doubled days repeat a number on consecutive days within one month; the first is the leap day.
 for (let i = 0; i < all.length; i++) {
 	const previous = all[i - 1];
@@ -272,14 +395,20 @@ const body = all
 		const labels =
 			r.labels.length > 0 ? `, labels: [${r.labels.map((l) => `"${quote(l)}"`).join(", ")}]` : "";
 		const quality = r.dayQuality ? `, dayQuality: "${r.dayQuality}"` : "";
+		const codes = r.codes.length > 0 ? `, codes: [${r.codes.map((c) => `"${c}"`).join(", ")}]` : "";
+		const moon = r.moon ? `, moon: "${r.moon}"` : "";
 		const tail = flags.length > 0 ? `, ${flags.join(", ")}` : "";
-		return `\t{ iso: "${r.iso}", month: ${r.month}, day: ${r.day}${tail}${quality}${labels} },`;
+		return `\t{ iso: "${r.iso}", month: ${r.month}, day: ${r.day}${tail}${quality}${codes}${moon}${labels} },`;
 	})
 	.join("\n");
 
 const doubled = all.filter((r) => r.isDoubledDay).length;
 const leapMonthDays = all.filter((r) => r.isLeapMonth).length;
 const withLabels = all.filter((r) => r.labels.length > 0).length;
+const withCodes = all.filter((r) => r.codes.length > 0).length;
+const fullIcons = all.filter((r) => r.moon === "full").length;
+const newIcons = all.filter((r) => r.moon === "new").length;
+const misprintList = inRange.map((m) => `\\\`${m.code}\\\` on ${m.iso}`).join(" and ");
 
 const out = `/**
  * Day-by-day Tibetan dates and observance labels for ${fromYear}-01-01 to ${toYear}-12-31, from
@@ -296,8 +425,9 @@ const out = `/**
  * Published dates and observance names are facts rather than copyrightable expression, which is
  * what makes them usable under this project's clean-room constraint.
  *
- * Covers ${all.length} consecutive days: ${doubled} doubled, ${leapMonthDays} in leap months, and
- * ${withLabels} carrying at least one observance label. Skipped dates are absent by construction —
+ * Covers ${all.length} consecutive days: ${doubled} doubled, ${leapMonthDays} in leap months,
+ * ${withLabels} carrying at least one observance label, and ${withCodes} carrying advice codes. FPMT prints
+ * ${fullIcons} full-moon and ${newIcons} new-moon icons over them. Skipped dates are absent by construction —
  * they name no calendar day, so the calendar has no cell for them.
  */
 export interface FpmtObservanceRow {
@@ -324,9 +454,22 @@ export interface FpmtObservanceRow {
 	 * E earth, W water, F fire, A air; air is Janson's *wind*. The code names the **unordered pair**
 	 * of the weekday's element and the lunar mansion's, so with the weekday element known the
 	 * mansion's is forced — which is what makes this the only external check the mansion arithmetic
-	 * has. Omitted on the few days FPMT prints no code for.
+	 * has. Omitted on the few days FPMT prints no yoga code, or a misprinted one, which is kept in
+	 * \\\`codes\\\`.
 	 */
 	dayQuality?: string;
+	/**
+	 * FPMT's advice codes for the day — \\\`GCH NB NMP NPF B\\\` and the like — verbatim and in page
+	 * order, each defined in the key below every month's table. The yoga code is not among them;
+	 * it is \\\`dayQuality\\\`. Omitted where there are none. Misprints are kept as printed:
+	 * ${misprintList}.
+	 */
+	codes?: readonly string[];
+	/**
+	 * The moon icon FPMT prints in the day's cell. This records an **icon**, not a moon: FPMT
+	 * marks both halves of some doubled dates, so icons outnumber moons. Omitted where there is none.
+	 */
+	moon?: "full" | "new";
 	/** The observance labels FPMT prints, verbatim. Omitted where there are none. */
 	labels?: readonly string[];
 }

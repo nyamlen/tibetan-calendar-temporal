@@ -1070,10 +1070,12 @@ failures onto an array and `expect(bad).toEqual([])` — one assertion, and the 
 offending date instead of only the first.
 
 `biome.json` carries one formatter override, raising `lineWidth` for
-`test/fixtures/fpmt-observances.ts`. Its rows run to 174 characters because they carry observance
-labels, and at the default width Biome explodes each into eight lines — turning a reviewable
+`test/fixtures/fpmt-observances.ts`. Its rows run to 238 characters because they carry observance
+labels, advice codes and moon icons, and at the default width Biome explodes each into eight lines — turning a reviewable
 one-row-per-line fixture into a 12k-line one. `scripts/fixture-row.mjs` documents the same problem
 for the cross-check fixtures, which avoid it by staying short. Do not remove the override.
+It is 240 since 2026-09-19, when the codes and icons were added; raise it to the longest row the
+generator emits, measured, whenever a field is added, and never remove it.
 
 Decision records document a **constraint a contributor would otherwise violate**, not a replay of
 how a choice was weighed. Records that only narrate deliberation get deleted — planning artifacts
