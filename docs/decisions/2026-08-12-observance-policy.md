@@ -20,11 +20,14 @@ contradicts the calendar it describes:
   *first* of the pair, the leap day almanacs mark "Extra" — and Janson adds that he has not
   checked those rules against published calendars. FPMT's guidance says the *second*, "but may be
   celebrated on the first day if it is more convenient". Both are cited; they disagree.
-- **The same institution disagrees with itself.** FPMT's calendars put the 2024 Chokhor Duchen on
-  10 July, the second — matching its guidance — while placing *sojong* on 19 November 2025, the
-  first of a doubled 30. Kopan Monastery observed that Chokhor Duchen on the 9th and the
-  Liberation Prison Project calendar on the 10th, which is what "July 9 or July 10" in FPMT's own
-  announcement records.
+- **Institutions of one school disagree.** FPMT's calendars put the 2024 Chokhor Duchen on
+  10 July, the second — matching its guidance. Kopan Monastery, also Gelug, observed it on the 9th
+  and the Liberation Prison Project calendar on the 10th, which is what "July 9 or July 10" in
+  FPMT's own announcement records.
+  This bullet said until 2026-09-19 that FPMT also disagrees with itself, by placing *sojong* on
+  19 November 2025, the first of a doubled 30.
+  It does not: sojong is a count of days since the previous one, not a date, so no doubled-day
+  convention applies to it — see the Sojong item in [roadmap.md](../roadmap.md).
 - **Leap months.** Janson says observances are "usually not celebrated in leap months". FPMT
   prints the 2024 Chokhor Duchen inside leap month 6, and 4 of the regular month 6 that follows
   carries nothing at all.

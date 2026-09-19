@@ -1019,8 +1019,8 @@ nothing and reports success.
       **not** FPMT contradicting its own doubled-day guidance — the count simply lands there. That
       claim is in `src/observances/types.ts`, `src/observances/default-observances.ts`,
       [decisions/2026-08-12-observance-policy.md](decisions/2026-08-12-observance-policy.md), the
-      Sojong item below, and [almanac-sources.md](almanac-sources.md); correct all
-      five. And almanac-sources.md's "falsified, do not re-test without new material" was the wrong
+      Sojong item below, and [almanac-sources.md](almanac-sources.md); all five corrected
+      2026-09-19. And almanac-sources.md's "falsified, do not re-test without new material" was the wrong
       instruction: the material was already in hand.
 
       **The boundary, decided 2026-09-19** (brainstorm in progress, not yet designed):
@@ -1103,11 +1103,9 @@ nothing and reports success.
       doubled-day convention applies — see the reversal in the boundary item above, which also supersedes the falsification recorded
       below.
 
-      **The question to put to FPMT:** what determines whether sojong falls on the 29th or the 30th,
-      and why does it take the first of a doubled day where the duchen take the second? If the answer
-      is that it is scheduled by each community rather than computed, that is a publishable finding
-      too — it would mean sojong belongs in caller-supplied rules permanently, and the docblock in
-      `src/observances/default-observances.ts` should say so rather than leaving it open.
+      **The question this item used to put to FPMT** — what decides the 29th against the 30th, and
+      why the first of a doubled day — is answered by the count. What remains is narrower: where the
+      extra day goes, asked of Ven. Thubten Chöying, and sent 2026-09-19.
 
       **A candidate answer surfaced 2026-08-28, outside this repo, and was falsified 2026-09-04.**
       [almanac-sources.md](almanac-sources.md) records an oral-teaching source (Geshe Gyaltsen, translated by

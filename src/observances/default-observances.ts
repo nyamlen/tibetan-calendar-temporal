@@ -24,14 +24,19 @@
  *   answers exactly what an `FD-EW` code says — while appendix **D**, the planets, remains out of
  *   scope. Out of *this* layer is the claim being made, not out of the package.
  * - **Sojong** (*sojong* གསོ་སྦྱོང་; Sanskrit *poṣadha* पोषध), vow renewal. It is conventionally
- *   described as falling on the full and new moon, but FPMT's calendars do not place it that way:
- *   over 2022-2025 a fixed 15th-and-30th rule misses 38 of its occurrences and invents 36, mostly
- *   landing a day early — 31 January 2022 is day 29 and carries it, 1 February is day 30 and does
- *   not. Whatever governs that is not a day number, and `CONTRIBUTING.md` asks for a rule that can
- *   be cited and checked. So it is left out rather than shipped approximately wrong. The
- *   `ObservanceKind` union keeps `"sojong"` so a caller who knows their own community's schedule
- *   can supply it. Tracked as an open question in `docs/roadmap.md`, with the specific thing to
- *   ask FPMT: adding it later is additive, since `rules` is an array.
+ *   described as falling on the full and new moon, but FPMT's calendars do not place it by day
+ *   number: over 2022-2025 a fixed 15th-and-30th rule misses 38 of its occurrences and invents 36,
+ *   mostly landing a day early — 31 January 2022 is day 29 and carries it, 1 February is day 30
+ *   and does not. It is a **counted schedule**: the fortnight ending at a full-moon sojong is 15
+ *   days, and one ending at a new-moon sojong is 14 at the end of an odd month and 15 at the end of
+ *   an even one, which reproduces 96 of the 98 intervals between FPMT's sojongs of 2022-2025. A
+ *   count lands on a calendar day, which is why it fell on the first of the doubled 30 of
+ *   19-20 November 2025 while the great days take the second: no doubled-day convention applies.
+ *   Where the occasional extra day goes, which such a count needs to stay with the moon, is not
+ *   yet sourced, and a count is a rule shape `ObservanceRule` cannot express. So it is left out
+ *   rather than shipped approximately wrong. The `ObservanceKind` union keeps `"sojong"` so a
+ *   caller who knows their own community's schedule can supply it. Tracked in the pre-1.0.0
+ *   checklist in `docs/roadmap.md`.
  *
  * @packageDocumentation
  */

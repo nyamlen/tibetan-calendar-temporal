@@ -12,9 +12,8 @@
  * and whether it observes at all in a leap month are **conventions**, and the published sources
  * disagree about them. Janson's holidays section, following Berzin, says an observance falling on
  * a doubled date is kept on the first of the pair — while noting he had not checked that against
- * published calendars. FPMT says the second. FPMT's own calendars then place the 2024 Chokhor
- * Duchen on the second, agreeing with its guidance, and place *sojong* on the first of the
- * 19-20 November 2025 pair, disagreeing with it.
+ * published calendars. FPMT says the second, and its own calendars place the 2024 Chokhor Duchen
+ * there, on 10 July. Kopan Monastery observed the same Chokhor Duchen on the 9th.
  *
  * That is not a defect in the sources. It is what a convention looks like. So this layer holds
  * conventions as **injected data carrying a citation**, never as logic, and ships behind its own
