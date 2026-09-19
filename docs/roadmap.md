@@ -360,7 +360,9 @@ edits, and moving files once after they have landed is one link-fixing commit in
       — once `ObservanceConfig` and the shipped configs are frozen at 1.0.0, adding a helper later
       is free, but its *absence* being the sanctioned way to compose configs is what would need
       revisiting, and that is a documentation claim worth getting right now rather than retrofitting.
-      Needs its own brainstorm and spec. It was raised alongside the day-quality-code question
+      Needs its own brainstorm and spec. **Brainstorm started 2026-09-19; its decisions so far —
+      one convention layer, JSON-storable configs, config-declared tiers, the subpath name reopened —
+      are recorded under the boundary item below.** It was raised alongside the day-quality-code question
       below, in the research that became [almanac-sources.md](almanac-sources.md); that file's
       deliberation was dropped when it moved into this repo on 2026-09-05, because the decisions it
       argued toward are the ones recorded here.
@@ -983,8 +985,8 @@ nothing and reports success.
       **Sojong — still wanted, but the one candidate rule found so far is falsified, checked
       2026-09-04.** Andreas: sojong should be included, so this stays open rather than closing as
       "cannot be done." Phase 3 shipped nothing for it — a fixed 15th-and-30th rule misses 38 of
-      FPMT's 2022-2025 occurrences and invents 36 (full divergence table and history under Sojong,
-      Beyond v1, below). [almanac-sources.md](almanac-sources.md) (moved into this repo 2026-09-05) recorded a candidate from
+      FPMT's 2022-2025 occurrences and invents 36 (full divergence table and history in the Sojong
+      item below). [almanac-sources.md](almanac-sources.md) (moved into this repo 2026-09-05) recorded a candidate from
       an oral teaching — sojong at the end of an odd Tibetan month falls on the 14th, at the end of
       an even month on the 15th — and it has now been run computationally against the roadmap's own
       seven-row divergence table. **Result: 4 of 7 match, 3 mismatch, and the failures are not
@@ -999,6 +1001,62 @@ nothing and reports success.
       the notes give doesn't actually match the fuller rule stated earlier in the same document.
       Sojong inclusion stays open pending a **different or corrected** source — this one is closed,
       not merely unconfirmed.
+
+      **Reversed 2026-09-19: the teaching was right, and the 2026-09-04 test misread it.** "The 14th"
+      and "the 15th" count the **days since the previous sojong**, not Tibetan dates 29 and 30 — the
+      notes' last line says so: "there are 14 or 15 days between the Sojongs". Read that way, FPMT's
+      99 sojongs of 2022–2025 follow it: every waxing fortnight is 15 days, a waning one is 14 at the
+      end of an odd month and 15 at the end of an even one, and the 2024 leap month 6 counts as even —
+      a 354-day schematic year. A count from 2022-01-02 reproduces **96 of the 98 intervals**. The
+      residue is a one-day excursion (2022-03-18, undone at 2022-04-30) and one permanent extra day
+      from 2023-01-07, which a 354-day scheme needs every few years to stay with the moon. **Where
+      that extra day goes is the one unsourced piece**, and it was put to Ven. Thubten Chöying for
+      her teacher on 2026-09-19. Sojong also lands on days 14, 16 and 1, which no day-number rule can
+      produce, and it is not the astronomical syzygy either (a 51-hour spread across timezones).
+      It is **computation**, so shipping it needs a counted-schedule rule shape the model lacks.
+
+      Two claims this falsifies. FPMT's sojong on the first of the doubled 30 of 2025-11-19 is
+      **not** FPMT contradicting its own doubled-day guidance — the count simply lands there. That
+      claim is in `src/observances/types.ts`, `src/observances/default-observances.ts`,
+      [decisions/2026-08-12-observance-policy.md](decisions/2026-08-12-observance-policy.md), the
+      Sojong item below, and [almanac-sources.md](almanac-sources.md); correct all
+      five. And almanac-sources.md's "falsified, do not re-test without new material" was the wrong
+      instruction: the material was already in hand.
+
+      **The boundary, decided 2026-09-19** (brainstorm in progress, not yet designed):
+
+      - The package is organised **by kind of claim**. Calculations live in the root and
+        `./astrology`. Conventions — occasions *and* the almanac's activity-advice codes (NB, NCH,
+        GCH, NMP and the rest) — share one convention layer: one config type, one engine, one query.
+        Whether that layer keeps the name `./observances` is reopened, to be decided once its scope is
+        fixed.
+      - **The goal is that the engine can reproduce FPMT's calendar in full.** FPMT's own content —
+        its labels, which pujas, its tiers, its anniversaries — is **front-end content**, not the
+        package's. A complete FPMT config lives in the **test suite** and a validation suite proves
+        day by day that the engine reproduces FPMT; it is not exported. A content pack only if
+        several consumers ask. `docs/guide.md` shows a short worked example.
+      - **What the package does ship:** content true of the tradition rather than of FPMT — the four
+        düchens, sojong's counted schedule once sourced, and **seven** Tibetan-dated lineage
+        anniversaries (Milarepa, Guru Rinpoche, Gampopa, the Sixteenth Karmapa, Lama Tsong Khapa,
+        Sakya Pandita, Dudjom Rinpoche; Lama Thubten Yeshe, FPMT's founder, stays in the FPMT
+        config). The rule model must also express Western-dated anniversaries, periods and an age,
+        for a consumer's own. The export may not name FPMT; its `source` cites it.
+      - **Tiers stay a concept in the engine**, as a "who it is for" field, but the levels are
+        declared by each config rather than fixed at 1-2-3. Only tsok's tier is sourced today.
+      - **Configs should stay storable as plain JSON** — validated, frozen, serialisable, never
+        executing stored code. The cost is a rule vocabulary rich enough for every FPMT item: day
+        lists, month tables, named formulas, counted schedules, periods, Western dates.
+      - **Eclipses are not computed** — see the Rahu entry under Beyond v1.
+      - **What FPMT prints, measured 2026-09-19** over 669 days (January 2025 to October 2026, where
+        the engine's Tibetan day matches FPMT's on every day): the Tibetan-day codes (NB, NCE, NF, NG,
+        NH, NM, NW, NMP, NCH) and NPF follow the day lists in almanac-sources.md with four exceptions,
+        three on one day (2025-04-04) that looks like FPMT's slip; GCH is NCH's complement; Precepts
+        is days 8, 15, 30 plus the Buddha days, 213 of 213 in 2022–2025; Naga puja is a fixed
+        month-and-day table with three irregular cells; Fire puja matches **(Tibetan day + weekday,
+        Sunday 0) mod 4 ∈ {1, 2}**, the Indian *agnivāsa* homa rule, on 97.5% of 1,461 days — which
+        needs a Tibetan source before it ships. NWR and the standalone UD look like month-and-day
+        tables; PF, PP and VUD show no pattern. Their rules were asked of FPMT's calendar compiler via
+        Ven. Chöying. FPMT-specific facts live in [fpmt-calendar.md](fpmt-calendar.md).
 
       Once both are settled: confirm each surviving rule's day, tier and source against FPMT's
       current guidance rather than trusting the 2022-2025 fixture check alone to still hold.
@@ -1020,7 +1078,62 @@ nothing and reports success.
 
       **Still separate:** the composable-config helper and the day-quality-code placement question,
       both recorded in the same nyamlen note, are distinct subsystems needing their own brainstorm
-      and spec — not folded into this task.
+      and spec — not folded into this task. **Superseded 2026-09-19:** the day-quality codes join the
+      convention layer (above), so the placement question is answered and the two are one brainstorm.
+- [ ] **Sojong — moved from Beyond v1 to pre-1.0.0 on 2026-09-19 (Andreas).** The rule is a
+      counted schedule (see the reversal in the boundary item above); what remains is sourcing where
+      the extra day goes, and a counted-schedule rule shape. Additive — `ObservanceConfig.rules` is an array, so a
+      row can be added without a breaking change. Phase 3 established that it is **not** a fixed day
+      number: against FPMT's calendars for 2022–2025, a 15th-and-30th rule misses 38 occurrences and
+      invents 36, and the misses are not random. It lands a day early in some months and not others:
+
+      | Date | Tibetan day | Sojong printed? |
+      |------|-------------|-----------------|
+      | 2022-01-31 | 29 | yes |
+      | 2022-02-01 | 30 | no |
+      | 2024-08-04 | 30 | yes |
+      | 2025-11-19 | 30, first of a doubled pair | yes |
+      | 2025-11-20 | 30, second of the pair | no |
+      | 2026-06-14 | 29 | yes |
+      | 2026-06-15 | 30 | no |
+
+      Note the 2025 row: sojong goes on the **first** of a doubled 30, where FPMT's own guidance and
+      its placement of the great days both say the second. So it does not follow the config's
+      `doubledDay` axis either. **Explained 2026-09-19:** sojong is a count of days, not a date, so no
+      doubled-day convention applies — see the reversal in the boundary item above, which also supersedes the falsification recorded
+      below.
+
+      **The question to put to FPMT:** what determines whether sojong falls on the 29th or the 30th,
+      and why does it take the first of a doubled day where the duchen take the second? If the answer
+      is that it is scheduled by each community rather than computed, that is a publishable finding
+      too — it would mean sojong belongs in caller-supplied rules permanently, and the docblock in
+      `src/observances/default-observances.ts` should say so rather than leaving it open.
+
+      **A candidate answer surfaced 2026-08-28, outside this repo, and was falsified 2026-09-04.**
+      [almanac-sources.md](almanac-sources.md) records an oral-teaching source (Geshe Gyaltsen, translated by
+      Geshe Graham, notes by Thubten Chöying) giving an actual rule rather than a fixed day: sojong at
+      the end of an **odd** Tibetan month falls on the 14th, at the end of an **even** month on the
+      15th. Run against the table above (`isoToTibetan` on all seven dates, checked under three
+      readings of "which month" — nominal month number, true sequential lunation, and position since
+      Losar): the best of the three, nominal month number, matches only 4 of 7, with the 2026-06-14/15
+      pair a clean inversion rather than an edge case. **This candidate does not reproduce the table and
+      should not ship.** Sojong stays open pending a different or corrected source — the notes' own
+      disclaimer that transcription errors are the transcriber's is the likeliest explanation, not a
+      flaw in this table.
+
+      That note also opens two follow-on design questions, and **neither is beyond-v1 any more**: the
+      composable/additive `ObservanceConfig` helper (e.g. `DEFAULT_OBSERVANCES + TEACHERS + TANTRA`) and the
+      day-quality-code placement question are both now tracked under the Pre-v1.0.0 checklist's API
+      shape section above, since both bear on this package's stated scope and surface before that
+      freezes. Both still need their own brainstorm and spec, in that order; see
+      [almanac-sources.md](almanac-sources.md).
+- [ ] **Record FPMT's second line of codes and its moon icons in the fixture.**
+      `scripts/fetch-fpmt-observances.mjs` keeps only the labels and the FD/UD code, so everything in
+      the 2026-09-19 measurement above was parsed ad hoc from the pages. Capturing the code line and
+      the new- and full-moon icons turns it into tests. Needs a short plan: the generator rules
+      (baseline run first, byte-identical output, mutation-proved checks, Biome) apply. Independent of
+      the design. The moon icons agree with `isNewMoon`/`isFullMoon` on 43 of 46; all three
+      disagreements are at a skipped or doubled day 30, to be catalogued, not fitted.
 
       **Sweep run 2026-09-05: clean.** Every export on both barrels
       (`src/index.ts`, `src/observances/index.ts`) was read against the rule in
@@ -1162,6 +1275,44 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   computational character (iterative vs. closed-form), different validation burden, different and
   narrower audience. If it ever ships, it gets its own subpath, its own name, and its own
   brainstorm — not a module bolted onto this one.
+  **No name was decided on 2026-09-04.** `./astronomy` was proposed on 2026-09-19, with eclipse
+  prediction (below) living there too; settle it in that brainstorm.
+
+- **Eclipse prediction from Rahu — beside Appendix D (proposed `./astronomy`), beyond v1, and measured
+  before deferring.**
+  Tibetan almanacs predict eclipses from Rahu, the lunar nodes.
+  Janson gives Rahu's position (appendix D, "Rahu": a period of exactly 230 lunar months, epoch value
+  `rd₀ = 187` for E1927) and cites Henning, *Kālacakra and the Tibetan Calendar*, chapter III, for
+  the prediction method, which Janson does not reproduce.
+  Measured on 2026-09-19 against the 20 eclipses FPMT printed from January 2022 to October 2026, all
+  real astronomical ones, over the 120 new and full moons of that window:
+
+  - **Rahu as Janson gives it does not separate eclipses from other syzygies.** At the 20 eclipses the
+    engine's true Sun lies from 0.1° to 24.3° from the nearer node; at the other 100 new and full
+    moons, from 6.5°. The two ranges overlap, so no limit works.
+    A constant shift of about 12° would separate them cleanly — which is Henning's point, not a
+    discovery: he reports the Phugpa Sun-to-node distance drifting, 9.77° too small by 2000.
+  - **The traditional correction and limits, as Henning reports Chenrab Norbu's 1927 method, predict
+    10 of the 20 and invent none.** Subtract 0;31,41,4,10 mansions (about 7.04°, the value Dharmaśrī
+    gave, equal to nine fortnights of Rahu's motion) from the node. A lunar eclipse follows if the
+    Moon is within 50 nāḍī of a node. A solar eclipse is "certain" if the Sun is within 50 nāḍī after
+    the Head or 40 before the Tail; within 5 before the Head it "should not occur", and within 8 after
+    the Tail it is "possible". A nāḍī is a sixtieth of a mansion, 1,620 to the circle.
+    The misses are eight solar eclipses and the two slightest lunar ones (25 March and 18 September
+    2024). The method classes the total solar eclipse of 8 April 2024 as one that "should not occur".
+  - **The shortfall is expected.** Henning: the Tibetan methods lack the theory solar eclipses need,
+    and the correction has not been updated since Dharmaśrī. The remaining drift, about 2–3°, is what
+    the correction no longer covers.
+
+  So a Tibetan eclipse computation would answer "which eclipses a traditional almanac predicts",
+  which is not what FPMT prints: FPMT prints astronomical eclipses, dated by UTC (see
+  [fpmt-calendar.md](fpmt-calendar.md#eclipses)), and those come from a modern ephemeris, which this
+  package will not include. A front end that shows eclipses sources them itself.
+  The measurement used the engine's own true Sun and Janson's Rahu, with the month count converted
+  from the engine's E806 epoch to E1927 (`β = 55`, month 3 of 1927). A one-month error in that
+  conversion moves Rahu by only 1.6°. Henning's values were read from the OCR text of his chapter III
+  (pp. 95–126), which reads prose reliably; the correction is confirmed by its own derivation,
+  135 lunar days × 0;0,14,0,12.
 
 - **Appendix E's association tables — not shipped, and recorded so the absence is a decision.**
   Janson prints three lookups beside the attribute calculations: element → colour, trigram → direction
@@ -1256,50 +1407,6 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   was considered and rejected** for this repo: it duplicates Biome and `tsc`, it cannot see the
   semantic errors that actually threaten this project, and it would flag the deliberately
   repetitive generated fixtures as duplication and the correction-table symmetry as complexity.
-- **Sojong**, once its rule can be sourced. Additive — `ObservanceConfig.rules` is an array, so a
-  row can be added without a breaking change. Phase 3 established that it is **not** a fixed day
-  number: against FPMT's calendars for 2022–2025, a 15th-and-30th rule misses 38 occurrences and
-  invents 36, and the misses are not random. It lands a day early in some months and not others:
-
-  | Date | Tibetan day | Sojong printed? |
-  |------|-------------|-----------------|
-  | 2022-01-31 | 29 | yes |
-  | 2022-02-01 | 30 | no |
-  | 2024-08-04 | 30 | yes |
-  | 2025-11-19 | 30, first of a doubled pair | yes |
-  | 2025-11-20 | 30, second of the pair | no |
-  | 2026-06-14 | 29 | yes |
-  | 2026-06-15 | 30 | no |
-
-  Note the 2025 row: sojong goes on the **first** of a doubled 30, where FPMT's own guidance and
-  its placement of the great days both say the second. So it does not follow the config's
-  `doubledDay` axis either.
-
-  **The question to put to FPMT:** what determines whether sojong falls on the 29th or the 30th,
-  and why does it take the first of a doubled day where the duchen take the second? If the answer
-  is that it is scheduled by each community rather than computed, that is a publishable finding
-  too — it would mean sojong belongs in caller-supplied rules permanently, and the docblock in
-  `src/observances/default-observances.ts` should say so rather than leaving it open.
-
-  **A candidate answer surfaced 2026-08-28, outside this repo, and was falsified 2026-09-04.**
-  [almanac-sources.md](almanac-sources.md) records an oral-teaching source (Geshe Gyaltsen, translated by
-  Geshe Graham, notes by Thubten Chöying) giving an actual rule rather than a fixed day: sojong at
-  the end of an **odd** Tibetan month falls on the 14th, at the end of an **even** month on the
-  15th. Run against the table above (`isoToTibetan` on all seven dates, checked under three
-  readings of "which month" — nominal month number, true sequential lunation, and position since
-  Losar): the best of the three, nominal month number, matches only 4 of 7, with the 2026-06-14/15
-  pair a clean inversion rather than an edge case. **This candidate does not reproduce the table and
-  should not ship.** Sojong stays open pending a different or corrected source — the notes' own
-  disclaimer that transcription errors are the transcriber's is the likeliest explanation, not a
-  flaw in this table.
-
-  That note also opens two follow-on design questions, and **neither is beyond-v1 any more**: the
-  composable/additive `ObservanceConfig` helper (e.g. `DEFAULT_OBSERVANCES + TEACHERS + TANTRA`) and the
-  day-quality-code placement question are both now tracked under the Pre-v1.0.0 checklist's API
-  shape section above, since both bear on this package's stated scope and surface before that
-  freezes. Both still need their own brainstorm and spec, in that order; see
-  [almanac-sources.md](almanac-sources.md).
-
 - **Tsurphu tradition** (Karma Kagyu) via a second `TraditionConfig`.
 
   **Correction, 2026-08-16: "only the constants differ" was wrong**, and stood here for three

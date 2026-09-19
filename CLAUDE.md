@@ -16,6 +16,11 @@ dependencies, built on Temporal.
   — the reader-facing account of what is validated and over which years. **It is the only document
   besides `docs/testing.md` that may quote a validation window**; the README and any pitch link to
   it rather than restating a number. It ships to npm too
+- **FPMT's calendar, specifically**: [docs/fpmt-calendar.md](docs/fpmt-calendar.md) — **not shipped**.
+  What FPMT prints that the package does not claim: eclipses dated by UTC against FPMT's own "date in
+  India" guidance, and its anniversaries by Tibetan and Western date. Decided 2026-09-19 that
+  FPMT-specific validation — the FPMT config the test suite will hold — reports its window **here**,
+  not in `why-trust-these-dates.md`, which states only what the package itself claims
 - What else computes Tibetan dates, and when to use it instead:
   [docs/other-implementations.md](docs/other-implementations.md) — every claim from public metadata
   with an access date, and **no competitor source is ever read**
@@ -212,6 +217,19 @@ only the wider one, and an agent answering an observance question reaches for wh
 Done on 2026-09-10, answering which days carried Tara puja in late 2026: the dates were corroborated
 by three external calendars and the *labels* by nothing, and the reply claimed FPMT coverage that
 stops a year earlier. Cite 2022–2025 for an observance, 1 January 2022 to 25 February 2028 for a date.
+
+**Before calling a source falsified, test every reading its words allow — and read it to the end.**
+The sojong teaching said sojong "at the end of the odd months" is "the 14th". On 2026-09-04 that was
+tested as Tibetan date 29 against 30, failed, and was recorded as falsified with an instruction not
+to re-test it without new material. On 2026-09-19 it turned out to mean the **14th day counted since
+the previous sojong** — the notes' own last line says "14 or 15 days between the Sojongs" — and read
+that way it reproduces 96 of FPMT's 98 intervals. Three readings of "which month" had been tried and
+none of "which day". Two habits come out of it. A number in a rule can be a **label or a count**, and
+a test of one says nothing about the other. And a source that seems to **contradict itself** — FPMT
+putting sojong on the first of a doubled day while keeping düchens on the second, which reached two
+shipped docblocks and three documents as evidence that the convention is inconsistent — is first evidence that the
+model of the item is wrong: sojong was never a date, so no doubled-day convention applied to it.
+Never write "do not re-test" into a verdict; record which readings were tested instead.
 
 **Since 2026-09-12 there is a third tier, and it is the weakest of the three.** The `./astrology`
 attributes are **not** covered by either figure above, and the differences are not about years:

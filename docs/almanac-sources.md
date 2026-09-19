@@ -88,7 +88,7 @@ new source, only a widened parser.
 | PF | Prayer Flags | — | Good for hanging prayer flags |
 | PP | Prayers and Practices | — | Good for spiritual practice |
 | — | Protector Puja | Day 29 of every month | — |
-| — | Sojong | "Usually falls at middle and end of every Tibetan month" | See [Sojong](#sojong-the-one-candidate-rule-so-far-is-falsified) — the site names no rule for *which* |
+| — | Sojong | "Usually falls at middle and end of every Tibetan month" | See [Sojong](#sojong-a-counted-schedule-once-falsified-by-a-misreading) — the site names no rule for *which* |
 | — | Tara Puja | Day 8 of every month | Recommended |
 | — | Tsog Offering | Days 10 and 25 of every month | A commitment for anyone with a Highest Yoga Tantra initiation |
 
@@ -228,6 +228,8 @@ Its day set across 2025–26 is the complement of NCH's forbidden list bar a sin
 matches the positive rows of the hair-cutting table below almost exactly.
 The obvious reading is "good day for cutting hair" — but **that is a hypothesis, not a definition**,
 and it is recorded here as one. Nothing may ship on it until FPMT states it.
+**FPMT now states it:** the key on its October 2026 page reads "GCH: Good for cutting hair" (read 2026-09-19).
+Across January 2025 to October 2026 GCH is exactly NCH's complement on every day but one.
 
 ### NPF — No Prayer Flags, the one code with a full month table
 
@@ -285,7 +287,7 @@ This attribute system is the scope of the planned `./astrology` subpath; see
 continuous, iterative astronomy serving muhurta-style timing work, a different undertaking with its
 own validation burden, recorded under Beyond v1.
 
-## Sojong: the one candidate rule so far is falsified
+## Sojong: a counted schedule, once falsified by a misreading
 
 Sojong (*sojong* གསོ་སྦྱོང་; Sanskrit *poṣadha* पोषध) is deliberately unshipped.
 A fixed 15th-and-30th rule misses 38 of FPMT's printed occurrences over 2022–2025 and invents 36.
@@ -320,6 +322,14 @@ The likeliest explanation is that the notes are incomplete — their transcriber
 (Thubten Chöying / Sarah Brooks) states plainly that any errors are hers, and the "simple form"
 above may not match the fuller rule stated earlier in the same document.
 Sojong remains wanted; it needs a different or corrected source.
+
+**Reversed 2026-09-19: the verdict above tested the wrong reading.**
+"The 14th" and "the 15th" count the days since the previous sojong, not the Tibetan dates 29 and 30.
+The notes' last line says so: "there is math that can be learned as to why there are 14 or 15 days between the Sojongs".
+Read that way, the rule reproduces 96 of the 98 intervals between FPMT's 99 sojongs of 2022–2025: every waxing fortnight is 15 days, a waning one is 14 at the end of an odd month and 15 at the end of an even one, and the 2024 leap month 6 counts as even.
+The one unsourced piece is where the occasional extra day goes, which a 354-day scheme needs to stay with the moon; it was put to Ven. Thubten Chöying on 2026-09-19.
+The full account is under the boundary item in [roadmap.md](roadmap.md).
+The instruction this section used to end with — not to re-test without new material — was wrong: the material was already in hand.
 
 ## No cutting hair: the day-by-day table
 
@@ -409,12 +419,13 @@ rate-limited on both attempts, and its lineage.
   That framing is now known to be wrong for NWR — it is not a fixed-day rule, so no list exists to
   find, and the same is likely true of Fire Puja.
   Answering either needs the computed attribute layer, not another page of the website.
-- **What GCH means.** Undocumented by FPMT and used 166 times in 2026; the "good day for cutting
-  hair" reading above is a hypothesis this repository has not confirmed.
+  **Measured 2026-09-19:** Fire puja matches (Tibetan day + weekday, Sunday 0) mod 4 ∈ {1, 2},
+  the Indian *agnivāsa* rule, on 97.5% of 1,461 days, and NWR behaves as a month-and-day table;
+  both still need a source. See the boundary item in [roadmap.md](roadmap.md).
+- **What GCH means** — answered 2026-09-19: FPMT's key defines it as "Good for cutting hair".
 - **NCH and the hair-cutting table disagree in scope**, as above.
-- **Sojong needs a different or corrected source.**
-  The 2026-08-28 candidate is falsified, not merely unconfirmed; do not re-test it without new
-  material.
+- **Where sojong's extra day goes.** The 2026-08-28 candidate holds as a count of days; only the
+  occasional extra day is unsourced. See [Sojong](#sojong-a-counted-schedule-once-falsified-by-a-misreading).
 - **Zurkhai's lineage is unknown**, and that is what keeps it out of
   [validation-sources.md](validation-sources.md).
   It states "the Phugpa school" and cites no scholar, almanac edition or repository.
