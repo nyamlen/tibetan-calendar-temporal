@@ -73,6 +73,7 @@ Gampopa's 2024 date is in the **leap** 6th month, the same choice FPMT makes for
 And the 11th-month anniversaries are missing once: in the Tibetan year that ran from February 2023 to February 2024 they fell on 25 and 29 December 2023, and FPMT printed neither.
 The Western year 2024 contains neither date, which is why that column is empty.
 Lama Tsong Khapa Day 2026 is 3 December, which FPMT had not yet published when this was read.
+Lama Thubten Yeshe's day is the 1st of the 1st month because he passed away on 3 March 1984, which was Losar that year; the engine gives that date as the 1st month, 1st day.
 
 ### On a fixed Western date
 
@@ -87,3 +88,16 @@ These fall on the same Western date every year.
 | Karma Rishi | 9–15 September | 2026 only, a seven-day period |
 
 This list is the part that changes: in five years a birthday stopped, an anniversary began, and a period appeared.
+
+## What FPMT's guidance page dates, and what it leaves undated
+
+FPMT's "Dates Explained" page (`fpmt.org/media/resources/dharma-dates/dates-explained/`, read 2026-09-19) dates the monthly practices, and it is the source the calendar's labels follow.
+
+- **Tsog offering:** "10th and 25th of every Tibetan month", with Lama Zopa Rinpoche's note that those with a Highest Yoga Tantra initiation have a commitment to perform tsog on these days.
+  It is the only practice the page ties to an initiation.
+- **Protector puja:** "29th of every Tibetan month", and nothing more — no requirement is stated either way.
+- **Guru Puja** (*Lama Chöpa*) appears only as a link to its practice text, with no date, and the calendars never print it as a label.
+  In Gelug centres Guru Puja is the usual way the tsog of the 10th and 25th is offered, but that is practice knowledge, not something FPMT's page or calendar states: "Tsog" names the offering, not the practice.
+
+So the tiers this repository once assigned — tier 3 for tsog, tier 2 for the Protector puja, tier 1 for the Medicine Buddha and Tārā pujas — rest on this page only for tsog.
+The rest were authored, and the question of which practice "Tsog" means, and who each day is for, was put to Ven. Thubten Chöying on 2026-09-19.
