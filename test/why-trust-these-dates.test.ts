@@ -23,7 +23,7 @@ import {
 	unpairedLeapBlocks,
 } from "./support/bhutan.js";
 import { mismatchesIn } from "./support/crosscheck.js";
-import { fpmtNumberingMismatches } from "./support/fpmt.js";
+import { fpmtMoonComparison, fpmtNumberingMismatches } from "./support/fpmt.js";
 import {
 	favorabilityDays,
 	favorabilityDisagreements,
@@ -664,6 +664,45 @@ const CLAIMS: readonly Claim[] = [
 		pattern: /the year's five elements/,
 		notAssertable:
 			"a description of Janson's cycles, checked against his tables in the astrology suites",
+	},
+	{
+		// Counted as moons, measured by the validation suite's own predicate. The icons FPMT adds on
+		// the first half of some doubled dates are recorded in docs/testing.md, not here (Andreas,
+		// 2026-09-19), so "FPMT marks" is icons less those twins.
+		what: "the moon agreement, its window, and the one moon a day apart",
+		pattern:
+			/\*\*Full and new moons\*\* are checked against the moon icons FPMT prints on the same calendars, from (.+?) to (.+?)\. Over those (\w+) years FPMT marks (\d+) full and new moons, and the engine puts (\d+) of them on the same day\. The (\d+)th is the new moon of (\w+) (\d+): day (\d+) is skipped that month, so the engine places the new moon on the (\d+)th, and FPMT marks it (\w+) day later, on the (\d+)th\./,
+		expected: () => {
+			const moons = fpmtMoonComparison();
+			const [engine] = moons.unmatchedEngineMoons;
+			const [icon] = moons.unmatchedIcons;
+			if (
+				moons.unmatchedEngineMoons.length !== 1 ||
+				moons.unmatchedIcons.length !== 1 ||
+				!engine ||
+				!icon
+			)
+				return ["<not exactly one moon a day apart>"];
+			const engineDate = plain(engine.iso);
+			const iconDate = plain(icon.iso);
+			const tibetan = isoToTibetan(engineDate);
+			return [
+				long(FPMT_WINDOW.first),
+				long(FPMT_WINDOW.last),
+				word(FPMT_WINDOW.last.year - FPMT_WINDOW.first.year + 1),
+				moons.icons.length - moons.twinIcons.length,
+				moons.matchedEngineMoons.length,
+				moons.engineMoons.length,
+				monthName(engineDate),
+				engineDate.year,
+				engine.kind === "new" && tibetan.isNewMoon && tibetan.day === 29
+					? 30
+					: "<not a skipped 30>",
+				engineDate.day,
+				word(engineDate.until(iconDate).days),
+				iconDate.day,
+			];
+		},
 	},
 	{
 		what: "the mansion figure, its days, and the Henning comparison tied to them",

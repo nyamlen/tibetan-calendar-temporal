@@ -101,6 +101,15 @@ Each source covers its own window, and a claim resting on one of them should quo
 Two of the four, Lotsawa House and eszthoff, agree on every single day in range, including every
 doubled date, both leap months and every skipped date.
 
+**Full and new moons** are checked against the moon icons FPMT prints on the same calendars, from
+1 January 2022 to 31 December 2025.
+Over those four years FPMT marks 99 full and new moons, and the engine puts 98 of them on the same
+day.
+The 99th is the new moon of February 2025: day 30 is skipped that month, so the engine places the new
+moon on the 27th, and FPMT marks it one day later, on the 28th.
+Where FPMT's moon icons come from is not recorded, so this is agreement with FPMT's calendar rather
+than with the almanac behind it.
+
 Outside that window of just over six years the evidence is thinner and differently shaped:
 
 - **Losar, 1927–2046** — Janson prints the Tibetan New Year for 120 consecutive years. The engine
