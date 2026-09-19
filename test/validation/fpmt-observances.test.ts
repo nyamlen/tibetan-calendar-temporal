@@ -2,9 +2,11 @@ import { describe, expect, it } from "vitest";
 import { lunarMansionFor } from "../../src/astrology/index.js";
 import { mansionElement } from "../../src/astrology/mansion-elements.js";
 import { mansionNumber } from "../../src/astrology/mansions.js";
+import { isoToTibetan } from "../../src/computation/conversion.js";
 import { getObservances } from "../../src/observances/index.js";
 import { PHUGPA } from "../../src/traditions/phugpa.js";
 import { FPMT_OBSERVANCES } from "../fixtures/fpmt-observances.js";
+import { fpmtMoonComparison } from "../support/fpmt.js";
 import {
 	favorabilityDays,
 	favorabilityDisagreements,
@@ -251,5 +253,89 @@ describe("the yoga's favorability against FPMT's published prefixes", () => {
 
 	it("covers a useful number of days", () => {
 		expect(favorabilityDays.length).toBeGreaterThan(1400);
+	});
+});
+
+// The first external check of `isFullMoon`/`isNewMoon`, and through them `nextFullMoon` and
+// `nextNewMoon`. Counted as moons, not icons: see `fpmtMoonComparison` for why an icon on the first
+// half of a doubled date is a match through its twin rather than a disagreement.
+describe("the full and new moons against FPMT's moon icons, 2022-2025", () => {
+	const moons = fpmtMoonComparison();
+
+	it("puts 98 of its 99 moons on a day FPMT marks", () => {
+		expect(moons.engineMoons).toHaveLength(99);
+		expect(moons.matchedEngineMoons).toHaveLength(98);
+	});
+
+	it("differs by a day only on the new moon of February 2025, where day 30 is skipped", () => {
+		// The engine's new moon ends lunar day 30, which is skipped, so it falls in the day numbered
+		// 12/29. FPMT's icon is on the next day, 1/1. The only skipped-30 new moon in January 2022 to
+		// October 2026, so one case cannot say whether it is a convention or a slip. Catalogued, not
+		// fitted; the full moon of 2026-12-23, on a skipped 15, is the next case.
+		expect(moons.unmatchedEngineMoons).toEqual([{ iso: "2025-02-27", kind: "new" }]);
+		expect(moons.unmatchedIcons).toEqual([{ iso: "2025-02-28", kind: "new" }]);
+		const [engine, icon] = [isoToTibetan(iso("2025-02-27")), isoToTibetan(iso("2025-02-28"))];
+		expect([engine.month, engine.day, icon.month, icon.day]).toEqual([12, 29, 1, 1]);
+	});
+
+	it("marks the first half of two of the four doubled dates carrying a moon, and not the other two", () => {
+		// The evidence the twin rule rests on, and the reason it is a rule about FPMT's practice, not
+		// about the Tibetan date: the icon is always on the engine's day, the second half, and only
+		// sometimes on the first as well. If this changes, re-examine the rule.
+		const doubled = moons.engineMoons
+			.filter((moon) => isoToTibetan(iso(moon.iso)).isDoubledDay)
+			.map((moon) => {
+				const first = iso(moon.iso).subtract({ days: 1 }).toString();
+				const icons = moons.icons.map((i) => i.iso);
+				return {
+					pair: `${first}/${moon.iso}`,
+					firstHalf: icons.includes(first),
+					secondHalf: icons.includes(moon.iso),
+				};
+			});
+		expect(doubled).toEqual([
+			{ pair: "2022-06-28/2022-06-29", firstHalf: false, secondHalf: true },
+			{ pair: "2023-04-05/2023-04-06", firstHalf: true, secondHalf: true },
+			{ pair: "2024-11-30/2024-12-01", firstHalf: false, secondHalf: true },
+			{ pair: "2025-11-19/2025-11-20", firstHalf: true, secondHalf: true },
+		]);
+		expect(moons.twinIcons).toEqual([
+			{ iso: "2023-04-05", kind: "full" },
+			{ iso: "2025-11-19", kind: "new" },
+		]);
+	});
+
+	it("accounts for every icon: 101 of them, 50 full and 51 new, marking 99 moons", () => {
+		const count = (kind: string) => moons.icons.filter((i) => i.kind === kind).length;
+		expect([moons.icons.length, count("full"), count("new")]).toEqual([101, 50, 51]);
+		const direct = moons.icons.length - moons.twinIcons.length - moons.unmatchedIcons.length;
+		expect([direct, moons.twinIcons.length, moons.unmatchedIcons.length]).toEqual([98, 2, 1]);
+	});
+
+	it("matches an icon only to a moon of its own kind", () => {
+		// FPMT's data never puts a full-moon icon on a new moon, so the real rows cannot show whether
+		// the kind is compared at all. One swapped row can.
+		const swapped = FPMT_OBSERVANCES.map((row) =>
+			row.iso === "2022-01-17" ? { ...row, moon: "new" as const } : row,
+		);
+		expect(FPMT_OBSERVANCES.find((row) => row.iso === "2022-01-17")?.moon).toBe("full");
+		const result = fpmtMoonComparison(PHUGPA, swapped);
+		expect(result.unmatchedIcons).toContainEqual({ iso: "2022-01-17", kind: "new" });
+		expect(result.unmatchedEngineMoons).toContainEqual({ iso: "2022-01-17", kind: "full" });
+	});
+});
+
+describe("FPMT's advice codes, as recorded", () => {
+	const row = (date: string) => FPMT_OBSERVANCES.find((r) => r.iso === date);
+
+	it("keeps both of FPMT's misprints as printed", () => {
+		// A regenerated fixture that dropped or corrected either would fail here, not silently.
+		expect(row("2022-05-31")?.codes).toContain("NPG");
+		expect(row("2022-07-11")?.codes?.[0]).toBe("ED-EW");
+		expect(row("2022-07-11")?.dayQuality).toBeUndefined();
+	});
+
+	it("carries codes on nearly every day", () => {
+		expect(FPMT_OBSERVANCES.filter((r) => r.codes !== undefined)).toHaveLength(1407);
 	});
 });
