@@ -1047,6 +1047,34 @@ nothing and reports success.
         executing stored code. The cost is a rule vocabulary rich enough for every FPMT item: day
         lists, month tables, named formulas, counted schedules, periods, Western dates.
       - **Eclipses are not computed** — see the Rahu entry under Beyond v1.
+
+      **Amended 2026-09-20.** Two further decisions, and two consequences they open:
+
+      - **Eclipses are the front end's responsibility, full stop** — not computed, no shipped table,
+        no dating. This restates the line above because three options were weighed beside it
+        (modern astronomy, Janson's Rahu, a finite table) and all three are rejected; the Rahu entry
+        under Beyond v1 is a curiosity, not a deferred plan for FPMT's eclipses. What the front end
+        needs to know was measured: FPMT dates them by UTC, 18 of 18 checked, despite its own
+        "observe by the date in India" guidance, and it prints eclipses invisible from Asia.
+      - **What the package ships as observance content is an *example*, not an authority.** Its
+        purpose is to show a consumer how to populate their own config, and
+        [guide.md](guide.md) must explain it as such. It follows that the shipped content **must not
+        be institution-specific**: an example that is one institution's practice set teaches the
+        shape while overclaiming the content. The seven cross-lineage anniversaries above — Gelug,
+        Kagyu, Sakya and Nyingma — are the pattern.
+      - **Consequence, undecided: `DEFAULT_OBSERVANCES` still identifies itself as FPMT's.** Its
+        `id` is `"gelug"` and its `name` is `"Gelug (FPMT)"`, kept deliberately on 2026-09-04 as the
+        machine-readable provenance of an FPMT-sourced rule set, and pinned by
+        `test/public-api.test.ts` so a later "consistency fix" fails loudly. If the shipped set is a
+        non-institutional example, both fields misdescribe it — but `id` is documented as a *stable
+        identifier*, so changing it is a migration, and the 2026-09-04 reasoning against
+        `id: "default"` still holds. Settle before 1.0.0; it touches
+        [decisions/2026-09-03-no-institution-names-in-exports.md](decisions/2026-09-03-no-institution-names-in-exports.md).
+      - **Consequence, undecided: conventions are institution-specific even when content is not.**
+        `doubledDay: "second"`, `skippedDay: "preceding"` and `leapMonth: "leap"` are FPMT's choices,
+        and Kopan — also Gelug — prints the opposite `doubledDay` for one 2024 düchen. An example
+        config has to set some value for each. Whether it presents them as "one common convention,
+        and here is how to change it", or the defaults move elsewhere, is part of the same decision.
       - **What FPMT prints, measured 2026-09-19** over 669 days (January 2025 to October 2026, where
         the engine's Tibetan day matches FPMT's on every day): the Tibetan-day codes (NB, NCE, NF, NG,
         NH, NM, NW, NMP, NCH) and NPF follow the day lists in almanac-sources.md with four exceptions,

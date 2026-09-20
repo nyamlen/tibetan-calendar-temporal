@@ -270,7 +270,15 @@ element is the *next* mansion's; one sits at the start of a mansion; six are mid
 moon runs slightly ahead, and not by a constant amount: 2022, 2023 and 2024 have 6, 2 and 5
 disagreements, 2025 has 22. No cause is established. Ruled out — the karaṇa moon longitude, a
 constant offset, a later time of day, the other `a₂` — with the measurements in
-[validation-sources.md](validation-sources.md). **This corrects an earlier explanation** that blamed
+[validation-sources.md](validation-sources.md).
+**One candidate is outstanding rather than ruled out**, and it is not arithmetic: FPMT was asked on
+2026-09-19 whether anything changed in how the calendar was prepared in 2025. The question is worth
+recording because a second, independent residual clusters in the same year — the engine's `FD-`/`UD-`
+code matches FPMT on 642 of 669 days from January 2025 to October 2026, and 22 of those 27
+disagreements are in 2025. A change of preparer or source almanac would account for both at once,
+which nothing derived from the formulas has managed. **It is a question asked, not a finding**, and
+no reply has come; the 642/669 figure is a working measurement that becomes a stated one only when
+the fixture captures 2026. **This corrects an earlier explanation** that blamed
 Janson's `/27` approximation of the moon's motion: Janson gives that approximation as the almanac's
 own method, and Henning uses it too, so it cannot be what separates an almanac from this engine.
 
