@@ -301,10 +301,22 @@ Decisions deliberately deferred during setup, each with the reason it was deferr
 through this before publishing v1.0.0 — several are one-way doors once published.
 
 The list is grouped by subject, not by sequence, and one run of items does have a required order.
-The rabjung name shape settles first, because it is free now and breaking later and it changes what
-an API review is looking at. Then the four **Review passes** below, in the order given there. The
-`docs/` folder restructure goes **last of all** — every review before it produces documentation
-edits, and moving files once after they have landed is one link-fixing commit instead of four.
+
+**The order, as it stands on 2026-09-20:**
+
+1. **`./observances`** — the rule vocabulary, sojong, and whichever content ships. **This blocks the
+   review passes**, and the reason is recorded on that item: *"a code review that reads a ruleset
+   which may still change content, membership or name is reviewing a moving target."* Currently
+   paused pending Ven. Thubten Chöying's reply.
+2. The four **Review passes** below, in the order given there.
+3. The **`docs/` folder restructure**, last of all — every review before it produces documentation
+   edits, and moving files once after they have landed is one link-fixing commit instead of four.
+
+This sentence began *"The rabjung name shape settles first"*, which was true when it was written and
+**stale from 2026-08-25**, when that item was ticked — so the stated order opened with a completed
+step, and a reading of it on 2026-09-20 duly proposed starting there. Corrected the same day. The
+lesson is this file's own: an ordering written as prose goes stale silently, because nothing checks
+that its first step is still open.
 
 **API shape**
 
@@ -1643,11 +1655,12 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   insights, the two data-quality fixes of 2026-08-22, the four graph candidates, and the pointer to
   the data under `~/.claude/projects/…/time-tracking/`.
 
-  **Unresolved, and it collides with the web-surface entry below**: that entry says two unrelated
-  web surfaces for one project is a maintenance surface nobody asked for. With the example client
-  and the retrospective both on `nyamlen.app` and the story publication separate, there are
-  **three**. Either the retrospective shares a surface with the story publication, or that entry
-  changes.
+  **Checked against the web-surface entry below, and there is no collision.** That entry warns that
+  *"two unrelated web surfaces for one project is a maintenance surface nobody asked for"*. The
+  example client and the retrospective are two **pages on one site** — one domain, one deployment,
+  one maintenance burden — so the count is `nyamlen.app` plus the story publication: **two**, which
+  is what the entry contemplates. A review reported this as three on 2026-09-20 by counting pages
+  rather than surfaces, and the error was repeated here before being checked.
 
   The data lives outside both repositories, in the tracker at
   `~/.claude/projects/h--repositories-tibetan-calendar-temporal/time-tracking/` — `phases.json`
