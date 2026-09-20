@@ -433,8 +433,10 @@ counts moons without mentioning them.
 
 `fpmtMoonComparison` in `test/support/fpmt.ts` is the one definition, shared with the page's suite,
 and it returns both directions — a one-way check sees only one side of February 2025.
-`test/validation/fpmt-observances.test.ts` pins every figure above and the four doubled dates by
-value. FPMT's data never puts an icon on a moon of the other kind, so the real rows cannot show that
+`test/validation/fpmt-observances.test.ts` pins every agreement figure above and the four doubled
+dates by value. The two dates either side of them — that February 2025 is the only skipped-30 new
+moon in the pages held, and that 23 December 2026 is the next moon on a skipped day — are measured
+rather than asserted, and are stated here as measurements. FPMT's data never puts an icon on a moon of the other kind, so the real rows cannot show that
 the kind is compared at all; one test swaps a row to show it.
 
 ### Where christian-steinert differs

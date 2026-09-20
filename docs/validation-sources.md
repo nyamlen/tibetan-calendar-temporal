@@ -112,8 +112,10 @@ different evidence: the first checks the engine against the tradition, the secon
 
 There is one piece of evidence, and it is an **inference, not a measurement**. `isFullMoon`'s docblock
 records, after Janson, that the Tibetan true phase differs from the astronomical one by about four
-hours. Icons placed astronomically would then be expected to fall on a different calendar day from
-the engine's for several of the 99 moons in 2022–2025; one does, the new moon of February 2025.
+hours. A four-hour shift moves a phase across a day boundary whenever it falls within four hours of
+one, so of the 99 moons in 2022–2025 something like a sixth — on the order of fifteen — would be
+expected to land on a different calendar day if the icons were placed astronomically. One does, the
+new moon of February 2025.
 That suggests the icons are computed the Tibetan way, and that February 2025 — the only skipped-30
 new moon in the window — may be the one place they are not. Nothing here has timed a moon
 astronomically, so treat this as a direction for the next check, not a finding.

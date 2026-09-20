@@ -262,9 +262,12 @@ describe("the yoga's favorability against FPMT's published prefixes", () => {
 describe("the full and new moons against FPMT's moon icons, 2022-2025", () => {
 	const moons = fpmtMoonComparison();
 
-	it("puts 98 of its 99 moons on a day FPMT marks", () => {
+	it("puts 98 of its 99 moons on a day FPMT marks with an icon of the same kind", () => {
 		expect(moons.engineMoons).toHaveLength(99);
-		expect(moons.matchedEngineMoons).toHaveLength(98);
+		// The shipped page says "on the same day", so that is the figure it takes: every match today
+		// is on the moon's own day, and a twin-only match would have to change the sentence.
+		expect(moons.sameDayEngineMoons).toHaveLength(98);
+		expect(moons.matchedEngineMoons).toEqual(moons.sameDayEngineMoons);
 	});
 
 	it("differs by a day only on the new moon of February 2025, where day 30 is skipped", () => {
@@ -308,8 +311,30 @@ describe("the full and new moons against FPMT's moon icons, 2022-2025", () => {
 	it("accounts for every icon: 101 of them, 50 full and 51 new, marking 99 moons", () => {
 		const count = (kind: string) => moons.icons.filter((i) => i.kind === kind).length;
 		expect([moons.icons.length, count("full"), count("new")]).toEqual([101, 50, 51]);
+		// The two directions reconcile: the icons left after the twins and the unmatched one are the
+		// same moons the engine side counts as matched on their own day. Subtracting the pinned counts
+		// from the pinned total would only be arithmetic.
 		const direct = moons.icons.length - moons.twinIcons.length - moons.unmatchedIcons.length;
-		expect([direct, moons.twinIcons.length, moons.unmatchedIcons.length]).toEqual([98, 2, 1]);
+		expect(direct).toBe(moons.sameDayEngineMoons.length);
+		expect([moons.twinIcons.length, moons.unmatchedIcons.length]).toEqual([2, 1]);
+	});
+
+	it("separates a moon marked only on its doubled twin from one marked on its own day", () => {
+		// FPMT marks the engine's own day for all four doubled pairs, so the real rows cannot show that
+		// "on the same day" — the shipped page's words — is a narrower claim than "matched". Dropping
+		// one second-half icon leaves that moon matched through its twin and no longer same-day.
+		// The key is removed rather than set to undefined: `exactOptionalPropertyTypes` treats those as
+		// different types, and the fixture's own rows omit the field where there is no icon.
+		const moved = FPMT_OBSERVANCES.map((row) => {
+			if (row.iso !== "2023-04-06") return row;
+			const { moon: _dropped, ...withoutIcon } = row;
+			return withoutIcon;
+		});
+		expect(FPMT_OBSERVANCES.find((row) => row.iso === "2023-04-06")?.moon).toBe("full");
+		const result = fpmtMoonComparison(PHUGPA, moved);
+		expect(result.matchedEngineMoons).toHaveLength(98);
+		expect(result.sameDayEngineMoons).toHaveLength(97);
+		expect(result.unmatchedEngineMoons).toEqual(moons.unmatchedEngineMoons);
 	});
 
 	it("matches an icon only to a moon of its own kind", () => {

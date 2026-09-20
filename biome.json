@@ -41,7 +41,7 @@
   "overrides": [
     {
       "includes": ["test/fixtures/fpmt-observances.ts"],
-      "formatter": { "lineWidth": 240 }
+      "formatter": { "lineWidth": 250 }
     },
     {
       "includes": ["src/**/*.ts"],

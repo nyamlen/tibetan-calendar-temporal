@@ -39,6 +39,13 @@ export interface MoonComparison {
 	icons: MoonDay[];
 	/** Engine moons with an icon of the same kind on their day, or on that day's doubled twin. */
 	matchedEngineMoons: MoonDay[];
+	/**
+	 * Engine moons with an icon **on their own day**. Separate from `matchedEngineMoons` because the
+	 * shipped page says "on the same day": today every match is one of these, so a figure taken from
+	 * the wider list would be true and would stay true if FPMT ever marked a doubled date's first
+	 * half only — quietly turning the page's sentence false while the suite passed.
+	 */
+	sameDayEngineMoons: MoonDay[];
 	/** Icons matching no engine moon of their kind on their day, directly or through a twin. */
 	unmatchedIcons: MoonDay[];
 	/** Engine moons with no icon of their kind on their day or its doubled twin. */
@@ -86,6 +93,7 @@ export function fpmtMoonComparison(
 		engineMoons: [],
 		icons: [],
 		matchedEngineMoons: [],
+		sameDayEngineMoons: [],
 		unmatchedIcons: [],
 		unmatchedEngineMoons: [],
 		twinIcons: [],
@@ -97,15 +105,18 @@ export function fpmtMoonComparison(
 		if (kind !== undefined) {
 			const moon = { iso: row.iso, kind };
 			result.engineMoons.push(moon);
-			const matched = hasIcon(date, kind) || (twin !== undefined && hasIcon(twin, kind));
+			const sameDay = hasIcon(date, kind);
+			if (sameDay) result.sameDayEngineMoons.push(moon);
+			const matched = sameDay || (twin !== undefined && hasIcon(twin, kind));
 			(matched ? result.matchedEngineMoons : result.unmatchedEngineMoons).push(moon);
 		}
 		if (row.moon !== undefined) {
 			const icon = { iso: row.iso, kind: row.moon };
 			result.icons.push(icon);
-			if (kind === row.moon) continue;
-			if (twin !== undefined && engineKind(twin) === row.moon) result.twinIcons.push(icon);
-			else result.unmatchedIcons.push(icon);
+			if (kind !== row.moon) {
+				if (twin !== undefined && engineKind(twin) === row.moon) result.twinIcons.push(icon);
+				else result.unmatchedIcons.push(icon);
+			}
 		}
 	}
 	return result;

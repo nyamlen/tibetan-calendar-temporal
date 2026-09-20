@@ -1078,8 +1078,11 @@ offending date instead of only the first.
 labels, advice codes and moon icons, and at the default width Biome explodes each into eight lines — turning a reviewable
 one-row-per-line fixture into a 12k-line one. `scripts/fixture-row.mjs` documents the same problem
 for the cross-check fixtures, which avoid it by staying short. Do not remove the override.
-It is 240 since 2026-09-19, when the codes and icons were added; raise it to the longest row the
-generator emits, measured, whenever a field is added, and never remove it.
+It is 250 since 2026-09-19, when the codes and icons were added. **Measure with Biome, not with a
+character count**: it counts the leading tab as `indentWidth`, so the longest row is 238 characters
+and 239 by its measure, and an override set to the character count has no headroom at all — the
+first extra code on that day explodes the row, surfacing as an unattributed formatting diff. Raise
+it when a field is added, and never remove it.
 
 Decision records document a **constraint a contributor would otherwise violate**, not a replay of
 how a choice was weighed. Records that only narrate deliberation get deleted — planning artifacts

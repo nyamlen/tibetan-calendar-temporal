@@ -671,7 +671,7 @@ const CLAIMS: readonly Claim[] = [
 		// 2026-09-19), so "FPMT marks" is icons less those twins.
 		what: "the moon agreement, its window, and the one moon a day apart",
 		pattern:
-			/\*\*Full and new moons\*\* are checked against the moon icons FPMT prints on the same calendars, from (.+?) to (.+?)\. Over those (\w+) years FPMT marks (\d+) full and new moons, and the engine puts (\d+) of them on the same day\. The (\d+)th is the new moon of (\w+) (\d+): day (\d+) is skipped that month, so the engine places the new moon on the (\d+)th, and FPMT marks it (\w+) day later, on the (\d+)th\./,
+			/\*\*Full and new moons\*\* are checked against the moon icons FPMT prints on its monthly calendars, from (.+?) to (.+?)\. Over those (\w+) years FPMT marks (\d+) full and new moons, and the engine puts (\d+) of them on the same day\. The (\d+)th is the new moon of (\w+) (\d+): day (\d+) is skipped that month, so the engine places the new moon on the (\d+)th, and FPMT marks it (\w+) day later, on the (\d+)th\./,
 		expected: () => {
 			const moons = fpmtMoonComparison();
 			const [engine] = moons.unmatchedEngineMoons;
@@ -691,7 +691,9 @@ const CLAIMS: readonly Claim[] = [
 				long(FPMT_WINDOW.last),
 				word(FPMT_WINDOW.last.year - FPMT_WINDOW.first.year + 1),
 				moons.icons.length - moons.twinIcons.length,
-				moons.matchedEngineMoons.length,
+				// "on the same day", so the same-day list, not the wider one that also accepts a
+				// doubled twin: today they are equal, and the day they part the sentence is wrong.
+				moons.sameDayEngineMoons.length,
 				moons.engineMoons.length,
 				monthName(engineDate),
 				engineDate.year,

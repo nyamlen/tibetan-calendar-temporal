@@ -254,7 +254,7 @@ function parseMonth(year, monthIndex, html, url) {
 		const unknownImage = images.find((alt) => !Object.hasOwn(MOON_ALT, alt ?? ""));
 		if (unknownImage !== undefined || images.includes(undefined))
 			throw new Error(
-				`${url}: ${iso} carries an image that is not a moon icon (alt "${unknownImage}")`,
+				`${url}: ${iso} carries an image that is not a moon icon (alt ${unknownImage === undefined ? "missing" : `"${unknownImage}"`})`,
 			);
 		if (images.length > 1) throw new Error(`${url}: ${iso} carries ${images.length} moon icons`);
 		const moon = images.length === 1 ? MOON_ALT[images[0]] : undefined;
@@ -313,6 +313,12 @@ function parseMonth(year, monthIndex, html, url) {
 				codes.push(...advice);
 				continue;
 			}
+			// A line of codes FPMT changes in a way `CODE_LINE` no longer matches — a five-letter code,
+			// say — would otherwise become an observance label in silence, where the key check cannot
+			// see it, since that runs only on lines already matched. No label in 2022-2025 is written
+			// in capitals alone, so this costs nothing and closes the one direction a code can be lost.
+			if (!/[a-z]/.test(text))
+				throw new Error(`${url}: ${iso} has "${text}" as a label, but it is written in capitals`);
 			if (/<em[^>]*>/i.test(raw)) major = true;
 			labels.push(text);
 		}
@@ -367,7 +373,8 @@ const inRange = KNOWN_MISPRINTS.filter((m) => {
 for (const misprint of inRange)
 	if (!misprintsSeen.has(misprint))
 		throw new Error(
-			`the known misprint "${misprint.code}" is no longer on ${misprint.iso}: remove it from KNOWN_MISPRINTS`,
+			`the known misprint "${misprint.code}" is no longer an unknown code on ${misprint.iso}: ` +
+				`FPMT has corrected it, or has added it to the page's KEY. Remove it from KNOWN_MISPRINTS.`,
 		);
 
 // Doubled days repeat a number on consecutive days within one month; the first is the leap day.
