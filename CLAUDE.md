@@ -661,6 +661,27 @@ support is false, and the count behind it ("2 of 2") was really 2 of 4. Before e
 by a rule, list every case the rule covers and check the agreeing ones too; a spec-panel review found
 this and no amount of staring at the mismatch list would have.
 
+**A guard can be well-formed, correct, and aimed where the risk is not — and it then reports
+"nothing found" for ever.** This is the sibling of "a guard that has never failed proves nothing":
+that one is about a guard nobody has tested, this one about a guard whose *search space* excludes
+what it was built to find. On 2026-09-20 the question was whether a pre-project research document
+had read a competing implementation's source. The check classified the document's **code blocks** by
+heading and language tag, found them all proposing architecture for this engine, and reported no
+contamination. The exposure was a **90-line prose section** headed "Architecture & API Surface",
+"Mathematical Foundation", "Test Coverage" — containing **no code fences at all**, the first being
+290 lines later. A check aimed at fenced regions could not fire on it, whatever it found. The
+verdict was reported as reassurance and had to be withdrawn. **Before trusting a guard's silence,
+state where the thing it hunts would live and check that the guard looks there.** An independent
+review found this; three passes by the check's own author did not.
+
+**An ordering written as prose goes stale silently, because nothing checks that its first step is
+still open.** The pre-1.0.0 checklist's preamble read "The rabjung name shape settles first" — true
+when written, and stale from 2026-08-25 when that item was ticked. On 2026-09-20 a reading of it
+duly proposed starting there, a month after the step was finished. The same failure is available to
+every ordering and count in this file: a `[x]` beside an item does not reach the prose that names
+it. When you tick an item, grep for its name. This file is full of prose orderings and measured
+figures, and it says so about itself elsewhere — this is the instance that was actually paid for.
+
 **A new layer that reuses an existing accessor inherits its tradition-dependence, whether or not a
 source licenses that.** The elemental yoga read `weekdayNameFor(weekday, tradition)` for its weekday
 element, which applies `naming.weekdayOffset` — so Bhutan silently got a different yoga on 12 of 14
