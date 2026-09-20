@@ -643,6 +643,24 @@ same fact limits what the suites claim: "agrees on every day" guards against a p
 fabricates mismatches, and nothing today would notice one quietly narrowed to the day number. The
 fields a shared predicate compares are held by review and by its docblock, not by a test.
 
+**Where the data cannot exercise a distinction, hand the predicate its rows and inject a
+counterexample.** That last sentence is now less true than it was: `fpmtMoonComparison` takes
+`(config, rows)`, defaulting to the fixture, and two suites pass a modified copy — one swapping an
+icon's full/new kind, one moving an icon to the first half of a doubled date. FPMT's real rows never
+put an icon on a moon of the other kind and never omit the second half of a doubled pair, so both
+distinctions are invisible to the fixture and a mutant is the only other way to reach them. **A
+mutant proves a predicate once; an injected row proves it on every run.** Each injection asserts the
+unmodified row's value first, so the counterexample self-invalidates if the fixture changes under it.
+
+**A list of mismatches says nothing about the cases that agree, so enumerate the population, not the
+failures.** FPMT's moon icon was read on 2026-09-19 as marking the *Tibetan date*, because both
+doubled dates that showed up as mismatches carried an icon on each half. There are **four** doubled
+dates carrying a moon in the window, and the other two carry one icon only — invisible to any
+mismatch list, because an icon on the engine's own day is not a mismatch. The rule it was taken to
+support is false, and the count behind it ("2 of 2") was really 2 of 4. Before explaining a residual
+by a rule, list every case the rule covers and check the agreeing ones too; a spec-panel review found
+this and no amount of staring at the mismatch list would have.
+
 **A new layer that reuses an existing accessor inherits its tradition-dependence, whether or not a
 source licenses that.** The elemental yoga read `weekdayNameFor(weekday, tradition)` for its weekday
 element, which applies `naming.weekdayOffset` — so Bhutan silently got a different yoga on 12 of 14
@@ -667,6 +685,18 @@ a mutant. A harness that copied the live file as its "original" on the next star
 mutant permanent. After any interruption, compare the files a harness edits against the saved copies
 before doing anything else. Run long harnesses in the foreground, in batches under the tool's
 10-minute limit.
+
+**Never mutate a fixture generator in place: it writes into the repository.** Each one computes its
+output path from its own location, so the control run — and any mutant a guard fails to catch —
+overwrites the committed fixture with the mutant's data, which is the failure the harness exists to
+detect, committed. Copy the generator into a scratch tree with its own `test/fixtures/` and run it
+from there. **Mutate its input, not its code**: a preload passed with `node --import` (a `file://`
+URL on Windows) replaces `globalThis.fetch` and serves saved pages, one edit per mutant, so the
+generator under test is the shipped file unchanged. **Record those pages during the byte-identical
+baseline run**, with a second preload that saves every response — then the control is served exactly
+what the baseline read, every run is offline and repeatable, and a diff cannot be blamed on a source
+that moved. `scripts/fetch-fpmt-observances.mjs` was proved this way on 2026-09-19, 15 mutants and a
+control that reproduced the committed fixture before and after.
 
 **`\b` does not bound a Sanskrit word in IAST, because JavaScript's `\b` treats a diacritic letter as
 a non-word character.** `/\bmāsa\b/` matches inside *ṣaṇmāsa*: `\b` sees a boundary after *ṇ*. Use
@@ -990,6 +1020,15 @@ that guard still carries the arm, which is how it got there.
 `check:links` validates relative markdown links and `#fragments` against the filesystem. Docs
 here cross-reference heavily, so renaming or deleting one breaks inbound links silently; fix them
 in the same commit.
+
+**Its anchors and GitHub's disagree for a heading holding an em dash, so do not put one in a heading
+you link to.** `slugify` collapses each run of whitespace to a single `-`, while GitHub emits one
+`-` per space — so `### FPMT's moon icons — lineage unknown` anchors as `…-icons-lineage-unknown`
+here and `…-icons--lineage-unknown` there, and whichever you write, one of the two is wrong. The
+collapse is deliberate, for the emoji case its comment documents, so it is the **heading** that has
+to change: a colon reads the same and slugs identically under both. Found 2026-09-19, when
+`check:links` rejected a link that GitHub would have accepted; the reverse — a link this checker
+accepts and GitHub 404s — is the silent direction.
 
 ## Conventions
 
