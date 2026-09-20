@@ -159,6 +159,23 @@ signal than reading 300 blocks in sequence, and the client should therefore run 
 The gate closes when every item on the client's friction list carries a verdict — **change the API**
 (free now, breaking forever after), **fix the documentation**, or **accept and record** — not when
 the list merely exists.
+
+**Widened 2026-09-20 (Andreas): the gate spans every client's list, not the first one's.** It was
+written when one spike had run and was recorded as closed on 2026-08-23 on that basis. Two further
+spikes then ran, on 25 and 27 August, producing **eighteen findings between them, none verdicted** —
+among them a README line that could never have run. The gate's purpose is to establish that the API
+survived contact with a consumer, and eighteen unanswered consumer findings say it has not. The
+ledger is `nyamlen/spikes/VERDICTS.md`: **32 rows, 18 open on 2026-09-20.** A fourth list is still
+to come from the browser client, and the gate does not close until its findings are verdicted too.
+
+**The client is a web app, and it arrives in two parts — decided 2026-09-20.** A one-day **polyfill
+probe** gates the API freeze, because the *Beyond v1* entry below requires the polyfill path to be
+spiked before the API is frozen and that is the only question which genuinely blocks. The week-long
+**navigator** follows and does not gate the freeze; its findings land as 1.x unless one is severe
+enough to reopen it, which is a judgement to make at the time. Both are blind builds, the probe
+included — it writes into the same codebase as the build that follows, so a contaminated probe
+defeats the blind build after it. Briefs: `nyamlen/spikes/polyfill-probe/` and
+`nyamlen/spikes/example-site/`.
 Note what a first client will *not* reach: `addDays`/`addMonths`/`nextFullMoon`, `parseTibetanDate`,
 and tradition switching. Those surfaces are being frozen on lighter evidence, which is a choice
 rather than an oversight.
@@ -212,8 +229,8 @@ draft dropped `isFullMoon`/`isNewMoon`, which it recorded as its own mistake.
 
 **Change the API before 1.0.0 — none.**
 
-**All six were fixed on 2026-08-23**, and the gate is closed: every item on the client's list
-carries a verdict, and no verdict was "change the API". What shipped as corrections —
+**All six were fixed on 2026-08-23**, and the gate closed **for that client's list**: every item on
+it carries a verdict, and no verdict was "change the API". What shipped as corrections —
 `leapMonthNumberFor`'s docblock and its Bhutan figure, the README's month-grid ordering claim, the
 `days` callout now recommending `datesFor` instead of teaching the walk that displaced it, the
 `Observance` shape, `weekdayName`'s tradition-awareness, and a `@remarks` on `formatTibetanDate`
@@ -1264,6 +1281,16 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
 **Repository**
 
 - [ ] Make the repository **public**
+- [ ] **Resolve the citation trail into `nyamlen` before going public.** Raised 2026-09-20. This
+      roadmap cites `nyamlen/spikes/calendar-smoke/` and `nyamlen/spikes/calendar-nav/` **by path**,
+      `decisions/2026-08-12-public-surface.md` cites two of that repository's tarballs, and the
+      verdict ledger that closes the client gate lives at `nyamlen/spikes/VERDICTS.md`. **`nyamlen`
+      is private indefinitely** — decided 2026-09-20 — so at 1.0.0 this public document would cite
+      evidence nobody can open, for the one claim whose whole point is that it is checkable. Three
+      options, none taken yet: publish the spikes and the ledger separately; open `nyamlen` after an
+      audit of what else is in it; or restate the claims here without the paths. The tarballs are a
+      separate matter — they are deliberately untracked, so those two citations name commits that
+      resolve in **this** repository and are reproducible with `npm pack`
 - [ ] Set **repository topics** to match `package.json#keywords` — `tibetan`, `calendar`,
       `temporal`, `phugpa`, `buddhist`, `lunisolar`, `losar`, `bhutanese`, `dzongkha`, `mongolian`,
       `tsagaan-sar`, `tsurphu`, `kalacakra`, `rabjung`. Topics drive GitHub search and the topic
@@ -1598,11 +1625,29 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   mean owning RFC 5545 escaping, `VTIMEZONE` and folding, none of which is calendrical. An
   `@nyamlen/icalendar` package remains open if one is requested.
 
-- **A phase-time retrospective, published in the `tibetan-calendar-story` repository.** Requested
-  2026-08-22. Not here: this repository ships a package, and the retrospective is prose, numbers and
-  diagrams — which is exactly what that repository is for. Its diagram rule applies, so every chart
-  is authored Mermaid or hand-written SVG under `diagrams/`, never a bitmap, so one source serves
-  both the webpage and the deck.
+- **A phase-time retrospective, published on `nyamlen.app` and drafted in the `nyamlen`
+  repository.** Requested 2026-08-22. Not here: this repository ships a package, and the
+  retrospective is prose, numbers and diagrams.
+
+  **Repointed 2026-09-20.** It was assigned to `tibetan-calendar-story`, which is wrong by that
+  repository's own scope — *"A documentary essay on the Tibetan calendar"*, and separately *"Not a
+  software project."* It is about the calendar, not about the package and not about the process of
+  building one. A retrospective is process, and its audience sits on both sides of the pitch:
+  centres being asked to trust computed dates, and developers evaluating the engine.
+
+  **The diagram rule travels with it**, and is now restated in `nyamlen/CLAUDE.md` — every chart
+  authored Mermaid or hand-written SVG under `diagrams/`, never a bitmap, so one source serves a
+  webpage and a deck. It was phrased here as "*its* diagram rule applies", meaning the rule belonged
+  to `tibetan-calendar-story`; repointing without restating it would have orphaned it. Everything
+  else in this entry travels too: the caveat rule and its three supporting facts, the four seed
+  insights, the two data-quality fixes of 2026-08-22, the four graph candidates, and the pointer to
+  the data under `~/.claude/projects/…/time-tracking/`.
+
+  **Unresolved, and it collides with the web-surface entry below**: that entry says two unrelated
+  web surfaces for one project is a maintenance surface nobody asked for. With the example client
+  and the retrospective both on `nyamlen.app` and the story publication separate, there are
+  **three**. Either the retrospective shares a surface with the story publication, or that entry
+  changes.
 
   The data lives outside both repositories, in the tracker at
   `~/.claude/projects/h--repositories-tibetan-calendar-temporal/time-tracking/` — `phases.json`
