@@ -168,6 +168,24 @@ survived contact with a consumer, and eighteen unanswered consumer findings say 
 ledger is `nyamlen/spikes/VERDICTS.md`: **32 rows, 18 open on 2026-09-20.** A fourth list is still
 to come from the browser client, and the gate does not close until its findings are verdicted too.
 
+**The order in which the gate closes — agreed 2026-09-20. Do not skip to step 4.**
+
+1. **Documentation-only verdicts, and their fixes.** Roughly 8–10 of the 18 open rows.
+2. **The polyfill probe** (`nyamlen`, blind) — gates the API freeze.
+3. **The navigator build** (`nyamlen`, blind) — does not.
+4. **The remaining verdicts**, including the fourth friction list the spikes produce.
+5. Freeze, then 1.0.0.
+
+**Documentation first, and not for speed.** A blind spike should exercise *corrected* documentation.
+While the README ships a line that cannot run, part of a week-long spike's findings list goes on
+re-reporting what is already known — attention it then does not spend on something nobody has seen.
+
+**The API verdicts wait because the gate's own question is not yet answerable.** It asks whether the
+API survived contact with a consumer, and there is a consumer still to come. The month-identity and
+month-string findings are exactly where a second independent consumer is evidence, and where a wrong
+call is permanent after 1.0.0. One row waits separately: the sojong finding is entangled with the
+paused `./observances` work, and verdicting it now would rule on a ruleset that is still moving.
+
 **The client is a web app, and it arrives in two parts — decided 2026-09-20.** A one-day **polyfill
 probe** gates the API freeze, because the *Beyond v1* entry below requires the polyfill path to be
 spiked before the API is frozen and that is the only question which genuinely blocks. The week-long
