@@ -1655,66 +1655,17 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   mean owning RFC 5545 escaping, `VTIMEZONE` and folding, none of which is calendrical. An
   `@nyamlen/icalendar` package remains open if one is requested.
 
-- **A phase-time retrospective, published on `nyamlen.app` and drafted in the `nyamlen`
-  repository.** Requested 2026-08-22. Not here: this repository ships a package, and the
-  retrospective is prose, numbers and diagrams.
+- **A phase-time retrospective.** Requested 2026-08-22. **Not here** — and its destination is not
+  this file's business either: this repository ships a package, and the retrospective is process,
+  being prose, numbers and diagrams about how the package was built.
 
-  **Repointed 2026-09-20.** It was assigned to `tibetan-calendar-story`, which is wrong by that
-  repository's own scope — *"A documentary essay on the Tibetan calendar"*, and separately *"Not a
-  software project."* It is about the calendar, not about the package and not about the process of
-  building one. A retrospective is process, and its audience sits on both sides of the pitch:
-  centres being asked to trust computed dates, and developers evaluating the engine.
+  Its home, its source material and the rules governing it **moved to the `nyamlen` repository on
+  2026-09-20**, where the component roadmap owns them: the four seed insights with their figures,
+  the caveat rule that every number travels with its qualification, the two data-quality fixes of
+  2026-08-22, and the graph candidates. They had grown into an entry of some sixty lines here, which
+  is itself the argument for moving them — a roadmap bullet in a package repository is not where a
+  publication's source material belongs.
 
-  **The diagram rule travels with it**, and is now restated in `nyamlen/CLAUDE.md` — every chart
-  authored Mermaid or hand-written SVG under `diagrams/`, never a bitmap, so one source serves a
-  webpage and a deck. It was phrased here as "*its* diagram rule applies", meaning the rule belonged
-  to `tibetan-calendar-story`; repointing without restating it would have orphaned it. Everything
-  else in this entry travels too: the caveat rule and its three supporting facts, the four seed
-  insights, the two data-quality fixes of 2026-08-22, the four graph candidates, and the pointer to
-  the data under `~/.claude/projects/…/time-tracking/`.
-
-  **Checked against the web-surface entry below, and there is no collision.** That entry warns that
-  *"two unrelated web surfaces for one project is a maintenance surface nobody asked for"*. The
-  example client and the retrospective are two **pages on one site** — one domain, one deployment,
-  one maintenance burden — so the count is `nyamlen.app` plus the story publication: **two**, which
-  is what the entry contemplates. A review reported this as three on 2026-09-20 by counting pages
-  rather than surfaces, and the error was repeated here before being checked.
-
-  The data lives outside both repositories, in the tracker at
-  `~/.claude/projects/h--repositories-tibetan-calendar-temporal/time-tracking/` — `phases.json`
-  holds one row per work window with a note recording what happened, and `report.mjs` prints the
-  table and an idle-threshold sensitivity breakdown.
-
-  **Insights already found, and worth checking before more are hunted.** These came out of a review
-  of the rows on 2026-08-22 and are the seed, not the whole set:
-
-  - **Responding to reviews cost more than building the calendar.** Adversarial-review remediation
-    totals 7.7h against 7.6h for Phases 1, 2 and 3 combined — the core computation, the validation
-    layer and the observance engine together — and the roadmap budgeted **zero** for it.
-  - **Sourcing names cost more than every budgeted phase put together.** The rabjung names (10.8h)
-    and the naming layer (4.4h) come to 15.2h, against 13.4h for all five estimated phases. The
-    expensive part of this project was provenance, not arithmetic.
-  - **Every estimate was high, and by a consistent factor.** 48h estimated across Phases 0–4 against
-    13.4h measured. That is a statement about the estimating model, not about the work: the
-    estimates were hand-written for human effort and the tracker measures agent-session wall-time,
-    so the honest finding is that the two are not comparable — which is itself the insight.
-  - **Elapsed dwarfs active on the long phases.** Part 5 spans 47.9h of calendar time for 10.8h of
-    active work. Worth pairing with the sensitivity table, which shows the same rows never
-    plateau.
-
-  **Every number must travel with its caveat**, in the same sentence or the one after. Active time
-  is session wall-clock including model latency and reading, gaps over fifteen minutes are dropped,
-  and for the three longest phases the figure never plateaus as the threshold widens — so those are
-  upper bounds, not measurements. A retrospective that prints them bare would assert a precision the
-  data does not have, which is the same failure [testing.md](testing.md) exists to prevent for
-  validation windows.
-
-  **Two data-quality bugs were fixed on 2026-08-22 and both predate the numbers above**, so any
-  chart built from an older export is wrong: commit counts ignored excluded windows entirely (one
-  consolidated row claimed 47 commits against 11), and one row was nested inside another with no
-  exclusion, billing roughly 1.3h and 8 commits twice. A nesting check over all rows now passes.
-
-  Graph candidates: estimate against actual for the five budgeted phases; budgeted against
-  unbudgeted work as a share of the total; a timeline of phases showing where remediation
-  interleaved with delivery; and active against elapsed per phase. The first is the one that carries
-  the argument, and it needs the caveat printed beside it rather than in a footnote.
+  It had first been assigned to `tibetan-calendar-story`, which is wrong by that repository's own
+  scope: *"A documentary essay on the Tibetan calendar"*, and separately, *"Not a software
+  project."*
