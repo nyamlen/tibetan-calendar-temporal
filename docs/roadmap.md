@@ -1338,7 +1338,14 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
       is private indefinitely** — decided 2026-09-20 — so at 1.0.0 this public document would cite
       evidence nobody can open, for the one claim whose whole point is that it is checkable. Three
       options, none taken yet: publish the spikes and the ledger separately; open `nyamlen` after an
-      audit of what else is in it; or restate the claims here without the paths. The tarballs are a
+      audit of what else is in it; or restate the claims here without the paths. **A fourth was
+      proposed on 2026-09-22 and declined by Andreas the same day: moving the three friction lists
+      and the ledger into this repository**, on the argument that they document this engine's API
+      rather than any front end, and that the verdict pass had left the ledger citing engine commits
+      almost exclusively. Recorded so it is not re-proposed; the three above remain open. **Each row
+      verdicted on 2026-09-22 cites an engine commit from inside the private repository, so the
+      migration is now larger than when this item was raised, and grows with the fourth friction
+      list** The tarballs are a
       separate matter — they are deliberately untracked, so those two citations name commits that
       resolve in **this** repository and are reproducible with `npm pack`
 - [ ] Set **repository topics** to match `package.json#keywords` — `tibetan`, `calendar`,
