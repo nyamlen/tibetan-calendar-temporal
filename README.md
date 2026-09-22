@@ -169,7 +169,11 @@ and still not compile a line.** If you see that error, this is the axis to check
 npm i -D typescript@^7
 ```
 
-No `"lib"` setting is needed — TypeScript 7's default already carries it. And do **not** install
+No `"lib"` setting is needed **if your `target` is `ESNext`** — that is what carries
+`lib.esnext.temporal.d.ts`. Under `nodenext` with no `target` set, TypeScript 7.0.2 still reports
+twelve `TS2503`s against this package, measured 2026-09-22. Set `"target": "ESNext"`, as
+[the guide's tsconfig](docs/guide.md#running-it-anywhere) does, or add
+`"lib": ["ES2024", "ESNext.Temporal"]`. And do **not** install
 `temporal-polyfill`, `temporal-spec` or any other typings package to fix it: they are unnecessary
 here, and the published `.d.ts` references the global deliberately. `engines` constrains only
 `node`; npm has no field for the TypeScript version a package's *types* require, which is why this
@@ -456,8 +460,12 @@ config you supplied, mutating it mutates your own rule table; the shipped `DEFAU
 **`DEFAULT_OBSERVANCES` ships ten rules, and none of them is *sojong*.** Its kinds are `duchen`, `puja` and
 `tsok`. The `"sojong"` kind exists so you can supply your own rule, but no shipped rule produces
 one: a fixed 15th-and-30th convention misses 38 of FPMT's published occurrences over 2022–2025 and
-invents 36, so whatever governs it is not a day number, and an approximate rule here is worse than
-none. If you query for sojong and get nothing, that is why — not a mistake in your query.
+invents 36, so whatever governs it is not a day number. It is a **counted schedule** — the fortnight
+ending at a sojong is 15 days, or 14 at the end of an odd month — which reproduces 96 of the 98
+intervals between FPMT's sojongs over those years. It stays unshipped for two reasons that are not
+"nobody knows": where the occasional extra day goes is not yet sourced, and a count is a rule shape
+`ObservanceRule` cannot express. If you query for sojong and get nothing, that is why — not a mistake
+in your query. `DEFAULT_OBSERVANCES`' own docblock carries the full reasoning and the worked dates.
 
 It is a separate import for a reason. Everything on the root export makes a **falsifiable** claim:
 a constant checks against Janson, a date against an almanac, and a disagreement is a bug. Nothing

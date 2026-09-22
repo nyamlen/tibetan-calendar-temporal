@@ -704,6 +704,6 @@ keys — `element`, `animal`, `kind`, `resolution` — are what a translation ta
 
 Contributor-facing documentation lives in the repository rather than in the published package:
 [architecture](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/architecture.md),
-[testing strategy](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/testing.md),
-[traditions](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/traditions.md) and
-[how it is calculated](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/how-it-is-calculated.md).
+[testing strategy](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/testing.md) and
+[traditions](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/traditions.md).
+`how-it-is-calculated.md` is not one of them — it ships, and is linked relatively above.

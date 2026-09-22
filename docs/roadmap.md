@@ -165,26 +165,50 @@ written when one spike had run and was recorded as closed on 2026-08-23 on that 
 spikes then ran, on 25 and 27 August, producing **eighteen findings between them, none verdicted** —
 among them a README line that could never have run. The gate's purpose is to establish that the API
 survived contact with a consumer, and eighteen unanswered consumer findings say it has not. The
-ledger is `nyamlen/spikes/VERDICTS.md`: **32 rows, 18 open on 2026-09-20.** A fourth list is still
-to come from the browser client, and the gate does not close until its findings are verdicted too.
+ledger holds **32 rows: 18 open on 2026-09-20, 1 open on 2026-09-22** — the sojong finding, blocked
+on the paused `./observances` work. It is kept privately; what is checkable here is the discharge.
+**Every finding's verdict names the commit in this repository that answered it**, and those commit
+bodies name the findings they answer: `90a38ee`, `864f88e`, `6ae4b7e`, `6e5f30d` and `6c5be94` on
+26 August, `aef049f` and `b47c853` on the 27th, and `fcfb4cd` and `409fc09` on
+2026-09-22 for the four claims the verdict pass found still live. A fourth list is still to come from
+the browser client, and the gate does not close until its findings are verdicted too.
 
-**The order in which the gate closes — agreed 2026-09-20. Do not skip to step 4.**
+**What the 18 turned out to be — 2026-09-22.** Sixteen of them had been answered on 26–27 August, by
+commits naming the spike's finding numbers in their own bodies. The ledger had been compiled from
+the friction lists **without cross-checking this repository's log**, so `open` meant *nobody has
+written a verdict* and was read here as *the API has not survived contact with a consumer*. The
+verdict pass answered every row against a packed tarball rather than against `src/`, found **three**
+claims still live out of twenty-two, and fixed them in `fcfb4cd`: the README's TypeScript remedy did
+not work as written, a `{@link}` to a non-exported constant shipped in a `.d.ts`, and `docs/guide.md`
+filed a **shipped** document as repository-only. One row stays open — the sojong finding — and it is
+blocked rather than unexamined.
 
-1. **Documentation-only verdicts, and their fixes.** Roughly 8–10 of the 18 open rows.
+**The order in which the gate closes — agreed 2026-09-20, step 1 amended 2026-09-22.**
+
+1. ~~Documentation-only verdicts and their fixes.~~ **Done 2026-09-22: every row, not the
+   documentation ones.** Ledger `7fa0cc0` in `nyamlen`, fixes `fcfb4cd` here.
 2. **The polyfill probe** (`nyamlen`, blind) — gates the API freeze.
 3. **The navigator build** (`nyamlen`, blind) — does not.
-4. **The remaining verdicts**, including the fourth friction list the spikes produce.
+4. **The fourth friction list's verdicts**, plus N10 once `./observances` moves.
 5. Freeze, then 1.0.0.
 
-**Documentation first, and not for speed.** A blind spike should exercise *corrected* documentation.
-While the README ships a line that cannot run, part of a week-long spike's findings list goes on
-re-reporting what is already known — attention it then does not spend on something nobody has seen.
+**Why step 1 widened, because an order without its reason gets reordered.** It was written as
+documentation-only on the reasoning that *a blind spike should exercise corrected documentation:
+while the README ships a line that cannot run, part of a week-long spike's findings goes on
+re-reporting what is already known.* **That reasoning had expired when it was written.** The README
+line was fixed on 2026-08-26, in `90a38ee`, three weeks before the ordering quoted it as a live
+defect. The same is true of the deferral: the API verdicts were held back because *"a second
+independent consumer is evidence"*, and that is an argument about a **new** API decision. N3–N6, N8
+and N9 had already been decided and shipped — `resolveMonth`, `formatTibetanMonth`/
+`parseTibetanMonth`, `addMonthsToDate`, `resolveDate` and the `TibetanWeekday` brand are all on the
+surface. A row discharged by shipped code has nothing to wait for.
 
-**The API verdicts wait because the gate's own question is not yet answerable.** It asks whether the
-API survived contact with a consumer, and there is a consumer still to come. The month-identity and
-month-string findings are exactly where a second independent consumer is evidence, and where a wrong
-call is permanent after 1.0.0. One row waits separately: the sojong finding is entangled with the
-paused `./observances` work, and verdicting it now would rule on a ruleset that is still moving.
+**The general lesson, which this file has paid for before:** an ordering written as prose goes stale
+silently, and so does the justification under it. Nothing checks that a step's reason is still true.
+
+One row waits, and its reason is real: the sojong finding is entangled with the paused
+`./observances` work, and verdicting it now would rule on a ruleset that is still moving. The
+explanation shipped for it in `864f88e` was itself overturned on 2026-09-19.
 
 **The client is a web app, and it arrives in two parts — decided 2026-09-20.** A one-day **polyfill
 probe** gates the API freeze, because the *Beyond v1* entry below requires the polyfill path to be
@@ -200,9 +224,9 @@ rather than an oversight.
 
 ### What the first client found
 
-A smoke client ran on 2026-08-22 in `nyamlen/spikes/calendar-smoke/`, working only from the
-installed tarball's `README.md` and shipped `.d.ts` files, with the engine's `docs/` and `src/`
-off limits. It printed month grids for three probe months and its output matched every expected
+A smoke client ran on 2026-08-22, working only from the installed tarball's `README.md` and shipped
+`.d.ts` files, with the engine's `docs/` and `src/` off limits. Its friction list is held privately;
+the six documentation fixes it produced are in this repository's history, dated 2026-08-23. It printed month grids for three probe months and its output matched every expected
 value, including that day 20 never appears in 2152 M09, that `isLeapDay` marks the **first** of a
 doubled pair, and that Chokhor Duchen falls on the second of 2151 M06L's doubled 4th.
 
@@ -268,8 +292,9 @@ whole navigation tier (`addDays`, `addMonths`, `daysBetween`, `monthsBetween`, `
 `tibetanDateExists`, `SkippedDayError` — no error path was exercised at all), `parseTibetanDate`,
 `getObservances` as a range query, the closed-form name lookups, and any custom `ObservanceConfig`.
 
-**A second client ran on 2026-08-25** against that unreached set — `nyamlen/spikes/calendar-nav/`,
-working from the tarball alone. It reached all 25 exports its brief named and returned **sixteen
+**A second client ran on 2026-08-25** against that unreached set, working from the tarball alone —
+its friction list held privately, its findings answered by the commits named above, each of which
+states the finding it closes. It reached all 25 exports its brief named and returned **sixteen
 findings**, of which eight were shipped prose that was false, two were its own mistakes, and six
 needed API rulings. Its most consequential single finding was that `README.md` shipped a line that
 **could never have run**: `monthsFor(2153).flatMap(datesFor)` throws, because `flatMap` passes the
@@ -1312,13 +1337,49 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
 
 - [ ] Make the repository **public**
 - [ ] **Resolve the citation trail into `nyamlen` before going public.** Raised 2026-09-20. This
-      roadmap cites `nyamlen/spikes/calendar-smoke/` and `nyamlen/spikes/calendar-nav/` **by path**,
+      roadmap cited `nyamlen/spikes/calendar-smoke/` and `nyamlen/spikes/calendar-nav/` **by path**,
       `decisions/2026-08-12-public-surface.md` cites two of that repository's tarballs, and the
-      verdict ledger that closes the client gate lives at `nyamlen/spikes/VERDICTS.md`. **`nyamlen`
+      verdict ledger that closes the client gate lives at `nyamlen/spikes/VERDICTS.md`. **Three of
+      those citations — the two client sections and the ledger — were restated on 2026-09-22** and no
+      longer name a path. **Two remain, and they are blocked rather than deferred**: the briefs at
+      `nyamlen/spikes/polyfill-probe/` and `nyamlen/spikes/example-site/` are **working pointers to
+      spikes that have not run**, not evidence, and they become evidence citations the moment those
+      spikes produce their lists. Restating them before then would be restating them twice. **`nyamlen`
       is private indefinitely** — decided 2026-09-20 — so at 1.0.0 this public document would cite
-      evidence nobody can open, for the one claim whose whole point is that it is checkable. Three
-      options, none taken yet: publish the spikes and the ledger separately; open `nyamlen` after an
-      audit of what else is in it; or restate the claims here without the paths. The tarballs are a
+      evidence nobody can open, for the one claim whose whole point is that it is checkable.
+
+      **Decided 2026-09-22 (Andreas): option 3 — restate the claims here without the paths.** The
+      other three were: publish the spikes and the ledger separately; open `nyamlen` after an audit
+      of what else is in it; and a fourth proposed and declined the same day, moving the friction
+      lists and the ledger into this repository. Both of the publishing options stay **available**,
+      which is the point of taking this one: restating is reversible and publishing is not, so
+      option 1 remains open if the pitch ever needs the consumer's own prose.
+
+      **What makes it cheap, stated accurately.** The gate's substance is already in *this*
+      repository's public history: `90a38ee`, `864f88e`, `6ae4b7e`, `6e5f30d`, `6c5be94`, `aef049f`
+      and `fcfb4cd` each describe in their bodies the findings they answer. A reader can open every
+      one. So the claim becomes checkable without the private repository, and the friction lists are
+      named as **provenance** rather than offered as citations — a path that promises nothing is
+      honest; a path that promises evidence nobody can open is this item's defect.
+
+      **That was true on the day this item was raised, and the first draft of this entry claimed
+      otherwise** — that the commits had only now made the record public. They are from 26–27
+      August, three weeks earlier. What changed on 2026-09-22 is that they were **mapped** to the
+      findings, nobody having cross-checked the log before. The option was always this cheap and
+      nobody knew, which is the same error the verdict pass had just finished documenting: an
+      unrecorded fact read as an absent one. Corrected here rather than left standing, because a
+      decision resting on a false "this only became possible" invites re-litigation when someone
+      checks the dates.
+
+      **Scope: seven citations, all in this file**, two of them this item, which goes when the work
+      lands. No shipped document names a private path — `package.json#files` ships `README.md`,
+      `docs/guide.md`, `docs/how-it-is-calculated.md` and `docs/why-trust-these-dates.md`, and none
+      of the four cites one. Measured 2026-09-22.
+
+      **Do it in the pre-1.0.0 pass, not before**: the fourth friction list will add citations, and
+      restating twice is waste. Each row verdicted on 2026-09-22 also cites an engine commit from
+      inside the private repository, which is why the two publishing options grow more expensive
+      with time while this one does not The tarballs are a
       separate matter — they are deliberately untracked, so those two citations name commits that
       resolve in **this** repository and are reproducible with `npm pack`
 - [ ] Set **repository topics** to match `package.json#keywords` — `tibetan`, `calendar`,

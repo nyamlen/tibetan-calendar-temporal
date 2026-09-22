@@ -414,12 +414,12 @@ function assertQueryOptions(functionName: string, options: unknown): void {
  * Both bounds are inclusive. Results for one day may be several, and on a doubled date under
  * `"both"` the same rule appears twice with different {@link Observance.resolution} values.
  *
- * **The span is capped at {@link MAX_SPAN_YEARS} years.** Cost is linear in the range, and what
- * the cap guards against is not the cap itself — the maximum admissible span runs in about 270 ms
- * on the machine recorded in `bench/RESULTS.md`, a 2017 dual-core laptop — but the range beyond
- * it. `Temporal.PlainDate` reaches from -271821 to +275760, about 547,000 years, so a service
- * forwarding user-supplied `from`/`to` straight through would hand its event
- * loop three orders of magnitude more than that, synchronously and without yielding.
+ * **The span is capped at 200 years** (`MAX_SPAN_YEARS`, an internal constant). Cost is linear
+ * in the range, and what the cap guards against is not the cap itself — the maximum admissible
+ * span runs in about 270 ms on the machine recorded in `bench/RESULTS.md`, a 2017 dual-core
+ * laptop — but the range beyond it. `Temporal.PlainDate` reaches from -271821 to +275760, about
+ * 547,000 years, so a service forwarding user-supplied `from`/`to` straight through would hand
+ * its event loop three orders of magnitude more than that, synchronously and without yielding.
  *
  * The cap is deliberately far beyond real use: the Phugpa tradition dates from 1447, so 200 years
  * exceeds any span an almanac or an application asks for. A caller who genuinely wants a wider
@@ -435,7 +435,7 @@ function assertQueryOptions(functionName: string, options: unknown): void {
  * @param options - `config` (which observances) and `tradition` (astronomical constants).
  *
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `from` or `to` is not a value
- * `asPlainDate` accepts; `TCT_SPAN_TOO_WIDE` if the span exceeds {@link MAX_SPAN_YEARS}; or
+ * `asPlainDate` accepts; `TCT_SPAN_TOO_WIDE` if the span exceeds 200 years; or
  * `TCT_INVALID_OBSERVANCE_CONFIG` if `config` is invalid.
  */
 export function getObservances(
