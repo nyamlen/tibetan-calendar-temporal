@@ -165,9 +165,13 @@ written when one spike had run and was recorded as closed on 2026-08-23 on that 
 spikes then ran, on 25 and 27 August, producing **eighteen findings between them, none verdicted** —
 among them a README line that could never have run. The gate's purpose is to establish that the API
 survived contact with a consumer, and eighteen unanswered consumer findings say it has not. The
-ledger is `nyamlen/spikes/VERDICTS.md`: **32 rows, 18 open on 2026-09-20; 1 open on 2026-09-22.** A
-fourth list is still to come from the browser client, and the gate does not close until its findings
-are verdicted too.
+ledger holds **32 rows: 18 open on 2026-09-20, 1 open on 2026-09-22** — the sojong finding, blocked
+on the paused `./observances` work. It is kept privately; what is checkable here is the discharge.
+**Every finding's verdict names the commit in this repository that answered it**, and those commit
+bodies name the findings they answer: `90a38ee`, `864f88e`, `6ae4b7e`, `6e5f30d` and `6c5be94` on
+26 August, `aef049f` and `b47c853` on the 27th, and `fcfb4cd` and `409fc09` on
+2026-09-22 for the four claims the verdict pass found still live. A fourth list is still to come from
+the browser client, and the gate does not close until its findings are verdicted too.
 
 **What the 18 turned out to be — 2026-09-22.** Sixteen of them had been answered on 26–27 August, by
 commits naming the spike's finding numbers in their own bodies. The ledger had been compiled from
@@ -220,9 +224,9 @@ rather than an oversight.
 
 ### What the first client found
 
-A smoke client ran on 2026-08-22 in `nyamlen/spikes/calendar-smoke/`, working only from the
-installed tarball's `README.md` and shipped `.d.ts` files, with the engine's `docs/` and `src/`
-off limits. It printed month grids for three probe months and its output matched every expected
+A smoke client ran on 2026-08-22, working only from the installed tarball's `README.md` and shipped
+`.d.ts` files, with the engine's `docs/` and `src/` off limits. Its friction list is held privately;
+the six documentation fixes it produced are in this repository's history, dated 2026-08-23. It printed month grids for three probe months and its output matched every expected
 value, including that day 20 never appears in 2152 M09, that `isLeapDay` marks the **first** of a
 doubled pair, and that Chokhor Duchen falls on the second of 2151 M06L's doubled 4th.
 
@@ -288,8 +292,9 @@ whole navigation tier (`addDays`, `addMonths`, `daysBetween`, `monthsBetween`, `
 `tibetanDateExists`, `SkippedDayError` — no error path was exercised at all), `parseTibetanDate`,
 `getObservances` as a range query, the closed-form name lookups, and any custom `ObservanceConfig`.
 
-**A second client ran on 2026-08-25** against that unreached set — `nyamlen/spikes/calendar-nav/`,
-working from the tarball alone. It reached all 25 exports its brief named and returned **sixteen
+**A second client ran on 2026-08-25** against that unreached set, working from the tarball alone —
+its friction list held privately, its findings answered by the commits named above, each of which
+states the finding it closes. It reached all 25 exports its brief named and returned **sixteen
 findings**, of which eight were shipped prose that was false, two were its own mistakes, and six
 needed API rulings. Its most consequential single finding was that `README.md` shipped a line that
 **could never have run**: `monthsFor(2153).flatMap(datesFor)` throws, because `flatMap` passes the
@@ -1332,9 +1337,14 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
 
 - [ ] Make the repository **public**
 - [ ] **Resolve the citation trail into `nyamlen` before going public.** Raised 2026-09-20. This
-      roadmap cites `nyamlen/spikes/calendar-smoke/` and `nyamlen/spikes/calendar-nav/` **by path**,
+      roadmap cited `nyamlen/spikes/calendar-smoke/` and `nyamlen/spikes/calendar-nav/` **by path**,
       `decisions/2026-08-12-public-surface.md` cites two of that repository's tarballs, and the
-      verdict ledger that closes the client gate lives at `nyamlen/spikes/VERDICTS.md`. **`nyamlen`
+      verdict ledger that closes the client gate lives at `nyamlen/spikes/VERDICTS.md`. **Three of
+      those citations — the two client sections and the ledger — were restated on 2026-09-22** and no
+      longer name a path. **Two remain, and they are blocked rather than deferred**: the briefs at
+      `nyamlen/spikes/polyfill-probe/` and `nyamlen/spikes/example-site/` are **working pointers to
+      spikes that have not run**, not evidence, and they become evidence citations the moment those
+      spikes produce their lists. Restating them before then would be restating them twice. **`nyamlen`
       is private indefinitely** — decided 2026-09-20 — so at 1.0.0 this public document would cite
       evidence nobody can open, for the one claim whose whole point is that it is checkable.
 
