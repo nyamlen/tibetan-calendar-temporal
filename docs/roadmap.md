@@ -1336,16 +1336,40 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
       `decisions/2026-08-12-public-surface.md` cites two of that repository's tarballs, and the
       verdict ledger that closes the client gate lives at `nyamlen/spikes/VERDICTS.md`. **`nyamlen`
       is private indefinitely** — decided 2026-09-20 — so at 1.0.0 this public document would cite
-      evidence nobody can open, for the one claim whose whole point is that it is checkable. Three
-      options, none taken yet: publish the spikes and the ledger separately; open `nyamlen` after an
-      audit of what else is in it; or restate the claims here without the paths. **A fourth was
-      proposed on 2026-09-22 and declined by Andreas the same day: moving the three friction lists
-      and the ledger into this repository**, on the argument that they document this engine's API
-      rather than any front end, and that the verdict pass had left the ledger citing engine commits
-      almost exclusively. Recorded so it is not re-proposed; the three above remain open. **Each row
-      verdicted on 2026-09-22 cites an engine commit from inside the private repository, so the
-      migration is now larger than when this item was raised, and grows with the fourth friction
-      list** The tarballs are a
+      evidence nobody can open, for the one claim whose whole point is that it is checkable.
+
+      **Decided 2026-09-22 (Andreas): option 3 — restate the claims here without the paths.** The
+      other three were: publish the spikes and the ledger separately; open `nyamlen` after an audit
+      of what else is in it; and a fourth proposed and declined the same day, moving the friction
+      lists and the ledger into this repository. Both of the publishing options stay **available**,
+      which is the point of taking this one: restating is reversible and publishing is not, so
+      option 1 remains open if the pitch ever needs the consumer's own prose.
+
+      **What makes it cheap, stated accurately.** The gate's substance is already in *this*
+      repository's public history: `90a38ee`, `864f88e`, `6ae4b7e`, `6e5f30d`, `6c5be94`, `aef049f`
+      and `fcfb4cd` each describe in their bodies the findings they answer. A reader can open every
+      one. So the claim becomes checkable without the private repository, and the friction lists are
+      named as **provenance** rather than offered as citations — a path that promises nothing is
+      honest; a path that promises evidence nobody can open is this item's defect.
+
+      **That was true on the day this item was raised, and the first draft of this entry claimed
+      otherwise** — that the commits had only now made the record public. They are from 26–27
+      August, three weeks earlier. What changed on 2026-09-22 is that they were **mapped** to the
+      findings, nobody having cross-checked the log before. The option was always this cheap and
+      nobody knew, which is the same error the verdict pass had just finished documenting: an
+      unrecorded fact read as an absent one. Corrected here rather than left standing, because a
+      decision resting on a false "this only became possible" invites re-litigation when someone
+      checks the dates.
+
+      **Scope: seven citations, all in this file**, two of them this item, which goes when the work
+      lands. No shipped document names a private path — `package.json#files` ships `README.md`,
+      `docs/guide.md`, `docs/how-it-is-calculated.md` and `docs/why-trust-these-dates.md`, and none
+      of the four cites one. Measured 2026-09-22.
+
+      **Do it in the pre-1.0.0 pass, not before**: the fourth friction list will add citations, and
+      restating twice is waste. Each row verdicted on 2026-09-22 also cites an engine commit from
+      inside the private repository, which is why the two publishing options grow more expensive
+      with time while this one does not The tarballs are a
       separate matter — they are deliberately untracked, so those two citations name commits that
       resolve in **this** repository and are reproducible with `npm pack`
 - [ ] Set **repository topics** to match `package.json#keywords` — `tibetan`, `calendar`,
