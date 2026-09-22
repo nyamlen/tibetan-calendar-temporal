@@ -1382,6 +1382,17 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
       with time while this one does not The tarballs are a
       separate matter — they are deliberately untracked, so those two citations name commits that
       resolve in **this** repository and are reproducible with `npm pack`
+- [ ] **Decide whether `check:conventions` rule 4 should distinguish an exported `{@link}` target
+      from a module-local one.** Found 2026-09-22 by the verdict pass, not by the rule. It requires a
+      target to be "declared anywhere in `src/`", so `{@link MAX_SPAN_YEARS}` — a module-local
+      `const` — passed while shipping in `dist/observances/index.d.ts`, where a consumer's hover
+      renders it as plain text. That is the exact failure the rule's own message describes: "a stale
+      link ships in the .d.ts and renders as plain text on hover". The two docblocks were fixed in
+      `fcfb4cd`, so **nothing is broken today** and this is about the guard, not the symptom.
+      Widening it means deciding what a link to an internal symbol *should* do — reject, or resolve
+      only within the module — and writing the failing case before the check, since a guard that has
+      never failed proves nothing. A row in `npm run test:conventions` comes with it
+
 - [ ] Set **repository topics** to match `package.json#keywords` — `tibetan`, `calendar`,
       `temporal`, `phugpa`, `buddhist`, `lunisolar`, `losar`, `bhutanese`, `dzongkha`, `mongolian`,
       `tsagaan-sar`, `tsurphu`, `kalacakra`, `rabjung`. Topics drive GitHub search and the topic

@@ -674,6 +674,50 @@ verdict was reported as reassurance and had to be withdrawn. **Before trusting a
 state where the thing it hunts would live and check that the guard looks there.** An independent
 review found this; three passes by the check's own author did not.
 
+**A shipped instruction is contract exactly as a shipped example is, and this project's own setup is
+the worst possible evidence for one.** `test/docblock-examples.test.ts` and `test/guide.test.ts`
+assert every *example* that states a value; nothing asserts an *instruction* that tells a consumer
+how to configure their project, and one shipped wrong for a month. The README said **"No `"lib"`
+setting is needed — TypeScript 7's default already carries it"**. Measured 2026-09-22 on
+typescript@7.0.2 with `module`/`moduleResolution: nodenext` and `strict`: **twelve
+`TS2503: Cannot find namespace 'Temporal'`**, which is the whole surface, because dates are the
+product.
+
+**`tsconfig.json` here sets `target: ES2024` *and* `lib: ["ES2024", "ESNext.Temporal"]`** — exactly
+the pair where the explicit lib is **required**. So `npm run typecheck` was green forever while a
+consumer following the landing page could not compile a line. A repository's configuration is
+written by people who already know the answer, so it is systematically biased towards masking this
+class of defect; `test:pack` did not catch it either, because it imports and computes rather than
+type-checking. `docs/guide.md` was right for a reason worth copying: it **printed a working
+`tsconfig.json`** instead of describing one. Prescribe by printing something runnable, and run it in
+a clean consumer before shipping it.
+
+**The status in a tracking document describes the tracker, not the thing tracked**, and the two get
+confused in the direction that invents work. `nyamlen/spikes/VERDICTS.md` was built on 2026-09-20 by
+enumerating three friction lists **without cross-checking this repository's log**, so all eighteen
+rows read `open` — meaning *nobody has written a verdict here*. Both roadmaps then restated it as
+*the API has not survived contact with a consumer*, and an ordering was built on top of it that put
+a documentation pass in front of a release. Sixteen of the eighteen had been answered on 26–27
+August, by commits naming the spike's finding numbers in their own bodies. **An unrecorded fact is
+not an absent one.** The error is available even to a session that has just finished documenting it:
+hours later, the same session argued for a decision on the ground that the public record "only now"
+existed, when those commits predated the claim by three weeks.
+
+**A finding is not one claim, and the commit that answers it is not a reading of it.** Decompose a
+source's report from **its own text** before reading whatever discharged it — a commit body
+*describes* the finding it answers, and a description is not the finding. `friction-list.md`'s
+finding 13 makes three claims and `864f88e` answers one; closing the row on that commit would have
+shipped two reproducible defects as the evidence closing a 1.0.0 gate. Eighteen rows held
+twenty-two claims once decomposed.
+
+**And a closure can be honest and still wrong, in two ways this pass found.** `aef049f` closed a
+finding correctly and documented a **remedy that does not work** — only running a consumer's
+typecheck showed it. `864f88e` closed one correctly and its **subject moved underneath it**: the
+sojong model it cited was overturned on 2026-09-19, and the correction reached four files but not
+the README paragraph that commit had written. Nothing in that paragraph was false, which is what
+made it survive; it had simply stopped where the source now goes on. **Re-check a closed item when
+its subject moves**, and do it by re-reading the finding rather than the verdict.
+
 **An ordering written as prose goes stale silently, because nothing checks that its first step is
 still open.** The pre-1.0.0 checklist's preamble read "The rabjung name shape settles first" — true
 when written, and stale from 2026-08-25 when that item was ticked. On 2026-09-20 a reading of it
