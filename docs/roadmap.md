@@ -165,26 +165,46 @@ written when one spike had run and was recorded as closed on 2026-08-23 on that 
 spikes then ran, on 25 and 27 August, producing **eighteen findings between them, none verdicted** —
 among them a README line that could never have run. The gate's purpose is to establish that the API
 survived contact with a consumer, and eighteen unanswered consumer findings say it has not. The
-ledger is `nyamlen/spikes/VERDICTS.md`: **32 rows, 18 open on 2026-09-20.** A fourth list is still
-to come from the browser client, and the gate does not close until its findings are verdicted too.
+ledger is `nyamlen/spikes/VERDICTS.md`: **32 rows, 18 open on 2026-09-20; 1 open on 2026-09-22.** A
+fourth list is still to come from the browser client, and the gate does not close until its findings
+are verdicted too.
 
-**The order in which the gate closes — agreed 2026-09-20. Do not skip to step 4.**
+**What the 18 turned out to be — 2026-09-22.** Sixteen of them had been answered on 26–27 August, by
+commits naming the spike's finding numbers in their own bodies. The ledger had been compiled from
+the friction lists **without cross-checking this repository's log**, so `open` meant *nobody has
+written a verdict* and was read here as *the API has not survived contact with a consumer*. The
+verdict pass answered every row against a packed tarball rather than against `src/`, found **three**
+claims still live out of twenty-two, and fixed them in `fcfb4cd`: the README's TypeScript remedy did
+not work as written, a `{@link}` to a non-exported constant shipped in a `.d.ts`, and `docs/guide.md`
+filed a **shipped** document as repository-only. One row stays open — the sojong finding — and it is
+blocked rather than unexamined.
 
-1. **Documentation-only verdicts, and their fixes.** Roughly 8–10 of the 18 open rows.
+**The order in which the gate closes — agreed 2026-09-20, step 1 amended 2026-09-22.**
+
+1. ~~Documentation-only verdicts and their fixes.~~ **Done 2026-09-22: every row, not the
+   documentation ones.** Ledger `7fa0cc0` in `nyamlen`, fixes `fcfb4cd` here.
 2. **The polyfill probe** (`nyamlen`, blind) — gates the API freeze.
 3. **The navigator build** (`nyamlen`, blind) — does not.
-4. **The remaining verdicts**, including the fourth friction list the spikes produce.
+4. **The fourth friction list's verdicts**, plus N10 once `./observances` moves.
 5. Freeze, then 1.0.0.
 
-**Documentation first, and not for speed.** A blind spike should exercise *corrected* documentation.
-While the README ships a line that cannot run, part of a week-long spike's findings list goes on
-re-reporting what is already known — attention it then does not spend on something nobody has seen.
+**Why step 1 widened, because an order without its reason gets reordered.** It was written as
+documentation-only on the reasoning that *a blind spike should exercise corrected documentation:
+while the README ships a line that cannot run, part of a week-long spike's findings goes on
+re-reporting what is already known.* **That reasoning had expired when it was written.** The README
+line was fixed on 2026-08-26, in `90a38ee`, three weeks before the ordering quoted it as a live
+defect. The same is true of the deferral: the API verdicts were held back because *"a second
+independent consumer is evidence"*, and that is an argument about a **new** API decision. N3–N6, N8
+and N9 had already been decided and shipped — `resolveMonth`, `formatTibetanMonth`/
+`parseTibetanMonth`, `addMonthsToDate`, `resolveDate` and the `TibetanWeekday` brand are all on the
+surface. A row discharged by shipped code has nothing to wait for.
 
-**The API verdicts wait because the gate's own question is not yet answerable.** It asks whether the
-API survived contact with a consumer, and there is a consumer still to come. The month-identity and
-month-string findings are exactly where a second independent consumer is evidence, and where a wrong
-call is permanent after 1.0.0. One row waits separately: the sojong finding is entangled with the
-paused `./observances` work, and verdicting it now would rule on a ruleset that is still moving.
+**The general lesson, which this file has paid for before:** an ordering written as prose goes stale
+silently, and so does the justification under it. Nothing checks that a step's reason is still true.
+
+One row waits, and its reason is real: the sojong finding is entangled with the paused
+`./observances` work, and verdicting it now would rule on a ruleset that is still moving. The
+explanation shipped for it in `864f88e` was itself overturned on 2026-09-19.
 
 **The client is a web app, and it arrives in two parts — decided 2026-09-20.** A one-day **polyfill
 probe** gates the API freeze, because the *Beyond v1* entry below requires the polyfill path to be
