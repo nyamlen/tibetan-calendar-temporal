@@ -169,7 +169,11 @@ and still not compile a line.** If you see that error, this is the axis to check
 npm i -D typescript@^7
 ```
 
-No `"lib"` setting is needed — TypeScript 7's default already carries it. And do **not** install
+No `"lib"` setting is needed **if your `target` is `ESNext`** — that is what carries
+`lib.esnext.temporal.d.ts`. Under `nodenext` with no `target` set, TypeScript 7.0.2 still reports
+twelve `TS2503`s against this package, measured 2026-09-22. Set `"target": "ESNext"`, as
+[the guide's tsconfig](docs/guide.md#running-it-anywhere) does, or add
+`"lib": ["ES2024", "ESNext.Temporal"]`. And do **not** install
 `temporal-polyfill`, `temporal-spec` or any other typings package to fix it: they are unnecessary
 here, and the published `.d.ts` references the global deliberately. `engines` constrains only
 `node`; npm has no field for the TypeScript version a package's *types* require, which is why this
