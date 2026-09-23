@@ -204,12 +204,12 @@ describe("the two halves of a doubled day", () => {
 	 * The bug A2 named, and the one a test checking only that a value came back cannot see.
 	 *
 	 * A doubled date is two calendar days sharing one Tibetan `(month, day)`. Their Julian days
-	 * differ by one, so the **weekday element differs and therefore the yoga differs** — and
+	 * differ by one, so the **weekday element differs, and the yoga can** (it does on the pair below) — and
 	 * `mansionNumber` cannot tell them apart from the Tibetan date alone, which is why it takes
 	 * `firstOfDoubledPair`. Computing the yoga from the date fields gives both days one answer, and
 	 * it is wrong for the first.
 	 */
-	it("get different yogas, and equality here is the bug", () => {
+	it("get different yogas on 2024-05-15/16, where equality is the bug", () => {
 		// 2024-05-15 and 2024-05-16 are both Tibetan month 4 day 8; the first carries isLeapDay.
 		const first = isoToTibetan(iso("2024-05-15"), PHUGPA);
 		const second = isoToTibetan(iso("2024-05-16"), PHUGPA);

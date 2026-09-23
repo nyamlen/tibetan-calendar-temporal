@@ -497,7 +497,7 @@ day.yoga.favorable;      // false
 
 **A day carries two sets of labels that disagree, and almanacs print both.** The lunar day is the
 thirtieth of a lunation; the calendar day runs sunrise to sunrise. On a doubled date the two halves
-share `year`, `month` and `lunarDay` and differ in `calendarDay` and `yoga`, and can differ in
+share `year`, `month` and `lunarDay` and differ in `calendarDay`, and can differ in `yoga` and
 `lunarMansion` — that is the calendar, not a bug.
 
 **`month` and `lunarDay` are `null` for the Bhutanese traditions.** Janson tabulates no month-animal

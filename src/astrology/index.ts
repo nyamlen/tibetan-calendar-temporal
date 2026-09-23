@@ -19,7 +19,7 @@
  * **A day carries two sets of labels that disagree**, and that is not a defect to reconcile:
  * almanacs print both. The lunar day is the thirtieth of a lunation; the calendar day is
  * sunrise-to-sunrise. On a **doubled** date the two halves share one lunar day and so share
- * `lunarDay`, while `calendarDay` and `yoga` differ — see {@link attributesFor}.
+ * `lunarDay`, while `calendarDay` differs and `yoga` can — see {@link attributesFor}.
  *
  * **Sourcing is not uniform across this subpath, and the docs say where each piece comes from.**
  * Janson gives every cycle and the mansion arithmetic; Henning gives the element each mansion
@@ -283,9 +283,10 @@ export function calendarDayAttributesFor(
  * The pair is unordered, which is Janson's definition: ten combinations rather than sixteen.
  * `favorable` comes from FPMT; `auspiciousness`, the four-way grading, from the *tshig mdzod chen mo*.
  *
- * **On a doubled date the two halves get different yogas**, because their Julian days differ and so
- * do their weekday elements. Pass the `Temporal.PlainDate` of the half you mean, or a resolved
- * `TibetanDate` — which carries `isLeapDay`, the flag that says which half it is.
+ * **On a doubled date the two halves can get different yogas**, because their Julian days differ and
+ * so do their weekday elements — though the mansion can move too, and the pair can land on the same
+ * yoga. Pass the `Temporal.PlainDate` of the half you mean, or a resolved `TibetanDate` — which
+ * carries `isLeapDay`, the flag that says which half it is.
  *
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` for an argument that names no calendar day;
  * `TCT_OUTSIDE_EXACT_RANGE` past the tradition's exact range.
@@ -353,8 +354,8 @@ export function lunarMansionFor(
  *
  * **On a doubled date this is partly identical and partly different between the two halves, and
  * that is correct.** They share one Tibetan `(month, day)` — so `year`, `month` and `lunarDay` are
- * the same for both — while they are two different calendar days, so `calendarDay` and `yoga`
- * differ. Anyone who has not met the two-clocks point reads that as a bug; it is the point.
+ * the same for both — while they are two different calendar days, so `calendarDay` differs and
+ * `yoga` can. Anyone who has not met the two-clocks point reads that as a bug; it is the point.
  *
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` for an argument that names no calendar day;
  * `TCT_OUTSIDE_EXACT_RANGE` past the tradition's exact range. **Never**

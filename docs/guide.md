@@ -289,8 +289,9 @@ computed here. The sun plays no part in the elemental yoga.
 lunar day is a thirtieth of a lunation; the calendar day runs sunrise to sunrise. So `lunarDay` and
 `calendarDay` give different animals for the same date, and an almanac prints both. On a **doubled**
 date the two halves share `year`, `month` and `lunarDay` — there is one lunar day — while
-`calendarDay` and `yoga` differ, because there are two calendar days, and `lunarMansion` can differ
-too, because the moon moves between their mornings.
+`calendarDay` differs, because there are two calendar days. `yoga` and `lunarMansion` can differ
+too: the weekday element changes and the moon moves between their mornings, though the two can
+still land on the same yoga.
 
 *The sourcing is not uniform, and the package does not pretend otherwise.* The cycles are Janson's,
 and so are the trigrams' English words — `'fire'`, `'earth'`, `'iron'`, `'sky'`, `'water'`,

@@ -735,6 +735,10 @@ halves of a doubled date have different weekday elements whatever the mansion do
 `expect(first.yoga).not.toBe(second.yoga)` held with the bug reinstated, and deleting the fix left 990
 tests green while changing 19 of 31 doubled-first days. **Pin the value.** The plan that specified the
 inequality had the same blind spot, so this is a rule about the instruction as much as the test.
+**And the inequality's premise was false**: the halves can share a yoga, because the mansion can move
+with the weekday — 9 and 10 July 2024 are both *death*. "The two halves get different yogas" had
+reached the README, the guide and three docblocks before the polyfill probe caught it on 2026-09-23;
+the index test now pins both pairs by value, one that differs and one that does not.
 
 **A comparison that agrees everywhere cannot detect being weakened, so mutate it to disagree.** The
 first mutant written for `mismatchesIn` on 2026-09-18 dropped its `isLeapDay` field, and no test

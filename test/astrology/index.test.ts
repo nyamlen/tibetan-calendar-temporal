@@ -52,12 +52,28 @@ describe("the composition on a doubled date", () => {
 		expect(second.yoga.sanskritName.iast).toBe("pratikūla");
 	});
 
-	it("differs on the calendar day and the yoga, because there are two calendar days", () => {
+	it("differs on the calendar day, because there are two calendar days", () => {
 		// The half of the docblock that reads like a bug. It is the two-clocks point: the lunar day is
 		// a thirtieth of a lunation and the calendar day runs sunrise to sunrise, so a doubled date is
-		// one lunar day wearing two calendar days.
-		expect(first.calendarDay).not.toEqual(second.calendarDay);
-		expect(first.yoga).not.toBe(second.yoga);
+		// one lunar day wearing two calendar days. Pinned by value: the halves are a rabbit day and
+		// a dragon day, consecutive in the twelve-animal cycle.
+		expect([first.calendarDay.animal, second.calendarDay.animal]).toEqual(["rabbit", "dragon"]);
+	});
+
+	it("can nevertheless give both halves one yoga, so the yoga is not what tells them apart", () => {
+		// Until 2026-09-23 four shipped docs said the two halves "differ" in yoga. The weekday element
+		// always changes, but the mansion can change with it and land the pair on the same one: 9 and
+		// 10 July 2024, both Tibetan day 4, are both *death*, from mansion 8 (water) to 9 (fire).
+		const july9 = attributesFor(iso("2024-07-09"));
+		const july10 = attributesFor(iso("2024-07-10"));
+		expect([july9.date.day, july9.date.isLeapDay, july10.date.day, july10.date.isLeapDay]).toEqual([
+			4,
+			true,
+			4,
+			false,
+		]);
+		expect([july9.lunarMansion.index, july10.lunarMansion.index]).toEqual([8, 9]);
+		expect([july9.yoga.englishName, july10.yoga.englishName]).toEqual(["death", "death"]);
 	});
 
 	it("marks which half is which, so a caller can tell them apart", () => {
@@ -281,8 +297,9 @@ describe("the lunar mansion for a date", () => {
 	});
 
 	it("puts the two halves of a doubled date in the mansions their own mornings fall in", () => {
-		// Pinned by value, not as an inequality: the pair's yogas differ through the weekday whatever
-		// the mansion does, so only the index itself can catch isLeapDay being dropped.
+		// Pinned by value, not as an inequality: the pair's weekday elements differ whatever the
+		// mansion does, so an inequality on the yoga says nothing about the mansion, and only the index
+		// itself can catch isLeapDay being dropped.
 		const brief = (m: ReturnType<typeof lunarMansionFor>) => [
 			m.index,
 			m.sanskritName.iast,
