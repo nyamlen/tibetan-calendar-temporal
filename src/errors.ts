@@ -142,3 +142,52 @@ export function assertInternal<T>(value: T | undefined, invariant: string): T {
 export function hasCode(error: unknown, code: TibetanCalendarErrorCode): boolean {
 	return error instanceof Error && (error as Partial<Coded<Error>>).code === code;
 }
+
+/**
+ * A value rendered short enough for a message, and unambiguously — `"3"` is not `3`.
+ *
+ * @remarks
+ * Lives here because every caller is building a coded error, and because it existed **twice**,
+ * character-identical, in `traditions/validate.ts` and `observances/index.ts` until 2026-09-23.
+ * Both copies were written by whoever needed a value rendered next to a `rangeError`, which is
+ * this module — so this is where the one copy belongs.
+ *
+ * **Three near-siblings remain, deliberately not merged here yet**: `describeValue` in
+ * `computation/conversion.ts`, `describeFlagValue` in `types.ts`, and another `describe` in
+ * `parse.ts`. Their bodies differ, so merging them changes error message text, which is a
+ * behaviour change with its own tests to update rather than the mechanical move this was. They
+ * converge as part of the boundary consolidation; this note is here so the next person to add a
+ * fourth finds the debt instead of the pattern.
+ */
+export function describe(value: unknown): string {
+	if (typeof value === "string") return JSON.stringify(value);
+	if (Array.isArray(value)) return `an array of ${value.length}`;
+	if (value !== null && typeof value === "object") return "an object";
+	return String(value);
+}
+
+/**
+ * Rejects a year that is not a safe integer.
+ *
+ * @remarks
+ * One predicate covers fractions, `NaN`, `±Infinity` and 2⁵³ overflow — the bounds checks alone
+ * cannot, since `NaN` satisfies no comparison and would reach the arithmetic.
+ *
+ * This does **not** catch the royal-era confusion — passing Gregorian 2026 where royal-era 2153 is
+ * meant. 2026 is a perfectly valid royal-era year (1899 CE), so no guard can distinguish the two,
+ * and the conversion returns a well-formed date 127 years away. That is a documentation problem,
+ * handled in the README, not something an error message can reach.
+ *
+ * Also existed twice, character-identical, in `months.ts` and `computation/conversion.ts` until
+ * 2026-09-23 — with *different* docblocks, so each copy carried half the reasoning above. That is
+ * the quieter cost of a duplicate: not the repeated code, but the knowledge that ends up in only
+ * one of the two places a reader might look.
+ */
+export function assertSafeYear(subject: string, year: number): void {
+	if (!Number.isSafeInteger(year)) {
+		throw rangeError(
+			"TCT_FIELD_OUT_OF_RANGE",
+			`${subject}: year must be a safe integer, received ${year}`,
+		);
+	}
+}

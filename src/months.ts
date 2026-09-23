@@ -41,7 +41,7 @@ import {
 } from "./computation/conversion.js";
 import { yearFromRoyalEra, yearNameFromYear } from "./computation/epoch.js";
 import { type ScaledTradition, scalingFor } from "./computation/scaling.js";
-import { rangeError } from "./errors.js";
+import { assertSafeYear, rangeError } from "./errors.js";
 import { monthCodeOf } from "./format.js";
 import { PHUGPA } from "./traditions/phugpa.js";
 import type { TraditionConfig } from "./traditions/types.js";
@@ -59,14 +59,6 @@ const MONTH_FIELDS = ["year", "month"] as const;
  * One predicate covers fractions, `NaN`, `±Infinity` and 2⁵³ overflow — the bounds checks alone
  * cannot, since `NaN` satisfies no comparison and would reach the arithmetic.
  */
-function assertSafeYear(subject: string, year: number): void {
-	if (!Number.isSafeInteger(year)) {
-		throw rangeError(
-			"TCT_FIELD_OUT_OF_RANGE",
-			`${subject}: year must be a safe integer, received ${year}`,
-		);
-	}
-}
 
 /**
  * Validates a year for the closed-form functions, which need no lunar arithmetic.

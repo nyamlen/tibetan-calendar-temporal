@@ -10,7 +10,7 @@
  * @packageDocumentation
  */
 
-import { codedError, hasCode, rangeError } from "../errors.js";
+import { assertSafeYear, codedError, hasCode, rangeError } from "../errors.js";
 import { monthCodeOf } from "../format.js";
 import { weekdayNameWithOffset } from "../names.js";
 import { PHUGPA } from "../traditions/phugpa.js";
@@ -229,14 +229,6 @@ function describeInput(input: TibetanDateFields): string {
  * and the conversion returns a well-formed date 127 years away. That is a documentation problem,
  * handled in the README, not something an error message can reach.
  */
-function assertSafeYear(subject: string, year: number): void {
-	if (!Number.isSafeInteger(year)) {
-		throw rangeError(
-			"TCT_FIELD_OUT_OF_RANGE",
-			`${subject}: year must be a safe integer, received ${year}`,
-		);
-	}
-}
 
 /**
  * Rejects a Julian day past the point where this tradition's arithmetic stays exact.

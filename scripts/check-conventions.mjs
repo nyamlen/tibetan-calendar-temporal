@@ -136,6 +136,57 @@ const codeOf = (source) =>
 		.map((line) => line.code)
 		.join("\n");
 
+/**
+ * A body shorter than this may legitimately recur — `return a % b;` is 13 characters — and
+ * reporting those would train people to ignore Rule 14. Measured: the two real duplicates found on
+ * 2026-09-23 were 119 and 214 characters.
+ */
+const DUPLICATE_BODY_FLOOR = 40;
+
+/**
+ * Every `function name(...) { ... }` in a source, with its body normalised to one line.
+ *
+ * Built on `codeOf`, so comments are already gone and a docblock difference cannot hide a
+ * duplicate — which matters, because the two real duplicates had *different* docblocks.
+ *
+ * Brace-matching, not parsing. A `{` inside a string literal would break it; none exists in `src/`
+ * today, and `selfTest`'s count invariant is what notices if that stops being true.
+ */
+function functionBodies(source) {
+	const code = codeOf(source);
+	const DECLARATION = /(?:^|[^\w.$])function\s+([A-Za-z0-9_$]+)\s*(?:<[^>]*>)?\s*\(/g;
+	const out = [];
+	for (const match of code.matchAll(DECLARATION)) {
+		let index = match.index + match[0].length - 1;
+		let depth = 0;
+		let paramsEnd = -1;
+		for (; index < code.length; index++) {
+			if (code[index] === "(") depth++;
+			else if (code[index] === ")" && --depth === 0) {
+				paramsEnd = index;
+				break;
+			}
+		}
+		if (paramsEnd === -1) continue;
+		const bodyStart = code.indexOf("{", paramsEnd);
+		if (bodyStart === -1) continue;
+		depth = 0;
+		let end = bodyStart;
+		for (; end < code.length; end++) {
+			if (code[end] === "{") depth++;
+			else if (code[end] === "}" && --depth === 0) break;
+		}
+		out.push({
+			name: match[1],
+			body: code
+				.slice(bodyStart + 1, end)
+				.replace(/\s+/g, " ")
+				.trim(),
+		});
+	}
+	return out;
+}
+
 // ---------------------------------------------------------------------------------------
 // The predicates, and the proof that they hold
 //
@@ -669,6 +720,61 @@ function selfTest() {
 		"a missing heading must refuse, or one entry point would go unguarded — the state rule 13 exists to end. Note which arm refuses: the ORDERING comparison, because indexOf returns -1 and -1 is below the root's 0. Mutating the `=== -1` arm away leaves this case passing, which was checked; that arm is therefore defensive rather than load-bearing, and is kept as the statement of intent for a future TYPE_BARRELS whose first entry is not the root.",
 	);
 
+	// --- Rule 14, the invariant. Derived from the tree, so it needs no foresight. ---
+	//
+	// `functionBodies` brace-matches. If a construct in src/ ever breaks that, it returns few or no
+	// functions and Rule 14 passes vacuously over an empty set — the exact failure shape this file
+	// exists to prevent. The guard is a deliberately CRUDER, independent count: a bare regex tally of
+	// `function name(` with no brace-matching at all, so one bug cannot silence both.
+	const parsedFunctions = sources.reduce((n, file) => n + functionBodies(read(file)).length, 0);
+	const crudeFunctions = sources.reduce(
+		(n, file) =>
+			n + (codeOf(read(file)).match(/(?:^|[^\w.$])function\s+[A-Za-z0-9_$]+\s*[(<]/g) ?? []).length,
+		0,
+	);
+	check(
+		"functionBodies finds src/'s functions",
+		parsedFunctions > 0 && parsedFunctions >= crudeFunctions - 2,
+		true,
+		`brace-matching must find substantially every function a crude tally finds; got ${parsedFunctions} against ${crudeFunctions}. A parser that silently returns nothing makes Rule 14 report "no duplicates" for ever.`,
+	);
+
+	// --- Rule 14, the cases the invariant cannot see. ---
+	const bodyOf = (src) => functionBodies(src)[0]?.body;
+	check(
+		"functionBodies ignores comments and whitespace",
+		bodyOf(`function a(x: number): number {
+	// a comment
+	return x + 1;
+}`) === bodyOf("function b(x: number): number { /* different comment */ return x + 1; }"),
+		true,
+		"two copies that differ only in their comments must compare equal, or a duplicate hides behind a reworded docblock. The two real duplicates found on 2026-09-23 had different docblocks.",
+	);
+	check(
+		"functionBodies separates different bodies",
+		bodyOf("function a(x: number): number { return x + 1; }") ===
+			bodyOf("function b(x: number): number { return x + 2; }"),
+		false,
+		"a predicate that collapses distinct bodies would report every short function as a duplicate of every other.",
+	);
+	check(
+		"functionBodies matches the whole body, not the first line",
+		bodyOf("function a(): void { if (x) { go(); } done(); }"),
+		"if (x) { go(); } done();",
+		"brace-matching must span nested braces. Stopping at the first `}` truncates every guard-shaped function to its `if`, which would make unrelated functions compare equal.",
+	);
+	// Read from src/, never restated here. A hand copy of the body would keep passing while the
+	// real function shrank below the floor, which is the failure this case exists to catch.
+	const smallestRealDuplicate = functionBodies(read("src/errors.ts")).find(
+		(fn) => fn.name === "assertSafeYear",
+	);
+	check(
+		"the duplicate floor admits the real cases",
+		(smallestRealDuplicate?.body.length ?? 0) >= DUPLICATE_BODY_FLOOR,
+		true,
+		"`assertSafeYear` is the smaller of the two duplicates this rule was built from on 2026-09-23, and it must sit above the floor — a floor above it would have let both real cases through. A `false` here also means the function was renamed or moved out of src/errors.ts, in which case point this case at its new home rather than lowering the floor.",
+	);
+
 	// --- The registry. A rule dropped from it stops running and says nothing. ---
 	//
 	// Every other rule failure in this file is loud; this one is not, because a rule that never runs
@@ -679,8 +785,8 @@ function selfTest() {
 		RULES.map(({ number }) => number)
 			.sort((a, b) => a - b)
 			.join(","),
-		Array.from({ length: 13 }, (_, index) => index + 1).join(","),
-		"every rule 1-13 must be registered exactly once. Adding a rule means adding it here too.",
+		Array.from({ length: 14 }, (_, index) => index + 1).join(","),
+		"every rule 1-14 must be registered exactly once. Adding a rule means adding it here too.",
 	);
 	check(
 		"RULES registry",
@@ -1374,6 +1480,49 @@ function rule13() {
 // for that reason alone: moving it changes the report, and nothing else about the rules.
 // ---------------------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------------------
+// Rule 14 — no two functions in src/ share a body
+//
+// Measured 2026-09-23 over 172 function declarations in 36 files: exactly two pairs, both
+// genuine, zero false positives. `assertSafeYear` stood character-identical in `months.ts` and
+// `computation/conversion.ts`, and `describe` in `traditions/validate.ts` and
+// `observances/index.ts`.
+//
+// The quieter cost is not the repeated code. The two `assertSafeYear` copies carried DIFFERENT
+// docblocks — one explained the `NaN` case, the other the royal-era confusion — so each reader
+// got half the reasoning depending on which file they opened.
+//
+// **What this rule cannot see, stated so it is not mistaken for coverage.** It catches
+// copy-paste. It does not catch a *semantic* duplicate written independently: `phaseStart` in
+// `navigation.ts` and `isoOf` in `astrology/index.ts` do one job with different bodies and
+// different arity, and no predicate here would group them. That class is caught by having one
+// named home for boundary code and by asking, when a new subsystem lands, which guards it wrote.
+// The enforcement map says so rather than letting this rule read as more than it is.
+//
+// The 40-character floor is deliberate: a one-line body like `return a % b;` may legitimately
+// recur, and reporting it would train people to ignore this rule.
+// ---------------------------------------------------------------------------------------
+function rule14() {
+	const RULE = "no two functions in src/ share a body";
+	const byBody = new Map();
+	for (const file of sources) {
+		for (const fn of functionBodies(read(file))) {
+			if (fn.body.length < DUPLICATE_BODY_FLOOR) continue;
+			if (!byBody.has(fn.body)) byBody.set(fn.body, []);
+			byBody.get(fn.body).push({ file, name: fn.name });
+		}
+	}
+	for (const [, group] of byBody) {
+		if (group.length < 2) continue;
+		const where = group.map((g) => `${g.file} (${g.name})`).join(", ");
+		fail(
+			RULE,
+			group[0].file,
+			`${group.length} functions share a body, character for character, after comments and whitespace are normalised: ${where}. Move it to one module both can import. If the copies have drifted apart in their docblocks, merge those too — half the reasoning in each file is how a duplicate actually hurts.`,
+		);
+	}
+}
+
 const RULES = [
 	{ number: 1, run: rule1 },
 	{ number: 2, run: rule2 },
@@ -1388,6 +1537,7 @@ const RULES = [
 	{ number: 10, run: rule10 },
 	{ number: 11, run: rule11 },
 	{ number: 13, run: rule13 },
+	{ number: 14, run: rule14 },
 ];
 
 function report() {

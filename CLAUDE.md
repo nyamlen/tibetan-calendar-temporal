@@ -313,6 +313,22 @@ derivation; in `docs/` they are just noise.
   platforms.
 - **Zero runtime dependencies.** Temporal is a language built-in; the engine depends on nothing.
 - **ESM only.** `"type": "module"`. No dual CJS build.
+- **A new subsystem duplicates the boundary code it cannot import, and it has done so twice.**
+  When `./astrology` landed on 2026-09-12 it wrote its own `isoOf`, duplicating `navigation.ts`'s
+  private `phaseStart`, and its own `assertQueryOptions`, duplicating `./observances`'. Neither was
+  carelessness: the existing helpers were **private to another module**, so there was nothing to
+  import and nowhere obvious to look. Both copies then drifted, and each shipped an error message
+  that misdescribes its own function — `nextFullMoon` naming two accepted shapes while accepting
+  four, `attributesFor` naming four while never mentioning the resolved `TibetanDate` it takes.
+  A sweep on 2026-09-23 found **four** duplicate clusters across 172 functions, one of which this
+  file already documented and nobody had cleaned up.
+
+  So **boundary and guard code has one named home**, and `check:conventions` rule 14 refuses two
+  functions in `src/` that share a body. **Rule 14 catches copy-paste and cannot catch this** —
+  `phaseStart` and `isoOf` differ in body and in arity, so no predicate groups them. What catches
+  it is a question at review, when a new subsystem lands: **which boundary helpers did you write,
+  and did one already exist?** Ask it about guards, normalisers, validators and value-renderers
+  specifically; those are what every subsystem needs and what nobody thinks to look for.
 - **Pure stateless functions.** Same input, same output, no side effects — measured by what a
   **caller** can observe, not by whether a module holds a variable. Memoising a pure function is
   therefore allowed and already done three times: `scalingFor` on a `WeakMap`, the config validators

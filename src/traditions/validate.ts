@@ -20,7 +20,7 @@
  * @packageDocumentation
  */
 
-import { rangeError } from "../errors.js";
+import { describe, rangeError } from "../errors.js";
 import type {
 	MeanMotion,
 	Rational,
@@ -297,14 +297,6 @@ function assertNonEmptyString(config: TraditionConfig, path: string, value: stri
 	if (typeof value !== "string" || value === "") {
 		throw invalid(config, `${path} must be a non-empty string, received ${describe(value)}`);
 	}
-}
-
-/** A value rendered short enough for a message, and unambiguously — `"3"` is not `3`. */
-function describe(value: unknown): string {
-	if (typeof value === "string") return JSON.stringify(value);
-	if (Array.isArray(value)) return `an array of ${value.length}`;
-	if (value !== null && typeof value === "object") return "an object";
-	return String(value);
 }
 
 /** Configs already checked, keyed by object — the pattern `validatedConfigs` uses for observances. */

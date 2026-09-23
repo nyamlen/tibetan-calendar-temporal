@@ -35,7 +35,7 @@ import {
 } from "../computation/conversion.js";
 import { yearFromRoyalEra } from "../computation/epoch.js";
 import { type ScaledTradition, scalingFor } from "../computation/scaling.js";
-import { codedError, rangeError } from "../errors.js";
+import { codedError, describe, rangeError } from "../errors.js";
 import { PHUGPA } from "../traditions/phugpa.js";
 import { DEFAULT_OBSERVANCES } from "./default-observances.js";
 import type {
@@ -256,14 +256,6 @@ function assertNonEmptyString(value: unknown, subject: string, why?: string): vo
 				(why === undefined ? "" : `. ${why}`),
 		);
 	}
-}
-
-/** A value rendered short enough for a message, and unambiguously — `"3"` is not `3`. */
-function describe(value: unknown): string {
-	if (typeof value === "string") return JSON.stringify(value);
-	if (Array.isArray(value)) return `an array of ${value.length}`;
-	if (value !== null && typeof value === "object") return "an object";
-	return String(value);
 }
 
 /**
