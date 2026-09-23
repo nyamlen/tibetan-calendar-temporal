@@ -329,6 +329,22 @@ derivation; in `docs/` they are just noise.
   it is a question at review, when a new subsystem lands: **which boundary helpers did you write,
   and did one already exist?** Ask it about guards, normalisers, validators and value-renderers
   specifically; those are what every subsystem needs and what nobody thinks to look for.
+
+  **All four clusters were closed on 2026-09-23**, so this passage is now a record of what was
+  found rather than a list of open debt. `assertSafeYear` and `describe` went to `src/errors.ts`
+  in `8f28389`; `assertQueryOptions` joined them, taking its message's shape example as a
+  parameter, which was the **only** thing the two copies differed in; the three value-describers —
+  `describeValue`, `describeFlagValue` and a third `describe` in `parse.ts` — merged into
+  `errors.ts`'s, whose body won because `describeValue`'s `constructor?.name` branch existed to
+  name a `Temporal.PlainDate` and the brand predicate now does that. `format.ts` keeps a `describe`
+  of its own: it lists an object's keys, a different function wearing the same name.
+  `phaseStart` and `isoOf` became `asWesternDay` in `computation/conversion.ts`.
+
+  **And the class rule 14 cannot see now has a rule of its own for the case that caused it.**
+  Rule 15 refuses `instanceof Temporal` anywhere in `src/` but `src/temporal-kind.ts`. That is
+  checkable precisely because the home is **one named file**; a rule saying "outside the guards"
+  would need the checker to know which functions count as guards. It does not generalise — rule 15
+  is about one idiom, and the review question above is still what catches the rest.
 - **Pure stateless functions.** Same input, same output, no side effects — measured by what a
   **caller** can observe, not by whether a module holds a variable. Memoising a pure function is
   therefore allowed and already done three times: `scalingFor` on a `WeakMap`, the config validators

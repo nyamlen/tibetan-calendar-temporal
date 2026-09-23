@@ -110,6 +110,7 @@ This does not affect the package's Temporal-native claim. The engine speaks
 tibetan-calendar-temporal/
 ├── src/
 │   ├── index.ts                    # Public API exports
+│   ├── temporal-kind.ts            # temporalKindOf — the ONLY instanceof Temporal in src/
 │   ├── traditions/
 │   │   ├── types.ts                # TraditionConfig type
 │   │   ├── validate.ts             # assertTraditionConfig — shape check at the boundary
@@ -578,8 +579,15 @@ and returned a confident, well-formed, wrong `PlainDate`, and `NaN` passed too, 
 neither `< 1` nor `> 30`.
 A plausible calendar that is quietly wrong is the most expensive failure this project has.
 
-Five rules follow from that:
+Six rules follow from that:
 
+- **A date argument is tested by kind, not identity.** `temporalKindOf` reads
+  `Symbol.toStringTag`; `instanceof Temporal.PlainDate` is refused everywhere but
+  `src/temporal-kind.ts`, by `check:conventions` Rule 15. `instanceof` asks which realm built
+  the value, and a `PlainDate` from a second Temporal implementation — a bundled polyfill, two
+  copies in `node_modules`, an iframe — fails it. That was 27 exports wrong in two directions:
+  17 read a foreign Western date as a Tibetan one and answered, 10 refused a genuine Western
+  date. See [decisions/2026-09-23-brand-not-identity.md](decisions/2026-09-23-brand-not-identity.md).
 - **Integrality is checked before range.** `Number.isSafeInteger` for years, which covers fractions,
   `NaN`, the infinities and 2⁵³ overflow in one predicate; `Number.isInteger` for fields whose
   bounds already confine them.

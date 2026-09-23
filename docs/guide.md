@@ -616,6 +616,24 @@ warning on install, not a block, so a polyfilled Node 22 or 24 project works fin
 is there to tell the truth about the default path rather than to lock anyone out. Set
 `engine-strict=true` in `.npmrc` if you want it enforced.
 
+### Two Temporal implementations in one page is fine
+
+You do not have to make sure every date reaches this package from the same `Temporal` you imported.
+A `Temporal.PlainDate` built by a bundled polyfill, by a second non-deduplicated copy in
+`node_modules`, or in an iframe is accepted at every date entry point, and answers the same as one
+built by the global.
+
+This is worth saying because the obvious check would not do it. `instanceof Temporal.PlainDate` asks
+which implementation *built* the value, so it is `false` for all three of those; every guard here
+reads `Symbol.toStringTag` instead, which the Temporal specification mandates on every type. The
+distinction the package does still enforce is the one that matters — a bare `{ year, month, day }`
+object is refused wherever a Western date is expected, because it is a genuine value of this
+package's own Tibetan-date shape too and nothing about it says which calendar it means.
+
+One restriction: the calendar has to be `iso8601`. A `PlainDate` carrying another calendar is
+refused with `TCT_INVALID_ARGUMENT` rather than silently reinterpreted; `date.withCalendar('iso8601')`
+names the same day and is accepted.
+
 ### Node 24 has `--harmony-temporal`, and you should not use it here
 
 That flag exposes V8's in-progress implementation, which may not match the shipped specification.
