@@ -280,6 +280,23 @@ const R: Record<number, Row> = {
 			),
 		must: ["no two functions in src/ share a body", "assertSafeYearCopy"],
 	},
+	15: {
+		id: "R15",
+		what: "a sixth `instanceof Temporal` outside its one home",
+		// Appended rather than edited in place: every existing identity check was removed on
+		// 2026-09-23, so there is no live text to point at, and a row anchored to one would report
+		// "mutation target not found" the moment the home file is reworded. The mutant is a whole
+		// function, so the comment-skipping branch is exercised too — a version of this rule that
+		// only matched comments would pass its own row while catching nothing.
+		apply: (tree) =>
+			tree.edit(
+				"src/navigation.ts",
+				(source) =>
+					`${source}\nfunction reintroducedIdentityCheck(value: unknown): boolean {\n\treturn value instanceof Temporal.PlainDate;\n}\n`,
+				"the end of src/navigation.ts",
+			),
+		must: ["`instanceof Temporal` lives only in src/temporal-kind.ts", "src/navigation.ts"],
+	},
 };
 
 const rule = (number: number): Row => {

@@ -144,6 +144,16 @@ const codeOf = (source) =>
 const DUPLICATE_BODY_FLOOR = 40;
 
 /**
+ * The one file in `src/` where an identity check against `Temporal` belongs.
+ *
+ * @remarks
+ * Named as a constant because Rule 15's message points at it and the self-test asserts the file
+ * exists: a rename that left this string behind would turn the rule into one banning the idiom
+ * everywhere, with no home to move it to.
+ */
+const TEMPORAL_KIND_HOME = "src/temporal-kind.ts";
+
+/**
  * Every `function name(...) { ... }` in a source, with its body normalised to one line.
  *
  * Built on `codeOf`, so comments are already gone and a docblock difference cannot hide a
@@ -775,6 +785,31 @@ function selfTest() {
 		"`assertSafeYear` is the smaller of the two duplicates this rule was built from on 2026-09-23, and it must sit above the floor — a floor above it would have let both real cases through. A `false` here also means the function was renamed or moved out of src/errors.ts, in which case point this case at its new home rather than lowering the floor.",
 	);
 
+	// --- Rule 15's home must exist, and must be the only file exempt from it. ---
+	//
+	// Two failures this catches, and neither is loud on its own. If `src/temporal-kind.ts` is
+	// renamed and this constant is not, the rule silently becomes one that bans `instanceof
+	// Temporal` everywhere with nowhere legal to put it — and it would still read "All conventions
+	// hold" until someone next wrote one. And the home is only a home if it actually holds the
+	// predicate: a file that has stopped asking `instanceof Temporal` is not exempting anything,
+	// which means the policy moved and nobody moved the exemption.
+	// `homePresent` is read once and guards the second check, which would otherwise call `read` on a
+	// path that is not there — and `read` throws by design. A self-test that crashes reports
+	// nothing, which is the failure it exists to prevent, one level up.
+	const homePresent = sources.includes(TEMPORAL_KIND_HOME);
+	check(
+		"rule 15's exempt file",
+		homePresent,
+		true,
+		`${TEMPORAL_KIND_HOME} must exist in src/. Rule 15 exempts it by path, so a rename that leaves the constant behind turns the rule into one with no legal home.`,
+	);
+	check(
+		"rule 15's exempt file",
+		homePresent && /\binstanceof\s+Temporal\b/.test(read(TEMPORAL_KIND_HOME)),
+		true,
+		`${TEMPORAL_KIND_HOME} must actually contain an \`instanceof Temporal\` check. If it does not, the boundary predicate has moved and the exemption is pointing at the wrong file — which no amount of running rule 15 would reveal.`,
+	);
+
 	// --- The registry. A rule dropped from it stops running and says nothing. ---
 	//
 	// Every other rule failure in this file is loud; this one is not, because a rule that never runs
@@ -785,8 +820,8 @@ function selfTest() {
 		RULES.map(({ number }) => number)
 			.sort((a, b) => a - b)
 			.join(","),
-		Array.from({ length: 14 }, (_, index) => index + 1).join(","),
-		"every rule 1-14 must be registered exactly once. Adding a rule means adding it here too.",
+		Array.from({ length: 15 }, (_, index) => index + 1).join(","),
+		"every rule 1-15 must be registered exactly once. Adding a rule means adding it here too.",
 	);
 	check(
 		"RULES registry",
@@ -1523,6 +1558,50 @@ function rule14() {
 	}
 }
 
+// ---------------------------------------------------------------------------------------
+// Rule 15 — `instanceof Temporal` lives in exactly one file
+//
+// Five identity checks had accumulated across three files by 2026-09-23, with nothing watching,
+// and each asked the wrong question: `instanceof` is true only for an instance built by whichever
+// `Temporal` is the global at call time, so a `PlainDate` from a second implementation failed
+// every one of them. Seventeen exports then read a Western date as a Tibetan one and answered;
+// ten refused a genuine Western date. Two of the five were also a second copy of a policy that
+// already existed in another module.
+//
+// The rule is checkable because the home is ONE NAMED FILE. A rule banning identity checks
+// "outside the guards" would need this checker to know which functions count as guards, which it
+// cannot; `src/temporal-kind.ts` it can simply compare a path against.
+//
+// This is the ratchet, not the fix. Nothing stopped a sixth site appearing, and the freeze at
+// 1.0.0 is the last moment at which one can appear silently — after it, which inputs throw is
+// `error.code` contract.
+// ---------------------------------------------------------------------------------------
+function rule15() {
+	const RULE = "`instanceof Temporal` lives only in src/temporal-kind.ts";
+	for (const file of sources) {
+		if (file === TEMPORAL_KIND_HOME) continue;
+		const source = read(file);
+		for (const [index, line] of source.split("\n").entries()) {
+			// Comment lines are skipped, and the omission is deliberate rather than an oversight:
+			// the fix itself has to be able to SAY `instanceof Temporal` in the docblock explaining
+			// why it no longer does it. The first run of this rule flagged exactly that — a comment
+			// in `asPlainDate` pointing readers at the shared predicate — which is a rule firing on
+			// its own documentation. A line whose first non-space character opens or continues a
+			// comment cannot be an identity check.
+			const trimmed = line.trim();
+			if (trimmed.startsWith("//") || trimmed.startsWith("*") || trimmed.startsWith("/*")) {
+				continue;
+			}
+			if (!/\binstanceof\s+Temporal\b/.test(line)) continue;
+			fail(
+				RULE,
+				file,
+				`line ${index + 1} asks \`instanceof Temporal\`, which tests IDENTITY — whether the value came from this realm's Temporal — where this package needs KIND. A PlainDate from a second implementation (a bundled polyfill, two copies in node_modules, an iframe) fails it, and is then either refused as "the wrong kind of thing" or read structurally as a Tibetan date and answered wrongly. Use \`temporalKindOf\` from ${TEMPORAL_KIND_HOME}, which reads Symbol.toStringTag. See docs/decisions/2026-09-23-brand-not-identity.md.`,
+			);
+		}
+	}
+}
+
 const RULES = [
 	{ number: 1, run: rule1 },
 	{ number: 2, run: rule2 },
@@ -1538,6 +1617,7 @@ const RULES = [
 	{ number: 11, run: rule11 },
 	{ number: 13, run: rule13 },
 	{ number: 14, run: rule14 },
+	{ number: 15, run: rule15 },
 ];
 
 function report() {
