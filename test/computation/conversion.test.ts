@@ -19,7 +19,9 @@ import {
 import { meanDate } from "../../src/computation/mean-astronomy.js";
 import { deriveScaling } from "../../src/computation/scaling.js";
 import { rabjungFor, yearNameFor } from "../../src/cycles.js";
+import type { TibetanCalendarErrorCode } from "../../src/errors.js";
 import { PHUGPA, PHUGPA_HENNING } from "../../src/traditions/phugpa.js";
+import { SkippedDayError } from "../../src/types.js";
 import { LOSAR_DATES } from "../fixtures/losar.js";
 
 const scaled = deriveScaling(PHUGPA);
@@ -542,6 +544,102 @@ describe("skipped and doubled days", () => {
 		expect(thrown).toBeInstanceOf(RangeError);
 		expect((thrown as { code?: string }).code).toBe("TCT_INVALID_TRADITION_CONFIG");
 		expect((thrown as Error).message).toMatch(/moonTab/);
+	});
+
+	// The test above pins four cases and one rethrow. This one pins the RULE, over every code the
+	// package can throw -- which nothing did until 2026-09-23, and that absence is why three
+	// docblocks came to describe the rule three different wrong ways (see the remarks on
+	// `rangeError` and `codedError` in src/errors.ts, and on `rejectTemporalInstance` in
+	// src/types.ts). The predicate answers `false` for exactly three things and rethrows the rest.
+	//
+	// Completeness is enforced by `tsc`, not by an assertion: the Record is keyed by the whole
+	// TibetanCalendarErrorCode union, so adding a code to that union fails `npm run typecheck`
+	// until it is classified here. Deciding which side a new code falls on is the point.
+	const answersFalse: Record<TibetanCalendarErrorCode, boolean> = {
+		// A date the calendar genuinely does not carry. Reported, not thrown.
+		TCT_SKIPPED_DAY: true,
+		TCT_FIELD_OUT_OF_RANGE: true,
+		TCT_NO_SUCH_LEAP_MONTH: true,
+		// Everything below is a broken program or an unanswerable question, not a date that does
+		// not exist, so the caller must see it rather than read `false` as a calendrical fact.
+		TCT_INVALID_ARGUMENT: false,
+		TCT_OUTSIDE_EXACT_RANGE: false,
+		TCT_INVALID_TRADITION_CONFIG: false,
+		TCT_INVALID_OBSERVANCE_CONFIG: false,
+		TCT_SPAN_TOO_WIDE: false,
+		TCT_ATTRIBUTE_NOT_SOURCED: false,
+		TCT_MISSING_TEMPORAL: false,
+		TCT_INTERNAL: false,
+	};
+
+	// An input that makes `tibetanDateExists` meet each code on its own call path. Five codes have
+	// no entry because they cannot be reached through this predicate at all: TCT_MISSING_TEMPORAL
+	// is thrown at import, TCT_SPAN_TOO_WIDE and TCT_INVALID_OBSERVANCE_CONFIG belong to
+	// ./observances, TCT_ATTRIBUTE_NOT_SOURCED to ./astrology, and TCT_INTERNAL is an invariant
+	// this engine proves for itself. They are classified above but not exercised here; that is a
+	// statement about this call path, not a claim that they are unreachable everywhere.
+	const reachable: Partial<Record<TibetanCalendarErrorCode, () => boolean>> = {
+		TCT_SKIPPED_DAY: () => tibetanDateExists({ year: 2151, month: 6, isLeapMonth: true, day: 21 }),
+		TCT_FIELD_OUT_OF_RANGE: () => tibetanDateExists({ year: 2153, month: 13, day: 1 }),
+		TCT_NO_SUCH_LEAP_MONTH: () =>
+			tibetanDateExists({ year: 2153, month: 5, day: 1, isLeapMonth: true }),
+		TCT_INVALID_ARGUMENT: () =>
+			tibetanDateExists(null as unknown as { year: number; month: number; day: number }),
+		TCT_OUTSIDE_EXACT_RANGE: () => tibetanDateExists({ year: 1e15, month: 3, day: 15 }),
+		TCT_INVALID_TRADITION_CONFIG: () =>
+			tibetanDateExists(
+				{ year: 2153, month: 3, day: 15 },
+				{
+					...PHUGPA,
+					moonTab: null as unknown as readonly number[],
+				},
+			),
+	};
+
+	it("answers false for exactly three codes and rethrows every other one", () => {
+		// Collected and asserted once: a per-code expect would name only the first offender.
+		const wrong: string[] = [];
+		for (const [code, run] of Object.entries(reachable)) {
+			const expected = answersFalse[code as TibetanCalendarErrorCode];
+			let outcome: string;
+			try {
+				outcome = run() === false ? "false" : "true";
+			} catch (error) {
+				outcome = `threw ${(error as { code?: string }).code}`;
+				// The rethrow must carry the code it started with, or a caller cannot branch on it.
+				if ((error as { code?: string }).code !== code) {
+					wrong.push(`${code}: rethrew as ${(error as { code?: string }).code}`);
+					continue;
+				}
+			}
+			const want = expected ? "false" : `threw ${code}`;
+			if (outcome !== want) wrong.push(`${code}: expected ${want}, got ${outcome}`);
+		}
+		expect(wrong).toEqual([]);
+	});
+
+	// The fact all three stale docblocks got wrong, pinned on its own because it is the
+	// counter-example to "reports false for a RangeError and rethrows everything else": the one
+	// class-matched arm of the allowlist is NOT a RangeError, and the code that IS one is rethrown.
+	it("allowlists by code and class, not by RangeError", () => {
+		let skipped: unknown;
+		try {
+			tibetanToIso({ year: 2151, month: 6, isLeapMonth: true, day: 21 });
+		} catch (error) {
+			skipped = error;
+		}
+		expect(skipped).toBeInstanceOf(SkippedDayError);
+		expect(skipped).not.toBeInstanceOf(RangeError);
+		expect(tibetanDateExists({ year: 2151, month: 6, isLeapMonth: true, day: 21 })).toBe(false);
+
+		let invalid: unknown;
+		try {
+			tibetanDateExists(null as unknown as { year: number; month: number; day: number });
+		} catch (error) {
+			invalid = error;
+		}
+		expect(invalid).toBeInstanceOf(RangeError);
+		expect((invalid as { code?: string }).code).toBe("TCT_INVALID_ARGUMENT");
 	});
 
 	it("throws SkippedDayError with the requested date attached", () => {
