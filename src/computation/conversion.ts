@@ -10,7 +10,7 @@
  * @packageDocumentation
  */
 
-import { assertSafeYear, codedError, hasCode, rangeError } from "../errors.js";
+import { assertSafeYear, codedError, describe, hasCode, rangeError } from "../errors.js";
 import { monthCodeOf } from "../format.js";
 import { weekdayNameWithOffset } from "../names.js";
 import {
@@ -132,7 +132,7 @@ export function asPlainDate(date: Temporal.PlainDate): Temporal.PlainDate {
 		throw rangeError(
 			"TCT_INVALID_ARGUMENT",
 			"expected a Temporal.PlainDate, an ISO string, a PlainDateTime or a ZonedDateTime, " +
-				`received ${temporalType === null ? describeValue(raw) : `a Temporal.${temporalType}`}` +
+				`received ${temporalType === null ? describe(raw) : `a Temporal.${temporalType}`}` +
 				(temporalType !== null
 					? ", which names no calendar day"
 					: raw !== null && typeof raw === "object"
@@ -148,7 +148,7 @@ export function asPlainDate(date: Temporal.PlainDate): Temporal.PlainDate {
 		if (error instanceof Error && "code" in error) throw error;
 		throw rangeError(
 			"TCT_INVALID_ARGUMENT",
-			`expected a Temporal.PlainDate, received ${describeValue(raw)}` +
+			`expected a Temporal.PlainDate, received ${describe(raw)}` +
 				`${error instanceof Error ? `: ${error.message}` : ""}`,
 		);
 	}
@@ -197,26 +197,12 @@ export function asWesternDay(
 	throw rangeError(
 		"TCT_INVALID_ARGUMENT",
 		`${functionName}: expected a Temporal.PlainDate, an ISO string, a PlainDateTime, a ` +
-			`ZonedDateTime, or a resolved TibetanDate, received ${describeValue(raw)}. A bare ` +
+			`ZonedDateTime, or a resolved TibetanDate, received ${describe(raw)}. A bare ` +
 			"{ year, month, day } object names no calendar — it is a genuine value of both this " +
 			"package's Tibetan date shape and Temporal's own — so it is refused rather than guessed " +
 			"at. Pass resolveDate({ ... }) for a Tibetan date, or Temporal.PlainDate.from({ ... }) " +
 			"for a Western one",
 	);
-}
-
-/**
- * A value rendered short enough for a message, and unambiguously: `"3"` is not `3`.
- *
- * @remarks
- * Exported for `navigation.ts`, whose moon-phase guard refuses the same class of argument and must
- * describe it the same way. Shared under `src/` rather than published — only the barrel makes a
- * name API.
- */
-export function describeValue(value: unknown): string {
-	if (typeof value === "string") return JSON.stringify(value);
-	if (value !== null && typeof value === "object") return value.constructor?.name ?? "an object";
-	return String(value);
 }
 
 /**
@@ -390,7 +376,7 @@ export function tibetanWeekday(julianDay: number): TibetanWeekday {
 	if (!Number.isSafeInteger(julianDay)) {
 		throw rangeError(
 			"TCT_FIELD_OUT_OF_RANGE",
-			`tibetanWeekday: julianDay must be a safe integer, received ${describeValue(julianDay)}`,
+			`tibetanWeekday: julianDay must be a safe integer, received ${describe(julianDay)}`,
 		);
 	}
 	return tibetanWeekdayUnchecked(julianDay);

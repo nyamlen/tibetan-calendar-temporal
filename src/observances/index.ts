@@ -35,7 +35,7 @@ import {
 } from "../computation/conversion.js";
 import { yearFromRoyalEra } from "../computation/epoch.js";
 import { type ScaledTradition, scalingFor } from "../computation/scaling.js";
-import { codedError, describe, rangeError } from "../errors.js";
+import { assertQueryOptions, codedError, describe, rangeError } from "../errors.js";
 import { PHUGPA } from "../traditions/phugpa.js";
 import { DEFAULT_OBSERVANCES } from "./default-observances.js";
 import type {
@@ -371,30 +371,6 @@ function appliesToMonth(
 }
 
 /**
- * Rejects an options bag that is not an object.
- *
- * @remarks
- * New boundary, new guard — CLAUDE.md requires one per exported argument shape, and reshaping
- * these two functions to a bag on 2026-08-26 created one. Without it `observancesOn(date, null)`
- * reads `.config` off `null` and throws a raw uncoded `TypeError`, which is the exact failure the
- * config validators were added to end: a consumer's `catch (e) { if (e.code === …) }` falls
- * through it.
- *
- * `TCT_INVALID_ARGUMENT` rather than `TCT_INVALID_OBSERVANCE_CONFIG`: the bag is the wrong *kind*
- * of thing, and no config has been reached yet. A bag carrying a bad `config` still gets the
- * config code, from the validator that has always owned it.
- */
-function assertQueryOptions(functionName: string, options: unknown): void {
-	if (options === null || typeof options !== "object") {
-		throw rangeError(
-			"TCT_INVALID_ARGUMENT",
-			`${functionName}: options must be an object like { config, tradition } or omitted, received ` +
-				`${options === undefined ? "undefined" : JSON.stringify(options)}`,
-		);
-	}
-}
-
-/**
  * Every observance falling between two dates, inclusive, in date order.
  *
  * @remarks
@@ -435,7 +411,7 @@ export function getObservances(
 	to: Temporal.PlainDate,
 	options: ObservanceQueryOptions = {},
 ): Observance[] {
-	assertQueryOptions("getObservances", options);
+	assertQueryOptions("getObservances", "{ config, tradition }", options);
 	// Not `?? DEFAULT_OBSERVANCES`: nullish-coalescing treats an explicit `null` as absent, so a
 	// caller passing `{ config: null }` would silently get the default instead of the coded
 	// rejection the positional signature gave them. Only `undefined` means "omitted"; everything
@@ -534,6 +510,6 @@ export function observancesOn(
 	date: Temporal.PlainDate,
 	options: ObservanceQueryOptions = {},
 ): Observance[] {
-	assertQueryOptions("observancesOn", options);
+	assertQueryOptions("observancesOn", "{ config, tradition }", options);
 	return getObservances(date, date, options);
 }

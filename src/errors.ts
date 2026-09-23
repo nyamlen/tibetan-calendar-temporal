@@ -168,18 +168,55 @@ export function hasCode(error: unknown, code: TibetanCalendarErrorCode): boolean
  * Both copies were written by whoever needed a value rendered next to a `rangeError`, which is
  * this module — so this is where the one copy belongs.
  *
- * **Three near-siblings remain, deliberately not merged here yet**: `describeValue` in
- * `computation/conversion.ts`, `describeFlagValue` in `types.ts`, and another `describe` in
- * `parse.ts`. Their bodies differ, so merging them changes error message text, which is a
- * behaviour change with its own tests to update rather than the mechanical move this was. They
- * converge as part of the boundary consolidation; this note is here so the next person to add a
- * fourth finds the debt instead of the pattern.
+ * **The three near-siblings converged here on 2026-09-23**: `describeValue` in
+ * `computation/conversion.ts`, `describeFlagValue` in `types.ts` and another `describe` in
+ * `parse.ts`. Merging them changed message text, which is why it waited for the boundary
+ * consolidation rather than riding along with the mechanical move. The union body is this one and
+ * not `describeValue`'s: its `constructor?.name` branch existed to name a `Temporal.PlainDate`,
+ * and `temporalTypeNameOf` now does that from the brand — so "an object" is both the clearer
+ * rendering and the only one left with a job. `format.ts` keeps its own `describe`, which lists an
+ * object's keys and is a different thing wearing the same name.
  */
 export function describe(value: unknown): string {
 	if (typeof value === "string") return JSON.stringify(value);
 	if (Array.isArray(value)) return `an array of ${value.length}`;
 	if (value !== null && typeof value === "object") return "an object";
 	return String(value);
+}
+
+/**
+ * Rejects an options bag that is not an object.
+ *
+ * @remarks
+ * New boundary, new guard — CLAUDE.md requires one per exported argument shape, and reshaping
+ * `getObservances`/`observancesOn` to a bag on 2026-08-26 created one. Without it
+ * `observancesOn(date, null)` reads `.config` off `null` and throws a raw uncoded `TypeError`,
+ * which is the exact failure the config validators were added to end: a consumer's
+ * `catch (e) { if (e.code === …) }` falls through it.
+ *
+ * `TCT_INVALID_ARGUMENT` rather than a config code: the bag is the wrong *kind* of thing, and no
+ * config has been reached yet. A bag carrying a bad `config` still gets the config code, from the
+ * validator that has always owned it.
+ *
+ * `shape` is the example a caller is shown — `"{ config, tradition }"` for `./observances`,
+ * `"{ tradition }"` for `./astrology` — and is the **only** thing the two copies differed in.
+ * `./observances` also spelt `undefined` out in a ternary; `JSON.stringify(undefined)` interpolates
+ * as `undefined` already, so that arm produced the same string and is gone with the copy. Both were
+ * written when a subsystem landed and found no shared guard to import; this is that home.
+ *
+ * @throws A `TCT_INVALID_ARGUMENT` error if `options` is `null` or not an object.
+ */
+export function assertQueryOptions(functionName: string, shape: string, options: unknown): void {
+	// `=== undefined`, never `??`, at the call sites that read this bag: nullish-coalescing would
+	// read an explicit `{ tradition: null }` as absent and silently substitute a default, losing the
+	// validation a positional parameter had.
+	if (options === null || typeof options !== "object") {
+		throw rangeError(
+			"TCT_INVALID_ARGUMENT",
+			`${functionName}: options must be an object like ${shape} or omitted, received ` +
+				`${JSON.stringify(options)}`,
+		);
+	}
 }
 
 /**

@@ -47,7 +47,7 @@ import { trueMonthCount } from "../computation/calendar.js";
 import { asWesternDay, isoToTibetan, julianDayFromIso } from "../computation/conversion.js";
 import { yearFromRoyalEra } from "../computation/epoch.js";
 import { scalingFor } from "../computation/scaling.js";
-import { rangeError } from "../errors.js";
+import { assertQueryOptions, rangeError } from "../errors.js";
 import { deepFreeze } from "../freeze.js";
 import { daysInMonth } from "../months.js";
 import { weekdayNameWithOffset } from "../names.js";
@@ -103,25 +103,8 @@ export const LUNAR_MANSIONS: readonly LunarMansion[] = deepFreeze(
 	}),
 );
 
-function assertQueryOptions(functionName: string, options: unknown): void {
-	// `=== undefined`, never `??`: nullish-coalescing would read an explicit `{ tradition: null }` as
-	// absent and silently substitute PHUGPA, losing the validation a positional parameter had.
-	//
-	// No `undefined` arm in the message, and that is what the coverage report is for: every caller
-	// defaults the parameter to `{}`, so an omitted — or explicitly `undefined` — options object never
-	// reaches here. `./observances`'s copy of this guard still carries that arm; it is harmless there
-	// and dead for the same reason.
-	if (options === null || typeof options !== "object") {
-		throw rangeError(
-			"TCT_INVALID_ARGUMENT",
-			`${functionName}: options must be an object like { tradition } or omitted, received ` +
-				JSON.stringify(options),
-		);
-	}
-}
-
 function traditionFrom(functionName: string, options: AstrologyQueryOptions): TraditionConfig {
-	assertQueryOptions(functionName, options);
+	assertQueryOptions(functionName, "{ tradition }", options);
 	const tradition = options.tradition === undefined ? PHUGPA : options.tradition;
 	// Validates the config and memoises the scaling, exactly as every other entry point does.
 	scalingFor(tradition);

@@ -24,7 +24,7 @@
  * @packageDocumentation
  */
 
-import { rangeError, type TibetanCalendarErrorCode } from "./errors.js";
+import { describe, rangeError, type TibetanCalendarErrorCode } from "./errors.js";
 import { formatTibetanDate } from "./format.js";
 import { temporalKindOf } from "./temporal-kind.js";
 
@@ -739,12 +739,6 @@ export function rejectTemporalInstance(functionName: string, value: unknown): vo
 	}
 }
 
-/** A value rendered short enough for a message, and unambiguously: `"3"` is not `3`. */
-function describeFlagValue(value: unknown): string {
-	if (typeof value === "string") return JSON.stringify(value);
-	return String(value);
-}
-
 /**
  * Rejects an `isLeapMonth` or `isLeapDay` flag that is present but not a boolean.
  *
@@ -778,7 +772,7 @@ export function rejectInvalidLeapFlags(
 	if (value === null || typeof value !== "object") {
 		throw rangeError(
 			"TCT_INVALID_ARGUMENT",
-			`${functionName}: expected an object naming a Tibetan date, received ${describeFlagValue(value)}`,
+			`${functionName}: expected an object naming a Tibetan date, received ${describe(value)}`,
 		);
 	}
 	for (const field of ["isLeapMonth", "isLeapDay"] as const) {
@@ -787,7 +781,7 @@ export function rejectInvalidLeapFlags(
 			const noun = field === "isLeapMonth" ? "month" : "day";
 			throw rangeError(
 				"TCT_INVALID_ARGUMENT",
-				`${functionName}: ${field} must be a boolean or omitted, received ${describeFlagValue(flag)}. ` +
+				`${functionName}: ${field} must be a boolean or omitted, received ${describe(flag)}. ` +
 					`A string like "false" is truthy, so a non-boolean here would silently select the leap ${noun} ` +
 					"instead of being rejected.",
 			);
@@ -837,7 +831,7 @@ export function rejectMissingFields(
 		throw rangeError(
 			"TCT_INVALID_ARGUMENT",
 			`${functionName}: ${field} is required and must be a number, received ` +
-				`${describeFlagValue(present)}. A missing or wrong-typed field is a malformed ` +
+				`${describe(present)}. A missing or wrong-typed field is a malformed ` +
 				"argument, not a date out of range, so it is thrown rather than reported as a date " +
 				"that does not exist",
 		);

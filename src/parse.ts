@@ -4,7 +4,7 @@
  * @packageDocumentation
  */
 
-import { rangeError } from "./errors.js";
+import { describe, rangeError } from "./errors.js";
 import type { TibetanDateFields, TibetanMonthFields } from "./types.js";
 
 /**
@@ -181,10 +181,4 @@ export function parseTibetanMonth(text: string): TibetanMonthFields {
 	}
 
 	return { year, month: Number(match[2]), isLeapMonth: match[3] === "L" };
-}
-
-/** A value rendered short enough for a message, and unambiguously: `"3"` is not `3`. */
-function describe(value: unknown): string {
-	if (value !== null && typeof value === "object") return value.constructor?.name ?? "an object";
-	return String(value);
 }
