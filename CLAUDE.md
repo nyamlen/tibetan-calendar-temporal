@@ -612,8 +612,9 @@ derivation; in `docs/` they are just noise.
   through**, since an array is an object. Together they made `[t].flatMap(addMonthsToDate)` — the
   index landing in the count, the array in the bag — return a confident wrong date, under a README
   sentence promising "a throw rather than a wrong calendar". `assertQueryOptions` now refuses an
-  array by name. Found by the close-out's final review, not by any suite. `addMonthsToDate` still
-  reads its bag with `??`, so `{ config: null }` becomes the default, against the rule above.
+  array by name. Found by the close-out's final review, not by any suite. The same function read its bag
+  with `??` until later that day, so `{ config: null }` became the default, against the rule above;
+  it now tests `=== undefined`, and `test/navigation.test.ts` pins both null fields.
 - **Every consumer config gets a validator, and every export gets a guard.** `TraditionConfig` and
   `ObservanceConfig` are both documented extension points, so both are checked at the boundary and
   memoised per object. Add a config type, add a validator — `TraditionConfig` went unchecked for

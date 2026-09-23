@@ -824,6 +824,17 @@ describe("addMonthsToDate's options bag", () => {
 		expect(codeOf(() => addMonthsToDate(date, 1, null))).toBe("TCT_INVALID_ARGUMENT");
 	});
 
+	it("refuses an explicit null field rather than reading it as absent", () => {
+		// `??` read `{ config: null }` as the default until 2026-09-23 — the validation CLAUDE.md's
+		// options-bag rule says a bag must not lose. Only `undefined` means "not given".
+		// @ts-expect-error -- null is not a TraditionConfig, which is what is under test
+		expect(codeOf(() => addMonthsToDate(date, 1, { config: null }))).toBe(
+			"TCT_INVALID_TRADITION_CONFIG",
+		);
+		// @ts-expect-error -- null is not an overflow mode, which is what is under test
+		expect(codeOf(() => addMonthsToDate(date, 1, { overflow: null }))).toBe("TCT_INVALID_ARGUMENT");
+	});
+
 	it("still accepts an omitted bag and a plain one", () => {
 		expect(addMonthsToDate(date, 1).month).toBe(2);
 		expect(addMonthsToDate(date, 1, { overflow: "reject" }).month).toBe(2);
