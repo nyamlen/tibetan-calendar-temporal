@@ -364,3 +364,35 @@ describe("describing what was received", () => {
 		expect(message).toContain("an object");
 	});
 });
+
+describe("the two merged copies' accept-sets", () => {
+	it("refuses a hand-built isoDate that is not a PlainDate, in both of them", () => {
+		// `isoOf` accepted any object with an `isoDate` KEY and handed the value to asPlainDate, so
+		// ./astrology took these two and navigation refused them. Unifying on the narrower set is a
+		// behaviour change at a public export, recorded in
+		// docs/decisions/2026-09-23-brand-not-identity.md; this pins it so that "both refuse" cannot
+		// quietly become "one refuses" again.
+		const cases = [
+			{ isoDate: "2024-07-09" },
+			{ isoDate: Temporal.PlainDateTime.from("2024-07-09T12:00") },
+		];
+		const accepted: string[] = [];
+		for (const value of cases) {
+			for (const [name, call] of [
+				["attributesFor", () => attributesFor(value as never)],
+				["nextFullMoon", () => nextFullMoon(value as never)],
+			] as const) {
+				if (codeOf(call) !== "TCT_INVALID_ARGUMENT") {
+					accepted.push(`${name}(${String(value.isoDate)})`);
+				}
+			}
+		}
+		expect(accepted).toEqual([]);
+	});
+
+	it("still accepts a resolved TibetanDate, which is what the parameter is for", () => {
+		const resolved = resolveDate({ year: 2151, month: 6, day: 4, isLeapMonth: true });
+		expect(nextFullMoon(resolved).isoDate.toString()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+		expect(typeof attributesFor(resolved).calendarDay.element).toBe("string");
+	});
+});

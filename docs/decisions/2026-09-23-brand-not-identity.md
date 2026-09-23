@@ -117,6 +117,27 @@ Both had drifted into shipping a message that misdescribed its own function, in 
 `nextFullMoon` named two of the four shapes it accepts, and `attributesFor` named four while never
 mentioning the resolved `TibetanDate` it takes.
 
+### Merging the two copies narrowed one accept-set, deliberately
+
+The two copies did not accept the same things, and unifying them had to pick one. `phaseStart`
+required `isoDate` to be a `PlainDate`; `isoOf` accepted any object with an `isoDate` **key** and
+handed the value to `asPlainDate`, so `{ isoDate: "2024-07-09" }` and
+`{ isoDate: <PlainDateTime> }` were accepted by `./astrology` and refused by `nextFullMoon`.
+
+`asWesternDay` takes the narrower set. Measured 2026-09-23 against `dist/`: both of those now throw
+`TCT_INVALID_ARGUMENT` at `attributesFor`, `calendarDayAttributesFor`, `elementalYogaFor` and
+`lunarMansionFor`, where before only `navigation.ts`'s pair refused them.
+
+Three reasons, in order of weight. Neither shape is a `TibetanDate` — the parameter's declared type
+is `Temporal.PlainDate | TibetanDate`, and a hand-built object with a string in `isoDate` satisfies
+neither, so nothing that compiled against the types is affected. Narrowing before 1.0.0 is a
+correction and after it is a breaking change, which is the same reasoning the whole record rests on.
+And the wider arm was never a decision: it was what `"isoDate" in candidate` happened to admit.
+
+**Widening it again is free, so this is the reversible direction.** A consumer who genuinely wants
+`{ isoDate: "2024-07-09" }` read as a Western date can pass the string itself, which
+`asWesternDay` accepts.
+
 ## The anchor is rebuilt when the global changes
 
 `src/computation/conversion.ts` captures `UNIX_EPOCH` at module evaluation, the only module-level

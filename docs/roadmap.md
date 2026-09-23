@@ -1382,6 +1382,28 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
       with time while this one does not The tarballs are a
       separate matter — they are deliberately untracked, so those two citations name commits that
       resolve in **this** repository and are reproducible with `npm pack`
+- [ ] **Four minor findings deferred from the 2026-09-23 boundary review**, listed so they are not
+      re-derived. An independent reviewer raised them against the branch that made the date boundary
+      test kind rather than identity; each was graded Minor **by effect on a consumer**, and none is
+      a wrong answer. Recorded here because the review's ledger was scratch and is gone, and an
+      unrecorded finding is one the next pass finds again from scratch.
+      1. **Rule 15 is evadable, and `docs/coding-standards.md` overstates it.** It refuses
+         `instanceof Temporal` in code lines, so `value instanceof globalThis.Temporal.PlainDate`
+         and `const T = Temporal; value instanceof T.PlainDate` both pass. As a ratchet against the
+         idiom anyone actually writes this is fine; the row claims it "refuses `instanceof Temporal`
+         anywhere else", which is broader than what it does. Fix the sentence, or widen the pattern.
+      2. **`asWesternDay` appends its bare-`{ year, month, day }` paragraph unconditionally.** So
+         `nextFullMoon(null)` is told about an object it did not pass. `asPlainDate` makes the same
+         sentence conditional on the argument being an object; the merge of `phaseStart` and `isoOf`
+         inherited the unconditional form from `phaseStart` and was the moment to fix it.
+      3. **`errors.ts`'s `describe` prints a whole function body, and renders `10n` as `"10"`.** Its
+         docblock promises a value "rendered short enough for a message, and unambiguously — `"3"` is
+         not `3`", and a `bigint` is exactly the case that promise names. Pre-existing in all three
+         bodies that merged into it, but it is now the single shared renderer, so it is one place.
+      4. **The unreadable-brand message names a cause it did not establish.** `temporalTypeNameOf`
+         says "a revoked Proxy, most likely" for any failure to read `Symbol.toStringTag`, including
+         a getter that throws. Coded, so harmless, but it is the project's own rule about asserting a
+         mechanism that was not measured.
 - [ ] **Decide whether `check:conventions` rule 4 should distinguish an exported `{@link}` target
       from a module-local one.** Found 2026-09-22 by the verdict pass, not by the rule. It requires a
       target to be "declared anywhere in `src/`", so `{@link MAX_SPAN_YEARS}` — a module-local
