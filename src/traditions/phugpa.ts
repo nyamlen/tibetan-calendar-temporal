@@ -31,7 +31,7 @@ import type { TraditionConfig } from "./types.js";
  * **Deeply frozen**, correction tables included. This is the object the docs point a reader at for
  * `{ ...PHUGPA, … }`, and a mutation one keystroke away from that spread would change the calendar
  * for every caller in the process — silently, because the derived scaling is memoised on the
- * object and would not be recomputed. See {@link deepFreeze}.
+ * object and would not be recomputed. Frozen recursively, correction tables included.
  */
 export const PHUGPA: TraditionConfig = deepFreeze({
 	id: "phugpa",
@@ -135,7 +135,7 @@ export const PHUGPA: TraditionConfig = deepFreeze({
  * @remarks
  * Identical to {@link PHUGPA} except for the lunar anomaly's per-day increment, which uses the
  * exact `(1 + a₁)/30 = 3781/105840` rather than the rounded `1/28`. The exact value was proposed by
- * Minling Lochen Dharmashri ལྷ་མིང་བློ་གྲོས (1654–1717); Edward Henning uses it in his computed
+ * Minling Lochen Dharmashri སྨིན་གླིང་ལོ་ཆེན་དྷརྨ་ཤྲཱི (1654–1717); Edward Henning uses it in his computed
  * calendars.
  *
  * **This is a diagnostic, not a rival answer to "what calendar does my community use."** The two

@@ -34,3 +34,25 @@ export function assertNoDiscouragedCodepoints(value: string, label: string): voi
 		}
 	}
 }
+
+/**
+ * Every run of Tibetan script in `text` that would not survive a reader's normalisation or that
+ * has another script spliced into it, with its 1-based line.
+ *
+ * @remarks
+ * Added 2026-09-23, after the polyfill probe found `docs/how-it-is-calculated.md` shipping a
+ * garbled *mngon brjod*: a Latin `b` inside the Tibetan, and stacks that changed under NFC. The
+ * blocklist above could not see it — none of the four composite vowel signs was involved — so this
+ * asks the general question instead: does the text survive NFC unchanged, and is each run one
+ * script?
+ */
+export function unstableTibetanRuns(text: string): string[] {
+	const found: string[] = [];
+	text.split("\n").forEach((line, index) => {
+		for (const [run] of line.matchAll(/[ༀ-࿿](?:[ༀ-࿿]|[A-Za-z]+(?=[ༀ-࿿]))*/g)) {
+			if (run.normalize("NFC") !== run || /[A-Za-z]/.test(run))
+				found.push(`line ${index + 1}: ${run}`);
+		}
+	});
+	return found;
+}

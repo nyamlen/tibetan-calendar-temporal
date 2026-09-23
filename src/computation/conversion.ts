@@ -214,7 +214,7 @@ export function asWesternDay(
  * this package, against the README's blanket claim that every failure carries a code.
  *
  * The range check matters more than the tidier message. This was the one public route that did not
- * apply {@link ScaledTradition.exactToJulianDay}, so it was the way into the range the rest of the
+ * apply the tradition's exact-range bound, so it was the way into the range the rest of the
  * API carefully refuses. That bound is a property of the tradition rather than of the package —
  * `PHUGPA_HENNING` runs out around ISO year 11,356 where `PHUGPA` does not — so this takes a
  * config and defaults it like every other entry point.
@@ -459,7 +459,7 @@ function buildDate(
  * date — a `Temporal` instance, `null` — or if `isLeapMonth`/`isLeapDay` are present but not
  * `boolean`; `TCT_NO_SUCH_LEAP_MONTH` if a leap month is requested for a month that has none; or
  * `TCT_OUTSIDE_EXACT_RANGE` if the date falls outside the range where the arithmetic stays exact —
- * see {@link ScaledTradition.exactToJulianDay}.
+ * a bound derived from the tradition's constants.
  *
  * @example
  * ```ts
@@ -620,7 +620,7 @@ export function tibetanDateExists(
  * That bound is **derived from the tradition, not written down here**: `25` and `11` are
  * `moonTab`'s and `sunTab`'s largest entries, which are injected config rather than constants, so
  * a `3` at the loop below would hardcode Phugpa's tables into a computation over a consumer's
- * data. {@link ScaledTradition.searchHalfWidth} carries the derivation and the proof.
+ * data. The derivation and the proof are on the internal scaled tradition's `searchHalfWidth`.
  *
  * Do not widen the window at the call site "to be safe" — if a date is not found inside it, the
  * fault is elsewhere.

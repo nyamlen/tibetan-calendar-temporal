@@ -25,7 +25,7 @@
  *   script happens to mention its name.
  * - **X9–X10** prove Rule 15 beyond its own row: its exempt file must hold the check in code, and
  *   the destructured form is caught. **X11** proves the error-table half of Rule 16, which R16 does
- *   not reach.
+ *   not reach. **X12** proves Rule 4's public-docblock scope, widened the same day.
  *
  * ## Why a copy of the working tree, and not a worktree or the checkout itself
  *
@@ -322,6 +322,25 @@ const rule = (number: number): Row => {
 };
 
 const X: readonly Row[] = [
+	{
+		id: "X12",
+		what: "a public docblock linking a symbol no entry point exports",
+		// R4 proves a link to nothing is caught; this proves the widening of 2026-09-23, where the
+		// target exists but a consumer cannot import it. The mutant restores the defect the polyfill
+		// probe found on `TraditionConfig.leapIndexThreshold`, a member of an exported interface, so
+		// the member half of the scope is exercised rather than only top-level declarations.
+		apply: (tree) =>
+			tree.edit(
+				"src/traditions/types.ts",
+				(source) =>
+					source.replace(
+						"rule in the true month count adds",
+						"rule in {@link trueMonthCount} adds",
+					),
+				"the true-month-count sentence on leapIndexThreshold",
+			),
+		must: ["is not exported from any entry point", "src/traditions/types.ts"],
+	},
 	{
 		id: "X11",
 		what: "an error code missing from the README's error table",

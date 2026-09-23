@@ -63,7 +63,7 @@ const DATES_EXPLAINED = "https://fpmt.org/media/resources/dharma-dates/dates-exp
  * `{ ...DEFAULT_OBSERVANCES, rules: [...DEFAULT_OBSERVANCES.rules, mine] }`, and
  * `DEFAULT_OBSERVANCES.rules.push(mine)` is the mistake one keystroke away from it — which used to
  * succeed and add the rule for every caller in the process.
- * See {@link deepFreeze}.
+ * Frozen recursively, nested rules included.
  */
 export const DEFAULT_OBSERVANCES: ObservanceConfig = deepFreeze({
 	id: "gelug",

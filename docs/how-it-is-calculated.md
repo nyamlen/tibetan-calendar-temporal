@@ -56,8 +56,11 @@ are counting months rather than naming them:
 - *Where does this month begin?* A formula in the count.
 
 The awkward part is converting between a count and a name like "month 6 of 2151", because leap months
-make the naming ambiguous — two months in a year can share the number 6. This package does that
-conversion in `trueMonthCount` and `monthFromCount`, which are inverses of each other.
+make the naming ambiguous — two months in a year can share the number 6. This package exposes that
+conversion as `lunationFromMonth` and `monthFromLunation`. The first gives Janson's true month count
+itself, from a month named by its royal-era year (2153, not 2026). The second inverts it only over
+its own narrower range, because it also works out the month's first and last days, which the
+exact arithmetic bounds, while the count alone never needs them.
 
 ## Leap months, and which twin is the leap one
 
@@ -118,9 +121,13 @@ the time the moon takes to gain 12° on the sun. Because the moon's speed varies
 sometimes a little longer than a civil day and sometimes a little shorter, ranging roughly from 22 to
 26 hours.
 
-The rule for naming a calendar day is:
+The rule for naming a calendar day is, in Janson's words:
 
-> A calendar day takes the number of the lunar day **that ends during it**.
+> A calendar day is labelled by the lunar day that is current at the beginning of the calendar day.
+
+He restates it straight away the other way round, and the second form is the easier one to reason
+with: a lunar day gives its number to the calendar day **in which it ends**. The two are one rule —
+the lunar day current at daybreak is the one that ends next.
 
 Now consider what happens when lunar days drift against civil days:
 
@@ -128,8 +135,9 @@ Now consider what happens when lunar days drift against civil days:
   one number, and the other number is never used at all. That number is **skipped** — day 6 might
   simply not exist in a given month.
 - If a lunar day is long, it can span a whole calendar day so that **no** lunar day ends during it.
-  That day cannot take a new number, so it repeats the previous one. The number is **doubled** —
-  day 21 occurs twice.
+  The lunar day current at its start is still current at the start of the next calendar day, so
+  both take its number: the day takes the number of the following day. The number is **doubled** — day 21 occurs twice — and the first of the pair is the
+  leap day.
 
 This is not an error or a correction. It is what the rule produces, and Tibetan almanacs print it
 plainly. Nor is it rare — it is the normal case, which follows directly from the half-day shortfall
@@ -186,7 +194,7 @@ rounded:         1/28 = 3780/105840
 
 They differ by **one part in 105,840 of a circle per day** — a hair. `1/28` is a rounded convenience,
 much easier to work with by hand, and it is what Tibetan almanacs use. The exact value was proposed
-by **Minling Lochen Dharmashri** ལྷ་མིང་བློ་གྲོས (1654–1717), and Edward Henning uses it in his
+by **Minling Lochen Dharmashri** སྨིན་གླིང་ལོ་ཆེན་དྷརྨ་ཤྲཱི (1654–1717), and Edward Henning uses it in his
 computed calendars.
 
 Why does a hair matter? Because of doubled and skipped days. Almost always, the hair changes nothing
@@ -343,7 +351,7 @@ records how that was established.
 
 They are not ordinary vocabulary. English has *horse* for talking and *steed* for verse; Tibetan
 draws the same distinction, and the sixty year names are all on the *steed* side — poetic synonyms
-(abhidhāna अभिधान; མངྫྷbན་བརྡྷོད *ngönjö*), the register of verse and of almanacs rather than of speech.
+(abhidhāna अभिधान; མངོན་བརྗོད *ngönjö*), the register of verse and of almanacs rather than of speech.
 
 That is counted, not assumed. The great Tibetan–Tibetan dictionary marks a sense with that register
 itself, and **54 of the sixty** carry the mark on the sense that states their year, checked against a

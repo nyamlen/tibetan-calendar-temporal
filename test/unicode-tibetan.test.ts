@@ -25,11 +25,14 @@
  * breaks it.
  */
 
+import { readdirSync, readFileSync } from "node:fs";
+
 import { describe, expect, it } from "vitest";
 
 import {
 	assertNoDiscouragedCodepoints,
 	DISCOURAGED_TIBETAN_CODEPOINTS,
+	unstableTibetanRuns,
 } from "./support/unicode-tibetan.js";
 
 /** Representative syllables, chosen for the hazards rather than for coverage of the vocabulary. */
@@ -99,5 +102,30 @@ describe("the four composite vowel signs are the hazard", () => {
 		for (const codepoint of DISCOURAGED_TIBETAN_CODEPOINTS.keys()) {
 			expect(() => assertNoDiscouragedCodepoints(`ག${codepoint}`, "sample")).toThrow(/use U+/);
 		}
+	});
+});
+
+describe("the Tibetan this package ships is normalisation-stable and unmixed", () => {
+	const root = new URL("../", import.meta.url);
+	const shipped = [
+		"README.md",
+		"docs/guide.md",
+		"docs/how-it-is-calculated.md",
+		"docs/why-trust-these-dates.md",
+		...readdirSync(new URL("src/", root), { recursive: true, encoding: "utf8" })
+			.filter((file) => file.endsWith(".ts"))
+			.map((file) => `src/${file.replaceAll("\\", "/")}`),
+	];
+
+	it.each(shipped)("%s", (file) => {
+		expect(unstableTibetanRuns(readFileSync(new URL(file, root), "utf8"))).toEqual([]);
+	});
+
+	it("reports the garbled spelling it was written for", () => {
+		// The string docs/how-it-is-calculated.md shipped until 2026-09-23, built from its
+		// codepoints so no editor can quietly normalise the evidence away.
+		const garbled = "\u0F58\u0F44\u0FAC\u0062\u0F53\u0F0B\u0F56\u0F62\u0FA2\u0F7C\u0F51";
+		expect(unstableTibetanRuns(`x ${garbled} *ngönjö*`)).toHaveLength(1);
+		expect(unstableTibetanRuns("x མངོན་བརྗོད *ngönjö*")).toEqual([]);
 	});
 });

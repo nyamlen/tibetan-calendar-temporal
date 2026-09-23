@@ -372,6 +372,60 @@ const documentedTypeLists = (markdown) =>
 	}));
 
 /**
+ * Rule 4, widened 2026-09-23 — the `{@link}` targets in docblocks a consumer can read: the docblock
+ * of a declaration the barrels export, and of a member of an interface or class they export.
+ *
+ * Those compile into `dist/*.d.ts` and render on hover, so a link there to a symbol the barrels do
+ * not export points a consumer at something they cannot import — the polyfill probe found four,
+ * among them `{@link trueMonthCount}` on `TraditionConfig.leapIndexThreshold`. Every other docblock
+ * is internal and may link internal helpers freely: measured the same day, 79 of the 311 links in
+ * `src/` target non-barrel symbols, nearly all correctly. So the scope is the whole of the rule.
+ *
+ * Returns `{ line, target }` for each link in scope, `line` 1-based; module links (`….js`) are left
+ * to the resolution check above, since a module is not a symbol.
+ */
+const publicDocblockLinks = (source, isPublic) => {
+	const lines = source.split("\n");
+	const out = [];
+	let container = null;
+	for (let i = 0; i < lines.length; i++) {
+		const text = lines[i] ?? "";
+		const opens =
+			/^export\s+(?:declare\s+)?(?:abstract\s+)?(?:interface|class)\s+([A-Za-z_$][\w$]*)/.exec(
+				text,
+			);
+		if (opens?.[1]) container = isPublic(opens[1]) ? opens[1] : null;
+		else if (/^\}/.test(text)) container = null;
+		if (!text.trimStart().startsWith("/**")) continue;
+		const start = i;
+		while (i < lines.length && !(lines[i] ?? "").includes("*/")) i++;
+		let next = i + 1;
+		while (next < lines.length && (lines[next] ?? "").trim() === "") next++;
+		const following = lines[next] ?? "";
+		const declared =
+			/^export\s+(?:declare\s+)?(?:abstract\s+)?(?:async\s+)?(?:function|const|let|class|interface|type|enum)\s+([A-Za-z_$][\w$]*)/.exec(
+				following,
+			)?.[1];
+		const inScope =
+			(declared !== undefined && isPublic(declared)) ||
+			(declared === undefined &&
+				container !== null &&
+				/^\s+(?:readonly\s+|static\s+)*(?:constructor\b|[A-Za-z_$][\w$]*\??\s*[:(<])/.test(
+					following,
+				));
+		if (!inScope) continue;
+		for (let at = start; at <= i; at++) {
+			for (const [, target] of (lines[at] ?? "").matchAll(
+				/\{@link\s+([^}|\s]+)(?:[|\s][^}]*)?\}/g,
+			)) {
+				if (target && !target.endsWith(".js")) out.push({ line: at + 1, target });
+			}
+		}
+	}
+	return out;
+};
+
+/**
  * Rule 16 — the runtime names a barrel exports: `export { … }` blocks that are not `export type`,
  * and `export function` / `export const` / `export class` declarations in the barrel itself.
  *
@@ -957,6 +1011,34 @@ function selfTest() {
 		"the union ends at its semicolon; a code string elsewhere in the file (TCT_C) is not a member.",
 	);
 
+	// --- Rule 4's public-docblock scope. Too wide reports internal links, too narrow misses fields. ---
+	check(
+		"publicDocblockLinks",
+		publicDocblockLinks(
+			[
+				"/** Internal: see {@link a}. */",
+				"function internal() {}",
+				"/** Public: see {@link b}. */",
+				"export function pub() {}",
+				"export interface Shape {",
+				"\t/** A field: see {@link c}. */",
+				"\treadonly field?: number;",
+				"}",
+				"export interface Hidden {",
+				"\t/** Not published: see {@link d}. */",
+				"\treadonly field: number;",
+				"}",
+				"/** A module link {@link ./x.js} is not a symbol. */",
+				"export const pub2 = 1;",
+			].join("\n"),
+			(name) => ["pub", "Shape", "pub2"].includes(name),
+		)
+			.map(({ line, target }) => `${line}:${target}`)
+			.join(","),
+		"3:b,6:c",
+		"only a docblock on a published declaration (b) or on a member of a published interface (c) is in scope; an internal function's (a), an unpublished interface member's (d) and a module link are not.",
+	);
+
 	// --- The registry. A rule dropped from it stops running and says nothing. ---
 	//
 	// Every other rule failure in this file is loud; this one is not, because a rule that never runs
@@ -1188,6 +1270,26 @@ function rule4() {
 						`{@link ${target}} names \`${rootSymbol}\`, which is not declared anywhere in src/. A stale link ships in the .d.ts and renders as plain text on hover.`,
 					);
 				}
+			}
+		}
+	}
+
+	const published = new Set(
+		TYPE_BARRELS.flatMap(({ file }) => {
+			const source = read(file);
+			return [...exportedValueNames(source), ...exportedTypeNames(source)];
+		}),
+	);
+	for (const file of sources) {
+		for (const { line, target } of publicDocblockLinks(read(file), (name) => published.has(name))) {
+			const parts = target.slice(target.lastIndexOf("/") + 1).split(".");
+			const rootSymbol = target.includes("/") ? parts[1] : parts[0];
+			if (rootSymbol && !published.has(rootSymbol)) {
+				fail(
+					"{@link} targets resolve",
+					`${file}:${line}`,
+					`{@link ${target}} is in a docblock that ships in dist/*.d.ts, and \`${rootSymbol}\` is not exported from any entry point — a consumer reading it on hover is pointed at something they cannot import. Name it in prose, or link what the barrels export.`,
+				);
 			}
 		}
 	}

@@ -113,7 +113,7 @@ export interface TraditionConfig {
 	 * | Bhutanese | 57        |
 	 *
 	 * Two other quantities are derived from it and must not be written as literals. The rounding
-	 * rule in {@link ../computation/calendar.trueMonthCount} adds `65 − threshold`, since Janson's
+	 * rule in the true month count adds `65 − threshold`, since Janson's
 	 * `+17` for Phugpa is `65 − 48`. And `β` is `67·M₀ − β* − (65 − threshold)`, which reproduces
 	 * every value Janson publishes: 123 for Phugpa, 172 for Mongolia, 191 for Bhutan, and 77 for
 	 * Tsurphu — congruent mod 65 to his 142, which is the only sense in which β is determined.

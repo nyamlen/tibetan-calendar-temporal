@@ -46,7 +46,7 @@ import type { TraditionConfig } from "./types.js";
  * losarFor(2130, BHUTAN).isoDate.toString(); // "2003-03-04"
  * ```
  *
- * **Deeply frozen**, correction tables included — see {@link deepFreeze} and the remarks on
+ * **Deeply frozen**, correction tables included — see the remarks on
  * {@link ../traditions/phugpa.PHUGPA}, which this is spread from.
  */
 export const BHUTAN: TraditionConfig = deepFreeze({

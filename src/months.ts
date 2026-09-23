@@ -351,7 +351,7 @@ export function daysInMonth(month: TibetanMonthFields, config: TraditionConfig =
  *
  * Janson's closed form, `(24·Y + γ*) mod 65 ≥ 41`. This touches no lunar arithmetic, so unlike
  * {@link monthsFor} it stays exact up to the configured tradition's derivable range and is not
- * bounded by {@link ScaledTradition.exactToJulianDay}. That asymmetry is deliberate: past that
+ * bounded by the tradition's exact range. That asymmetry is deliberate: past that
  * bound the month boundaries were never computed, but leap-year-ness still has a correct answer —
  * up until `24·Y` itself would overflow a safe integer, where the arithmetic is refused rather
  * than answered.

@@ -56,7 +56,7 @@ export function monthCodeOf(month: number, isLeap: boolean): string {
  * existing call still compiles. It also gains something, because the month segment is now
  * **derived** from `month` and `isLeapMonth` rather than read from the caller's `monthCode`. An
  * object whose two disagree can no longer produce a string contradicting itself, since
- * {@link monthCodeOf} is the sole producer of that substring.
+ * one internal function is the sole producer of that substring.
  *
  * @remarks
  * **This is not a complete encoding of a resolved date.** It renders the *naming* fields — the ones
@@ -125,7 +125,7 @@ export function formatTibetanDate(date: TibetanDateFields): string {
  * hand-rolled discards `isLeapMonth`, so the two months of a leap pair render identically and a
  * string that looks like a month key silently names the wrong one of the two.
  *
- * The month segment is {@link monthCodeOf}'s output, the sole producer of that substring, so this
+ * The month segment comes from the one internal function producing that substring, so this
  * cannot drift from `TibetanMonth.monthCode`.
  *
  * **A `TibetanDate` is accepted and its day is dropped.** A date is structurally a

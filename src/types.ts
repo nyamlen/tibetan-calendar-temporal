@@ -868,7 +868,7 @@ export interface TibetanMonthFields {
 	 * `lib.esnext.temporal.d.ts` and confirmed at runtime on Node v26.7.0, where all three return
 	 * `"iso8601"`). `string` does not satisfy `never`, so a `Temporal.PlainDate` stops being
 	 * structurally assignable to this type — closing the compile-time half of the confusion that
-	 * {@link rejectTemporalInstance} closes at runtime. Do not delete this as an unused field: it
+	 * the argument guards close at runtime. Do not delete this as an unused field: it
 	 * has no reads because its entire job is to make an *invalid* call fail to typecheck.
 	 */
 	calendarId?: never;

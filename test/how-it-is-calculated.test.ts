@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { tibetanToIso } from "../src/computation/conversion.js";
+import { isoToTibetan, tibetanToIso } from "../src/computation/conversion.js";
 import { monthNamesFor } from "../src/month-names.js";
 import { datesFor, monthsFor } from "../src/months.js";
 import { MANSION_NAMES } from "./fixtures/mansion-names.js";
@@ -153,6 +153,27 @@ describe("how-it-is-calculated claims", () => {
 			// "Nine steps of 2 and three of 3, which sum to 27 and close the circle."
 			expect(steps.filter((step) => step === 2)).toHaveLength(9);
 			expect(steps.filter((step) => step === 3)).toHaveLength(3);
+		});
+	});
+	describe("the doubled-day rule", () => {
+		// Until 2026-09-23 the document said a day with no lunar-day end "repeats the previous one".
+		// Janson says it takes the number of the FOLLOWING day, and that the first of the pair is the
+		// leap day; so does the engine. Read the bullet and hold it to a real doubled pair.
+		const bullet =
+			/the day takes the number of the following day\. The number is \*\*doubled\*\* — day \d+ occurs twice — and the first of the pair is the\s+leap day\./.exec(
+				document,
+			);
+
+		it("states that the doubled day takes the following day's number", () => {
+			expect(bullet).not.toBeNull();
+			expect(document).not.toMatch(/repeats the previous/);
+		});
+
+		it("agrees with the engine on 2024-07-09 and 2024-07-10", () => {
+			const first = isoToTibetan(Temporal.PlainDate.from("2024-07-09"));
+			const second = isoToTibetan(Temporal.PlainDate.from("2024-07-10"));
+			expect([first.day, first.isLeapDay, first.isDoubledDay]).toEqual([4, true, true]);
+			expect([second.day, second.isLeapDay, second.isDoubledDay]).toEqual([4, false, true]);
 		});
 	});
 });
