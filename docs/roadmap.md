@@ -170,8 +170,9 @@ on the paused `./observances` work. It is kept privately; what is checkable here
 **Every finding's verdict names the commit in this repository that answered it**, and those commit
 bodies name the findings they answer: `90a38ee`, `864f88e`, `6ae4b7e`, `6e5f30d` and `6c5be94` on
 26 August, `aef049f` and `b47c853` on the 27th, and `fcfb4cd` and `409fc09` on
-2026-09-22 for the four claims the verdict pass found still live. A fourth list is still to come from
-the browser client, and the gate does not close until its findings are verdicted too.
+2026-09-22 for the four claims the verdict pass found still live. The browser client's list is the
+fourth, and it comes in two halves: the polyfill probe's, verdicted on 2026-09-23, and the
+navigator's, still to come. The gate does not close until the second half is verdicted too.
 
 **What the 18 turned out to be — 2026-09-22.** Sixteen of them had been answered on 26–27 August, by
 commits naming the spike's finding numbers in their own bodies. The ledger had been compiled from
@@ -187,9 +188,13 @@ blocked rather than unexamined.
 
 1. ~~Documentation-only verdicts and their fixes.~~ **Done 2026-09-22: every row, not the
    documentation ones.** Ledger `7fa0cc0` in `nyamlen`, fixes `fcfb4cd` here.
-2. **The polyfill probe** (`nyamlen`, blind) — gates the API freeze.
+2. ~~The polyfill probe~~ **Done 2026-09-23.** Run blind against `5c954b3`; its two freeze items
+   were fixed in `012468a`..`48cf255`, every other finding was verdicted and the documentation ones
+   fixed in `d719dba`..`44c222b`, and the probe was re-run against `48cf255` with the same hash —
+   see `docs/testing.md`, *Under a polyfill*. Verdicts in `nyamlen`'s `VERDICTS.md`.
 3. **The navigator build** (`nyamlen`, blind) — does not.
-4. **The fourth friction list's verdicts**, plus N10 once `./observances` moves.
+4. **The navigator's half of the browser client's friction list** — the probe's half is step 2 —
+   plus N10 once `./observances` moves.
 5. Freeze, then 1.0.0.
 
 **Why step 1 widened, because an order without its reason gets reordered.** It was written as
@@ -1284,6 +1289,13 @@ nothing and reports success.
       an expiry. npm tokens are always issued by a *user*, never by an org — create it as an
       account with write access. Store it as a GitHub **organisation-level** secret so sibling
       packages can reuse it
+- [ ] **Re-run the polyfill probe on real devices against the release tarball.** The real Safari
+      runs — macOS 17.6 and iOS — were against `5c954b3`, before the Temporal boundary was rewritten;
+      everything re-run since was in Node, Chrome and Playwright's WebKit, which has a native
+      `Temporal` that shipping Safari lacks. Needs Andreas and `nyamlen`'s `serve-lan.mjs`. Include
+      **macOS Safari 26**, never run, and read the iOS version from the device's **Settings**, not
+      from the user agent, which Safari 26 freezes (it reported iOS 18.7). The gate is one hash
+      across every dump, equal to the Node and Chrome runs' for the same tarball
 - [ ] **After 1.0.0 ships**, `npm deprecate tibetan-calendar-temporal@0.0.1 "placeholder; use
       1.0.0"`. One command, and it puts a warning in front of anyone who pinned the placeholder.
       Pointless before there is a version to point them at, which is why it is sequenced here
@@ -1376,7 +1388,7 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
       `docs/guide.md`, `docs/how-it-is-calculated.md` and `docs/why-trust-these-dates.md`, and none
       of the four cites one. Measured 2026-09-22.
 
-      **Do it in the pre-1.0.0 pass, not before**: the fourth friction list will add citations, and
+      **Do it in the pre-1.0.0 pass, not before**: the navigator's half of the fourth friction list will add citations, and
       restating twice is waste. Each row verdicted on 2026-09-22 also cites an engine commit from
       inside the private repository, which is why the two publishing options grow more expensive
       with time while this one does not The tarballs are a
@@ -1410,8 +1422,11 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
          says "a revoked Proxy, most likely" for any failure to read `Symbol.toStringTag`, including
          a getter that throws. Coded, so harmless, but it is the project's own rule about asserting a
          mechanism that was not measured.
-- [ ] **Decide whether `check:conventions` rule 4 should distinguish an exported `{@link}` target
-      from a module-local one.** Found 2026-09-22 by the verdict pass, not by the rule. It requires a
+- [x] **Decide whether `check:conventions` rule 4 should distinguish an exported `{@link}` target
+      from a module-local one.** **Decided 2026-09-23: reject, scoped to docblocks that ship** — those
+      of a barrel-exported declaration or of a member of a barrel-exported interface or class, where a
+      link must target a barrel export. Internal docblocks keep linking internal helpers. It found
+      eleven such links on its first run, all fixed in `23347bb`; row X12 proves it. Found 2026-09-22 by the verdict pass, not by the rule. It requires a
       target to be "declared anywhere in `src/`", so `{@link MAX_SPAN_YEARS}` — a module-local
       `const` — passed while shipping in `dist/observances/index.d.ts`, where a consumer's hover
       renders it as plain text. That is the exact failure the rule's own message describes: "a stale
@@ -1731,7 +1746,13 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   The evidence for the names is in [names/month-and-yoga-sourcing.md](names/month-and-yoga-sourcing.md),
   and `npm run verify:month-and-yoga-names` is the verifier that enforces it.
 
-- **Safari has not shipped Temporal, so a browser consumer needs a polyfill.** Checked 2026-08-22.
+- **Closed 2026-09-23.** The polyfill path was spiked before the freeze, as this entry asked: the
+  polyfill probe ran the surface under native and polyfilled `Temporal` in Node, Chrome, WebKit and
+  on a real Mac and iPhone, found one defect — a `PlainDate` from a second implementation was refused
+  or misread — which is fixed, and the README now says a browser needs the polyfill. The real-device
+  re-run against the release is on the pre-1.0.0 checklist. The original entry follows.
+
+  **Safari has not shipped Temporal, so a browser consumer needs a polyfill.** Checked 2026-08-22.
   Temporal ships natively in Chrome 144 (13 January 2026), Firefox 139 and Edge 144, and reached
   TC39 Stage 4 in March 2026 — but Safari has it only in Technology Preview behind a flag, which is
   what is holding Temporal out of Baseline.
