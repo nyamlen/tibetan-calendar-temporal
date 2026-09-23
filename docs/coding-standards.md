@@ -19,6 +19,7 @@ A rule with a command beside it will stop a push. A rule marked **review** will 
 | Node 26+; the package checks for `Temporal` at import time | `engines` + the runtime guard in `src/computation/conversion.ts` | npm treats `engines` as advisory, so the guard covers the case the declaration cannot |
 | Zero runtime dependencies | `npm run check:conventions` | The package's headline claim, and it runs through the lockfile as well as the runtime |
 | No bundler; `tsc` alone emits `dist/` | `npm run check:publish`, `npm run test:pack` | The `./observances` subpath needs `dist/` to mirror `src/` |
+| A shipped document links a repo-only file by absolute URL, and a shipped file relatively | `npm run test:pack` | A relative link to a repo-only file dies in `node_modules`; an absolute link to a shipped one works, so nothing fails, but it sends a reader to `main` instead of the copy beside it. The second was live in the README and `why-trust-these-dates.md` until the polyfill probe found it on 2026-09-23. A `files` entry matches exactly for a file and as a prefix for a directory |
 | Never install Temporal typings — no `temporal-spec`, no `temporal-polyfill` | **review** | TypeScript 7 ships `lib.esnext.temporal.d.ts`; the zero-dependency claim runs through the published `.d.ts` |
 | Generation-time packages resolve from the caller's working directory, never from `devDependencies` | **review** | `scripts/verify-name-sources.mjs` and `scripts/fetch-eszthoff-fixtures.mjs` both do this |
 

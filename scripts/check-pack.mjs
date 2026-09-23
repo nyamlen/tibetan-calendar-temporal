@@ -114,8 +114,34 @@ try {
 		"docs/how-it-is-calculated.md",
 	];
 	const installed = join(scratch, "node_modules", "tibetan-calendar-temporal");
+	// The opposite mistake, found by the polyfill probe on 2026-09-23: a shipped document linking a
+	// file that ships by absolute GitHub URL. why-trust-these-dates.md filed how-it-is-calculated.md
+	// among the documents "not included in the published package" for a month after it began
+	// shipping, and the README reached both by URL. Such a link works, so nothing broke — it sends
+	// a reader offline or on a pinned version to `main` instead of the copy beside it, and states
+	// something false about the package. A `files` entry is matched exactly for a file and as a
+	// prefix for a directory such as `dist`.
+	const { files, repository } = JSON.parse(readFileSync(join(repo, "package.json"), "utf8"));
+	const repoUrl = String(repository?.url ?? repository ?? "")
+		.replace(/^git\+/, "")
+		.replace(/\.git$/, "");
+	if (!repoUrl.startsWith("https://github.com/")) {
+		throw new Error(
+			`package.json#repository is not a GitHub URL (${repoUrl}); the link check cannot run`,
+		);
+	}
+	const blob = `${repoUrl}/blob/main/`;
+	const ships = (path) =>
+		files.some((entry) => path === entry || path.startsWith(`${entry.replace(/\/$/, "")}/`));
 	for (const doc of shippedDocs) {
 		const text = readFileSync(join(installed, doc), "utf8");
+		for (const [, path] of text.matchAll(/\]\((https?:\/\/[^)#\s]+)/g)) {
+			if (path.startsWith(blob) && ships(path.slice(blob.length))) {
+				throw new Error(
+					`${doc} links to ${path} by absolute URL, but ${path.slice(blob.length)} ships in the tarball — link it relatively`,
+				);
+			}
+		}
 		for (const [, target] of text.matchAll(/\]\((?!https?:)([^)#]+)/g)) {
 			const resolved = resolve(dirname(join(installed, doc)), target);
 			if (!existsSync(resolved)) {

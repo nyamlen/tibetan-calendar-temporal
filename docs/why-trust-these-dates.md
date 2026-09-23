@@ -11,7 +11,7 @@ around is the expensive kind of error.
 This page is the honest account of what has been checked, against what, and over which years.
 It assumes no programming knowledge.
 If the calendar itself is unfamiliar, read
-[how it is calculated](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/how-it-is-calculated.md)
+[how it is calculated](how-it-is-calculated.md)
 first.
 
 ## Where the arithmetic comes from
@@ -229,6 +229,5 @@ can be checked.
 Links marked with a full address point into the project's repository on GitHub and are not included
 in the published package: the contributor-facing
 [testing strategy](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/testing.md),
-[validation sources](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/validation-sources.md),
-[traditions](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/traditions.md) and
-[how it is calculated](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/how-it-is-calculated.md).
+[validation sources](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/validation-sources.md) and
+[traditions](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/traditions.md).

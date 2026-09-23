@@ -507,7 +507,7 @@ primitives throw `TCT_ATTRIBUTE_NOT_SOURCED` where the composition reports `null
 Favorability is FPMT's convention and is in neither Janson nor Henning; `auspiciousness` is a Tibetan
 dictionary's four-way grading of the same ten yogas, with its groups read from the order it lists them in. What is validated, over which
 years, and against what, is in
-[docs/why-trust-these-dates.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/why-trust-these-dates.md).
+[docs/why-trust-these-dates.md](docs/why-trust-these-dates.md).
 
 ## API
 
@@ -590,7 +590,7 @@ year, including ones where `losarFor` must refuse.
 | Export | Signature | Notes |
 |---|---|---|
 | `yearNameFor` | `(year: number) => TibetanYearName` | `{ element, animal, gender }`. Element and gender repeat every ten years, the animal every twelve, the whole name every sixty; plus `elementName`, `genderName` and `animalName` in Tibetan script, Wylie and phonetics — which is why there are no separate lookups for those three |
-| `rabjungFor` | `(year: number) => Rabjung` | `{ cycle, year, tibetanName }` — `cycle`/`year` are the sixty-year numbering from 1027 CE, a *numbering* rather than a name (the two cycles sit three apart), and `tibetanName` is the **Tibetan** name at that position. No Sanskrit: the cycle has two Sanskrit name lists disagreeing at five positions, so pairing either with the Tibetan would misname 8% of years — see [docs/how-it-is-calculated.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/how-it-is-calculated.md) |
+| `rabjungFor` | `(year: number) => Rabjung` | `{ cycle, year, tibetanName }` — `cycle`/`year` are the sixty-year numbering from 1027 CE, a *numbering* rather than a name (the two cycles sit three apart), and `tibetanName` is the **Tibetan** name at that position. No Sanskrit: the cycle has two Sanskrit name lists disagreeing at five positions, so pairing either with the Tibetan would misname 8% of years — see [docs/how-it-is-calculated.md](docs/how-it-is-calculated.md) |
 | `weekdayNameFor` | `(weekday: number, config?) => TibetanWeekdayName` | Tibetan name of a weekday. Takes the **Tibetan** numbering, 0 = Saturday. The only naming lookup taking a config, because Bhutan names its days one planet ahead |
 | `asTibetanWeekday` | `(value: number) => TibetanWeekday` | Validates 0–6 and brands. The way in for a number this package did not produce — parsed JSON, a form field. `weekdayNameFor(date.dayOfWeek)` is a **compile error**: ISO runs 1–7 from Monday, Tibetan 0–6 from Saturday |
 
@@ -724,7 +724,7 @@ A separate subpath, like `./observances`. `options` is `{ tradition? }`, default
 | `monthAttributesFor` | `(month: TibetanMonthFields, options?) => MonthAttributes` | Throws `TCT_ATTRIBUTE_NOT_SOURCED` for the Bhutanese configs |
 | `lunarDayAttributesFor` | `(date: TibetanDateFields, options?) => LunarDayAttributes` | Tibetan fields in, so a **skipped** lunar day can be asked about. Throws `TCT_ATTRIBUTE_NOT_SOURCED` for the Bhutanese configs |
 | `calendarDayAttributesFor` | `(date: Temporal.PlainDate \| TibetanDate) => CalendarDayAttributes` | Congruences on the Julian day; the number differs in Tsurphu calendars, which is not modelled |
-| `lunarMansionFor` | `(date: Temporal.PlainDate \| TibetanDate, options?) => LunarMansion` | `{ index, tibetanName, sanskritName, element }`, index 0–26 as Janson and Henning number them, and no English name, because no source prints one. Needs the moon's real position; a published almanac sometimes prints the next mansion, late in a mansion — how often is in [why-trust-these-dates.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/why-trust-these-dates.md). |
+| `lunarMansionFor` | `(date: Temporal.PlainDate \| TibetanDate, options?) => LunarMansion` | `{ index, tibetanName, sanskritName, element }`, index 0–26 as Janson and Henning number them, and no English name, because no source prints one. Needs the moon's real position; a published almanac sometimes prints the next mansion, late in a mansion — how often is in [why-trust-these-dates.md](docs/why-trust-these-dates.md). |
 | `elementalYogaFor` | `(date: Temporal.PlainDate \| TibetanDate, options?) => ElementalYoga` | The weekday's element paired with the lunar mansion's |
 | `elementalYoga` | `(a: TibetanWeekdayElement, b: TibetanWeekdayElement) => ElementalYoga` | The pair alone, order-insensitive |
 | `ELEMENTAL_YOGAS` | | The ten, frozen: Henning's names, FPMT's favorability, and the *tshig mdzod chen mo*'s four-way grading as `auspiciousness` |

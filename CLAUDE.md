@@ -1209,7 +1209,11 @@ Sanskrit one, and a consumer who expected *Prabhava* beside it needs to be told 
 would misname 8% of years. That reason replaced an earlier one on 2026-08-25, when the Sanskrit came
 off the type — the document is shipped for what it explains, not for a field that no longer exists. A shipped document's relative links must resolve inside
 the tarball, which `check-pack` enforces, so anything repo-only is linked by absolute URL — that is
-why that file's four internal links are absolute and the others' are not.
+why that file links its four repo-only documents absolutely, six links in all. **The converse is
+enforced too, since 2026-09-23**: a shipped document may not reach a file that ships by absolute
+URL. `why-trust-these-dates.md` listed `how-it-is-calculated.md` among the documents "not included
+in the published package" for a month after it began shipping, and the README reached both by URL;
+a link that works cannot fail anything, so only the polyfill probe's reading found it.
 
 **`npm run coverage` is not one of the ten, so nothing gates it.** It was broken on `main` for an
 unknown stretch and nobody noticed: the 200-year moon-phase sweep runs in well under a second bare
