@@ -51,7 +51,7 @@ The **type** is only half of it, and relying on the type alone failed. `tibetanD
 report `false` for every `RangeError` bar one excluded code, which meant a bare
 `new RangeError` anywhere below the boundary became "that date does not exist" — and `scaleTo`
 had one, reachable through `deriveScaling` from a consumer's config. The predicate now works from
-an **allowlist** of three codes and rethrows the rest, so a new failure mode is loud by default
+an **allowlist** of one class and two codes and rethrows the rest, so a new failure mode is loud by default
 instead of silently absorbed. That is the argument for coding every throw: a code makes the
 allowlist possible, and a bare construction silently opts the failure out of it.
 

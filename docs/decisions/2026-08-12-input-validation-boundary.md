@@ -54,16 +54,18 @@ limit near year 11,356 — reachable inside `Temporal.PlainDate`'s own range, wh
 
 ## Predicates catch by allowlist, never by denylist
 
-`tibetanDateExists` answers `false` for exactly three codes — `TCT_SKIPPED_DAY` (as
-`SkippedDayError`), `TCT_FIELD_OUT_OF_RANGE` and `TCT_NO_SUCH_LEAP_MONTH` — and rethrows everything
-else. Do not widen it back to a bare `catch`, and **do not turn it back into a denylist**. It is the
+`tibetanDateExists` answers `false` for exactly **one class and two codes** — `SkippedDayError`
+matched by class, plus `TCT_FIELD_OUT_OF_RANGE` and `TCT_NO_SUCH_LEAP_MONTH` — and rethrows
+everything else. `TCT_SKIPPED_DAY` is deliberately not matched as a code, so an error carrying it
+without the class is rethrown; do not restate this as "three codes".
+Do not widen it back to a bare `catch`, and **do not turn it back into a denylist**. It is the
 oracle for the Tier 1 property that skipped days are never observance days, so a swallowed failure
 would make that property pass *more* easily rather than fail.
 
 It was a denylist — every `RangeError` except one excluded code — and that lost. `scaleTo` threw an
 uncoded `RangeError` for a config whose denominators the derivation could not use, and this function
 reported that Losar 2026 does not exist. A denylist has to anticipate every failure anyone will ever
-add; an allowlist only has to name the three that are genuinely answers about the input.
+add; an allowlist only has to name the three things that are genuinely answers about the input.
 
 `TCT_OUTSIDE_EXACT_RANGE` is deliberately on the throwing side. Past that bound the day was never
 computed, so `false` would be a confident claim about arithmetic that was refused rather than

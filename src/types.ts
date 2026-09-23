@@ -708,8 +708,10 @@ export interface TibetanMonth {
  * `formatTibetanDate`, `daysInMonth` — so the message and the code are one policy rather than four.
  *
  * The code is `TCT_INVALID_ARGUMENT` rather than `TCT_FIELD_OUT_OF_RANGE`, and that is load-bearing
- * for `tibetanDateExists`. Only the range code is on that predicate's allowlist for answering
- * `false`, so a Temporal instance thrown from here propagates out of it — telling a caller who
+ * for `tibetanDateExists`. That predicate's allowlist for answering `false` is one class and two
+ * codes — `SkippedDayError`, `TCT_FIELD_OUT_OF_RANGE` and `TCT_NO_SUCH_LEAP_MONTH` — and
+ * `TCT_INVALID_ARGUMENT` is none of them, so a Temporal instance thrown from here propagates out of
+ * it — telling a caller who
  * confused the two APIs that they did, instead of reporting a Western date as a Tibetan one that
  * does not exist. While the two shared one code, `tibetanDateExists` had to call this itself before
  * its own `try` to get that behaviour; it no longer does.

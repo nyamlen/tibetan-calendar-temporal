@@ -87,8 +87,11 @@ export type Coded<E extends Error> = E & { code: TibetanCalendarErrorCode };
  * A `RangeError` carrying a code.
  *
  * @remarks
- * `RangeError` rather than a subclass so that existing `catch (e) { if (e instanceof RangeError) }`
- * keeps working — `tibetanDateExists` is one such caller, inside this package.
+ * `RangeError` rather than a subclass so that a consumer's existing
+ * `catch (e) { if (e instanceof RangeError) }` keeps working. No caller **inside** this package
+ * narrows that way any longer: `tibetanDateExists` swallows by allowlist — one class and two codes,
+ * `SkippedDayError` plus `TCT_FIELD_OUT_OF_RANGE` and `TCT_NO_SUCH_LEAP_MONTH`. It was such a
+ * caller under the denylist era, which is where this remark's example came from.
  */
 export function rangeError(code: TibetanCalendarErrorCode, message: string): Coded<RangeError> {
 	return Object.assign(new RangeError(message), { code });
@@ -99,9 +102,17 @@ export function rangeError(code: TibetanCalendarErrorCode, message: string): Cod
  *
  * @remarks
  * Used for failures that are **not** about the caller's input, which is why the type differs.
- * `tibetanDateExists` reports `false` for a `RangeError` and rethrows everything else, so an
- * internal invariant violation must not be a `RangeError` or the predicate would answer "that date
- * does not exist" when the truth is "the engine broke".
+ *
+ * The reason is the *signal*, not the mechanism, and this remark used to give the mechanism and get
+ * it wrong. What keeps an internal invariant violation out of `tibetanDateExists`'s `false` is that
+ * `TCT_INTERNAL` is absent from that predicate's allowlist — one class and two codes,
+ * `SkippedDayError` plus `TCT_FIELD_OUT_OF_RANGE` and `TCT_NO_SUCH_LEAP_MONTH` — and not that it is
+ * a plain `Error`. The predicate has never reported `false` for every `RangeError` since the
+ * allowlist landed, and `SkippedDayError` is not a `RangeError` at all yet answers `false`.
+ *
+ * The type earns its place one level out, for consumers: a code is contract and a class is not, but
+ * a plain `Error` where every input problem is a `RangeError` says at a glance that this one is the
+ * engine's fault rather than theirs.
  */
 export function codedError(code: TibetanCalendarErrorCode, message: string): Coded<Error> {
 	return Object.assign(new Error(message), { code });
@@ -134,10 +145,15 @@ export function assertInternal<T>(value: T | undefined, invariant: string): T {
  * Whether a caught value carries a particular code.
  *
  * @remarks
- * The narrowing a consumer would write, used internally by `tibetanDateExists` for the one case
- * where the error *type* is too coarse: a malformed `TraditionConfig` is a `RangeError`, like every
- * other input problem, but it is a broken program rather than a date that does not exist, so the
- * predicate must rethrow it rather than answer `false`.
+ * The narrowing a consumer would write, and what `tibetanDateExists` uses to match the **two codes**
+ * on its allowlist, `TCT_FIELD_OUT_OF_RANGE` and `TCT_NO_SUCH_LEAP_MONTH`. The third member of that
+ * allowlist, `SkippedDayError`, is matched by class and does not come through here.
+ *
+ * The error *type* is too coarse to do that job: a malformed `TraditionConfig` is a `RangeError`
+ * like every other input problem, but it is a broken program rather than a date that does not
+ * exist. It is rethrown by **omission** — nothing on the allowlist matches it, so it falls through
+ * to `throw error` — and never reaches this function. An earlier version of this remark named that
+ * rethrow as the one case this function serves, which was the inverse of the truth.
  */
 export function hasCode(error: unknown, code: TibetanCalendarErrorCode): boolean {
 	return error instanceof Error && (error as Partial<Coded<Error>>).code === code;

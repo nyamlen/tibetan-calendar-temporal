@@ -482,22 +482,28 @@ export function tibetanToIso(
  * Whether a Tibetan date names a real calendar day.
  *
  * @remarks
- * The predicate counterpart to {@link tibetanToIso}. It answers `false` in the two cases a caller
- * means by "this date is not real": the date is **skipped**, so no calendar day carries its
- * number, and the input is out of range or not an integer. Both are ordinary answers about the
- * input, which is what makes this safe to point at user input.
+ * The predicate counterpart to {@link tibetanToIso}. It answers `false` in the three cases a caller
+ * means by "this date is not real": the date is **skipped**, so no calendar day carries its number;
+ * a present field is out of range or not an integer; and `isLeapMonth` names a month with no leap
+ * twin that year. All three are ordinary answers about the input, which is what makes this safe to
+ * point at user input.
  *
  * It deliberately does **not** swallow anything else. A predicate that reports "this date does not
  * exist" when the truth is "the engine broke" is worse than a throw, and this one is used as an
  * oracle by the suite's strongest property, where masking a failure would make that property pass
  * more easily rather than fail.
  *
- * So the `catch` is an **allowlist**: three named codes answer `false` and everything else
- * propagates. It was a denylist — every `RangeError` bar one code answered `false` — and that lost
- * the race, because a config whose denominators `deriveScaling` could not work with threw an
- * uncoded `RangeError` from three frames down and this function reported that Losar does not
- * exist. A denylist has to anticipate every failure that will ever be added; an allowlist only has
- * to name the three that are genuinely answers about the input.
+ * So the `catch` is an **allowlist**, and it matches **one class and two codes**, never three
+ * codes: `SkippedDayError` by class, plus `TCT_FIELD_OUT_OF_RANGE` and `TCT_NO_SUCH_LEAP_MONTH`.
+ * Everything else propagates. `TCT_SKIPPED_DAY` is deliberately **not** matched as a code, so an
+ * error carrying that code without the class would be rethrown rather than swallowed — the class is
+ * what a caller branches on and what the rest of this package throws.
+ *
+ * It was a denylist — every `RangeError` bar one code answered `false` — and that lost the race,
+ * because a config whose denominators `deriveScaling` could not work with threw an uncoded
+ * `RangeError` from three frames down and this function reported that Losar does not exist. A
+ * denylist has to anticipate every failure that will ever be added; an allowlist only has to name
+ * the three things that are genuinely answers about the input.
  *
  * `TCT_OUTSIDE_EXACT_RANGE` is on the throwing side on purpose. Past that bound the day was never
  * computed, so `false` would be a confident claim about arithmetic that was refused rather than
@@ -625,10 +631,12 @@ export function isoToTibetan(
 	const resolved = named ?? following;
 	/* c8 ignore next */
 	if (resolved === undefined) {
-		// A plain Error, not a RangeError, and the distinction is load-bearing: `tibetanDateExists`
-		// reports `false` for a RangeError, so as one of those this would have been swallowed into
-		// "that date does not exist" — the opposite of the truth, and in the oracle for the suite's
-		// strongest property. See the remarks on that function.
+		// A plain Error, not a RangeError, and `codedError` is what makes that true. What keeps this
+		// out of `tibetanDateExists`'s `false` is TCT_INTERNAL's absence from that function's
+		// allowlist — one class and two codes — and not its type: the predicate has not swallowed
+		// every RangeError since the allowlist landed. Reporting this as "that date does not exist"
+		// would be the opposite of the truth, in the oracle for the suite's strongest property. See
+		// the remarks on that function.
 		throw codedError(
 			"TCT_INTERNAL",
 			`no Tibetan date found for ${date.toString()} within the proved search window; ` +
