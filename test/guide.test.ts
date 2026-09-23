@@ -136,6 +136,13 @@ describe("guide examples", () => {
 		);
 	});
 
+	it("ignores isLeapDay on a day that is not doubled", () => {
+		const fields = { year: 2151, month: 6, day: 5, isLeapMonth: true };
+		expect(isoToTibetan(iso("2024-07-11")).isDoubledDay).toBe(false);
+		expect(tibetanToIso({ ...fields, isLeapDay: true }).toString()).toBe("2024-07-11");
+		expect(tibetanToIso(fields).toString()).toBe("2024-07-11");
+	});
+
 	it("moves the 2024 Chokhor Duchen to 9 July under a spread config", () => {
 		const kopan = { ...DEFAULT_OBSERVANCES, id: "kopan", doubledDay: "first" as const };
 		expect(observancesOn(iso("2024-07-09"), { config: kopan }).map((o) => o.rule.id)).toContain(

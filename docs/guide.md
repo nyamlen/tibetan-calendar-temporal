@@ -71,6 +71,10 @@ The two cases compose, and that is where mistakes live: 4 of leap month 6 is *al
 day, so it needs both flags — `{ month: 6, day: 4, isLeapMonth: true, isLeapDay: true }` is
 9 July 2024, while dropping `isLeapDay` gives the 10th.
 
+`isLeapDay: true` on a day that is **not** doubled is ignored rather than refused, so a flag carried
+over from the previous result does no harm: `{ month: 6, day: 5, isLeapMonth: true, isLeapDay: true }`
+is 11 July 2024, exactly as it is without the flag.
+
 ### Why `Temporal.PlainDate`, and never `Date`
 
 **Temporal is not an alternative to `Date`; it is its replacement.** It is a finished TC39 proposal

@@ -855,7 +855,8 @@ export interface TibetanMonthFields {
 	/**
 	 * Select the leap month when two months share this number.
 	 *
-	 * @defaultValue `false` — the regular month, which is the second of the two.
+	 * @defaultValue `false` — the regular month. Under Phugpa that is the second of the two; under
+	 * Bhutan, whose leap month follows the regular one, it is the first.
 	 */
 	isLeapMonth?: boolean;
 
@@ -911,7 +912,8 @@ export interface TibetanDateFields {
 	/**
 	 * Select the leap month when two months share this number.
 	 *
-	 * @defaultValue `false` — the regular month, which is the second of the two.
+	 * @defaultValue `false` — the regular month. Under Phugpa that is the second of the two; under
+	 * Bhutan, whose leap month follows the regular one, it is the first.
 	 */
 	isLeapMonth?: boolean;
 
