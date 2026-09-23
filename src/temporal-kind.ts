@@ -38,10 +38,13 @@
  * because the home is one named file rather than "the guards".
  *
  * **What the rule reaches, stated exactly, because it is narrower than "anywhere else".** It
- * matches the literal idiom in code lines. Measured 2026-09-23:
- * `v instanceof globalThis.Temporal.PlainDate` and `const T = Temporal; v instanceof T.PlainDate`
- * both pass it. Neither is a plausible slip, and catching them would need the checker to track
- * aliases — so this is a ratchet against the accident, not a proof that no identity check exists.
+ * matches `instanceof` against `Temporal` **or against any of the three constructor names**, in
+ * code lines. So the qualified, aliased and destructured forms are all caught — including
+ * `const { PlainDate } = Temporal; v instanceof PlainDate`, which is idiomatic JavaScript and so
+ * the likeliest accidental one. What still passes is a single-identifier alias
+ * (`const P = Temporal.PlainDate; v instanceof P`) and a `getPrototypeOf` comparison, neither
+ * written by accident, both needing the checker to resolve bindings. **A ratchet against the
+ * accident, not a proof that no identity check exists** — do not cite it as one.
  *
  * @packageDocumentation
  */

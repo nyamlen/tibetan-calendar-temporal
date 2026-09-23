@@ -165,13 +165,27 @@ const TEMPORAL_KIND_HOME = "src/temporal-kind.ts";
  * says `instanceof Temporal` three times in its own remarks, so a whole-text search would stay
  * green with the single real check deleted. It did, until a review found it.
  *
+ * **It matches the constructor, not just the namespace, and that was a widening on 2026-09-23.**
+ * The first version tested `instanceof Temporal` literally, so three forms passed it —
+ * `v instanceof globalThis.Temporal.PlainDate`, an aliased `const T = Temporal; v instanceof
+ * T.PlainDate`, and, worst, a destructured `const { PlainDate } = Temporal; v instanceof
+ * PlainDate`. The last is idiomatic JavaScript and the most likely to be written **by accident**,
+ * which is the whole population this rule exists for; it was missed because the first pattern was
+ * written from the shape the codebase happened to contain. Widening cost one character class and
+ * produces zero false positives across `src/` — measured, the only match is the legal one.
+ *
+ * What still passes is a single-identifier alias (`const P = Temporal.PlainDate; v instanceof P`),
+ * a comma-expression, and a `getPrototypeOf` comparison. Catching those needs the checker to
+ * resolve bindings, and none is written by accident. **So this is still a ratchet against the
+ * accident rather than a proof of absence** — do not cite it as one.
+ *
  * Sharing this predicate between the rule and its self-test is deliberate, and it is the opposite
  * of the advice elsewhere in this file. "A guard must not share its predicate with the thing it
  * guards" applies where the two could drift into agreeing wrongly; here the hazard runs the other
  * way, and one definition of "asks the identity question" is what keeps them honest.
  */
 function isIdentityCheck(code) {
-	return /\binstanceof\s+Temporal\b/.test(code);
+	return /\binstanceof\s+[\w$.]*\b(Temporal|PlainDate|PlainDateTime|ZonedDateTime)\b/.test(code);
 }
 
 /**

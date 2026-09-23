@@ -354,12 +354,23 @@ derivation; in `docs/` they are just noise.
   is not contract.
 
   **And the class rule 14 cannot see now has a rule of its own for the case that caused it.**
-  Rule 15 refuses the literal `instanceof Temporal` idiom in every file of `src/` but
-  `src/temporal-kind.ts`, in code lines only. **Its reach is the idiom and not the concept**, which
-  the docs said otherwise for a day: measured 2026-09-23,
-  `v instanceof globalThis.Temporal.PlainDate` and an aliased `const T = Temporal` both pass it.
-  Neither is a plausible slip, so it is a ratchet against the accident rather than a proof that no
-  identity check exists — do not cite it as one. That is
+  Rule 15 refuses `instanceof` against `Temporal` or any of the three constructor names, in every
+  file of `src/` but `src/temporal-kind.ts`, in code lines only. **Its reach is the idiom and not
+  the concept** — a single-identifier alias (`const P = Temporal.PlainDate; v instanceof P`) and a
+  `getPrototypeOf` comparison still pass, and catching those needs binding resolution. So it is a
+  ratchet against the accident rather than a proof that no identity check exists; do not cite it as
+  one.
+
+  **The first pattern was written from the shape the codebase happened to contain, and that is the
+  transferable mistake.** It tested `instanceof Temporal` literally, which missed the qualified,
+  aliased and destructured forms — and the destructured one,
+  `const { PlainDate } = Temporal; v instanceof PlainDate`, is idiomatic JavaScript and therefore
+  the *likeliest accidental* member of the population the rule exists for. A review caught the first
+  two; the third nobody had thought of, and it surfaced only when the evasions were finally
+  **measured against the checker** instead of reasoned about. Widening cost one character class and
+  produces zero false positives. **Before deciding a guard's reach is good enough, write down the
+  forms the thing it hunts can take and run each one past it** — the cost of checking is minutes,
+  and "nobody would write that" is an assumption about other people. That is
   checkable precisely because the home is **one named file**; a rule saying "outside the guards"
   would need the checker to know which functions count as guards. It does not generalise — rule 15
   is about one idiom, and the review question above is still what catches the rest.

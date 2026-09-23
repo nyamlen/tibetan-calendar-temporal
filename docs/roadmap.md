@@ -1391,8 +1391,13 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
          were reproduced against the checker before anything was written, and the reach is now
          stated exactly in all five places that describe the rule — `src/temporal-kind.ts` (which
          ships in `dist/`), `docs/coding-standards.md`, `CLAUDE.md`, the decision record and this
-         list. The pattern was **not** widened: resolving aliases is real work for two shapes nobody
-         writes by accident, and the honest fix was the sentence.
+         list. **And the pattern WAS widened**, after a second pass measured the evasions against
+         the checker rather than reasoning about them: the first attempt declined on the ground that
+         "resolving aliases is real work for two shapes nobody writes by accident", which was wrong
+         twice — matching the constructor names instead of the namespace costs one character class
+         and catches all three, and one of them,
+         `const { PlainDate } = Temporal; v instanceof PlainDate`, is idiomatic JavaScript and the
+         likeliest accident of the lot. Zero false positives across `src/`; `X10` pins it.
       2. **`asWesternDay` appends its bare-`{ year, month, day }` paragraph unconditionally.** So
          `nextFullMoon(null)` is told about an object it did not pass. `asPlainDate` makes the same
          sentence conditional on the argument being an object; the merge of `phaseStart` and `isoOf`

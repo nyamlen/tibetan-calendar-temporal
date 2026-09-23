@@ -164,18 +164,29 @@ It matches the literal `instanceof Temporal…` idiom, in code lines only. Comme
 that the docblock explaining the rule may name it — the rule's first run flagged exactly that, which
 is how a rule teaches people to ignore it.
 
-**Measured 2026-09-23**, both of these pass it:
+It matches `instanceof` against `Temporal` **or against any of the three constructor names**, so
+all of these are caught:
 
 ```ts
+v instanceof Temporal.PlainDate;
 v instanceof globalThis.Temporal.PlainDate;
 const T = Temporal;
 v instanceof T.PlainDate;
+const { PlainDate } = Temporal;
+v instanceof PlainDate; // idiomatic, and so the likeliest accident
 ```
 
-Neither is a plausible slip, and catching them would need the checker to resolve aliases. So the
-rule is a **ratchet against the accident**, not a proof that no identity check exists in `src/`.
-Four documents said "anywhere else" for a day, which is the broader claim; an independent review
-caught it. Do not cite the rule as evidence of absence.
+**The first three were not**, until the pattern was widened on 2026-09-23. It had been written as a
+literal `instanceof Temporal`, from the shape this codebase happened to contain; a review found two
+of the gaps and the destructured one surfaced only when the forms were run past the checker rather
+than reasoned about. The widening is one character class and produces zero false positives across
+`src/`.
+
+What still passes is a single-identifier alias (`const P = Temporal.PlainDate; v instanceof P`), a
+comma expression, and a `getPrototypeOf` comparison. Each needs the checker to resolve bindings, and
+none is written by accident. So the rule is a **ratchet against the accident**, not a proof that no
+identity check exists in `src/`. Four documents said "anywhere else" for a day, which is the broader
+claim. Do not cite the rule as evidence of absence.
 
 ## Why this was settled before 1.0.0 and not after
 

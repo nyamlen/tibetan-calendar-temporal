@@ -307,6 +307,23 @@ const rule = (number: number): Row => {
 
 const X: readonly Row[] = [
 	{
+		id: "X10",
+		what: "an identity check written in the destructured form the first pattern missed",
+		// R15 covers `v instanceof Temporal.PlainDate`. This covers the form a rule written from
+		// the shape the codebase happened to contain did NOT catch: `const { PlainDate } =
+		// Temporal` is idiomatic JavaScript, so it is the likeliest ACCIDENTAL identity check, and
+		// the original pattern passed it. Without this row, narrowing the predicate back would
+		// leave R15 green.
+		apply: (tree) =>
+			tree.edit(
+				"src/navigation.ts",
+				(source) =>
+					`${source}\nconst { PlainDate } = Temporal;\nfunction destructuredIdentityCheck(value: unknown): boolean {\n\treturn value instanceof PlainDate;\n}\n`,
+				"the end of src/navigation.ts",
+			),
+		must: ["`instanceof Temporal` lives only in src/temporal-kind.ts", "src/navigation.ts"],
+	},
+	{
 		id: "X9",
 		what: "rule 15's home stops holding the predicate it exempts",
 		// The self-test read the WHOLE file until a review caught it, and `src/temporal-kind.ts`
