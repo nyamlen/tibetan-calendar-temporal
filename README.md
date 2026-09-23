@@ -437,7 +437,9 @@ isoToTibetan(Temporal.PlainDate.from('2026-08-12'), TSURPHU);
 ```
 
 Configs are validated when first used, so a partial or mistyped one is rejected with the offending
-field named rather than failing somewhere inside the arithmetic. Field-by-field documentation is in
+field named rather than failing somewhere inside the arithmetic. Every field is documented where your
+editor shows it, on the `TraditionConfig` type in the package's own declarations; the design behind
+them is in
 [docs/architecture.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/architecture.md#core-types). Note that validation checks **shape, not
 astronomy** — plausible constants that are wrong will produce a plausible calendar that is wrong,
 which is what [docs/testing.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/testing.md) exists to catch.
@@ -520,8 +522,7 @@ years, and against what, is in
 The complete surface, across all three entry points. Everything is a pure function over plain objects —
 same input, same output, no side effects. Wherever a `config?` parameter appears below it is a
 `TraditionConfig` defaulting to `PHUGPA`. A signature below with no `config?` and no `options?` takes
-no tradition at all, because what it computes — naming, parsing or renumbering a date, or a closed
-form on the year — needs no calendar.
+no tradition at all: what it computes is the same in every shipped tradition.
 
 The type declarations under `dist/` also describe internal modules; the `exports` map refuses a deep
 import of them, so what is listed here is the whole of what can be imported.
@@ -657,7 +658,7 @@ Two traditions, Phugpa and Bhutanese, each in two parameterisations. See
 |---|---|
 | `PHUGPA` | The default. Lunar anomaly increment `a₂ = 1/28`, as almanacs use |
 | `PHUGPA_HENNING` | Identical but for `a₂`, Henning's exact `3781/105840`. Differs on ~1 day in 4,100 days |
-| `BHUTAN` | The Bhutanese calendar, with `a₂ = 1/28` as `PHUGPA` has. Places its leap month after the regular month sharing its number, and names weekdays one planet ahead |
+| `BHUTAN` | The Bhutanese calendar, with `a₂ = 1/28` as `PHUGPA` has. Its own epoch and constants, so its leap month is usually a different month of the same year, and now and then falls a year apart; it places a leap month after the regular month sharing its number, and names weekdays one planet ahead |
 | `BHUTAN_HENNING` | Identical to `BHUTAN` but for `a₂`, as `PHUGPA_HENNING` is to `PHUGPA` |
 
 #### Errors
@@ -677,7 +678,7 @@ a `code`, which is what to branch on rather than the type:
 | `TCT_FIELD_OUT_OF_RANGE` | every function taking a date, a year or a Julian day | A year, month, day or Julian day is not an integer, or is outside 1–12 / 1–30. The argument was the right kind of thing and one of its numbers was wrong — so this is the one to surface to a user |
 | `TCT_INVALID_ARGUMENT` | the same functions, plus `parseTibetanDate` | The argument is the wrong *kind* of thing, so nothing in it is a field out of a range: a `Temporal.PlainDate` where a Tibetan date is expected, a bare `{ year, month, day }` where a Western date is expected, a non-boolean `isLeapMonth`/`isLeapDay`, `null`/`undefined`, or a string outside `parseTibetanDate`'s grammar. A bug in the calling code rather than bad data |
 | `TCT_NO_SUCH_LEAP_MONTH` | `tibetanToIso` | `isLeapMonth: true` for a month with no leap twin that year |
-| `TCT_OUTSIDE_EXACT_RANGE` | any conversion, and the closed-form year functions `hasLeapMonth`, `leapMonthNumberFor`, `monthsInYear` | Beyond where this tradition's integer arithmetic stays exact. `PHUGPA` and `BHUTAN` are exact from about ISO year −245,737 to 236,312; `PHUGPA_HENNING` and `BHUTAN_HENNING` from about −20,781 to 11,356. Both ranges end inside Temporal's own |
+| `TCT_OUTSIDE_EXACT_RANGE` | any conversion, and the closed-form year functions `hasLeapMonth`, `leapMonthNumberFor`, `monthsInYear` | Beyond where this tradition's integer arithmetic stays exact. For a conversion, `PHUGPA` and `BHUTAN` are exact from about ISO year −245,737 to 236,312; `PHUGPA_HENNING` and `BHUTAN_HENNING` from about −20,781 to 11,356. Both ranges end inside Temporal's own. The three year functions are closed forms with a bound of their own, far wider: `hasLeapMonth(300000)` answers |
 | `TCT_INVALID_TRADITION_CONFIG` | any function taking a config | The `TraditionConfig` is malformed. The message names the field |
 | `TCT_INVALID_OBSERVANCE_CONFIG` | `getObservances`, `observancesOn` | The `ObservanceConfig` or one of its rules is malformed |
 | `TCT_SPAN_TOO_WIDE` | `getObservances` | More than 200 years requested at once. Chunk it; the function is pure, so concatenating is correct |

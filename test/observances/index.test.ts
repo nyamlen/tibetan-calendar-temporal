@@ -526,3 +526,18 @@ describe("consumer config validation", () => {
 		expect(uncoded).toEqual([]);
 	});
 });
+
+describe("the options bag refuses an array", () => {
+	// An array is an object, so the shared guard passed one until 2026-09-23 and the defaults were
+	// used silently. It is what a point-free `map` hands the second parameter.
+	it("observancesOn", () => {
+		let code: unknown = "no throw";
+		try {
+			// @ts-expect-error -- an array is the wrong kind of thing, which is what is under test
+			observancesOn(Temporal.PlainDate.from("2024-07-09"), []);
+		} catch (error) {
+			code = (error as { code?: unknown }).code;
+		}
+		expect(code).toBe("TCT_INVALID_ARGUMENT");
+	});
+});

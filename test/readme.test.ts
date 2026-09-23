@@ -310,6 +310,12 @@ describe("the README's exact-range row", () => {
 		expect(stated).not.toBeNull();
 	});
 
+	it("says the year functions answer far past those ranges, with the example it gives", () => {
+		expect(row).toContain("`hasLeapMonth(300000)` answers");
+		expect(hasLeapMonth(300000)).toBeTypeOf("boolean");
+		expect(hasLeapMonth(300000, PHUGPA_HENNING)).toBeTypeOf("boolean");
+	});
+
 	const ranges = [
 		{ configs: [PHUGPA, BHUTAN], from: year(stated?.[1] ?? "0"), to: year(stated?.[2] ?? "0") },
 		{

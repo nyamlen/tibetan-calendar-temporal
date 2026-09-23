@@ -224,7 +224,9 @@ export function assertQueryOptions(functionName: string, shape: string, options:
 	// `=== undefined`, never `??`, at the call sites that read this bag: nullish-coalescing would
 	// read an explicit `{ tradition: null }` as absent and silently substitute a default, losing the
 	// validation a positional parameter had.
-	if (options === null || typeof options !== "object") {
+	// An array is an object, and it is exactly what a point-free `map` or `flatMap` passes as the
+	// second or third argument, so it is refused by name rather than read as a bag of defaults.
+	if (options === null || typeof options !== "object" || Array.isArray(options)) {
 		throw rangeError(
 			"TCT_INVALID_ARGUMENT",
 			`${functionName}: options must be an object like ${shape} or omitted, received ` +

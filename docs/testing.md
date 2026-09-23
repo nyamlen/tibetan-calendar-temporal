@@ -562,7 +562,8 @@ engine's internals. All fourteen dumps were byte-identical:
 
 - Node v26.7.0, native and with `temporal-polyfill` forced over the native global;
 - Chrome 153, native, with `temporal-polyfill/global`, and forced;
-- Playwright's WebKit 26.6, desktop and iPhone 15 profiles, native, global and forced;
+- Playwright's WebKit 26.6: the desktop profile native, global and forced, and the iPhone 15
+  profile global and forced;
 - **real devices, by hand**: Safari 17.6 on macOS and Safari on iOS, each with `temporal-polyfill/global`
   and forced. Neither had a native `Temporal`.
 

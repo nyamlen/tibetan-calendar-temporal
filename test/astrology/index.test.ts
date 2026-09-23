@@ -61,7 +61,7 @@ describe("the composition on a doubled date", () => {
 	});
 
 	it("can nevertheless give both halves one yoga, so the yoga is not what tells them apart", () => {
-		// Until 2026-09-23 four shipped docs said the two halves "differ" in yoga. The weekday element
+		// Until 2026-09-23 five shipped sites said the two halves "differ" in yoga. The weekday element
 		// always changes, but the mansion can change with it and land the pair on the same one: 9 and
 		// 10 July 2024, both Tibetan day 4, are both *death*, from mansion 8 (water) to 9 (fire).
 		const july9 = attributesFor(iso("2024-07-09"));

@@ -42,7 +42,7 @@ import {
 import { julianDayOfLunarDay } from "./computation/corrections.js";
 import { royalEraFromYear, yearFromRoyalEra } from "./computation/epoch.js";
 import { scalingFor } from "./computation/scaling.js";
-import { rangeError } from "./errors.js";
+import { assertQueryOptions, rangeError } from "./errors.js";
 import { describeMonth } from "./months.js";
 import { PHUGPA } from "./traditions/phugpa.js";
 import type { TraditionConfig } from "./traditions/types.js";
@@ -508,6 +508,8 @@ export interface AddMonthsToDateOptions {
  * target month does not carry the day number. Also thrown, under either setting, if `date` itself
  * names a day no calendar day carries.
  * @throws RangeError with the codes {@link addMonths} throws, plus `TCT_INVALID_ARGUMENT` if
+ * `options` is `null`, not an object, or an array — the last being what a point-free `flatMap`
+ * passes — or if
  * `overflow` is neither `"constrain"` nor `"reject"`.
  *
  * @example
@@ -522,6 +524,7 @@ export function addMonthsToDate(
 	months: number,
 	options: AddMonthsToDateOptions = {},
 ): TibetanDate {
+	assertQueryOptions("addMonthsToDate", "{ overflow, config }", options);
 	const config = options.config ?? PHUGPA;
 	const overflow = options.overflow ?? "constrain";
 	if (overflow !== "constrain" && overflow !== "reject") {

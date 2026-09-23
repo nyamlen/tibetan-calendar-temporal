@@ -797,3 +797,35 @@ describe("nextFullMoon / nextNewMoon accept a Tibetan date too", () => {
 		expect(thrown).toBeInstanceOf(SkippedDayError);
 	});
 });
+
+describe("addMonthsToDate's options bag", () => {
+	// Found by the final review of the polyfill-probe close-out, 2026-09-23. The function had no
+	// options guard at all, so `[t].flatMap(addMonthsToDate)` — index in the count slot, the array in
+	// the options slot — returned a confident wrong date instead of the throw the README promises for
+	// point-free use. An array is an object, so the shared guard had to refuse it by name.
+	const codeOf = (run: () => unknown) => {
+		try {
+			run();
+		} catch (error) {
+			return (error as { code?: unknown }).code;
+		}
+		return "no throw";
+	};
+	const date = resolveDate({ year: 2153, month: 1, day: 1 });
+
+	it("refuses the array a point-free flatMap passes", () => {
+		// TypeScript refuses this outright; the test is for the JavaScript caller, who gets no warning.
+		// @ts-expect-error -- the point-free form is the wrong call, which is what is under test
+		expect(codeOf(() => [date, date].flatMap(addMonthsToDate))).toBe("TCT_INVALID_ARGUMENT");
+	});
+
+	it("refuses null with a code rather than a TypeError", () => {
+		// @ts-expect-error -- null is the wrong kind of thing, which is what is under test
+		expect(codeOf(() => addMonthsToDate(date, 1, null))).toBe("TCT_INVALID_ARGUMENT");
+	});
+
+	it("still accepts an omitted bag and a plain one", () => {
+		expect(addMonthsToDate(date, 1).month).toBe(2);
+		expect(addMonthsToDate(date, 1, { overflow: "reject" }).month).toBe(2);
+	});
+});

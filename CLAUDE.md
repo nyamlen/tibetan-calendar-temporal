@@ -608,6 +608,12 @@ derivation; in `docs/` they are just noise.
   `??`**: nullish-coalescing treats an explicit `null` as absent, so `{ config: null }` silently
   becomes the default where the positional signature had rejected it — a validation quietly lost in
   a refactor that looked like a pure move.
+  **`addMonthsToDate`'s bag had no guard at all until 2026-09-23, and the shared one let an array
+  through**, since an array is an object. Together they made `[t].flatMap(addMonthsToDate)` — the
+  index landing in the count, the array in the bag — return a confident wrong date, under a README
+  sentence promising "a throw rather than a wrong calendar". `assertQueryOptions` now refuses an
+  array by name. Found by the close-out's final review, not by any suite. `addMonthsToDate` still
+  reads its bag with `??`, so `{ config: null }` becomes the default, against the rule above.
 - **Every consumer config gets a validator, and every export gets a guard.** `TraditionConfig` and
   `ObservanceConfig` are both documented extension points, so both are checked at the boundary and
   memoised per object. Add a config type, add a validator — `TraditionConfig` went unchecked for

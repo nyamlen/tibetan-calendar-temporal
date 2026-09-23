@@ -378,8 +378,9 @@ const documentedTypeLists = (markdown) =>
  * Those compile into `dist/*.d.ts` and render on hover, so a link there to a symbol the barrels do
  * not export points a consumer at something they cannot import — the polyfill probe found four,
  * among them `{@link trueMonthCount}` on `TraditionConfig.leapIndexThreshold`. Every other docblock
- * is internal and may link internal helpers freely: measured the same day, 79 of the 311 links in
- * `src/` target non-barrel symbols, nearly all correctly. So the scope is the whole of the rule.
+ * is internal and may link internal helpers freely: measured the same day, before the fix, 79 of 311
+ * links in `src/` targeted non-barrel symbols, eleven of them the defects this closes; after it, 70 of
+ * the 320 symbol links do, every one in an internal docblock. So the scope is the whole of the rule.
  *
  * Returns `{ line, target }` for each link in scope, `line` 1-based; module links (`….js`) are left
  * to the resolution check above, since a module is not a symbol.
