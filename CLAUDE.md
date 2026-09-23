@@ -461,7 +461,10 @@ derivation; in `docs/` they are just noise.
   broke the *shape* rather than the list: one boundary cannot separate three sections, and the failure
   was silent — the unextended rule kept passing while checking nothing about `./astrology`. Each
   barrel now declares the README heading its section opens with, and the rule refuses to guess if a
-  heading is missing or out of order. **A type declared in a barrel is invisible to it**, because it
+  heading is missing or out of order. **Rule 16 is its runtime sibling, since 2026-09-23**: each
+  barrel's runtime exports against the *Export* column of its README section's API tables, and the
+  error table against the `TibetanCalendarErrorCode` union — the polyfill probe found the configs
+  table listing two of four and the error table a code short. **A type declared in a barrel is invisible to it**, because it
   reads `export type { … } from` blocks: that is why `DayAttributes` and `AstrologyQueryOptions` live
   in `src/astrology/types.ts` rather than in the barrel, and the rule is what found them there. **It does
   not close the prose half.** A sentence describing a type's *fields* is still unguarded: the same
@@ -698,7 +701,8 @@ any script's source names it, and the harness names `fixtures/bhutan.js`.
 
 **`check:conventions` enforces the rules in this file that lint, typecheck and the suite cannot
 see**, which before it existed was all of them: the zero-dependency claim, integer-only arithmetic,
-coded errors, `{@link}` targets, the reality of every `TCT_` code named in a `@throws`, the
+coded errors, `{@link}` targets — and, since 2026-09-23, that a link in a docblock which ships
+targets something an entry point exports — the reality of every `TCT_` code named in a `@throws`, the
 decision-record format, fixture provenance, whether
 [docs/coding-standards.md](docs/coding-standards.md) still names real commands and paths, that a
 validation suite is named for the fixture it validates, that an exported **tradition** config is

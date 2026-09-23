@@ -546,6 +546,8 @@ because "some day this decade is doubled" survives a systematic one-day error an
 
 ## Under a polyfill
 
+Not a tier and not in CI: two runs by hand, recorded here with their dates and commits.
+
 **This is agreement between implementations of Temporal, not a check of correctness.** It shows that
 the engine gives the same answers whichever `Temporal` it runs on. Whether those answers are right is
 the rest of this document.
