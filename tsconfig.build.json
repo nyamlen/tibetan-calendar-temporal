@@ -7,8 +7,8 @@
     // imports scripts/. See the base config for why the typecheck pass needs it.
     "allowImportingTsExtensions": false,
     "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
+    // No source maps, deliberately: every one pointed at ../src/*.ts, which does not ship, so for a
+    // consumer each resolved to nothing. Removed 2026-09-23 after the polyfill probe (F4).
     "outDir": "dist",
     "rootDir": "src"
   },
