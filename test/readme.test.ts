@@ -20,7 +20,8 @@ import {
 } from "../src/months.js";
 import { addMonths, monthsBetween, nextFullMoon } from "../src/navigation.js";
 import { getObservances } from "../src/observances/index.js";
-import { PHUGPA_HENNING } from "../src/traditions/phugpa.js";
+import { BHUTAN, BHUTAN_HENNING } from "../src/traditions/bhutan.js";
+import { PHUGPA, PHUGPA_HENNING } from "../src/traditions/phugpa.js";
 
 const iso = (s: string) => Temporal.PlainDate.from(s);
 
@@ -290,4 +291,51 @@ describe("README navigation examples", () => {
 		// The README says the lunar day's animal is "a different label for the same date".
 		expect(day.lunarDay?.animal).not.toBe(day.calendarDay.animal);
 	});
+});
+
+describe("the README's exact-range row", () => {
+	// Until 2026-09-23 the row said PHUGPA "does not [run out], within Temporal's own range". It does,
+	// around ISO year 236,312. Read the four years out of the row, and hold each to the engine on both
+	// sides: a year one inside converts, a year one past refuses with the code.
+	const readme = readFileSync(new URL("../README.md", import.meta.url), "utf8");
+	const row =
+		readme.split("\n").find((line) => line.startsWith("| `TCT_OUTSIDE_EXACT_RANGE` |")) ?? "";
+	const year = (text: string) => Number(text.replace("−", "-").replaceAll(",", ""));
+	const stated =
+		/`PHUGPA` and `BHUTAN` are exact from about ISO year (−?[\d,]+) to ([\d,]+); `PHUGPA_HENNING` and `BHUTAN_HENNING` from about (−?[\d,]+) to ([\d,]+)\./.exec(
+			row,
+		);
+
+	it("states both ranges in the form this suite reads", () => {
+		expect(stated).not.toBeNull();
+	});
+
+	const ranges = [
+		{ configs: [PHUGPA, BHUTAN], from: year(stated?.[1] ?? "0"), to: year(stated?.[2] ?? "0") },
+		{
+			configs: [PHUGPA_HENNING, BHUTAN_HENNING],
+			from: year(stated?.[3] ?? "0"),
+			to: year(stated?.[4] ?? "0"),
+		},
+	];
+	const pad = (y: number) =>
+		y < 0 ? `-${String(-y).padStart(6, "0")}` : `+${String(y).padStart(6, "0")}`;
+
+	for (const { configs, from, to } of ranges) {
+		for (const config of configs) {
+			it(`${config.id}: converts inside ${from} to ${to}, and refuses past both ends`, () => {
+				expect(isoToTibetan(iso(`${pad(from + 1)}-01-01`), config).year).toBeTypeOf("number");
+				expect(isoToTibetan(iso(`${pad(to - 1)}-12-31`), config).year).toBeTypeOf("number");
+				for (const past of [`${pad(from - 1)}-12-31`, `${pad(to + 1)}-01-01`]) {
+					let code: unknown;
+					try {
+						isoToTibetan(iso(past), config);
+					} catch (error) {
+						code = (error as { code?: unknown }).code;
+					}
+					expect(code, past).toBe("TCT_OUTSIDE_EXACT_RANGE");
+				}
+			});
+		}
+	}
 });

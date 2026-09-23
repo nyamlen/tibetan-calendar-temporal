@@ -485,8 +485,8 @@ describe("tibetanToIso", () => {
 		expect(() => losarFor(1e15)).toThrow(/exact/);
 	});
 
-	// PHUGPA_HENNING's common denominator is 15x Phugpa's, so its exact range is 17x tighter --
-	// and unlike Phugpa's, it is reachable well inside Temporal.PlainDate's own range.
+	// PHUGPA_HENNING's common denominator is 15x Phugpa's, so its exact range is 15x tighter.
+	// Both are reachable inside Temporal.PlainDate's own range; Henning's is merely nearer.
 	it("enforces the exact range per tradition, not globally", () => {
 		const henning = deriveScaling(PHUGPA_HENNING);
 		expect(henning.exactToJulianDay).toBeLessThan(scaled.exactToJulianDay);
@@ -497,6 +497,23 @@ describe("tibetanToIso", () => {
 
 		// Past Phugpa's own bound, both refuse.
 		expect(() => isoToTibetan(iso("+275760-09-13"), PHUGPA)).toThrow(/exact/);
+	});
+
+	// The bound is symmetric in the Julian day, and until 2026-09-23 the refusal named only the
+	// positive end — "about ISO year 236312" — when refusing a date in −250,000. Message text is not
+	// contract, so this asserts content, not wording: the year it names is on the refused side.
+	it("names the end of the range on the side the refused date lies on", () => {
+		const messageFor = (date: string) => {
+			try {
+				isoToTibetan(iso(date), PHUGPA);
+			} catch (error) {
+				return (error as Error).message;
+			}
+			throw new Error(`${date} converted`);
+		};
+		expect(messageFor("-250000-01-01")).toMatch(/ISO year -\d/);
+		expect(messageFor("+250000-01-01")).not.toMatch(/ISO year -\d/);
+		expect(messageFor("+250000-01-01")).toMatch(/ISO year \d/);
 	});
 });
 

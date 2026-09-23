@@ -216,8 +216,8 @@ export function asWesternDay(
  * The range check matters more than the tidier message. This was the one public route that did not
  * apply the tradition's exact-range bound, so it was the way into the range the rest of the
  * API carefully refuses. That bound is a property of the tradition rather than of the package —
- * `PHUGPA_HENNING` runs out around ISO year 11,356 where `PHUGPA` does not — so this takes a
- * config and defaults it like every other entry point.
+ * `PHUGPA_HENNING` runs out around ISO year 11,356 and `PHUGPA` around 236,312, both inside
+ * Temporal's own range — so this takes a config and defaults it like every other entry point.
  *
  * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `julianDay` is not a safe integer, or
  * `TCT_OUTSIDE_EXACT_RANGE` if it lies past where the tradition's arithmetic stays exact.
@@ -300,9 +300,13 @@ function describeInput(input: TibetanDateFields): string {
  * successful conversion. It is only ever needed on the throw.
  *
  * The message names the tradition, because the bound is a property of the tradition rather than of
- * the package: `PHUGPA_HENNING`'s common denominator is fifteen times Phugpa's, so it runs out
- * around ISO year 11,356 while Phugpa does not. A caller who hits this on one config and not the
+ * the package: `PHUGPA_HENNING`'s common denominator is fifteen times Phugpa's, so its range is a
+ * fifteenth as wide — about ISO years −20,781 to 11,356, where Phugpa's is about −245,737 to
+ * 236,312. Both lie inside Temporal's own range. A caller who hits this on one config and not the
  * other needs to be told which one refused.
+ *
+ * The bound is symmetric in the Julian day, so the message names the end on the side the refused
+ * value lies on: an ISO year of 236,312 is no help to someone refusing a date in −250,000.
  */
 export function assertExactJulianDay(
 	scaled: ScaledTradition,
@@ -310,11 +314,13 @@ export function assertExactJulianDay(
 	subject: () => string,
 ): void {
 	if (!(Math.abs(julianDay) <= scaled.exactToJulianDay)) {
+		const below = julianDay < 0;
+		const bound = below ? -scaled.exactToJulianDay : scaled.exactToJulianDay;
 		throw rangeError(
 			"TCT_OUTSIDE_EXACT_RANGE",
 			`${subject()} is outside the range where the ${scaled.config.name} tradition's arithmetic ` +
-				`stays exact: |JD| must be at most ${scaled.exactToJulianDay}` +
-				`${describeBound(scaled.exactToJulianDay)}, received ${julianDay}`,
+				`stays exact: JD must be ${below ? "at least" : "at most"} ${bound}` +
+				`${describeBound(bound)}, received ${julianDay}`,
 		);
 	}
 }
@@ -325,12 +331,13 @@ export function assertExactJulianDay(
  * @remarks
  * A raw Julian day in the tens of millions is not a number anyone can act on. The ISO year is, and
  * it is what makes the `PHUGPA_HENNING` limit legible as "about year 11,356" rather than as
- * `4295220`. Some bounds fall outside `Temporal.PlainDate`'s own ±273,972-year range, so this
- * degrades to nothing rather than throwing a second error while reporting the first.
+ * `5868816`. A bound may fall outside `Temporal.PlainDate`'s own range, ISO years −271,821 to
+ * 275,760, so this degrades to nothing rather than throwing a second error while reporting the
+ * first. No shipped tradition's does.
  */
-function describeBound(exactToJulianDay: number): string {
+function describeBound(signedBound: number): string {
 	try {
-		return ` (about ISO year ${isoFromJulianDayUnchecked(exactToJulianDay).year})`;
+		return ` (about ISO year ${isoFromJulianDayUnchecked(signedBound).year})`;
 		/* c8 ignore next 3 -- only reachable for a tradition whose bound exceeds Temporal's range */
 	} catch {
 		return "";
@@ -627,7 +634,8 @@ export function tibetanDateExists(
  *
  * @throws RangeError with code `TCT_OUTSIDE_EXACT_RANGE` if the date falls outside the range where
  * the arithmetic stays exact. This is reachable inside `Temporal.PlainDate`'s own range:
- * `PHUGPA_HENNING` is exact only to about year 11,356. `TCT_INVALID_ARGUMENT` if `date` is not a
+ * `PHUGPA_HENNING` is exact only from about year −20,781 to 11,356, and `PHUGPA` from about
+ * −245,737 to 236,312. `TCT_INVALID_ARGUMENT` if `date` is not a
  * value `asPlainDate` accepts — notably a bare `{ year, month, day }` object, which is ambiguous
  * with this package's own Tibetan-date shape.
  *
