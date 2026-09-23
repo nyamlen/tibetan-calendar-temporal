@@ -503,10 +503,19 @@ derivation; in `docs/` they are just noise.
   wearing the element type, which is how the same constraint was discharged two different ways in
   the same codebase.
   Codes are contract and message text is not, so assert on the code in tests and never tell a
-  consumer to match wording. `tibetanDateExists` swallows errors by **allowlist** — three codes
-  answer `false`, everything else rethrows — and must not go back to a denylist: as one, a single
-  bare `RangeError` in `scaleTo` made it report that Losar 2026 does not exist. Both rules and the
-  message-writing guidance:
+  consumer to match wording. `tibetanDateExists` swallows errors by **allowlist** — **one class and
+  two codes**: `SkippedDayError` matched by class, plus `TCT_FIELD_OUT_OF_RANGE` and
+  `TCT_NO_SUCH_LEAP_MONTH`; everything else rethrows — and must not go back to a denylist: as one, a
+  single bare `RangeError` in `scaleTo` made it report that Losar 2026 does not exist.
+
+  **This sentence read "three codes answer `false`" until 2026-09-23, which was wrong**, and it was
+  the **eighth** site saying so: the nyamlen polyfill probe found the rule stated two ways in
+  `dist`, an adversarial review found three more, a spec panel found a seventh in an inline comment,
+  and the doc-drift sweep before clearing that session found this one. `TCT_SKIPPED_DAY` is **not**
+  matched as a code at all, so an error carrying it without the class would rethrow. The lesson is
+  not the miscount: it is that the rule book itself drifts with the code, and that a claim repeated
+  in eight places is corrected in eight places or not at all. Both rules and the message-writing
+  guidance:
   [docs/decisions/2026-08-12-error-codes-not-classes.md](docs/decisions/2026-08-12-error-codes-not-classes.md).
 
   **A third semantics arrived with `./astrology` on 2026-09-12, and it is neither of the two below.**
@@ -559,6 +568,21 @@ Temporal fails on `import`, before any call. The guard above that line turns wha
 `temporal-polyfill/global`. A consumer supplying a polyfill still works — npm treats `engines` as a
 warning — so do not "simplify" either the declaration or the guard away; they cover different
 failures.
+
+**Testing against a polyfill needs `installImplementation()`, and two of `temporal-polyfill`'s three
+entry points cannot test anything here.** `temporal-polyfill/global` installs **only where no native
+`Temporal` exists**, so on Node 26 and current Chrome it is a no-op — and so, measured 2026-09-23, is
+its **main export**: `import { Temporal } from "temporal-polyfill"` returns objects for which
+`x instanceof globalThis.Temporal.PlainDate` is `true`. A first attempt to reproduce a
+cross-implementation defect used the main export, saw every call behave correctly, and would have
+reported the defect as unreproducible.
+
+So: `temporal-polyfill/implementation` for a genuinely **second** class, and `installImplementation()`
+from `temporal-polyfill/shim` to force the polyfill **over** a native global. Neither belongs in this
+package's dependency tree — resolve them from a scratch directory outside the repo, the same way
+`scripts/fetch-eszthoff-fixtures.mjs` resolves its package. The evidence that the surface agrees
+under a polyfill is the nyamlen polyfill probe of 2026-09-23: **fourteen dumps byte-identical**,
+including real iOS Safari 26.6 and Safari 17.6.
 
 **Temporal has no user-defined calendars.** `Temporal.Calendar` does not exist and `calendar:`
 accepts only built-in CLDR identifiers, which exclude `tibetan`. Do not attempt a calendar
@@ -689,6 +713,20 @@ contamination. The exposure was a **90-line prose section** headed "Architecture
 verdict was reported as reassurance and had to be withdrawn. **Before trusting a guard's silence,
 state where the thing it hunts would live and check that the guard looks there.** An independent
 review found this; three passes by the check's own author did not.
+
+**A sweep whose calling convention is wrong reports agreement, which is indistinguishable from a
+passing check.** Sweeping all 27 affected exports on 2026-09-23, every multi-argument one was called
+as `fn(date, date)` — so `addDays`, `addMonths`, `addMonthsToDate`, `daysBetween` and `monthsBetween`
+received a date where a **count** belongs. They threw for that reason, matched the control, and read
+as unaffected. Called properly, all five were defective: `addDays(foreignDate, 1)` returned a
+confident wrong Tibetan date. **Five of seventeen findings were invisible**, and nothing about the
+output looked wrong.
+
+This is the measurement-shaped sibling of the guard rule above, and the same session produced three
+more instances — a phrase-grep that could not reach the docblocks it was hunting, a two-site reading
+of a five-site problem, and a test fake too thin to exercise the path it was written for. **State
+what a sweep's arguments mean before trusting what it agrees about**, and prefer a sweep that names
+each call's argument shape in its output, so a wrong convention is visible rather than silent.
 
 **A shipped instruction is contract exactly as a shipped example is, and this project's own setup is
 the worst possible evidence for one.** `test/docblock-examples.test.ts` and `test/guide.test.ts`
