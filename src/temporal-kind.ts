@@ -40,7 +40,7 @@
  * @packageDocumentation
  */
 
-import { describe, rangeError } from "./errors.js";
+import { codedError, describe, rangeError } from "./errors.js";
 
 /** The Temporal types that name a calendar day, and so can be normalised to one. */
 export type TemporalDayKind = "PlainDate" | "PlainDateTime" | "ZonedDateTime";
@@ -134,7 +134,11 @@ export function toNativePlainDate(value: unknown, kind: TemporalDayKind): Tempor
 	// names neither the requirement nor the fix; this code does.
 	/* c8 ignore start -- unreachable under test: the suite runs on Node 26, where Temporal exists, and deleting the global mid-suite would break every other file in the same process */
 	if (typeof Temporal === "undefined") {
-		throw rangeError(
+		// `codedError`, not `rangeError`: the README states that `TCT_MISSING_TEMPORAL` is a plain
+		// `Error` deliberately, and one code riding two error types would make that false for
+		// whichever site a consumer happened to hit. The import-time guard in `conversion.ts` uses
+		// the same constructor.
+		throw codedError(
 			"TCT_MISSING_TEMPORAL",
 			"the global Temporal has been removed since this package was imported, so a date cannot " +
 				"be normalised. Restore it, or import a polyfill before this package.",
@@ -142,7 +146,29 @@ export function toNativePlainDate(value: unknown, kind: TemporalDayKind): Tempor
 	}
 	/* c8 ignore stop */
 	if (kind !== "PlainDate") {
-		const narrowed: unknown = (value as { toPlainDate: () => unknown }).toPlainDate();
+		// Guarded, because the brand is spoofable and the narrowing call is not. An object carrying
+		// `Temporal.ZonedDateTime` and nothing else threw an **uncoded** `TypeError: value.toPlainDate
+		// is not a function` — at the one boundary whose stated job is to convert uncoded TypeErrors
+		// into coded errors, and on the exact branch the spoofing argument above rests on. A
+		// `toPlainDate` that throws on its own escaped the same way.
+		const narrow = (value as { toPlainDate?: unknown }).toPlainDate;
+		if (typeof narrow !== "function") {
+			throw rangeError(
+				"TCT_INVALID_ARGUMENT",
+				`received a value branded Temporal.${kind} with no toPlainDate method, so it cannot ` +
+					`name a calendar day: ${describe(value)}`,
+			);
+		}
+		let narrowed: unknown;
+		try {
+			narrowed = narrow.call(value);
+		} catch (error) {
+			throw rangeError(
+				"TCT_INVALID_ARGUMENT",
+				`received a value branded Temporal.${kind} whose toPlainDate failed: ` +
+					`${describe(value)}${error instanceof Error ? ` (${error.message})` : ""}`,
+			);
+		}
 		return toNativePlainDate(narrowed, "PlainDate");
 	}
 	if (value instanceof Temporal.PlainDate) return assertIsoCalendar(value);

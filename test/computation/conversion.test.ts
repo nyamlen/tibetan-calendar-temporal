@@ -550,7 +550,16 @@ describe("skipped and doubled days", () => {
 	// package can throw -- which nothing did until 2026-09-23, and that absence is why three
 	// docblocks came to describe the rule three different wrong ways (see the remarks on
 	// `rangeError` and `codedError` in src/errors.ts, and on `rejectTemporalInstance` in
-	// src/types.ts). The predicate answers `false` for exactly three things and rethrows the rest.
+	// src/types.ts). The predicate answers `false` for one class and two codes — `SkippedDayError`
+	// matched by class, plus `TCT_FIELD_OUT_OF_RANGE` and `TCT_NO_SUCH_LEAP_MONTH` — and rethrows
+	// the rest.
+	//
+	// The table below is keyed by CODE, and `TCT_SKIPPED_DAY: true` is a statement about the CLASS.
+	// The reachable case throws a real `SkippedDayError`, which carries both; an error carrying only
+	// the code would be rethrown. It is keyed by code because the key type is what makes `tsc`
+	// refuse an unclassified new code, which is the completeness this table exists for — so the
+	// distinction is stated here rather than encoded, and the table must not be read as saying that
+	// three *codes* answer `false`. That reading is the error this suite was added to end.
 	//
 	// Completeness is enforced by `tsc`, not by an assertion: the Record is keyed by the whole
 	// TibetanCalendarErrorCode union, so adding a code to that union fails `npm run typecheck`
@@ -596,7 +605,7 @@ describe("skipped and doubled days", () => {
 			),
 	};
 
-	it("answers false for exactly three codes and rethrows every other one", () => {
+	it("answers false for one class and two codes, and rethrows every other one", () => {
 		// Collected and asserted once: a per-code expect would name only the first offender.
 		const wrong: string[] = [];
 		for (const [code, run] of Object.entries(reachable)) {

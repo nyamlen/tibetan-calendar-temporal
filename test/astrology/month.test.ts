@@ -221,7 +221,7 @@ describe("a tradition whose month attributes are unsourced refuses", () => {
 	});
 
 	it("carries a code no existence predicate swallows", () => {
-		// `tibetanDateExists` answers `false` by allowlist — three codes, everything else rethrown —
+		// `tibetanDateExists` answers `false` by allowlist — one class and two codes, everything else rethrown —
 		// and this code must stay off it: a Bhutanese date exists perfectly well, only an attribute of
 		// it is unsourced. Asserted through `hasCode`, the predicate the allowlist itself uses, so this
 		// fails if the code is ever given one of those three instead.

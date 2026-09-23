@@ -307,6 +307,26 @@ const rule = (number: number): Row => {
 
 const X: readonly Row[] = [
 	{
+		id: "X9",
+		what: "rule 15's home stops holding the predicate it exempts",
+		// The self-test read the WHOLE file until a review caught it, and `src/temporal-kind.ts`
+		// says `instanceof Temporal` three times in its own docblock explaining why it is the only
+		// file allowed to — so deleting the single real check left the self-test green, and the
+		// whole vitest suite green too, since a native PlainDate simply takes the String() path and
+		// answers identically. It now reads code lines only. This row is what keeps that true.
+		apply: (tree) =>
+			tree.edit(
+				"src/temporal-kind.ts",
+				(source) =>
+					source.replace(
+						"\tif (value instanceof Temporal.PlainDate) return assertIsoCalendar(value);\n",
+						"",
+					),
+				"the one identity check in src/temporal-kind.ts",
+			),
+		must: ["The checker itself is broken", "rule 15's exempt file"],
+	},
+	{
 		id: "X1",
 		what: "a throw in a later rule keeps an earlier rule's finding",
 		// Two mutations, deliberately. A throw alone on a clean tree yields an empty report plus a

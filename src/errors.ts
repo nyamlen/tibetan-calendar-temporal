@@ -56,7 +56,10 @@
  *   wrong** — it is `TCT_INVALID_ARGUMENT`'s neighbour rather than `TCT_FIELD_OUT_OF_RANGE`'s — and
  *   it is deliberately **not** on `tibetanDateExists`'s allowlist: a Bhutanese date exists perfectly
  *   well, only an attribute of it is unsourced.
- * - `TCT_MISSING_TEMPORAL` — the runtime has no `Temporal`. Thrown at **import** time.
+ * - `TCT_MISSING_TEMPORAL` — the runtime has no `Temporal`. Normally thrown at **import** time,
+ *   by the guard in `computation/conversion.ts`. Also thrown at **call** time, by
+ *   `temporal-kind.ts`, in the one case the import guard cannot cover: a global deleted after
+ *   this package was imported. Both are plain `Error`s, not `RangeError`s.
  * - `TCT_INTERNAL` — an invariant this engine proves for itself did not hold. A bug here rather
  *   than a problem with the caller's input; please report it.
  *
@@ -173,14 +176,25 @@ export function hasCode(error: unknown, code: TibetanCalendarErrorCode): boolean
  * `parse.ts`. Merging them changed message text, which is why it waited for the boundary
  * consolidation rather than riding along with the mechanical move. The union body is this one and
  * not `describeValue`'s: its `constructor?.name` branch existed to name a `Temporal.PlainDate`,
- * and `temporalTypeNameOf` now does that from the brand — so "an object" is both the clearer
- * rendering and the only one left with a job. `format.ts` keeps its own `describe`, which lists an
+ * and `temporalTypeNameOf` now does that from the brand. **That justification held only for
+ * `asPlainDate`**, which consults `temporalTypeNameOf`; `asWesternDay` and `parse.ts` never do, so
+ * for them the branch was doing a second job — naming a `Date` — that the merge briefly lost. It is
+ * back, narrowed: a plain object is still "an object", because "Object" says strictly less. `format.ts` keeps its own `describe`, which lists an
  * object's keys and is a different thing wearing the same name.
  */
 export function describe(value: unknown): string {
 	if (typeof value === "string") return JSON.stringify(value);
 	if (Array.isArray(value)) return `an array of ${value.length}`;
-	if (value !== null && typeof value === "object") return "an object";
+	if (value !== null && typeof value === "object") {
+		// A **named** class is worth naming, and a plain object is not. `Temporal only. Never Date.`
+		// is this package's first rule, so `new Date()` is the wrong argument a consumer actually
+		// passes — and the first version of this merged function rendered it "an object", hiding what
+		// they gave and then offering them a paragraph about `{ year, month, day }`. "an object"
+		// stays for a plain one, where "Object" would say strictly less and where the ambiguity note
+		// that follows it is the useful half of the message.
+		const className = value.constructor?.name;
+		return className === undefined || className === "Object" ? "an object" : className;
+	}
 	return String(value);
 }
 

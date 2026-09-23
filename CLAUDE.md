@@ -530,7 +530,11 @@ derivation; in `docs/` they are just noise.
   and the doc-drift sweep before clearing that session found this one. `TCT_SKIPPED_DAY` is **not**
   matched as a code at all, so an error carrying it without the class would rethrow. The lesson is
   not the miscount: it is that the rule book itself drifts with the code, and that a claim repeated
-  in eight places is corrected in eight places or not at all. Both rules and the message-writing
+  in N places is corrected in N places or not at all — **and N is never the number last written
+  down**. This passage said eight, twice, and was stale within the day: the sweep that closed it
+  found seven more in `src/` and three in `docs/`, the latter missed by a first pass that cleared
+  `docs/` on a phrase-grep where only a name-grep reaches them. Count again; do not quote this
+  sentence's number. Both rules and the message-writing
   guidance:
   [docs/decisions/2026-08-12-error-codes-not-classes.md](docs/decisions/2026-08-12-error-codes-not-classes.md).
 

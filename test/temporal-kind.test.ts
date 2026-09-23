@@ -304,3 +304,63 @@ describe("a spoofed brand", () => {
 		expect(codeOf(() => tibetanToIso(spoof as never))).toBe("TCT_INVALID_ARGUMENT");
 	});
 });
+
+describe("a brand with nothing behind it", () => {
+	it("refuses a PlainDateTime or ZonedDateTime tag with no toPlainDate, with a code", () => {
+		// The one hole a code review found in the "spoofing is survivable" argument: the narrowing
+		// call was unguarded, so these two threw an uncoded TypeError at the very boundary this file
+		// exists to convert uncoded TypeErrors into coded errors.
+		for (const tag of ["Temporal.PlainDateTime", "Temporal.ZonedDateTime"]) {
+			const spoof = { [Symbol.toStringTag]: tag } as unknown as Temporal.PlainDate;
+			expect(codeOf(() => julianDayFromIso(spoof))).toBe("TCT_INVALID_ARGUMENT");
+		}
+	});
+
+	it("refuses one whose toPlainDate throws, rather than letting it escape", () => {
+		const spoof = {
+			[Symbol.toStringTag]: "Temporal.ZonedDateTime",
+			toPlainDate: () => {
+				throw new TypeError("no");
+			},
+		} as unknown as Temporal.PlainDate;
+		expect(codeOf(() => julianDayFromIso(spoof))).toBe("TCT_INVALID_ARGUMENT");
+	});
+
+	it("refuses one whose toPlainDate returns something that is not a date", () => {
+		const spoof = {
+			[Symbol.toStringTag]: "Temporal.PlainDateTime",
+			toPlainDate: () => 17,
+		} as unknown as Temporal.PlainDate;
+		expect(codeOf(() => julianDayFromIso(spoof))).toBe("TCT_INVALID_ARGUMENT");
+	});
+});
+
+describe("describing what was received", () => {
+	it("names a Date, the likeliest wrong argument in a package that forbids Date", () => {
+		// `Temporal only. Never Date.` is rule one here, so `new Date()` is the mistake a consumer
+		// actually makes. Merging the value-describers briefly rendered it "an object", which hides
+		// what they passed and then offers them a paragraph about { year, month, day }.
+		for (const call of [
+			() => julianDayFromIso(new Date() as unknown as Temporal.PlainDate),
+			() => nextFullMoon(new Date() as unknown as Temporal.PlainDate),
+		]) {
+			let message = "";
+			try {
+				call();
+			} catch (error) {
+				message = (error as Error).message;
+			}
+			expect(message).toMatch(/received Date/);
+		}
+	});
+
+	it("still says 'an object' for a plain one, where naming Object would say less", () => {
+		let message = "";
+		try {
+			julianDayFromIso({ year: 2024, month: 7, day: 9 } as unknown as Temporal.PlainDate);
+		} catch (error) {
+			message = (error as Error).message;
+		}
+		expect(message).toContain("an object");
+	});
+});

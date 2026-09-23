@@ -154,6 +154,27 @@ const DUPLICATE_BODY_FLOOR = 40;
 const TEMPORAL_KIND_HOME = "src/temporal-kind.ts";
 
 /**
+ * Whether a line asks the identity question rule 15 exists to refuse.
+ *
+ * @remarks
+ * Applied to a line's **code**, never its raw text: `codeLines` has already removed comments, which
+ * matters in both directions. Rule 15 must not fire on the docblock explaining why the idiom is
+ * banned — its first run did exactly that, on a comment in `asPlainDate` pointing readers at the
+ * shared predicate, and a rule that flags its own documentation is a rule people learn to ignore.
+ * And rule 15's **self-test** must not be *satisfied* by that same prose: `src/temporal-kind.ts`
+ * says `instanceof Temporal` three times in its own remarks, so a whole-text search would stay
+ * green with the single real check deleted. It did, until a review found it.
+ *
+ * Sharing this predicate between the rule and its self-test is deliberate, and it is the opposite
+ * of the advice elsewhere in this file. "A guard must not share its predicate with the thing it
+ * guards" applies where the two could drift into agreeing wrongly; here the hazard runs the other
+ * way, and one definition of "asks the identity question" is what keeps them honest.
+ */
+function isIdentityCheck(code) {
+	return /\binstanceof\s+Temporal\b/.test(code);
+}
+
+/**
  * Every `function name(...) { ... }` in a source, with its body normalised to one line.
  *
  * Built on `codeOf`, so comments are already gone and a docblock difference cannot hide a
@@ -805,9 +826,9 @@ function selfTest() {
 	);
 	check(
 		"rule 15's exempt file",
-		homePresent && /\binstanceof\s+Temporal\b/.test(read(TEMPORAL_KIND_HOME)),
+		homePresent && codeLines(read(TEMPORAL_KIND_HOME)).some(({ code }) => isIdentityCheck(code)),
 		true,
-		`${TEMPORAL_KIND_HOME} must actually contain an \`instanceof Temporal\` check. If it does not, the boundary predicate has moved and the exemption is pointing at the wrong file — which no amount of running rule 15 would reveal.`,
+		`${TEMPORAL_KIND_HOME} must actually contain an \`instanceof Temporal\` check **in code**. If it does not, the boundary predicate has moved and the exemption is pointing at the wrong file — which no amount of running rule 15 would reveal. CODE lines only, deliberately: that file says \`instanceof Temporal\` three times in its own docblock explaining why it is the only file allowed to, so a whole-text search here is satisfied by the prose it is meant to be independent of, and deleting the one real check would leave this green. Found by review, not by running it.`,
 	);
 
 	// --- The registry. A rule dropped from it stops running and says nothing. ---
@@ -1580,23 +1601,12 @@ function rule15() {
 	const RULE = "`instanceof Temporal` lives only in src/temporal-kind.ts";
 	for (const file of sources) {
 		if (file === TEMPORAL_KIND_HOME) continue;
-		const source = read(file);
-		for (const [index, line] of source.split("\n").entries()) {
-			// Comment lines are skipped, and the omission is deliberate rather than an oversight:
-			// the fix itself has to be able to SAY `instanceof Temporal` in the docblock explaining
-			// why it no longer does it. The first run of this rule flagged exactly that — a comment
-			// in `asPlainDate` pointing readers at the shared predicate — which is a rule firing on
-			// its own documentation. A line whose first non-space character opens or continues a
-			// comment cannot be an identity check.
-			const trimmed = line.trim();
-			if (trimmed.startsWith("//") || trimmed.startsWith("*") || trimmed.startsWith("/*")) {
-				continue;
-			}
-			if (!/\binstanceof\s+Temporal\b/.test(line)) continue;
+		for (const { number, code } of codeLines(read(file))) {
+			if (!isIdentityCheck(code)) continue;
 			fail(
 				RULE,
 				file,
-				`line ${index + 1} asks \`instanceof Temporal\`, which tests IDENTITY — whether the value came from this realm's Temporal — where this package needs KIND. A PlainDate from a second implementation (a bundled polyfill, two copies in node_modules, an iframe) fails it, and is then either refused as "the wrong kind of thing" or read structurally as a Tibetan date and answered wrongly. Use \`temporalKindOf\` from ${TEMPORAL_KIND_HOME}, which reads Symbol.toStringTag. See docs/decisions/2026-09-23-brand-not-identity.md.`,
+				`line ${number} asks \`instanceof Temporal\`, which tests IDENTITY — whether the value came from this realm's Temporal — where this package needs KIND. A PlainDate from a second implementation (a bundled polyfill, two copies in node_modules, an iframe) fails it, and is then either refused as "the wrong kind of thing" or read structurally as a Tibetan date and answered wrongly. Use \`temporalKindOf\` from ${TEMPORAL_KIND_HOME}, which reads Symbol.toStringTag. See docs/decisions/2026-09-23-brand-not-identity.md.`,
 			);
 		}
 	}

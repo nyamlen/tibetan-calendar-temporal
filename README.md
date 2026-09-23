@@ -650,8 +650,11 @@ Two parameterisations of one tradition, Phugpa — not two traditions. See
 
 `SkippedDayError` is the only exported error class, and carries the offending input as
 `.requested`. Every failure about your **input** is a `RangeError`; the two that are not about your
-input — `TCT_INTERNAL` and `TCT_MISSING_TEMPORAL` — are plain `Error`s, deliberately, so that
-`tibetanDateExists` cannot mistake either for "that date does not exist". Every one of them carries
+input — `TCT_INTERNAL` and `TCT_MISSING_TEMPORAL` — are plain `Error`s, deliberately, as the
+at-a-glance signal that the fault is not yours. What actually keeps `tibetanDateExists` from
+reporting either as "that date does not exist" is their **absence from its allowlist**, which is one
+class and two codes; the type is the weaker, wider claim, and saying the type is the mechanism was
+wrong for as long as it stood. Every one of them carries
 a `code`, which is what to branch on rather than the type:
 
 | `error.code` | Thrown by | Meaning |
@@ -664,7 +667,7 @@ a `code`, which is what to branch on rather than the type:
 | `TCT_INVALID_TRADITION_CONFIG` | any function taking a config | The `TraditionConfig` is malformed. The message names the field |
 | `TCT_INVALID_OBSERVANCE_CONFIG` | `getObservances`, `observancesOn` | The `ObservanceConfig` or one of its rules is malformed |
 | `TCT_SPAN_TOO_WIDE` | `getObservances` | More than 200 years requested at once. Chunk it; the function is pure, so concatenating is correct |
-| `TCT_MISSING_TEMPORAL` | the `import` itself | No `Temporal` in this runtime — see [Requirements](#requirements) |
+| `TCT_MISSING_TEMPORAL` | the `import` itself, and any date entry point if the global `Temporal` is deleted afterwards | No `Temporal` in this runtime — see [Requirements](#requirements) |
 | `TCT_INTERNAL` | `isoToTibetan`, and the arithmetic primitives beneath it | An invariant the engine proves for itself did not hold. A bug here rather than in your input; please [report it](https://github.com/nyamlen/tibetan-calendar-temporal/issues) |
 
 Codes are stable and part of the API. Message text is not — match on the code.

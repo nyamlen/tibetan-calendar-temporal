@@ -579,7 +579,7 @@ and returned a confident, well-formed, wrong `PlainDate`, and `NaN` passed too, 
 neither `< 1` nor `> 30`.
 A plausible calendar that is quietly wrong is the most expensive failure this project has.
 
-Six rules follow from that:
+Seven rules follow from that:
 
 - **A date argument is tested by kind, not identity.** `temporalKindOf` reads
   `Symbol.toStringTag`; `instanceof Temporal.PlainDate` is refused everywhere but
