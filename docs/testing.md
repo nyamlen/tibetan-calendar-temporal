@@ -544,6 +544,56 @@ because "some day this decade is doubled" survives a systematic one-day error an
 - Month/year boundaries — the day before Losar 2026, and the royal-era year across 1 January
 - Dates near the epoch — round-trips through the first sixty days after E806
 
+## Under a polyfill
+
+**This is agreement between implementations of Temporal, not a check of correctness.** It shows that
+the engine gives the same answers whichever `Temporal` it runs on. Whether those answers are right is
+the rest of this document.
+
+Both runs used the probe in the nyamlen repository, `spikes/polyfill-probe/`. The probe exercises
+every export over Tibetan month 2151-M06L, the leap month 6 of 2151, from 6 July to 4 August 2024:
+its grid, its days' attributes and observances, the date numbers it lacks, and the argument
+handling. Its output is one JSON dump per configuration, compared by hash.
+
+**23 September 2026, tarball `5c954b3`, the blind probe.** Run by a session that had not read the
+engine's internals. All fourteen dumps were byte-identical:
+
+- Node v26.7.0, native and with `temporal-polyfill` forced over the native global;
+- Chrome 153, native, with `temporal-polyfill/global`, and forced;
+- Playwright's WebKit 26.6, desktop and iPhone 15 profiles, native, global and forced;
+- **real devices, by hand**: Safari 17.6 on macOS and Safari on iOS, each with `temporal-polyfill/global`
+  and forced. Neither had a native `Temporal`.
+
+**23 September 2026, tarball `48cf255`, the re-run**, after the day's rewrite of the Temporal boundary
+(`012468a`..`48cf255`). Twelve configurations, one hash, **the same hash as the first run**: the ten
+non-device configurations above, plus Node under `temporal-polyfill/full/shim` and under
+`@js-temporal/polyfill` 0.5.1, set as the global before the import. Versions: `temporal-polyfill`
+1.0.5, Playwright 1.63.0. Three further comparisons, all in Node:
+
+- **The date window, day by day.** From 1 January 2022 to 25 February 2028, `isoToTibetan`,
+  `attributesFor` and `observancesOn` under all four shipped configs, hashed: identical under native
+  `Temporal` and the three polyfill builds. The window's only month with a skipped 15 is 2153-M11, and
+  the script refuses to report unless it is in the compared set.
+- **The validation suites.** `test/validation/`, 105 tests, all pass with `temporal-polyfill` forced
+  over the native global through a vitest setup file, which refuses to proceed unless the engine
+  returns polyfill instances. A control without the install fails with that refusal.
+- **A second implementation in the same process.** A `PlainDate` from `temporal-polyfill` or from
+  `@js-temporal/polyfill`, passed to the twelve calls the probe tries under each global, answers or
+  refuses exactly as a native one does. At `5c954b3` it did not; see `docs/decisions/2026-09-23-brand-not-identity.md`.
+
+**`temporal-polyfill/global` installs nothing where `Temporal` is native**: Node 26, Chrome, and
+Playwright's WebKit build, which has it although shipping Safari does not. So every configuration
+named "global" there ran native. The polyfill was exercised by the forced configurations and on the
+real devices. `docs/guide.md` gives consumers the recipe for forcing it.
+
+### What the polyfill runs do not establish
+
+- **The real devices ran `5c954b3`**, not today's tarball. Repeating them against the release tarball
+  is on the pre-1.0.0 checklist.
+- **macOS Safari 26 has never been run.** The Mac ran 17.6.
+- **The iOS version is unconfirmed.** The device reported Safari 26.6, but Safari 26 freezes the OS
+  version in its user agent, which said iOS 18.7. The re-run reads it from the device's Settings.
+
 ## Contract tests
 
 Not a tier — these constrain what the package *promises* rather than what it computes. All three

@@ -12,6 +12,7 @@ import { yearNameFor } from "../src/cycles.js";
 import { formatTibetanDate } from "../src/format.js";
 import { monthNamesFor } from "../src/month-names.js";
 import { monthsFor } from "../src/months.js";
+import { nextFullMoon } from "../src/navigation.js";
 import { DEFAULT_OBSERVANCES, getObservances, observancesOn } from "../src/observances/index.js";
 import { parseTibetanDate } from "../src/parse.js";
 import { BHUTAN } from "../src/traditions/bhutan.js";
@@ -98,6 +99,15 @@ describe("guide examples", () => {
 		expect(() => tibetanToIso({ year: 2150, month: 12, day: 29 })).toThrow(
 			"Tibetan date 2150-M12-29 is skipped: no calendar day carries it.",
 		);
+	});
+
+	it("puts the full moon on the 14th of the documented month that skips its 15th", () => {
+		// The window 1 January 2022 to 25 February 2028 holds exactly one such month; the polyfill
+		// probe named the case as one its run could not reach.
+		expect(tibetanDateExists({ year: 2153, month: 11, day: 15 })).toBe(false);
+		expect(nextFullMoon(iso("2026-12-22")).isoDate.toString()).toBe("2026-12-23");
+		const day = isoToTibetan(iso("2026-12-23"));
+		expect([day.year, day.month, day.day, day.isFullMoon]).toEqual([2153, 11, 14, true]);
 	});
 
 	it("distinguishes the halves of the documented doubled date", () => {

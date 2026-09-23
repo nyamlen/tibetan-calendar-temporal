@@ -34,6 +34,16 @@ tibetanToIso({ year: 2150, month: 12, day: 29 });
 // SkippedDayError: Tibetan date 2150-M12-29 is skipped: no calendar day carries it.
 ```
 
+The skipped number can be the 15th, the full moon's own day. Month 11 of 2153 has no 15th, and its
+full moon falls on the day numbered 14, 23 December 2026 — so look a full moon up with
+`nextFullMoon`, never with `day === 15`:
+
+```js
+tibetanDateExists({ year: 2153, month: 11, day: 15 });                    // false
+nextFullMoon(Temporal.PlainDate.from('2026-12-22')).isoDate.toString();   // "2026-12-23"
+isoToTibetan(Temporal.PlainDate.from('2026-12-23')).day;                  // 14
+```
+
 **Doubled dates** are carried by two consecutive calendar days. Both report `isDoubledDay: true`;
 `isLeapDay` distinguishes the first from the second, and selects between them on the way back.
 
@@ -618,6 +628,33 @@ import { isoToTibetan } from 'tibetan-calendar-temporal';
 The same applies in a browser. `Temporal` ships in Chrome, Edge and Firefox but not yet in Safari,
 so a web application targeting Safari or iOS needs the polyfill regardless of its build target.
 
+**`temporal-polyfill/global` installs nothing where `Temporal` already exists** — Node 26, Chrome,
+Edge, Firefox. That is what it is for, and it has a consequence worth knowing: a test suite that
+imports it on Node 26 runs every test against the built-in `Temporal`, and has not tested the
+polyfill your Safari users will run. To test under the polyfill anyway, force it over the built-in
+one, and load this package only afterwards:
+
+```js
+// Test your app under the polyfill even where Temporal is native.
+// temporal-polyfill/global installs nothing if a native Temporal exists.
+import { installImplementation } from 'temporal-polyfill/shim';
+installImplementation();
+const { isoToTibetan } = await import('tibetan-calendar-temporal');
+```
+
+The dynamic `import()` is the point. A static `import` of this package is evaluated before any
+statement in the module that imports it, so it would load against the built-in `Temporal`, and
+every date it returned would be a built-in one. That still works — see the next section — but it is
+not a test of the polyfill.
+
+The default entry point is enough. `temporal-polyfill/full` adds calendars other than ISO 8601, and
+this package accepts only `iso8601` dates, so it gains nothing here.
+
+This package's output under `temporal-polyfill` and `@js-temporal/polyfill` has been compared with
+its output under the built-in `Temporal`, and was identical;
+[why you can trust these dates](why-trust-these-dates.md#why-the-results-are-identical-everywhere)
+says what that does and does not show.
+
 `package.json` declares `engines: { "node": ">=26" }`, which npm treats as **advisory**: you get a
 warning on install, not a block, so a polyfilled Node 22 or 24 project works fine. The declaration
 is there to tell the truth about the default path rather than to lock anyone out. Set
@@ -643,9 +680,10 @@ names the same day and is accepted.
 
 ### Node 24 has `--harmony-temporal`, and you should not use it here
 
-That flag exposes V8's in-progress implementation, which may not match the shipped specification.
-The point of this engine is deterministic dates that are identical everywhere; a date computed
-against a moving implementation is not that. Use the polyfill instead.
+That flag exposes V8's unfinished implementation — it is behind a flag because it is not done — and
+nothing here has been run against it. A polyfill is an implementation too; the reason to prefer it is
+that this package's output under the polyfill has been compared with its output under the built-in
+`Temporal` and found identical, which no one has done for the flag. Use the polyfill.
 
 ### Type-checking needs TypeScript 7, which the runtime requirement does not imply
 

@@ -774,6 +774,12 @@ const CLAIMS: readonly Claim[] = [
 
 	// Why the results are identical everywhere
 	{
+		what: "the polyfill builds compared",
+		pattern: /under the built-in `Temporal` and under three\s+polyfill builds/,
+		notAssertable:
+			"a count of the implementations a run used, recorded with its versions in docs/testing.md",
+	},
+	{
 		what: "the count of design decisions",
 		pattern: /(\w+) design decisions do most of the work here, and (\w+) are structural/,
 		expected: () => {

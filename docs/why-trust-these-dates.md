@@ -217,6 +217,15 @@ answer depend on one — that offset is built into the founding constants once a
 again. The consequence is that this calendar is fully determined without knowing where the reader
 is.
 
+Nor do the results depend on which `Temporal` runs them. A web page usually supplies `Temporal` through
+a polyfill, so the engine's output has been compared under the built-in `Temporal` and under three
+polyfill builds, in Node, in Chrome and in a WebKit browser. It agreed exactly in every run,
+including day by day across the whole Phugpa window above. Safari on a real Mac and a real iPhone
+agreed too, before the most recent change to how the engine recognises a date; repeating that on the
+release is an open item. This shows that the implementations agree, not that the dates are right,
+which is what the rest of this page is for. The runs, versions and dates are in the
+[testing strategy](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/testing.md#under-a-polyfill).
+
 ## How to cite this
 
 Any claim taken from this page should carry its window.

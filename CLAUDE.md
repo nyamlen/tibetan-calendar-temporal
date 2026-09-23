@@ -640,8 +640,14 @@ So: `temporal-polyfill/implementation` for a genuinely **second** class, and `in
 from `temporal-polyfill/shim` to force the polyfill **over** a native global. Neither belongs in this
 package's dependency tree — resolve them from a scratch directory outside the repo, the same way
 `scripts/fetch-eszthoff-fixtures.mjs` resolves its package. The evidence that the surface agrees
-under a polyfill is the nyamlen polyfill probe of 2026-09-23: **fourteen dumps byte-identical**,
-including real iOS Safari 26.6 and Safari 17.6.
+under a polyfill is the nyamlen polyfill probe of 2026-09-23 — **fourteen dumps byte-identical** at
+`5c954b3`, including real iOS Safari 26.6 and Safari 17.6 — and its re-run the same day at `48cf255`,
+after the boundary rewrite: twelve configurations with **the same hash**, adding
+`temporal-polyfill/full` and `@js-temporal/polyfill`, plus the whole Phugpa date window day by day
+and `test/validation/` under a forced polyfill. `docs/testing.md`'s *Under a polyfill* is the
+record. **The real devices have not been re-run since the rewrite**; that is a pre-1.0.0 item.
+**Playwright's WebKit build has a native `Temporal` and shipping Safari does not**, so a
+Playwright "Safari" run under `temporal-polyfill/global` tests the built-in, not the polyfill.
 
 **Temporal has no user-defined calendars.** `Temporal.Calendar` does not exist and `calendar:`
 accepts only built-in CLDR identifiers, which exclude `tibetan`. Do not attempt a calendar

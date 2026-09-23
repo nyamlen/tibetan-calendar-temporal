@@ -148,11 +148,17 @@ import { isoToTibetan } from 'tibetan-calendar-temporal';
 ```
 
 The same applies in a browser: `Temporal` ships in Chrome, Edge and Firefox but not yet in Safari.
+`temporal-polyfill/global` installs nothing where `Temporal` already exists, so a test suite on
+Node 26 that imports it has not tested the polyfill; [the guide](docs/guide.md#using-a-polyfill)
+shows how to force it.
 
 **Node 24 has `--harmony-temporal`, and you should not use it here.** That flag exposes V8's
-in-progress implementation, which may not match the shipped specification, and a date computed
-against a moving implementation is not the deterministic date this engine promises. Use the
-polyfill instead.
+unfinished implementation — it is behind a flag because it is not done — and nothing here has been
+run against it. A polyfill is an implementation too, and the reason to prefer it is evidence rather
+than principle: this package's output under `temporal-polyfill` and `@js-temporal/polyfill` has been
+compared with its output under the built-in `Temporal` and found identical — see
+[why you can trust these dates](docs/why-trust-these-dates.md#why-the-results-are-identical-everywhere).
+Use the polyfill.
 
 `engines` declares `">=26"`, which npm treats as **advisory** — a warning on install, not a block —
 so a polyfilled Node 22 or 24 project works fine. See
