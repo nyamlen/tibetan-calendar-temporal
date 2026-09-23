@@ -1387,11 +1387,12 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
       test kind rather than identity; each was graded Minor **by effect on a consumer**, and none is
       a wrong answer. Recorded here because the review's ledger was scratch and is gone, and an
       unrecorded finding is one the next pass finds again from scratch.
-      1. **Rule 15 is evadable, and `docs/coding-standards.md` overstates it.** It refuses
-         `instanceof Temporal` in code lines, so `value instanceof globalThis.Temporal.PlainDate`
-         and `const T = Temporal; value instanceof T.PlainDate` both pass. As a ratchet against the
-         idiom anyone actually writes this is fine; the row claims it "refuses `instanceof Temporal`
-         anywhere else", which is broader than what it does. Fix the sentence, or widen the pattern.
+      1. ~~**Rule 15 is evadable, and the docs overstate it.**~~ **Done 2026-09-23.** Both evasions
+         were reproduced against the checker before anything was written, and the reach is now
+         stated exactly in all five places that describe the rule — `src/temporal-kind.ts` (which
+         ships in `dist/`), `docs/coding-standards.md`, `CLAUDE.md`, the decision record and this
+         list. The pattern was **not** widened: resolving aliases is real work for two shapes nobody
+         writes by accident, and the honest fix was the sentence.
       2. **`asWesternDay` appends its bare-`{ year, month, day }` paragraph unconditionally.** So
          `nextFullMoon(null)` is told about an object it did not pass. `asPlainDate` makes the same
          sentence conditional on the argument being an object; the merge of `phaseStart` and `isoOf`

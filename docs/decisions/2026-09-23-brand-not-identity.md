@@ -10,7 +10,7 @@ status: accepted
 from a second Temporal implementation is a Western date at a Western entry point and is normalised;
 at a Tibetan entry point it is refused with `TCT_INVALID_ARGUMENT`. `src/temporal-kind.ts` is the
 only file in `src/` permitted to say `instanceof Temporal`, and `check:conventions` Rule 15 enforces
-that.
+that against the literal idiom — see "What Rule 15 does and does not reach" below.
 
 ## What a contributor would otherwise do
 
@@ -157,6 +157,25 @@ memoisation of the same kind as `scalingFor` and `monthsFor`. It is not: those k
 caller passed, and this keys on mutable global state, which is precisely what "same input, same
 output as a caller observes" excludes. The decision stands on one implementation per arithmetic
 operation, not on that analogy.
+
+## What Rule 15 does and does not reach
+
+It matches the literal `instanceof Temporal…` idiom, in code lines only. Comment lines are exempt so
+that the docblock explaining the rule may name it — the rule's first run flagged exactly that, which
+is how a rule teaches people to ignore it.
+
+**Measured 2026-09-23**, both of these pass it:
+
+```ts
+v instanceof globalThis.Temporal.PlainDate;
+const T = Temporal;
+v instanceof T.PlainDate;
+```
+
+Neither is a plausible slip, and catching them would need the checker to resolve aliases. So the
+rule is a **ratchet against the accident**, not a proof that no identity check exists in `src/`.
+Four documents said "anywhere else" for a day, which is the broader claim; an independent review
+caught it. Do not cite the rule as evidence of absence.
 
 ## Why this was settled before 1.0.0 and not after
 

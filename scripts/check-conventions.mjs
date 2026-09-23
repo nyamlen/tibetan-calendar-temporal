@@ -1539,7 +1539,10 @@ function rule13() {
 // ---------------------------------------------------------------------------------------
 // Rule 14 — no two functions in src/ share a body
 //
-// Measured 2026-09-23 over 172 function declarations in 36 files: exactly two pairs, both
+// Measured 2026-09-23 over 172 function declarations in 36 files — before the boundary work
+// later the same day, which added `temporal-kind.ts` and removed three describers, leaving 171
+// in 37. A bare date is not enough to place a count when the tree moves twice in a day.
+// Exactly two pairs, both
 // genuine, zero false positives. `assertSafeYear` stood character-identical in `months.ts` and
 // `computation/conversion.ts`, and `describe` in `traditions/validate.ts` and
 // `observances/index.ts`.

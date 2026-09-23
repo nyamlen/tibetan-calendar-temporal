@@ -34,8 +34,14 @@
  *
  * Five identity checks accumulated across three files with nothing watching, and two of the five
  * were a second copy of a policy that already existed elsewhere. `check:conventions` rule 15 now
- * refuses `instanceof Temporal` anywhere else, which is a checkable rule precisely because the home
- * is one named file rather than "the guards".
+ * refuses `instanceof Temporal` in every other file's code, which is a checkable rule precisely
+ * because the home is one named file rather than "the guards".
+ *
+ * **What the rule reaches, stated exactly, because it is narrower than "anywhere else".** It
+ * matches the literal idiom in code lines. Measured 2026-09-23:
+ * `v instanceof globalThis.Temporal.PlainDate` and `const T = Temporal; v instanceof T.PlainDate`
+ * both pass it. Neither is a plausible slip, and catching them would need the checker to track
+ * aliases — so this is a ratchet against the accident, not a proof that no identity check exists.
  *
  * @packageDocumentation
  */

@@ -321,7 +321,10 @@ derivation; in `docs/` they are just noise.
   that misdescribes its own function — `nextFullMoon` naming two accepted shapes while accepting
   four, `attributesFor` naming four while never mentioning the resolved `TibetanDate` it takes.
   A sweep on 2026-09-23 found **four** duplicate clusters across 172 functions, one of which this
-  file already documented and nobody had cleaned up.
+  file already documented and nobody had cleaned up. **That 172 is the count before the boundary
+  work landed later the same day**, which added `temporal-kind.ts` and merged three describers away,
+  leaving 171 in 37 files. Two measurements a day apart would be obvious; two on the same date are
+  not, so re-run the count rather than reading the date beside it.
 
   So **boundary and guard code has one named home**, and `check:conventions` rule 14 refuses two
   functions in `src/` that share a body. **Rule 14 catches copy-paste and cannot catch this** —
@@ -335,13 +338,28 @@ derivation; in `docs/` they are just noise.
   in `8f28389`; `assertQueryOptions` joined them, taking its message's shape example as a
   parameter, which was the **only** thing the two copies differed in; the three value-describers —
   `describeValue`, `describeFlagValue` and a third `describe` in `parse.ts` — merged into
-  `errors.ts`'s, whose body won because `describeValue`'s `constructor?.name` branch existed to
-  name a `Temporal.PlainDate` and the brand predicate now does that. `format.ts` keeps a `describe`
-  of its own: it lists an object's keys, a different function wearing the same name.
-  `phaseStart` and `isoOf` became `asWesternDay` in `computation/conversion.ts`.
+  `errors.ts`'s. `format.ts` keeps a `describe` of its own: it lists an object's keys, a different
+  function wearing the same name. `phaseStart` and `isoOf` became `asWesternDay` in
+  `computation/conversion.ts`.
+
+  **A justification for dropping a branch has to hold for every caller, not the one you are looking
+  at** — and this passage stated the bad one for a day. The merge dropped `describeValue`'s
+  `constructor?.name` arm because "it existed to name a `Temporal.PlainDate`, and `temporalTypeNameOf`
+  now does that from the brand". True of `asPlainDate`, which consults `temporalTypeNameOf`.
+  `asWesternDay` and `parse.ts` never do, so for them the arm was doing a second job, and
+  `new Date()` — the likeliest wrong argument in a package whose first rule is *Temporal only, never
+  `Date`* — began rendering as "an object" followed by an irrelevant paragraph about
+  `{ year, month, day }`. The arm is back, narrowed to a *named* class so a plain object is still
+  "an object". Found by an independent review; nothing in the suite could fail, because message text
+  is not contract.
 
   **And the class rule 14 cannot see now has a rule of its own for the case that caused it.**
-  Rule 15 refuses `instanceof Temporal` anywhere in `src/` but `src/temporal-kind.ts`. That is
+  Rule 15 refuses the literal `instanceof Temporal` idiom in every file of `src/` but
+  `src/temporal-kind.ts`, in code lines only. **Its reach is the idiom and not the concept**, which
+  the docs said otherwise for a day: measured 2026-09-23,
+  `v instanceof globalThis.Temporal.PlainDate` and an aliased `const T = Temporal` both pass it.
+  Neither is a plausible slip, so it is a ratchet against the accident rather than a proof that no
+  identity check exists — do not cite it as one. That is
   checkable precisely because the home is **one named file**; a rule saying "outside the guards"
   would need the checker to know which functions count as guards. It does not generalise — rule 15
   is about one idiom, and the review question above is still what catches the rest.
@@ -518,6 +536,16 @@ derivation; in `docs/` they are just noise.
   for, and it is the required idiom — the alternative, a cast, lets a bad index return `undefined`
   wearing the element type, which is how the same constraint was discharged two different ways in
   the same codebase.
+  **A code has one error type, and a second throw site is where that stops being true.**
+  `TCT_MISSING_TEMPORAL` was thrown through `codedError` at the import guard and, for one day in
+  2026-09-23's boundary work, through `rangeError` at a new call-time site — so the README's
+  "`TCT_INTERNAL` and `TCT_MISSING_TEMPORAL` are plain `Error`s, deliberately" was false for
+  whichever site a consumer happened to hit, and its table still said the code comes from "the
+  `import` itself". Nothing mechanical could notice: the new site is unreachable on Node 26 and
+  `c8 ignore`d, and `test/public-api.test.ts` lists the code as unreachable and passed. When you
+  throw an existing code from a new place, check which constructor its first site used and what the
+  docs say about *where* it comes from.
+
   Codes are contract and message text is not, so assert on the code in tests and never tell a
   consumer to match wording. `tibetanDateExists` swallows errors by **allowlist** — **one class and
   two codes**: `SkippedDayError` matched by class, plus `TCT_FIELD_OUT_OF_RANGE` and
@@ -734,6 +762,19 @@ verdict was reported as reassurance and had to be withdrawn. **Before trusting a
 state where the thing it hunts would live and check that the guard looks there.** An independent
 review found this; three passes by the check's own author did not.
 
+**A correction's sweep must cover `test/` too, where a name can assert the thing being corrected.**
+The 2026-09-23 pass over `tibetanDateExists`'s rule swept `src/` and `docs/` and stopped. Two
+statements survived in `test/`, and the worse one was a **test name** — `"answers false for exactly
+three codes"` — four lines above the test that pins the opposite. A test name is read as a statement
+of the contract by anyone scanning output, and it is the one place a false claim is printed on every
+green run.
+
+**And check which module a probe is importing from before reading what it reports.** The evidence
+script for that same session called `observancesOn` and `attributesFor` off the **root** barrel,
+which exports neither: one row printed `THROW TypeError (no code)` and read as a defect, the other
+short-circuited through `?.()` to `OK undefined` and read as a pass. Both had measured nothing since
+the first run. A row that says `THROW` and a row that says `OK` both look like measurements.
+
 **A sweep whose calling convention is wrong reports agreement, which is indistinguishable from a
 passing check.** Sweeping all 27 affected exports on 2026-09-23, every multi-argument one was called
 as `fn(date, date)` — so `addDays`, `addMonths`, `addMonthsToDate`, `daysBetween` and `monthsBetween`
@@ -899,6 +940,21 @@ second copy of the same path pattern. Moving the documents into `docs/names/` wo
 both matching at the same moment — the rule checking nothing, and the invariant written to catch
 exactly that reporting nothing wrong. The guard is now a deliberately cruder, independent signal, so
 a break in the precise pattern still surfaces. Found by making the move, not by reading.
+
+**And the opposite failure exists, so the rule above is not "never share".** Rule 15's self-test
+asserts that its exempt file still *contains* the check it exempts — and read the **whole file** to
+decide. `src/temporal-kind.ts` says `instanceof Temporal` three times in its own docblock explaining
+why it is the only file allowed to, so the self-test was satisfied by the prose it was meant to be
+independent of: deleting the single real check left it green. So did the whole vitest suite, 24 of
+24, because a native `PlainDate` then simply takes the `from(String(x))` path and answers
+identically. Found by an independent review on 2026-09-23; three passes by its author did not see it.
+
+The fix was to make the rule and its self-test share **one** predicate — the exact move the rule
+above warns against — because here the hazard runs the other way. Rule 12's danger was two copies
+drifting into agreeing wrongly; this one's was a checker reading *more* than the rule does, and
+being satisfied by text the rule deliberately ignores. **Ask which direction the hazard runs**: if
+the guard could pass by reading something the rule would never act on, sharing the predicate is the
+fix, not the bug.
 
 Not every predicate can have an invariant, and a vacuous one is worse than none because it reads as
 coverage. The validation-suite rule deliberately has no invariant: the obvious one is symmetric in
