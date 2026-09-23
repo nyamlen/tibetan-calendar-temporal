@@ -16,13 +16,16 @@
  *
  * - **C0** is the control: the unmutated copy must pass. If it fails, every other row is measuring
  *   nothing.
- * - **R1–R14** each prove one rule still fires. The last test holds the set against the checker's
+ * - **R1–R16** each prove one rule still fires. The last test holds the set against the checker's
  *   own `RULES` registry, so a new rule without a mutant fails here.
  * - **X1–X7** prove the containment added on 2026-09-12: a throw must not cost the findings already
  *   collected, a path in the index but not on disk is reported rather than read, and the registry
  *   refuses a missing or mismatched rule.
  * - **X8** proves the six-season fixture passes Rule 7 because it is allowlisted, not because some
  *   script happens to mention its name.
+ * - **X9–X10** prove Rule 15 beyond its own row: its exempt file must hold the check in code, and
+ *   the destructured form is caught. **X11** proves the error-table half of Rule 16, which R16 does
+ *   not reach.
  *
  * ## Why a copy of the working tree, and not a worktree or the checkout itself
  *
@@ -297,6 +300,19 @@ const R: Record<number, Row> = {
 			),
 		must: ["`instanceof Temporal` lives only in src/temporal-kind.ts", "src/navigation.ts"],
 	},
+	16: {
+		id: "R16",
+		what: "a shipped config missing from the README's API tables",
+		// The defect the polyfill probe found on 2026-09-23: the Tradition configs table listed two
+		// of the four shipped configs.
+		apply: (tree) =>
+			tree.edit(
+				"README.md",
+				(source) => source.replace(/^\| `BHUTAN_HENNING` \|.*\n/m, ""),
+				"the `BHUTAN_HENNING` row of the Tradition configs table",
+			),
+		must: ["README API tables match the barrels", "`BHUTAN_HENNING`"],
+	},
 };
 
 const rule = (number: number): Row => {
@@ -306,6 +322,19 @@ const rule = (number: number): Row => {
 };
 
 const X: readonly Row[] = [
+	{
+		id: "X11",
+		what: "an error code missing from the README's error table",
+		// R16 proves the API-table half of rule 16; this proves the error-table half, which reads a
+		// different table against a different source and would go on passing if only R16 existed.
+		apply: (tree) =>
+			tree.edit(
+				"README.md",
+				(source) => source.replace(/^\| `TCT_ATTRIBUTE_NOT_SOURCED` \|.*\n/m, ""),
+				"the `TCT_ATTRIBUTE_NOT_SOURCED` row of the error table",
+			),
+		must: ["README API tables match the barrels", "`TCT_ATTRIBUTE_NOT_SOURCED`"],
+	},
 	{
 		id: "X10",
 		what: "an identity check written in the destructured form the first pattern missed",

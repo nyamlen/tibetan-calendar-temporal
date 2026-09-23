@@ -372,6 +372,66 @@ const documentedTypeLists = (markdown) =>
 	}));
 
 /**
+ * Rule 16 — the runtime names a barrel exports: `export { … }` blocks that are not `export type`,
+ * and `export function` / `export const` / `export class` declarations in the barrel itself.
+ *
+ * The runtime counterpart of `exportedTypeNames`, and deliberately a separate pattern: a `type`
+ * block must never be read as a value block, or removing a type would look like removing a function.
+ */
+const exportedValueNames = (source) =>
+	new Set([
+		...[...source.matchAll(/export \{([^}]*)\}/g)]
+			.flatMap(([, names]) => names.split(","))
+			.map((name) =>
+				name
+					.trim()
+					.split(/\s+as\s+/)
+					.pop()
+					.trim(),
+			)
+			.filter(Boolean),
+		...[...source.matchAll(/^export\s+(?:function|const|class)\s+([A-Za-z_$][\w$]*)/gm)].map(
+			([, name]) => name,
+		),
+	]);
+
+/**
+ * Rule 16 — the first-column identifiers of every README table whose header opens with `heading`,
+ * with where each row sits in the file. A row counts only when its first cell is exactly one
+ * backticked identifier, so a prose cell cannot be mistaken for an export.
+ */
+const documentedTableRows = (markdown, heading) => {
+	const rows = [];
+	let inTable = false;
+	let at = 0;
+	for (const line of markdown.split("\n")) {
+		if (line.startsWith(`| ${heading} |`)) inTable = true;
+		else if (!line.startsWith("|")) inTable = false;
+		else if (inTable) {
+			const name = /^\| `([A-Za-z_][\w.]*)` \|/.exec(line)?.[1];
+			if (name) rows.push({ at, name });
+		}
+		at += line.length + 1;
+	}
+	return rows;
+};
+
+/** Rule 16 — the members of the `TibetanCalendarErrorCode` union, read from `src/errors.ts`. */
+const errorCodeUnion = (source) => {
+	const union = /export type TibetanCalendarErrorCode =([^;]*);/.exec(source)?.[1] ?? "";
+	return new Set([...union.matchAll(/"([A-Z_]+)"/g)].map(([, code]) => code));
+};
+
+/**
+ * Rule 16 — runtime exports with no row of their own, and the README text that documents each
+ * instead. `SkippedDayError` is a class, so it has no signature to tabulate; the Errors subsection
+ * describes it in prose.
+ */
+const DOCUMENTED_IN_PROSE = new Map([
+	["SkippedDayError", "`SkippedDayError` is the only exported error class"],
+]);
+
+/**
  * Rule 13 — every published entry point, with the README heading that opens its section.
  *
  * @remarks
@@ -845,6 +905,58 @@ function selfTest() {
 		`${TEMPORAL_KIND_HOME} must actually contain an \`instanceof Temporal\` check **in code**. If it does not, the boundary predicate has moved and the exemption is pointing at the wrong file — which no amount of running rule 15 would reveal. CODE lines only, deliberately: that file says \`instanceof Temporal\` three times in its own docblock explaining why it is the only file allowed to, so a whole-text search here is satisfied by the prose it is meant to be independent of, and deleting the one real check would leave this green. Found by review, not by running it.`,
 	);
 
+	// --- Rule 16's parsers. Each case is one the rule would silently get wrong. ---
+	check(
+		"exportedValueNames",
+		[
+			...exportedValueNames(
+				[
+					'export type { A, B } from "./a.js";',
+					'export { c, d as e } from "./c.js";',
+					"export function f() {}",
+					"export const G = 1;",
+				].join("\n"),
+			),
+		].join(","),
+		"c,e,f,G",
+		"a type block must not be read as values (A, B), an alias publishes its alias (e), and a declaration in the barrel itself is an export (f, G). The astrology barrel declares most of its functions in place.",
+	);
+	check(
+		"documentedTableRows",
+		documentedTableRows(
+			[
+				"| Export | Notes |",
+				"|---|---|",
+				"| `a` | x |",
+				"| `b` or `c` | y |",
+				"",
+				"| Other | Notes |",
+				"|---|---|",
+				"| `d` | z |",
+			].join("\n"),
+			"Export",
+		)
+			.map((row) => row.name)
+			.join(","),
+		"a",
+		"a row counts only when its first cell is one backticked identifier (not `b` or `c`), and only in a table whose header opens with the heading asked for (not d).",
+	);
+	check(
+		"errorCodeUnion",
+		[
+			...errorCodeUnion(
+				[
+					"export type TibetanCalendarErrorCode =",
+					'\t| "TCT_A"',
+					'\t| "TCT_B";',
+					'const x = "TCT_C";',
+				].join("\n"),
+			),
+		].join(","),
+		"TCT_A,TCT_B",
+		"the union ends at its semicolon; a code string elsewhere in the file (TCT_C) is not a member.",
+	);
+
 	// --- The registry. A rule dropped from it stops running and says nothing. ---
 	//
 	// Every other rule failure in this file is loud; this one is not, because a rule that never runs
@@ -855,8 +967,8 @@ function selfTest() {
 		RULES.map(({ number }) => number)
 			.sort((a, b) => a - b)
 			.join(","),
-		Array.from({ length: 15 }, (_, index) => index + 1).join(","),
-		"every rule 1-15 must be registered exactly once. Adding a rule means adding it here too.",
+		Array.from({ length: 16 }, (_, index) => index + 1).join(","),
+		"every rule 1-16 must be registered exactly once. Adding a rule means adding it here too.",
 	);
 	check(
 		"RULES registry",
@@ -1533,6 +1645,88 @@ function rule13() {
 }
 
 // ---------------------------------------------------------------------------------------
+// Rule 16 — the README's API tables match the barrels' runtime exports, and its error table
+// matches the code union
+//
+// Rule 13's runtime sibling, added 2026-09-23 by the polyfill-probe close-out. The probe found the
+// Tradition configs table listing two of four shipped configs, and the error table missing
+// `TCT_ATTRIBUTE_NOT_SOURCED`, and nothing could fail on either: `test/public-api.test.ts` pins the
+// surface against itself, never against what the README promises. It reuses Rule 13's section
+// ranges, so a row is checked against the barrel whose section it sits in.
+// ---------------------------------------------------------------------------------------
+function rule16() {
+	const RULE = "README API tables match the barrels";
+	const readme = read("README.md");
+	const ranges = typeSectionRanges(readme);
+	if (ranges === null) {
+		fail(
+			RULE,
+			"README.md",
+			"does not carry every entry point's heading in order, so the API tables cannot be assigned to a barrel. Rule 13 reports the same cause.",
+		);
+		return;
+	}
+	const rows = documentedTableRows(readme, "Export");
+	TYPE_BARRELS.forEach((barrel, index) => {
+		const range = ranges[index];
+		if (!range) return;
+		const section = readme.slice(range.from, range.to);
+		const documented = new Set(
+			rows.filter((row) => row.at >= range.from && row.at < range.to).map((row) => row.name),
+		);
+		const exported = exportedValueNames(read(barrel.file));
+		const missing = [...exported]
+			.filter((name) => !documented.has(name))
+			.filter((name) => {
+				const prose = DOCUMENTED_IN_PROSE.get(name);
+				return prose === undefined || !section.includes(prose);
+			})
+			.sort();
+		const extra = [...documented].filter((name) => !exported.has(name)).sort();
+		if (missing.length > 0) {
+			fail(
+				RULE,
+				barrel.file,
+				`exports ${missing.map((n) => `\`${n}\``).join(", ")}, which no API table in README.md's section for ${barrel.label} lists. A consumer reading the README would not know it exists.`,
+			);
+		}
+		if (extra.length > 0) {
+			fail(
+				RULE,
+				"README.md",
+				`lists ${extra.map((n) => `\`${n}\``).join(", ")} in an API table for ${barrel.label}, which ${barrel.file} does not export at runtime.`,
+			);
+		}
+	});
+
+	const codes = errorCodeUnion(read("src/errors.ts"));
+	const tabled = new Set(documentedTableRows(readme, "`error.code`").map((row) => row.name));
+	const untabled = [...codes].filter((code) => !tabled.has(code)).sort();
+	const unknown = [...tabled].filter((code) => !codes.has(code)).sort();
+	if (codes.size === 0) {
+		fail(
+			RULE,
+			"src/errors.ts",
+			"no `TibetanCalendarErrorCode` union was found to compare the README's error table against.",
+		);
+	}
+	if (untabled.length > 0) {
+		fail(
+			RULE,
+			"README.md",
+			`the error table has no row for ${untabled.map((c) => `\`${c}\``).join(", ")}, which \`TibetanCalendarErrorCode\` in src/errors.ts declares. Codes are contract; one a consumer cannot look up is one they cannot branch on.`,
+		);
+	}
+	if (unknown.length > 0) {
+		fail(
+			RULE,
+			"README.md",
+			`the error table lists ${unknown.map((c) => `\`${c}\``).join(", ")}, which \`TibetanCalendarErrorCode\` in src/errors.ts does not declare.`,
+		);
+	}
+}
+
+// ---------------------------------------------------------------------------------------
 // The runner
 //
 // Findings are collected so they can be reported together, and until 2026-09-12 a throw anywhere
@@ -1643,6 +1837,7 @@ const RULES = [
 	{ number: 10, run: rule10 },
 	{ number: 11, run: rule11 },
 	{ number: 13, run: rule13 },
+	{ number: 16, run: rule16 },
 	{ number: 14, run: rule14 },
 	{ number: 15, run: rule15 },
 ];

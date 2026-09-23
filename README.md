@@ -338,8 +338,9 @@ are not wanted.
 `flatMap` calls back with `(value, index, array)`, and the second parameter of every function here
 that takes a `TraditionConfig` is that config — so the array index lands in the config slot and the
 call throws `TCT_INVALID_TRADITION_CONFIG`. TypeScript refuses it outright; JavaScript gets a throw
-rather than a wrong calendar. `yearNameFor` and `rabjungFor` are the only exports that survive
-point-free use, because they take no config.
+rather than a wrong calendar. A function whose signature ends at its first parameter survives
+point-free use, `yearNameFor` and `rabjungFor` among them; wrapping costs nothing and is never wrong,
+so wrap.
 
 ### Naming a year
 
@@ -369,7 +370,8 @@ Two failure kinds, and telling them apart matters because they call for differen
 response is usually to show the user something rather than to log a bug. It arrives as
 `SkippedDayError`, the only error class this package exports.
 
-**Everything else is a `RangeError`** carrying a machine-readable `code`. Branch on `error.code`,
+**Every other failure about your input is a `RangeError`** carrying a machine-readable `code`; the
+two that are not about your input are plain `Error`s, listed in the [API section](#errors). Branch on `error.code`,
 never on the message text — codes are part of the API and never change; wording is not and may
 improve in any release.
 
@@ -511,8 +513,12 @@ years, and against what, is in
 
 The complete surface, across all three entry points. Everything is a pure function over plain objects —
 same input, same output, no side effects. Wherever a `config?` parameter appears below it is a
-`TraditionConfig` defaulting to `PHUGPA`. Four take none, because naming or renumbering a date needs
-no calendar: `formatTibetanDate`, `parseTibetanDate`, `julianDayFromIso` and `tibetanWeekday`.
+`TraditionConfig` defaulting to `PHUGPA`. A signature below with no `config?` and no `options?` takes
+no tradition at all, because what it computes — naming, parsing or renumbering a date, or a closed
+form on the year — needs no calendar.
+
+The type declarations under `dist/` also describe internal modules; the `exports` map refuses a deep
+import of them, so what is listed here is the whole of what can be imported.
 
 ### `tibetan-calendar-temporal`
 
@@ -638,13 +644,15 @@ whichever direction you are converting.
 
 #### Tradition configs
 
-Two parameterisations of one tradition, Phugpa — not two traditions. See
+Two traditions, Phugpa and Bhutanese, each in two parameterisations. See
 [Traditions](#traditions) above.
 
 | Export | Notes |
 |---|---|
 | `PHUGPA` | The default. Lunar anomaly increment `a₂ = 1/28`, as almanacs use |
 | `PHUGPA_HENNING` | Identical but for `a₂`, Henning's exact `3781/105840`. Differs on ~1 day in 4,100 days |
+| `BHUTAN` | The Bhutanese calendar, with `a₂ = 1/28` as `PHUGPA` has. Places its leap month after the regular month sharing its number, and names weekdays one planet ahead |
+| `BHUTAN_HENNING` | Identical to `BHUTAN` but for `a₂`, as `PHUGPA_HENNING` is to `PHUGPA` |
 
 #### Errors
 
@@ -667,6 +675,7 @@ a `code`, which is what to branch on rather than the type:
 | `TCT_INVALID_TRADITION_CONFIG` | any function taking a config | The `TraditionConfig` is malformed. The message names the field |
 | `TCT_INVALID_OBSERVANCE_CONFIG` | `getObservances`, `observancesOn` | The `ObservanceConfig` or one of its rules is malformed |
 | `TCT_SPAN_TOO_WIDE` | `getObservances` | More than 200 years requested at once. Chunk it; the function is pure, so concatenating is correct |
+| `TCT_ATTRIBUTE_NOT_SOURCED` | `monthAttributesFor`, `lunarDayAttributesFor` | Your input is fine; no source gives this attribute for this tradition. Thrown under `BHUTAN` and `BHUTAN_HENNING`, whose month animals Janson does not tabulate. `attributesFor` reports the same gap as `null` instead |
 | `TCT_MISSING_TEMPORAL` | the `import` itself, and any date entry point if the global `Temporal` is deleted afterwards | No `Temporal` in this runtime — see [Requirements](#requirements) |
 | `TCT_INTERNAL` | `isoToTibetan`, and the arithmetic primitives beneath it | An invariant the engine proves for itself did not hold. A bug here rather than in your input; please [report it](https://github.com/nyamlen/tibetan-calendar-temporal/issues) |
 
@@ -713,7 +722,7 @@ A separate subpath, like `./observances`. `options` is `{ tradition? }`, default
 | `attributesFor` | `(date: Temporal.PlainDate \| TibetanDate, options?) => DayAttributes` | Everything about one day. `month` and `lunarDay` are `null` where unsourced |
 | `yearAttributesFor` | `(year: number) => YearAttributes` | Royal era, and no tradition: closed forms on the year alone |
 | `monthAttributesFor` | `(month: TibetanMonthFields, options?) => MonthAttributes` | Throws `TCT_ATTRIBUTE_NOT_SOURCED` for the Bhutanese configs |
-| `lunarDayAttributesFor` | `(date: TibetanDateFields, options?) => LunarDayAttributes` | Tibetan fields in, so a **skipped** lunar day can be asked about |
+| `lunarDayAttributesFor` | `(date: TibetanDateFields, options?) => LunarDayAttributes` | Tibetan fields in, so a **skipped** lunar day can be asked about. Throws `TCT_ATTRIBUTE_NOT_SOURCED` for the Bhutanese configs |
 | `calendarDayAttributesFor` | `(date: Temporal.PlainDate \| TibetanDate) => CalendarDayAttributes` | Congruences on the Julian day; the number differs in Tsurphu calendars, which is not modelled |
 | `lunarMansionFor` | `(date: Temporal.PlainDate \| TibetanDate, options?) => LunarMansion` | `{ index, tibetanName, sanskritName, element }`, index 0–26 as Janson and Henning number them, and no English name, because no source prints one. Needs the moon's real position; a published almanac sometimes prints the next mansion, late in a mansion — how often is in [why-trust-these-dates.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/why-trust-these-dates.md). |
 | `elementalYogaFor` | `(date: Temporal.PlainDate \| TibetanDate, options?) => ElementalYoga` | The weekday's element paired with the lunar mansion's |

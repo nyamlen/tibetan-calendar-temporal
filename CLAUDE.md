@@ -699,8 +699,10 @@ validation suite is named for the fixture it validates, that an exported **tradi
 imported by one — rule 10 matches only `export … from "./traditions/…"` in `src/index.ts`, so it
 does **not** see `ObservanceConfig` or anything on the `./observances` or `./astrology` barrels, and
 rule 13 is type-only, so neither guards a runtime value export on either — `DEFAULT_OBSERVANCES`,
-`ELEMENTAL_YOGAS` and `LUNAR_MANSIONS` are held by `test/public-api.test.ts` alone, which is also the
-only thing that noticed `./astrology` had shipped three mansion names nobody could use —
+`ELEMENTAL_YOGAS` and `LUNAR_MANSIONS` are held by `test/public-api.test.ts`, which is also the
+only thing that noticed `./astrology` had shipped three mansion names nobody could use, and since
+2026-09-23 by rule 16, which requires every runtime export to have a row in the README's API table
+for its entry point — a rule about **documentation**, not about validation —
 that a suite in `test/<name>/` is named for a module in `src/<name>/`, and that **a generated document does
 not hardcode a count its generator computes** — `docs/names/rabjung.md` read "Four values are marked,
 at positions …" beside an interpolated list for three commits, and there were five positions and nine

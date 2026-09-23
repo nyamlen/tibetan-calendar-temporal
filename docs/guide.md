@@ -534,7 +534,9 @@ Two failure kinds, and telling them apart matters because they call for differen
 response is usually to show the user something rather than to log a bug. It arrives as
 `SkippedDayError`, the only error class this package exports.
 
-**Everything else is a `RangeError`** carrying a machine-readable `code`. Branch on `error.code`,
+**Every other failure about your input is a `RangeError`** carrying a machine-readable `code`; the
+two that are not about your input, `TCT_INTERNAL` and `TCT_MISSING_TEMPORAL`, are plain `Error`s.
+Branch on `error.code`,
 never on the message text — codes are part of the API and never change; wording is not and may
 improve in any release.
 
@@ -573,7 +575,7 @@ tibetanDateExists({ year: 2153, month: 13, day: 1 });    // false — no such mo
 It deliberately still throws on a malformed `TraditionConfig`, because that is a bug in your
 program rather than a statement about a date, and answering `false` would hide it.
 
-The full code list is in the [API section](../README.md#errors) below.
+The full code list is in the README's [API section](../README.md#errors).
 
 ## Running it anywhere
 
