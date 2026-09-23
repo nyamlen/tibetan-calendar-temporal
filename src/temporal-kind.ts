@@ -129,16 +129,18 @@ export function temporalKindOf(value: unknown): TemporalDayKind | null {
  * @throws A `TCT_INVALID_ARGUMENT` error if the value cannot be read as an ISO calendar day.
  */
 export function toNativePlainDate(value: unknown, kind: TemporalDayKind): Temporal.PlainDate {
+	// The import-time guard in `computation/conversion.ts` has already run and will not run again,
+	// so a global deleted after import lands here. A bare `ReferenceError: Temporal is not defined`
+	// names neither the requirement nor the fix; this code does.
+	/* c8 ignore start -- unreachable under test: the suite runs on Node 26, where Temporal exists, and deleting the global mid-suite would break every other file in the same process */
 	if (typeof Temporal === "undefined") {
-		// The import-time guard in `computation/conversion.ts` has already run and will not run
-		// again, so a global deleted after import lands here. A bare `ReferenceError: Temporal is
-		// not defined` names neither the requirement nor the fix; this code does.
 		throw rangeError(
 			"TCT_MISSING_TEMPORAL",
 			"the global Temporal has been removed since this package was imported, so a date cannot " +
 				"be normalised. Restore it, or import a polyfill before this package.",
 		);
 	}
+	/* c8 ignore stop */
 	if (kind !== "PlainDate") {
 		const narrowed: unknown = (value as { toPlainDate: () => unknown }).toPlainDate();
 		return toNativePlainDate(narrowed, "PlainDate");

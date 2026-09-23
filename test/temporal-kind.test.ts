@@ -276,3 +276,31 @@ describe("the union discriminator", () => {
 		}
 	});
 });
+
+describe("a spoofed brand", () => {
+	it("throws a coded error rather than computing, which is why spoofing is survivable", () => {
+		// The decision record's claim: over-rejecting a disguised object is harmless on the reject
+		// side, and on the accept side normalisation fails and throws a code. This is that second
+		// half — the tag says PlainDate, nothing else does, and no date comes out.
+		const spoof = {
+			[Symbol.toStringTag]: "Temporal.PlainDate",
+			year: 1,
+			month: 1,
+			day: 1,
+			toString: () => "not a date at all",
+		} as unknown as Temporal.PlainDate;
+		expect(temporalKindOf(spoof)).toBe("PlainDate");
+		expect(codeOf(() => julianDayFromIso(spoof))).toBe("TCT_INVALID_ARGUMENT");
+		expect(codeOf(() => isoToTibetan(spoof))).toBe("TCT_INVALID_ARGUMENT");
+	});
+
+	it("is refused on the Tibetan side, where over-rejecting costs nothing", () => {
+		const spoof = {
+			[Symbol.toStringTag]: "Temporal.PlainDate",
+			year: 2151,
+			month: 6,
+			day: 4,
+		} as unknown as Temporal.PlainDate;
+		expect(codeOf(() => tibetanToIso(spoof as never))).toBe("TCT_INVALID_ARGUMENT");
+	});
+});
