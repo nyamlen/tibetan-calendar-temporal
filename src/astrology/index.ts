@@ -44,7 +44,7 @@
  */
 
 import { trueMonthCount } from "../computation/calendar.js";
-import { asPlainDate, isoToTibetan, julianDayFromIso } from "../computation/conversion.js";
+import { asWesternDay, isoToTibetan, julianDayFromIso } from "../computation/conversion.js";
 import { yearFromRoyalEra } from "../computation/epoch.js";
 import { scalingFor } from "../computation/scaling.js";
 import { rangeError } from "../errors.js";
@@ -286,7 +286,7 @@ export function lunarDayAttributesFor(
 export function calendarDayAttributesFor(
 	date: Temporal.PlainDate | TibetanDate,
 ): CalendarDayAttributes {
-	return calendarDayAttributes(julianDayFromIso(isoOf(date)));
+	return calendarDayAttributes(julianDayFromIso(isoOf("calendarDayAttributesFor", date)));
 }
 
 /**
@@ -318,7 +318,7 @@ export function elementalYogaFor(
 	options: AstrologyQueryOptions = {},
 ): ElementalYoga {
 	const tradition = traditionFrom("elementalYogaFor", options);
-	const resolved = isoToTibetan(isoOf(date), tradition);
+	const resolved = isoToTibetan(isoOf("elementalYogaFor", date), tradition);
 	return yogaOf(resolved, tradition);
 }
 
@@ -357,7 +357,7 @@ export function lunarMansionFor(
 	options: AstrologyQueryOptions = {},
 ): LunarMansion {
 	const tradition = traditionFrom("lunarMansionFor", options);
-	return lunarMansionOf(isoToTibetan(isoOf(date), tradition), tradition);
+	return lunarMansionOf(isoToTibetan(isoOf("lunarMansionFor", date), tradition), tradition);
 }
 
 /**
@@ -390,7 +390,7 @@ export function attributesFor(
 	options: AstrologyQueryOptions = {},
 ): DayAttributes {
 	const tradition = traditionFrom("attributesFor", options);
-	const resolved = isoToTibetan(isoOf(date), tradition);
+	const resolved = isoToTibetan(isoOf("attributesFor", date), tradition);
 	const y = yearFromRoyalEra(resolved.year);
 
 	// The one place in this subpath that reports rather than refuses, so the refusal is caught here
@@ -449,18 +449,16 @@ function weekdayElementOf(resolved: TibetanDate): TibetanWeekdayElement {
 	return weekdayNameWithOffset(resolved.tibetanWeekday, 0).element;
 }
 
-/** A `Temporal.PlainDate` from either accepted shape, rejecting loose fields by name. */
-function isoOf(date: Temporal.PlainDate | TibetanDate): Temporal.PlainDate {
-	const candidate: unknown = date;
-	if (
-		candidate !== null &&
-		typeof candidate === "object" &&
-		!(candidate instanceof Temporal.PlainDate) &&
-		"isoDate" in candidate
-	) {
-		// A resolved TibetanDate says which calendar it means, so it is accepted; a bare
-		// { year, month, day } is a value of both calendars and is not.
-		return asPlainDate((candidate as TibetanDate).isoDate);
-	}
-	return asPlainDate(date as Temporal.PlainDate);
+/**
+ * A `Temporal.PlainDate` from either accepted shape, rejecting loose fields by name.
+ *
+ * @remarks
+ * A thin pass-through to {@link asWesternDay} so that each caller's message names itself. This was
+ * a second copy of `navigation.ts`'s `phaseStart` until 2026-09-23, written when `./astrology`
+ * landed because the existing helper was private to another module. Its message named four shapes
+ * and never mentioned the resolved `TibetanDate` it accepts; `phaseStart`'s named two of four. Both
+ * shipped in `dist/*.d.ts`.
+ */
+function isoOf(functionName: string, date: Temporal.PlainDate | TibetanDate): Temporal.PlainDate {
+	return asWesternDay(functionName, date);
 }

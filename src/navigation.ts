@@ -32,9 +32,8 @@ import {
 	trueMonthCount,
 } from "./computation/calendar.js";
 import {
-	asPlainDate,
 	assertExactJulianDay,
-	describeValue,
+	asWesternDay,
 	isoFromJulianDayUnchecked,
 	isoToTibetan,
 	julianDayFromIso,
@@ -617,42 +616,18 @@ const NEW_MOON = 30;
  * Normalises either accepted input to the ISO day the phase search starts from.
  *
  * @remarks
- * **Both accepted shapes name their own calendar, and that is the entire rule.** A `Temporal`
- * instance says Western by construction; a resolved {@link TibetanDate} says Tibetan, because the
- * engine is what produced it. A bare `{ year, month, day }` says *neither* — it is a genuine value
- * of both {@link TibetanDateFields} and Temporal's own fields shape — so it is refused here on
- * exactly the ground {@link asPlainDate} refuses it at every other entry point.
+ * The policy itself lives in {@link asWesternDay}, shared with `./astrology`, which is where the
+ * rule — both accepted shapes name their own calendar, a bare `{ year, month, day }` names
+ * neither — is stated in full.
  *
  * **This pair accepted that bare object between 2026-08-26 and 2026-08-27 and no longer does.** The
  * widening bought chaining, which a resolved date gives just as well; what it cost was the only
  * parameter on the surface where one value could mean two calendars, silently resolved in favour of
  * Tibetan. `nextFullMoon({ year: 2026, month: 1, day: 1 })` meant as a Western date returned a day
  * in 1899. Narrowing keeps the chaining and returns the refusal.
- *
- * The Tibetan branch reads `isoDate` rather than re-running {@link tibetanToIso}: a resolved date
- * already carries the answer, so this is a field read and not a conversion — which is why `config`
- * is no longer a parameter here.
  */
 function phaseStart(name: string, date: Temporal.PlainDate | TibetanDate): Temporal.PlainDate {
-	if (
-		date instanceof Temporal.PlainDate ||
-		date instanceof Temporal.PlainDateTime ||
-		date instanceof Temporal.ZonedDateTime ||
-		typeof date === "string"
-	) {
-		return asPlainDate(date as Temporal.PlainDate);
-	}
-	if (date !== null && typeof date === "object" && date.isoDate instanceof Temporal.PlainDate) {
-		return date.isoDate;
-	}
-	throw rangeError(
-		"TCT_INVALID_ARGUMENT",
-		`${name}: expected a Temporal.PlainDate or a resolved TibetanDate, received ` +
-			`${describeValue(date)}. A bare { year, month, day } object names no calendar — it is a ` +
-			"genuine value of both this package's Tibetan date shape and Temporal's own — so it is " +
-			"refused rather than guessed at. Pass resolveDate({ ... }) for a Tibetan date, or " +
-			"Temporal.PlainDate.from({ ... }) for a Western one",
-	);
+	return asWesternDay(name, date);
 }
 
 function nextPhase(

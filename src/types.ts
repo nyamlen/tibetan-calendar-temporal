@@ -26,6 +26,7 @@
 
 import { rangeError, type TibetanCalendarErrorCode } from "./errors.js";
 import { formatTibetanDate } from "./format.js";
+import { temporalKindOf } from "./temporal-kind.js";
 
 /**
  * The five elements of the 60-year cycle, in the order of Janson's ten-year cycle table (§4).
@@ -717,11 +718,12 @@ export interface TibetanMonth {
  * its own `try` to get that behaviour; it no longer does.
  */
 export function rejectTemporalInstance(functionName: string, value: unknown): void {
-	if (
-		value instanceof Temporal.PlainDate ||
-		value instanceof Temporal.PlainDateTime ||
-		value instanceof Temporal.ZonedDateTime
-	) {
+	// Kind, not identity. `instanceof` asked whether the value came from *this* realm's Temporal, so
+	// a `PlainDate` from a second implementation sailed past this guard and was then read
+	// structurally for year/month/day — which a PlainDate has — turning ISO 2024-07-09 into a
+	// confident royal-era answer 127 years out. See `temporal-kind.ts`.
+	const kind = temporalKindOf(value);
+	if (kind !== null) {
 		// tibetanToIso and tibetanDateExists take a Tibetan date and can be swapped directly for
 		// isoToTibetan; formatTibetanDate and daysInMonth take a Tibetan date but do not produce
 		// one, so the fix is "convert first", not "call this instead".
@@ -731,7 +733,7 @@ export function rejectTemporalInstance(functionName: string, value: unknown): vo
 				: "Convert it first with isoToTibetan(date).";
 		throw rangeError(
 			"TCT_INVALID_ARGUMENT",
-			`${functionName}: received a Temporal.${value.constructor.name}, which names a Western ` +
+			`${functionName}: received a Temporal.${kind}, which names a Western ` +
 				`calendar day, not a Tibetan one. ${suggestion}`,
 		);
 	}

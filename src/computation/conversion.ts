@@ -13,6 +13,12 @@
 import { assertSafeYear, codedError, hasCode, rangeError } from "../errors.js";
 import { monthCodeOf } from "../format.js";
 import { weekdayNameWithOffset } from "../names.js";
+import {
+	assertIsoCalendar,
+	temporalKindOf,
+	temporalTypeNameOf,
+	toNativePlainDate,
+} from "../temporal-kind.js";
 import { PHUGPA } from "../traditions/phugpa.js";
 import type { TraditionConfig } from "../traditions/types.js";
 import type { TibetanDate, TibetanDateFields, TibetanWeekday } from "../types.js";
@@ -109,35 +115,94 @@ export function julianDayFromIso(date: Temporal.PlainDate): number {
  * because none of these has a field to be out of a range — they are not Western dates at all.
  */
 export function asPlainDate(date: Temporal.PlainDate): Temporal.PlainDate {
-	if (date instanceof Temporal.PlainDate) return date;
 	// Declared as `unknown` from here: the parameter's own type says `Temporal.PlainDate`, which is
 	// the guarantee a TypeScript caller gets, but this function's job past this line is to accept
 	// runtime input that does not honour it and either normalise or reject it.
 	const raw: unknown = date;
-	if (raw instanceof Temporal.PlainDateTime || raw instanceof Temporal.ZonedDateTime) {
-		return raw.toPlainDate();
-	}
+	// Kind, not identity: a `PlainDate` from a second Temporal implementation is a Western date and
+	// is normalised into this realm, rather than refused for having been built elsewhere. See
+	// `temporal-kind.ts`, which is the only file in `src/` that asks `instanceof Temporal`.
+	const kind = temporalKindOf(raw);
+	if (kind !== null) return toNativePlainDate(raw, kind);
 	if (typeof raw !== "string") {
+		// A Temporal type outside the three — `Instant`, `PlainYearMonth`, `PlainMonthDay`,
+		// `PlainTime`, `Duration` — carries its own tag and so is named rather than described as
+		// "an object". None of them names a calendar day, so none is normalisable.
+		const temporalType = temporalTypeNameOf(raw);
 		throw rangeError(
 			"TCT_INVALID_ARGUMENT",
 			"expected a Temporal.PlainDate, an ISO string, a PlainDateTime or a ZonedDateTime, " +
-				`received ${describeValue(raw)}` +
-				(raw !== null && typeof raw === "object"
-					? ". A bare { year, month, day } object is ambiguous with this package's own " +
-						"Tibetan-date shape, so it is rejected rather than guessed at — pass a Temporal " +
-						"instance or an ISO string instead"
-					: ""),
+				`received ${temporalType === null ? describeValue(raw) : `a Temporal.${temporalType}`}` +
+				(temporalType !== null
+					? ", which names no calendar day"
+					: raw !== null && typeof raw === "object"
+						? ". A bare { year, month, day } object is ambiguous with this package's own " +
+							"Tibetan-date shape, so it is rejected rather than guessed at — pass a Temporal " +
+							"instance or an ISO string instead"
+						: ""),
 		);
 	}
 	try {
-		return Temporal.PlainDate.from(raw);
+		return assertIsoCalendar(Temporal.PlainDate.from(raw));
 	} catch (error) {
+		if (error instanceof Error && "code" in error) throw error;
 		throw rangeError(
 			"TCT_INVALID_ARGUMENT",
 			`expected a Temporal.PlainDate, received ${describeValue(raw)}` +
 				`${error instanceof Error ? `: ${error.message}` : ""}`,
 		);
 	}
+}
+
+/**
+ * Normalises either shape of a `Temporal.PlainDate | TibetanDate` parameter to the ISO day it names.
+ *
+ * @remarks
+ * **Both accepted shapes name their own calendar, and that is the entire rule.** A `Temporal`
+ * instance says Western by construction; a resolved {@link TibetanDate} says Tibetan, because the
+ * engine is what produced it. A bare `{ year, month, day }` says *neither* — it is a genuine value
+ * of both {@link TibetanDateFields} and Temporal's own fields shape — so it is refused here on
+ * exactly the ground {@link asPlainDate} refuses it at every other entry point.
+ *
+ * **This existed twice**, as `phaseStart` in `navigation.ts` and `isoOf` in `astrology/index.ts`,
+ * written months apart because each subsystem needed a boundary helper and neither had one to
+ * import. `check:conventions` rule 14 could not see the pair — the bodies differed and so did the
+ * arity — and both copies had drifted into shipping a message that misdescribed its own function:
+ * `nextFullMoon` named two of the four shapes it accepts, and `attributesFor` named four while
+ * never mentioning the resolved `TibetanDate` it takes. One message, named shapes, one home.
+ *
+ * The Tibetan branch reads `isoDate` rather than re-running {@link tibetanToIso}: a resolved date
+ * already carries the answer, so this is a field read and not a conversion — which is why no
+ * `TraditionConfig` is a parameter here. It is still normalised, because a resolved date may have
+ * been built under a different Temporal implementation from the one now global.
+ *
+ * @throws A `TCT_INVALID_ARGUMENT` error naming every shape it accepts.
+ */
+export function asWesternDay(
+	functionName: string,
+	date: Temporal.PlainDate | TibetanDate,
+): Temporal.PlainDate {
+	const raw: unknown = date;
+	if (typeof raw === "string" || temporalKindOf(raw) !== null) {
+		return asPlainDate(date as Temporal.PlainDate);
+	}
+	if (
+		raw !== null &&
+		typeof raw === "object" &&
+		"isoDate" in raw &&
+		temporalKindOf((raw as { isoDate: unknown }).isoDate) === "PlainDate"
+	) {
+		return asPlainDate((raw as TibetanDate).isoDate);
+	}
+	throw rangeError(
+		"TCT_INVALID_ARGUMENT",
+		`${functionName}: expected a Temporal.PlainDate, an ISO string, a PlainDateTime, a ` +
+			`ZonedDateTime, or a resolved TibetanDate, received ${describeValue(raw)}. A bare ` +
+			"{ year, month, day } object names no calendar — it is a genuine value of both this " +
+			"package's Tibetan date shape and Temporal's own — so it is refused rather than guessed " +
+			"at. Pass resolveDate({ ... }) for a Tibetan date, or Temporal.PlainDate.from({ ... }) " +
+			"for a Western one",
+	);
 }
 
 /**
