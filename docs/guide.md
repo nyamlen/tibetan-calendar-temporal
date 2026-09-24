@@ -755,8 +755,9 @@ date.weekdayName.wylie;      // Wylie transliteration
 date.weekdayName.phonetic;   // spoken form
 ```
 
-`weekdayNameFor` is the only naming lookup that takes a tradition config, because Bhutan names its
-weekdays one planet ahead of Tibet. A `TibetanDate` produced with a non-default config already
+`weekdayNameFor` takes a tradition because Bhutan names its weekdays one planet ahead of Tibet.
+`monthNamesFor` takes one too, for the Tiger month and the leap-month check; `yearNameFor` and
+`rabjungFor` take none. A `TibetanDate` produced with a non-default config already
 carries the shifted name on its `weekdayName` field — you do not need to look it up again.
 
 **What deliberately does not ship:** translations into any other language. The names are the

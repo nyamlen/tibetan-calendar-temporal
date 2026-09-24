@@ -522,8 +522,9 @@ years, and against what, is in
 The complete surface, across all three entry points. Everything is a pure function over plain objects —
 same input, same output, no side effects. Wherever a `tradition?` parameter appears below it is a
 `TraditionConfig` defaulting to `PHUGPA`, passed last and positionally; a function with a second
-choice takes both in an `options?` bag instead, whose tradition key is also `tradition`. A signature
-below with neither `tradition?` nor `options?` takes no tradition at all: what it computes is the same in every shipped tradition.
+choice takes both in an `options?` bag instead, whose tradition key is also `tradition`.
+A signature below with neither `tradition?` nor `options?` takes no tradition at all: what it
+computes is the same in every shipped tradition.
 
 The type declarations under `dist/` also describe internal modules; the `exports` map refuses a deep
 import of them, so what is listed here is the whole of what can be imported.
@@ -599,7 +600,7 @@ year, including ones where `losarFor` must refuse.
 |---|---|---|
 | `yearNameFor` | `(year: number) => TibetanYearName` | `{ element, animal, gender }`. Element and gender repeat every ten years, the animal every twelve, the whole name every sixty; plus `elementName`, `genderName` and `animalName` in Tibetan script, Wylie and phonetics — which is why there are no separate lookups for those three |
 | `rabjungFor` | `(year: number) => Rabjung` | `{ cycle, year, tibetanName }` — `cycle`/`year` are the sixty-year numbering from 1027 CE, a *numbering* rather than a name (the two cycles sit three apart), and `tibetanName` is the **Tibetan** name at that position. No Sanskrit: the cycle has two Sanskrit name lists disagreeing at five positions, so pairing either with the Tibetan would misname 8% of years — see [docs/how-it-is-calculated.md](docs/how-it-is-calculated.md) |
-| `weekdayNameFor` | `(weekday: number, tradition?) => TibetanWeekdayName` | Tibetan name of a weekday. Takes the **Tibetan** numbering, 0 = Saturday. The only naming lookup taking a config, because Bhutan names its days one planet ahead |
+| `weekdayNameFor` | `(weekday: number, tradition?) => TibetanWeekdayName` | Tibetan name of a weekday. Takes the **Tibetan** numbering, 0 = Saturday. Takes a tradition because Bhutan names its days one planet ahead. `monthNamesFor` takes one too; `yearNameFor` and `rabjungFor` take none |
 | `asTibetanWeekday` | `(value: number) => TibetanWeekday` | Validates 0–6 and brands. The way in for a number this package did not produce — parsed JSON, a form field. `weekdayNameFor(date.dayOfWeek)` is a **compile error**: ISO runs 1–7 from Monday, Tibetan 0–6 from Saturday |
 
 A year picker is a loop over these plus `hasLeapMonth`; there is no range function, because building
