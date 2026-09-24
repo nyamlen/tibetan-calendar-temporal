@@ -1449,7 +1449,10 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
          says "a revoked Proxy, most likely" for any failure to read `Symbol.toStringTag`, including
          a getter that throws. Coded, so harmless, but it is the project's own rule about asserting a
          mechanism that was not measured.
-- [ ] **Pass a `TraditionConfig` one way, under one name.** Decided 2026-09-24 (Andreas): the
+- [x] **Pass a `TraditionConfig` one way, under one name.** **Done 2026-09-24**, in `807ec71`–`3876e3e`;
+      the rule is [decisions/2026-09-24-how-a-tradition-is-passed.md](decisions/2026-09-24-how-a-tradition-is-passed.md),
+      and a clean consumer on TypeScript 7.0.2 compiles one example of each shape and rejects both
+      old ones. Decided 2026-09-24 (Andreas): the
       tradition was passed four ways — positional `config?` on 22 root functions, `{ overflow?,
       config? }` on `addMonthsToDate`, `{ config?, tradition? }` on `./observances`, and
       `{ tradition? }` on `monthNamesFor` and the five `./astrology` functions — so the key `config`
