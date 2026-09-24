@@ -17,6 +17,7 @@ import {
 import { BHUTAN } from "../src/traditions/bhutan.js";
 import { PHUGPA, PHUGPA_HENNING } from "../src/traditions/phugpa.js";
 import { SkippedDayError } from "../src/types.js";
+import { thrownBy } from "./support/thrown.js";
 
 const iso = (s: string) => Temporal.PlainDate.from(s);
 
@@ -843,6 +844,35 @@ describe("addMonthsToDate's options bag", () => {
 		);
 		// @ts-expect-error -- null is not an overflow mode, which is what is under test
 		expect(codeOf(() => addMonthsToDate(date, 1, { overflow: null }))).toBe("TCT_INVALID_ARGUMENT");
+	});
+
+	it("refuses the old `config` key rather than silently answering Phugpa's date", () => {
+		// @ts-expect-error -- `config` is not a key of this bag since 2026-09-24, which is under test
+		const error = thrownBy(() => addMonthsToDate(date, 0, { config: BHUTAN }));
+		expect(error?.code).toBe("TCT_INVALID_ARGUMENT");
+		expect(error?.message).toContain('"config"');
+		expect(error?.message).toContain("{ overflow, tradition }");
+	});
+
+	it("refuses an unknown key through a variable, which TypeScript does not check", () => {
+		// Excess-property checking applies to a literal only; `tsc` accepts this call, measured
+		// 2026-09-24, so the runtime refusal is the only guard a TypeScript caller has here too.
+		const options = { config: BHUTAN, overflow: "reject" as const };
+		expect(codeOf(() => addMonthsToDate(date, 1, options))).toBe("TCT_INVALID_ARGUMENT");
+	});
+
+	it("refuses an unknown key whatever its value, and wherever it is inherited from", () => {
+		expect(codeOf(() => addMonthsToDate(date, 1, { bogus: 1 } as never))).toBe(
+			"TCT_INVALID_ARGUMENT",
+		);
+		expect(codeOf(() => addMonthsToDate(date, 1, { config: undefined } as never))).toBe(
+			"TCT_INVALID_ARGUMENT",
+		);
+		// An inherited `config` was honoured before the rename; after it, only a refusal stops an
+		// inherited key from quietly bringing Phugpa back.
+		expect(codeOf(() => addMonthsToDate(date, 1, Object.create({ config: BHUTAN })))).toBe(
+			"TCT_INVALID_ARGUMENT",
+		);
 	});
 
 	it("still accepts an omitted bag and a plain one", () => {

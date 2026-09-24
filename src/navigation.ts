@@ -511,7 +511,7 @@ export interface AddMonthsToDateOptions extends TraditionOptions {
  * names a day no calendar day carries.
  * @throws RangeError with the codes {@link addMonths} throws, plus `TCT_INVALID_ARGUMENT` if
  * `options` is `null`, not an object, or an array — the last being what a point-free `flatMap`
- * passes — or if
+ * passes — if it carries a key other than `overflow` and `tradition`, `config` included, or if
  * `overflow` is neither `"constrain"` nor `"reject"`.
  *
  * @example
@@ -526,7 +526,7 @@ export function addMonthsToDate(
 	months: number,
 	options: AddMonthsToDateOptions = {},
 ): TibetanDate {
-	assertQueryOptions("addMonthsToDate", "{ overflow, tradition }", options);
+	assertQueryOptions("addMonthsToDate", ["overflow", "tradition"], options);
 	const config = options.tradition === undefined ? PHUGPA : options.tradition;
 	const overflow = options.overflow === undefined ? "constrain" : options.overflow;
 	if (overflow !== "constrain" && overflow !== "reject") {

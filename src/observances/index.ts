@@ -403,7 +403,8 @@ function appliesToMonth(
  * @param options - `config` (which observances) and `tradition` (astronomical constants).
  *
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `from` or `to` is not a value
- * `asPlainDate` accepts; `TCT_SPAN_TOO_WIDE` if the span exceeds 200 years; or
+ * `asPlainDate` accepts, or if `options` is not an object or carries a key other than `config` and
+ * `tradition`; `TCT_SPAN_TOO_WIDE` if the span exceeds 200 years; or
  * `TCT_INVALID_OBSERVANCE_CONFIG` if `config` is invalid.
  */
 export function getObservances(
@@ -411,7 +412,7 @@ export function getObservances(
 	to: Temporal.PlainDate,
 	options: ObservanceQueryOptions = {},
 ): Observance[] {
-	assertQueryOptions("getObservances", "{ config, tradition }", options);
+	assertQueryOptions("getObservances", ["config", "tradition"], options);
 	// Not `?? DEFAULT_OBSERVANCES`: nullish-coalescing treats an explicit `null` as absent, so a
 	// caller passing `{ config: null }` would silently get the default instead of the coded
 	// rejection the positional signature gave them. Only `undefined` means "omitted"; everything
@@ -510,6 +511,6 @@ export function observancesOn(
 	date: Temporal.PlainDate,
 	options: ObservanceQueryOptions = {},
 ): Observance[] {
-	assertQueryOptions("observancesOn", "{ config, tradition }", options);
+	assertQueryOptions("observancesOn", ["config", "tradition"], options);
 	return getObservances(date, date, options);
 }

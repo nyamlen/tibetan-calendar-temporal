@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { describe as describeValue } from "../src/errors.js";
+import { assertQueryOptions, describe as describeValue } from "../src/errors.js";
 import { addMonthsToDate } from "../src/index.js";
 import { getObservances } from "../src/observances/index.js";
 import { thrownBy } from "./support/thrown.js";
@@ -34,5 +34,39 @@ describe("the options guards' messages", () => {
 		["getObservances' bag", () => getObservances(ISO, ISO, 10n as never)],
 	])("refuses a bigint in %s with a code", (_, call) => {
 		expect(thrownBy(call)?.code).toBe("TCT_INVALID_ARGUMENT");
+	});
+});
+
+describe("assertQueryOptions refuses keys it does not recognise", () => {
+	// Decided 2026-09-24 with the tradition-parameter pattern: every bag accepted unknown keys, so
+	// `addMonthsToDate(f, 0, { tradition: BHUTAN })` — then a key the bag did not have — answered
+	// Phugpa's date silently. Bags only: a TraditionConfig or ObservanceConfig may carry extra keys.
+	const refuse = (options: unknown) => thrownBy(() => assertQueryOptions("f", ["a", "b"], options));
+
+	it("names the unknown key and builds the shape from the allowed list", () => {
+		const error = refuse({ a: 1, c: 2 });
+		expect(error?.code).toBe("TCT_INVALID_ARGUMENT");
+		expect(error?.message).toContain('"c"');
+		expect(error?.message).toContain("{ a, b }");
+		// The non-object message uses the same built shape, so the two cannot drift apart.
+		expect(refuse(null)?.message).toContain("{ a, b }");
+	});
+
+	it("refuses an unknown key whatever its value, undefined included", () => {
+		expect(refuse({ c: undefined })?.code).toBe("TCT_INVALID_ARGUMENT");
+	});
+
+	it("refuses an inherited enumerable key, which a read of options.c would honour", () => {
+		expect(refuse(Object.create({ c: 1 }))?.code).toBe("TCT_INVALID_ARGUMENT");
+	});
+
+	it("ignores symbol keys, which no caller writes by mistake", () => {
+		expect(refuse({ a: 1, [Symbol("c")]: 2 })).toBeUndefined();
+	});
+
+	it("accepts the allowed keys, an empty bag, and a bag with no prototype", () => {
+		expect(refuse({ a: 1, b: 2 })).toBeUndefined();
+		expect(refuse({})).toBeUndefined();
+		expect(refuse(Object.assign(Object.create(null), { a: 1 }))).toBeUndefined();
 	});
 });

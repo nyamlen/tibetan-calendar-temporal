@@ -569,7 +569,7 @@ from; in coordinate space a leap month is simply the next lunation.
 | `addDays` | `(date: TibetanDateFields, days: number, config?) => TibetanDate` | **Solar** days, the unit elapsed-time reckonings use. Total — it can never land on a skipped date, because stepping real days never reaches a label no day carries |
 | `daysBetween` | `(from: TibetanDateFields, to: TibetanDateFields, config?) => number` | Signed. If both dates came from this package, `a.isoDate.until(b.isoDate)` is the better route; this is for dates you built yourself |
 | `addMonths` | `(month: TibetanMonthFields & { day?: never }, months: number, config?) => TibetanMonth` | Month in, month out, so **total**. `+1` from a leap month is its twin. A `TibetanDate` does **not** compile — it would discard the day silently; use `addMonthsToDate` |
-| `addMonthsToDate` | `(date: TibetanDateFields, months: number, options?) => TibetanDate` | "The same day next month". `options` is `{ overflow?, tradition? }` — the key was `config` until 2026-09-24; `overflow` is `"constrain"` (default — fall to the nearest **lower** existing day) or `"reject"` |
+| `addMonthsToDate` | `(date: TibetanDateFields, months: number, options?) => TibetanDate` | "The same day next month". `options` is `{ overflow?, tradition? }` — the key was `config` until 2026-09-24, and any other key is refused; `overflow` is `"constrain"` (default — fall to the nearest **lower** existing day) or `"reject"` |
 | `monthsBetween` | `(from: TibetanMonthFields, to: TibetanMonthFields, config?) => number` | Signed, counted in **lunations** — month 5 to month 7 is three in a year that doubles month 6, two otherwise |
 | `lunationFromMonth` | `(month: TibetanMonthFields, config?) => number` | The month as one sortable integer, for a database or cache key. No consumer-side route: it needs the intercalation index |
 | `monthFromLunation` | `(lunation: number, config?) => TibetanMonth` | The inverse, for a stored coordinate with no year in hand. Narrower domain than its inverse — it returns boundaries, so it evaluates the calendar |
@@ -676,7 +676,7 @@ a `code`, which is what to branch on rather than the type:
 |---|---|---|
 | `TCT_SKIPPED_DAY` | `tibetanToIso` | The date is well-formed but no calendar day carries its number. Not a bug in your code — see [Errors and validation](#errors-and-validation) |
 | `TCT_FIELD_OUT_OF_RANGE` | every function taking a date, a year or a Julian day | A year, month, day or Julian day is not an integer, or is outside 1–12 / 1–30. The argument was the right kind of thing and one of its numbers was wrong — so this is the one to surface to a user |
-| `TCT_INVALID_ARGUMENT` | the same functions, plus `parseTibetanDate` | The argument is the wrong *kind* of thing, so nothing in it is a field out of a range: a `Temporal.PlainDate` where a Tibetan date is expected, a bare `{ year, month, day }` where a Western date is expected, a non-boolean `isLeapMonth`/`isLeapDay`, `null`/`undefined`, or a string outside `parseTibetanDate`'s grammar. A bug in the calling code rather than bad data |
+| `TCT_INVALID_ARGUMENT` | the same functions, plus `parseTibetanDate` | The argument is the wrong *kind* of thing, so nothing in it is a field out of a range: a `Temporal.PlainDate` where a Tibetan date is expected, a bare `{ year, month, day }` where a Western date is expected, a non-boolean `isLeapMonth`/`isLeapDay`, `null`/`undefined`, a string outside `parseTibetanDate`'s grammar, or an options bag that is not an object or carries a key it does not have. A bug in the calling code rather than bad data |
 | `TCT_NO_SUCH_LEAP_MONTH` | `tibetanToIso` | `isLeapMonth: true` for a month with no leap twin that year |
 | `TCT_OUTSIDE_EXACT_RANGE` | any conversion, and the closed-form year functions `hasLeapMonth`, `leapMonthNumberFor`, `monthsInYear` | Beyond where this tradition's integer arithmetic stays exact. For a conversion, `PHUGPA` and `BHUTAN` are exact from about ISO year −245,737 to 236,312; `PHUGPA_HENNING` and `BHUTAN_HENNING` from about −20,781 to 11,356. Both ranges end inside Temporal's own. The three year functions are closed forms with a bound of their own, far wider: `hasLeapMonth(300000)` answers |
 | `TCT_INVALID_TRADITION_CONFIG` | any function taking a tradition | The `TraditionConfig` is malformed, or is not one at all — `null`, or a `{ tradition }` bag passed where the config itself belongs. The message names the field |
@@ -707,7 +707,7 @@ in one options bag rather than as two positional optionals — see
 
 | Export | Signature | Notes |
 |---|---|---|
-| `getObservances` | `(from: Temporal.PlainDate, to: Temporal.PlainDate, options?) => Observance[]` | `options` is `{ config?, tradition? }`. Date order. Returns `[]` if `to` precedes `from`; throws above a 200-year span |
+| `getObservances` | `(from: Temporal.PlainDate, to: Temporal.PlainDate, options?) => Observance[]` | `options` is `{ config?, tradition? }`, and any other key is refused. Date order. Returns `[]` if `to` precedes `from`; throws above a 200-year span |
 | `observancesOn` | `(date: Temporal.PlainDate, options?) => Observance[]` | The single-day case, same options |
 | `DEFAULT_OBSERVANCES` | | The default config, sourced from FPMT with a URL on every rule |
 

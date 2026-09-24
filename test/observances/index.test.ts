@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { isoToTibetan, losarFor, tibetanDateExists } from "../../src/computation/conversion.js";
 import { DEFAULT_OBSERVANCES, getObservances, observancesOn } from "../../src/observances/index.js";
 import type { ObservanceRule } from "../../src/observances/types.js";
+import { BHUTAN } from "../../src/traditions/bhutan.js";
 import { thrownBy } from "../support/thrown.js";
 
 const iso = (s: string) => Temporal.PlainDate.from(s);
@@ -539,5 +540,26 @@ describe("the options bag refuses an array", () => {
 			code = (error as { code?: unknown }).code;
 		}
 		expect(code).toBe("TCT_INVALID_ARGUMENT");
+	});
+});
+
+describe("the options bag refuses unknown keys", () => {
+	// Decided 2026-09-24. A misspelt key was ignored, so `{ tradtion: BHUTAN }` answered Phugpa's
+	// days without a word.
+	const day = Temporal.PlainDate.from("2026-01-01");
+
+	it("refuses a misspelt tradition, naming it", () => {
+		const error = thrownBy(() => observancesOn(day, { tradtion: BHUTAN } as never));
+		expect(error?.code).toBe("TCT_INVALID_ARGUMENT");
+		expect(error?.message).toContain('"tradtion"');
+		expect(
+			thrownBy(() => getObservances(day, day, Object.create({ tradtion: BHUTAN })))?.code,
+		).toBe("TCT_INVALID_ARGUMENT");
+	});
+
+	it("still reads `config` as the ObservanceConfig, so a TraditionConfig there is a config error", () => {
+		expect(thrownBy(() => observancesOn(day, { config: BHUTAN } as never))?.code).toBe(
+			"TCT_INVALID_OBSERVANCE_CONFIG",
+		);
 	});
 });

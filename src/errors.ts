@@ -219,7 +219,7 @@ export function isPlainObject(value: unknown): boolean {
 }
 
 /**
- * Rejects an options bag that is not an object.
+ * Rejects an options bag that is not an object, or that carries a key the bag does not have.
  *
  * @remarks
  * New boundary, new guard — CLAUDE.md requires one per exported argument shape, and reshaping
@@ -232,15 +232,34 @@ export function isPlainObject(value: unknown): boolean {
  * config has been reached yet. A bag carrying a bad `config` still gets the config code, from the
  * validator that has always owned it.
  *
- * `shape` is the example a caller is shown — `"{ config, tradition }"` for `./observances`,
- * `"{ tradition }"` for `./astrology` — and is the **only** thing the two copies differed in.
- * `./observances` also spelt `undefined` out in a ternary; `JSON.stringify(undefined)` interpolates
- * as `undefined` already, so that arm produced the same string and is gone with the copy. Both were
- * written when a subsystem landed and found no shared guard to import; this is that home.
+ * **Unknown keys are refused since 2026-09-24**, the fifth point of the tradition-parameter pattern
+ * (`docs/decisions/2026-09-24-how-a-tradition-is-passed.md`). Every bag used to ignore them, so
+ * `addMonthsToDate(f, 0, { tradition: BHUTAN })` — `tradition` then being a key that bag lacked —
+ * answered Phugpa's date without a word. Three choices here are deliberate:
  *
- * @throws A `TCT_INVALID_ARGUMENT` error if `options` is `null` or not an object.
+ * - A key is refused **whatever its value**, `undefined` included: `{ config: undefined }` is still
+ *   a caller writing a key that does nothing.
+ * - **Inherited** enumerable keys are checked as well as own ones — `for…in`, not `Object.keys` —
+ *   because the call sites read `options.tradition`, which honours an inherited key. An own-keys
+ *   check would let `Object.create({ config: BHUTAN })` through after a rename.
+ * - **Symbol keys are ignored.** Nobody writes one by mistake, and `for…in` does not visit them.
+ *
+ * This applies to **bags only**, never to a `TraditionConfig` or an `ObservanceConfig`: a consumer's
+ * `{ ...PHUGPA, extra }` is a supported way to build a config and must keep working.
+ *
+ * `allowed` is the bag's key list, and the shape shown to the caller is **built from it** — until
+ * 2026-09-24 each call site passed a hand-written shape string, which could name a key the bag no
+ * longer had.
+ *
+ * @throws A `TCT_INVALID_ARGUMENT` error if `options` is `null`, not an object, an array, or carries
+ * an enumerable string key not in `allowed`.
  */
-export function assertQueryOptions(functionName: string, shape: string, options: unknown): void {
+export function assertQueryOptions(
+	functionName: string,
+	allowed: readonly string[],
+	options: unknown,
+): void {
+	const shape = `{ ${allowed.join(", ")} }`;
 	// `=== undefined`, never `??`, at the call sites that read this bag: nullish-coalescing would
 	// read an explicit `{ tradition: null }` as absent and silently substitute a default, losing the
 	// validation a positional parameter had.
@@ -252,6 +271,15 @@ export function assertQueryOptions(functionName: string, shape: string, options:
 			`${functionName}: options must be an object like ${shape} or omitted, received ` +
 				`${describe(options)}`,
 		);
+	}
+	for (const key in options) {
+		if (!allowed.includes(key)) {
+			throw rangeError(
+				"TCT_INVALID_ARGUMENT",
+				`${functionName}: unknown option ${JSON.stringify(key)}. options is an object like ` +
+					`${shape}; a key it does not have would otherwise be ignored silently`,
+			);
+		}
 	}
 }
 
