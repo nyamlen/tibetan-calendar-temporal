@@ -163,15 +163,15 @@ export function describeMonth(
  * leapYear.map((m) => m.monthCode);        // ["M01", …, "M06L", "M06", …, "M12"]
  * ```
  */
-export function monthsFor(year: number, config: TraditionConfig = PHUGPA): TibetanMonth[] {
-	const cached = monthCache.get(config)?.get(year);
+export function monthsFor(year: number, tradition: TraditionConfig = PHUGPA): TibetanMonth[] {
+	const cached = monthCache.get(tradition)?.get(year);
 	// A fresh array every call, deliberately: the cache holds the computed months, but handing the
 	// same array to two callers lets one caller's `sort()` or `splice()` corrupt the other's. The
 	// TibetanMonth objects inside are safe to share — nothing in this package mutates them, and a
 	// consumer who does is reaching past a documented shape.
 	if (cached !== undefined) return [...cached];
 
-	const scaled = scalingFor(config);
+	const scaled = scalingFor(tradition);
 	const subject = () => `monthsFor(${year})`;
 	assertSafeYear(subject(), year);
 	const y = yearFromRoyalEra(year);
@@ -183,29 +183,33 @@ export function monthsFor(year: number, config: TraditionConfig = PHUGPA): Tibet
 	// last month only while leap months precede — see its remarks.
 	assertExactJulianDay(
 		scaled,
-		firstDayOfMonth(scaled, lastMonthCountOfYear(config, y - 1) + 1),
+		firstDayOfMonth(scaled, lastMonthCountOfYear(tradition, y - 1) + 1),
 		subject,
 	);
-	assertExactJulianDay(scaled, lastDayOfMonth(scaled, lastMonthCountOfYear(config, y)), subject);
+	assertExactJulianDay(scaled, lastDayOfMonth(scaled, lastMonthCountOfYear(tradition, y)), subject);
 
 	const months: TibetanMonth[] = [];
-	const leapFirst = config.leapMonthPosition === "before";
+	const leapFirst = tradition.leapMonthPosition === "before";
 	for (let month = 1; month <= 12; month++) {
 		// Chronological order, which is the order this list documents. Emitting the leap month first
 		// unconditionally would put a Bhutanese year's pair the wrong way round — and `lunation` would
 		// then decrease across a boundary a consumer is entitled to walk forwards.
-		const twin = sharesNumberWithLeapMonth(config, y, month);
+		const twin = sharesNumberWithLeapMonth(tradition, y, month);
 		const leap = () =>
-			months.push(describeMonth(scaled, trueMonthCount(config, y, month, true), year, month, true));
+			months.push(
+				describeMonth(scaled, trueMonthCount(tradition, y, month, true), year, month, true),
+			);
 		if (twin && leapFirst) leap();
-		months.push(describeMonth(scaled, trueMonthCount(config, y, month, false), year, month, false));
+		months.push(
+			describeMonth(scaled, trueMonthCount(tradition, y, month, false), year, month, false),
+		);
 		if (twin && !leapFirst) leap();
 	}
 
-	let byYear = monthCache.get(config);
+	let byYear = monthCache.get(tradition);
 	if (byYear === undefined) {
 		byYear = new Map();
-		monthCache.set(config, byYear);
+		monthCache.set(tradition, byYear);
 	}
 	byYear.set(year, months);
 	return [...months];
@@ -229,7 +233,7 @@ export function monthsFor(year: number, config: TraditionConfig = PHUGPA): Tibet
  * records as compiling silently and recursing.
  *
  * @param month - The month to resolve. `isLeapMonth` defaults to `false`, the regular month.
- * @param config - Astronomical constants. Defaults to `PHUGPA`.
+ * @param tradition - Astronomical constants. Defaults to `PHUGPA`.
  *
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `month` is not an object naming a Tibetan
  * month, or `isLeapMonth` is present and not a boolean; `TCT_FIELD_OUT_OF_RANGE` for a field out of
@@ -246,7 +250,7 @@ export function monthsFor(year: number, config: TraditionConfig = PHUGPA): Tibet
  */
 export function resolveMonth(
 	month: TibetanMonthFields,
-	config: TraditionConfig = PHUGPA,
+	tradition: TraditionConfig = PHUGPA,
 ): TibetanMonth {
 	rejectTemporalInstance("resolveMonth", month);
 	rejectInvalidLeapFlags("resolveMonth", month);
@@ -264,10 +268,10 @@ export function resolveMonth(
 		);
 	}
 
-	const scaled = scalingFor(config);
+	const scaled = scalingFor(tradition);
 	const y = yearFromRoyalEra(month.year);
-	assertClosedFormYear(subject, y, config);
-	if (isLeapMonth && !sharesNumberWithLeapMonth(config, y, month.month)) {
+	assertClosedFormYear(subject, y, tradition);
+	if (isLeapMonth && !sharesNumberWithLeapMonth(tradition, y, month.month)) {
 		throw rangeError(
 			"TCT_NO_SUCH_LEAP_MONTH",
 			`${subject()}: month ${month.month} of ${month.year} has no leap month. Drop isLeapMonth, ` +
@@ -275,7 +279,7 @@ export function resolveMonth(
 		);
 	}
 
-	const monthCount = trueMonthCount(config, y, month.month, isLeapMonth);
+	const monthCount = trueMonthCount(tradition, y, month.month, isLeapMonth);
 	assertExactJulianDay(scaled, firstDayOfMonth(scaled, monthCount), subject);
 	assertExactJulianDay(scaled, lastDayOfMonth(scaled, monthCount), subject);
 	return describeMonth(scaled, monthCount, month.year, month.month, isLeapMonth);
@@ -306,11 +310,14 @@ export function resolveMonth(
  * daysInMonth(isoToTibetan(Temporal.PlainDate.from("2026-08-12")));  // that day's own month
  * ```
  */
-export function daysInMonth(month: TibetanMonthFields, config: TraditionConfig = PHUGPA): number {
+export function daysInMonth(
+	month: TibetanMonthFields,
+	tradition: TraditionConfig = PHUGPA,
+): number {
 	rejectTemporalInstance("daysInMonth", month);
 	rejectInvalidLeapFlags("daysInMonth", month);
 	rejectMissingFields("daysInMonth", month, MONTH_FIELDS);
-	const scaled = scalingFor(config);
+	const scaled = scalingFor(tradition);
 	const isLeapMonth = month.isLeapMonth ?? false;
 	const subject = () =>
 		`daysInMonth({ year: ${month.year}, month: ${month.month}` +
@@ -325,8 +332,8 @@ export function daysInMonth(month: TibetanMonthFields, config: TraditionConfig =
 	}
 
 	const y = yearFromRoyalEra(month.year);
-	assertClosedFormYear(subject, y, config);
-	if (isLeapMonth && !sharesNumberWithLeapMonth(config, y, month.month)) {
+	assertClosedFormYear(subject, y, tradition);
+	if (isLeapMonth && !sharesNumberWithLeapMonth(tradition, y, month.month)) {
 		throw rangeError(
 			"TCT_NO_SUCH_LEAP_MONTH",
 			`${subject()}: month ${month.month} of ${month.year} has no leap month. Leap months ` +
@@ -335,7 +342,7 @@ export function daysInMonth(month: TibetanMonthFields, config: TraditionConfig =
 		);
 	}
 
-	const monthCount = trueMonthCount(config, y, month.month, isLeapMonth);
+	const monthCount = trueMonthCount(tradition, y, month.month, isLeapMonth);
 	assertExactJulianDay(scaled, lastDayOfMonth(scaled, monthCount), subject);
 	return daysInMonthCount(scaled, monthCount);
 }
@@ -359,8 +366,8 @@ export function daysInMonth(month: TibetanMonthFields, config: TraditionConfig =
  * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `year` is not a safe integer, or
  * `TCT_OUTSIDE_EXACT_RANGE` if it falls beyond the tradition's derivable range.
  */
-export function hasLeapMonth(year: number, config: TraditionConfig = PHUGPA): boolean {
-	return isLeapYear(config, closedFormYear(`hasLeapMonth(${year})`, year, config));
+export function hasLeapMonth(year: number, tradition: TraditionConfig = PHUGPA): boolean {
+	return isLeapYear(tradition, closedFormYear(`hasLeapMonth(${year})`, year, tradition));
 }
 
 /**
@@ -395,9 +402,12 @@ export function hasLeapMonth(year: number, config: TraditionConfig = PHUGPA): bo
  */
 export function leapMonthNumberFor(
 	year: number,
-	config: TraditionConfig = PHUGPA,
+	tradition: TraditionConfig = PHUGPA,
 ): number | undefined {
-	return leapMonthOfYearY(config, closedFormYear(`leapMonthNumberFor(${year})`, year, config));
+	return leapMonthOfYearY(
+		tradition,
+		closedFormYear(`leapMonthNumberFor(${year})`, year, tradition),
+	);
 }
 
 /**
@@ -410,8 +420,8 @@ export function leapMonthNumberFor(
  * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `year` is not a safe integer, or
  * `TCT_OUTSIDE_EXACT_RANGE` if it falls beyond the tradition's derivable range.
  */
-export function monthsInYear(year: number, config: TraditionConfig = PHUGPA): number {
-	return isLeapYear(config, closedFormYear(`monthsInYear(${year})`, year, config)) ? 13 : 12;
+export function monthsInYear(year: number, tradition: TraditionConfig = PHUGPA): number {
+	return isLeapYear(tradition, closedFormYear(`monthsInYear(${year})`, year, tradition)) ? 13 : 12;
 }
 
 /**
@@ -435,7 +445,7 @@ export function monthsInYear(year: number, config: TraditionConfig = PHUGPA): nu
  *
  * @param month - The month to lay out. Accepts a {@link TibetanMonth} from `monthsFor` directly, or
  * a hand-built `{ year, month, isLeapMonth }`.
- * @param config - Astronomical constants. Defaults to `PHUGPA`.
+ * @param tradition - Astronomical constants. Defaults to `PHUGPA`.
  *
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `month` is not an object naming a Tibetan
  * month, or `isLeapMonth` is present and not a boolean; `TCT_FIELD_OUT_OF_RANGE` for a field out of
@@ -452,7 +462,7 @@ export function monthsInYear(year: number, config: TraditionConfig = PHUGPA): nu
  */
 export function datesFor(
 	month: TibetanMonthFields,
-	config: TraditionConfig = PHUGPA,
+	tradition: TraditionConfig = PHUGPA,
 ): TibetanDate[] {
 	// daysInMonth already carries the whole guard set for a month-shaped argument — shape, fields,
 	// the leap twin and the exact range — and reporting under its own name here would be the one
@@ -468,12 +478,12 @@ export function datesFor(
 		);
 	}
 
-	const scaled = scalingFor(config);
+	const scaled = scalingFor(tradition);
 	const y = yearFromRoyalEra(month.year);
 	const isLeapMonth = month.isLeapMonth ?? false;
 	const subject = () => `datesFor({ year: ${month.year}, month: ${month.month} })`;
-	assertClosedFormYear(subject, y, config);
-	if (isLeapMonth && !sharesNumberWithLeapMonth(config, y, month.month)) {
+	assertClosedFormYear(subject, y, tradition);
+	if (isLeapMonth && !sharesNumberWithLeapMonth(tradition, y, month.month)) {
 		throw rangeError(
 			"TCT_NO_SUCH_LEAP_MONTH",
 			`${subject()}: month ${month.month} of ${month.year} has no leap month. Drop isLeapMonth, ` +
@@ -481,7 +491,7 @@ export function datesFor(
 		);
 	}
 
-	const monthCount = trueMonthCount(config, y, month.month, isLeapMonth);
+	const monthCount = trueMonthCount(tradition, y, month.month, isLeapMonth);
 	const first = firstDayOfMonth(scaled, monthCount);
 	const last = lastDayOfMonth(scaled, monthCount);
 	assertExactJulianDay(scaled, first, subject);
@@ -489,7 +499,7 @@ export function datesFor(
 
 	const dates: TibetanDate[] = [];
 	for (let julianDay = first; julianDay <= last; julianDay++) {
-		dates.push(isoToTibetan(isoFromJulianDayUnchecked(julianDay), config));
+		dates.push(isoToTibetan(isoFromJulianDayUnchecked(julianDay), tradition));
 	}
 	return dates;
 }

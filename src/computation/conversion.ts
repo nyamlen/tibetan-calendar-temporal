@@ -233,7 +233,7 @@ export function asWesternDay(
  */
 export function isoFromJulianDay(
 	julianDay: number,
-	config: TraditionConfig = PHUGPA,
+	tradition: TraditionConfig = PHUGPA,
 ): Temporal.PlainDate {
 	if (!Number.isSafeInteger(julianDay)) {
 		throw rangeError(
@@ -242,7 +242,7 @@ export function isoFromJulianDay(
 				"number counts whole days, so a fraction names nothing — there is no time of day in it",
 		);
 	}
-	assertExactJulianDay(scalingFor(config), julianDay, () => `isoFromJulianDay(${julianDay})`);
+	assertExactJulianDay(scalingFor(tradition), julianDay, () => `isoFromJulianDay(${julianDay})`);
 	return isoFromJulianDayUnchecked(julianDay);
 }
 
@@ -485,12 +485,12 @@ function buildDate(
  */
 export function tibetanToIso(
 	input: TibetanDateFields,
-	config: TraditionConfig = PHUGPA,
+	tradition: TraditionConfig = PHUGPA,
 ): Temporal.PlainDate {
 	rejectTemporalInstance("tibetanToIso", input);
 	rejectInvalidLeapFlags("tibetanToIso", input);
 	rejectMissingFields("tibetanToIso", input, DATE_FIELDS);
-	const scaled = scalingFor(config);
+	const scaled = scalingFor(tradition);
 	const isLeapMonth = input.isLeapMonth ?? false;
 
 	// Integrality before range: the whole determinism argument rests on integer arithmetic, and a
@@ -514,8 +514,8 @@ export function tibetanToIso(
 	}
 
 	const year = yearFromRoyalEra(input.year);
-	assertClosedFormYear(subject, year, config);
-	if (isLeapMonth && !sharesNumberWithLeapMonth(config, year, input.month)) {
+	assertClosedFormYear(subject, year, tradition);
+	if (isLeapMonth && !sharesNumberWithLeapMonth(tradition, year, input.month)) {
 		throw rangeError(
 			"TCT_NO_SUCH_LEAP_MONTH",
 			`${subject()}: month ${input.month} of ${input.year} has no leap month. Leap months ` +
@@ -524,7 +524,7 @@ export function tibetanToIso(
 		);
 	}
 
-	const monthCount = trueMonthCount(config, year, input.month, isLeapMonth);
+	const monthCount = trueMonthCount(tradition, year, input.month, isLeapMonth);
 
 	// Bound before classifying, not after. Past the exact limit classifyDay's arithmetic has
 	// already lost precision, and it reports the damage as a skipped date. The mean date is within
@@ -598,7 +598,7 @@ export function tibetanToIso(
  */
 export function tibetanDateExists(
 	input: TibetanDateFields,
-	config: TraditionConfig = PHUGPA,
+	tradition: TraditionConfig = PHUGPA,
 ): boolean {
 	// These duplicate the same two guards inside tibetanToIso, and the reason is the *message*, not
 	// the behaviour. Both throw TCT_INVALID_ARGUMENT, which is absent from the allowlist below, so
@@ -613,7 +613,7 @@ export function tibetanDateExists(
 	rejectInvalidLeapFlags("tibetanDateExists", input);
 	rejectMissingFields("tibetanDateExists", input, DATE_FIELDS);
 	try {
-		tibetanToIso(input, config);
+		tibetanToIso(input, tradition);
 		return true;
 	} catch (error) {
 		// Matched by class first, as before: SkippedDayError carries TCT_SKIPPED_DAY too, but the
@@ -664,9 +664,9 @@ export function tibetanDateExists(
  */
 export function isoToTibetan(
 	date: Temporal.PlainDate,
-	config: TraditionConfig = PHUGPA,
+	tradition: TraditionConfig = PHUGPA,
 ): TibetanDate {
-	const scaled = scalingFor(config);
+	const scaled = scalingFor(tradition);
 	// Normalised once here rather than relying on julianDayFromIso alone, so the error message below
 	// quotes the date the caller meant rather than whatever they passed.
 	const plain = asPlainDate(date);
@@ -713,7 +713,7 @@ export function isoToTibetan(
 		);
 	}
 
-	const month = monthFromCount(config, resolved.monthCount);
+	const month = monthFromCount(tradition, resolved.monthCount);
 	const classification = classifyDay(scaled, resolved.day, resolved.monthCount);
 	const isDoubledDay = classification.kind === "doubled";
 
@@ -762,10 +762,10 @@ export function isoToTibetan(
  * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `year` is not a safe integer, or
  * `TCT_OUTSIDE_EXACT_RANGE` if it falls outside the range where the arithmetic stays exact.
  */
-export function losarFor(year: number, config: TraditionConfig = PHUGPA): TibetanDate {
-	const scaled = scalingFor(config);
+export function losarFor(year: number, tradition: TraditionConfig = PHUGPA): TibetanDate {
+	const scaled = scalingFor(tradition);
 	assertSafeYear(`losarFor(${year})`, year);
-	const julianDay = losarJulianDay(scaled, config, yearFromRoyalEra(year));
+	const julianDay = losarJulianDay(scaled, tradition, yearFromRoyalEra(year));
 	assertExactJulianDay(scaled, julianDay, () => `losarFor(${year})`);
-	return isoToTibetan(isoFromJulianDayUnchecked(julianDay), config);
+	return isoToTibetan(isoFromJulianDayUnchecked(julianDay), tradition);
 }

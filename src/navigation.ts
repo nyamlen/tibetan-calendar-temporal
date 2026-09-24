@@ -152,7 +152,7 @@ function assertCount(subject: string, name: string, value: number): void {
  * two domains, not over this one.
  *
  * @param month - The month to locate. `isLeapMonth` distinguishes the twins of a leap pair.
- * @param config - Astronomical constants. Defaults to `PHUGPA`.
+ * @param tradition - Astronomical constants. Defaults to `PHUGPA`.
  *
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `month` is not an object naming a Tibetan
  * month, or `isLeapMonth` is present and not a boolean; `TCT_FIELD_OUT_OF_RANGE` if `year` is not a
@@ -167,11 +167,11 @@ function assertCount(subject: string, name: string, value: number): void {
  */
 export function lunationFromMonth(
 	month: TibetanMonthFields,
-	config: TraditionConfig = PHUGPA,
+	tradition: TraditionConfig = PHUGPA,
 ): number {
-	assertTraditionConfig(config);
+	assertTraditionConfig(tradition);
 	assertMonthFields("lunationFromMonth", month);
-	return lunationOf("lunationFromMonth", month, config);
+	return lunationOf("lunationFromMonth", month, tradition);
 }
 
 /**
@@ -213,7 +213,7 @@ function lunationOf(subject: string, month: TibetanMonthFields, config: Traditio
  * trips hold over the narrower domain.
  *
  * @param lunation - The count, zero at the epoch and negative before it.
- * @param config - Astronomical constants. Defaults to `PHUGPA`.
+ * @param tradition - Astronomical constants. Defaults to `PHUGPA`.
  *
  * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `lunation` is not a safe integer;
  * `TCT_OUTSIDE_EXACT_RANGE` past where the arithmetic stays exact.
@@ -226,11 +226,11 @@ function lunationOf(subject: string, month: TibetanMonthFields, config: Traditio
  */
 export function monthFromLunation(
 	lunation: number,
-	config: TraditionConfig = PHUGPA,
+	tradition: TraditionConfig = PHUGPA,
 ): TibetanMonth {
-	assertTraditionConfig(config);
+	assertTraditionConfig(tradition);
 	assertCount("monthFromLunation", "lunation", lunation);
-	return monthAt("monthFromLunation", lunation, config);
+	return monthAt("monthFromLunation", lunation, tradition);
 }
 
 /** The month at an already-validated lunation, reporting under the caller's name. */
@@ -292,7 +292,7 @@ function monthAt(name: string, lunation: number, config: TraditionConfig): Tibet
  *
  * @param month - The month to step from. `isLeapMonth` distinguishes the twins of a leap pair.
  * @param months - How many lunations to move. May be negative or zero.
- * @param config - Astronomical constants. Defaults to `PHUGPA`.
+ * @param tradition - Astronomical constants. Defaults to `PHUGPA`.
  *
  * @throws RangeError with the codes {@link lunationFromMonth} and {@link monthFromLunation} throw;
  * `TCT_FIELD_OUT_OF_RANGE` if `months` is not a safe integer.
@@ -307,12 +307,12 @@ function monthAt(name: string, lunation: number, config: TraditionConfig): Tibet
 export function addMonths(
 	month: TibetanMonthFields & { day?: never },
 	months: number,
-	config: TraditionConfig = PHUGPA,
+	tradition: TraditionConfig = PHUGPA,
 ): TibetanMonth {
-	assertTraditionConfig(config);
+	assertTraditionConfig(tradition);
 	assertMonthFields("addMonths", month);
 	assertCount("addMonths", "months", months);
-	return monthAt("addMonths", lunationOf("addMonths", month, config) + months, config);
+	return monthAt("addMonths", lunationOf("addMonths", month, tradition) + months, tradition);
 }
 
 /**
@@ -339,15 +339,16 @@ export function addMonths(
 export function monthsBetween(
 	from: TibetanMonthFields,
 	to: TibetanMonthFields,
-	config: TraditionConfig = PHUGPA,
+	tradition: TraditionConfig = PHUGPA,
 ): number {
-	assertTraditionConfig(config);
+	assertTraditionConfig(tradition);
 	// Named per argument, because "monthsBetween: expected an object" would not say which of the two
 	// the caller got wrong — and these are the first two-month exports on this surface.
 	assertMonthFields("monthsBetween (from)", from);
 	assertMonthFields("monthsBetween (to)", to);
 	return (
-		lunationOf("monthsBetween (to)", to, config) - lunationOf("monthsBetween (from)", from, config)
+		lunationOf("monthsBetween (to)", to, tradition) -
+		lunationOf("monthsBetween (from)", from, tradition)
 	);
 }
 
@@ -368,7 +369,7 @@ export function monthsBetween(
  *
  * @param date - The date to step from.
  * @param days - How many solar days to move. May be negative or zero.
- * @param config - Astronomical constants. Defaults to `PHUGPA`.
+ * @param tradition - Astronomical constants. Defaults to `PHUGPA`.
  *
  * @throws SkippedDayError if `date` itself names no calendar day.
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` for a wrong-kind argument;
@@ -383,19 +384,19 @@ export function monthsBetween(
 export function addDays(
 	date: TibetanDateFields,
 	days: number,
-	config: TraditionConfig = PHUGPA,
+	tradition: TraditionConfig = PHUGPA,
 ): TibetanDate {
-	assertTraditionConfig(config);
+	assertTraditionConfig(tradition);
 	assertDateFields("addDays", date);
 	assertCount("addDays", "days", days);
 
-	const scaled = scalingFor(config);
-	const target = julianDayFromIso(tibetanToIso(date, config)) + days;
+	const scaled = scalingFor(tradition);
+	const target = julianDayFromIso(tibetanToIso(date, tradition)) + days;
 	// The starting date was inside the range or tibetanToIso would have refused it, but the *result*
 	// need not be: Julian-day arithmetic walks straight out of it. Without this the conversion below
 	// would either throw uncoded from Temporal or answer from degraded arithmetic.
 	assertExactJulianDay(scaled, target, () => `addDays(…, ${days})`);
-	return isoToTibetan(isoFromJulianDayUnchecked(target), config);
+	return isoToTibetan(isoFromJulianDayUnchecked(target), tradition);
 }
 
 /**
@@ -413,7 +414,7 @@ export function addDays(
  * walks the calendar days once and is the right shape there.
  *
  * @param date - The date to resolve. `isLeapMonth` and `isLeapDay` default to `false`.
- * @param config - Astronomical constants. Defaults to `PHUGPA`.
+ * @param tradition - Astronomical constants. Defaults to `PHUGPA`.
  *
  * @throws {@link SkippedDayError} — code `TCT_SKIPPED_DAY` — if no calendar day carries `date`.
  * Use {@link tibetanDateExists} to test first.
@@ -429,11 +430,11 @@ export function addDays(
  */
 export function resolveDate(
 	date: TibetanDateFields,
-	config: TraditionConfig = PHUGPA,
+	tradition: TraditionConfig = PHUGPA,
 ): TibetanDate {
-	assertTraditionConfig(config);
+	assertTraditionConfig(tradition);
 	assertDateFields("resolveDate", date);
-	return isoToTibetan(tibetanToIso(date, config), config);
+	return isoToTibetan(tibetanToIso(date, tradition), tradition);
 }
 
 /**
@@ -527,7 +528,7 @@ export function addMonthsToDate(
 	options: AddMonthsToDateOptions = {},
 ): TibetanDate {
 	assertQueryOptions("addMonthsToDate", ["overflow", "tradition"], options);
-	const config = options.tradition === undefined ? PHUGPA : options.tradition;
+	const tradition = options.tradition === undefined ? PHUGPA : options.tradition;
 	const overflow = options.overflow === undefined ? "constrain" : options.overflow;
 	if (overflow !== "constrain" && overflow !== "reject") {
 		throw rangeError(
@@ -535,14 +536,14 @@ export function addMonthsToDate(
 			`addMonthsToDate: overflow must be "constrain" or "reject", received ${describe(overflow)}`,
 		);
 	}
-	assertTraditionConfig(config);
+	assertTraditionConfig(tradition);
 	assertDateFields("addMonthsToDate", date);
 	assertCount("addMonthsToDate", "months", months);
 
 	const target = monthAt(
 		"addMonthsToDate",
-		lunationOf("addMonthsToDate", date, config) + months,
-		config,
+		lunationOf("addMonthsToDate", date, tradition) + months,
+		tradition,
 	);
 
 	// Walk down from the requested number rather than reading the month's day list: the list costs
@@ -555,7 +556,7 @@ export function addMonthsToDate(
 			isLeapMonth: target.isLeapMonth,
 		};
 		try {
-			return resolveDate(candidate, config);
+			return resolveDate(candidate, tradition);
 		} catch (error) {
 			if (!(error instanceof SkippedDayError)) throw error;
 			if (overflow === "reject") throw error;
@@ -597,12 +598,14 @@ export function addMonthsToDate(
 export function daysBetween(
 	from: TibetanDateFields,
 	to: TibetanDateFields,
-	config: TraditionConfig = PHUGPA,
+	tradition: TraditionConfig = PHUGPA,
 ): number {
-	assertTraditionConfig(config);
+	assertTraditionConfig(tradition);
 	assertDateFields("daysBetween (from)", from);
 	assertDateFields("daysBetween (to)", to);
-	return julianDayFromIso(tibetanToIso(to, config)) - julianDayFromIso(tibetanToIso(from, config));
+	return (
+		julianDayFromIso(tibetanToIso(to, tradition)) - julianDayFromIso(tibetanToIso(from, tradition))
+	);
 }
 
 /** The lunar days whose ends are the full moon and the new moon — Janson's day-classification rule. */
@@ -692,9 +695,9 @@ function nextPhase(
  */
 export function nextFullMoon(
 	date: Temporal.PlainDate | TibetanDate,
-	config: TraditionConfig = PHUGPA,
+	tradition: TraditionConfig = PHUGPA,
 ): TibetanDate {
-	return nextPhase("nextFullMoon", FULL_MOON, date, config);
+	return nextPhase("nextFullMoon", FULL_MOON, date, tradition);
 }
 
 /**
@@ -710,7 +713,7 @@ export function nextFullMoon(
  */
 export function nextNewMoon(
 	date: Temporal.PlainDate | TibetanDate,
-	config: TraditionConfig = PHUGPA,
+	tradition: TraditionConfig = PHUGPA,
 ): TibetanDate {
-	return nextPhase("nextNewMoon", NEW_MOON, date, config);
+	return nextPhase("nextNewMoon", NEW_MOON, date, tradition);
 }

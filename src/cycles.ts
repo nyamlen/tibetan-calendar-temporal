@@ -138,7 +138,7 @@ export function rabjungFor(year: number): Rabjung {
  *
  * @param weekday - Tibetan weekday, **0 = Saturday through 6 = Friday**. This is
  * {@link TibetanDate.tibetanWeekday}, not the ISO `dayOfWeek`.
- * @param config - Tradition; defaults to Phugpa.
+ * @param tradition - Tradition; defaults to Phugpa.
  *
  * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `weekday` is not an integer in 0–6.
  *
@@ -153,7 +153,7 @@ export function rabjungFor(year: number): Rabjung {
  */
 export function weekdayNameFor(
 	weekday: TibetanWeekday,
-	config: TraditionConfig = PHUGPA,
+	tradition: TraditionConfig = PHUGPA,
 ): TibetanWeekdayName {
 	if (!Number.isInteger(weekday) || weekday < 0 || weekday > 6) {
 		throw rangeError(
@@ -162,6 +162,6 @@ export function weekdayNameFor(
 				"This is the Tibetan numbering — 0 is Saturday — not the ISO dayOfWeek",
 		);
 	}
-	assertTraditionConfig(config);
-	return weekdayNameWithOffset(weekday, config.naming?.weekdayOffset ?? 0);
+	assertTraditionConfig(tradition);
+	return weekdayNameWithOffset(weekday, tradition.naming?.weekdayOffset ?? 0);
 }

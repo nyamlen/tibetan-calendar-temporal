@@ -520,9 +520,10 @@ years, and against what, is in
 ## API
 
 The complete surface, across all three entry points. Everything is a pure function over plain objects —
-same input, same output, no side effects. Wherever a `config?` or `tradition?` parameter appears
-below it is a `TraditionConfig` defaulting to `PHUGPA`. A signature below with none of `config?`,
-`tradition?` and `options?` takes no tradition at all: what it computes is the same in every shipped tradition.
+same input, same output, no side effects. Wherever a `tradition?` parameter appears below it is a
+`TraditionConfig` defaulting to `PHUGPA`, passed last and positionally; a function with a second
+choice takes both in an `options?` bag instead, whose tradition key is also `tradition`. A signature
+below with neither `tradition?` nor `options?` takes no tradition at all: what it computes is the same in every shipped tradition.
 
 The type declarations under `dist/` also describe internal modules; the `exports` map refuses a deep
 import of them, so what is listed here is the whole of what can be imported.
@@ -533,10 +534,10 @@ import of them, so what is listed here is the whole of what can be imported.
 
 | Export | Signature | Notes |
 |---|---|---|
-| `isoToTibetan` | `(date: Temporal.PlainDate, config?) => TibetanDate` | Total; every calendar day has a Tibetan date |
-| `tibetanToIso` | `(input: TibetanDateFields, config?) => Temporal.PlainDate` | Throws `SkippedDayError`, or `RangeError` on out-of-range input |
-| `tibetanDateExists` | `(input: TibetanDateFields, config?) => boolean` | The predicate counterpart. `false` for a skipped date, an out-of-range field or a missing leap month; **throws** for anything else, including a date past the exact range — where the day was never computed, so `false` would be a claim about arithmetic that was refused |
-| `losarFor` | `(year: number, config?) => TibetanDate` | Tibetan New Year. Not `{ month: 1, day: 1 }` — that throws where day 1 is skipped |
+| `isoToTibetan` | `(date: Temporal.PlainDate, tradition?) => TibetanDate` | Total; every calendar day has a Tibetan date |
+| `tibetanToIso` | `(input: TibetanDateFields, tradition?) => Temporal.PlainDate` | Throws `SkippedDayError`, or `RangeError` on out-of-range input |
+| `tibetanDateExists` | `(input: TibetanDateFields, tradition?) => boolean` | The predicate counterpart. `false` for a skipped date, an out-of-range field or a missing leap month; **throws** for anything else, including a date past the exact range — where the day was never computed, so `false` would be a claim about arithmetic that was refused |
+| `losarFor` | `(year: number, tradition?) => TibetanDate` | Tibetan New Year. Not `{ month: 1, day: 1 }` — that throws where day 1 is skipped |
 
 #### Months
 
@@ -548,14 +549,14 @@ a handful of integer operations, and exact for any year — including ones where
 
 | Export | Signature | Notes |
 |---|---|---|
-| `monthsFor` | `(year: number, config?) => TibetanMonth[]` | The year's months in calendar order, 12 or 13. Tiles Losar to the day before the next Losar, leap month first of its pair |
-| `resolveMonth` | `(month: TibetanMonthFields, config?) => TibetanMonth` | A month's identity to the month itself. Replaces `addMonths(m, 0)` and the `monthsFor().find()` search, which returns the wrong half of a leap pair when it matches on the number alone |
-| `resolveDate` | `(date: TibetanDateFields, config?) => TibetanDate` | The same one tier down, replacing `addDays(d, 0)`. Throws `SkippedDayError` if no calendar day carries the date. Two passes, not a lookup |
-| `daysInMonth` | `(month: TibetanMonthFields, config?) => number` | **Calendar days**, 29 or 30 — not the highest date number, which is always 30. Accepts a `TibetanDate` directly |
-| `hasLeapMonth` | `(year: number, config?) => boolean` | Whether the year has a thirteenth month. Not called `isLeapYear`: a Tibetan leap year gains a *month*, not a day |
-| `leapMonthNumberFor` | `(year: number, config?) => number \| undefined` | Which month number is doubled, or `undefined` |
-| `monthsInYear` | `(year: number, config?) => number` | 12 or 13 |
-| `datesFor` | `(month: TibetanMonthFields, config?) => TibetanDate[]` | The month's calendar days, labelled — one entry per day, so a doubled number appears twice and a skipped one not at all. Bounded at 29 or 30 |
+| `monthsFor` | `(year: number, tradition?) => TibetanMonth[]` | The year's months in calendar order, 12 or 13. Tiles Losar to the day before the next Losar, leap month first of its pair |
+| `resolveMonth` | `(month: TibetanMonthFields, tradition?) => TibetanMonth` | A month's identity to the month itself. Replaces `addMonths(m, 0)` and the `monthsFor().find()` search, which returns the wrong half of a leap pair when it matches on the number alone |
+| `resolveDate` | `(date: TibetanDateFields, tradition?) => TibetanDate` | The same one tier down, replacing `addDays(d, 0)`. Throws `SkippedDayError` if no calendar day carries the date. Two passes, not a lookup |
+| `daysInMonth` | `(month: TibetanMonthFields, tradition?) => number` | **Calendar days**, 29 or 30 — not the highest date number, which is always 30. Accepts a `TibetanDate` directly |
+| `hasLeapMonth` | `(year: number, tradition?) => boolean` | Whether the year has a thirteenth month. Not called `isLeapYear`: a Tibetan leap year gains a *month*, not a day |
+| `leapMonthNumberFor` | `(year: number, tradition?) => number \| undefined` | Which month number is doubled, or `undefined` |
+| `monthsInYear` | `(year: number, tradition?) => number` | 12 or 13 |
+| `datesFor` | `(month: TibetanMonthFields, tradition?) => TibetanDate[]` | The month's calendar days, labelled — one entry per day, so a doubled number appears twice and a skipped one not at all. Bounded at 29 or 30 |
 
 #### Navigation
 
@@ -566,15 +567,15 @@ from; in coordinate space a leap month is simply the next lunation.
 
 | Export | Signature | Notes |
 |---|---|---|
-| `addDays` | `(date: TibetanDateFields, days: number, config?) => TibetanDate` | **Solar** days, the unit elapsed-time reckonings use. Total — it can never land on a skipped date, because stepping real days never reaches a label no day carries |
-| `daysBetween` | `(from: TibetanDateFields, to: TibetanDateFields, config?) => number` | Signed. If both dates came from this package, `a.isoDate.until(b.isoDate)` is the better route; this is for dates you built yourself |
-| `addMonths` | `(month: TibetanMonthFields & { day?: never }, months: number, config?) => TibetanMonth` | Month in, month out, so **total**. `+1` from a leap month is its twin. A `TibetanDate` does **not** compile — it would discard the day silently; use `addMonthsToDate` |
+| `addDays` | `(date: TibetanDateFields, days: number, tradition?) => TibetanDate` | **Solar** days, the unit elapsed-time reckonings use. Total — it can never land on a skipped date, because stepping real days never reaches a label no day carries |
+| `daysBetween` | `(from: TibetanDateFields, to: TibetanDateFields, tradition?) => number` | Signed. If both dates came from this package, `a.isoDate.until(b.isoDate)` is the better route; this is for dates you built yourself |
+| `addMonths` | `(month: TibetanMonthFields & { day?: never }, months: number, tradition?) => TibetanMonth` | Month in, month out, so **total**. `+1` from a leap month is its twin. A `TibetanDate` does **not** compile — it would discard the day silently; use `addMonthsToDate` |
 | `addMonthsToDate` | `(date: TibetanDateFields, months: number, options?) => TibetanDate` | "The same day next month". `options` is `{ overflow?, tradition? }` — the key was `config` until 2026-09-24, and any other key is refused; `overflow` is `"constrain"` (default — fall to the nearest **lower** existing day) or `"reject"` |
-| `monthsBetween` | `(from: TibetanMonthFields, to: TibetanMonthFields, config?) => number` | Signed, counted in **lunations** — month 5 to month 7 is three in a year that doubles month 6, two otherwise |
-| `lunationFromMonth` | `(month: TibetanMonthFields, config?) => number` | The month as one sortable integer, for a database or cache key. No consumer-side route: it needs the intercalation index |
-| `monthFromLunation` | `(lunation: number, config?) => TibetanMonth` | The inverse, for a stored coordinate with no year in hand. Narrower domain than its inverse — it returns boundaries, so it evaluates the calendar |
-| `nextFullMoon` | `(date: Temporal.PlainDate \| TibetanDate, config?) => TibetanDate` | Strictly after. **Not** `day === 15`: when 15 is skipped the full moon is on the day numbered 14, about one month in forty-five. Takes a *resolved* date, so it chains — a bare `{ year, month, day }` names no calendar and is refused; pass `resolveDate(…)` |
-| `nextNewMoon` | `(date: Temporal.PlainDate \| TibetanDate, config?) => TibetanDate` | Strictly after. On a doubled 30 it is the **second** of the pair, not the leap day |
+| `monthsBetween` | `(from: TibetanMonthFields, to: TibetanMonthFields, tradition?) => number` | Signed, counted in **lunations** — month 5 to month 7 is three in a year that doubles month 6, two otherwise |
+| `lunationFromMonth` | `(month: TibetanMonthFields, tradition?) => number` | The month as one sortable integer, for a database or cache key. No consumer-side route: it needs the intercalation index |
+| `monthFromLunation` | `(lunation: number, tradition?) => TibetanMonth` | The inverse, for a stored coordinate with no year in hand. Narrower domain than its inverse — it returns boundaries, so it evaluates the calendar |
+| `nextFullMoon` | `(date: Temporal.PlainDate \| TibetanDate, tradition?) => TibetanDate` | Strictly after. **Not** `day === 15`: when 15 is skipped the full moon is on the day numbered 14, about one month in forty-five. Takes a *resolved* date, so it chains — a bare `{ year, month, day }` names no calendar and is refused; pass `resolveDate(…)` |
+| `nextNewMoon` | `(date: Temporal.PlainDate \| TibetanDate, tradition?) => TibetanDate` | Strictly after. On a doubled 30 it is the **second** of the pair, not the leap day |
 
 These two chain with themselves: the resolved date they return is a date they accept.
 
@@ -598,7 +599,7 @@ year, including ones where `losarFor` must refuse.
 |---|---|---|
 | `yearNameFor` | `(year: number) => TibetanYearName` | `{ element, animal, gender }`. Element and gender repeat every ten years, the animal every twelve, the whole name every sixty; plus `elementName`, `genderName` and `animalName` in Tibetan script, Wylie and phonetics — which is why there are no separate lookups for those three |
 | `rabjungFor` | `(year: number) => Rabjung` | `{ cycle, year, tibetanName }` — `cycle`/`year` are the sixty-year numbering from 1027 CE, a *numbering* rather than a name (the two cycles sit three apart), and `tibetanName` is the **Tibetan** name at that position. No Sanskrit: the cycle has two Sanskrit name lists disagreeing at five positions, so pairing either with the Tibetan would misname 8% of years — see [docs/how-it-is-calculated.md](docs/how-it-is-calculated.md) |
-| `weekdayNameFor` | `(weekday: number, config?) => TibetanWeekdayName` | Tibetan name of a weekday. Takes the **Tibetan** numbering, 0 = Saturday. The only naming lookup taking a config, because Bhutan names its days one planet ahead |
+| `weekdayNameFor` | `(weekday: number, tradition?) => TibetanWeekdayName` | Tibetan name of a weekday. Takes the **Tibetan** numbering, 0 = Saturday. The only naming lookup taking a config, because Bhutan names its days one planet ahead |
 | `asTibetanWeekday` | `(value: number) => TibetanWeekday` | Validates 0–6 and brands. The way in for a number this package did not produce — parsed JSON, a form field. `weekdayNameFor(date.dayOfWeek)` is a **compile error**: ISO runs 1–7 from Monday, Tibetan 0–6 from Saturday |
 
 A year picker is a loop over these plus `hasLeapMonth`; there is no range function, because building
@@ -646,7 +647,7 @@ whichever direction you are converting.
 | Export | Signature | Notes |
 |---|---|---|
 | `julianDayFromIso` | `(date: Temporal.PlainDate) => number` | Also accepts a `PlainDateTime`, a `ZonedDateTime`, or an ISO string — but not a bare `{ year, month, day }` object, which is ambiguous with this package's own Tibetan-date input. A `PlainDate` from a **second Temporal implementation** is accepted: every date argument on the surface is tested by brand, not by `instanceof`. The calendar must be `iso8601` — convert with `.withCalendar("iso8601")`, which names the same day |
-| `isoFromJulianDay` | `(julianDay: number, config?) => Temporal.PlainDate` | Takes a config because the exact-range bound it enforces belongs to the tradition |
+| `isoFromJulianDay` | `(julianDay: number, tradition?) => Temporal.PlainDate` | Takes a tradition because the exact-range bound it enforces belongs to the tradition |
 | `tibetanWeekday` | `(julianDay: number) => number` | The Tibetan day of week, `0` = Saturday, one per planet — not the ISO `dayOfWeek` field. Also on every `TibetanDate` as `tibetanWeekday`, which is what to use when you have one |
 
 #### Tradition configs
