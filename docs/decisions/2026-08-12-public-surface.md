@@ -345,6 +345,18 @@ fields object starts type-checking again. Proved by running it against the old s
 where it reported `TS2578: Unused '@ts-expect-error' directive` — the control that makes it a
 tripwire rather than a comment.
 
+## Revisited 2026-09-24: how a tradition is passed
+
+**Decision:** recorded in its own record,
+[2026-09-24-how-a-tradition-is-passed.md](2026-09-24-how-a-tradition-is-passed.md), because it is a
+rule about every signature rather than a change to the surface's membership. It narrows what
+2026-08-26 left implicit. That revision decided the **shape** — two choices go in a bag — and it
+holds. It did not decide the **keys**: both bags inherited them from the positional names they
+replaced, so `config` named a `TraditionConfig` in `addMonthsToDate`'s bag and an `ObservanceConfig`
+in `./observances'` on the same day, by inheritance rather than by choice. The key is now `tradition`
+in every bag, and the six functions whose only choice is the tradition take it positionally, which
+removes `AstrologyQueryOptions` from the `./astrology` surface.
+
 ## Consequences
 
 - Do not export from `src/computation/` to make a test or a sibling module easier. Tests import

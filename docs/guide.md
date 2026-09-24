@@ -222,7 +222,7 @@ positional parameters, which made that case read `getObservances(from, to, undef
 | **Shipped** | `PHUGPA` (default), `PHUGPA_HENNING`, `BHUTAN`, `BHUTAN_HENNING` | `DEFAULT_OBSERVANCES` (default) |
 | **Kind of claim** | **Falsifiable** — checkable against Janson and against an almanac. A disagreement is a bug | **Convention** — published sources legitimately disagree. A difference is a difference, not a bug |
 | **Wrong value gives** | A wrong calendar | A different institution's calendar |
-| **Key in the bag** | `tradition` | `config` |
+| **Named** | `tradition` — the parameter's name everywhere, and the key in every bag | `config`, the key in this bag |
 
 The root export never takes an `ObservanceConfig`, which is the point of the split: a consumer who
 only converts dates never inherits anyone's conventions. Both are extended the same way — spread a
