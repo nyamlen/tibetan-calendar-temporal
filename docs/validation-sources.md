@@ -294,6 +294,31 @@ own domain and no visible attribution looks like a second source until its About
 | THL (`thlib.org`) as a *witness* | Reachable and un-blocked, but the dictionary is a React SPA with no server-rendered endpoint, the legacy `translate.php` ignores query parameters, and the Mandala backend returns bot-interstitial `202`s. Its **phonetics converter** remains fully usable and is what `verify:names` and `verify:rabjung-names` depend on. |
 | Sanskrit meanings from Sewell & Fleet | **Not there.** He prints the sixty saṃvatsaras as bare names against Kaliyuga years and fractional day-counts. No meaning column, and every occurrence of "translation" in the book refers to translating Siddhānta texts. It is a book about *computing* which saṃvatsara a year falls in. |
 
+### Rabten Choeling's calendar: Henning's lunar anomaly value, method unstated
+
+Checked 2026-09-24, after Ven. Thubten Chöying pointed to it:
+[rabten.eu/en/calendar](https://www.rabten.eu/en/calendar), published by Rabten Choeling, a Gelug
+centre in Switzerland. A day-by-day Phugpa grid printing each day's Tibetan number, month starts,
+moon phases, sojong and the weekday–mansion element pair, in cleanly parseable HTML.
+
+**It computes with Henning's value of `a₂`, not `1/28`.** Thirteen years were compared, 4,748 days:
+it agrees with `PHUGPA_HENNING` on every day, and with `PHUGPA` on every day but the eight in those
+years where the two configs diverge, which is why six of the years were chosen. One of the eight is
+**2025-11-19**, where FPMT's almanac grid, Lotsawa House, christian-steinert and eszthoff all print
+9/30 doubled and Rabten prints 29. Its element pairs agree with the engine on all 4,748 days, which is
+Henning's computation agreeing with itself, as with his `pl_YYYY.txt` files above.
+
+Its editorial and app pages state no method, source or author for the calendar, so whether it
+descends from Henning's software or is an independent implementation that chose his `a₂` is unknown.
+Either way it adds nothing to the `PHUGPA` window, and on the only fork date the almanac covers, it
+takes the side the almanac does not.
+
+**Its day-level range is 2000–2100, not the 1900–2100 its year list suggests**, and it does not say
+so. The month view silently answers a year outside that range with the nearest year inside it, and
+the single-day view ignores an out-of-range date and shows today. The first pass of this comparison
+reported 1900 and 1950 as compared; both pages held 2000. Check that each fetched page holds the year
+requested.
+
 ### Bhutan's month attributes — a negative result, recorded so it is not re-walked
 
 Searched 2026-09-10, for the animal and element each **month** of the Bhutanese year carries.

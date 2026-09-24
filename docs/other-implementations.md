@@ -11,8 +11,8 @@ this project works under: it is a clean-room implementation of Janson's paper, a
 competing implementation would compromise that.
 
 All figures accessed **2026-08-23**, except the API-shape comparison below, which was gathered
-**2026-08-26**, and the Zurkhai entry, gathered **2026-09-10** and **2026-09-24**; both carry their
-own dates.
+**2026-08-26**, the Zurkhai entry, gathered **2026-09-10** and **2026-09-24**, and the Rabten Choeling
+entry, gathered **2026-09-24**; all three carry their own dates.
 Download counts are the npm registry's last-30-day figures.
 
 ## The field is small, and that is worth saying first
@@ -151,6 +151,30 @@ for the deferred `./astrology` work. It is deliberately **not** in
 it was checked *against*, not how it computes, so there is still no way to tell whether it descends
 from Henning, and agreement from within a lineage already represented is not evidence.
 
+## Rabten Choeling's calendar: a calendar to read, not a library
+
+- [rabten.eu/en/calendar](https://www.rabten.eu/en/calendar), published by Rabten Choeling, Centre
+  for Higher Tibetan Studies, Le Mont-Pèlerin, Switzerland; also offered as a "Tibetan Calendar" app
+  for iOS and Android
+- Day, month and year views in eight languages; day-level data for 2000–2100, year names for
+  1900–2100
+- No method, source, author or licence stated for the calendar, on the calendar pages, the editorial
+  page or the apps page
+
+Accessed **2026-09-24**.
+
+**Like Zurkhai, it is listed as something to read, not something to install.** It is a well-made
+Phugpa calendar for Rabten's own community: each day's Tibetan date, month starts, moon phases,
+sojong, the weekday–mansion element pair, and the Gelug and Rabten-lineage anniversaries and birthdays
+its centres keep, beside the Western feasts. Anyone who wants that calendar should use it.
+
+**Where this package differs.** Rabten's conventions are fixed — which holidays appear, which `a₂`
+value is used — where this package takes a tradition and an observance convention as configuration.
+It computes with Henning's `a₂`, so on eight days between 2001 and 2099 its Tibetan date differs from
+`PHUGPA`'s by one, including 19 November 2025, where FPMT's printed calendar agrees with `PHUGPA`. The
+measurement, and why it is not corroboration, is in
+[validation-sources.md](validation-sources.md#rabten-choelings-calendar-hennings-lunar-anomaly-value-method-unstated).
+
 ## API shape, compared — added 2026-08-26
 
 Gathered during the pre-1.0.0 API surface review, because the rule governing what earns a public
@@ -232,6 +256,7 @@ file is; prefer "at least N" to a false precision.
 |---|---|
 | An astrological almanac — planets, lunar mansions, eclipses | Henning's software |
 | A calendar to read rather than compute with, on a phone | Zurkhai |
+| A calendar to read with the Gelug and Rabten-lineage anniversaries, 2000–2100 | Rabten Choeling's calendar |
 | A Mongolian date, today | `@hnw/date-tibetan` |
 | A Tibetan date in a few lines, on legacy `Date` | `tibetan-date-calculator` |
 | A calendar application: month grids, observances, year names, Bhutan | this package |
