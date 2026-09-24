@@ -1001,7 +1001,9 @@ breaks; markdownlint has no such rule, and `MD013` is off because it fights the 
 The last two are the only checks that see the **published** package. Every test imports from
 `src/`, so a broken `exports` map, a file missing from `files`, or a `dist/` layout that does not
 match `exports` is invisible to the suite and fails only for a consumer, after publishing.
-`check:publish` runs publint and attw against the manifest; `test:pack` packs the tarball, installs
+`check:publish` runs publint and attw against the manifest; `test:pack` deletes `dist/` and packs
+the tarball **without building**, so the build in it can only have come from the `prepack` script —
+which is how that script is proved, since 2026-09-24 — then installs
 it into a scratch directory **outside** the repository — a `node_modules` copy inside the working
 tree would be picked up by Biome, the link checker and Vitest — and imports all three subpaths,
 asserting real values through each so a compilation that damaged the arithmetic is caught rather than

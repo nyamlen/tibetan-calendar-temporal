@@ -65,10 +65,13 @@ const runNpm = (args, cwd) => {
 };
 
 try {
-	console.log("Building...");
-	runNpm(["run", "build"], repo);
+	// No build here, deliberately: `dist/` is deleted and `npm pack` is left to rebuild it through
+	// the `prepack` script, so this run is also the proof that a bare `npm pack` or `npm publish`
+	// cannot ship a stale or missing build. It built for itself until 2026-09-24, which covered CI
+	// and left the local publish — the case with no other guard — packaging whatever sat in `dist/`.
+	rmSync(join(repo, "dist"), { recursive: true, force: true });
 
-	console.log("Packing...");
+	console.log("Packing (prepack builds)...");
 	runNpm(["pack", "--pack-destination", scratch], repo);
 
 	const tarball = readdirSync(scratch).find((f) => f.endsWith(".tgz"));
@@ -85,6 +88,14 @@ try {
 
 	console.log(`Installing ${tarball}...`);
 	runNpm(["install", "--no-package-lock", "--ignore-scripts", `./${tarball}`], scratch);
+
+	// First, before anything downstream can fail on a missing module instead: with `dist/` deleted
+	// above, only the `prepack` script can have put a build in the tarball.
+	if (!existsSync(join(scratch, "node_modules", "tibetan-calendar-temporal", "dist", "index.js"))) {
+		throw new Error(
+			'the tarball holds no dist/index.js — package.json#scripts.prepack must run "npm run build"',
+		);
+	}
 
 	// The consumer documents `package.json#files` ships. They are what makes the README's
 	// condensation safe: the long-form material moved to `docs/guide.md` rather than out of the
