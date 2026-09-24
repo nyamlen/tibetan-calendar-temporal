@@ -1449,12 +1449,18 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
          says "a revoked Proxy, most likely" for any failure to read `Symbol.toStringTag`, including
          a getter that throws. Coded, so harmless, but it is the project's own rule about asserting a
          mechanism that was not measured.
-- [ ] **Sites that put a value into a message without `describe`.** Found 2026-09-24 while closing
-      the item above, and left out of it on purpose. `isoFromJulianDay(10n)` and
-      `isoFromJulianDay("10")` both say "received 10", and `assertSafeYear` interpolates the same
-      way — the ambiguity `describe`'s docblock exists to prevent. Coded, so nothing escapes; the
-      message just cannot tell a consumer which of the three they passed. Needs a sweep of every
-      `received ${` in `src/`
+- [ ] **Sites that put a value into a message without `describe`, and inputs that escape uncoded.**
+      Found 2026-09-24 while closing the item above, and left out of it on purpose.
+      `isoFromJulianDay(10n)` and `isoFromJulianDay("10")` both say "received 10", and
+      `assertSafeYear` interpolates the same way — the ambiguity `describe`'s docblock exists to
+      prevent. **This entry first said "Coded, so nothing escapes", which was false the same day**: a
+      `Symbol` interpolated into a template literal throws, so `isoFromJulianDay`, `weekdayNameFor`,
+      `losarFor`, `monthsFor`, `addDays` and `asTibetanWeekday` given one throw an **uncoded**
+      `TypeError`, against the README's every-failure-carries-a-code claim. And `describe` itself
+      throws on a revoked `Proxy`, and returns a `Symbol` for an object whose `constructor.name` is
+      one. The population is wider than `received ${`: function-name subjects interpolate the raw
+      year before the guard runs (`losarFor(10n)` says "losarFor(10): …"). Planned, classified site by
+      site, and held until Andreas starts it
 - [x] **Decide whether `check:conventions` rule 4 should distinguish an exported `{@link}` target
       from a module-local one.** **Decided 2026-09-23: reject, scoped to docblocks that ship** — those
       of a barrel-exported declaration or of a member of a barrel-exported interface or class, where a
