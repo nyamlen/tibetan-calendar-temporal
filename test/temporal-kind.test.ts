@@ -121,6 +121,24 @@ describe("temporalKindOf", () => {
 		expect(codeOf(() => temporalKindOf(proxy))).toBe("TCT_INVALID_ARGUMENT");
 	});
 
+	it("converts a throwing toStringTag getter too, without claiming it was a Proxy", () => {
+		// Boundary review, 2026-09-23, minor 4: the message said "a revoked Proxy, most likely" for
+		// every failed read, and this is a second way to reach it that is no Proxy at all.
+		const value = {
+			get [Symbol.toStringTag](): string {
+				throw new Error("unreadable");
+			},
+		};
+		expect(codeOf(() => temporalTypeNameOf(value))).toBe("TCT_INVALID_ARGUMENT");
+		let message = "";
+		try {
+			temporalTypeNameOf(value);
+		} catch (error) {
+			message = (error as Error).message;
+		}
+		expect(message).not.toContain("Proxy");
+	});
+
 	it("reads a tag-carrying null-prototype object without throwing an uncoded TypeError", () => {
 		const spoof = Object.assign(Object.create(null), {
 			[Symbol.toStringTag]: "Temporal.PlainDate",

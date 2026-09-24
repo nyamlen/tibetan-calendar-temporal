@@ -72,9 +72,11 @@ const DAY_KINDS: ReadonlySet<string> = new Set<TemporalDayKind>([
  * names a calendar day, so {@link temporalKindOf} answers `null` for them while this one names
  * them for the message.
  *
- * **The read is wrapped**, because `Object.prototype.toString.call` throws on a revoked `Proxy`.
- * That is not a regression — `instanceof` throws on one too — but a boundary is where an uncoded
- * `TypeError` becomes a coded error, so it is converted here rather than left to escape.
+ * **The read is wrapped**, because `Object.prototype.toString.call` throws on a revoked `Proxy`,
+ * and on any object whose `Symbol.toStringTag` getter throws. That is not a regression —
+ * `instanceof` throws on a revoked `Proxy` too — but a boundary is where an uncoded `TypeError`
+ * becomes a coded error, so it is converted here rather than left to escape. The message names
+ * neither cause, since nothing here establishes which one it was.
  *
  * @throws A `TCT_INVALID_ARGUMENT` error if the value's own brand cannot be read.
  */
@@ -86,8 +88,8 @@ export function temporalTypeNameOf(value: unknown): string | null {
 	} catch {
 		throw rangeError(
 			"TCT_INVALID_ARGUMENT",
-			"received a value whose type cannot be read — a revoked Proxy, most likely. Pass the " +
-				"date itself rather than a proxy for it.",
+			"received a value whose type cannot be read: reading its Symbol.toStringTag threw. Pass " +
+				"the date itself.",
 		);
 	}
 	if (!tag.startsWith(TAG_PREFIX) || !tag.endsWith("]")) return null;

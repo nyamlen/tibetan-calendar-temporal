@@ -70,7 +70,7 @@ uncoded errors is the shape of mistake this file exists to stop.
 
 | Case | Code |
 |---|---|
-| A revoked `Proxy`, where the tag read itself throws — as `instanceof` also does | `TCT_INVALID_ARGUMENT` |
+| A revoked `Proxy`, or a throwing `Symbol.toStringTag` getter, where the tag read itself throws — as `instanceof` also does on the first | `TCT_INVALID_ARGUMENT` |
 | A Temporal type outside the three: `Instant`, `PlainYearMonth`, `PlainMonthDay`, `PlainTime`, `Duration`. Each carries its own tag, so the predicate sees them; none names a calendar day | `TCT_INVALID_ARGUMENT`, naming what was received |
 | `globalThis.Temporal` deleted after import, past the import-time guard that will not run again | `TCT_MISSING_TEMPORAL` |
 
