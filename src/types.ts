@@ -24,7 +24,7 @@
  * @packageDocumentation
  */
 
-import { describe, rangeError, type TibetanCalendarErrorCode } from "./errors.js";
+import { assertSafeYear, describe, rangeError, type TibetanCalendarErrorCode } from "./errors.js";
 import { formatTibetanDate } from "./format.js";
 import { temporalKindOf } from "./temporal-kind.js";
 
@@ -705,8 +705,8 @@ export interface TibetanMonth {
  * {@link TibetanMonthFields.calendarId} are the compile-time half, for callers who stay inside the
  * type system. This half is what catches JavaScript callers, `any`, and casts.
  *
- * Shared across every Tibetan-date entry point — `tibetanToIso`, `tibetanDateExists`,
- * `formatTibetanDate`, `daysInMonth` — so the message and the code are one policy rather than four.
+ * Reached through {@link assertTibetanShape}, which every Tibetan-date and Tibetan-month entry point
+ * calls, so the message and the code are one policy wherever such an argument is taken.
  *
  * The code is `TCT_INVALID_ARGUMENT` rather than `TCT_FIELD_OUT_OF_RANGE`, and that is load-bearing
  * for `tibetanDateExists`. That predicate's allowlist for answering `false` is one class and two
@@ -752,15 +752,12 @@ export function rejectTemporalInstance(functionName: string, value: unknown): vo
  * `undefined` is deliberately still accepted here: the fields are optional and default to
  * `false`, and this check only narrows their *type* when present, not their *presence*.
  *
- * Also the null/non-object guard for the three entry points that lacked one: `tibetanToIso`,
- * `daysInMonth` and `tibetanDateExists` (via delegation) all read a field off their input before
- * this function returned, so `null` or `undefined` reached `input.year` and threw an uncoded
- * native `TypeError`. `formatTibetanDate` was the only one of the four that already guarded this.
- * Checking it here, once, closes it for all three at the shared point rather than adding the same
- * guard three times.
+ * Also the null/non-object guard. Entry points once read a field off their input before any such
+ * check, so `null` or `undefined` reached `input.year` and threw an uncoded native `TypeError`;
+ * checking it here closes that at the one shared point.
  *
- * Shared across the same four entry points as {@link rejectTemporalInstance}, for the same reason:
- * one policy for the message and the code rather than four. Both throws are
+ * Reached through {@link assertTibetanShape}, like {@link rejectTemporalInstance} and for the same
+ * reason: one policy for the message and the code. Both throws are
  * `TCT_INVALID_ARGUMENT` — a non-boolean flag and a non-object are wrong *kinds* of argument, not
  * numbers out of a range — which is what keeps them off `tibetanDateExists`'s allowlist and so
  * thrown out to the caller rather than reported as a date that does not exist.
@@ -836,6 +833,95 @@ export function rejectMissingFields(
 				"that does not exist",
 		);
 	}
+}
+
+/** The fields each shape of Tibetan argument requires. Private: {@link assertTibetanShape} takes the shape. */
+const MONTH_FIELDS = ["year", "month"] as const;
+const DATE_FIELDS = ["year", "month", "day"] as const;
+
+/**
+ * The shape half of the boundary check for a Tibetan month or date argument: not a `Temporal`
+ * instance, leap flags boolean or absent, the required fields present and numbers.
+ *
+ * @remarks
+ * `label` is what the caller called, and for a two-argument function which argument —
+ * `"addDays"`, or `"daysBetween(to)"`. Every failure here is `TCT_INVALID_ARGUMENT`, off
+ * `tibetanDateExists`'s allowlist.
+ *
+ * **Kept apart from {@link assertTibetanRanges} on purpose.** `tibetanToIso` and
+ * `tibetanDateExists` validate the tradition *between* the two: were the range checked before the
+ * tradition, `tibetanDateExists({ year: 2153, month: 13, day: 1 }, {})` would swallow the range
+ * error and report a broken config as a date that does not exist.
+ */
+export function assertTibetanShape(label: string, value: unknown, shape: "month" | "date"): void {
+	rejectTemporalInstance(label, value);
+	rejectInvalidLeapFlags(label, value as { isLeapMonth?: unknown; isLeapDay?: unknown });
+	rejectMissingFields(
+		label,
+		value as { year?: unknown; month?: unknown; day?: unknown },
+		shape === "month" ? MONTH_FIELDS : DATE_FIELDS,
+	);
+}
+
+/**
+ * The range half of the boundary check: the year a safe integer, the month an integer 1–12 and, for
+ * a date, the day an integer 1–30. Returns the call's echo, for the caller's later checks.
+ *
+ * @remarks
+ * **Precondition: {@link assertTibetanShape} has already run** on `value` with the same shape, so
+ * every field it reads is a number and every flag a boolean or absent. That is what makes rendering
+ * them with a bare `${}` safe here.
+ *
+ * **The subject echoes the call the caller made** — `tibetanToIso({ year: 2153, month: 13, day: 1 })`,
+ * or `daysBetween(to: { … })` when `parameter` names the argument — so a caller converting a table
+ * of dates learns *which* row failed, and a caller of a function that delegates is told about the
+ * function they called rather than the one it delegates to. It renders only what the shape reads:
+ * `isLeapMonth` for a month, both flags for a date, each only when set, so a leap-day
+ * `TibetanDate` passed as a month does not show the `isLeapDay` it is ignoring. It is a thunk, built
+ * only on a throw, because the callers sit on paths the multi-century sweeps run daily.
+ *
+ * **Integrality before range**: the determinism argument rests on integer arithmetic, and `NaN`
+ * satisfies neither `< 1` nor `> 30`, so the bounds alone let it through to the arithmetic.
+ *
+ * Every failure is `TCT_FIELD_OUT_OF_RANGE`, which `tibetanDateExists` answers as `false`. `hint`,
+ * when given, is appended to whichever message fires.
+ */
+export function assertTibetanRanges(
+	functionName: string,
+	value: TibetanMonthFields | TibetanDateFields,
+	shape: "month" | "date",
+	options: { parameter?: string; hint?: string } = {},
+): () => string {
+	const subject = () => {
+		const fields = [`year: ${value.year}`, `month: ${value.month}`];
+		if (shape === "date") fields.push(`day: ${(value as TibetanDateFields).day}`);
+		if (value.isLeapMonth === true) fields.push("isLeapMonth: true");
+		if (shape === "date" && (value as TibetanDateFields).isLeapDay === true) {
+			fields.push("isLeapDay: true");
+		}
+		const argument = options.parameter === undefined ? "" : `${options.parameter}: `;
+		return `${functionName}(${argument}{ ${fields.join(", ")} })`;
+	};
+	const suffix = options.hint === undefined ? "" : `. ${options.hint}`;
+	assertSafeYear(subject, value.year, suffix);
+	if (!Number.isInteger(value.month) || value.month < 1 || value.month > 12) {
+		throw rangeError(
+			"TCT_FIELD_OUT_OF_RANGE",
+			`${subject()}: month must be an integer 1-12, received ${value.month}${suffix}`,
+		);
+	}
+	if (shape === "date") {
+		const { day } = value as TibetanDateFields;
+		if (!Number.isInteger(day) || day < 1 || day > 30) {
+			throw rangeError(
+				"TCT_FIELD_OUT_OF_RANGE",
+				`${subject()}: day must be an integer 1-30, received ${day}. Tibetan date numbers run ` +
+					`to 30 even in a month of 29 calendar days, since a skipped number is still one of the ` +
+					`thirty${suffix}`,
+			);
+		}
+	}
+	return subject;
 }
 
 /**

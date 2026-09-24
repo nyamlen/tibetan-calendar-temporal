@@ -185,8 +185,10 @@ export function hasCode(error: unknown, code: TibetanCalendarErrorCode): boolean
  * and `temporalTypeNameOf` now does that from the brand. **That justification held only for
  * `asPlainDate`**, which consults `temporalTypeNameOf`; `asWesternDay` and `parse.ts` never do, so
  * for them the branch was doing a second job — naming a `Date` — that the merge briefly lost. It is
- * back, narrowed: a plain object is still "an object", because "Object" says strictly less. `format.ts` keeps its own `describe`, which lists an
- * object's keys and is a different thing wearing the same name.
+ * back, narrowed: a plain object is still "an object", because "Object" says strictly less.
+ * `format.ts` kept a `describe` of its own, listing an object's keys, until 2026-09-24, when its
+ * field check moved to `assertTibetanRanges` in `types.ts` and the message began echoing the fields
+ * instead.
  */
 export function describe(value: unknown): string {
 	if (typeof value === "string") return JSON.stringify(value);
@@ -385,12 +387,17 @@ export function thrownDetail(error: unknown): string {
  * 2026-09-23 — with *different* docblocks, so each copy carried half the reasoning above. That is
  * the quieter cost of a duplicate: not the repeated code, but the knowledge that ends up in only
  * one of the two places a reader might look.
+ *
+ * `subject` may be a thunk, so a caller whose subject echoes the whole call builds it only on the
+ * throw; `suffix` is appended to the message, which is how `assertTibetanRanges`' `hint` reaches the
+ * year as well as the month and the day.
  */
-export function assertSafeYear(subject: string, year: number): void {
+export function assertSafeYear(subject: string | (() => string), year: number, suffix = ""): void {
 	if (!Number.isSafeInteger(year)) {
 		throw rangeError(
 			"TCT_FIELD_OUT_OF_RANGE",
-			`${subject}: year must be a safe integer, received ${describe(year)}`,
+			`${typeof subject === "string" ? subject : subject()}: year must be a safe integer, ` +
+				`received ${describe(year)}${suffix}`,
 		);
 	}
 }

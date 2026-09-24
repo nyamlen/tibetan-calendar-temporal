@@ -317,8 +317,7 @@ describe("month arithmetic input guards", () => {
 			monthsBetween({ year: 2151, month: 1 }, iso("2026-08-12") as never);
 			expect.unreachable("should reject the second argument");
 		} catch (error) {
-			expect((error as Error).message).toContain("monthsBetween");
-			expect((error as Error).message).toContain("to");
+			expect((error as Error).message).toMatch(/^monthsBetween\(to\): /);
 		}
 	});
 
@@ -447,8 +446,7 @@ describe("day arithmetic input guards", () => {
 			daysBetween({ year: 2153, month: 1, day: 1 }, iso("2026-08-12") as never);
 			expect.unreachable("should reject the second argument");
 		} catch (error) {
-			expect((error as Error).message).toContain("daysBetween");
-			expect((error as Error).message).toContain("to");
+			expect((error as Error).message).toMatch(/^daysBetween\(to\): /);
 		}
 	});
 

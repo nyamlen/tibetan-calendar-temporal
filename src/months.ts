@@ -47,18 +47,7 @@ import { PHUGPA } from "./traditions/phugpa.js";
 import type { TraditionConfig } from "./traditions/types.js";
 import { assertTraditionConfig } from "./traditions/validate.js";
 import type { TibetanDate, TibetanMonth, TibetanMonthFields } from "./types.js";
-import { rejectInvalidLeapFlags, rejectMissingFields, rejectTemporalInstance } from "./types.js";
-
-/** The two fields {@link TibetanMonthFields} declares required. */
-const MONTH_FIELDS = ["year", "month"] as const;
-
-/**
- * Rejects a year that is not a safe integer.
- *
- * @remarks
- * One predicate covers fractions, `NaN`, `±Infinity` and 2⁵³ overflow — the bounds checks alone
- * cannot, since `NaN` satisfies no comparison and would reach the arithmetic.
- */
+import { assertTibetanRanges, assertTibetanShape } from "./types.js";
 
 /**
  * Validates a year for the closed-form functions, which need no lunar arithmetic.
@@ -252,21 +241,9 @@ export function resolveMonth(
 	month: TibetanMonthFields,
 	tradition: TraditionConfig = PHUGPA,
 ): TibetanMonth {
-	rejectTemporalInstance("resolveMonth", month);
-	rejectInvalidLeapFlags("resolveMonth", month);
-	rejectMissingFields("resolveMonth", month, MONTH_FIELDS);
+	assertTibetanShape("resolveMonth", month, "month");
 	const isLeapMonth = month.isLeapMonth ?? false;
-	const subject = () =>
-		`resolveMonth({ year: ${month.year}, month: ${month.month}` +
-		`${isLeapMonth ? ", isLeapMonth: true" : ""} })`;
-
-	assertSafeYear(subject(), month.year);
-	if (!Number.isInteger(month.month) || month.month < 1 || month.month > 12) {
-		throw rangeError(
-			"TCT_FIELD_OUT_OF_RANGE",
-			`${subject()}: month must be an integer 1-12, received ${month.month}`,
-		);
-	}
+	const subject = assertTibetanRanges("resolveMonth", month, "month");
 
 	const scaled = scalingFor(tradition);
 	const y = yearFromRoyalEra(month.year);
@@ -314,22 +291,10 @@ export function daysInMonth(
 	month: TibetanMonthFields,
 	tradition: TraditionConfig = PHUGPA,
 ): number {
-	rejectTemporalInstance("daysInMonth", month);
-	rejectInvalidLeapFlags("daysInMonth", month);
-	rejectMissingFields("daysInMonth", month, MONTH_FIELDS);
+	assertTibetanShape("daysInMonth", month, "month");
 	const scaled = scalingFor(tradition);
 	const isLeapMonth = month.isLeapMonth ?? false;
-	const subject = () =>
-		`daysInMonth({ year: ${month.year}, month: ${month.month}` +
-		`${isLeapMonth ? ", isLeapMonth: true" : ""} })`;
-
-	assertSafeYear(subject(), month.year);
-	if (!Number.isInteger(month.month) || month.month < 1 || month.month > 12) {
-		throw rangeError(
-			"TCT_FIELD_OUT_OF_RANGE",
-			`${subject()}: month must be an integer 1-12, received ${month.month}`,
-		);
-	}
+	const subject = assertTibetanRanges("daysInMonth", month, "month");
 
 	const y = yearFromRoyalEra(month.year);
 	assertClosedFormYear(subject, y, tradition);
@@ -466,24 +431,12 @@ export function datesFor(
 	month: TibetanMonthFields,
 	tradition: TraditionConfig = PHUGPA,
 ): TibetanDate[] {
-	// daysInMonth already carries the whole guard set for a month-shaped argument — shape, fields,
-	// the leap twin and the exact range — and reporting under its own name here would be the one
-	// thing wrong with delegating, so the guards run first under this function's name.
-	rejectTemporalInstance("datesFor", month);
-	rejectInvalidLeapFlags("datesFor", month);
-	rejectMissingFields("datesFor", month, MONTH_FIELDS);
-	assertSafeYear(`datesFor({ year: ${month.year}, month: ${month.month} })`, month.year);
-	if (!Number.isInteger(month.month) || month.month < 1 || month.month > 12) {
-		throw rangeError(
-			"TCT_FIELD_OUT_OF_RANGE",
-			`datesFor: month must be an integer 1-12, received ${month.month}`,
-		);
-	}
+	assertTibetanShape("datesFor", month, "month");
+	const subject = assertTibetanRanges("datesFor", month, "month");
 
 	const scaled = scalingFor(tradition);
 	const y = yearFromRoyalEra(month.year);
 	const isLeapMonth = month.isLeapMonth ?? false;
-	const subject = () => `datesFor({ year: ${month.year}, month: ${month.month} })`;
 	assertClosedFormYear(subject, y, tradition);
 	if (isLeapMonth && !sharesNumberWithLeapMonth(tradition, y, month.month)) {
 		throw rangeError(

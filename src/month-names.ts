@@ -27,9 +27,7 @@ import { daysInMonth } from "./months.js";
 import { PHUGPA } from "./traditions/phugpa.js";
 import type { TraditionConfig } from "./traditions/types.js";
 import {
-	rejectInvalidLeapFlags,
-	rejectMissingFields,
-	rejectTemporalInstance,
+	assertTibetanShape,
 	type SanskritName,
 	type TibetanMonthFields,
 	type TibetanName,
@@ -366,9 +364,7 @@ export function monthNamesFor(
 	month: TibetanMonthFields,
 	tradition: TraditionConfig = PHUGPA,
 ): MonthNames {
-	rejectTemporalInstance("monthNamesFor", month);
-	rejectInvalidLeapFlags("monthNamesFor", month);
-	rejectMissingFields("monthNamesFor", month, ["year", "month"]);
+	assertTibetanShape("monthNamesFor", month, "month");
 
 	// Validates the tradition too, so it runs before the Tiger month is read off it.
 	daysInMonth(month, tradition);

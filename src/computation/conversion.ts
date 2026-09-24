@@ -30,12 +30,7 @@ import {
 import { PHUGPA } from "../traditions/phugpa.js";
 import type { TraditionConfig } from "../traditions/types.js";
 import type { TibetanDate, TibetanDateFields, TibetanWeekday } from "../types.js";
-import {
-	rejectInvalidLeapFlags,
-	rejectMissingFields,
-	rejectTemporalInstance,
-	SkippedDayError,
-} from "../types.js";
+import { assertTibetanRanges, assertTibetanShape, SkippedDayError } from "../types.js";
 import { floorDiv, mod } from "./arithmetic.js";
 import {
 	assertClosedFormYear,
@@ -49,9 +44,6 @@ import { julianDayOfLunarDay } from "./corrections.js";
 import { royalEraFromYear, yearFromRoyalEra } from "./epoch.js";
 import { meanDate } from "./mean-astronomy.js";
 import { type ScaledTradition, scalingFor } from "./scaling.js";
-
-/** The three fields {@link TibetanDateFields} declares required. */
-const DATE_FIELDS = ["year", "month", "day"] as const;
 
 // Checked at module evaluation, because the next line already needs Temporal. Without this a
 // consumer on a runtime that lacks it gets `ReferenceError: Temporal is not defined` on import,
@@ -268,37 +260,6 @@ export function isoFromJulianDayUnchecked(julianDay: number): Temporal.PlainDate
 }
 
 /**
- * Renders a caller's input back to them, so a failure identifies the row that produced it.
- *
- * @remarks
- * A caller converting a table of dates gets one throw and needs to know *which* entry caused it.
- * The bad field alone does not say. Optional flags appear only when set, so the common case stays
- * short.
- */
-function describeInput(input: TibetanDateFields): string {
-	const flags = [
-		input.isLeapMonth === true ? "isLeapMonth: true" : undefined,
-		input.isLeapDay === true ? "isLeapDay: true" : undefined,
-	].filter((f) => f !== undefined);
-	const fields = [`year: ${input.year}`, `month: ${input.month}`, `day: ${input.day}`, ...flags];
-	return `{ ${fields.join(", ")} }`;
-}
-
-/**
- * Rejects a year that is not a safe integer.
- *
- * @remarks
- * One predicate covers fractions, `NaN`, `±Infinity` and 2⁵³ overflow. The bounds checks alone
- * cannot: `NaN` satisfies neither `< 1` nor `> 30`, so it passes every comparison and reaches the
- * arithmetic.
- *
- * This does **not** catch the royal-era confusion — passing Gregorian 2026 where royal-era 2153 is
- * meant. 2026 is a perfectly valid royal-era year (1899 CE), so no guard can distinguish the two,
- * and the conversion returns a well-formed date 127 years away. That is a documentation problem,
- * handled in the README, not something an error message can reach.
- */
-
-/**
  * Rejects a Julian day past the point where this tradition's arithmetic stays exact.
  *
  * @remarks
@@ -495,31 +456,10 @@ export function tibetanToIso(
 	input: TibetanDateFields,
 	tradition: TraditionConfig = PHUGPA,
 ): Temporal.PlainDate {
-	rejectTemporalInstance("tibetanToIso", input);
-	rejectInvalidLeapFlags("tibetanToIso", input);
-	rejectMissingFields("tibetanToIso", input, DATE_FIELDS);
+	assertTibetanShape("tibetanToIso", input, "date");
 	const scaled = scalingFor(tradition);
 	const isLeapMonth = input.isLeapMonth ?? false;
-
-	// Integrality before range: the whole determinism argument rests on integer arithmetic, and a
-	// fractional value passes every bound check below and comes out as a confident wrong date.
-	// NaN in particular satisfies neither `< 1` nor `> 30`, so the bounds alone let it through.
-	const subject = () => `tibetanToIso(${describeInput(input)})`;
-	assertSafeYear(subject(), input.year);
-	if (!Number.isInteger(input.month) || input.month < 1 || input.month > 12) {
-		throw rangeError(
-			"TCT_FIELD_OUT_OF_RANGE",
-			`${subject()}: month must be an integer 1-12, received ${input.month}`,
-		);
-	}
-	if (!Number.isInteger(input.day) || input.day < 1 || input.day > 30) {
-		throw rangeError(
-			"TCT_FIELD_OUT_OF_RANGE",
-			`${subject()}: day must be an integer 1-30, received ${input.day}. Note that Tibetan ` +
-				"months run to 30 even when fewer calendar days carry those numbers — a skipped date " +
-				"is still 1-30, and reports itself as SkippedDayError rather than as out of range",
-		);
-	}
+	const subject = assertTibetanRanges("tibetanToIso", input, "date");
 
 	const year = yearFromRoyalEra(input.year);
 	assertClosedFormYear(subject, year, tradition);
@@ -617,9 +557,7 @@ export function tibetanDateExists(
 	//
 	// Before the code split this duplication was load-bearing for correctness too — one code covered
 	// both meanings, so a Temporal instance caught inside the try was swallowed into `false`.
-	rejectTemporalInstance("tibetanDateExists", input);
-	rejectInvalidLeapFlags("tibetanDateExists", input);
-	rejectMissingFields("tibetanDateExists", input, DATE_FIELDS);
+	assertTibetanShape("tibetanDateExists", input, "date");
 	try {
 		tibetanToIso(input, tradition);
 		return true;

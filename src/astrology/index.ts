@@ -54,9 +54,7 @@ import { weekdayNameWithOffset } from "../names.js";
 import { PHUGPA } from "../traditions/phugpa.js";
 import type { TraditionConfig } from "../traditions/types.js";
 import {
-	rejectInvalidLeapFlags,
-	rejectMissingFields,
-	rejectTemporalInstance,
+	assertTibetanShape,
 	type TibetanDate,
 	type TibetanDateFields,
 	type TibetanMonthFields,
@@ -173,9 +171,7 @@ export function monthAttributesFor(
 ): MonthAttributes {
 	// Validated first, so a bad tradition is reported before a bad date, as it was when this took a bag.
 	scalingFor(tradition);
-	rejectTemporalInstance("monthAttributesFor", month);
-	rejectInvalidLeapFlags("monthAttributesFor", month);
-	rejectMissingFields("monthAttributesFor", month, ["year", "month"]);
+	assertTibetanShape("monthAttributesFor", month, "month");
 
 	// Borrowed wholesale rather than reimplemented: this validates the year, the month number, the
 	// leap flag against the year's actual leap month, and the tradition's exact range, in the one
@@ -221,9 +217,7 @@ export function lunarDayAttributesFor(
 	tradition: TraditionConfig = PHUGPA,
 ): LunarDayAttributes {
 	scalingFor(tradition);
-	rejectTemporalInstance("lunarDayAttributesFor", date);
-	rejectInvalidLeapFlags("lunarDayAttributesFor", date);
-	rejectMissingFields("lunarDayAttributesFor", date, ["year", "month", "day"]);
+	assertTibetanShape("lunarDayAttributesFor", date, "date");
 
 	// The month's own validation, which covers the year, the month number, the leap flag and the
 	// exact range. The day is checked here rather than through a conversion, because a skipped day is

@@ -96,9 +96,24 @@ describe("an error names the function the caller called", () => {
 		const m = monthExports(month({ month: 13 }));
 		const d = dateExports(date({ month: 13 }));
 		const rows: Row[] = [
-			["lunationFromMonth", m.lunationFromMonth, "TCT_FIELD_OUT_OF_RANGE", "lunationFromMonth: "],
-			["addMonths", m.addMonths, "TCT_FIELD_OUT_OF_RANGE", "addMonths: "],
-			["monthsBetween", m.monthsBetween, "TCT_FIELD_OUT_OF_RANGE", "monthsBetween (to): "],
+			[
+				"lunationFromMonth",
+				m.lunationFromMonth,
+				"TCT_FIELD_OUT_OF_RANGE",
+				"lunationFromMonth({ year: 2153, month: 13 }): ",
+			],
+			[
+				"addMonths",
+				m.addMonths,
+				"TCT_FIELD_OUT_OF_RANGE",
+				"addMonths({ year: 2153, month: 13 }): ",
+			],
+			[
+				"monthsBetween",
+				m.monthsBetween,
+				"TCT_FIELD_OUT_OF_RANGE",
+				"monthsBetween(to: { year: 2153, month: 13 }): ",
+			],
 			[
 				"resolveMonth",
 				m.resolveMonth,
@@ -111,7 +126,7 @@ describe("an error names the function the caller called", () => {
 				"TCT_FIELD_OUT_OF_RANGE",
 				"daysInMonth({ year: 2153, month: 13 }): ",
 			],
-			["datesFor", m.datesFor, "TCT_FIELD_OUT_OF_RANGE", "datesFor: "],
+			["datesFor", m.datesFor, "TCT_FIELD_OUT_OF_RANGE", "datesFor({ year: 2153, month: 13 }): "],
 			// wrong: fixed in commit 4
 			[
 				"monthNamesFor",
@@ -130,12 +145,32 @@ describe("an error names the function the caller called", () => {
 				"formatTibetanMonth",
 				m.formatTibetanMonth,
 				"TCT_FIELD_OUT_OF_RANGE",
-				"formatTibetanMonth: expected a year and a month 1-12",
+				"formatTibetanMonth({ year: 2153, month: 13 }): ",
 			],
-			["addDays", d.addDays, "TCT_FIELD_OUT_OF_RANGE", "addDays: "],
-			["resolveDate", d.resolveDate, "TCT_FIELD_OUT_OF_RANGE", "resolveDate: "],
-			["addMonthsToDate", d.addMonthsToDate, "TCT_FIELD_OUT_OF_RANGE", "addMonthsToDate: "],
-			["daysBetween", d.daysBetween, "TCT_FIELD_OUT_OF_RANGE", "daysBetween (to): "],
+			[
+				"addDays",
+				d.addDays,
+				"TCT_FIELD_OUT_OF_RANGE",
+				"addDays({ year: 2153, month: 13, day: 1 }): ",
+			],
+			[
+				"resolveDate",
+				d.resolveDate,
+				"TCT_FIELD_OUT_OF_RANGE",
+				"resolveDate({ year: 2153, month: 13, day: 1 }): ",
+			],
+			[
+				"addMonthsToDate",
+				d.addMonthsToDate,
+				"TCT_FIELD_OUT_OF_RANGE",
+				"addMonthsToDate({ year: 2153, month: 13, day: 1 }): ",
+			],
+			[
+				"daysBetween",
+				d.daysBetween,
+				"TCT_FIELD_OUT_OF_RANGE",
+				"daysBetween(to: { year: 2153, month: 13, day: 1 }): ",
+			],
 			[
 				"tibetanToIso",
 				d.tibetanToIso,
@@ -153,7 +188,7 @@ describe("an error names the function the caller called", () => {
 				"formatTibetanDate",
 				d.formatTibetanDate,
 				"TCT_FIELD_OUT_OF_RANGE",
-				"formatTibetanDate: expected a year, a month 1-12 and a day 1-30",
+				"formatTibetanDate({ year: 2153, month: 13, day: 1 }): ",
 			],
 		];
 		it.each(rows)("%s", (_label, call, code, prefix) => expectRow(call, PHUGPA, code, prefix));
@@ -162,10 +197,30 @@ describe("an error names the function the caller called", () => {
 	describe("day 31", () => {
 		const d = dateExports(date({ day: 31 }));
 		const rows: Row[] = [
-			["addDays", d.addDays, "TCT_FIELD_OUT_OF_RANGE", "addDays: "],
-			["resolveDate", d.resolveDate, "TCT_FIELD_OUT_OF_RANGE", "resolveDate: "],
-			["addMonthsToDate", d.addMonthsToDate, "TCT_FIELD_OUT_OF_RANGE", "addMonthsToDate: "],
-			["daysBetween", d.daysBetween, "TCT_FIELD_OUT_OF_RANGE", "daysBetween (to): "],
+			[
+				"addDays",
+				d.addDays,
+				"TCT_FIELD_OUT_OF_RANGE",
+				"addDays({ year: 2153, month: 1, day: 31 }): ",
+			],
+			[
+				"resolveDate",
+				d.resolveDate,
+				"TCT_FIELD_OUT_OF_RANGE",
+				"resolveDate({ year: 2153, month: 1, day: 31 }): ",
+			],
+			[
+				"addMonthsToDate",
+				d.addMonthsToDate,
+				"TCT_FIELD_OUT_OF_RANGE",
+				"addMonthsToDate({ year: 2153, month: 1, day: 31 }): ",
+			],
+			[
+				"daysBetween",
+				d.daysBetween,
+				"TCT_FIELD_OUT_OF_RANGE",
+				"daysBetween(to: { year: 2153, month: 1, day: 31 }): ",
+			],
 			[
 				"tibetanToIso",
 				d.tibetanToIso,
@@ -182,7 +237,7 @@ describe("an error names the function the caller called", () => {
 				"formatTibetanDate",
 				d.formatTibetanDate,
 				"TCT_FIELD_OUT_OF_RANGE",
-				"formatTibetanDate: expected a year, a month 1-12 and a day 1-30",
+				"formatTibetanDate({ year: 2153, month: 1, day: 31 }): ",
 			],
 		];
 		it.each(rows)("%s", (_label, call, code, prefix) => expectRow(call, PHUGPA, code, prefix));
@@ -201,14 +256,19 @@ describe("an error names the function the caller called", () => {
 				"lunationFromMonth",
 				m.lunationFromMonth,
 				"TCT_NO_SUCH_LEAP_MONTH",
-				"lunationFromMonth({ year: 2153, month: 1 }): ",
+				"lunationFromMonth({ year: 2153, month: 1, isLeapMonth: true }): ",
 			],
-			["addMonths", m.addMonths, "TCT_NO_SUCH_LEAP_MONTH", "addMonths({ year: 2153, month: 1 }): "],
+			[
+				"addMonths",
+				m.addMonths,
+				"TCT_NO_SUCH_LEAP_MONTH",
+				"addMonths({ year: 2153, month: 1, isLeapMonth: true }): ",
+			],
 			[
 				"monthsBetween",
 				m.monthsBetween,
 				"TCT_NO_SUCH_LEAP_MONTH",
-				"monthsBetween (to)({ year: 2153, month: 1 }): ",
+				"monthsBetween(to: { year: 2153, month: 1, isLeapMonth: true }): ",
 			],
 			[
 				"resolveMonth",
@@ -222,7 +282,12 @@ describe("an error names the function the caller called", () => {
 				"TCT_NO_SUCH_LEAP_MONTH",
 				"daysInMonth({ year: 2153, month: 1, isLeapMonth: true }): ",
 			],
-			["datesFor", m.datesFor, "TCT_NO_SUCH_LEAP_MONTH", "datesFor({ year: 2153, month: 1 }): "],
+			[
+				"datesFor",
+				m.datesFor,
+				"TCT_NO_SUCH_LEAP_MONTH",
+				"datesFor({ year: 2153, month: 1, isLeapMonth: true }): ",
+			],
 			// wrong: fixed in commit 4
 			[
 				"monthNamesFor",
@@ -255,7 +320,7 @@ describe("an error names the function the caller called", () => {
 				"addMonthsToDate",
 				d.addMonthsToDate,
 				"TCT_NO_SUCH_LEAP_MONTH",
-				"addMonthsToDate({ year: 2153, month: 1 }): ",
+				"addMonthsToDate({ year: 2153, month: 1, day: 1, isLeapMonth: true }): ",
 			],
 			// wrong: fixed in commit 3
 			[

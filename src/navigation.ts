@@ -48,78 +48,7 @@ import { PHUGPA } from "./traditions/phugpa.js";
 import type { TraditionConfig, TraditionOptions } from "./traditions/types.js";
 import { assertTraditionConfig } from "./traditions/validate.js";
 import type { TibetanDate, TibetanDateFields, TibetanMonth, TibetanMonthFields } from "./types.js";
-import {
-	rejectInvalidLeapFlags,
-	rejectMissingFields,
-	rejectTemporalInstance,
-	SkippedDayError,
-} from "./types.js";
-
-/** The three fields {@link TibetanDateFields} declares required. */
-const DATE_FIELDS = ["year", "month", "day"] as const;
-
-/** The two fields {@link TibetanMonthFields} declares required. */
-const MONTH_FIELDS = ["year", "month"] as const;
-
-/**
- * Validates a month-shaped argument, under the name the caller actually used.
- *
- * @remarks
- * `subject` is threaded rather than hardcoded because these functions delegate: without it a caller
- * who wrote `addMonths` would be told about `lunationFromMonth`, against the error-codes record's
- * requirement that a message echo the call that was made. Duplicating the guards instead would
- * leave an unreachable branch, which is the redundancy `coverage` exists to catch.
- */
-function assertMonthFields(subject: string, month: TibetanMonthFields): void {
-	rejectTemporalInstance(subject, month);
-	rejectInvalidLeapFlags(subject, month);
-	rejectMissingFields(subject, month, MONTH_FIELDS);
-	if (!Number.isSafeInteger(month.year)) {
-		throw rangeError(
-			"TCT_FIELD_OUT_OF_RANGE",
-			`${subject}: year must be a safe integer, received ${month.year}`,
-		);
-	}
-	if (!Number.isInteger(month.month) || month.month < 1 || month.month > 12) {
-		throw rangeError(
-			"TCT_FIELD_OUT_OF_RANGE",
-			`${subject}: month must be an integer 1-12, received ${month.month}`,
-		);
-	}
-}
-
-/**
- * Validates a date-shaped argument, under the name the caller actually used.
- *
- * @remarks
- * The same checks `tibetanToIso` runs, deliberately repeated here rather than delegated: it names
- * *itself* in its messages, so without this a caller who wrote `addDays` would be told about a
- * function they never called. Neither copy is dead — `tibetanToIso` stays reachable from its own
- * entry point — so this costs a few comparisons and buys a message that echoes the real call.
- */
-function assertDateFields(subject: string, date: TibetanDateFields): void {
-	rejectTemporalInstance(subject, date);
-	rejectInvalidLeapFlags(subject, date);
-	rejectMissingFields(subject, date, DATE_FIELDS);
-	if (!Number.isSafeInteger(date.year)) {
-		throw rangeError(
-			"TCT_FIELD_OUT_OF_RANGE",
-			`${subject}: year must be a safe integer, received ${date.year}`,
-		);
-	}
-	if (!Number.isInteger(date.month) || date.month < 1 || date.month > 12) {
-		throw rangeError(
-			"TCT_FIELD_OUT_OF_RANGE",
-			`${subject}: month must be an integer 1-12, received ${date.month}`,
-		);
-	}
-	if (!Number.isInteger(date.day) || date.day < 1 || date.day > 30) {
-		throw rangeError(
-			"TCT_FIELD_OUT_OF_RANGE",
-			`${subject}: day must be an integer 1-30, received ${date.day}`,
-		);
-	}
-}
+import { assertTibetanRanges, assertTibetanShape, SkippedDayError } from "./types.js";
 
 /** Validates a count argument — `months`, `days`, or a `lunation`. */
 function assertCount(subject: string, name: string, value: number): void {
@@ -170,26 +99,25 @@ export function lunationFromMonth(
 	tradition: TraditionConfig = PHUGPA,
 ): number {
 	assertTraditionConfig(tradition);
-	assertMonthFields("lunationFromMonth", month);
-	return lunationOf("lunationFromMonth", month, tradition);
+	assertTibetanShape("lunationFromMonth", month, "month");
+	const subject = assertTibetanRanges("lunationFromMonth", month, "month");
+	return lunationOf(subject, month, tradition);
 }
 
 /**
- * The lunation of an already-validated month, reporting under the caller's name.
+ * The lunation of an already-validated month, reporting under the caller's subject.
  *
  * @remarks
- * `subject` is threaded so that `addMonths` and `monthsBetween` report themselves rather than the
- * helper they delegate to. Guarding again inside each of them instead would leave an unreachable
- * branch, which is the redundancy `coverage` is run to find.
+ * `subject` is the echo `assertTibetanRanges` returned, threaded so that `addMonths` and
+ * `monthsBetween` report themselves rather than the helper they delegate to.
  */
 function lunationOf(
-	subject: string,
+	subject: () => string,
 	month: TibetanMonthFields,
 	tradition: TraditionConfig,
 ): number {
-	const describe = () => `${subject}({ year: ${month.year}, month: ${month.month} })`;
 	const y = yearFromRoyalEra(month.year);
-	assertClosedFormYear(describe, y, tradition);
+	assertClosedFormYear(subject, y, tradition);
 
 	const isLeap = month.isLeapMonth ?? false;
 	// Without this, asking for a leap month that does not exist returns the *previous* month's count
@@ -197,7 +125,7 @@ function lunationOf(
 	if (isLeap && !sharesNumberWithLeapMonth(tradition, y, month.month)) {
 		throw rangeError(
 			"TCT_NO_SUCH_LEAP_MONTH",
-			`${describe()}: month ${month.month} of ${month.year} has no leap month. Drop isLeapMonth, ` +
+			`${subject()}: month ${month.month} of ${month.year} has no leap month. Drop isLeapMonth, ` +
 				"or use monthsFor to see which month of a year is doubled.",
 		);
 	}
@@ -314,9 +242,10 @@ export function addMonths(
 	tradition: TraditionConfig = PHUGPA,
 ): TibetanMonth {
 	assertTraditionConfig(tradition);
-	assertMonthFields("addMonths", month);
+	assertTibetanShape("addMonths", month, "month");
+	const subject = assertTibetanRanges("addMonths", month, "month");
 	assertCount("addMonths", "months", months);
-	return monthAt("addMonths", lunationOf("addMonths", month, tradition) + months, tradition);
+	return monthAt("addMonths", lunationOf(subject, month, tradition) + months, tradition);
 }
 
 /**
@@ -348,12 +277,11 @@ export function monthsBetween(
 	assertTraditionConfig(tradition);
 	// Named per argument, because "monthsBetween: expected an object" would not say which of the two
 	// the caller got wrong — and these are the first two-month exports on this surface.
-	assertMonthFields("monthsBetween (from)", from);
-	assertMonthFields("monthsBetween (to)", to);
-	return (
-		lunationOf("monthsBetween (to)", to, tradition) -
-		lunationOf("monthsBetween (from)", from, tradition)
-	);
+	assertTibetanShape("monthsBetween(from)", from, "month");
+	const fromSubject = assertTibetanRanges("monthsBetween", from, "month", { parameter: "from" });
+	assertTibetanShape("monthsBetween(to)", to, "month");
+	const toSubject = assertTibetanRanges("monthsBetween", to, "month", { parameter: "to" });
+	return lunationOf(toSubject, to, tradition) - lunationOf(fromSubject, from, tradition);
 }
 
 /**
@@ -391,7 +319,8 @@ export function addDays(
 	tradition: TraditionConfig = PHUGPA,
 ): TibetanDate {
 	assertTraditionConfig(tradition);
-	assertDateFields("addDays", date);
+	assertTibetanShape("addDays", date, "date");
+	assertTibetanRanges("addDays", date, "date");
 	assertCount("addDays", "days", days);
 
 	const scaled = scalingFor(tradition);
@@ -437,7 +366,8 @@ export function resolveDate(
 	tradition: TraditionConfig = PHUGPA,
 ): TibetanDate {
 	assertTraditionConfig(tradition);
-	assertDateFields("resolveDate", date);
+	assertTibetanShape("resolveDate", date, "date");
+	assertTibetanRanges("resolveDate", date, "date");
 	return isoToTibetan(tibetanToIso(date, tradition), tradition);
 }
 
@@ -545,12 +475,13 @@ export function addMonthsToDate(
 		);
 	}
 	assertTraditionConfig(tradition);
-	assertDateFields("addMonthsToDate", date);
+	assertTibetanShape("addMonthsToDate", date, "date");
+	const subject = assertTibetanRanges("addMonthsToDate", date, "date");
 	assertCount("addMonthsToDate", "months", months);
 
 	const target = monthAt(
 		"addMonthsToDate",
-		lunationOf("addMonthsToDate", date, tradition) + months,
+		lunationOf(subject, date, tradition) + months,
 		tradition,
 	);
 
@@ -609,8 +540,10 @@ export function daysBetween(
 	tradition: TraditionConfig = PHUGPA,
 ): number {
 	assertTraditionConfig(tradition);
-	assertDateFields("daysBetween (from)", from);
-	assertDateFields("daysBetween (to)", to);
+	assertTibetanShape("daysBetween(from)", from, "date");
+	assertTibetanRanges("daysBetween", from, "date", { parameter: "from" });
+	assertTibetanShape("daysBetween(to)", to, "date");
+	assertTibetanRanges("daysBetween", to, "date", { parameter: "to" });
 	return (
 		julianDayFromIso(tibetanToIso(to, tradition)) - julianDayFromIso(tibetanToIso(from, tradition))
 	);

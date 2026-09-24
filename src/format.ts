@@ -4,11 +4,9 @@
  * @packageDocumentation
  */
 
-import { rangeError } from "./errors.js";
 import {
-	rejectInvalidLeapFlags,
-	rejectMissingFields,
-	rejectTemporalInstance,
+	assertTibetanRanges,
+	assertTibetanShape,
 	type TibetanDateFields,
 	type TibetanMonthFields,
 } from "./types.js";
@@ -89,28 +87,10 @@ export function monthCodeOf(month: number, isLeap: boolean): string {
  * one: `"undefined-undefined-undefined"`.
  */
 export function formatTibetanDate(date: TibetanDateFields): string {
-	rejectTemporalInstance("formatTibetanDate", date);
-	// Unconditional, and it carries the null/non-object check for this function as well as the flag
-	// checks — which is why the field test below no longer repeats either. Guarding it with its own
-	// shape test would make that test the reachable one and this function's shape error would then
-	// carry the range code, disagreeing with the other three entry points.
-	rejectInvalidLeapFlags("formatTibetanDate", date);
-	rejectMissingFields("formatTibetanDate", date, ["year", "month", "day"]);
-	if (
-		!Number.isSafeInteger(date.year) ||
-		!Number.isInteger(date.month) ||
-		date.month < 1 ||
-		date.month > 12 ||
-		!Number.isInteger(date.day) ||
-		date.day < 1 ||
-		date.day > 30
-	) {
-		throw rangeError(
-			"TCT_FIELD_OUT_OF_RANGE",
-			"formatTibetanDate: expected a year, a month 1-12 and a day 1-30, received " +
-				`${describe(date)}. Pass a value returned by isoToTibetan, losarFor or parseTibetanDate`,
-		);
-	}
+	assertTibetanShape("formatTibetanDate", date, "date");
+	assertTibetanRanges("formatTibetanDate", date, "date", {
+		hint: "Pass a value returned by isoToTibetan, losarFor or parseTibetanDate",
+	});
 	const day = String(date.day).padStart(2, "0");
 	const monthCode = monthCodeOf(date.month, date.isLeapMonth ?? false);
 	return `${date.year}-${monthCode}-${day}${date.isLeapDay ? " (leap)" : ""}`;
@@ -145,35 +125,9 @@ export function formatTibetanDate(date: TibetanDateFields): string {
  * ```
  */
 export function formatTibetanMonth(month: TibetanMonthFields): string {
-	rejectTemporalInstance("formatTibetanMonth", month);
-	rejectInvalidLeapFlags("formatTibetanMonth", month);
-	rejectMissingFields("formatTibetanMonth", month, ["year", "month"]);
-	if (
-		!Number.isSafeInteger(month.year) ||
-		!Number.isInteger(month.month) ||
-		month.month < 1 ||
-		month.month > 12
-	) {
-		throw rangeError(
-			"TCT_FIELD_OUT_OF_RANGE",
-			"formatTibetanMonth: expected a year and a month 1-12, received " +
-				`${describe(month)}. Pass a value returned by monthsFor or resolveMonth`,
-		);
-	}
+	assertTibetanShape("formatTibetanMonth", month, "month");
+	assertTibetanRanges("formatTibetanMonth", month, "month", {
+		hint: "Pass a value returned by monthsFor or resolveMonth",
+	});
 	return `${month.year}-${monthCodeOf(month.month, month.isLeapMonth ?? false)}`;
-}
-
-/**
- * The object rendered short enough for a message, by the keys it does carry.
- *
- * @remarks
- * Takes `object` rather than `unknown` because by its only call site it cannot be anything else:
- * `rejectInvalidLeapFlags` runs first and rejects `null`, `undefined`, strings and numbers, so the
- * field check below it only ever describes a real object. It used to branch on all three, and
- * coverage showed those branches dead as soon as the shape guard moved above them — the parameter
- * type is what stops them being written back.
- */
-function describe(value: object): string {
-	const keys = Object.keys(value);
-	return keys.length === 0 ? "{}" : `an object with keys ${keys.join(", ")}`;
 }

@@ -273,12 +273,14 @@ const R: Record<number, Row> = {
 		// Appended rather than edited in place, so this row does not depend on any existing
 		// function's text and cannot report "mutation target not found" when one is reworded. The
 		// body copied is `assertSafeYear`'s, which is one of the two real duplicates this rule was
-		// built from on 2026-09-23 — and the smaller one, so it also exercises the length floor.
+		// built from on 2026-09-23 — and the smaller one, so it also exercises the length floor. Its
+		// body grew a lazy subject and a suffix on 2026-09-24, and this copy follows it: a copy of the
+		// old body has no twin left in src/ and would make the row fail for the wrong reason.
 		apply: (tree) =>
 			tree.edit(
 				"src/months.ts",
 				(source) =>
-					`${source}\nfunction assertSafeYearCopy(subject: string, year: number): void {\n\tif (!Number.isSafeInteger(year)) {\n\t\tthrow rangeError(\n\t\t\t"TCT_FIELD_OUT_OF_RANGE",\n\t\t\t\`\${subject}: year must be a safe integer, received \${describe(year)}\`,\n\t\t);\n\t}\n}\n`,
+					`${source}\nfunction assertSafeYearCopy(subject: string | (() => string), year: number, suffix = ""): void {\n\tif (!Number.isSafeInteger(year)) {\n\t\tthrow rangeError(\n\t\t\t"TCT_FIELD_OUT_OF_RANGE",\n\t\t\t\`\${typeof subject === "string" ? subject : subject()}: year must be a safe integer, \` +\n\t\t\t\t\`received \${describe(year)}\${suffix}\`,\n\t\t);\n\t}\n}\n`,
 				"the end of src/months.ts",
 			),
 		must: ["no two functions in src/ share a body", "assertSafeYearCopy"],
