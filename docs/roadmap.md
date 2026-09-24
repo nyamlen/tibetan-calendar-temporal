@@ -1515,6 +1515,24 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
       14 cannot see it, since the bodies differ. Merging them into one home beside
       `rejectMissingFields` changes message text across about nine exports, which is why it is not
       folded into the item above.
+      **Widened and measured on 2026-09-24, on a fresh build, before any code was written.**
+      - **The leap-twin preamble goes with it.** `yearFromRoyalEra` → `assertClosedFormYear` →
+        `TCT_NO_SUCH_LEAP_MONTH` → `trueMonthCount` is written five times, in `lunationOf`,
+        `resolveMonth`, `datesFor`, `daysInMonth` and `tibetanToIso`, in three wordings.
+      - **Seven exports report errors under another function's name.** `monthNamesFor`,
+        `monthAttributesFor` and `lunarDayAttributesFor` delegate to `daysInMonth`, so their
+        errors say `daysInMonth(`. `resolveDate`, `addDays` and `daysBetween` report the leap twin
+        and the exact range as `tibetanToIso(`. `tibetanDateExists` lets `TCT_OUTSIDE_EXACT_RANGE`
+        through, also as `tibetanToIso(`.
+      - **A lower-bound defect.** `daysInMonth` bounds only the month's last day, and at the
+        negative end the first day is the more extreme. Under `PHUGPA_HENNING`, royal year −20652
+        month 3, `daysInMonth` answers 30, and so do the three delegators, where `resolveMonth` and
+        `datesFor` throw `TCT_OUTSIDE_EXACT_RANGE`.
+      - **Three refusal orders**, for a bad tradition plus a bad date. The one in `tibetanToIso` is
+        load-bearing: a range check ahead of the tradition check would let
+        `tibetanDateExists(badFields, {})` answer `false` for a broken config.
+      - **The README's Errors table lists only `tibetanToIso` as throwing `TCT_NO_SUCH_LEAP_MONTH`.**
+        About sixteen exports do. Rule 16 checks only the code column, so nothing catches this.
 - [x] **Decide whether `check:conventions` rule 4 should distinguish an exported `{@link}` target
       from a module-local one.** **Decided 2026-09-23: reject, scoped to docblocks that ship** — those
       of a barrel-exported declaration or of a member of a barrel-exported interface or class, where a

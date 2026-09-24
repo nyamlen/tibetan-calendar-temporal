@@ -786,6 +786,10 @@ on `Cannot assign to read only property 'polluted'`, thrown by Vitest's own mach
 assertion. It then failed after the fix too, which is how it was noticed. Made writable, it was
 re-run against the **old** code, where it failed for the right reason ("unknown option
 `polluted`"). A red test is evidence only when its message is the bug's.
+**So never mark an expected-red row `it.fails`.** It passes on any throw, including a `TypeError`
+from a typo, so it cannot show the reason. Assert today's wrong message instead, and change the
+expectation in the commit that fixes it, so the diff shows the old message against the new one.
+Found by an adversarial review of the field-guard merge plan on 2026-09-24.
 
 **An inequality is the weaker assertion, and for one bug shape it is no assertion at all.** Where a
 bug's signature is "two things that should differ stop differing", `expect(a).not.toBe(b)` usually
