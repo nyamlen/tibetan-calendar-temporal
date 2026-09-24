@@ -239,10 +239,11 @@ export function isPlainObject(value: unknown): boolean {
  *
  * - A key is refused **whatever its value**, `undefined` included: `{ config: undefined }` is still
  *   a caller writing a key that does nothing.
- * - **Inherited** enumerable keys are checked as well as own ones — `for…in`, not `Object.keys` —
- *   because the call sites read `options.tradition`, which honours an inherited key. An own-keys
- *   check would let `Object.create({ config: BHUTAN })` through after a rename.
- * - **Symbol keys are ignored.** Nobody writes one by mistake, and `for…in` does not visit them.
+ * - **Inherited** enumerable keys are checked as well as own ones, because the call sites read
+ *   `options.tradition`, which honours an inherited key. An own-keys check would let
+ *   `Object.create({ config: BHUTAN })` through after a rename. The walk stops at
+ *   `Object.prototype`, whose keys belong to whatever library polluted it, not to the caller.
+ * - **Symbol keys are ignored.** Nobody writes one by mistake, and `Object.keys` does not list them.
  *
  * This applies to **bags only**, never to a `TraditionConfig` or an `ObservanceConfig`: a consumer's
  * `{ ...PHUGPA, extra }` is a supported way to build a config and must keep working.
@@ -272,13 +273,22 @@ export function assertQueryOptions(
 				`${describe(options)}`,
 		);
 	}
-	for (const key in options) {
-		if (!allowed.includes(key)) {
-			throw rangeError(
-				"TCT_INVALID_ARGUMENT",
-				`${functionName}: unknown option ${JSON.stringify(key)}. options is an object like ` +
-					`${shape}; a key it does not have would otherwise be ignored silently`,
-			);
+	// The prototype chain is walked by hand rather than with `for…in`, to stop at
+	// `Object.prototype`: a key some other library made enumerable there would otherwise make every
+	// bag function throw, even one called with no options, since the default `{}` inherits it.
+	for (
+		let level: object | null = options;
+		level !== null && level !== Object.prototype;
+		level = Object.getPrototypeOf(level)
+	) {
+		for (const key of Object.keys(level)) {
+			if (!allowed.includes(key)) {
+				throw rangeError(
+					"TCT_INVALID_ARGUMENT",
+					`${functionName}: unknown option ${JSON.stringify(key)}. options is an object like ` +
+						`${shape}; a key it does not have would otherwise be ignored silently`,
+				);
+			}
 		}
 	}
 }

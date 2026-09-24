@@ -60,6 +60,26 @@ describe("assertQueryOptions refuses keys it does not recognise", () => {
 		expect(refuse(Object.create({ c: 1 }))?.code).toBe("TCT_INVALID_ARGUMENT");
 	});
 
+	it("ignores a key some other library made enumerable on Object.prototype", () => {
+		// Found by the branch's final review, 2026-09-24: a bare `for…in` visits Object.prototype too,
+		// so one polluting dependency made every bag function throw — even called with no options,
+		// since the default `{}` inherits the key. The walk stops there; a caller's own prototype is
+		// still checked, which is what refuses `Object.create({ config })`.
+		Object.defineProperty(Object.prototype, "polluted", {
+			value: 1,
+			enumerable: true,
+			configurable: true,
+			writable: true,
+		});
+		try {
+			expect(refuse({})).toBeUndefined();
+			expect(refuse({ a: 1 })).toBeUndefined();
+			expect(refuse(Object.create({ c: 1 }))?.code).toBe("TCT_INVALID_ARGUMENT");
+		} finally {
+			delete (Object.prototype as Record<string, unknown>).polluted;
+		}
+	});
+
 	it("ignores symbol keys, which no caller writes by mistake", () => {
 		expect(refuse({ a: 1, [Symbol("c")]: 2 })).toBeUndefined();
 	});
