@@ -836,8 +836,9 @@ describe("addMonthsToDate's options bag", () => {
 	});
 
 	it("refuses an explicit null field rather than reading it as absent", () => {
-		// `??` read `{ config: null }` — the key's name until 2026-09-24 — as the default until 2026-09-23 — the validation CLAUDE.md's
-		// options-bag rule says a bag must not lose. Only `undefined` means "not given".
+		// Until 2026-09-23 the bag was read with `??`, so an explicit null became the default, losing the
+		// validation CLAUDE.md's options-bag rule says a bag must keep. Only `undefined` means "not
+		// given". The tradition's key was `config` then; it is `tradition` since 2026-09-24.
 		// @ts-expect-error -- null is not a TraditionConfig, which is what is under test
 		expect(codeOf(() => addMonthsToDate(date, 1, { tradition: null }))).toBe(
 			"TCT_INVALID_TRADITION_CONFIG",

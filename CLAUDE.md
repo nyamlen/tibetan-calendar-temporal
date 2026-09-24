@@ -639,7 +639,8 @@ derivation; in `docs/` they are just noise.
   sentence promising "a throw rather than a wrong calendar". `assertQueryOptions` now refuses an
   array by name. Found by the close-out's final review, not by any suite. The same function read its bag
   with `??` until later that day, so `{ config: null }` became the default, against the rule above;
-  it now tests `=== undefined`, and `test/navigation.test.ts` pins both null fields.
+  it now tests `=== undefined`, and `test/navigation.test.ts` pins both null fields — `{ tradition:
+  null }` and `{ overflow: null }`, the key having been renamed from `config` on 2026-09-24.
 - **Every consumer config gets a validator, and every export gets a guard.** `TraditionConfig` and
   `ObservanceConfig` are both documented extension points, so both are checked at the boundary and
   memoised per object. Add a config type, add a validator — `TraditionConfig` went unchecked for
@@ -769,6 +770,13 @@ file. Both look identical to a guard firing — a non-zero exit and no output yo
 grepping for. **So every mutation run includes an unmutated control expected to PASS**, and asserting
 on the failure *message*, not the exit code, is what makes the difference visible. The control
 failing is the only signal that the harness is measuring nothing.
+
+**The same holds for a single test's RED: read why it failed.** On 2026-09-24 a test for the
+options guard polluted `Object.prototype` with a non-writable key, and it failed before the fix —
+on `Cannot assign to read only property 'polluted'`, thrown by Vitest's own machinery, not on the
+assertion. It then failed after the fix too, which is how it was noticed. Made writable, it was
+re-run against the **old** code, where it failed for the right reason ("unknown option
+`polluted`"). A red test is evidence only when its message is the bug's.
 
 **An inequality is the weaker assertion, and for one bug shape it is no assertion at all.** Where a
 bug's signature is "two things that should differ stop differing", `expect(a).not.toBe(b)` usually

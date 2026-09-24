@@ -1473,8 +1473,11 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
       `TypeError`, against the README's every-failure-carries-a-code claim. And `describe` itself
       throws on a revoked `Proxy`, and returns a `Symbol` for an object whose `constructor.name` is
       one. The population is wider than `received ${`: function-name subjects interpolate the raw
-      year before the guard runs (`losarFor(10n)` says "losarFor(10): …"). Planned, classified site by
-      site, and held until Andreas starts it
+      year before the guard runs (`losarFor(10n)` says "losarFor(10): …"). **One more since
+      2026-09-24:** the options guard now walks a bag's prototype chain with `Object.keys` and
+      `Object.getPrototypeOf`, so a Proxy bag whose `ownKeys` or `getPrototypeOf` trap throws escapes
+      uncoded — `addMonthsToDate(d, 1, new Proxy({}, { ownKeys() { throw … } }))` — where before it
+      passed the guard and answered. Planned, classified site by site, and held until Andreas starts it
 - [x] **Decide whether `check:conventions` rule 4 should distinguish an exported `{@link}` target
       from a module-local one.** **Decided 2026-09-23: reject, scoped to docblocks that ship** — those
       of a barrel-exported declaration or of a member of a barrel-exported interface or class, where a

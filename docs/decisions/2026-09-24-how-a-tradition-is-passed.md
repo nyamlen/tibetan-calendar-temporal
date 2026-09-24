@@ -52,7 +52,9 @@ what happens if one arrives.
 - **The unknown-key refusal applies to bags, never to a config.** `{ ...PHUGPA, extra }` is a
   supported way to build a `TraditionConfig` and must keep working. `assertQueryOptions` checks
   inherited keys as well as own ones, because the call sites read `options.tradition`, which honours
-  an inherited key.
+  an inherited key — but **stops at `Object.prototype`**. A bare `for…in` went past it for a few
+  hours, so any dependency that made a key enumerable there made every bag function throw, even one
+  called with no options, because the default `{}` inherits the key. Found by the final review.
 - **`./observances`' `config` key is not settled by this record.** Its name belongs to the
   `./observances` rethink, which is still open.
 - **Point 1 holds inside `src/` too, not only on the surface.** Internal helpers kept a `config`
