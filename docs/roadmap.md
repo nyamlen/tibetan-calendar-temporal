@@ -1507,7 +1507,7 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
       should say that an error your own code throws propagates unchanged.
       `test/hostile-inputs.test.ts` leaves every Proxy out of its config rows for this reason, and
       says so.
-- [ ] **The Tibetan date-field guard is written six times.** Answering the review question the `describe`
+- [x] **The Tibetan date-field guard is written six times.** Answering the review question the `describe`
       item above carried, 2026-09-24: `assertMonthFields` and `assertDateFields` in `navigation.ts`, the
       inline checks in `resolveMonth`, `daysInMonth` and `datesFor` in `months.ts`, and those in
       `tibetanToIso` run the same predicates — safe-integer year, month 1–12, day 1–30 — and differ
@@ -1533,6 +1533,38 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
         `tibetanDateExists(badFields, {})` answer `false` for a broken config.
       - **The README's Errors table lists only `tibetanToIso` as throwing `TCT_NO_SUCH_LEAP_MONTH`.**
         About sixteen exports do. Rule 16 checks only the code column, so nothing catches this.
+
+      **Done 2026-09-24**, in `5b64142`, `eb2f73a`, `12e2e21`, `beb24e1` and `ae39e72`, the leap-twin
+      cluster folded in:
+      - `assertTibetanShape` and `assertTibetanRanges` in `types.ts` are the one field guard; the
+        range half returns a subject echoing the call — `daysBetween(to: { … })` — and the shape
+        label for the same argument is `daysBetween(to)`. `assertSafeYear` was widened rather than
+        copied, so `format.ts`'s "Pass a value returned by …" hint reaches the year message too.
+      - `monthCountFor` and `julianDayOfFields` in `computation/conversion.ts` are the leap-twin
+        preamble, with one wording, and `tibetanToIso`'s body after its guards. `lunationOf` is gone.
+      - `boundedMonth` in `months.ts` guards the month tier, and **bounds both ends of the month**,
+        which fixed the lower-bound defect: all six month-tier exports now refuse `PHUGPA_HENNING`
+        −20652 month 3.
+      - **All seven functions that named another now name themselves**, and `daysBetween` and
+        `monthsBetween` name the argument. `test/error-subjects.test.ts` pins every row.
+      - **One order flip**: `resolveMonth` and `datesFor` moved from order C to order B, so a call
+        with a broken tradition and month 13 reports the tradition. And an out-of-range day passed to
+        `lunarDayAttributesFor` — 0, 31, `NaN`, a fraction — is `TCT_FIELD_OUT_OF_RANGE` even in a
+        leap month with no twin or past the exact range, where the month's error used to win. `beb24e1`'s
+        message says "day 31"; an independent review measured the whole class.
+      - The README row now names the month and date tiers.
+- [ ] **Should the attribute functions be bounded by the exact range at all, and should the three
+      refusal orders be unified?** Left open by the field-guard merge on 2026-09-24.
+      `monthNamesFor`, `monthAttributesFor` and `lunarDayAttributesFor` never evaluate `true_date` for
+      their answer — the names and attributes are closed forms on the month — yet `boundedMonth` refuses
+      them past the exact range, because they inherited `daysInMonth`'s guard and the merge kept the
+      behaviour. And a call with a bad tradition and a bad date still reports one of two errors
+      depending on the export: order A (tradition first) for the seven navigators and
+      `monthAttributesFor` and `lunarDayAttributesFor`, order B (shape, tradition, range) for the
+      rest. **Order B is load-bearing in `tibetanToIso` and `tibetanDateExists`** — a range check
+      ahead of the tradition would let `tibetanDateExists(badFields, {})` answer `false` for a broken
+      config — so any unification converges on B. `test/error-subjects.test.ts` pins one doubly-bad
+      call per order today.
 - [x] **Decide whether `check:conventions` rule 4 should distinguish an exported `{@link}` target
       from a module-local one.** **Decided 2026-09-23: reject, scoped to docblocks that ship** — those
       of a barrel-exported declaration or of a member of a barrel-exported interface or class, where a

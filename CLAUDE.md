@@ -338,9 +338,7 @@ derivation; in `docs/` they are just noise.
   in `8f28389`; `assertQueryOptions` joined them, taking its message's shape example as a
   parameter, which was the **only** thing the two copies differed in; the three value-describers —
   `describeValue`, `describeFlagValue` and a third `describe` in `parse.ts` — merged into
-  `errors.ts`'s. `format.ts` keeps a `describe` of its own: it lists an object's keys, a different
-  function wearing the same name. `phaseStart` and `isoOf` became `asWesternDay` in
-  `computation/conversion.ts`.
+  `errors.ts`'s. `phaseStart` and `isoOf` became `asWesternDay` in `computation/conversion.ts`.
 
   **And there was a fifth, found 2026-09-24**, so "all four" was the count of what had been found.
   `month-names.ts` carried a private `assertOptions`, the options guard again with a different body
@@ -348,6 +346,16 @@ derivation; in `docs/` they are just noise.
   `assertQueryOptions` had gained the day before, so `monthNamesFor(m, [])` answered. An adversarial
   review of an unrelated plan found it by grepping for `JSON.stringify` in messages, which is what the
   copies shared. It now calls `assertQueryOptions`.
+
+  **And two more on 2026-09-24, found by the same review question.** The **Tibetan field guard** —
+  year a safe integer, month 1–12, day 1–30 — was written six times, with five copies of the field
+  lists, and is now `assertTibetanShape` and `assertTibetanRanges` in `src/types.ts` (`eb2f73a`). The
+  **leap-twin preamble** was written five times in three wordings, and is now `monthCountFor` and
+  `julianDayOfFields` in `computation/conversion.ts` (`12e2e21`), with `boundedMonth` in `months.ts`
+  guarding the month tier (`beb24e1`). The cost of these copies was not drift but **delegation**:
+  seven exports borrowed another's guard and reported errors under its name, which
+  `test/error-subjects.test.ts` now pins, and one copy bounded only the last day of a month, so four
+  exports answered for a month the rest refused.
 
   **A justification for dropping a branch has to hold for every caller, not the one you are looking
   at** — and this passage stated the bad one for a day. The merge dropped `describeValue`'s

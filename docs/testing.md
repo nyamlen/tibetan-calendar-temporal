@@ -18,6 +18,7 @@ test/
 ├── leap-month-position.test.ts  # cross-cutting: calendar, scaling, months, observances
 ├── tradition-config.test.ts  # cross-cutting: what a config does at the engine's boundary
 ├── hostile-inputs.test.ts    # cross-cutting: every export, given values a message cannot render
+├── error-subjects.test.ts    # cross-cutting: an error names the function the caller called
 ├── public-api.test.ts    # the export surface, pinned
 ├── readme.test.ts        # every example the README states
 ├── smoke.test.ts         # Temporal reachable as a global

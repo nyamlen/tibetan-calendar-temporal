@@ -551,8 +551,8 @@ describe("tibetanDateExists still answers false", () => {
 });
 
 describe("lunarDayAttributesFor, where the month and the day are both wrong", () => {
-	// The day's error wins, since the day is range-checked with the other fields before anything
-	// about the month is computed. Until 2026-09-24 the month's won: TCT_NO_SUCH_LEAP_MONTH and
+	// The day's error wins — for any out-of-range day, not only 31 — since the day is range-checked
+	// with the other fields before anything about the month is computed. Until 2026-09-24 the month's won: TCT_NO_SUCH_LEAP_MONTH and
 	// TCT_OUTSIDE_EXACT_RANGE respectively.
 	it("a leap month with no twin, day 31", () => {
 		expect(
