@@ -302,19 +302,17 @@ describe("an error names the function the caller called", () => {
 				"TCT_NO_SUCH_LEAP_MONTH",
 				"daysInMonth({ year: 2153, month: 1, isLeapMonth: true }): ",
 			],
-			// wrong: fixed in commit 3
 			[
 				"addDays",
 				d.addDays,
 				"TCT_NO_SUCH_LEAP_MONTH",
-				"tibetanToIso({ year: 2153, month: 1, day: 1, isLeapMonth: true }): ",
+				"addDays({ year: 2153, month: 1, day: 1, isLeapMonth: true }): ",
 			],
-			// wrong: fixed in commit 3
 			[
 				"resolveDate",
 				d.resolveDate,
 				"TCT_NO_SUCH_LEAP_MONTH",
-				"tibetanToIso({ year: 2153, month: 1, day: 1, isLeapMonth: true }): ",
+				"resolveDate({ year: 2153, month: 1, day: 1, isLeapMonth: true }): ",
 			],
 			[
 				"addMonthsToDate",
@@ -322,12 +320,11 @@ describe("an error names the function the caller called", () => {
 				"TCT_NO_SUCH_LEAP_MONTH",
 				"addMonthsToDate({ year: 2153, month: 1, day: 1, isLeapMonth: true }): ",
 			],
-			// wrong: fixed in commit 3
 			[
 				"daysBetween",
 				d.daysBetween,
 				"TCT_NO_SUCH_LEAP_MONTH",
-				"tibetanToIso({ year: 2153, month: 1, day: 1, isLeapMonth: true }): ",
+				"daysBetween(to: { year: 2153, month: 1, day: 1, isLeapMonth: true }): ",
 			],
 			[
 				"tibetanToIso",
@@ -385,19 +382,17 @@ describe("an error names the function the caller called", () => {
 				"TCT_OUTSIDE_EXACT_RANGE",
 				"daysInMonth({ year: 11500, month: 1 }) is outside",
 			],
-			// wrong: fixed in commit 3
 			[
 				"addDays",
 				d.addDays,
 				"TCT_OUTSIDE_EXACT_RANGE",
-				"tibetanToIso({ year: 11500, month: 1, day: 1 }) is outside",
+				"addDays({ year: 11500, month: 1, day: 1 }) is outside",
 			],
-			// wrong: fixed in commit 3
 			[
 				"resolveDate",
 				d.resolveDate,
 				"TCT_OUTSIDE_EXACT_RANGE",
-				"tibetanToIso({ year: 11500, month: 1, day: 1 }) is outside",
+				"resolveDate({ year: 11500, month: 1, day: 1 }) is outside",
 			],
 			[
 				"addMonthsToDate",
@@ -405,12 +400,11 @@ describe("an error names the function the caller called", () => {
 				"TCT_OUTSIDE_EXACT_RANGE",
 				"addMonthsToDate(130705) is outside",
 			],
-			// wrong: fixed in commit 3
 			[
 				"daysBetween",
 				d.daysBetween,
 				"TCT_OUTSIDE_EXACT_RANGE",
-				"tibetanToIso({ year: 11500, month: 1, day: 1 }) is outside",
+				"daysBetween(to: { year: 11500, month: 1, day: 1 }) is outside",
 			],
 			[
 				"tibetanToIso",
@@ -418,12 +412,11 @@ describe("an error names the function the caller called", () => {
 				"TCT_OUTSIDE_EXACT_RANGE",
 				"tibetanToIso({ year: 11500, month: 1, day: 1 }) is outside",
 			],
-			// wrong: fixed in commit 3
 			[
 				"tibetanDateExists",
 				d.tibetanDateExists,
 				"TCT_OUTSIDE_EXACT_RANGE",
-				"tibetanToIso({ year: 11500, month: 1, day: 1 }) is outside",
+				"tibetanDateExists({ year: 11500, month: 1, day: 1 }) is outside",
 			],
 			// wrong: fixed in commit 4
 			[

@@ -28,8 +28,6 @@ import {
 	firstDayOfMonth,
 	lastDayOfMonth,
 	monthFromCount,
-	sharesNumberWithLeapMonth,
-	trueMonthCount,
 } from "./computation/calendar.js";
 import {
 	assertExactJulianDay,
@@ -37,10 +35,11 @@ import {
 	isoFromJulianDayUnchecked,
 	isoToTibetan,
 	julianDayFromIso,
-	tibetanToIso,
+	julianDayOfFields,
+	monthCountFor,
 } from "./computation/conversion.js";
 import { julianDayOfLunarDay } from "./computation/corrections.js";
-import { royalEraFromYear, yearFromRoyalEra } from "./computation/epoch.js";
+import { royalEraFromYear } from "./computation/epoch.js";
 import { scalingFor } from "./computation/scaling.js";
 import { assertQueryOptions, describe, rangeError } from "./errors.js";
 import { describeMonth } from "./months.js";
@@ -100,36 +99,7 @@ export function lunationFromMonth(
 ): number {
 	assertTraditionConfig(tradition);
 	assertTibetanShape("lunationFromMonth", month, "month");
-	const subject = assertTibetanRanges("lunationFromMonth", month, "month");
-	return lunationOf(subject, month, tradition);
-}
-
-/**
- * The lunation of an already-validated month, reporting under the caller's subject.
- *
- * @remarks
- * `subject` is the echo `assertTibetanRanges` returned, threaded so that `addMonths` and
- * `monthsBetween` report themselves rather than the helper they delegate to.
- */
-function lunationOf(
-	subject: () => string,
-	month: TibetanMonthFields,
-	tradition: TraditionConfig,
-): number {
-	const y = yearFromRoyalEra(month.year);
-	assertClosedFormYear(subject, y, tradition);
-
-	const isLeap = month.isLeapMonth ?? false;
-	// Without this, asking for a leap month that does not exist returns the *previous* month's count
-	// rather than refusing — a wrong answer indistinguishable from a right one.
-	if (isLeap && !sharesNumberWithLeapMonth(tradition, y, month.month)) {
-		throw rangeError(
-			"TCT_NO_SUCH_LEAP_MONTH",
-			`${subject()}: month ${month.month} of ${month.year} has no leap month. Drop isLeapMonth, ` +
-				"or use monthsFor to see which month of a year is doubled.",
-		);
-	}
-	return trueMonthCount(tradition, y, month.month, isLeap);
+	return monthCountFor(assertTibetanRanges("lunationFromMonth", month, "month"), tradition, month);
 }
 
 /**
@@ -245,7 +215,7 @@ export function addMonths(
 	assertTibetanShape("addMonths", month, "month");
 	const subject = assertTibetanRanges("addMonths", month, "month");
 	assertCount("addMonths", "months", months);
-	return monthAt("addMonths", lunationOf(subject, month, tradition) + months, tradition);
+	return monthAt("addMonths", monthCountFor(subject, tradition, month) + months, tradition);
 }
 
 /**
@@ -281,7 +251,7 @@ export function monthsBetween(
 	const fromSubject = assertTibetanRanges("monthsBetween", from, "month", { parameter: "from" });
 	assertTibetanShape("monthsBetween(to)", to, "month");
 	const toSubject = assertTibetanRanges("monthsBetween", to, "month", { parameter: "to" });
-	return lunationOf(toSubject, to, tradition) - lunationOf(fromSubject, from, tradition);
+	return monthCountFor(toSubject, tradition, to) - monthCountFor(fromSubject, tradition, from);
 }
 
 /**
@@ -305,8 +275,9 @@ export function monthsBetween(
  *
  * @throws SkippedDayError if `date` itself names no calendar day.
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` for a wrong-kind argument;
- * `TCT_FIELD_OUT_OF_RANGE` if a field or `days` is out of range; `TCT_OUTSIDE_EXACT_RANGE` if the
- * result leaves the range where the arithmetic stays exact.
+ * `TCT_FIELD_OUT_OF_RANGE` if a field or `days` is out of range; `TCT_NO_SUCH_LEAP_MONTH` if
+ * `isLeapMonth` is set for a month with no leap twin that year; `TCT_OUTSIDE_EXACT_RANGE` if the
+ * date or the result lies outside the range where the arithmetic stays exact.
  *
  * @example
  * ```ts
@@ -320,12 +291,12 @@ export function addDays(
 ): TibetanDate {
 	assertTraditionConfig(tradition);
 	assertTibetanShape("addDays", date, "date");
-	assertTibetanRanges("addDays", date, "date");
+	const subject = assertTibetanRanges("addDays", date, "date");
 	assertCount("addDays", "days", days);
 
 	const scaled = scalingFor(tradition);
-	const target = julianDayFromIso(tibetanToIso(date, tradition)) + days;
-	// The starting date was inside the range or tibetanToIso would have refused it, but the *result*
+	const target = julianDayOfFields(subject, tradition, date) + days;
+	// The starting date was inside the range or julianDayOfFields would have refused it, but the *result*
 	// need not be: Julian-day arithmetic walks straight out of it. Without this the conversion below
 	// would either throw uncoded from Temporal or answer from degraded arithmetic.
 	assertExactJulianDay(scaled, target, () => `addDays(…, ${days})`);
@@ -353,7 +324,8 @@ export function addDays(
  * Use {@link tibetanDateExists} to test first.
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `date` is not an object naming a Tibetan
  * date, or a leap flag is present and not a boolean; `TCT_FIELD_OUT_OF_RANGE` for a field out of
- * range; `TCT_OUTSIDE_EXACT_RANGE` past the tradition's exact range.
+ * range; `TCT_NO_SUCH_LEAP_MONTH` if `isLeapMonth` is set for a month with no leap twin that year;
+ * `TCT_OUTSIDE_EXACT_RANGE` past the tradition's exact range.
  *
  * @example
  * ```ts
@@ -367,8 +339,11 @@ export function resolveDate(
 ): TibetanDate {
 	assertTraditionConfig(tradition);
 	assertTibetanShape("resolveDate", date, "date");
-	assertTibetanRanges("resolveDate", date, "date");
-	return isoToTibetan(tibetanToIso(date, tradition), tradition);
+	const subject = assertTibetanRanges("resolveDate", date, "date");
+	return isoToTibetan(
+		isoFromJulianDayUnchecked(julianDayOfFields(subject, tradition, date)),
+		tradition,
+	);
 }
 
 /**
@@ -481,7 +456,7 @@ export function addMonthsToDate(
 
 	const target = monthAt(
 		"addMonthsToDate",
-		lunationOf(subject, date, tradition) + months,
+		monthCountFor(subject, tradition, date) + months,
 		tradition,
 	);
 
@@ -541,11 +516,11 @@ export function daysBetween(
 ): number {
 	assertTraditionConfig(tradition);
 	assertTibetanShape("daysBetween(from)", from, "date");
-	assertTibetanRanges("daysBetween", from, "date", { parameter: "from" });
+	const fromSubject = assertTibetanRanges("daysBetween", from, "date", { parameter: "from" });
 	assertTibetanShape("daysBetween(to)", to, "date");
-	assertTibetanRanges("daysBetween", to, "date", { parameter: "to" });
+	const toSubject = assertTibetanRanges("daysBetween", to, "date", { parameter: "to" });
 	return (
-		julianDayFromIso(tibetanToIso(to, tradition)) - julianDayFromIso(tibetanToIso(from, tradition))
+		julianDayOfFields(toSubject, tradition, to) - julianDayOfFields(fromSubject, tradition, from)
 	);
 }
 

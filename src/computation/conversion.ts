@@ -29,7 +29,12 @@ import {
 } from "../temporal-kind.js";
 import { PHUGPA } from "../traditions/phugpa.js";
 import type { TraditionConfig } from "../traditions/types.js";
-import type { TibetanDate, TibetanDateFields, TibetanWeekday } from "../types.js";
+import type {
+	TibetanDate,
+	TibetanDateFields,
+	TibetanMonthFields,
+	TibetanWeekday,
+} from "../types.js";
 import { assertTibetanRanges, assertTibetanShape, SkippedDayError } from "../types.js";
 import { floorDiv, mod } from "./arithmetic.js";
 import {
@@ -457,40 +462,85 @@ export function tibetanToIso(
 	tradition: TraditionConfig = PHUGPA,
 ): Temporal.PlainDate {
 	assertTibetanShape("tibetanToIso", input, "date");
-	const scaled = scalingFor(tradition);
-	const isLeapMonth = input.isLeapMonth ?? false;
+	// The tradition between the shape and the range, the order tibetanDateExists depends on.
+	scalingFor(tradition);
 	const subject = assertTibetanRanges("tibetanToIso", input, "date");
+	return isoFromJulianDayUnchecked(julianDayOfFields(subject, tradition, input));
+}
 
-	const year = yearFromRoyalEra(input.year);
+/**
+ * The true month count of an already range-checked month, refusing a leap month with no twin.
+ *
+ * @remarks
+ * The leap-twin preamble every month- and date-tier entry point runs: `yearFromRoyalEra`, the
+ * closed-form year bound, the `TCT_NO_SUCH_LEAP_MONTH` refusal, then `trueMonthCount`. It was
+ * written out five times with three wordings, two of which built a subject omitting the very flag
+ * that was wrong. `subject` is the echo `assertTibetanRanges` returned, so the refusal names the
+ * function the caller called.
+ *
+ * **It does not bound the exact range**, because `lunationFromMonth` and `addMonths` are closed
+ * forms and bounding them here would narrow them. Callers that go on to evaluate `true_date` bound
+ * what they evaluate.
+ */
+export function monthCountFor(
+	subject: () => string,
+	tradition: TraditionConfig,
+	month: TibetanMonthFields,
+): number {
+	const year = yearFromRoyalEra(month.year);
 	assertClosedFormYear(subject, year, tradition);
-	if (isLeapMonth && !sharesNumberWithLeapMonth(tradition, year, input.month)) {
+	const isLeapMonth = month.isLeapMonth ?? false;
+	// Without this, asking for a leap month that does not exist returns the *previous* month's count
+	// rather than refusing — a wrong answer indistinguishable from a right one.
+	if (isLeapMonth && !sharesNumberWithLeapMonth(tradition, year, month.month)) {
 		throw rangeError(
 			"TCT_NO_SUCH_LEAP_MONTH",
-			`${subject()}: month ${input.month} of ${input.year} has no leap month. Leap months ` +
+			`${subject()}: month ${month.month} of ${month.year} has no leap month. Leap months ` +
 				"recur roughly every 32 months and fall on a different month number each time; drop " +
 				"isLeapMonth, or call leapMonthNumberFor to find which month of a year is doubled",
 		);
 	}
+	return trueMonthCount(tradition, year, month.month, isLeapMonth);
+}
 
-	const monthCount = trueMonthCount(tradition, year, input.month, isLeapMonth);
+/**
+ * The Julian day an already range-checked Tibetan date names, reporting under the caller's subject.
+ *
+ * @remarks
+ * `tibetanToIso`'s body after its guards, shared so that `resolveDate`, `addDays`, `daysBetween` and
+ * `tibetanDateExists` report their own name rather than `tibetanToIso`'s. Not exported from the
+ * package barrel.
+ *
+ * Throws {@link SkippedDayError} carrying the caller's own object, since `docs/guide.md` promises
+ * that `error.requested` is the input that was passed.
+ */
+export function julianDayOfFields(
+	subject: () => string,
+	tradition: TraditionConfig,
+	date: TibetanDateFields,
+): number {
+	const scaled = scalingFor(tradition);
+	const monthCount = monthCountFor(subject, tradition, date);
 
 	// Bound before classifying, not after. Past the exact limit classifyDay's arithmetic has
 	// already lost precision, and it reports the damage as a skipped date. The mean date is within
 	// 0.6 days of the true date and is exact over a wider range — its denominator divides
 	// `commonDenominator` — so it is the right quantity to test the limit with.
+	// The bound is this day's, not the month's, so it can accept day 30 of a month whose day 1 it
+	// refuses — where `resolveMonth` and `datesFor` refuse the whole month. That is deliberate.
 	assertExactJulianDay(
 		scaled,
-		floorDiv(meanDate(scaled, input.day, monthCount), scaled.meanDate.den),
+		floorDiv(meanDate(scaled, date.day, monthCount), scaled.meanDate.den),
 		subject,
 	);
 
-	const classification = classifyDay(scaled, input.day, monthCount);
+	const classification = classifyDay(scaled, date.day, monthCount);
 
-	if (classification.kind === "skipped") throw new SkippedDayError(input);
-	if (classification.kind === "doubled" && (input.isLeapDay ?? false)) {
-		return isoFromJulianDayUnchecked(classification.leapJulianDay as number);
+	if (classification.kind === "skipped") throw new SkippedDayError(date);
+	if (classification.kind === "doubled" && (date.isLeapDay ?? false)) {
+		return classification.leapJulianDay as number;
 	}
-	return isoFromJulianDayUnchecked(classification.julianDay as number);
+	return classification.julianDay as number;
 }
 
 /**
@@ -548,18 +598,14 @@ export function tibetanDateExists(
 	input: TibetanDateFields,
 	tradition: TraditionConfig = PHUGPA,
 ): boolean {
-	// These duplicate the same two guards inside tibetanToIso, and the reason is the *message*, not
-	// the behaviour. Both throw TCT_INVALID_ARGUMENT, which is absent from the allowlist below, so
-	// deleting these would still propagate rather than answer `false`. What would change is the
-	// wording: tibetanToIso names itself, so a caller who wrote tibetanDateExists(plainDate) would
-	// be told about a function they never called. The error-codes record asks a message to echo the
-	// call that was made, so the guards run here under this function's own name.
-	//
-	// Before the code split this duplication was load-bearing for correctness too — one code covered
-	// both meanings, so a Temporal instance caught inside the try was swallowed into `false`.
+	// The same order as tibetanToIso, under this function's own name. The shape and the tradition
+	// are checked outside the `try`, so a Temporal instance or a broken config throws rather than
+	// answering `false`; the range is checked inside it, and only after the tradition — checked
+	// first, a range error would be swallowed and a broken config reported as a missing date.
 	assertTibetanShape("tibetanDateExists", input, "date");
+	scalingFor(tradition);
 	try {
-		tibetanToIso(input, tradition);
+		julianDayOfFields(assertTibetanRanges("tibetanDateExists", input, "date"), tradition, input);
 		return true;
 	} catch (error) {
 		// Matched by class first, as before: SkippedDayError carries TCT_SKIPPED_DAY too, but the
