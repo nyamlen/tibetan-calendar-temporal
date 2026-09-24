@@ -520,9 +520,9 @@ years, and against what, is in
 ## API
 
 The complete surface, across all three entry points. Everything is a pure function over plain objects —
-same input, same output, no side effects. Wherever a `config?` parameter appears below it is a
-`TraditionConfig` defaulting to `PHUGPA`. A signature below with no `config?` and no `options?` takes
-no tradition at all: what it computes is the same in every shipped tradition.
+same input, same output, no side effects. Wherever a `config?` or `tradition?` parameter appears
+below it is a `TraditionConfig` defaulting to `PHUGPA`. A signature below with none of `config?`,
+`tradition?` and `options?` takes no tradition at all: what it computes is the same in every shipped tradition.
 
 The type declarations under `dist/` also describe internal modules; the `exports` map refuses a deep
 import of them, so what is listed here is the whole of what can be imported.
@@ -615,7 +615,7 @@ for (let y = 2140; y <= 2160; y++) {
 
 | Export | Signature | Notes |
 |---|---|---|
-| `monthNamesFor` | `(month: TibetanMonthFields, options?: { tradition? }) => MonthNames` | The month's lunar-mansion name, its Indian month name (`indianMonth`, Sanskrit: *māgha* for month 1, where the mansion is *maghā*), and its season in **all four** seasonal systems at once — `fourSeasons.month1LateWinter`, `fourSeasons.month1EarlySpring`, `fourSeasons.tigerEarlySpring` and `sixSeasons.month3EarlySpring` — because almanacs print several and no source makes one a tradition's only answer. The same `season` key names different months in different systems. `tigerEarlySpring` is `null` for a tradition without a sourced Tiger month (Bhutan). A leap month takes its regular month's names. See [the guide](docs/guide.md#naming-a-month) for the month-by-month table |
+| `monthNamesFor` | `(month: TibetanMonthFields, tradition?) => MonthNames` | The month's lunar-mansion name, its Indian month name (`indianMonth`, Sanskrit: *māgha* for month 1, where the mansion is *maghā*), and its season in **all four** seasonal systems at once — `fourSeasons.month1LateWinter`, `fourSeasons.month1EarlySpring`, `fourSeasons.tigerEarlySpring` and `sixSeasons.month3EarlySpring` — because almanacs print several and no source makes one a tradition's only answer. The same `season` key names different months in different systems. `tigerEarlySpring` is `null` for a tradition without a sourced Tiger month (Bhutan). A leap month takes its regular month's names. See [the guide](docs/guide.md#naming-a-month) for the month-by-month table |
 
 #### Formatting
 
@@ -679,7 +679,7 @@ a `code`, which is what to branch on rather than the type:
 | `TCT_INVALID_ARGUMENT` | the same functions, plus `parseTibetanDate` | The argument is the wrong *kind* of thing, so nothing in it is a field out of a range: a `Temporal.PlainDate` where a Tibetan date is expected, a bare `{ year, month, day }` where a Western date is expected, a non-boolean `isLeapMonth`/`isLeapDay`, `null`/`undefined`, or a string outside `parseTibetanDate`'s grammar. A bug in the calling code rather than bad data |
 | `TCT_NO_SUCH_LEAP_MONTH` | `tibetanToIso` | `isLeapMonth: true` for a month with no leap twin that year |
 | `TCT_OUTSIDE_EXACT_RANGE` | any conversion, and the closed-form year functions `hasLeapMonth`, `leapMonthNumberFor`, `monthsInYear` | Beyond where this tradition's integer arithmetic stays exact. For a conversion, `PHUGPA` and `BHUTAN` are exact from about ISO year −245,737 to 236,312; `PHUGPA_HENNING` and `BHUTAN_HENNING` from about −20,781 to 11,356. Both ranges end inside Temporal's own. The three year functions are closed forms with a bound of their own, far wider: `hasLeapMonth(300000)` answers |
-| `TCT_INVALID_TRADITION_CONFIG` | any function taking a config | The `TraditionConfig` is malformed. The message names the field |
+| `TCT_INVALID_TRADITION_CONFIG` | any function taking a tradition | The `TraditionConfig` is malformed, or is not one at all — `null`, or a `{ tradition }` bag passed where the config itself belongs. The message names the field |
 | `TCT_INVALID_OBSERVANCE_CONFIG` | `getObservances`, `observancesOn` | The `ObservanceConfig` or one of its rules is malformed |
 | `TCT_SPAN_TOO_WIDE` | `getObservances` | More than 200 years requested at once. Chunk it; the function is pure, so concatenating is correct |
 | `TCT_ATTRIBUTE_NOT_SOURCED` | `monthAttributesFor`, `lunarDayAttributesFor` | Your input is fine; no source gives this attribute for this tradition. Thrown under `BHUTAN` and `BHUTAN_HENNING`, whose month animals Janson does not tabulate. `attributesFor` reports the same gap as `null` instead |
@@ -722,24 +722,24 @@ Full detail: [docs/architecture.md](https://github.com/nyamlen/tibetan-calendar-
 
 ### `tibetan-calendar-temporal/astrology`
 
-A separate subpath, like `./observances`. `options` is `{ tradition? }`, defaulting to `PHUGPA`.
+A separate subpath, like `./observances`. `tradition?` is a `TraditionConfig`, defaulting to `PHUGPA`,
+passed last and positionally as on the root: `attributesFor(date, BHUTAN)`.
 
 | Export | Signature | Notes |
 |---|---|---|
-| `attributesFor` | `(date: Temporal.PlainDate \| TibetanDate, options?) => DayAttributes` | Everything about one day. `month` and `lunarDay` are `null` where unsourced |
+| `attributesFor` | `(date: Temporal.PlainDate \| TibetanDate, tradition?) => DayAttributes` | Everything about one day. `month` and `lunarDay` are `null` where unsourced |
 | `yearAttributesFor` | `(year: number) => YearAttributes` | Royal era, and no tradition: closed forms on the year alone |
-| `monthAttributesFor` | `(month: TibetanMonthFields, options?) => MonthAttributes` | Throws `TCT_ATTRIBUTE_NOT_SOURCED` for the Bhutanese configs |
-| `lunarDayAttributesFor` | `(date: TibetanDateFields, options?) => LunarDayAttributes` | Tibetan fields in, so a **skipped** lunar day can be asked about. Throws `TCT_ATTRIBUTE_NOT_SOURCED` for the Bhutanese configs |
+| `monthAttributesFor` | `(month: TibetanMonthFields, tradition?) => MonthAttributes` | Throws `TCT_ATTRIBUTE_NOT_SOURCED` for the Bhutanese configs |
+| `lunarDayAttributesFor` | `(date: TibetanDateFields, tradition?) => LunarDayAttributes` | Tibetan fields in, so a **skipped** lunar day can be asked about. Throws `TCT_ATTRIBUTE_NOT_SOURCED` for the Bhutanese configs |
 | `calendarDayAttributesFor` | `(date: Temporal.PlainDate \| TibetanDate) => CalendarDayAttributes` | Congruences on the Julian day; the number differs in Tsurphu calendars, which is not modelled |
-| `lunarMansionFor` | `(date: Temporal.PlainDate \| TibetanDate, options?) => LunarMansion` | `{ index, tibetanName, sanskritName, element }`, index 0–26 as Janson and Henning number them, and no English name, because no source prints one. Needs the moon's real position; a published almanac sometimes prints the next mansion, late in a mansion — how often is in [why-trust-these-dates.md](docs/why-trust-these-dates.md). |
-| `elementalYogaFor` | `(date: Temporal.PlainDate \| TibetanDate, options?) => ElementalYoga` | The weekday's element paired with the lunar mansion's |
+| `lunarMansionFor` | `(date: Temporal.PlainDate \| TibetanDate, tradition?) => LunarMansion` | `{ index, tibetanName, sanskritName, element }`, index 0–26 as Janson and Henning number them, and no English name, because no source prints one. Needs the moon's real position; a published almanac sometimes prints the next mansion, late in a mansion — how often is in [why-trust-these-dates.md](docs/why-trust-these-dates.md). |
+| `elementalYogaFor` | `(date: Temporal.PlainDate \| TibetanDate, tradition?) => ElementalYoga` | The weekday's element paired with the lunar mansion's |
 | `elementalYoga` | `(a: TibetanWeekdayElement, b: TibetanWeekdayElement) => ElementalYoga` | The pair alone, order-insensitive |
 | `ELEMENTAL_YOGAS` | | The ten, frozen: Henning's names, FPMT's favorability, and the *tshig mdzod chen mo*'s four-way grading as `auspiciousness` |
 | `LUNAR_MANSIONS` | | All 27, frozen, in index order — the table `lunarMansionFor` looks a day up in |
 
 Type-only exports: `DayAttributes`, `YearAttributes`, `MonthAttributes`, `LunarDayAttributes`,
-`CalendarDayAttributes`, `ElementalYoga`, `YogaAuspiciousness`, `TibetanTrigram`, `AstrologyQueryOptions`,
-`LunarMansion`.
+`CalendarDayAttributes`, `ElementalYoga`, `YogaAuspiciousness`, `TibetanTrigram`, `LunarMansion`.
 
 A date argument is a `Temporal.PlainDate` or a resolved `TibetanDate` — never loose
 `{ year, month, day }`, which is a value of both calendars and would make the ambiguity silent.

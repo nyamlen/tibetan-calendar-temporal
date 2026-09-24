@@ -304,10 +304,10 @@ describe("guide examples", () => {
 		});
 
 		it("is right that Bhutan reports null and the primitive throws", () => {
-			expect(attributesFor(iso("2026-09-01"), { tradition: BHUTAN }).month).toBeNull();
+			expect(attributesFor(iso("2026-09-01"), BHUTAN).month).toBeNull();
 			let thrown: unknown;
 			try {
-				monthAttributesFor({ year: 2153, month: 1 }, { tradition: BHUTAN });
+				monthAttributesFor({ year: 2153, month: 1 }, BHUTAN);
 			} catch (error) {
 				thrown = error;
 			}
@@ -372,7 +372,7 @@ describe("guide examples", () => {
 			expect(springs((m) => of(m).fourSeasons.month1EarlySpring)).toEqual([1, 2, 3]);
 			expect(springs((m) => of(m).sixSeasons.month3EarlySpring)).toEqual([3, 4]);
 			expect(
-				monthNamesFor({ year: 2153, month: 1 }, { tradition: BHUTAN }).fourSeasons.tigerEarlySpring,
+				monthNamesFor({ year: 2153, month: 1 }, BHUTAN).fourSeasons.tigerEarlySpring,
 			).toBeNull();
 			const month1 = of(1).sixSeasons.month3EarlySpring;
 			expect([month1.season, month1.part, month1.tibetanName.wylie]).toEqual([

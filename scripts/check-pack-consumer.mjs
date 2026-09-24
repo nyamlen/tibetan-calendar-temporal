@@ -76,8 +76,7 @@ check(
 	"astrology subpath reported Phugpa's month or lunar-day attributes as unsourced",
 );
 check(
-	astrology.attributesFor(Temporal.PlainDate.from("2026-09-01"), { tradition: api.BHUTAN })
-		.month === null,
+	astrology.attributesFor(Temporal.PlainDate.from("2026-09-01"), api.BHUTAN).month === null,
 	"astrology subpath did not report BHUTAN's month attributes as unsourced",
 );
 check(astrology.ELEMENTAL_YOGAS.length === 10, "the yoga table did not survive packing");

@@ -472,19 +472,20 @@ derivation; in `docs/` they are just noise.
   barrel's runtime exports against the *Export* column of its README section's API tables, and the
   error table against the `TibetanCalendarErrorCode` union — the polyfill probe found the configs
   table listing two of four and the error table a code short. **A type declared in a barrel is invisible to it**, because it
-  reads `export type { … } from` blocks: that is why `DayAttributes` and `AstrologyQueryOptions` live
-  in `src/astrology/types.ts` rather than in the barrel, and the rule is what found them there. **It does
+  reads `export type { … } from` blocks: that is why `DayAttributes` lives
+  in `src/astrology/types.ts` rather than in the barrel — as `AstrologyQueryOptions` did until it was
+  removed on 2026-09-24 — and the rule is what found them there. **It does
   not close the prose half.** A sentence describing a type's *fields* is still unguarded: the same
   README called `rabjungFor`'s `name` "the Tibetan and Sanskrit name" for hours after the Sanskrit
   came off, and the grep that found the stale list named the removed types rather than the field, so
   it sailed past. Removing or renaming a type therefore still needs the hand sweep for everything
-  except the list — `docs/architecture.md`'s shapes (**26** exported types defined as interface
+  except the list — `docs/architecture.md`'s shapes (**25** exported types defined as interface
   blocks, plus `SanskritName`, `TibetanAnimal`, `TibetanElement`, `TibetanGender`, `TibetanName`, `TibetanWeekday`,
   `TibetanWeekdayName` and `TibetanYearName` named in field positions), `docs/guide.md` (4), and any
   docblock naming it. This figure read 7 until 2026-08-26, 10 until 2026-08-27, and moved twice on
   2026-09-12 — 13 when `TraditionNaming` and `TraditionMonthNaming` gained shapes, then 20 with the
   seven `./astrology` ones — and to 21 on 2026-09-13, when `TraditionMonthNaming` split into
-  `TraditionMonthAnimals` and `TraditionNineNumbers`, and to 24 on 2026-09-14 with `monthNamesFor`'s three result types, then 25 with `LunarMansion`, and to 26 with `YogaAuspiciousness`; it moves whenever
+  `TraditionMonthAnimals` and `TraditionNineNumbers`, and to 24 on 2026-09-14 with `monthNamesFor`'s three result types, then 25 with `LunarMansion`, and to 26 with `YogaAuspiciousness`, and back to 25 on 2026-09-24 when `AstrologyQueryOptions` was removed; it moves whenever
   a shape is added, so **re-count it rather than trusting the number written here** — the count is
   `grep -c '^interface ' docs/architecture.md`.
 

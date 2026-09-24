@@ -924,10 +924,9 @@ describe("why-trust-these-dates claims", () => {
 
 	it("refuses month and lunar-day attributes for both Bhutanese traditions", () => {
 		const codes = [BHUTAN, BHUTAN_HENNING].flatMap((tradition) => [
-			thrownBy(() => astrology.monthAttributesFor({ year: 2153, month: 1 }, { tradition }))?.code,
-			thrownBy(() =>
-				astrology.lunarDayAttributesFor({ year: 2153, month: 1, day: 1 }, { tradition }),
-			)?.code,
+			thrownBy(() => astrology.monthAttributesFor({ year: 2153, month: 1 }, tradition))?.code,
+			thrownBy(() => astrology.lunarDayAttributesFor({ year: 2153, month: 1, day: 1 }, tradition))
+				?.code,
 		]);
 		expect(codes).toEqual(Array(4).fill("TCT_ATTRIBUTE_NOT_SOURCED"));
 	});

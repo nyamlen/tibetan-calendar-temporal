@@ -21,7 +21,7 @@
  */
 
 import { mod } from "./computation/arithmetic.js";
-import { assertInternal, assertQueryOptions } from "./errors.js";
+import { assertInternal } from "./errors.js";
 import { deepFreeze } from "./freeze.js";
 import { daysInMonth } from "./months.js";
 import { PHUGPA } from "./traditions/phugpa.js";
@@ -335,14 +335,15 @@ export function monthsAfterTigerMonth(config: TraditionConfig, month: number): n
  * year.
  *
  * **`tradition` defaults to `PHUGPA`**, as everywhere in this package, and a `TibetanMonthFields`
- * carries no tradition of its own. So a Bhutanese caller who omits the option gets Phugpa's
+ * carries no tradition of its own. So a Bhutanese caller who omits it gets Phugpa's
  * `tigerEarlySpring` rather than `null`, and a Bhutanese leap month can fail Phugpa's leap check. Pass
  * the tradition. Janson's Bhutan appendix says only that month names "exist as in Tibet, … but are
  * usually not used", and does not say which seasonal version.
  *
  * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` for a non-integer or out-of-range field;
- * `TCT_INVALID_ARGUMENT` if `month` is not an object naming a Tibetan month or `options` is not a non-array
- * object; `TCT_INVALID_TRADITION_CONFIG` if `tradition` is not a valid config; `TCT_NO_SUCH_LEAP_MONTH` if `isLeapMonth` is set for a month with no leap twin that year; or
+ * `TCT_INVALID_ARGUMENT` if `month` is not an object naming a Tibetan month;
+ * `TCT_INVALID_TRADITION_CONFIG` if `tradition` is not a valid config — which is also what a
+ * `{ tradition }` bag gets, since 2026-09-24, when the tradition became positional; `TCT_NO_SUCH_LEAP_MONTH` if `isLeapMonth` is set for a month with no leap twin that year; or
  * `TCT_OUTSIDE_EXACT_RANGE` past the tradition's exact range.
  *
  * @example
@@ -357,16 +358,14 @@ export function monthsAfterTigerMonth(config: TraditionConfig, month: number): n
  * names.fourSeasons.tigerEarlySpring?.part;          // "late" — Phugpa's Tiger month is month 11
  * names.sixSeasons.month3EarlySpring.season;         // "dewy"
  *
- * monthNamesFor({ year: 2153, month: 1 }, { tradition: BHUTAN }).fourSeasons.tigerEarlySpring;
+ * monthNamesFor({ year: 2153, month: 1 }, BHUTAN).fourSeasons.tigerEarlySpring;
  * // null
  * ```
  */
 export function monthNamesFor(
 	month: TibetanMonthFields,
-	options: { readonly tradition?: TraditionConfig } = {},
+	tradition: TraditionConfig = PHUGPA,
 ): MonthNames {
-	assertQueryOptions("monthNamesFor", "{ tradition }", options);
-	const tradition = options.tradition === undefined ? PHUGPA : options.tradition;
 	rejectTemporalInstance("monthNamesFor", month);
 	rejectInvalidLeapFlags("monthNamesFor", month);
 	rejectMissingFields("monthNamesFor", month, ["year", "month"]);

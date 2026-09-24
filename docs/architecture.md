@@ -129,7 +129,7 @@ tibetan-calendar-temporal/
 │   │   └── default-observances.ts  # DEFAULT_OBSERVANCES — FPMT's published rules, each cited
 │   ├── astrology/                  # Janson's Appendix E (Layer 4) — one concern per file
 │   │   ├── index.ts                # the six *For entry points and the composition
-│   │   ├── types.ts                # DayAttributes, AstrologyQueryOptions — the surface's own
+│   │   ├── types.ts                # DayAttributes, LunarMansion — the surface's own
 │   │   ├── year.ts                 # the year's five elements and three numbers
 │   │   ├── month.ts                # the month's animal, gender, element; Tsurphu's number
 │   │   ├── lunar-day.ts            # the lunar day's animal, element, trigram, number
@@ -436,10 +436,6 @@ interface LunarMansion {
   tibetanName: TibetanName;       // the Mahāvyutpatti's; no englishName, because no source prints one
   sanskritName: SanskritName;     // the Mahāvyutpatti's form as a stem; 22 and 23 paired as Das pairs them
   element: TibetanWeekdayElement; // Henning's table
-}
-
-interface AstrologyQueryOptions {
-  tradition?: TraditionConfig;
 }
 ```
 

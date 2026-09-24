@@ -270,7 +270,7 @@ describe("error codes", () => {
 		// Reachable as of 2026-09-12, when ./astrology landed. Before that it sat in the unreachable
 		// list below: the code existed and the modules threw it, but nothing exported them.
 		TCT_ATTRIBUTE_NOT_SOURCED: () =>
-			astrology.monthAttributesFor({ year: 2153, month: 1 }, { tradition: api.BHUTAN }),
+			astrology.monthAttributesFor({ year: 2153, month: 1 }, api.BHUTAN),
 	};
 
 	it("throws each reachable code from the public API", () => {
@@ -741,7 +741,7 @@ describe("astrology API surface", () => {
 	});
 
 	it("reports the Bhutanese gap as null rather than refusing the whole day", () => {
-		const attributes = astrology.attributesFor(day, { tradition: api.BHUTAN });
+		const attributes = astrology.attributesFor(day, api.BHUTAN);
 		expect(attributes.month).toBeNull();
 		expect(attributes.lunarDay).toBeNull();
 		// Everything tradition-free still answers, which is the point of reporting rather than throwing.
@@ -759,18 +759,11 @@ describe("astrology API surface", () => {
 				return (error as { code?: string }).code;
 			}
 		};
+		expect(codeOf(() => astrology.monthAttributesFor({ year: 2153, month: 1 }, api.BHUTAN))).toBe(
+			"TCT_ATTRIBUTE_NOT_SOURCED",
+		);
 		expect(
-			codeOf(() =>
-				astrology.monthAttributesFor({ year: 2153, month: 1 }, { tradition: api.BHUTAN }),
-			),
-		).toBe("TCT_ATTRIBUTE_NOT_SOURCED");
-		expect(
-			codeOf(() =>
-				astrology.lunarDayAttributesFor(
-					{ year: 2153, month: 1, day: 1 },
-					{ tradition: api.BHUTAN },
-				),
-			),
+			codeOf(() => astrology.lunarDayAttributesFor({ year: 2153, month: 1, day: 1 }, api.BHUTAN)),
 		).toBe("TCT_ATTRIBUTE_NOT_SOURCED");
 	});
 
@@ -791,7 +784,7 @@ describe("astrology API surface", () => {
 		expect(codeOf(() => astrology.elementalYogaFor(bare))).toBe("TCT_INVALID_ARGUMENT");
 	});
 
-	it("guards the options bag itself, and reads it with === undefined", () => {
+	it("reaches the config validator for any tradition that is not a config", () => {
 		const codeOf = (call: () => unknown) => {
 			try {
 				call();
@@ -800,10 +793,12 @@ describe("astrology API surface", () => {
 				return (error as { code?: string }).code;
 			}
 		};
-		// `null` options is a malformed argument, not an absent one — the failure `??` would hide.
-		expect(codeOf(() => astrology.attributesFor(day, null as never))).toBe("TCT_INVALID_ARGUMENT");
-		// An explicit `{ tradition: null }` must reach the config validator rather than defaulting.
-		expect(codeOf(() => astrology.attributesFor(day, { tradition: null as never }))).toBe(
+		// `null` is a malformed tradition, not an absent one; only `undefined` takes the default.
+		expect(codeOf(() => astrology.attributesFor(day, null as never))).toBe(
+			"TCT_INVALID_TRADITION_CONFIG",
+		);
+		// The pre-2026-09-24 bag shape is refused rather than read as a config or ignored.
+		expect(codeOf(() => astrology.attributesFor(day, { tradition: api.BHUTAN } as never))).toBe(
 			"TCT_INVALID_TRADITION_CONFIG",
 		);
 	});

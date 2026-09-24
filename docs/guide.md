@@ -324,13 +324,14 @@ reports `null`: a specific question with no answer is an error, while "what is k
 is not.
 
 ```js
-attributesFor(date, { tradition: BHUTAN }).month;  // null
-monthAttributesFor({ year: 2153, month: 1 }, { tradition: BHUTAN });  // throws
+attributesFor(date, BHUTAN).month;  // null
+monthAttributesFor({ year: 2153, month: 1 }, BHUTAN);  // throws
 ```
 
-The options bag is the same `{ tradition }` as everywhere else, and there is no `config` key here —
-nothing in this layer is an institution's convention except favorability, which ships as a table
-rather than as configuration, because no source disagrees with FPMT about it yet.
+The tradition is the last argument, passed positionally, exactly as on the root — the tradition is
+this layer's only choice, and a function with one choice takes it that way. There is no observance
+config here: nothing in this layer is an institution's convention except favorability, which ships
+as a table rather than as configuration, because no source disagrees with FPMT about it yet.
 
 ### Customising observances
 

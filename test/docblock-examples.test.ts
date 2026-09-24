@@ -163,7 +163,7 @@ describe("docblock examples", () => {
 			expect(names.fourSeasons.tigerEarlySpring?.part).toBe("late");
 			expect(names.sixSeasons.month3EarlySpring.season).toBe("dewy");
 			expect(
-				monthNamesFor({ year: 2153, month: 1 }, { tradition: BHUTAN }).fourSeasons.tigerEarlySpring,
+				monthNamesFor({ year: 2153, month: 1 }, BHUTAN).fourSeasons.tigerEarlySpring,
 			).toBeNull();
 		});
 	});

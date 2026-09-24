@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { describe as describeValue } from "../src/errors.js";
-import { addMonthsToDate, monthNamesFor } from "../src/index.js";
+import { addMonthsToDate } from "../src/index.js";
 import { getObservances } from "../src/observances/index.js";
 import { thrownBy } from "./support/thrown.js";
 
@@ -32,7 +32,6 @@ describe("the options guards' messages", () => {
 		["addMonthsToDate's bag", () => addMonthsToDate(LOSAR, 1, 10n as never)],
 		["addMonthsToDate's overflow", () => addMonthsToDate(LOSAR, 1, { overflow: 10n as never })],
 		["getObservances' bag", () => getObservances(ISO, ISO, 10n as never)],
-		["monthNamesFor's bag", () => monthNamesFor({ year: 2153, month: 1 }, 10n as never)],
 	])("refuses a bigint in %s with a code", (_, call) => {
 		expect(thrownBy(call)?.code).toBe("TCT_INVALID_ARGUMENT");
 	});

@@ -47,7 +47,7 @@ import { trueMonthCount } from "../computation/calendar.js";
 import { asWesternDay, isoToTibetan, julianDayFromIso } from "../computation/conversion.js";
 import { yearFromRoyalEra } from "../computation/epoch.js";
 import { scalingFor } from "../computation/scaling.js";
-import { assertQueryOptions, rangeError } from "../errors.js";
+import { rangeError } from "../errors.js";
 import { deepFreeze } from "../freeze.js";
 import { daysInMonth } from "../months.js";
 import { weekdayNameWithOffset } from "../names.js";
@@ -68,14 +68,14 @@ import { mansionElement } from "./mansion-elements.js";
 import { mansionNames } from "./mansion-names.js";
 import { MANSION_COUNT, mansionNumber } from "./mansions.js";
 import { type MonthAttributes, monthAttributes } from "./month.js";
-import type { AstrologyQueryOptions, DayAttributes, LunarMansion } from "./types.js";
+import type { DayAttributes, LunarMansion } from "./types.js";
 import { type YearAttributes, yearAttributes } from "./year.js";
 import { type ElementalYoga, yogaForMansion } from "./yoga.js";
 
 export type { CalendarDayAttributes, TibetanTrigram } from "./calendar-day.js";
 export type { LunarDayAttributes } from "./lunar-day.js";
 export type { MonthAttributes } from "./month.js";
-export type { AstrologyQueryOptions, DayAttributes, LunarMansion } from "./types.js";
+export type { DayAttributes, LunarMansion } from "./types.js";
 export type { YearAttributes } from "./year.js";
 export type { ElementalYoga, YogaAuspiciousness } from "./yoga.js";
 export { ELEMENTAL_YOGAS, elementalYoga } from "./yoga.js";
@@ -102,14 +102,6 @@ export const LUNAR_MANSIONS: readonly LunarMansion[] = deepFreeze(
 		return { index, tibetanName, sanskritName, element: mansionElement(index) };
 	}),
 );
-
-function traditionFrom(functionName: string, options: AstrologyQueryOptions): TraditionConfig {
-	assertQueryOptions(functionName, "{ tradition }", options);
-	const tradition = options.tradition === undefined ? PHUGPA : options.tradition;
-	// Validates the config and memoises the scaling, exactly as every other entry point does.
-	scalingFor(tradition);
-	return tradition;
-}
 
 /**
  * The five elements and three numbers of a Tibetan year.
@@ -162,7 +154,8 @@ export function yearAttributesFor(year: number): YearAttributes {
  * `number` is `null` for Phugpa: Janson states that only Tsurphu calendars number their months.
  *
  * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` for a non-integer or out-of-range field;
- * `TCT_INVALID_ARGUMENT` if `month` is not an object naming a Tibetan month; `TCT_NO_SUCH_LEAP_MONTH`
+ * `TCT_INVALID_ARGUMENT` if `month` is not an object naming a Tibetan month;
+ * `TCT_INVALID_TRADITION_CONFIG` if `tradition` is not a valid config; `TCT_NO_SUCH_LEAP_MONTH`
  * if `isLeapMonth` is set for a month with no leap twin that year; `TCT_OUTSIDE_EXACT_RANGE` past the
  * tradition's exact range; or **`TCT_ATTRIBUTE_NOT_SOURCED`** for a tradition whose month attributes
  * no source gives — `BHUTAN` and `BHUTAN_HENNING`, today.
@@ -176,9 +169,10 @@ export function yearAttributesFor(year: number): YearAttributes {
  */
 export function monthAttributesFor(
 	month: TibetanMonthFields,
-	options: AstrologyQueryOptions = {},
+	tradition: TraditionConfig = PHUGPA,
 ): MonthAttributes {
-	const tradition = traditionFrom("monthAttributesFor", options);
+	// Validated first, as every root function does, so a bad tradition is reported before a bad date.
+	scalingFor(tradition);
 	rejectTemporalInstance("monthAttributesFor", month);
 	rejectInvalidLeapFlags("monthAttributesFor", month);
 	rejectMissingFields("monthAttributesFor", month, ["year", "month"]);
@@ -209,7 +203,8 @@ export function monthAttributesFor(
  * tradition-free.
  *
  * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` for a non-integer or out-of-range field;
- * `TCT_INVALID_ARGUMENT` if `date` is not an object naming a Tibetan date; `TCT_NO_SUCH_LEAP_MONTH`
+ * `TCT_INVALID_ARGUMENT` if `date` is not an object naming a Tibetan date;
+ * `TCT_INVALID_TRADITION_CONFIG` if `tradition` is not a valid config; `TCT_NO_SUCH_LEAP_MONTH`
  * if `isLeapMonth` is set for a month with no leap twin that year; `TCT_OUTSIDE_EXACT_RANGE` past the
  * tradition's exact range; or **`TCT_ATTRIBUTE_NOT_SOURCED`** for a tradition whose month attributes
  * no source gives.
@@ -223,9 +218,9 @@ export function monthAttributesFor(
  */
 export function lunarDayAttributesFor(
 	date: TibetanDateFields,
-	options: AstrologyQueryOptions = {},
+	tradition: TraditionConfig = PHUGPA,
 ): LunarDayAttributes {
-	const tradition = traditionFrom("lunarDayAttributesFor", options);
+	scalingFor(tradition);
 	rejectTemporalInstance("lunarDayAttributesFor", date);
 	rejectInvalidLeapFlags("lunarDayAttributesFor", date);
 	rejectMissingFields("lunarDayAttributesFor", date, ["year", "month", "day"]);
@@ -289,7 +284,8 @@ export function calendarDayAttributesFor(
  * carries `isLeapDay`, the flag that says which half it is.
  *
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` for an argument that names no calendar day;
- * `TCT_OUTSIDE_EXACT_RANGE` past the tradition's exact range.
+ * `TCT_INVALID_TRADITION_CONFIG` for an invalid `tradition`; `TCT_OUTSIDE_EXACT_RANGE` past the
+ * tradition's exact range.
  *
  * @example
  * ```ts
@@ -299,9 +295,9 @@ export function calendarDayAttributesFor(
  */
 export function elementalYogaFor(
 	date: Temporal.PlainDate | TibetanDate,
-	options: AstrologyQueryOptions = {},
+	tradition: TraditionConfig = PHUGPA,
 ): ElementalYoga {
-	const tradition = traditionFrom("elementalYogaFor", options);
+	scalingFor(tradition);
 	const resolved = isoToTibetan(isoOf("elementalYogaFor", date), tradition);
 	return yogaOf(resolved, tradition);
 }
@@ -338,9 +334,9 @@ export function elementalYogaFor(
  */
 export function lunarMansionFor(
 	date: Temporal.PlainDate | TibetanDate,
-	options: AstrologyQueryOptions = {},
+	tradition: TraditionConfig = PHUGPA,
 ): LunarMansion {
-	const tradition = traditionFrom("lunarMansionFor", options);
+	scalingFor(tradition);
 	return lunarMansionOf(isoToTibetan(isoOf("lunarMansionFor", date), tradition), tradition);
 }
 
@@ -358,7 +354,8 @@ export function lunarMansionFor(
  * `yoga` can. Anyone who has not met the two-clocks point reads that as a bug; it is the point.
  *
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` for an argument that names no calendar day;
- * `TCT_OUTSIDE_EXACT_RANGE` past the tradition's exact range. **Never**
+ * `TCT_INVALID_TRADITION_CONFIG` for an invalid `tradition`; `TCT_OUTSIDE_EXACT_RANGE` past the
+ * tradition's exact range. **Never**
  * `TCT_ATTRIBUTE_NOT_SOURCED`: this reports an unsourced attribute as `null` rather than refusing.
  *
  * @example
@@ -371,9 +368,9 @@ export function lunarMansionFor(
  */
 export function attributesFor(
 	date: Temporal.PlainDate | TibetanDate,
-	options: AstrologyQueryOptions = {},
+	tradition: TraditionConfig = PHUGPA,
 ): DayAttributes {
-	const tradition = traditionFrom("attributesFor", options);
+	scalingFor(tradition);
 	const resolved = isoToTibetan(isoOf("attributesFor", date), tradition);
 	const y = yearFromRoyalEra(resolved.year);
 

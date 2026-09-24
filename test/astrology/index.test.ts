@@ -162,9 +162,9 @@ describe("the year entry point", () => {
 		// `PHUGPA_HENNING` rather than `PHUGPA`: its exact range is the narrower of the two, because its
 		// `a₂` denominator is 105,840 against Phugpa's 28. Phugpa itself still converts this date, which
 		// is why the suite that pins this code uses Henning's config too.
-		expect(
-			thrownBy(() => attributesFor(iso("+012000-01-01"), { tradition: PHUGPA_HENNING }))?.code,
-		).toBe("TCT_OUTSIDE_EXACT_RANGE");
+		expect(thrownBy(() => attributesFor(iso("+012000-01-01"), PHUGPA_HENNING))?.code).toBe(
+			"TCT_OUTSIDE_EXACT_RANGE",
+		);
 	});
 });
 describe("the yoga's weekday element is tradition-free", () => {
@@ -187,7 +187,7 @@ describe("the yoga's weekday element is tradition-free", () => {
 			// weekday table gives for that weekday number.
 			const shifted = weekdayNameFor(resolved.tibetanWeekday, BHUTAN).element;
 			const unshifted = weekdayNameFor(resolved.tibetanWeekday, PHUGPA).element;
-			const yoga = elementalYogaFor(day, { tradition: BHUTAN });
+			const yoga = elementalYogaFor(day, BHUTAN);
 			if (!yoga.elements.includes(unshifted)) {
 				bad.push(`${day}: ${yoga.elements.join("+")} omits ${unshifted}`);
 			}
@@ -207,8 +207,8 @@ describe("the yoga's weekday element is tradition-free", () => {
 		let differing = 0;
 		for (let i = 0; i < 28; i++) {
 			if (
-				elementalYogaFor(day, { tradition: PHUGPA }).sanskritName.iast !==
-				elementalYogaFor(day, { tradition: BHUTAN }).sanskritName.iast
+				elementalYogaFor(day, PHUGPA).sanskritName.iast !==
+				elementalYogaFor(day, BHUTAN).sanskritName.iast
 			) {
 				differing++;
 			}
@@ -324,9 +324,38 @@ describe("the lunar mansion for a date", () => {
 		);
 	});
 
-	it("guards its options bag", () => {
-		expect(thrownBy(() => lunarMansionFor(iso("2026-09-01"), null as never))?.code).toBe(
-			"TCT_INVALID_ARGUMENT",
+	it("refuses a malformed tradition with the config code, as every root function does", () => {
+		// Until 2026-09-24 the tradition came in a `{ tradition }` bag, and a bad bag got
+		// TCT_INVALID_ARGUMENT from the bag guard. Positional, it reaches the config validator.
+		for (const tradition of [null, 5, [], { tradition: BHUTAN }]) {
+			expect(
+				thrownBy(() => lunarMansionFor(iso("2026-09-01"), tradition as never))?.code,
+				JSON.stringify(tradition),
+			).toBe("TCT_INVALID_TRADITION_CONFIG");
+		}
+	});
+});
+
+describe("the tradition is the last parameter, positional", () => {
+	// Until 2026-09-24 these took `{ tradition }`, and from plain JavaScript a positional BHUTAN was
+	// read as an empty bag and silently answered Phugpa's. Each pin is a value that differs.
+	it("answers Bhutan's month as null in the composition", () => {
+		expect(attributesFor(iso("2026-09-01"), BHUTAN).month).toBeNull();
+		expect(attributesFor(iso("2026-09-01"), BHUTAN).lunarDay).toBeNull();
+	});
+
+	it("refuses Bhutan's unsourced month and lunar-day attributes", () => {
+		expect(thrownBy(() => monthAttributesFor({ year: 2153, month: 1 }, BHUTAN))?.code).toBe(
+			"TCT_ATTRIBUTE_NOT_SOURCED",
 		);
+		expect(
+			thrownBy(() => lunarDayAttributesFor({ year: 2153, month: 1, day: 1 }, BHUTAN))?.code,
+		).toBe("TCT_ATTRIBUTE_NOT_SOURCED");
+	});
+
+	it("gives Bhutan's mansion where it differs from Phugpa's", () => {
+		// 8 September 2026: Phugpa's month count puts the moon in mansion 6, Bhutan's in 7.
+		expect(lunarMansionFor(iso("2026-09-08")).index).toBe(6);
+		expect(lunarMansionFor(iso("2026-09-08"), BHUTAN).index).toBe(7);
 	});
 });

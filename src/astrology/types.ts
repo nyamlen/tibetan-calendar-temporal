@@ -1,11 +1,12 @@
 /**
- * The two types that belong to the `./astrology` **surface** rather than to any one computation.
+ * The two types of the `./astrology` surface that no one computation produces.
  *
  * @remarks
  * Every other type here sits beside the arithmetic that produces it — `YearAttributes` in `year.ts`,
  * `MonthAttributes` in `month.ts`, and so on — because each is that module's answer. These two are
- * different: one is the shape of a question a caller asks, the other the shape of the composed
- * answer, and neither is produced by a single module.
+ * different: `LunarMansion` is composed from three sources, and `DayAttributes` is the composed
+ * answer of `attributesFor`. A third, `AstrologyQueryOptions`, lived here until 2026-09-24, when
+ * the tradition became a positional parameter.
  *
  * They live here rather than in the barrel for the reason `./observances` does the same: a barrel
  * re-exports, and `check:conventions` rule 13 compares the README's type lists against what each
@@ -16,26 +17,12 @@
  * @packageDocumentation
  */
 
-import type { TraditionConfig } from "../traditions/types.js";
 import type { SanskritName, TibetanDate, TibetanName, TibetanWeekdayElement } from "../types.js";
 import type { CalendarDayAttributes } from "./calendar-day.js";
 import type { LunarDayAttributes } from "./lunar-day.js";
 import type { MonthAttributes } from "./month.js";
 import type { YearAttributes } from "./year.js";
 import type { ElementalYoga } from "./yoga.js";
-
-/**
- * Which tradition's conventions to use.
- *
- * @remarks
- * An options bag rather than a positional parameter, matching `./observances` — the pattern this
- * package settled on 2026-08-26, so a caller never has to write `undefined` to skip one axis of
- * choice and reach another.
- */
-export interface AstrologyQueryOptions {
-	/** Astronomical constants and naming rules. Defaults to `PHUGPA`. */
-	tradition?: TraditionConfig;
-}
 
 /**
  * The lunar mansion the moon is in at the start of a calendar day.

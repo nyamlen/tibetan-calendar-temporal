@@ -167,7 +167,7 @@ describe("the elemental yoga against FPMT's day-quality codes", () => {
 		const bad = yogaDays
 			.filter((day) => {
 				const index = mansionNumber(scaled, day.date.day, day.monthCount, day.date.isLeapDay);
-				const exported = lunarMansionFor(iso(day.iso), { tradition: PHUGPA });
+				const exported = lunarMansionFor(iso(day.iso), PHUGPA);
 				return exported.index !== index || exported.element !== mansionElement(index);
 			})
 			.map((day) => day.iso);

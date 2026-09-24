@@ -17,7 +17,7 @@ import { VERSION_CONFIGS } from "./support/versions.js";
 
 const MONTHS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 const namesOf = (month: number, tradition = PHUGPA) =>
-	monthNamesFor({ year: 2153, month }, { tradition });
+	monthNamesFor({ year: 2153, month }, tradition);
 
 /** Janson writes "mid-spring"; the key spells the part out. */
 const jansonWords = (entry: { season: string; part: string } | null) =>
@@ -328,35 +328,21 @@ describe("a leap month", () => {
 	});
 });
 
+const CONFIG = "TCT_INVALID_TRADITION_CONFIG";
+
 describe("the guard", () => {
 	it.each([
+		// Since 2026-09-24 the tradition is positional, so anything that is not a TraditionConfig —
+		// including the old `{ tradition }` bag — reaches the config validator. Before, a bag guard
+		// answered TCT_INVALID_ARGUMENT for the first four.
+		["a null tradition", () => monthNamesFor({ year: 2153, month: 1 }, null as never), CONFIG],
+		["a number", () => monthNamesFor({ year: 2153, month: 1 }, 5 as never), CONFIG],
+		["an array", () => monthNamesFor({ year: 2153, month: 1 }, [] as never), CONFIG],
+		["a bigint", () => monthNamesFor({ year: 2153, month: 1 }, 10n as never), CONFIG],
 		[
-			"null options",
-			() => monthNamesFor({ year: 2153, month: 1 }, null as never),
-			"TCT_INVALID_ARGUMENT",
-		],
-		[
-			"non-object options",
-			() => monthNamesFor({ year: 2153, month: 1 }, 5 as never),
-			"TCT_INVALID_ARGUMENT",
-		],
-		[
-			// Its private guard was a fifth copy of assertQueryOptions without the array refusal, so a
-			// point-free map answered; found by review 2026-09-24.
-			"an array as options",
-			() => monthNamesFor({ year: 2153, month: 1 }, [] as never),
-			"TCT_INVALID_ARGUMENT",
-		],
-		[
-			"a bigint as options",
-			() => monthNamesFor({ year: 2153, month: 1 }, 10n as never),
-			"TCT_INVALID_ARGUMENT",
-		],
-		[
-			"a null tradition",
-			// Reaches the config validator rather than being replaced by PHUGPA — the `=== undefined` read.
-			() => monthNamesFor({ year: 2153, month: 1 }, { tradition: null as never }),
-			"TCT_INVALID_TRADITION_CONFIG",
+			"the old { tradition } bag",
+			() => monthNamesFor({ year: 2153, month: 1 }, { tradition: BHUTAN } as never),
+			CONFIG,
 		],
 		[
 			"a Temporal date",
