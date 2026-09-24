@@ -342,6 +342,13 @@ derivation; in `docs/` they are just noise.
   function wearing the same name. `phaseStart` and `isoOf` became `asWesternDay` in
   `computation/conversion.ts`.
 
+  **And there was a fifth, found 2026-09-24**, so "all four" was the count of what had been found.
+  `month-names.ts` carried a private `assertOptions`, the options guard again with a different body
+  — invisible to rule 14 for the same reason as `phaseStart` — and it missed the array refusal
+  `assertQueryOptions` had gained the day before, so `monthNamesFor(m, [])` answered. An adversarial
+  review of an unrelated plan found it by grepping for `JSON.stringify` in messages, which is what the
+  copies shared. It now calls `assertQueryOptions`.
+
   **A justification for dropping a branch has to hold for every caller, not the one you are looking
   at** — and this passage stated the bad one for a day. The merge dropped `describeValue`'s
   `constructor?.name` arm because "it existed to name a `Temporal.PlainDate`, and `temporalTypeNameOf`

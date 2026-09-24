@@ -647,14 +647,23 @@ that its first step is still open.
       with ours where checked, including a skipped 15th, but agreement from inside a lineage already
       represented is not evidence. **A negative result is a result**: if the lineage cannot be
       established from public material, write that down in `validation-sources.md`'s tried-and-rejected
-      list so the same source is not re-evaluated. Blocks any use of it as a fourth Phugpa cross-check
+      list so the same source is not re-evaluated. Blocks any use of it as a fourth Phugpa cross-check.
+      **A lead since 2026-09-24:** its App Store listing names the printed Buryat almanacs it was
+      verified against — Yampilov-Galsanov's "Zurkhai-3" and Atsagatsky Datsan publications — which
+      says what it was checked against, not how it computes, and a Buryat almanac may follow the
+      Mongolian version Janson distinguishes from Phugpa. Details in
+      [almanac-sources.md](almanac-sources.md)'s open questions
 
-- [ ] **Read Zurkhai's App Store metadata and complete its
+- [x] **Read Zurkhai's App Store metadata and complete its
       [other-implementations.md](other-implementations.md) entry.** `apps.apple.com/us/app/id6772695315`
       returned HTTP 429 on both attempts on 2026-09-10, so seller, version, release date and
       description are unknown, and that file's discipline is that every claim carries a source and an
       access date. The entry is written and marked incomplete rather than left out. Small; needs only
-      a successful fetch
+      a successful fetch.
+      **Done 2026-09-24**, through Apple's lookup API rather than the store page: seller Nikolai
+      Tsyrenov, first released 27 May 2026, version 1.5. The description names two printed Buryat
+      almanacs the app was "verified against" — recorded as a lead under the lineage item above, not
+      as its answer
 
 **Documentation**
 
@@ -1312,7 +1321,10 @@ nothing and reports success.
       `publint` and `attw` check the manifest; only `test:pack` proves the built JavaScript runs.
       Writing it immediately found that `./package.json` is not in the `exports` map — correct, as
       it happens, but nothing had established that either way
-- [ ] **Nothing builds before packing.** There is no `prepack`, `prepare` or `prepublishOnly`
+- [x] **Nothing builds before packing.** **Done 2026-09-24 in `1492210`**: `"prepack": "npm run build"`,
+      and `test:pack` now deletes `dist/` and packs without building, so it proves the script on
+      every CI run. Proved by mutation — removing the line fails `test:pack` with a message naming
+      `prepack`. The original entry follows. There is no `prepack`, `prepare` or `prepublishOnly`
       script, so `npm pack` and `npm publish` both package whatever happens to be sitting in
       `dist/`. CI is covered by accident rather than by design — `check:publish` and `test:pack`
       each run `npm run build` first — but a bare `npm publish` would ship a stale build, silently,
@@ -1394,7 +1406,7 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
       with time while this one does not The tarballs are a
       separate matter — they are deliberately untracked, so those two citations name commits that
       resolve in **this** repository and are reproducible with `npm pack`
-- [ ] **Four minor findings deferred from the 2026-09-23 boundary review**, listed so they are not
+- [x] **Four minor findings deferred from the 2026-09-23 boundary review**, listed so they are not
       re-derived. An independent reviewer raised them against the branch that made the date boundary
       test kind rather than identity; each was graded Minor **by effect on a consumer**, and none is
       a wrong answer. Recorded here because the review's ledger was scratch and is gone, and an
@@ -1410,18 +1422,35 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
          and catches all three, and one of them,
          `const { PlainDate } = Temporal; v instanceof PlainDate`, is idiomatic JavaScript and the
          likeliest accident of the lot. Zero false positives across `src/`; `X10` pins it.
-      2. **`asWesternDay` appends its bare-`{ year, month, day }` paragraph unconditionally.** So
+      **Items 2–4 done 2026-09-24**, each with a test that fails without its fix. An adversarial
+      review of the plan found item 2's intended fix wrong as well and a fifth defect beside item 3;
+      both are recorded under their items.
+      2. ~~**`asWesternDay` appends its bare-`{ year, month, day }` paragraph unconditionally.**~~
+         **Done in `da1b4af`.** Copying `asPlainDate`'s condition, as proposed below, would not
+         have done: it tested `typeof "object"`, so a `Date` and an array got the paragraph there too.
+         Both guards now share `isPlainObject` in `src/errors.ts`. So
          `nextFullMoon(null)` is told about an object it did not pass. `asPlainDate` makes the same
          sentence conditional on the argument being an object; the merge of `phaseStart` and `isoOf`
          inherited the unconditional form from `phaseStart` and was the moment to fix it.
-      3. **`errors.ts`'s `describe` prints a whole function body, and renders `10n` as `"10"`.** Its
+      3. ~~**`errors.ts`'s `describe` prints a whole function body, and renders `10n` as `"10"`.**~~
+         **Done in `39e7795`.** Beside it the review found that the three options-guard messages
+         used `JSON.stringify`, which throws on a bigint, so `getObservances(a, b, 10n)` escaped
+         uncoded; and that `month-names.ts` held a fifth copy of the options guard, missing the
+         array refusal. Both fixed in `7369ab7`. Its
          docblock promises a value "rendered short enough for a message, and unambiguously — `"3"` is
          not `3`", and a `bigint` is exactly the case that promise names. Pre-existing in all three
          bodies that merged into it, but it is now the single shared renderer, so it is one place.
-      4. **The unreadable-brand message names a cause it did not establish.** `temporalTypeNameOf`
+      4. ~~**The unreadable-brand message names a cause it did not establish.**~~ **Done in
+         `bf34781`.** `temporalTypeNameOf`
          says "a revoked Proxy, most likely" for any failure to read `Symbol.toStringTag`, including
          a getter that throws. Coded, so harmless, but it is the project's own rule about asserting a
          mechanism that was not measured.
+- [ ] **Sites that put a value into a message without `describe`.** Found 2026-09-24 while closing
+      the item above, and left out of it on purpose. `isoFromJulianDay(10n)` and
+      `isoFromJulianDay("10")` both say "received 10", and `assertSafeYear` interpolates the same
+      way — the ambiguity `describe`'s docblock exists to prevent. Coded, so nothing escapes; the
+      message just cannot tell a consumer which of the three they passed. Needs a sweep of every
+      `received ${` in `src/`
 - [x] **Decide whether `check:conventions` rule 4 should distinguish an exported `{@link}` target
       from a module-local one.** **Decided 2026-09-23: reject, scoped to docblocks that ship** — those
       of a barrel-exported declaration or of a member of a barrel-exported interface or class, where a

@@ -409,8 +409,9 @@ Checked 2026-09-10, prompted by a secondhand claim that Tara puja fell on 16 Dec
 existing cross-check fixtures say the same thing, and this was the only one of the four that also
 carried the observance label.
 
-Two things are unresolved and are tracked in [roadmap.md](roadmap.md): its App Store metadata, which
-rate-limited on both attempts, and its lineage.
+Its lineage is unresolved and is tracked in [roadmap.md](roadmap.md).
+Its App Store metadata, rate-limited on both attempts on 2026-09-10, was read on 2026-09-24 and is
+recorded in [other-implementations.md](other-implementations.md).
 
 ## Open questions
 
@@ -431,10 +432,13 @@ rate-limited on both attempts, and its lineage.
   It states "the Phugpa school" and cites no scholar, almanac edition or repository.
   Establishing it would promote a comparison target to a possible cross-check; failing to establish
   it is itself a result worth writing down, not a reason to use it anyway.
-- **Zurkhai's App Store metadata has never been read.**
-  Two fetches of `apps.apple.com/us/app/id6772695315` returned HTTP 429 on 2026-09-10, so the
-  seller, version and release date are unknown, and
-  [other-implementations.md](other-implementations.md)'s entry is incomplete without them.
+  **A lead, read 2026-09-24, and not an answer:** its App Store description calls it *"the
+  traditional Buryat-Mongolian Buddhist almanac"*, *"Calculated by the classical Pugpa school"*, and
+  *"verified against printed Buryat almanacs (Yampilov-Galsanov "Zurkhai-3", Atsagatsky Datsan
+  publications)"*.
+  Those name what it was checked against, not how it computes.
+  And Janson distinguishes a Mongolian version from Phugpa, with its own leap-month rule, so a Buryat
+  almanac's version has to be established rather than assumed.
 - **Tibetan-script sourcing here is deliberately thin.**
   Only *sojong* carries a script rendering, taken from [../CLAUDE.md](../CLAUDE.md), which sources
   it independently.

@@ -11,7 +11,8 @@ this project works under: it is a clean-room implementation of Janson's paper, a
 competing implementation would compromise that.
 
 All figures accessed **2026-08-23**, except the API-shape comparison below, which was gathered
-**2026-08-26**, and the Zurkhai entry, gathered **2026-09-10**; both carry their own dates.
+**2026-08-26**, and the Zurkhai entry, gathered **2026-09-10** and **2026-09-24**; both carry their
+own dates.
 Download counts are the npm registry's last-30-day figures.
 
 ## The field is small, and that is worth saying first
@@ -113,10 +114,16 @@ and C. And being unmaintained, it will not change again.
   beta
 - Free, "fully offline, no ads"; English, Russian and Mongolian
 - No developer name, copyright line, licence, repository or API stated anywhere on the public site
-- Version, seller and release date **not established** — `apps.apple.com` returned HTTP 429 on both
-  attempts, 2026-09-10
+- The App Store names the seller and developer as **Nikolai Tsyrenov**, with `https://zurkhai.app` as
+  the seller's site
+- Listed as "Zurkhai: Tibetan Calendar", genre Reference, first released **27 May 2026**; version
+  **1.5**, released 8 September 2026
+- The store lists English and Russian only, against the website's three languages, and mentions a
+  "single optional one-time purchase" beside "no subscriptions"
 
-All figures accessed **2026-09-10**.
+The website figures were accessed **2026-09-10**. The App Store figures come from Apple's lookup API,
+[`itunes.apple.com/lookup?id=6772695315&country=us`](https://itunes.apple.com/lookup?id=6772695315&country=us),
+accessed **2026-09-24**, after `apps.apple.com` returned HTTP 429 on both attempts on 2026-09-10.
 
 **It is listed here for the opposite reason to the others.** The three above are libraries a
 developer might install instead of this one; Zurkhai is a finished consumer product and cannot be
@@ -130,17 +137,19 @@ haircut, travel, business, medical treatment, moving house and more — alongsid
 lunar mansions and the sixty-year cycle. That is almanac territory, and among the software surveyed
 here only Henning's reaches it.
 
-**Where this package differs.** It states one methodological fact — *"The calculations on this site
-follow the Phugpa school"* — and cites no scholar, almanac edition or validated range, while telling
-the reader that *"Exact dates vary by lineage; confirm with a published almanac."* That is honest
-about the problem and silent about the answer. This package's whole claim is the opposite trade:
+**Where this package differs.** Its website states one methodological fact — *"The calculations on
+this site follow the Phugpa school"* — and cites no scholar, almanac edition or validated range, while
+telling the reader that *"Exact dates vary by lineage; confirm with a published almanac."* Its App
+Store description goes further and names editions: *"Calculations verified against printed Buryat
+almanacs (Yampilov-Galsanov "Zurkhai-3", Atsagatsky Datsan publications)."* It states no range for
+that verification. That is honest about the problem and says little about the answer. This package's whole claim is the opposite trade:
 fewer features, and a stated window for every one of them.
 
 Its attribute layer is recorded in [almanac-sources.md](almanac-sources.md) as a comparison target
 for the deferred `./astrology` work. It is deliberately **not** in
-[validation-sources.md](validation-sources.md): with no stated lineage there is no way to tell
-whether it descends from Henning, and agreement from within a lineage already represented is not
-evidence.
+[validation-sources.md](validation-sources.md): the almanacs named in its App Store listing are what
+it was checked *against*, not how it computes, so there is still no way to tell whether it descends
+from Henning, and agreement from within a lineage already represented is not evidence.
 
 ## API shape, compared — added 2026-08-26
 
