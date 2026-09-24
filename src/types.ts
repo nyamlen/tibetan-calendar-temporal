@@ -218,7 +218,7 @@ export function asTibetanWeekday(value: number): TibetanWeekday {
 	if (!Number.isInteger(value) || value < 0 || value > 6) {
 		throw rangeError(
 			"TCT_FIELD_OUT_OF_RANGE",
-			`asTibetanWeekday: expected an integer 0-6, received ${value}. This is the Tibetan ` +
+			`asTibetanWeekday: expected an integer 0-6, received ${describe(value)}. This is the Tibetan ` +
 				"numbering — 0 is Saturday — not the ISO dayOfWeek, which runs 1-7 from Monday",
 		);
 	}

@@ -7,6 +7,15 @@ import { thrownBy } from "./support/thrown.js";
 const LOSAR = { year: 2153, month: 1, day: 1 };
 const ISO = Temporal.PlainDate.from("2026-02-18");
 
+const throwing = () => {
+	throw new Error("trap");
+};
+const revokedProxy = () => {
+	const { proxy, revoke } = Proxy.revocable({}, {});
+	revoke();
+	return proxy;
+};
+
 describe("describe", () => {
 	// Boundary review, 2026-09-23, minor 3: its promise is "unambiguously — `"3"` is not `3`", and
 	// a bigint rendered through String() broke exactly that promise.
@@ -22,6 +31,30 @@ describe("describe", () => {
 		}
 		expect(describeValue(namedGuard)).toBe("function namedGuard");
 		expect(describeValue([() => 1][0])).toBe("a function");
+	});
+
+	// Part B of the tradition-parameter plan, 2026-09-24: every guard renders its input through
+	// this, so a throw here — or a non-string return, which the caller's template then throws on —
+	// is an uncoded escape from every one of them at once.
+	it.each([
+		["a revoked Proxy", revokedProxy],
+		["a Proxy whose get trap throws", () => new Proxy({}, { get: throwing })],
+		[
+			"an object whose constructor.name is a Symbol",
+			() => ({ constructor: { name: Symbol("x") } }),
+		],
+		["an object with no prototype", () => Object.create(null)],
+	])("renders %s as a string without throwing", (_, make) => {
+		const value: unknown = make();
+		let rendered: unknown;
+		expect(() => {
+			rendered = describeValue(value);
+		}).not.toThrow();
+		expect(rendered).toBe("an object");
+	});
+
+	it("renders a Symbol by its description, which a template literal cannot", () => {
+		expect(describeValue(Symbol("x"))).toBe("Symbol(x)");
 	});
 });
 
@@ -78,6 +111,20 @@ describe("assertQueryOptions refuses keys it does not recognise", () => {
 		} finally {
 			delete (Object.prototype as Record<string, unknown>).polluted;
 		}
+	});
+
+	// Found by Part A's final review, 2026-09-24: the key walk calls a Proxy's ownKeys and
+	// getPrototypeOf traps, so a bag whose trap throws escaped uncoded where before it answered.
+	it.each([
+		["ownKeys", { ownKeys: throwing }],
+		["getPrototypeOf", { getPrototypeOf: throwing }],
+		["getOwnPropertyDescriptor", { getOwnPropertyDescriptor: throwing }],
+	])("refuses with a code a Proxy bag whose %s trap throws", (_, handler) => {
+		expect(refuse(new Proxy({ a: 1 }, handler))?.code).toBe("TCT_INVALID_ARGUMENT");
+	});
+
+	it("refuses with a code a revoked Proxy as the bag", () => {
+		expect(refuse(revokedProxy())?.code).toBe("TCT_INVALID_ARGUMENT");
 	});
 
 	it("ignores symbol keys, which no caller writes by mistake", () => {

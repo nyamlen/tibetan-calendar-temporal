@@ -10,6 +10,7 @@ import { weekdayNameFor } from "../../src/cycles.js";
 import { PHUGPA } from "../../src/traditions/phugpa.js";
 import type { TibetanWeekdayElement } from "../../src/types.js";
 import { YOGA_AUSPICIOUSNESS, YOGA_NAMES } from "../fixtures/yoga-names.js";
+import { thrownBy } from "../support/thrown.js";
 
 /**
  * The ten pairings, and the one structural property that matters: the pair is **unordered**.
@@ -58,6 +59,17 @@ describe("the ten yogas", () => {
 		// fresh object per call — would pass every other test here and quietly break `===`.
 		expect(elementalYoga("fire", "water")).toBe(elementalYoga("water", "fire"));
 		expect(elementalYoga("fire", "water").elements).toEqual(["fire", "water"]);
+	});
+
+	// Part B of the tradition-parameter plan, 2026-09-24: it had no guard, trusting TypeScript's
+	// closed union, so from JavaScript a misspelt element reached `assertInternal` and was reported as
+	// the engine's bug — `TCT_INTERNAL`, "please report this" — and a Symbol escaped uncoded.
+	it.each([
+		["a misspelt element first", () => elementalYoga("fyre" as never, "water")],
+		["a misspelt element second", () => elementalYoga("fire", "Water" as never)],
+		["an absent second element", () => (elementalYoga as (a: unknown) => unknown)("fire")],
+	])("refuses %s as the caller's error, not the engine's", (_, call) => {
+		expect(thrownBy(call)?.code).toBe("TCT_INVALID_ARGUMENT");
 	});
 
 	it("hold six of the ten favorable, which is FPMT's division", () => {

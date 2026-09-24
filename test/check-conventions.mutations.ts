@@ -278,7 +278,7 @@ const R: Record<number, Row> = {
 			tree.edit(
 				"src/months.ts",
 				(source) =>
-					`${source}\nfunction assertSafeYearCopy(subject: string, year: number): void {\n\tif (!Number.isSafeInteger(year)) {\n\t\tthrow rangeError(\n\t\t\t"TCT_FIELD_OUT_OF_RANGE",\n\t\t\t\`\${subject}: year must be a safe integer, received \${year}\`,\n\t\t);\n\t}\n}\n`,
+					`${source}\nfunction assertSafeYearCopy(subject: string, year: number): void {\n\tif (!Number.isSafeInteger(year)) {\n\t\tthrow rangeError(\n\t\t\t"TCT_FIELD_OUT_OF_RANGE",\n\t\t\t\`\${subject}: year must be a safe integer, received \${describe(year)}\`,\n\t\t);\n\t}\n}\n`,
 				"the end of src/months.ts",
 			),
 		must: ["no two functions in src/ share a body", "assertSafeYearCopy"],

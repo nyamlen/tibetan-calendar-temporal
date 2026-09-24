@@ -184,7 +184,7 @@ function validateObservanceConfig(config: ObservanceConfig): void {
 		if (!Number.isInteger(day) || day < 1 || day > 30) {
 			throw rangeError(
 				"TCT_INVALID_OBSERVANCE_CONFIG",
-				`observance rule "${rule.id}": day must be an integer 1-30, received ${day}. A rule ` +
+				`observance rule "${rule.id}": day must be an integer 1-30, received ${describe(day)}. A rule ` +
 					"names a Tibetan lunar day, which always runs 1-30; a day that no calendar day " +
 					"carries is handled by the skippedDay convention, not by omitting the rule",
 			);
@@ -194,7 +194,7 @@ function validateObservanceConfig(config: ObservanceConfig): void {
 			if (!Number.isInteger(month) || month < 1 || month > 12) {
 				throw rangeError(
 					"TCT_INVALID_OBSERVANCE_CONFIG",
-					`observance rule "${rule.id}": month must be an integer 1-12, received ${month}. ` +
+					`observance rule "${rule.id}": month must be an integer 1-12, received ${describe(month)}. ` +
 						"A leap month is selected by the leapMonth convention, not by a thirteenth number",
 				);
 			}

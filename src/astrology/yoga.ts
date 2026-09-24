@@ -23,7 +23,7 @@
  * @packageDocumentation
  */
 
-import { assertInternal } from "../errors.js";
+import { assertInternal, describe, rangeError } from "../errors.js";
 import { deepFreeze } from "../freeze.js";
 import type { SanskritName, TibetanName, TibetanWeekdayElement } from "../types.js";
 import { mansionElement } from "./mansion-elements.js";
@@ -291,6 +291,13 @@ const BY_PAIR = new Map(
  * reimplementing the unordered-pair lookup. Decided 2026-09-18, on Andreas' reasoning that a consumer
  * may want to enumerate it directly.
  *
+ * **It guards its own arguments all the same**, since 2026-09-24: TypeScript constrains nothing from
+ * plain JavaScript, and without the guard a misspelt element reached `assertInternal` and was
+ * reported as this engine's bug.
+ *
+ * @throws RangeError with code `TCT_INVALID_ARGUMENT` if either argument is not one of the four
+ * elements `"earth"`, `"water"`, `"fire"` and `"wind"`.
+ *
  * @example
  * ```ts
  * // 1 September 2026 is a Tuesday, whose element is fire; the mansion that morning carries water.
@@ -302,6 +309,18 @@ export function elementalYoga(
 	weekdayElement: TibetanWeekdayElement,
 	mansion: TibetanWeekdayElement,
 ): ElementalYoga {
+	for (const [name, value] of [
+		["weekdayElement", weekdayElement],
+		["mansion", mansion],
+	] as const) {
+		if (!ELEMENT_ORDER.includes(value)) {
+			throw rangeError(
+				"TCT_INVALID_ARGUMENT",
+				`elementalYoga: ${name} must be one of ${ELEMENT_ORDER.map((e) => `"${e}"`).join(", ")}, ` +
+					`received ${describe(value)}`,
+			);
+		}
+	}
 	return assertInternal(
 		BY_PAIR.get(key(weekdayElement, mansion)),
 		`elementalYoga: ${weekdayElement} + ${mansion} is not one of the ten pairings, which cannot ` +

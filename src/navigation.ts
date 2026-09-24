@@ -126,7 +126,7 @@ function assertCount(subject: string, name: string, value: number): void {
 	if (!Number.isSafeInteger(value)) {
 		throw rangeError(
 			"TCT_FIELD_OUT_OF_RANGE",
-			`${subject}: ${name} must be a safe integer, received ${value}. ` +
+			`${subject}: ${name} must be a safe integer, received ${describe(value)}. ` +
 				"Counting whole months or days, a fraction names nothing.",
 		);
 	}

@@ -21,7 +21,7 @@
  */
 
 import { rabjungFromYear, yearFromRoyalEra, yearNameFromYear } from "./computation/epoch.js";
-import { rangeError } from "./errors.js";
+import { describe, rangeError } from "./errors.js";
 import { weekdayNameWithOffset } from "./names.js";
 import { PHUGPA } from "./traditions/phugpa.js";
 import type { TraditionConfig } from "./traditions/types.js";
@@ -41,7 +41,7 @@ function assertYear(subject: string, year: number): void {
 	if (!Number.isSafeInteger(year)) {
 		throw rangeError(
 			"TCT_FIELD_OUT_OF_RANGE",
-			`${subject}: year must be a safe integer, received ${year}. ` +
+			`${subject}: year must be a safe integer, received ${describe(year)}. ` +
 				"Years here are the royal era, matching TibetanDate.year — 2153, not 2026.",
 		);
 	}
@@ -158,7 +158,7 @@ export function weekdayNameFor(
 	if (!Number.isInteger(weekday) || weekday < 0 || weekday > 6) {
 		throw rangeError(
 			"TCT_FIELD_OUT_OF_RANGE",
-			`weekdayNameFor: weekday must be an integer in 0…6, received ${weekday}. ` +
+			`weekdayNameFor: weekday must be an integer in 0…6, received ${describe(weekday)}. ` +
 				"This is the Tibetan numbering — 0 is Saturday — not the ISO dayOfWeek",
 		);
 	}

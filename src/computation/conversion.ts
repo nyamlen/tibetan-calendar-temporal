@@ -238,7 +238,7 @@ export function isoFromJulianDay(
 	if (!Number.isSafeInteger(julianDay)) {
 		throw rangeError(
 			"TCT_FIELD_OUT_OF_RANGE",
-			`isoFromJulianDay: julianDay must be a safe integer, received ${julianDay}. A Julian day ` +
+			`isoFromJulianDay: julianDay must be a safe integer, received ${describe(julianDay)}. A Julian day ` +
 				"number counts whole days, so a fraction names nothing — there is no time of day in it",
 		);
 	}
@@ -764,7 +764,7 @@ export function isoToTibetan(
  */
 export function losarFor(year: number, tradition: TraditionConfig = PHUGPA): TibetanDate {
 	const scaled = scalingFor(tradition);
-	assertSafeYear(`losarFor(${year})`, year);
+	assertSafeYear(`losarFor(${describe(year)})`, year);
 	const julianDay = losarJulianDay(scaled, tradition, yearFromRoyalEra(year));
 	assertExactJulianDay(scaled, julianDay, () => `losarFor(${year})`);
 	return isoToTibetan(isoFromJulianDayUnchecked(julianDay), tradition);

@@ -17,6 +17,7 @@ test/
 ├── cycles.test.ts        # the year-name closed forms, including outside the exact range
 ├── leap-month-position.test.ts  # cross-cutting: calendar, scaling, months, observances
 ├── tradition-config.test.ts  # cross-cutting: what a config does at the engine's boundary
+├── hostile-inputs.test.ts    # cross-cutting: every export, given values a message cannot render
 ├── public-api.test.ts    # the export surface, pinned
 ├── readme.test.ts        # every example the README states
 ├── smoke.test.ts         # Temporal reachable as a global

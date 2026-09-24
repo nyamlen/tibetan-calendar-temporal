@@ -41,7 +41,7 @@ import {
 } from "./computation/conversion.js";
 import { yearFromRoyalEra, yearNameFromYear } from "./computation/epoch.js";
 import { type ScaledTradition, scalingFor } from "./computation/scaling.js";
-import { assertSafeYear, rangeError } from "./errors.js";
+import { assertSafeYear, describe, rangeError } from "./errors.js";
 import { monthCodeOf } from "./format.js";
 import { PHUGPA } from "./traditions/phugpa.js";
 import type { TraditionConfig } from "./traditions/types.js";
@@ -172,7 +172,7 @@ export function monthsFor(year: number, tradition: TraditionConfig = PHUGPA): Ti
 	if (cached !== undefined) return [...cached];
 
 	const scaled = scalingFor(tradition);
-	const subject = () => `monthsFor(${year})`;
+	const subject = () => `monthsFor(${describe(year)})`;
 	assertSafeYear(subject(), year);
 	const y = yearFromRoyalEra(year);
 
@@ -367,7 +367,7 @@ export function daysInMonth(
  * `TCT_OUTSIDE_EXACT_RANGE` if it falls beyond the tradition's derivable range.
  */
 export function hasLeapMonth(year: number, tradition: TraditionConfig = PHUGPA): boolean {
-	return isLeapYear(tradition, closedFormYear(`hasLeapMonth(${year})`, year, tradition));
+	return isLeapYear(tradition, closedFormYear(`hasLeapMonth(${describe(year)})`, year, tradition));
 }
 
 /**
@@ -406,7 +406,7 @@ export function leapMonthNumberFor(
 ): number | undefined {
 	return leapMonthOfYearY(
 		tradition,
-		closedFormYear(`leapMonthNumberFor(${year})`, year, tradition),
+		closedFormYear(`leapMonthNumberFor(${describe(year)})`, year, tradition),
 	);
 }
 
@@ -421,7 +421,9 @@ export function leapMonthNumberFor(
  * `TCT_OUTSIDE_EXACT_RANGE` if it falls beyond the tradition's derivable range.
  */
 export function monthsInYear(year: number, tradition: TraditionConfig = PHUGPA): number {
-	return isLeapYear(tradition, closedFormYear(`monthsInYear(${year})`, year, tradition)) ? 13 : 12;
+	return isLeapYear(tradition, closedFormYear(`monthsInYear(${describe(year)})`, year, tradition))
+		? 13
+		: 12;
 }
 
 /**

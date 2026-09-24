@@ -166,6 +166,12 @@ export function hasCode(error: unknown, code: TibetanCalendarErrorCode): boolean
  * A value rendered short enough for a message, and unambiguously — `"3"` is not `3`.
  *
  * @remarks
+ * **Never throws, and always returns a string**, whatever it is handed — which is why a guard may
+ * render its raw input here before it knows what that input is, and never with a bare `${}`: a
+ * template literal throws on a Symbol, on an object whose `toString` throws and on one with no
+ * prototype, and renders `10n` and `"10"` both as `10`. Until 2026-09-24 fourteen sites did exactly
+ * that, and the escape was an uncoded `TypeError` from the guard meant to report the problem.
+ *
  * Lives here because every caller is building a coded error, and because it existed **twice**,
  * character-identical, in `traditions/validate.ts` and `observances/index.ts` until 2026-09-23.
  * Both copies were written by whoever needed a value rendered next to a `rangeError`, which is
@@ -184,16 +190,29 @@ export function hasCode(error: unknown, code: TibetanCalendarErrorCode): boolean
  */
 export function describe(value: unknown): string {
 	if (typeof value === "string") return JSON.stringify(value);
-	if (Array.isArray(value)) return `an array of ${value.length}`;
 	if (value !== null && typeof value === "object") {
-		// A **named** class is worth naming, and a plain object is not. `Temporal only. Never Date.`
-		// is this package's first rule, so `new Date()` is the wrong argument a consumer actually
-		// passes — and the first version of this merged function rendered it "an object", hiding what
-		// they gave and then offering them a paragraph about `{ year, month, day }`. "an object"
-		// stays for a plain one, where "Object" would say strictly less and where the ambiguity note
-		// that follows it is the useful half of the message.
-		const className = value.constructor?.name;
-		return className === undefined || className === "Object" ? "an object" : className;
+		// **This never throws and always returns a string**, because every guard renders its input
+		// here: a throw, or a non-string for the caller's template to throw on, would be an uncoded
+		// escape from all of them at once. An object can run code on every read — a revoked Proxy
+		// throws from `Array.isArray` itself, a Proxy's `get` trap from `.constructor` — so the
+		// object branch reads nothing outside the `try`.
+		try {
+			if (Array.isArray(value)) return `an array of ${value.length}`;
+			// A **named** class is worth naming, and a plain object is not. `Temporal only. Never
+			// Date.` is this package's first rule, so `new Date()` is the wrong argument a consumer
+			// actually passes — and the first version of this merged function rendered it "an
+			// object", hiding what they gave and then offering them a paragraph about
+			// `{ year, month, day }`. "an object" stays for a plain one, where "Object" would say
+			// strictly less and where the ambiguity note that follows it is the useful half of the
+			// message. `typeof === "string"` rather than `!== undefined`: `{ constructor: { name:
+			// Symbol() } }` otherwise returned the Symbol.
+			const className: unknown = value.constructor?.name;
+			return typeof className === "string" && className !== "" && className !== "Object"
+				? className
+				: "an object";
+		} catch {
+			return "an object";
+		}
 	}
 	// `String` renders `10n` as "10", which is the ambiguity this function exists to avoid, and a
 	// function as its whole source text.
@@ -252,8 +271,9 @@ export function isPlainObject(value: unknown): boolean {
  * 2026-09-24 each call site passed a hand-written shape string, which could name a key the bag no
  * longer had.
  *
- * @throws A `TCT_INVALID_ARGUMENT` error if `options` is `null`, not an object, an array, or carries
- * an enumerable string key not in `allowed`.
+ * @throws A `TCT_INVALID_ARGUMENT` error if `options` is `null`, not an object, an array, cannot be
+ * read (a Proxy whose trap throws, or a revoked one), or carries an enumerable string key not in
+ * `allowed`.
  */
 export function assertQueryOptions(
 	functionName: string,
@@ -266,30 +286,50 @@ export function assertQueryOptions(
 	// validation a positional parameter had.
 	// An array is an object, and it is exactly what a point-free `map` or `flatMap` passes as the
 	// second or third argument, so it is refused by name rather than read as a bag of defaults.
-	if (options === null || typeof options !== "object" || Array.isArray(options)) {
-		throw rangeError(
+	const notABag = () =>
+		rangeError(
 			"TCT_INVALID_ARGUMENT",
 			`${functionName}: options must be an object like ${shape} or omitted, received ` +
 				`${describe(options)}`,
 		);
-	}
-	// The prototype chain is walked by hand rather than with `for…in`, to stop at
-	// `Object.prototype`: a key some other library made enumerable there would otherwise make every
-	// bag function throw, even one called with no options, since the default `{}` inherits it.
-	for (
-		let level: object | null = options;
-		level !== null && level !== Object.prototype;
-		level = Object.getPrototypeOf(level)
-	) {
-		for (const key of Object.keys(level)) {
-			if (!allowed.includes(key)) {
-				throw rangeError(
-					"TCT_INVALID_ARGUMENT",
-					`${functionName}: unknown option ${JSON.stringify(key)}. options is an object like ` +
-						`${shape}; a key it does not have would otherwise be ignored silently`,
-				);
+	if (options === null || typeof options !== "object") throw notABag();
+	// Everything below can run a Proxy's traps — `Array.isArray` throws on a revoked one, and the
+	// walk calls `ownKeys`, `getOwnPropertyDescriptor` and `getPrototypeOf` — so a bag that cannot be
+	// read is refused with this guard's code rather than escaping as the trap's own error. The
+	// unknown-key throw is built outside the `try`, so it is never mistaken for an unreadable bag.
+	let unknownKey: string | undefined;
+	try {
+		if (Array.isArray(options)) throw notABag();
+		// The prototype chain is walked by hand rather than with `for…in`, to stop at
+		// `Object.prototype`: a key some other library made enumerable there would otherwise make
+		// every bag function throw, even one called with no options, since the default `{}` inherits
+		// it.
+		walk: for (
+			let level: object | null = options;
+			level !== null && level !== Object.prototype;
+			level = Object.getPrototypeOf(level)
+		) {
+			for (const key of Object.keys(level)) {
+				if (!allowed.includes(key)) {
+					unknownKey = key;
+					break walk;
+				}
 			}
 		}
+	} catch (error) {
+		if (hasCode(error, "TCT_INVALID_ARGUMENT")) throw error;
+		throw rangeError(
+			"TCT_INVALID_ARGUMENT",
+			`${functionName}: options could not be read — reading its keys threw ` +
+				`${describe(error)}. options must be an object like ${shape} or omitted`,
+		);
+	}
+	if (unknownKey !== undefined) {
+		throw rangeError(
+			"TCT_INVALID_ARGUMENT",
+			`${functionName}: unknown option ${JSON.stringify(unknownKey)}. options is an object like ` +
+				`${shape}; a key it does not have would otherwise be ignored silently`,
+		);
 	}
 }
 
@@ -314,7 +354,7 @@ export function assertSafeYear(subject: string, year: number): void {
 	if (!Number.isSafeInteger(year)) {
 		throw rangeError(
 			"TCT_FIELD_OUT_OF_RANGE",
-			`${subject}: year must be a safe integer, received ${year}`,
+			`${subject}: year must be a safe integer, received ${describe(year)}`,
 		);
 	}
 }
