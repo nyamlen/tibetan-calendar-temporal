@@ -195,6 +195,11 @@ export function describe(value: unknown): string {
 		const className = value.constructor?.name;
 		return className === undefined || className === "Object" ? "an object" : className;
 	}
+	// `String` renders `10n` as "10", which is the ambiguity this function exists to avoid, and a
+	// function as its whole source text.
+	if (typeof value === "bigint") return `${value}n`;
+	if (typeof value === "function")
+		return value.name === "" ? "a function" : `function ${value.name}`;
 	return String(value);
 }
 
