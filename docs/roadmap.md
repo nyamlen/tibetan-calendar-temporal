@@ -1449,6 +1449,17 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
          says "a revoked Proxy, most likely" for any failure to read `Symbol.toStringTag`, including
          a getter that throws. Coded, so harmless, but it is the project's own rule about asserting a
          mechanism that was not measured.
+- [ ] **Pass a `TraditionConfig` one way, under one name.** Decided 2026-09-24 (Andreas): the
+      tradition was passed four ways — positional `config?` on 22 root functions, `{ overflow?,
+      config? }` on `addMonthsToDate`, `{ config?, tradition? }` on `./observances`, and
+      `{ tradition? }` on `monthNamesFor` and the five `./astrology` functions — so the key `config`
+      named a `TraditionConfig` in one bag and an `ObservanceConfig` in another, and every bag
+      accepted unknown keys. From plain JavaScript that gave **silent wrong answers**:
+      `addMonthsToDate(f, 0, { tradition: BHUTAN })` and `attributesFor(d, BHUTAN)` both returned
+      Phugpa's. The rule adopted: a `TraditionConfig` is always named `tradition`; a function whose
+      only choice is the tradition takes it last and positionally; two or more choices go in one bag
+      extending `TraditionOptions`; bags refuse unknown keys. A one-way door at 1.0.0, breaking for
+      seven functions now and free while nothing is published
 - [ ] **Sites that put a value into a message without `describe`, and inputs that escape uncoded.**
       Found 2026-09-24 while closing the item above, and left out of it on purpose.
       `isoFromJulianDay(10n)` and `isoFromJulianDay("10")` both say "received 10", and
