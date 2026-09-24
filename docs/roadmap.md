@@ -1656,7 +1656,8 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   the Mongolian version, and worked configs for both are in [traditions.md](traditions.md) — as
   data, not exports, because expressing a tradition and validating it are different claims.
 
-  **A concrete route for the Mongolian version, scoped 2026-08-23.** `@hnw/date-tibetan` (MIT, npm)
+  **A concrete route for the Mongolian version, scoped 2026-08-23** — now tracked in its own entry,
+  *Mongolian tradition*, below. `@hnw/date-tibetan` (MIT, npm)
   ships a `CalendarMongolian` that reproduces Janson's Mongolian leap months for every year checked,
   so a day-by-day fixture could be generated from it exactly as `crosscheck-eszthoff.ts` is. **That
   alone does not clear the export gate**: it derives from Janson as this engine does, so agreement
@@ -1716,6 +1717,44 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
   month Janson does not list**, at 2030-04-03, because the upstream leaves its leap flag set a month
   too long. The generator has a fifth check for it now, and **will refuse to rewrite the committed
   window until the source is fixed**.
+
+- **Mongolian tradition** (New Genden) via its own `TraditionConfig`. Added as its own entry on
+  2026-09-24, at Andreas' request; its route was first scoped inside the Tsurphu entry above, which
+  still carries that paragraph. Janson, citing Berzin, gives it as the version of **Mongolia, and of
+  the Buryats and Tuvinians** of Siberia; the Kalmyks follow Phugpa and are served already.
+
+  **What exists.** The version is expressible — `leapIndexThreshold: 46` was the only missing rule —
+  and its **leap months** are checked against Janson's cross-version table
+  (`test/fixtures/cross-version-leap.ts`). The config in `test/support/versions.ts` is `PHUGPA` with
+  three fields replaced, so its **astronomy is Phugpa's**: it answers questions about month numbering
+  and nothing about day numbers. That is why nothing is exported.
+
+  **What exporting needs**, under
+  [decisions/2026-08-16-exported-means-validated.md](decisions/2026-08-16-exported-means-validated.md):
+
+  1. **Its own astronomy.** `m₀`, `s₀` and `a₀` exist only in Janson's four-version comparison
+     table, which is stated one mean lunar month from the epoch a config uses — the trap
+     [traditions.md](traditions.md) records. Bhutan escaped it because its appendix gives the epoch
+     directly; Mongolia does not.
+  2. **Its naming.** Janson says Mongolia follows the Chinese rules for the month's animal, gender
+     and element, as Tsurphu does, but not Tsurphu's nine month numbers. Whether the weekday names
+     and the `./astrology` attributes carry over has to be sourced, not assumed — the lesson of the
+     Bhutanese `weekdayOffset`.
+  3. **Day-by-day external validation from two lineages**, as Bhutan had. `@hnw/date-tibetan`'s
+     `CalendarMongolian` derives from Janson, so it can confirm the arithmetic and cannot confirm the
+     calendar. The independent candidates: published Tsagaan Sar dates; the printed Buryat almanacs
+     Zurkhai's App Store listing names (Yampilov-Galsanov's "Zurkhai-3" and Atsagatsky Datsan
+     publications); and Zurkhai's own Hural list, whose 2027 dates follow Mongolian month
+     numbering — months only, lineage unknown, and three of its Hurals fit neither version. See
+     [almanac-sources.md](almanac-sources.md)'s Zurkhai lineage question.
+  4. **Observances are a separate question.** Buryat Hurals are their own calendar of holy days,
+     not `DEFAULT_OBSERVANCES`, which is FPMT's; that belongs to the `./observances` work, not to the
+     config.
+
+  **Measured 2026-09-24:** between 2020 and 2033 the two versions give a day a different month label
+  on 1,122 of 5,114 days, in five stretches of about seven months — the next from 9 March to 29
+  October 2027. Any validation window has to include such a stretch, or it cannot tell the two
+  versions apart.
 
 - **Navigation and date arithmetic — shipped 2026-08-15**, so this entry records only what became
   of its open questions. `addDays`, `daysBetween`, `addMonths`, `monthsBetween`,
