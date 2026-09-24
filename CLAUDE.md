@@ -605,11 +605,28 @@ derivation; in `docs/` they are just noise.
   which is what makes a caller's type confusion throw instead of being reported as a date that does
   not exist. A new shape check uses the second, never the first:
   [docs/decisions/2026-08-15-argument-errors-split.md](docs/decisions/2026-08-15-argument-errors-split.md).
-- **A function with two axes of choice takes an options bag** — not two sequential optional
-  parameters, which made a caller wanting a custom tradition with the default observances write
-  `getObservances(from, to, undefined, tradition)`. `getObservances`, `observancesOn` and
-  `addMonthsToDate` all take one as of 2026-08-26, so it is the surface's stated pattern rather
-  than a one-off. **Two things a bag gets wrong, both hit while building the first one.** It is a
+- **How a tradition is passed: seven points, approved by Andreas on 2026-09-24.**
+  (1) A `TraditionConfig` is always named `tradition` — positional parameter or bag key.
+  (2) When the tradition is a function's only choice, it is the last parameter, positional:
+  `f(x, tradition?)`. (3) With two or more choices, all of them go in one bag, and that bag extends
+  `TraditionOptions`. (4) `TraditionOptions` holds only `tradition`; any other choice goes on the
+  function's own bag. (5) Bags refuse unknown keys, `TCT_INVALID_ARGUMENT` naming the key.
+  (6) A new choice is optional, and its default reproduces the previous behaviour, pinned by a test.
+  (7) A one-choice function that gains a second choice converts to a bag — free before 1.0.0, a
+  breaking change after it, taken knowingly. This replaced "a function with two axes of choice
+  takes an options bag", which decided the bag's **shape** and left its **keys** to inheritance:
+  `config` meant a `TraditionConfig` in `addMonthsToDate`'s bag and an `ObservanceConfig` in
+  `./observances'`, and from plain JavaScript `attributesFor(d, BHUTAN)` and
+  `addMonthsToDate(f, 0, { tradition: BHUTAN })` silently answered Phugpa's. **A consumer cannot be
+  asked to know which entry point a function is on**, which is why the rule is keyed on the number
+  of choices and not on the subpath:
+  [docs/decisions/2026-09-24-how-a-tradition-is-passed.md](docs/decisions/2026-09-24-how-a-tradition-is-passed.md).
+  `./observances`' own `config` key is left to the observances rethink.
+
+  The bag half of the rule dates from 2026-08-26, when two sequential optionals made a caller wanting
+  a custom tradition with the default observances write
+  `getObservances(from, to, undefined, tradition)`. **Two things a bag gets wrong, both hit while
+  building the first one.** It is a
   **new argument boundary and needs its own guard** — without one `observancesOn(date, null)` reads
   a property off `null` and throws an uncoded `TypeError`, which is precisely the failure the
   config validators exist to end, one level further out. And **read it with `=== undefined`, never
