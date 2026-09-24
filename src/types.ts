@@ -1031,7 +1031,8 @@ export interface TibetanDateFields {
 }
 
 /**
- * Thrown by `tibetanToIso` when the requested date is a **skipped** date.
+ * Thrown when a requested date is a **skipped** date — by `tibetanToIso`, and by `resolveDate`,
+ * `addDays`, `daysBetween` and `addMonthsToDate`, which resolve the dates they are given.
  *
  * @remarks
  * A skipped date is a number that no calendar day carries: it happens when a lunar day begins
