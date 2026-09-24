@@ -531,9 +531,13 @@ export function addMonthsToDate(
 	months: number,
 	options: AddMonthsToDateOptions = {},
 ): TibetanDate {
-	assertQueryOptions("addMonthsToDate", ["overflow", "tradition"], options);
-	const tradition = options.tradition === undefined ? PHUGPA : options.tradition;
-	const overflow = options.overflow === undefined ? "constrain" : options.overflow;
+	const bag = assertQueryOptions<AddMonthsToDateOptions>(
+		"addMonthsToDate",
+		["overflow", "tradition"],
+		options,
+	);
+	const tradition = bag.tradition === undefined ? PHUGPA : bag.tradition;
+	const overflow = bag.overflow === undefined ? "constrain" : bag.overflow;
 	if (overflow !== "constrain" && overflow !== "reject") {
 		throw rangeError(
 			"TCT_INVALID_ARGUMENT",

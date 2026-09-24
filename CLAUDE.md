@@ -652,9 +652,13 @@ derivation; in `docs/` they are just noise.
   give it a separate name like `isoFromJulianDayUnchecked` rather than leaving the export bare.
   **A parameter typed as a closed union still needs its guard**: `elementalYoga`'s docblock argued
   TypeScript already constrained its two elements, and from JavaScript a misspelt one was reported
-  as `TCT_INTERNAL` — the engine's bug — until 2026-09-24. And a guard renders what it received
-  through `describe` in `src/errors.ts`, never a bare `${}`, which throws on a Symbol and cannot tell
-  `10n` from `"10"`; `test/hostile-inputs.test.ts` holds every export to that.
+  as `TCT_INTERNAL` — the engine's bug — until 2026-09-24. And a guard renders a value it has **not
+  yet type-checked** through `describe` in `src/errors.ts`, never a bare `${}`, which throws on a
+  Symbol and cannot tell `10n` from `"10"`; a bare `${}` is fine once the value is proved a number.
+  `test/hostile-inputs.test.ts` holds every export to never escaping uncoded, which is the outcome
+  and not the idiom — **and it hid a message helper behind its only Proxy until review**, because a
+  revoked Proxy throws at the first trap any code reaches, which was a guard that already caught it.
+  Probe with one throwing trap at a time.
 
 ## Environment
 

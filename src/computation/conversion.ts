@@ -17,6 +17,7 @@ import {
 	hasCode,
 	isPlainObject,
 	rangeError,
+	thrownDetail,
 } from "../errors.js";
 import { monthCodeOf } from "../format.js";
 import { weekdayNameWithOffset } from "../names.js";
@@ -193,13 +194,20 @@ export function asWesternDay(
 	if (typeof raw === "string" || temporalKindOf(raw) !== null) {
 		return asPlainDate(date as Temporal.PlainDate);
 	}
-	if (
-		raw !== null &&
-		typeof raw === "object" &&
-		"isoDate" in raw &&
-		temporalKindOf((raw as { isoDate: unknown }).isoDate) === "PlainDate"
-	) {
-		return asPlainDate((raw as TibetanDate).isoDate);
+	if (raw !== null && typeof raw === "object") {
+		// Read under `try`, as `temporalKindOf` reads a tag: the `in` runs a Proxy's `has` trap and
+		// the read its `get`, and a throw from either escaped uncoded until review on 2026-09-24.
+		let isoDate: unknown;
+		try {
+			isoDate = "isoDate" in raw ? (raw as { isoDate: unknown }).isoDate : undefined;
+		} catch (error) {
+			throw rangeError(
+				"TCT_INVALID_ARGUMENT",
+				`${functionName}: received a value that cannot be read — reading its isoDate threw ` +
+					`${thrownDetail(error)}. Pass the date itself.`,
+			);
+		}
+		if (temporalKindOf(isoDate) === "PlainDate") return asPlainDate(isoDate as Temporal.PlainDate);
 	}
 	throw rangeError(
 		"TCT_INVALID_ARGUMENT",

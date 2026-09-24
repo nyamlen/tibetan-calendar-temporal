@@ -233,8 +233,15 @@ export function describe(value: unknown): string {
  */
 export function isPlainObject(value: unknown): boolean {
 	if (value === null || typeof value !== "object") return false;
-	const prototype = Object.getPrototypeOf(value);
-	return prototype === Object.prototype || prototype === null;
+	// Total, like {@link describe}, because both guards call it while building a message they have
+	// already decided to throw: a Proxy whose `getPrototypeOf` trap throws otherwise escaped uncoded
+	// from eleven exports, found by review on 2026-09-24. Such a value is not a bare fields object.
+	try {
+		const prototype = Object.getPrototypeOf(value);
+		return prototype === Object.prototype || prototype === null;
+	} catch {
+		return false;
+	}
 }
 
 /**
@@ -271,21 +278,23 @@ export function isPlainObject(value: unknown): boolean {
  * 2026-09-24 each call site passed a hand-written shape string, which could name a key the bag no
  * longer had.
  *
+ * **It returns a snapshot of the allowed keys**, read inside the same guard, and the call sites read
+ * that rather than the caller's object — so a Proxy trap or a getter that throws is refused here with
+ * a code, where before a `get` trap passed the walk and escaped at the call site's read.
+ *
  * @throws A `TCT_INVALID_ARGUMENT` error if `options` is `null`, not an object, an array, cannot be
- * read (a Proxy whose trap throws, or a revoked one), or carries an enumerable string key not in
- * `allowed`.
+ * read (a Proxy whose trap throws, a revoked one, or a getter that throws), or carries an enumerable
+ * string key not in `allowed`.
  */
-export function assertQueryOptions(
+export function assertQueryOptions<O extends object>(
 	functionName: string,
-	allowed: readonly string[],
+	allowed: readonly (keyof O & string)[],
 	options: unknown,
-): void {
+): Partial<O> {
 	const shape = `{ ${allowed.join(", ")} }`;
 	// `=== undefined`, never `??`, at the call sites that read this bag: nullish-coalescing would
 	// read an explicit `{ tradition: null }` as absent and silently substitute a default, losing the
 	// validation a positional parameter had.
-	// An array is an object, and it is exactly what a point-free `map` or `flatMap` passes as the
-	// second or third argument, so it is refused by name rather than read as a bag of defaults.
 	const notABag = () =>
 		rangeError(
 			"TCT_INVALID_ARGUMENT",
@@ -293,37 +302,46 @@ export function assertQueryOptions(
 				`${describe(options)}`,
 		);
 	if (options === null || typeof options !== "object") throw notABag();
-	// Everything below can run a Proxy's traps — `Array.isArray` throws on a revoked one, and the
-	// walk calls `ownKeys`, `getOwnPropertyDescriptor` and `getPrototypeOf` — so a bag that cannot be
-	// read is refused with this guard's code rather than escaping as the trap's own error. The
-	// unknown-key throw is built outside the `try`, so it is never mistaken for an unreadable bag.
+	// Everything in the `try` can run a Proxy's traps or a getter — `Array.isArray` throws on a
+	// revoked Proxy, the walk calls `ownKeys`, `getOwnPropertyDescriptor` and `getPrototypeOf`, and
+	// the snapshot calls `get` — so a bag that cannot be read is refused with this guard's code
+	// rather than escaping as the trap's own error. Nothing is thrown *inside* it, so an unreadable
+	// bag and an array or unknown key are never mistaken for one another.
+	let isArray = false;
 	let unknownKey: string | undefined;
+	const snapshot: Record<string, unknown> = {};
 	try {
-		if (Array.isArray(options)) throw notABag();
+		// An array is an object, and it is exactly what a point-free `map` or `flatMap` passes as
+		// the second or third argument, so it is refused by name rather than read as a bag of
+		// defaults.
+		isArray = Array.isArray(options);
 		// The prototype chain is walked by hand rather than with `for…in`, to stop at
 		// `Object.prototype`: a key some other library made enumerable there would otherwise make
-		// every bag function throw, even one called with no options, since the default `{}` inherits
-		// it.
+		// every bag function throw, even one called with no options, since the default `{}`
+		// inherits it.
 		walk: for (
-			let level: object | null = options;
+			let level: object | null = isArray ? null : options;
 			level !== null && level !== Object.prototype;
 			level = Object.getPrototypeOf(level)
 		) {
 			for (const key of Object.keys(level)) {
-				if (!allowed.includes(key)) {
+				if (!(allowed as readonly string[]).includes(key)) {
 					unknownKey = key;
 					break walk;
 				}
 			}
 		}
+		if (!isArray && unknownKey === undefined) {
+			for (const key of allowed) snapshot[key] = (options as Record<string, unknown>)[key];
+		}
 	} catch (error) {
-		if (hasCode(error, "TCT_INVALID_ARGUMENT")) throw error;
 		throw rangeError(
 			"TCT_INVALID_ARGUMENT",
-			`${functionName}: options could not be read — reading its keys threw ` +
-				`${describe(error)}. options must be an object like ${shape} or omitted`,
+			`${functionName}: options could not be read — reading it threw ${thrownDetail(error)}. ` +
+				`options must be an object like ${shape} or omitted`,
 		);
 	}
+	if (isArray) throw notABag();
 	if (unknownKey !== undefined) {
 		throw rangeError(
 			"TCT_INVALID_ARGUMENT",
@@ -331,6 +349,24 @@ export function assertQueryOptions(
 				`${shape}; a key it does not have would otherwise be ignored silently`,
 		);
 	}
+	// A fresh plain object carrying only the allowed keys, which is what the call sites read — so
+	// they never touch the caller's object again, and a getter cannot answer differently twice.
+	return snapshot as Partial<O>;
+}
+
+/**
+ * What a caller's code threw while a guard read their argument — a Proxy trap or a getter — for a
+ * message: the class and its message. Total, like {@link describe}, because it runs inside the
+ * `catch` that exists to stop such a throw escaping.
+ */
+export function thrownDetail(error: unknown): string {
+	try {
+		if (error instanceof Error)
+			return `${describe(error)}: ${JSON.stringify(String(error.message))}`;
+	} catch {
+		// A revoked Proxy thrown as the error makes `instanceof` itself throw; describe it instead.
+	}
+	return describe(error);
 }
 
 /**

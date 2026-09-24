@@ -286,14 +286,13 @@ const BY_PAIR = new Map(
  * other pair here — `monthAttributes`/`monthAttributesFor`, `yearAttributes`/`yearAttributesFor` and
  * so on — keeps the primitive internal, because the `*For` wrapper validates a raw number against a
  * real range. This primitive takes two {@link TibetanWeekdayElement}s, a four-member closed union
- * TypeScript already fully constrains at the call site, so there is no validation for a wrapper to be
- * doing on its behalf — and exporting it lets a caller build the weekday×mansion matrix without
- * reimplementing the unordered-pair lookup. Decided 2026-09-18, on Andreas' reasoning that a consumer
- * may want to enumerate it directly.
+ * with no range to translate, so a wrapper would add nothing — and exporting it lets a caller build
+ * the weekday×mansion matrix without reimplementing the unordered-pair lookup. Decided 2026-09-18, on
+ * Andreas' reasoning that a consumer may want to enumerate it directly.
  *
- * **It guards its own arguments all the same**, since 2026-09-24: TypeScript constrains nothing from
- * plain JavaScript, and without the guard a misspelt element reached `assertInternal` and was
- * reported as this engine's bug.
+ * **It checks its own arguments**, since 2026-09-24. The union constrains a TypeScript caller only;
+ * from plain JavaScript a misspelt element reached `assertInternal` and was reported as this
+ * engine's bug.
  *
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` if either argument is not one of the four
  * elements `"earth"`, `"water"`, `"fire"` and `"wind"`.

@@ -74,7 +74,8 @@ describe("assertQueryOptions refuses keys it does not recognise", () => {
 	// Decided 2026-09-24 with the tradition-parameter pattern: every bag accepted unknown keys, so
 	// `addMonthsToDate(f, 0, { tradition: BHUTAN })` — then a key the bag did not have — answered
 	// Phugpa's date silently. Bags only: a TraditionConfig or ObservanceConfig may carry extra keys.
-	const refuse = (options: unknown) => thrownBy(() => assertQueryOptions("f", ["a", "b"], options));
+	const refuse = (options: unknown) =>
+		thrownBy(() => assertQueryOptions<{ a?: unknown; b?: unknown }>("f", ["a", "b"], options));
 
 	it("names the unknown key and builds the shape from the allowed list", () => {
 		const error = refuse({ a: 1, c: 2 });
@@ -123,8 +124,52 @@ describe("assertQueryOptions refuses keys it does not recognise", () => {
 		expect(refuse(new Proxy({ a: 1 }, handler))?.code).toBe("TCT_INVALID_ARGUMENT");
 	});
 
+	// Found by the Part B review, 2026-09-24: the walk never calls `get`, so a bag whose `get` trap
+	// or allowed-key getter throws passed the guard and escaped when the call site read it. The guard
+	// now reads the allowed keys itself and hands back a snapshot.
+	it.each([
+		["a Proxy whose get trap throws", () => new Proxy({ a: 1 }, { get: throwing })],
+		[
+			"an allowed key whose getter throws",
+			() => ({
+				get a() {
+					return throwing();
+				},
+			}),
+		],
+	])("refuses with a code %s", (_, make) => {
+		expect(refuse(make())?.code).toBe("TCT_INVALID_ARGUMENT");
+	});
+
+	it("returns a snapshot of the allowed keys, inherited ones included", () => {
+		const snapshot = assertQueryOptions<{ a?: unknown; b?: unknown }>(
+			"f",
+			["a", "b"],
+			Object.create({ a: 1 }),
+		);
+		expect(snapshot).toEqual({ a: 1, b: undefined });
+		expect(Object.getPrototypeOf(snapshot)).toBe(Object.prototype);
+	});
+
 	it("refuses with a code a revoked Proxy as the bag", () => {
 		expect(refuse(revokedProxy())?.code).toBe("TCT_INVALID_ARGUMENT");
+	});
+
+	it("keeps the error the caller's code threw in its message", () => {
+		const message = refuse(new Proxy({ a: 1 }, { ownKeys: throwing }))?.message ?? "";
+		expect(message).toContain("trap");
+	});
+
+	it("refuses with a code a trap that throws a revoked Proxy rather than an Error", () => {
+		const thrower = new Proxy(
+			{ a: 1 },
+			{
+				ownKeys: () => {
+					throw revokedProxy();
+				},
+			},
+		);
+		expect(refuse(thrower)?.code).toBe("TCT_INVALID_ARGUMENT");
 	});
 
 	it("ignores symbol keys, which no caller writes by mistake", () => {

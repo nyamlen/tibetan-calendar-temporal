@@ -1464,14 +1464,18 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
       extending `TraditionOptions`; bags refuse unknown keys. A one-way door at 1.0.0, breaking for
       seven functions now and free while nothing is published
 - [x] **Sites that put a value into a message without `describe`, and inputs that escape uncoded.**
-      **Done 2026-09-24.** `describe` never throws and always returns a string; the options guard
-      refuses an unreadable bag with its own code; fourteen sites render through `describe`; and
-      `elementalYoga`, which had no guard, now refuses a non-element as `TCT_INVALID_ARGUMENT` instead
-      of reporting it as `TCT_INTERNAL`. `test/hostile-inputs.test.ts` holds every runtime export of
-      the three barrels against seven values a template cannot render, in argument, field, config and
-      bag positions. Two findings from the work are the next two items.
+      **Done 2026-09-24.** `describe` and `isPlainObject` never throw; the options guard refuses an
+      unreadable bag with its own code and hands its call sites a snapshot, so a `get` trap or getter
+      is read inside it; `asWesternDay` reads `isoDate` under `try`; fourteen sites render through
+      `describe`; and `elementalYoga`, which had no guard, refuses a non-element as
+      `TCT_INVALID_ARGUMENT` instead of reporting it as `TCT_INTERNAL`. `test/hostile-inputs.test.ts`
+      holds every runtime export of the three barrels against twelve values — seven a template cannot
+      render and five single-trap Proxies — in argument, field, config and bag positions. The
+      `isPlainObject`, snapshot and `isoDate` fixes came from an independent review, which found that
+      the table's one revoked Proxy threw at a trap already caught and so hid the rest. Two findings
+      from the work are the next two items. **What follows is the item as found, before the fix.**
       Found 2026-09-24 while closing the item above, and left out of it on purpose.
-      `isoFromJulianDay(10n)` and `isoFromJulianDay("10")` both say "received 10", and
+      `isoFromJulianDay(10n)` and `isoFromJulianDay("10")` both said "received 10", and
       `assertSafeYear` interpolates the same way — the ambiguity `describe`'s docblock exists to
       prevent. **This entry first said "Coded, so nothing escapes", which was false the same day**: a
       `Symbol` interpolated into a template literal throws, so `isoFromJulianDay`, `weekdayNameFor`,
@@ -1484,13 +1488,18 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
       `Object.getPrototypeOf`, so a Proxy bag whose `ownKeys` or `getPrototypeOf` trap throws escapes
       uncoded — `addMonthsToDate(d, 1, new Proxy({}, { ownKeys() { throw … } }))` — where before it
       passed the guard and answered.
-- [ ] **A revoked `Proxy` passed as a config escapes the validators uncoded.**
-      Found 2026-09-24 with the item above and left out of it on purpose:
-      `isoToTibetan(d, revokedProxy)` throws the engine's `TypeError` from the first property read in
-      `assertTraditionConfig`, and an `ObservanceConfig` whose `rules[0].when` is one does the same.
-      Decide whether the validators should convert any throw while reading a config into the config's
-      own code, the way `assertQueryOptions` now does for a bag. `test/hostile-inputs.test.ts` leaves
-      the revoked Proxy out of its config rows for this reason, and says so.
+- [ ] **A throw from the caller's own code while the engine reads a config or a fields object
+      escapes uncoded — decide whether it should.** Found 2026-09-24 with the item above and left out
+      of it on purpose. A Proxy passed as a `TraditionConfig` — revoked, or with any one trap that
+      throws — escapes from the first read in `assertTraditionConfig` (`isoToTibetan(d, proxy)`,
+      `monthNamesFor(m, proxy)`), and an `ObservanceConfig` whose `rules`, `rules[0]` or
+      `rules[0].when` is one does the same. The review also measured a throwing getter on a
+      Tibetan-date fields object escaping at about seventeen exports. The **argument** guards already
+      convert such a throw — `temporalTypeNameOf` always has, and since this item the options guard
+      and `asWesternDay` do — so the question is whether the config validators and the fields guards
+      should too, or whether the README's "every failure about your input … carries a code" should
+      say that an error your own code throws propagates unchanged. `test/hostile-inputs.test.ts`
+      leaves every Proxy out of its config rows for this reason, and says so.
 - [ ] **The Tibetan date-field guard is written six times.** Answering the review question the `describe`
       item above carried, 2026-09-24: `assertMonthFields` and `assertDateFields` in `navigation.ts`, the
       inline checks in `resolveMonth`, `daysInMonth` and `datesFor` in `months.ts`, and those in

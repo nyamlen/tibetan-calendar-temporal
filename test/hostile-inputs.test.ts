@@ -58,8 +58,14 @@ import { thrownBy } from "./support/thrown.js";
 // so: a bag with no prototype is an empty bag, and `tibetanDateExists` reports a bad field as a date
 // that does not exist, by its allowlist.
 //
-// Out of scope, recorded in docs/roadmap.md: a revoked Proxy passed **as a config** throws uncoded
-// from the config validators, which read it field by field. It is left out of the config rows.
+// Out of scope, recorded in docs/roadmap.md: a Proxy passed **as a config** — revoked, or with any
+// one trap that throws — escapes uncoded from the config validators, which read it field by field.
+// Whether they should convert such a throw is undecided, so every Proxy is left out of the config
+// rows. Argument and bag guards do convert one, as `temporalTypeNameOf` always has.
+
+const throwing = () => {
+	throw new Error("trap");
+};
 
 const revokedProxy = (() => {
 	const { proxy, revoke } = Proxy.revocable({}, {});
@@ -82,6 +88,11 @@ const HOSTILE: readonly (readonly [string, unknown])[] = [
 	["null-prototype object", Object.create(null)],
 	["revoked Proxy", revokedProxy],
 	["Symbol-named constructor", { constructor: { name: Symbol("x") } }],
+	// One throwing trap each. A revoked Proxy throws at the first trap any code reaches, which is
+	// usually a guard that already catches it — so on its own it hid a message helper that did not.
+	...(["get", "has", "ownKeys", "getOwnPropertyDescriptor", "getPrototypeOf"] as const).map(
+		(trap) => [`Proxy throwing from ${trap}`, new Proxy({}, { [trap]: throwing })] as const,
+	),
 ];
 
 const ISO = Temporal.PlainDate.from("2026-02-18");
@@ -237,19 +248,19 @@ const RULE_FIELD: readonly Row[] = [
 	],
 ];
 
+// A bag with nothing to read is empty, and so answers: no prototype, or a Proxy over `{}` whose only
+// trap is one reading an empty object never calls.
+const EMPTY_BAGS = [
+	"null-prototype object",
+	"Proxy throwing from has",
+	"Proxy throwing from getOwnPropertyDescriptor",
+];
+
 // The bag itself, and its other key.
 const BAG: readonly Row[] = [
-	[
-		"addMonthsToDate(fields, 1, options)",
-		(x) => addMonthsToDate(LOSAR, 1, v(x)),
-		["null-prototype object"],
-	],
-	[
-		"getObservances(from, to, options)",
-		(x) => getObservances(ISO, ISO, v(x)),
-		["null-prototype object"],
-	],
-	["observancesOn(date, options)", (x) => observancesOn(ISO, v(x)), ["null-prototype object"]],
+	["addMonthsToDate(fields, 1, options)", (x) => addMonthsToDate(LOSAR, 1, v(x)), EMPTY_BAGS],
+	["getObservances(from, to, options)", (x) => getObservances(ISO, ISO, v(x)), EMPTY_BAGS],
+	["observancesOn(date, options)", (x) => observancesOn(ISO, v(x)), EMPTY_BAGS],
 	[
 		"addMonthsToDate(fields, 1, { overflow })",
 		(x) => addMonthsToDate(LOSAR, 1, v({ overflow: x })),
@@ -286,11 +297,11 @@ const table = (label: string, rows: readonly Row[], values: typeof HOSTILE) =>
 		});
 	});
 
-const NOT_A_REVOKED_PROXY = HOSTILE.filter(([name]) => name !== "revoked Proxy");
+const NOT_A_PROXY = HOSTILE.filter(([name]) => !name.includes("Proxy"));
 
 table("a hostile value as the argument", SCALAR, HOSTILE);
 table("a hostile value as one field", FIELD, HOSTILE);
-table("a hostile value as the tradition or config", CONFIG, NOT_A_REVOKED_PROXY);
+table("a hostile value as the tradition or config", CONFIG, NOT_A_PROXY);
 table("a hostile value in a consumer's observance rule", RULE_FIELD, HOSTILE);
 table("a hostile value as the options bag", BAG, HOSTILE);
 

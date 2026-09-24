@@ -412,13 +412,17 @@ export function getObservances(
 	to: Temporal.PlainDate,
 	options: ObservanceQueryOptions = {},
 ): Observance[] {
-	assertQueryOptions("getObservances", ["config", "tradition"], options);
+	const bag = assertQueryOptions<ObservanceQueryOptions>(
+		"getObservances",
+		["config", "tradition"],
+		options,
+	);
 	// Not `?? DEFAULT_OBSERVANCES`: nullish-coalescing treats an explicit `null` as absent, so a
 	// caller passing `{ config: null }` would silently get the default instead of the coded
 	// rejection the positional signature gave them. Only `undefined` means "omitted"; everything
 	// else is the caller's value and goes to the validator.
-	const config = options.config === undefined ? DEFAULT_OBSERVANCES : options.config;
-	const tradition = options.tradition === undefined ? PHUGPA : options.tradition;
+	const config = bag.config === undefined ? DEFAULT_OBSERVANCES : bag.config;
+	const tradition = bag.tradition === undefined ? PHUGPA : bag.tradition;
 	// Normalised before anything else touches from/to: Temporal.PlainDate.compare and the span-cap
 	// comparison below both accept a raw string without complaint, which let a string range slip
 	// past the cap (NaN > 200 is false) and let null/number arguments reach Temporal as uncoded
@@ -511,6 +515,9 @@ export function observancesOn(
 	date: Temporal.PlainDate,
 	options: ObservanceQueryOptions = {},
 ): Observance[] {
-	assertQueryOptions("observancesOn", ["config", "tradition"], options);
-	return getObservances(date, date, options);
+	return getObservances(
+		date,
+		date,
+		assertQueryOptions<ObservanceQueryOptions>("observancesOn", ["config", "tradition"], options),
+	);
 }
