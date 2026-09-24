@@ -359,3 +359,24 @@ export interface TraditionNineNumbers {
 	 */
 	readonly months?: "unnumbered" | "descending";
 }
+
+/**
+ * The tradition, as a key of an options bag.
+ *
+ * @remarks
+ * The base of every bag that carries a tradition — `AddMonthsToDateOptions` and
+ * `ObservanceQueryOptions` — so the key's name and type are declared once and a new bag cannot
+ * drift from them. Until 2026-09-24 they had drifted: `addMonthsToDate`'s key was `config`, the
+ * word `./observances` uses for an `ObservanceConfig`.
+ *
+ * **Only the tradition goes here.** A function whose only choice is the tradition takes it as its
+ * last positional parameter instead, so no function takes this type on its own; any other choice
+ * goes on that function's own bag. See `docs/decisions/2026-09-24-how-a-tradition-is-passed.md`.
+ *
+ * Not exported from a barrel, because no consumer holds a bag of this type alone. It is declared
+ * outside the barrels so that `check:conventions` rule 13 would see it if it ever were.
+ */
+export interface TraditionOptions {
+	/** Astronomical constants and naming rules. Defaults to `PHUGPA`. */
+	readonly tradition?: TraditionConfig;
+}

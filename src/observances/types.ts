@@ -22,7 +22,7 @@
  * @packageDocumentation
  */
 
-import type { TraditionConfig } from "../traditions/types.js";
+import type { TraditionOptions } from "../traditions/types.js";
 import type { TibetanDate } from "../types.js";
 
 /**
@@ -226,15 +226,14 @@ export interface Observance {
  * defect on the surface, and free to fix before 1.0.0.
  *
  * {@link addMonthsToDate} takes the same shape, which makes the bag this surface's stated pattern
- * for a function with two axes of choice rather than a one-off exception to uniformity.
+ * for a function with two or more choices rather than a one-off exception to uniformity. Both
+ * extend the same base, so the tradition's key is `tradition` in each. `config` here is the
+ * `ObservanceConfig`, and its name belongs to the `./observances` rethink.
  */
-export interface ObservanceQueryOptions {
+export interface ObservanceQueryOptions extends TraditionOptions {
 	/**
 	 * Which observances, and the conventions for resolving them.
 	 * Defaults to {@link DEFAULT_OBSERVANCES}.
 	 */
 	config?: ObservanceConfig;
-
-	/** Astronomical constants. Defaults to `PHUGPA`. */
-	tradition?: TraditionConfig;
 }

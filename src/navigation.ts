@@ -45,7 +45,7 @@ import { scalingFor } from "./computation/scaling.js";
 import { assertQueryOptions, describe, rangeError } from "./errors.js";
 import { describeMonth } from "./months.js";
 import { PHUGPA } from "./traditions/phugpa.js";
-import type { TraditionConfig } from "./traditions/types.js";
+import type { TraditionConfig, TraditionOptions } from "./traditions/types.js";
 import { assertTraditionConfig } from "./traditions/validate.js";
 import type { TibetanDate, TibetanDateFields, TibetanMonth, TibetanMonthFields } from "./types.js";
 import {
@@ -446,17 +446,19 @@ export function resolveDate(
  */
 export type MonthOverflow = "constrain" | "reject";
 
-/** Options for {@link addMonthsToDate}. */
-export interface AddMonthsToDateOptions {
+/**
+ * Options for {@link addMonthsToDate}: the overflow convention and the tradition.
+ *
+ * @remarks
+ * The tradition's key was `config` until 2026-09-24, and is now `tradition`, as in every bag.
+ */
+export interface AddMonthsToDateOptions extends TraditionOptions {
 	/**
 	 * What to do when the target month does not carry the starting day's number.
 	 *
 	 * @defaultValue `"constrain"` — fall to the nearest **lower** number the month does carry.
 	 */
 	overflow?: MonthOverflow;
-
-	/** Astronomical constants. Defaults to `PHUGPA`. */
-	config?: TraditionConfig;
 }
 
 /**
@@ -501,8 +503,8 @@ export interface AddMonthsToDateOptions {
  *
  * @param date - The date to step from.
  * @param months - How many lunations to move. May be negative or zero.
- * @param options - `overflow` and `config`. An options bag rather than two positional optionals,
- * which is this surface's stated shape for a function with two axes of choice.
+ * @param options - `overflow` and `tradition`. A bag because the function has two choices, which is
+ * this surface's rule: one choice is positional, two or more go in one bag.
  *
  * @throws {@link SkippedDayError} — code `TCT_SKIPPED_DAY` — under `overflow: "reject"` when the
  * target month does not carry the day number. Also thrown, under either setting, if `date` itself
@@ -524,8 +526,8 @@ export function addMonthsToDate(
 	months: number,
 	options: AddMonthsToDateOptions = {},
 ): TibetanDate {
-	assertQueryOptions("addMonthsToDate", "{ overflow, config }", options);
-	const config = options.config === undefined ? PHUGPA : options.config;
+	assertQueryOptions("addMonthsToDate", "{ overflow, tradition }", options);
+	const config = options.tradition === undefined ? PHUGPA : options.tradition;
 	const overflow = options.overflow === undefined ? "constrain" : options.overflow;
 	if (overflow !== "constrain" && overflow !== "reject") {
 		throw rangeError(

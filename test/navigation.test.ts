@@ -14,6 +14,7 @@ import {
 	nextNewMoon,
 	resolveDate,
 } from "../src/navigation.js";
+import { BHUTAN } from "../src/traditions/bhutan.js";
 import { PHUGPA, PHUGPA_HENNING } from "../src/traditions/phugpa.js";
 import { SkippedDayError } from "../src/types.js";
 
@@ -695,21 +696,30 @@ describe("addMonthsToDate", () => {
 		expect(bad).toEqual([]);
 	});
 
-	it("takes the config through the options bag rather than defaulting to PHUGPA", () => {
+	it("takes the tradition through the options bag rather than defaulting to PHUGPA", () => {
 		// Threaded, not ignored: the answer must track addMonths under the SAME config. Asserting a
 		// literal here would pass just as well with the config dropped, since the two traditions
 		// agree at month level in all but four years between 1500 and 2500.
 		const bad: string[] = [];
-		for (const config of [PHUGPA, PHUGPA_HENNING]) {
+		for (const tradition of [PHUGPA, PHUGPA_HENNING]) {
 			for (let step = -6; step <= 6; step++) {
-				const date = addMonthsToDate({ year: 2151, month: 1, day: 10 }, step, { config });
-				const month = addMonths({ year: 2151, month: 1 }, step, config);
+				const date = addMonthsToDate({ year: 2151, month: 1, day: 10 }, step, { tradition });
+				const month = addMonths({ year: 2151, month: 1 }, step, tradition);
 				if (date.monthCode !== month.monthCode || date.year !== month.year) {
-					bad.push(`${config === PHUGPA ? "PHUGPA" : "HENNING"} ${step}`);
+					bad.push(`${tradition === PHUGPA ? "PHUGPA" : "HENNING"} ${step}`);
 				}
 			}
 		}
 		expect(bad).toEqual([]);
+	});
+
+	it("names the key `tradition`, as every other bag does", () => {
+		// Until 2026-09-24 this bag's key was `config`, while ./observances' `config` is an
+		// ObservanceConfig — and `{ tradition: BHUTAN }`, the key everywhere else, was silently
+		// ignored. Tibetan 2150 M01 day 10 is 2023-03-01 under Phugpa and 2023-03-02 under Bhutan.
+		const date = { year: 2150, month: 1, day: 10 };
+		expect(String(addMonthsToDate(date, 0).isoDate)).toBe("2023-03-01");
+		expect(String(addMonthsToDate(date, 0, { tradition: BHUTAN }).isoDate)).toBe("2023-03-02");
 	});
 
 	it("is a no-op at zero on a date that exists", () => {
@@ -825,10 +835,10 @@ describe("addMonthsToDate's options bag", () => {
 	});
 
 	it("refuses an explicit null field rather than reading it as absent", () => {
-		// `??` read `{ config: null }` as the default until 2026-09-23 — the validation CLAUDE.md's
+		// `??` read `{ config: null }` — the key's name until 2026-09-24 — as the default until 2026-09-23 — the validation CLAUDE.md's
 		// options-bag rule says a bag must not lose. Only `undefined` means "not given".
 		// @ts-expect-error -- null is not a TraditionConfig, which is what is under test
-		expect(codeOf(() => addMonthsToDate(date, 1, { config: null }))).toBe(
+		expect(codeOf(() => addMonthsToDate(date, 1, { tradition: null }))).toBe(
 			"TCT_INVALID_TRADITION_CONFIG",
 		);
 		// @ts-expect-error -- null is not an overflow mode, which is what is under test
