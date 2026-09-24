@@ -688,6 +688,11 @@ a `code`, which is what to branch on rather than the type:
 | `TCT_MISSING_TEMPORAL` | the `import` itself, and any date entry point if the global `Temporal` is deleted afterwards | No `Temporal` in this runtime — see [Requirements](#requirements) |
 | `TCT_INTERNAL` | `isoToTibetan`, and the arithmetic primitives beneath it | An invariant the engine proves for itself did not hold. A bug here rather than in your input; please [report it](https://github.com/nyamlen/tibetan-calendar-temporal/issues) |
 
+The codes cover the errors this package throws. An error **your own code** throws while the engine
+reads your argument — a getter, or a `Proxy` trap — is yours, and may reach you unchanged, without a
+code: reading a `TraditionConfig`, an `ObservanceConfig` or a date's fields does not catch it. A few
+argument checks do wrap one, as `TCT_INVALID_ARGUMENT`, where they already guard the read.
+
 Codes are stable and part of the API. Message text is not — match on the code.
 
 #### Types

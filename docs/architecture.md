@@ -612,7 +612,9 @@ Seven rules follow from that:
   differently by a consumer (bad data to show a user, against a bug in their own code), and only the
   first is on the allowlist above. See
   [decisions/2026-08-15-argument-errors-split.md](decisions/2026-08-15-argument-errors-split.md).
-- **Every error carries a code**, and `SkippedDayError` is the only error class. Construct through
+- **Every error carries a code**, and `SkippedDayError` is the only error class — every error this
+  package throws, that is: one the caller's own getter or `Proxy` trap throws while an argument is
+  read may propagate unchanged, as the README states. Construct through
   `rangeError`/`codedError` in [`src/errors.ts`](../src/errors.ts) rather than with a bare
   `new RangeError`, so the code is never omitted. Codes are contract; message text is not. See
   [decisions/2026-08-12-error-codes-not-classes.md](decisions/2026-08-12-error-codes-not-classes.md).

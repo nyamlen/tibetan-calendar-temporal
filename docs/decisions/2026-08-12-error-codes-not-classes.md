@@ -65,6 +65,29 @@ Message *text* carries no such promise, and deliberately so: the messages are me
 improving. Do not assert on wording in a test where a code would do, and do not tell a consumer to
 match on it.
 
+## An error the caller's own code throws is not this package's to code
+
+Added 2026-09-24. The promise is about errors **this package** throws. When the engine reads an
+argument and the caller's own code throws — a getter, a `Proxy` trap — that error is the caller's,
+and it may propagate unchanged. The README says so beside its code table. Reading a
+`TraditionConfig`, an `ObservanceConfig` or a Tibetan date's fields does not catch it, and should
+not be made to piecemeal: the engine reads a config again after validating it, so a guard around
+the validator would convert some throws and miss the rest, and closing that properly means the
+validator returning a frozen copy of the config.
+
+Three rules follow, each of which was broken before this was written down:
+
+- **Rendering a value must never throw.** A message is built after the decision to throw, so a
+  renderer that throws turns a coded error into an uncoded one. Use `describe` in `src/errors.ts`,
+  which is total, never a bare `${}` on a value not yet proved a number.
+- **A guard that already wraps a read may keep wrapping it**, as `temporalTypeNameOf`, the options
+  guard and `asWesternDay` do — but with `TCT_INVALID_ARGUMENT`, **never** `TCT_FIELD_OUT_OF_RANGE`,
+  which is on `tibetanDateExists`'s allowlist and would turn a caller's throwing getter into "that
+  date does not exist".
+- **Widening the promise later is additive; narrowing it is not.** Codes can be added where an error
+  now has none without breaking anyone, so converting these throws stays open. Taking a code away
+  once consumers branch on it is a breaking change, which is why the narrower promise was chosen.
+
 ## What a message should contain
 
 The guidance the current messages follow, in case a new throw site needs one:

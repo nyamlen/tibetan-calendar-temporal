@@ -58,10 +58,11 @@ import { thrownBy } from "./support/thrown.js";
 // so: a bag with no prototype is an empty bag, and `tibetanDateExists` reports a bad field as a date
 // that does not exist, by its allowlist.
 //
-// Out of scope, recorded in docs/roadmap.md: a Proxy passed **as a config** — revoked, or with any
-// one trap that throws — escapes uncoded from the config validators, which read it field by field.
-// Whether they should convert such a throw is undecided, so every Proxy is left out of the config
-// rows. Argument and bag guards do convert one, as `temporalTypeNameOf` always has.
+// Left out on purpose: a Proxy passed **as a config** — revoked, or with any one trap that throws —
+// escapes uncoded from the config validators, which read it field by field. That is the caller's
+// own code throwing, which the README says may reach them unchanged — decided 2026-09-24, recorded
+// in docs/decisions/2026-08-12-error-codes-not-classes.md — so every Proxy is left out of the config
+// rows. Argument and bag guards that already wrap a read do convert one, and are held to it here.
 
 const throwing = () => {
 	throw new Error("trap");

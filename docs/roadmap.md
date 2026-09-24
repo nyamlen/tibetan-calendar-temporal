@@ -1488,18 +1488,25 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
       `Object.getPrototypeOf`, so a Proxy bag whose `ownKeys` or `getPrototypeOf` trap throws escapes
       uncoded — `addMonthsToDate(d, 1, new Proxy({}, { ownKeys() { throw … } }))` — where before it
       passed the guard and answered.
-- [ ] **A throw from the caller's own code while the engine reads a config or a fields object
-      escapes uncoded — decide whether it should.** Found 2026-09-24 with the item above and left out
+- [x] **A throw from the caller's own code while the engine reads a config or a fields object
+      escapes uncoded — decide whether it should.** **Decided 2026-09-24 by Andreas: it may.** The
+      README now says beside its code table that an error the caller's own code throws may reach them
+      unchanged, and
+      [decisions/2026-08-12-error-codes-not-classes.md](decisions/2026-08-12-error-codes-not-classes.md)
+      records the boundary and why converting was not chosen: a config is read again after
+      validation, so only a validator returning a frozen copy would close it, across every function
+      taking a config. Converting stays open, since adding codes later breaks nobody. Found 2026-09-24 with the item above and left out
       of it on purpose. A Proxy passed as a `TraditionConfig` — revoked, or with any one trap that
       throws — escapes from the first read in `assertTraditionConfig` (`isoToTibetan(d, proxy)`,
       `monthNamesFor(m, proxy)`), and an `ObservanceConfig` whose `rules`, `rules[0]` or
       `rules[0].when` is one does the same. The review also measured a throwing getter on a
       Tibetan-date fields object escaping at about seventeen exports. The **argument** guards already
       convert such a throw — `temporalTypeNameOf` always has, and since this item the options guard
-      and `asWesternDay` do — so the question is whether the config validators and the fields guards
-      should too, or whether the README's "every failure about your input … carries a code" should
-      say that an error your own code throws propagates unchanged. `test/hostile-inputs.test.ts`
-      leaves every Proxy out of its config rows for this reason, and says so.
+      and `asWesternDay` do — so the question was whether the config validators and the fields
+      guards should too, or whether the README's "every failure about your input … carries a code"
+      should say that an error your own code throws propagates unchanged.
+      `test/hostile-inputs.test.ts` leaves every Proxy out of its config rows for this reason, and
+      says so.
 - [ ] **The Tibetan date-field guard is written six times.** Answering the review question the `describe`
       item above carried, 2026-09-24: `assertMonthFields` and `assertDateFields` in `navigation.ts`, the
       inline checks in `resolveMonth`, `daysInMonth` and `datesFor` in `months.ts`, and those in
