@@ -650,6 +650,11 @@ derivation; in `docs/` they are just noise.
   (`undefined` is the likelier input, and it silently inherited whichever branch came last); and
   the boundary is the **whole** exported surface, so when an internal caller needs to skip a guard,
   give it a separate name like `isoFromJulianDayUnchecked` rather than leaving the export bare.
+  **A parameter typed as a closed union still needs its guard**: `elementalYoga`'s docblock argued
+  TypeScript already constrained its two elements, and from JavaScript a misspelt one was reported
+  as `TCT_INTERNAL` — the engine's bug — until 2026-09-24. And a guard renders what it received
+  through `describe` in `src/errors.ts`, never a bare `${}`, which throws on a Symbol and cannot tell
+  `10n` from `"10"`; `test/hostile-inputs.test.ts` holds every export to that.
 
 ## Environment
 

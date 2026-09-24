@@ -1463,7 +1463,13 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
       only choice is the tradition takes it last and positionally; two or more choices go in one bag
       extending `TraditionOptions`; bags refuse unknown keys. A one-way door at 1.0.0, breaking for
       seven functions now and free while nothing is published
-- [ ] **Sites that put a value into a message without `describe`, and inputs that escape uncoded.**
+- [x] **Sites that put a value into a message without `describe`, and inputs that escape uncoded.**
+      **Done 2026-09-24.** `describe` never throws and always returns a string; the options guard
+      refuses an unreadable bag with its own code; fourteen sites render through `describe`; and
+      `elementalYoga`, which had no guard, now refuses a non-element as `TCT_INVALID_ARGUMENT` instead
+      of reporting it as `TCT_INTERNAL`. `test/hostile-inputs.test.ts` holds every runtime export of
+      the three barrels against seven values a template cannot render, in argument, field, config and
+      bag positions. Two findings from the work are the next two items.
       Found 2026-09-24 while closing the item above, and left out of it on purpose.
       `isoFromJulianDay(10n)` and `isoFromJulianDay("10")` both say "received 10", and
       `assertSafeYear` interpolates the same way — the ambiguity `describe`'s docblock exists to
@@ -1477,7 +1483,22 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
       2026-09-24:** the options guard now walks a bag's prototype chain with `Object.keys` and
       `Object.getPrototypeOf`, so a Proxy bag whose `ownKeys` or `getPrototypeOf` trap throws escapes
       uncoded — `addMonthsToDate(d, 1, new Proxy({}, { ownKeys() { throw … } }))` — where before it
-      passed the guard and answered. Planned, classified site by site, and held until Andreas starts it
+      passed the guard and answered.
+- [ ] **A revoked `Proxy` passed as a config escapes the validators uncoded.**
+      Found 2026-09-24 with the item above and left out of it on purpose:
+      `isoToTibetan(d, revokedProxy)` throws the engine's `TypeError` from the first property read in
+      `assertTraditionConfig`, and an `ObservanceConfig` whose `rules[0].when` is one does the same.
+      Decide whether the validators should convert any throw while reading a config into the config's
+      own code, the way `assertQueryOptions` now does for a bag. `test/hostile-inputs.test.ts` leaves
+      the revoked Proxy out of its config rows for this reason, and says so.
+- [ ] **The Tibetan date-field guard is written six times.** Answering the review question the `describe`
+      item above carried, 2026-09-24: `assertMonthFields` and `assertDateFields` in `navigation.ts`, the
+      inline checks in `resolveMonth`, `daysInMonth` and `datesFor` in `months.ts`, and those in
+      `tibetanToIso` run the same predicates — safe-integer year, month 1–12, day 1–30 — and differ
+      only in how the subject is built and in one extra sentence on `tibetanToIso`'s day message. Rule
+      14 cannot see it, since the bodies differ. Merging them into one home beside
+      `rejectMissingFields` changes message text across about nine exports, which is why it is not
+      folded into the item above.
 - [x] **Decide whether `check:conventions` rule 4 should distinguish an exported `{@link}` target
       from a module-local one.** **Decided 2026-09-23: reject, scoped to docblocks that ship** — those
       of a barrel-exported declaration or of a member of a barrel-exported interface or class, where a
