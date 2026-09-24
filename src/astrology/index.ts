@@ -49,16 +49,15 @@ import { yearFromRoyalEra } from "../computation/epoch.js";
 import { scalingFor } from "../computation/scaling.js";
 import { describe, rangeError } from "../errors.js";
 import { deepFreeze } from "../freeze.js";
-import { daysInMonth } from "../months.js";
+import { boundedMonth } from "../months.js";
 import { weekdayNameWithOffset } from "../names.js";
 import { PHUGPA } from "../traditions/phugpa.js";
 import type { TraditionConfig } from "../traditions/types.js";
-import {
-	assertTibetanShape,
-	type TibetanDate,
-	type TibetanDateFields,
-	type TibetanMonthFields,
-	type TibetanWeekdayElement,
+import type {
+	TibetanDate,
+	TibetanDateFields,
+	TibetanMonthFields,
+	TibetanWeekdayElement,
 } from "../types.js";
 import { type CalendarDayAttributes, calendarDayAttributes } from "./calendar-day.js";
 import { type LunarDayAttributes, lunarDayAttributes } from "./lunar-day.js";
@@ -171,12 +170,9 @@ export function monthAttributesFor(
 ): MonthAttributes {
 	// Validated first, so a bad tradition is reported before a bad date, as it was when this took a bag.
 	scalingFor(tradition);
-	assertTibetanShape("monthAttributesFor", month, "month");
-
-	// Borrowed wholesale rather than reimplemented: this validates the year, the month number, the
-	// leap flag against the year's actual leap month, and the tradition's exact range, in the one
-	// place those rules live. The returned length is discarded.
-	daysInMonth(month, tradition);
+	// The month tier's own guard: the shape, the year, the month number, the leap flag against the
+	// year's actual leap month, and the exact range at both ends of the month.
+	boundedMonth("monthAttributesFor", month, "month", tradition);
 
 	return monthAttributes(tradition, yearFromRoyalEra(month.year), month.month);
 }
@@ -217,19 +213,10 @@ export function lunarDayAttributesFor(
 	tradition: TraditionConfig = PHUGPA,
 ): LunarDayAttributes {
 	scalingFor(tradition);
-	assertTibetanShape("lunarDayAttributesFor", date, "date");
-
-	// The month's own validation, which covers the year, the month number, the leap flag and the
-	// exact range. The day is checked here rather than through a conversion, because a skipped day is
-	// a legitimate argument to this function and `tibetanToIso` would refuse it.
-	daysInMonth(date, tradition);
-	if (!Number.isInteger(date.day) || date.day < 1 || date.day > 30) {
-		throw rangeError(
-			"TCT_FIELD_OUT_OF_RANGE",
-			`lunarDayAttributesFor: day must be an integer 1-30, received ${date.day}. A lunar month ` +
-				"always has thirty lunar days, even where the calendar skips one of them",
-		);
-	}
+	// The month tier's guard with the day range-checked alongside the other fields, and never a
+	// conversion: a skipped day is a legitimate argument here, and `tibetanToIso` would refuse it.
+	// So the month is bounded, not the day.
+	boundedMonth("lunarDayAttributesFor", date, "date", tradition);
 
 	return lunarDayAttributes(tradition, yearFromRoyalEra(date.year), date.month, date.day);
 }

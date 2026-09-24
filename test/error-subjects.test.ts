@@ -34,10 +34,10 @@ import { thrownBy } from "./support/thrown.js";
 // string, never `toContain`: `toContain("to")` passed for a message naming `tibetanToIso`, because
 // " to find" is in its sentence.
 //
-// A row that is wrong today asserts today's wrong prefix, marked `// wrong:`, and the commit that
-// fixes it changes the expectation, so the diff shows the old message beside the new one. Not
-// `it.fails`: that passes on any throw, a `TypeError` included, so it cannot show the failure is the
-// right one.
+// Written on 2026-09-24 against the messages as they then stood, a wrong row asserting its wrong
+// prefix under a `// wrong:` note, and each expectation changed in the commit that fixed it — so
+// `git log -p` on this file shows every old message beside its new one. Not `it.fails`: that passes
+// on any throw, a `TypeError` included, so it cannot show the failure is the right one.
 
 const escaped = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const opening = (text: string) => new RegExp(`^${escaped(text)}`);
@@ -127,19 +127,17 @@ describe("an error names the function the caller called", () => {
 				"daysInMonth({ year: 2153, month: 13 }): ",
 			],
 			["datesFor", m.datesFor, "TCT_FIELD_OUT_OF_RANGE", "datesFor({ year: 2153, month: 13 }): "],
-			// wrong: fixed in commit 4
 			[
 				"monthNamesFor",
 				m.monthNamesFor,
 				"TCT_FIELD_OUT_OF_RANGE",
-				"daysInMonth({ year: 2153, month: 13 }): ",
+				"monthNamesFor({ year: 2153, month: 13 }): ",
 			],
-			// wrong: fixed in commit 4
 			[
 				"monthAttributesFor",
 				m.monthAttributesFor,
 				"TCT_FIELD_OUT_OF_RANGE",
-				"daysInMonth({ year: 2153, month: 13 }): ",
+				"monthAttributesFor({ year: 2153, month: 13 }): ",
 			],
 			[
 				"formatTibetanMonth",
@@ -177,12 +175,11 @@ describe("an error names the function the caller called", () => {
 				"TCT_FIELD_OUT_OF_RANGE",
 				"tibetanToIso({ year: 2153, month: 13, day: 1 }): ",
 			],
-			// wrong: fixed in commit 4
 			[
 				"lunarDayAttributesFor",
 				d.lunarDayAttributesFor,
 				"TCT_FIELD_OUT_OF_RANGE",
-				"daysInMonth({ year: 2153, month: 13 }): ",
+				"lunarDayAttributesFor({ year: 2153, month: 13, day: 1 }): ",
 			],
 			[
 				"formatTibetanDate",
@@ -231,7 +228,7 @@ describe("an error names the function the caller called", () => {
 				"lunarDayAttributesFor",
 				d.lunarDayAttributesFor,
 				"TCT_FIELD_OUT_OF_RANGE",
-				"lunarDayAttributesFor: ",
+				"lunarDayAttributesFor({ year: 2153, month: 1, day: 31 }): ",
 			],
 			[
 				"formatTibetanDate",
@@ -288,19 +285,17 @@ describe("an error names the function the caller called", () => {
 				"TCT_NO_SUCH_LEAP_MONTH",
 				"datesFor({ year: 2153, month: 1, isLeapMonth: true }): ",
 			],
-			// wrong: fixed in commit 4
 			[
 				"monthNamesFor",
 				m.monthNamesFor,
 				"TCT_NO_SUCH_LEAP_MONTH",
-				"daysInMonth({ year: 2153, month: 1, isLeapMonth: true }): ",
+				"monthNamesFor({ year: 2153, month: 1, isLeapMonth: true }): ",
 			],
-			// wrong: fixed in commit 4
 			[
 				"monthAttributesFor",
 				m.monthAttributesFor,
 				"TCT_NO_SUCH_LEAP_MONTH",
-				"daysInMonth({ year: 2153, month: 1, isLeapMonth: true }): ",
+				"monthAttributesFor({ year: 2153, month: 1, isLeapMonth: true }): ",
 			],
 			[
 				"addDays",
@@ -332,12 +327,11 @@ describe("an error names the function the caller called", () => {
 				"TCT_NO_SUCH_LEAP_MONTH",
 				"tibetanToIso({ year: 2153, month: 1, day: 1, isLeapMonth: true }): ",
 			],
-			// wrong: fixed in commit 4
 			[
 				"lunarDayAttributesFor",
 				d.lunarDayAttributesFor,
 				"TCT_NO_SUCH_LEAP_MONTH",
-				"daysInMonth({ year: 2153, month: 1, isLeapMonth: true }): ",
+				"lunarDayAttributesFor({ year: 2153, month: 1, day: 1, isLeapMonth: true }): ",
 			],
 		];
 		it.each(rows)("%s", (_label, call, code, prefix) => expectRow(call, PHUGPA, code, prefix));
@@ -368,19 +362,17 @@ describe("an error names the function the caller called", () => {
 				"TCT_OUTSIDE_EXACT_RANGE",
 				"datesFor({ year: 11500, month: 1 }) is outside",
 			],
-			// wrong: fixed in commit 4
 			[
 				"monthNamesFor",
 				m.monthNamesFor,
 				"TCT_OUTSIDE_EXACT_RANGE",
-				"daysInMonth({ year: 11500, month: 1 }) is outside",
+				"monthNamesFor({ year: 11500, month: 1 }) is outside",
 			],
-			// wrong: fixed in commit 4
 			[
 				"monthAttributesFor",
 				m.monthAttributesFor,
 				"TCT_OUTSIDE_EXACT_RANGE",
-				"daysInMonth({ year: 11500, month: 1 }) is outside",
+				"monthAttributesFor({ year: 11500, month: 1 }) is outside",
 			],
 			[
 				"addDays",
@@ -418,12 +410,11 @@ describe("an error names the function the caller called", () => {
 				"TCT_OUTSIDE_EXACT_RANGE",
 				"tibetanDateExists({ year: 11500, month: 1, day: 1 }) is outside",
 			],
-			// wrong: fixed in commit 4
 			[
 				"lunarDayAttributesFor",
 				d.lunarDayAttributesFor,
 				"TCT_OUTSIDE_EXACT_RANGE",
-				"daysInMonth({ year: 11500, month: 1 }) is outside",
+				"lunarDayAttributesFor({ year: 11500, month: 1, day: 1 }) is outside",
 			],
 		];
 		it.each(rows)("%s", (_label, call, code, prefix) =>
@@ -454,14 +445,21 @@ describe("an error names the function the caller called", () => {
 			);
 		});
 
-		// wrong: all four answer today; fixed in commit 4
 		it.each([
-			["daysInMonth", m.daysInMonth],
-			["monthNamesFor", m.monthNamesFor],
-			["monthAttributesFor", m.monthAttributesFor],
-			["lunarDayAttributesFor", d.lunarDayAttributesFor],
-		] as const)("%s answers", (_label, call) => {
-			expect(thrownBy(() => call(PHUGPA_HENNING))).toBeUndefined();
+			["daysInMonth", m.daysInMonth, "daysInMonth({ year: -20652, month: 3 }) is outside"],
+			["monthNamesFor", m.monthNamesFor, "monthNamesFor({ year: -20652, month: 3 }) is outside"],
+			[
+				"monthAttributesFor",
+				m.monthAttributesFor,
+				"monthAttributesFor({ year: -20652, month: 3 }) is outside",
+			],
+			[
+				"lunarDayAttributesFor",
+				d.lunarDayAttributesFor,
+				"lunarDayAttributesFor({ year: -20652, month: 3, day: 30 }) is outside",
+			],
+		] as const)("%s refuses the month", (_label, call, prefix) => {
+			expectRow(call, PHUGPA_HENNING, "TCT_OUTSIDE_EXACT_RANGE", prefix);
 		});
 
 		// Deliberate, and unchanged: `tibetanToIso` bounds the day it converts, by its mean date, so it
@@ -502,12 +500,14 @@ describe("which error a doubly-bad call reports", () => {
 		expect(codeOf(() => call(value as never))).toBe("TCT_INVALID_TRADITION_CONFIG");
 	});
 
-	// wrong: order C today — the range before the tradition. Order B from commit 4.
+	// Order C — the range before the tradition — until 2026-09-24, when both moved onto the month
+	// tier's shared guard.
 	it.each([
-		["resolveMonth", () => resolveMonth(month13, brokenTradition)],
-		["datesFor", () => datesFor(month13, brokenTradition)],
-	] as const)("%s, month 13 with a broken tradition", (_label, call) => {
-		expect(codeOf(call)).toBe("TCT_FIELD_OUT_OF_RANGE");
+		["resolveMonth", (v: never) => resolveMonth(v, brokenTradition)],
+		["datesFor", (v: never) => datesFor(v, brokenTradition)],
+	] as const)("%s reports the shape, then the tradition, then the range", (_label, call) => {
+		expect(codeOf(() => call(null as never))).toBe("TCT_INVALID_ARGUMENT");
+		expect(codeOf(() => call(month13 as never))).toBe("TCT_INVALID_TRADITION_CONFIG");
 	});
 
 	// Order B is load-bearing here: were the range checked before the tradition, the allowlist would
@@ -530,16 +530,17 @@ describe("tibetanDateExists still answers false", () => {
 });
 
 describe("lunarDayAttributesFor, where the month and the day are both wrong", () => {
-	// wrong: the month's error wins today; from commit 4 the day's does, since the day is range-checked
-	// with the other fields, before anything about the month is computed.
+	// The day's error wins, since the day is range-checked with the other fields before anything
+	// about the month is computed. Until 2026-09-24 the month's won: TCT_NO_SUCH_LEAP_MONTH and
+	// TCT_OUTSIDE_EXACT_RANGE respectively.
 	it("a leap month with no twin, day 31", () => {
 		expect(
 			thrownBy(() => lunarDayAttributesFor(date({ isLeapMonth: true, day: 31 }), PHUGPA))?.code,
-		).toBe("TCT_NO_SUCH_LEAP_MONTH");
+		).toBe("TCT_FIELD_OUT_OF_RANGE");
 	});
 	it("outside the exact range, day 31", () => {
 		expect(
 			thrownBy(() => lunarDayAttributesFor(date({ year: 11500, day: 31 }), PHUGPA_HENNING))?.code,
-		).toBe("TCT_OUTSIDE_EXACT_RANGE");
+		).toBe("TCT_FIELD_OUT_OF_RANGE");
 	});
 });

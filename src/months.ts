@@ -25,7 +25,6 @@
 
 import {
 	assertClosedFormYear,
-	daysInMonth as daysInMonthCount,
 	firstDayOfMonth,
 	isLeapYear,
 	lastDayOfMonth,
@@ -38,15 +37,16 @@ import {
 	assertExactJulianDay,
 	isoFromJulianDayUnchecked,
 	isoToTibetan,
+	monthCountFor,
 } from "./computation/conversion.js";
 import { yearFromRoyalEra, yearNameFromYear } from "./computation/epoch.js";
 import { type ScaledTradition, scalingFor } from "./computation/scaling.js";
-import { assertSafeYear, describe, rangeError } from "./errors.js";
+import { assertSafeYear, describe } from "./errors.js";
 import { monthCodeOf } from "./format.js";
 import { PHUGPA } from "./traditions/phugpa.js";
 import type { TraditionConfig } from "./traditions/types.js";
 import { assertTraditionConfig } from "./traditions/validate.js";
-import type { TibetanDate, TibetanMonth, TibetanMonthFields } from "./types.js";
+import type { TibetanDate, TibetanDateFields, TibetanMonth, TibetanMonthFields } from "./types.js";
 import { assertTibetanRanges, assertTibetanShape } from "./types.js";
 
 /**
@@ -67,6 +67,44 @@ function closedFormYear(subject: string, year: number, tradition: TraditionConfi
 	const y = yearFromRoyalEra(year);
 	assertClosedFormYear(() => subject, y, tradition);
 	return y;
+}
+
+/**
+ * Validates a month-tier argument and locates its month, bounded at both ends by the exact range.
+ *
+ * @remarks
+ * The whole guard for every function that answers about one month — `resolveMonth`, `daysInMonth`
+ * and `datesFor` here, and `monthNamesFor`, `monthAttributesFor` and `lunarDayAttributesFor`, which
+ * used to borrow `daysInMonth`'s and so reported every error under its name. Not exported from the
+ * package barrel.
+ *
+ * The order is the shape, the tradition, the ranges, the leap twin, the exact range. A caller that
+ * wants the tradition reported before the shape validates it first itself.
+ *
+ * **Both ends are bounded.** `daysInMonth` bounded only the last day, and the first comes from the
+ * previous month's last, which nothing checked; since the bound is symmetric in the Julian day, a
+ * month straddling its negative end was answered by `daysInMonth` and the three functions borrowing
+ * it while `resolveMonth` refused it — `PHUGPA_HENNING`, royal year −20652, month 3. At the positive
+ * end the extra check is a no-op, since the first day never lies past the last.
+ *
+ * `shape: "date"` range-checks the day as well, for `lunarDayAttributesFor`, which takes a date but
+ * answers about a lunar day rather than a calendar day, and so bounds the month rather than the day.
+ */
+export function boundedMonth(
+	functionName: string,
+	month: TibetanMonthFields | TibetanDateFields,
+	shape: "month" | "date",
+	tradition: TraditionConfig,
+): { scaled: ScaledTradition; monthCount: number; first: number; last: number } {
+	assertTibetanShape(functionName, month, shape);
+	const scaled = scalingFor(tradition);
+	const subject = assertTibetanRanges(functionName, month, shape);
+	const monthCount = monthCountFor(subject, tradition, month);
+	const first = firstDayOfMonth(scaled, monthCount);
+	const last = lastDayOfMonth(scaled, monthCount);
+	assertExactJulianDay(scaled, first, subject);
+	assertExactJulianDay(scaled, last, subject);
+	return { scaled, monthCount, first, last };
 }
 
 /**
@@ -241,25 +279,8 @@ export function resolveMonth(
 	month: TibetanMonthFields,
 	tradition: TraditionConfig = PHUGPA,
 ): TibetanMonth {
-	assertTibetanShape("resolveMonth", month, "month");
-	const isLeapMonth = month.isLeapMonth ?? false;
-	const subject = assertTibetanRanges("resolveMonth", month, "month");
-
-	const scaled = scalingFor(tradition);
-	const y = yearFromRoyalEra(month.year);
-	assertClosedFormYear(subject, y, tradition);
-	if (isLeapMonth && !sharesNumberWithLeapMonth(tradition, y, month.month)) {
-		throw rangeError(
-			"TCT_NO_SUCH_LEAP_MONTH",
-			`${subject()}: month ${month.month} of ${month.year} has no leap month. Drop isLeapMonth, ` +
-				"or use monthsFor to see which month of a year is doubled.",
-		);
-	}
-
-	const monthCount = trueMonthCount(tradition, y, month.month, isLeapMonth);
-	assertExactJulianDay(scaled, firstDayOfMonth(scaled, monthCount), subject);
-	assertExactJulianDay(scaled, lastDayOfMonth(scaled, monthCount), subject);
-	return describeMonth(scaled, monthCount, month.year, month.month, isLeapMonth);
+	const { scaled, monthCount } = boundedMonth("resolveMonth", month, "month", tradition);
+	return describeMonth(scaled, monthCount, month.year, month.month, month.isLeapMonth ?? false);
 }
 /**
  * How many **calendar days** a Tibetan month spans: 29 or 30.
@@ -291,25 +312,8 @@ export function daysInMonth(
 	month: TibetanMonthFields,
 	tradition: TraditionConfig = PHUGPA,
 ): number {
-	assertTibetanShape("daysInMonth", month, "month");
-	const scaled = scalingFor(tradition);
-	const isLeapMonth = month.isLeapMonth ?? false;
-	const subject = assertTibetanRanges("daysInMonth", month, "month");
-
-	const y = yearFromRoyalEra(month.year);
-	assertClosedFormYear(subject, y, tradition);
-	if (isLeapMonth && !sharesNumberWithLeapMonth(tradition, y, month.month)) {
-		throw rangeError(
-			"TCT_NO_SUCH_LEAP_MONTH",
-			`${subject()}: month ${month.month} of ${month.year} has no leap month. Leap months ` +
-				"recur roughly every 32 months and fall on a different month number each time; drop " +
-				"isLeapMonth, or use monthsFor to see which month of a year is doubled",
-		);
-	}
-
-	const monthCount = trueMonthCount(tradition, y, month.month, isLeapMonth);
-	assertExactJulianDay(scaled, lastDayOfMonth(scaled, monthCount), subject);
-	return daysInMonthCount(scaled, monthCount);
+	const { first, last } = boundedMonth("daysInMonth", month, "month", tradition);
+	return last - first + 1;
 }
 
 /**
@@ -431,26 +435,7 @@ export function datesFor(
 	month: TibetanMonthFields,
 	tradition: TraditionConfig = PHUGPA,
 ): TibetanDate[] {
-	assertTibetanShape("datesFor", month, "month");
-	const subject = assertTibetanRanges("datesFor", month, "month");
-
-	const scaled = scalingFor(tradition);
-	const y = yearFromRoyalEra(month.year);
-	const isLeapMonth = month.isLeapMonth ?? false;
-	assertClosedFormYear(subject, y, tradition);
-	if (isLeapMonth && !sharesNumberWithLeapMonth(tradition, y, month.month)) {
-		throw rangeError(
-			"TCT_NO_SUCH_LEAP_MONTH",
-			`${subject()}: month ${month.month} of ${month.year} has no leap month. Drop isLeapMonth, ` +
-				"or use monthsFor to see which month of a year is doubled.",
-		);
-	}
-
-	const monthCount = trueMonthCount(tradition, y, month.month, isLeapMonth);
-	const first = firstDayOfMonth(scaled, monthCount);
-	const last = lastDayOfMonth(scaled, monthCount);
-	assertExactJulianDay(scaled, first, subject);
-	assertExactJulianDay(scaled, last, subject);
+	const { first, last } = boundedMonth("datesFor", month, "month", tradition);
 
 	const dates: TibetanDate[] = [];
 	for (let julianDay = first; julianDay <= last; julianDay++) {

@@ -23,15 +23,10 @@
 import { mod } from "./computation/arithmetic.js";
 import { assertInternal } from "./errors.js";
 import { deepFreeze } from "./freeze.js";
-import { daysInMonth } from "./months.js";
+import { boundedMonth } from "./months.js";
 import { PHUGPA } from "./traditions/phugpa.js";
 import type { TraditionConfig } from "./traditions/types.js";
-import {
-	assertTibetanShape,
-	type SanskritName,
-	type TibetanMonthFields,
-	type TibetanName,
-} from "./types.js";
+import type { SanskritName, TibetanMonthFields, TibetanName } from "./types.js";
 
 /** A month's place in one of the three four-season systems. */
 export interface FourSeasonMonthName {
@@ -327,10 +322,10 @@ export function monthsAfterTigerMonth(tradition: TraditionConfig, month: number)
  * different months in different systems — under Phugpa, month 1 is `winter` in one, `spring` in two, and `dewy` in
  * the six-season list — so a key is only meaningful together with the system it came from.
  *
- * **A leap month takes its regular month's names**, in every system. `isLeapMonth` is still validated,
- * because the guard runs `daysInMonth`: the year, the month number, the leap flag against that year's
- * actual leap month, and the tradition's exact range are all checked, although no name depends on the
- * year.
+ * **A leap month takes its regular month's names**, in every system. `isLeapMonth` is still validated
+ * by the month tier's guard, like everything else here: the year, the month number, the leap flag
+ * against that year's actual leap month, and the tradition's exact range are all checked, although no
+ * name depends on the year.
  *
  * **`tradition` defaults to `PHUGPA`**, as everywhere in this package, and a `TibetanMonthFields`
  * carries no tradition of its own. So a Bhutanese caller who omits it gets Phugpa's
@@ -364,10 +359,8 @@ export function monthNamesFor(
 	month: TibetanMonthFields,
 	tradition: TraditionConfig = PHUGPA,
 ): MonthNames {
-	assertTibetanShape("monthNamesFor", month, "month");
-
 	// Validates the tradition too, so it runs before the Tiger month is read off it.
-	daysInMonth(month, tradition);
+	boundedMonth("monthNamesFor", month, "month", tradition);
 
 	const m = month.month;
 	const tigerSteps = monthsAfterTigerMonth(tradition, m);
