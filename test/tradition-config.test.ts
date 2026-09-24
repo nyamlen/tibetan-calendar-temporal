@@ -106,6 +106,22 @@ describe("tradition config validation", () => {
 		);
 	});
 
+	it("tells a caller who passed a { tradition } bag to pass the config itself", () => {
+		// Since 2026-09-24 a function whose only choice is the tradition takes it positionally, so the
+		// likeliest bad argument from a migrating caller is the old bag. Without this the message was
+		// "id must be a non-empty string", which names a field the caller never meant to write.
+		const bag = { tradition: PHUGPA } as unknown as TraditionConfig;
+		const error = thrownBy(() => assertTraditionConfig(bag));
+		expect(error?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
+		expect(error?.message).toMatch(/\{ tradition \}/);
+		expect(error?.message).toMatch(/itself/);
+		// A real config that happens to carry an extra `tradition` key is judged on its fields.
+		expect(() => assertTraditionConfig(broken({ tradition: PHUGPA }))).not.toThrow();
+		expect(
+			thrownBy(() => assertTraditionConfig(broken({ id: "", tradition: 1 })))?.message,
+		).toMatch(/id must be/);
+	});
+
 	it("suggests the spread that fixes it", () => {
 		expect(thrownBy(() => assertTraditionConfig(broken({ moonTab: [] })))?.message).toContain(
 			"...PHUGPA",

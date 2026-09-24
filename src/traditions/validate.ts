@@ -331,6 +331,18 @@ export function assertTraditionConfig(config: TraditionConfig): void {
 		);
 	}
 
+	// The likeliest non-config object is the `{ tradition }` bag six functions took until 2026-09-24,
+	// when a tradition that is a function's only choice became positional. Without this a migrating
+	// caller is told `id` is missing, a field they never meant to write.
+	if (config.id === undefined && "tradition" in config) {
+		throw rangeError(
+			"TCT_INVALID_TRADITION_CONFIG",
+			"TraditionConfig expected, received an object like { tradition }. Where the tradition is " +
+				"a function's only choice it is passed positionally: pass the TraditionConfig itself, " +
+				"as in attributesFor(date, BHUTAN)",
+		);
+	}
+
 	assertNonEmptyString(config, "id", config.id);
 	assertNonEmptyString(config, "name", config.name);
 	assertInteger(config, "epochYear", config.epochYear);
