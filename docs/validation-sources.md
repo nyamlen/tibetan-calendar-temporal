@@ -301,9 +301,12 @@ Checked 2026-09-24, after Ven. Thubten Chöying pointed to it:
 centre in Switzerland. A day-by-day Phugpa grid printing each day's Tibetan number, month starts,
 moon phases, sojong and the weekday–mansion element pair, in cleanly parseable HTML.
 
-**It computes with Henning's value of `a₂`, not `1/28`.** Thirteen years were compared, 4,748 days:
-it agrees with `PHUGPA_HENNING` on every day, and with `PHUGPA` on every day but the eight in those
-years where the two configs diverge, which is why six of the years were chosen. One of the eight is
+**It computes with Henning's value of `a₂`, not `1/28`.** Between 2000 and 2100, `PHUGPA` and
+`PHUGPA_HENNING` give a different day number on **eight days**, in seven years, and a different
+doubled-day flag alone on four more. All seven years were compared in full, with six others, 4,748
+days in all: Rabten agrees with `PHUGPA_HENNING` on every day, and with `PHUGPA` on every day but
+those eight — so the eight are the whole century's disagreement, not a sample of it. Only day numbers
+were compared, so the four flag-only days say nothing either way. One of the eight is
 **2025-11-19**, where FPMT's almanac grid, Lotsawa House, christian-steinert and eszthoff all print
 9/30 doubled and Rabten prints 29. Its element pairs agree with the engine on all 4,748 days, which is
 Henning's computation agreeing with itself, as with his `pl_YYYY.txt` files above.
