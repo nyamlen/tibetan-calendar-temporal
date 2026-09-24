@@ -473,6 +473,27 @@ describe("an error names the function the caller called", () => {
 	});
 });
 
+describe("the subject renders the fields the shape reads", () => {
+	it("a date shows both leap flags when set", () => {
+		expectRow(
+			() => tibetanToIso(date({ day: 31, isLeapMonth: true, isLeapDay: true })),
+			PHUGPA,
+			"TCT_FIELD_OUT_OF_RANGE",
+			"tibetanToIso({ year: 2153, month: 1, day: 31, isLeapMonth: true, isLeapDay: true }): ",
+		);
+	});
+	// A resolved leap-day date is a valid month argument, and its day and isLeapDay are ignored, so
+	// the echo leaves them out rather than showing fields the function never read.
+	it("a date passed as a month shows neither its day nor its isLeapDay", () => {
+		expectRow(
+			() => daysInMonth(date({ month: 13, isLeapDay: true })),
+			PHUGPA,
+			"TCT_FIELD_OUT_OF_RANGE",
+			"daysInMonth({ year: 2153, month: 13 }): ",
+		);
+	});
+});
+
 describe("which error a doubly-bad call reports", () => {
 	const brokenTradition = {} as TraditionConfig;
 	const month13 = month({ month: 13 });
