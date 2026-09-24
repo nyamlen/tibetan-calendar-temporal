@@ -10,7 +10,14 @@
  * @packageDocumentation
  */
 
-import { assertSafeYear, codedError, describe, hasCode, rangeError } from "../errors.js";
+import {
+	assertSafeYear,
+	codedError,
+	describe,
+	hasCode,
+	isPlainObject,
+	rangeError,
+} from "../errors.js";
 import { monthCodeOf } from "../format.js";
 import { weekdayNameWithOffset } from "../names.js";
 import {
@@ -135,7 +142,7 @@ export function asPlainDate(date: Temporal.PlainDate): Temporal.PlainDate {
 				`received ${temporalType === null ? describe(raw) : `a Temporal.${temporalType}`}` +
 				(temporalType !== null
 					? ", which names no calendar day"
-					: raw !== null && typeof raw === "object"
+					: isPlainObject(raw)
 						? ". A bare { year, month, day } object is ambiguous with this package's own " +
 							"Tibetan-date shape, so it is rejected rather than guessed at — pass a Temporal " +
 							"instance or an ISO string instead"
@@ -197,11 +204,13 @@ export function asWesternDay(
 	throw rangeError(
 		"TCT_INVALID_ARGUMENT",
 		`${functionName}: expected a Temporal.PlainDate, an ISO string, a PlainDateTime, a ` +
-			`ZonedDateTime, or a resolved TibetanDate, received ${describe(raw)}. A bare ` +
-			"{ year, month, day } object names no calendar — it is a genuine value of both this " +
-			"package's Tibetan date shape and Temporal's own — so it is refused rather than guessed " +
-			"at. Pass resolveDate({ ... }) for a Tibetan date, or Temporal.PlainDate.from({ ... }) " +
-			"for a Western one",
+			`ZonedDateTime, or a resolved TibetanDate, received ${describe(raw)}` +
+			(isPlainObject(raw)
+				? ". A bare { year, month, day } object names no calendar — it is a genuine value of " +
+					"both this package's Tibetan date shape and Temporal's own — so it is refused rather " +
+					"than guessed at. Pass resolveDate({ ... }) for a Tibetan date, or " +
+					"Temporal.PlainDate.from({ ... }) for a Western one"
+				: ""),
 	);
 }
 

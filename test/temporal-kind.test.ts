@@ -363,6 +363,33 @@ describe("describing what was received", () => {
 		}
 		expect(message).toContain("an object");
 	});
+
+	it("explains the bare-fields refusal only to a plain object, through both guards", () => {
+		// Boundary review, 2026-09-23, minor 2: asWesternDay appended the paragraph unconditionally
+		// and asPlainDate for anything typeof "object", so null, a Date and an array were all told
+		// about { year, month, day } they had not passed.
+		const messageOf = (run: () => unknown): string => {
+			try {
+				run();
+			} catch (error) {
+				expect(codeOf(() => run())).toBe("TCT_INVALID_ARGUMENT");
+				return (error as Error).message;
+			}
+			throw new Error("expected a throw");
+		};
+		const guards = [
+			(v: unknown) => julianDayFromIso(v as Temporal.PlainDate),
+			(v: unknown) => nextFullMoon(v as Temporal.PlainDate),
+		];
+		for (const guard of guards) {
+			for (const value of [null, new Date(), [2024, 7, 9], 42]) {
+				expect(messageOf(() => guard(value))).not.toContain("{ year, month, day }");
+			}
+			for (const value of [{ year: 2024, month: 7, day: 9 }, Object.create(null)]) {
+				expect(messageOf(() => guard(value))).toContain("{ year, month, day }");
+			}
+		}
+	});
 });
 
 describe("the two merged copies' accept-sets", () => {

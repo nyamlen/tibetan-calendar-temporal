@@ -199,6 +199,21 @@ export function describe(value: unknown): string {
 }
 
 /**
+ * Whether a value is a plain object — the one shape that could be a bare `{ year, month, day }`.
+ *
+ * @remarks
+ * The two date guards append a paragraph explaining why such an object is refused, and until
+ * 2026-09-24 they appended it for anything `typeof "object"`: `nextFullMoon(new Date())` and an
+ * array were both told about fields they had not passed. A class instance or an array is not
+ * ambiguous between calendars, so it is named by {@link describe} and nothing more.
+ */
+export function isPlainObject(value: unknown): boolean {
+	if (value === null || typeof value !== "object") return false;
+	const prototype = Object.getPrototypeOf(value);
+	return prototype === Object.prototype || prototype === null;
+}
+
+/**
  * Rejects an options bag that is not an object.
  *
  * @remarks
