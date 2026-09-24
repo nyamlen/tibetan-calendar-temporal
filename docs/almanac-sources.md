@@ -439,6 +439,22 @@ recorded in [other-implementations.md](other-implementations.md).
   Those name what it was checked against, not how it computes.
   And Janson distinguishes a Mongolian version from Phugpa, with its own leap-month rule, so a Buryat
   almanac's version has to be established rather than assumed.
+  **A second lead, 2026-09-24, pointing the other way from the label.** The two versions put leap
+  months in different years, so for stretches of about seven months they give the same day different
+  month numbers — one of them March to October 2027. The website prints no month names and marks
+  holy days only for 2026, outside every such stretch, so it cannot show which version it computes.
+  The iOS app's list of Hurals can: transcribed by hand from the app on 2026-09-24, four of its 2027
+  dates fall in that stretch — Medicine Buddha Day 13 April, Donchod Hural 22 May (Saga Dawa),
+  Padmasambhava Day 14 July, Maitreya Hural 18 July — and **all four sit in the month the Mongolian
+  version numbers them, a month away from Phugpa's**.
+  That fits Janson's statement, citing Berzin, that the Buryats follow the New Genden version, and
+  not the site's "Phugpa".
+  It is not conclusive: three Hurals fit neither version — the first turning of the wheel on 26 July
+  2027, Lhabab Düchen on 3 November 2027, and the two Zula Hurals, 22 December 2026 and 12 December
+  2027, which are twelve lunar months apart where both versions put a leap month between them.
+  Measured by comparing month labels under `PHUGPA` and the Mongolian config in
+  `test/support/versions.ts`, which carries Phugpa's astronomy — so the month is the evidence and a
+  day number here can be off by one or two.
 - **Tibetan-script sourcing here is deliberately thin.**
   Only *sojong* carries a script rendering, taken from [../CLAUDE.md](../CLAUDE.md), which sources
   it independently.

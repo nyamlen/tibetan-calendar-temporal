@@ -652,7 +652,11 @@ that its first step is still open.
       verified against — Yampilov-Galsanov's "Zurkhai-3" and Atsagatsky Datsan publications — which
       says what it was checked against, not how it computes, and a Buryat almanac may follow the
       Mongolian version Janson distinguishes from Phugpa. Details in
-      [almanac-sources.md](almanac-sources.md)'s open questions
+      [almanac-sources.md](almanac-sources.md)'s open questions.
+      **A second lead, 2026-09-24:** the iOS app's list of Hurals puts four 2027 festivals in the
+      months the **Mongolian** version numbers them, a month from Phugpa's, in a stretch where the two
+      disagree; three other Hurals fit neither version. Evidence for New Genden against the site's
+      own "Phugpa" label, not a settled lineage, and recorded in the same place
 
 - [x] **Read Zurkhai's App Store metadata and complete its
       [other-implementations.md](other-implementations.md) entry.** `apps.apple.com/us/app/id6772695315`
