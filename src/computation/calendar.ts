@@ -45,7 +45,7 @@ import type { ScaledTradition } from "./scaling.js";
  * caller goes on to evaluate — over-protecting the relative formula costs nothing, since every
  * real year is nowhere near either limit.
  *
- * The bound is **derived from `config.epochYear` at each call**, never a literal: `epochYear`
+ * The bound is **derived from `tradition.epochYear` at each call**, never a literal: `epochYear`
  * is injected per tradition, so a bound computed once for Phugpa and hardcoded would be silently
  * wrong for a tradition with a different epoch. The arithmetic here is cheap enough that, unlike
  * {@link ScaledTradition.searchHalfWidth}, it needs no memoisation to stay off the hot path.
@@ -57,7 +57,7 @@ import type { ScaledTradition } from "./scaling.js";
 export function assertClosedFormYear(
 	subject: () => string,
 	year: number,
-	config: TraditionConfig,
+	tradition: TraditionConfig,
 ): void {
 	// solarMonthsSinceEpoch: 12·(year − epochYear) + month − epochMonth must stay safe. `12` is a
 	// generous margin for the trailing `+ month − epochMonth`, which is at most 11 in magnitude
@@ -74,7 +74,7 @@ export function assertClosedFormYear(
 	// since `absoluteLimit` is that quantity already reduced by `|epochYear|`.
 	// exact: as above — a safe-integer quotient floored to a bound, not a calendar quantity.
 	const absoluteLimit =
-		Math.floor((Number.MAX_SAFE_INTEGER - 65) / 24) - Math.abs(config.epochYear);
+		Math.floor((Number.MAX_SAFE_INTEGER - 65) / 24) - Math.abs(tradition.epochYear);
 	// absoluteLimit is always the binding constraint here, for any config, not merely realistic
 	// ones: relativeLimit is ~7.5e14 (Number.MAX_SAFE_INTEGER / 12), and absoluteLimit is
 	// ~3.75e14 minus a non-negative `|epochYear|`, so absoluteLimit ≤ ~3.75e14 < relativeLimit
@@ -82,7 +82,7 @@ export function assertClosedFormYear(
 	// defensive code rather than removed, since it costs nothing and the proof lives only in this
 	// comment.
 	const limit = Math.min(relativeLimit, absoluteLimit);
-	if (Math.abs(year - config.epochYear) > limit) {
+	if (Math.abs(year - tradition.epochYear) > limit) {
 		throw rangeError(
 			"TCT_OUTSIDE_EXACT_RANGE",
 			`${subject()} is outside the range where this tradition's closed-form year arithmetic ` +
@@ -110,12 +110,12 @@ export function assertClosedFormYear(
 export function assertLunation(
 	subject: () => string,
 	monthCount: number,
-	config: TraditionConfig,
+	tradition: TraditionConfig,
 ): void {
 	// 65·monthCount + β must stay inside the safe range. Subtracting |β| rather than β covers the
 	// negative direction with the same limit.
 	// exact: a safe-integer quotient floored to a bound. `beta(config)` is itself integer-only.
-	const limit = Math.floor((Number.MAX_SAFE_INTEGER - Math.abs(beta(config))) / 65);
+	const limit = Math.floor((Number.MAX_SAFE_INTEGER - Math.abs(beta(tradition))) / 65);
 	if (Math.abs(monthCount) > limit) {
 		throw rangeError(
 			"TCT_OUTSIDE_EXACT_RANGE",
@@ -169,9 +169,11 @@ export interface MonthIdentity {
  * modulo 65, so the two are the same constant. Janson's own text says as much, giving different
  * β for two Tsurphu epochs that are likewise congruent.
  */
-export function beta(config: TraditionConfig): number {
+export function beta(tradition: TraditionConfig): number {
 	return (
-		67 * config.epochMonth - config.intercalationIndexAtEpoch - (65 - config.leapIndexThreshold)
+		67 * tradition.epochMonth -
+		tradition.intercalationIndexAtEpoch -
+		(65 - tradition.leapIndexThreshold)
 	);
 }
 
@@ -182,8 +184,8 @@ export function beta(config: TraditionConfig): number {
  * `γ* = (−24·Y₀ − β) mod 65`, which is 33 for Phugpa. Janson notes the value is the same for
  * every epoch of a given tradition, since the leap years themselves do not depend on the epoch.
  */
-function gammaStar(config: TraditionConfig): number {
-	return mod(-24 * config.epochYear - beta(config), 65);
+function gammaStar(tradition: TraditionConfig): number {
+	return mod(-24 * tradition.epochYear - beta(tradition), 65);
 }
 
 /**
@@ -194,11 +196,11 @@ function gammaStar(config: TraditionConfig): number {
  * downstream uses sign-correct division and modulo.
  */
 export function solarMonthsSinceEpoch(
-	config: TraditionConfig,
+	tradition: TraditionConfig,
 	year: number,
 	month: number,
 ): number {
-	return 12 * (year - config.epochYear) + month - config.epochMonth;
+	return 12 * (year - tradition.epochYear) + month - tradition.epochMonth;
 }
 
 /**
@@ -213,8 +215,15 @@ export function solarMonthsSinceEpoch(
  * prints: Janson's Remark 11 notes that where the true month rounds up, published almanacs show
  * this value plus 2. That correction is irrelevant to dates and is not applied here.
  */
-export function intercalationIndex(config: TraditionConfig, year: number, month: number): number {
-	return mod(2 * solarMonthsSinceEpoch(config, year, month) + config.intercalationIndexAtEpoch, 65);
+export function intercalationIndex(
+	tradition: TraditionConfig,
+	year: number,
+	month: number,
+): number {
+	return mod(
+		2 * solarMonthsSinceEpoch(tradition, year, month) + tradition.intercalationIndexAtEpoch,
+		65,
+	);
 }
 
 /**
@@ -239,12 +248,12 @@ export function intercalationIndex(config: TraditionConfig, year: number, month:
  * detects as a month having "no leap twin that year".
  */
 export function sharesNumberWithLeapMonth(
-	config: TraditionConfig,
+	tradition: TraditionConfig,
 	year: number,
 	month: number,
 ): boolean {
-	const index = intercalationIndex(config, year, month);
-	return index === config.leapIndexThreshold || index === config.leapIndexThreshold + 1;
+	const index = intercalationIndex(tradition, year, month);
+	return index === tradition.leapIndexThreshold || index === tradition.leapIndexThreshold + 1;
 }
 
 /**
@@ -291,18 +300,18 @@ export function sharesNumberWithLeapMonth(
  * pass it.**
  */
 export function trueMonthCount(
-	config: TraditionConfig,
+	tradition: TraditionConfig,
 	year: number,
 	month: number,
 	isLeap = false,
 ): number {
-	const solarMonths = solarMonthsSinceEpoch(config, year, month);
+	const solarMonths = solarMonthsSinceEpoch(tradition, year, month);
 	const rounded = floorDiv(
-		67 * solarMonths + config.intercalationIndexAtEpoch + (65 - config.leapIndexThreshold),
+		67 * solarMonths + tradition.intercalationIndexAtEpoch + (65 - tradition.leapIndexThreshold),
 		65,
 	);
-	if (config.leapMonthPosition === "after") {
-		return isLeap ? rounded : rounded - (sharesNumberWithLeapMonth(config, year, month) ? 1 : 0);
+	if (tradition.leapMonthPosition === "after") {
+		return isLeap ? rounded : rounded - (sharesNumberWithLeapMonth(tradition, year, month) ? 1 : 0);
 	}
 	return rounded - (isLeap ? 1 : 0);
 }
@@ -329,12 +338,12 @@ export function trueMonthCount(
  * {@link ScaledTradition.searchHalfWidth} is: a bound proved from a config's own values belongs
  * beside the proof, not inlined three times where the fourth author will miss it.
  */
-export function lastMonthCountOfYear(config: TraditionConfig, year: number): number {
+export function lastMonthCountOfYear(tradition: TraditionConfig, year: number): number {
 	// Only "after" can close a year with a leap month; under "before" the leap twin of month 12 sits
 	// *inside* the year and the regular month 12 still ends it.
 	const closesWithLeapMonth =
-		config.leapMonthPosition === "after" && sharesNumberWithLeapMonth(config, year, 12);
-	return trueMonthCount(config, year, 12, closesWithLeapMonth);
+		tradition.leapMonthPosition === "after" && sharesNumberWithLeapMonth(tradition, year, 12);
+	return trueMonthCount(tradition, year, 12, closesWithLeapMonth);
 }
 
 /**
@@ -362,15 +371,15 @@ export function lastMonthCountOfYear(config: TraditionConfig, year: number): num
  * `x` — and therefore the year and month number — is unaffected by the position. Both members of a
  * pair yield the same `⌈scaled/67⌉`, which is exactly why they share a number.
  */
-export function monthFromCount(config: TraditionConfig, monthCount: number): MonthIdentity {
-	const scaled = 65 * monthCount + beta(config);
+export function monthFromCount(tradition: TraditionConfig, monthCount: number): MonthIdentity {
+	const scaled = 65 * monthCount + beta(tradition);
 	const x = ceilDiv(scaled, 67);
 	const remainder = mod(scaled, 67);
 	return {
-		year: ceilDiv(x, 12) - 1 + config.epochYear,
+		year: ceilDiv(x, 12) - 1 + tradition.epochYear,
 		month: amod(x, 12),
 		isLeap:
-			config.leapMonthPosition === "after"
+			tradition.leapMonthPosition === "after"
 				? remainder === 66 || remainder === 0
 				: remainder === 1 || remainder === 2,
 	};
@@ -390,8 +399,8 @@ export function monthFromCount(config: TraditionConfig, monthCount: number): Mon
  * intercalation index directly. The two must agree for every year, and the test suite asserts
  * that as a cross-check.
  */
-export function isLeapYear(config: TraditionConfig, year: number): boolean {
-	return mod(24 * year + gammaStar(config), 65) >= 41;
+export function isLeapYear(tradition: TraditionConfig, year: number): boolean {
+	return mod(24 * year + gammaStar(tradition), 65) >= 41;
 }
 
 /**
@@ -404,8 +413,8 @@ export function isLeapYear(config: TraditionConfig, year: number): boolean {
  * Implemented as `⌊(66 − x)/2⌋` so that the halving stays integer arithmetic rather than
  * producing a fraction to floor.
  */
-export function leapMonthOfYear(config: TraditionConfig, year: number): number | undefined {
-	const x = mod(24 * year + gammaStar(config), 65);
+export function leapMonthOfYear(tradition: TraditionConfig, year: number): number | undefined {
+	const x = mod(24 * year + gammaStar(tradition), 65);
 	const month = floorDiv(66 - x, 2);
 	return month <= 12 ? month : undefined;
 }
@@ -418,19 +427,19 @@ export function leapMonthOfYear(config: TraditionConfig, year: number): number |
  * rule: over any 65 consecutive years it must be exactly 24.
  */
 export function leapYearsBetween(
-	config: TraditionConfig,
+	tradition: TraditionConfig,
 	firstYear: number,
 	lastYear: number,
 ): number {
-	const g = gammaStar(config);
+	const g = gammaStar(tradition);
 	return floorDiv(24 * (lastYear + 1) + g, 65) - floorDiv(24 * firstYear + g, 65);
 }
 
 /**
  * The number of months in the Tibetan year `Y` — 12, or 13 in a leap year.
  */
-export function monthsInYear(config: TraditionConfig, year: number): number {
-	return isLeapYear(config, year) ? 13 : 12;
+export function monthsInYear(tradition: TraditionConfig, year: number): number {
+	return isLeapYear(tradition, year) ? 13 : 12;
 }
 
 /**
@@ -558,8 +567,8 @@ export function daysInMonth(scaled: ScaledTradition, monthCount: number): number
  */
 export function losarJulianDay(
 	scaled: ScaledTradition,
-	config: TraditionConfig,
+	tradition: TraditionConfig,
 	year: number,
 ): number {
-	return lastDayOfMonth(scaled, lastMonthCountOfYear(config, year - 1)) + 1;
+	return lastDayOfMonth(scaled, lastMonthCountOfYear(tradition, year - 1)) + 1;
 }

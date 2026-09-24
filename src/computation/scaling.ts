@@ -37,7 +37,7 @@ export interface ScaledMeanMotion {
 /** A tradition's constants, pre-scaled onto exact integer denominators. */
 export interface ScaledTradition {
 	/** The configuration this was derived from. */
-	config: TraditionConfig;
+	tradition: TraditionConfig;
 
 	/** Mean date coefficients. Its denominator is 11,312 for Phugpa. */
 	meanDate: ScaledMeanMotion;
@@ -146,7 +146,7 @@ function scaleMeanMotion(motion: MeanMotion): ScaledMeanMotion {
  * Pure and cheap, but the result is worth hoisting out of loops — it performs a handful of
  * gcd computations. Nothing here depends on a date.
  *
- * @param config - The tradition to derive from.
+ * @param tradition - The tradition to derive from.
  * @throws RangeError if a constant's denominator cannot be represented exactly, which would
  * indicate a malformed config rather than a calendar problem.
  *
@@ -156,10 +156,10 @@ function scaleMeanMotion(motion: MeanMotion): ScaledMeanMotion {
  * scaled.commonDenominator; // 102_317_040
  * ```
  */
-export function deriveScaling(config: TraditionConfig): ScaledTradition {
-	const meanDate = scaleMeanMotion(config.meanDate);
-	const meanSun = scaleMeanMotion(config.meanSun);
-	const lunarAnomaly = scaleMeanMotion(config.lunarAnomaly);
+export function deriveScaling(tradition: TraditionConfig): ScaledTradition {
+	const meanDate = scaleMeanMotion(tradition.meanDate);
+	const meanSun = scaleMeanMotion(tradition.meanSun);
+	const lunarAnomaly = scaleMeanMotion(tradition.lunarAnomaly);
 
 	// moon_tab takes 28 · anomaly_moon. Multiplying a rational over `den` by 28 reduces the
 	// denominator by gcd(28, den) — for Phugpa 28 divides 3528 exactly, giving 126.
@@ -177,16 +177,16 @@ export function deriveScaling(config: TraditionConfig): ScaledTradition {
 
 	// The correction bound, in lunar days, from this tradition's own tables. See
 	// ScaledTradition.searchHalfWidth for the derivation.
-	const equationBound = maxMagnitude(config.moonTab) + maxMagnitude(config.sunTab);
+	const equationBound = maxMagnitude(tradition.moonTab) + maxMagnitude(tradition.sunTab);
 	const searchHalfWidth = ceilDiv(equationBound * meanDate.den, 60 * meanDate.perDay) + 2;
 
 	// Before `quarterCircle` below, not after. `scaleTo` guards the same divisibility and carries the
 	// same code, so checking afterwards would be dead code and would hand the consumer a message
 	// naming two integers rather than the field to fix.
-	assertDerivable(config, meanSun.den, searchHalfWidth);
+	assertDerivable(tradition, meanSun.den, searchHalfWidth);
 
 	return {
-		config,
+		tradition,
 		meanDate,
 		meanSun,
 		lunarAnomaly,
@@ -216,11 +216,11 @@ const scalingCache = new WeakMap<TraditionConfig, ScaledTradition>();
  * copies would be three caches, so a config validated through one entry point would be revalidated
  * through the next, and a future change to the validation could land in one copy and not the others.
  */
-export function scalingFor(config: TraditionConfig): ScaledTradition {
-	const cached = scalingCache.get(config);
+export function scalingFor(tradition: TraditionConfig): ScaledTradition {
+	const cached = scalingCache.get(tradition);
 	if (cached !== undefined) return cached;
-	assertTraditionConfig(config);
-	const derived = deriveScaling(config);
-	scalingCache.set(config, derived);
+	assertTraditionConfig(tradition);
+	const derived = deriveScaling(tradition);
+	scalingCache.set(tradition, derived);
 	return derived;
 }

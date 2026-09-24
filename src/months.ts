@@ -72,11 +72,11 @@ const MONTH_FIELDS = ["year", "month"] as const;
  * `assertClosedFormYear` runs after `yearFromRoyalEra` converts to Janson's *Y*, since that is the
  * value the closed forms — and the bound itself — are stated in terms of.
  */
-function closedFormYear(subject: string, year: number, config: TraditionConfig): number {
+function closedFormYear(subject: string, year: number, tradition: TraditionConfig): number {
 	assertSafeYear(subject, year);
-	assertTraditionConfig(config);
+	assertTraditionConfig(tradition);
 	const y = yearFromRoyalEra(year);
-	assertClosedFormYear(() => subject, y, config);
+	assertClosedFormYear(() => subject, y, tradition);
 	return y;
 }
 

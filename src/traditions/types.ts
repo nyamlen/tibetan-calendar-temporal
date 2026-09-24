@@ -221,7 +221,7 @@ export interface TraditionConfig {
 	 *
 	 * Nested rather than flat, deliberately. Nothing in here is read by the algorithm, so a flat
 	 * field would sit among the constants claiming to be one. Nesting keeps the boundary visible at
-	 * the call site — `config.naming.weekdayOffset` reads as a naming concern.
+	 * the call site — `tradition.naming.weekdayOffset` reads as a naming concern.
 	 *
 	 * A separate top-level config was considered and rejected, and the argument is not the one the
 	 * `weekdayOffset` docblock gives. That one — `weekdayName` is populated inside the conversion,
@@ -238,7 +238,7 @@ export interface TraditionConfig {
  *
  * @remarks
  * Every member names what the rule **does**, never a tradition — a `"phugpa" | "tsurphu"` selector
- * inside a tradition-agnostic config is the same anti-pattern as branching on `config.id`, which is
+ * inside a tradition-agnostic config is the same anti-pattern as branching on `tradition.id`, which is
  * consumer-settable and must not decide "is this Phugpa". Janson describes the month-element rules
  * functionally, as the *son* of the year's element against a continuous cycle, which is why
  * {@link TraditionMonthAnimals.elementRule} spells them `"son-of-year" | "continuous"`.

@@ -327,7 +327,7 @@ export function assertExactJulianDay(
 		const bound = below ? -scaled.exactToJulianDay : scaled.exactToJulianDay;
 		throw rangeError(
 			"TCT_OUTSIDE_EXACT_RANGE",
-			`${subject()} is outside the range where the ${scaled.config.name} tradition's arithmetic ` +
+			`${subject()} is outside the range where the ${scaled.tradition.name} tradition's arithmetic ` +
 				`stays exact: JD must be ${below ? "at least" : "at most"} ${bound}` +
 				`${describeBound(bound)}, received ${julianDay}`,
 		);
@@ -448,7 +448,7 @@ function buildDate(
 		// tradition — Bhutan names its weekdays one planet ahead — and this is where the config is.
 		weekdayName: weekdayNameWithOffset(
 			tibetanWeekdayUnchecked(julianDay),
-			scaled.config.naming?.weekdayOffset ?? 0,
+			scaled.tradition.naming?.weekdayOffset ?? 0,
 		),
 		// The month count this date was located by, carried out rather than made rediscoverable.
 		lunation: monthCount,

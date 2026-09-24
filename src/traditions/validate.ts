@@ -39,8 +39,8 @@ const MEAN_MOTIONS = ["meanDate", "meanSun", "lunarAnomaly"] as const;
 /** The three coefficients each mean motion carries — Janson's `x₁`, `x₂`, `x₀`. */
 const COEFFICIENTS = ["perMonth", "perDay", "atEpoch"] as const;
 
-function invalid(config: TraditionConfig, detail: string): Error {
-	const id = typeof config?.id === "string" ? `"${config.id}"` : "<unnamed>";
+function invalid(tradition: TraditionConfig, detail: string): Error {
+	const id = typeof tradition?.id === "string" ? `"${tradition.id}"` : "<unnamed>";
 	return rangeError(
 		"TCT_INVALID_TRADITION_CONFIG",
 		`TraditionConfig ${id} is malformed: ${detail}. A tradition is built by spreading a shipped ` +
@@ -50,34 +50,38 @@ function invalid(config: TraditionConfig, detail: string): Error {
 }
 
 /** A rational must be two numbers with a positive denominator, or the scaling silently degrades. */
-function assertRational(config: TraditionConfig, path: string, value: Rational | undefined): void {
+function assertRational(
+	tradition: TraditionConfig,
+	path: string,
+	value: Rational | undefined,
+): void {
 	if (value === null || typeof value !== "object") {
-		throw invalid(config, `${path} must be a { num, den } object, received ${describe(value)}`);
+		throw invalid(tradition, `${path} must be a { num, den } object, received ${describe(value)}`);
 	}
 	if (!Number.isSafeInteger(value.num)) {
-		throw invalid(config, `${path}.num must be a safe integer, received ${describe(value.num)}`);
+		throw invalid(tradition, `${path}.num must be a safe integer, received ${describe(value.num)}`);
 	}
 	if (!Number.isSafeInteger(value.den) || value.den <= 0) {
 		throw invalid(
-			config,
+			tradition,
 			`${path}.den must be a positive safe integer, received ${describe(value.den)}`,
 		);
 	}
 }
 
 function assertMeanMotion(
-	config: TraditionConfig,
+	tradition: TraditionConfig,
 	path: string,
 	value: MeanMotion | undefined,
 ): void {
 	if (value === null || typeof value !== "object") {
 		throw invalid(
-			config,
+			tradition,
 			`${path} must be a { perMonth, perDay, atEpoch } object, received ${describe(value)}`,
 		);
 	}
 	for (const coefficient of COEFFICIENTS) {
-		assertRational(config, `${path}.${coefficient}`, value[coefficient]);
+		assertRational(tradition, `${path}.${coefficient}`, value[coefficient]);
 	}
 }
 
@@ -92,19 +96,22 @@ function assertMeanMotion(
  * become genuinely unreachable once this runs.
  */
 function assertTable(
-	config: TraditionConfig,
+	tradition: TraditionConfig,
 	path: string,
 	value: readonly number[] | undefined,
 	length: number,
 ): void {
 	if (!Array.isArray(value)) {
 		throw invalid(
-			config,
+			tradition,
 			`${path} must be an array of ${length} numbers, received ${describe(value)}`,
 		);
 	}
 	if (value.length !== length) {
-		throw invalid(config, `${path} must have exactly ${length} entries, received ${value.length}`);
+		throw invalid(
+			tradition,
+			`${path} must have exactly ${length} entries, received ${value.length}`,
+		);
 	}
 	for (const [index, entry] of value.entries()) {
 		// Safe integer, not merely finite. A fractional entry computes without complaint — the final
@@ -114,16 +121,16 @@ function assertTable(
 		// that feed the interpolation. Every other numeric field here already uses this check.
 		if (!Number.isSafeInteger(entry)) {
 			throw invalid(
-				config,
+				tradition,
 				`${path}[${index}] must be a safe integer, received ${describe(entry)}`,
 			);
 		}
 	}
 }
 
-function assertInteger(config: TraditionConfig, path: string, value: number | undefined): void {
+function assertInteger(tradition: TraditionConfig, path: string, value: number | undefined): void {
 	if (!Number.isSafeInteger(value)) {
-		throw invalid(config, `${path} must be a safe integer, received ${describe(value)}`);
+		throw invalid(tradition, `${path} must be a safe integer, received ${describe(value)}`);
 	}
 }
 
@@ -137,11 +144,11 @@ function assertInteger(config: TraditionConfig, path: string, value: number | un
  * an out-of-range number are different mistakes and deserve different messages. A missing field is
  * the likelier of the two, since this is the newest member of the interface.
  */
-function assertLeapIndexThreshold(config: TraditionConfig): void {
-	const value = config.leapIndexThreshold;
+function assertLeapIndexThreshold(tradition: TraditionConfig): void {
+	const value = tradition.leapIndexThreshold;
 	if (!Number.isSafeInteger(value) || value < 0 || value > 63) {
 		throw invalid(
-			config,
+			tradition,
 			`leapIndexThreshold must be an integer in 0…63, received ${describe(value)}. ` +
 				"Janson gives 48 for Phugpa, 0 for Tsurphu, 46 for the Mongolian version and 57 for " +
 				"the Bhutanese; there is no default because 48 would silently give Phugpa's leap " +
@@ -163,11 +170,11 @@ function assertLeapIndexThreshold(config: TraditionConfig): void {
  * Bhutan's leap rule against two different intercalation indices, so `57 ⇒ "after"` would reject a
  * config built from his traditional 59-or-60 formulation, which is correct Bhutan.
  */
-function assertLeapMonthPosition(config: TraditionConfig): void {
-	const value = config.leapMonthPosition;
+function assertLeapMonthPosition(tradition: TraditionConfig): void {
+	const value = tradition.leapMonthPosition;
 	if (value === undefined) {
 		throw invalid(
-			config,
+			tradition,
 			'leapMonthPosition is required and was not supplied. Use "before" for Phugpa, Tsurphu and ' +
 				'the Mongolian version, "after" for the Bhutanese, which numbers a leap month from the ' +
 				"preceding month and so places it after the regular month sharing its number. There is " +
@@ -178,7 +185,7 @@ function assertLeapMonthPosition(config: TraditionConfig): void {
 	}
 	if (value !== "before" && value !== "after") {
 		throw invalid(
-			config,
+			tradition,
 			`leapMonthPosition must be "before" or "after", received ${describe(value)}. It states the ` +
 				"leap month's *position*, not the numbering convention Janson describes it by: Bhutan " +
 				'numbers from the preceding month, which is "after" here',
@@ -194,23 +201,23 @@ function assertLeapMonthPosition(config: TraditionConfig): void {
  * mistake; an optional one is checked for *shape*, because a consumer who supplied it meant
  * something by it and a silently ignored typo is worse than a throw.
  */
-function assertNaming(config: TraditionConfig): void {
-	const naming = config.naming;
+function assertNaming(tradition: TraditionConfig): void {
+	const naming = tradition.naming;
 	if (naming === undefined) return;
 	if (typeof naming !== "object" || naming === null) {
-		throw invalid(config, `naming must be an object when present, received ${describe(naming)}`);
+		throw invalid(tradition, `naming must be an object when present, received ${describe(naming)}`);
 	}
 	const offset = naming.weekdayOffset;
 	if (offset !== undefined && (!Number.isSafeInteger(offset) || offset < 0 || offset > 6)) {
 		throw invalid(
-			config,
+			tradition,
 			`naming.weekdayOffset must be an integer in 0…6 when present, received ` +
 				`${describe(offset)}. It is 0 for every Tibetan version and 1 for Bhutan, and omitting ` +
 				"it means 0",
 		);
 	}
-	assertMonthAnimals(config, naming.monthAnimals);
-	assertNineNumbers(config, naming.nineNumbers);
+	assertMonthAnimals(tradition, naming.monthAnimals);
+	assertNineNumbers(tradition, naming.nineNumbers);
 }
 
 /**
@@ -229,12 +236,12 @@ function assertNaming(config: TraditionConfig): void {
  * Tsurphu's rules under the old name would keep Phugpa's month animals, silently.
  */
 function assertMonthAnimals(
-	config: TraditionConfig,
+	tradition: TraditionConfig,
 	animals: TraditionMonthAnimals | undefined,
 ): void {
-	if ((config.naming as { months?: unknown }).months !== undefined) {
+	if ((tradition.naming as { months?: unknown }).months !== undefined) {
 		throw invalid(
-			config,
+			tradition,
 			"naming.months is no longer read. Its rules are split by naming system: tigerMonth and " +
 				"elementRule go in naming.monthAnimals, and a month nine-number rule in " +
 				'naming.nineNumbers.months ("descending" for Tsurphu, omitted otherwise)',
@@ -243,7 +250,7 @@ function assertMonthAnimals(
 	if (animals === undefined) return;
 	if (typeof animals !== "object" || animals === null) {
 		throw invalid(
-			config,
+			tradition,
 			`naming.monthAnimals must be an object when present, received ${describe(animals)}. Omit ` +
 				"it entirely to say that this tradition's month animals are not sourced",
 		);
@@ -251,7 +258,7 @@ function assertMonthAnimals(
 	const tiger = animals.tigerMonth;
 	if (!Number.isSafeInteger(tiger) || tiger < 1 || tiger > 12) {
 		throw invalid(
-			config,
+			tradition,
 			`naming.monthAnimals.tigerMonth must be an integer in 1…12, received ${describe(tiger)}. ` +
 				"It is 11 for Phugpa and 1 for Tsurphu and Mongolia",
 		);
@@ -259,7 +266,7 @@ function assertMonthAnimals(
 	const rule = animals.elementRule;
 	if (rule !== "son-of-year" && rule !== "continuous") {
 		throw invalid(
-			config,
+			tradition,
 			`naming.monthAnimals.elementRule must be "son-of-year" or "continuous", received ` +
 				`${describe(rule)}. It names what the rule does, not whose it is: Phugpa restarts the ` +
 				"element run from the year's element, Tsurphu runs the cycle on continuously",
@@ -272,20 +279,20 @@ function assertMonthAnimals(
  * — so only a present-and-wrong value is rejected, the `weekdayOffset` idiom.
  */
 function assertNineNumbers(
-	config: TraditionConfig,
+	tradition: TraditionConfig,
 	numbers: TraditionNineNumbers | undefined,
 ): void {
 	if (numbers === undefined) return;
 	if (typeof numbers !== "object" || numbers === null) {
 		throw invalid(
-			config,
+			tradition,
 			`naming.nineNumbers must be an object when present, received ${describe(numbers)}`,
 		);
 	}
 	const months = numbers.months;
 	if (months !== undefined && months !== "unnumbered" && months !== "descending") {
 		throw invalid(
-			config,
+			tradition,
 			`naming.nineNumbers.months must be "unnumbered" or "descending" when present, received ` +
 				`${describe(months)}. Only Tsurphu calendars number their months, so omitting it means ` +
 				'"unnumbered" — which is a sourced fact, not an absence',
@@ -293,9 +300,9 @@ function assertNineNumbers(
 	}
 }
 
-function assertNonEmptyString(config: TraditionConfig, path: string, value: string | undefined) {
+function assertNonEmptyString(tradition: TraditionConfig, path: string, value: string | undefined) {
 	if (typeof value !== "string" || value === "") {
-		throw invalid(config, `${path} must be a non-empty string, received ${describe(value)}`);
+		throw invalid(tradition, `${path} must be a non-empty string, received ${describe(value)}`);
 	}
 }
 
@@ -320,13 +327,13 @@ const validated = new WeakSet<TraditionConfig>();
  *
  * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG`, naming the offending field path.
  */
-export function assertTraditionConfig(config: TraditionConfig): void {
-	if (validated.has(config)) return;
+export function assertTraditionConfig(tradition: TraditionConfig): void {
+	if (validated.has(tradition)) return;
 
-	if (config === null || typeof config !== "object") {
+	if (tradition === null || typeof tradition !== "object") {
 		throw rangeError(
 			"TCT_INVALID_TRADITION_CONFIG",
-			`TraditionConfig must be an object, received ${describe(config)}. Pass PHUGPA, ` +
+			`TraditionConfig must be an object, received ${describe(tradition)}. Pass PHUGPA, ` +
 				"PHUGPA_HENNING, or a config spread from one of them",
 		);
 	}
@@ -334,7 +341,7 @@ export function assertTraditionConfig(config: TraditionConfig): void {
 	// The likeliest non-config object is the `{ tradition }` bag six functions took until 2026-09-24,
 	// when a tradition that is a function's only choice became positional. Without this a migrating
 	// caller is told `id` is missing, a field they never meant to write.
-	if (config.id === undefined && "tradition" in config) {
+	if (tradition.id === undefined && "tradition" in tradition) {
 		throw rangeError(
 			"TCT_INVALID_TRADITION_CONFIG",
 			"TraditionConfig expected, received an object like { tradition }. Where the tradition is " +
@@ -343,23 +350,23 @@ export function assertTraditionConfig(config: TraditionConfig): void {
 		);
 	}
 
-	assertNonEmptyString(config, "id", config.id);
-	assertNonEmptyString(config, "name", config.name);
-	assertInteger(config, "epochYear", config.epochYear);
-	assertInteger(config, "epochMonth", config.epochMonth);
-	assertInteger(config, "intercalationIndexAtEpoch", config.intercalationIndexAtEpoch);
-	assertLeapIndexThreshold(config);
-	assertLeapMonthPosition(config);
-	assertNaming(config);
+	assertNonEmptyString(tradition, "id", tradition.id);
+	assertNonEmptyString(tradition, "name", tradition.name);
+	assertInteger(tradition, "epochYear", tradition.epochYear);
+	assertInteger(tradition, "epochMonth", tradition.epochMonth);
+	assertInteger(tradition, "intercalationIndexAtEpoch", tradition.intercalationIndexAtEpoch);
+	assertLeapIndexThreshold(tradition);
+	assertLeapMonthPosition(tradition);
+	assertNaming(tradition);
 
 	for (const motion of MEAN_MOTIONS) {
-		assertMeanMotion(config, motion, config[motion]);
+		assertMeanMotion(tradition, motion, tradition[motion]);
 	}
 
-	assertTable(config, "moonTab", config.moonTab, MOON_TAB_LENGTH);
-	assertTable(config, "sunTab", config.sunTab, SUN_TAB_LENGTH);
+	assertTable(tradition, "moonTab", tradition.moonTab, MOON_TAB_LENGTH);
+	assertTable(tradition, "sunTab", tradition.sunTab, SUN_TAB_LENGTH);
 
-	validated.add(config);
+	validated.add(tradition);
 }
 
 /**
@@ -378,7 +385,7 @@ export function assertTraditionConfig(config: TraditionConfig): void {
  * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG`.
  */
 export function assertDerivable(
-	config: TraditionConfig,
+	tradition: TraditionConfig,
 	meanSunDen: number,
 	searchHalfWidth: number,
 ): void {
@@ -390,7 +397,7 @@ export function assertDerivable(
 	// can cause without ruling on which traditions are astronomically legitimate.
 	if (searchHalfWidth > MAX_SEARCH_HALF_WIDTH) {
 		throw invalid(
-			config,
+			tradition,
 			`the correction tables imply a search window of ±${searchHalfWidth} lunar days, ` +
 				`beyond the ±${MAX_SEARCH_HALF_WIDTH} this engine will search. moonTab and sunTab are ` +
 				"equations in sixtieths of a day; entries this large describe no lunisolar calendar",
@@ -404,7 +411,7 @@ export function assertDerivable(
 	// down with no code at all, and `tibetanDateExists` read that as "the date does not exist".
 	if (meanSunDen % 4 !== 0) {
 		throw invalid(
-			config,
+			tradition,
 			`the derived meanSun denominator ${meanSunDen} is not divisible by 4. The solar ` +
 				"anomaly is mean_sun − 1/4, so a denominator that cannot express a quarter exactly " +
 				"makes the derivation inexact; it is the lcm of meanSun's three coefficient " +

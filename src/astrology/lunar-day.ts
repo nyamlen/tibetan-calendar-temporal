@@ -105,13 +105,13 @@ export interface LunarDayAttributes {
  * attributes, since three of the four reach back through the month.
  */
 export function lunarDayAttributes(
-	config: TraditionConfig,
+	tradition: TraditionConfig,
 	year: number,
 	month: number,
 	day: number,
 ): LunarDayAttributes {
-	const animalNumber = monthAnimalNumber(config, month);
-	const elementNumber = monthElementNumber(config, year, month);
+	const animalNumber = monthAnimalNumber(tradition, month);
+	const elementNumber = monthElementNumber(tradition, year, month);
 
 	const animal = at(ANIMALS, amod(day + 6 * month + 8, 12), "lunar-day animal");
 	const element = at(ELEMENTS, amod(elementNumber + day, 5), "lunar-day element");

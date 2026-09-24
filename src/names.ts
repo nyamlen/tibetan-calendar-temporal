@@ -90,7 +90,7 @@ export const NAME_TABLES = freeze({ WEEKDAYS, ELEMENTS, GENDERS, ANIMALS });
  *
  * @remarks
  * Takes a resolved offset rather than a `TraditionConfig`: `weekdayNameFor` in `cycles.ts` is the
- * public entry point, and it reads `config.naming?.weekdayOffset ?? 0` before calling here. The
+ * public entry point, and it reads `tradition.naming?.weekdayOffset ?? 0` before calling here. The
  * offset exists because **Bhutan names its weekdays one planet ahead of Tibet** — day 0 is
  * *spen pa* in Tibet and *nyi ma* in Bhutan. Janson calls this "a unique feature of the Bhutanese
  * calendar", and Unicode CLDR agrees: its `bo` and `dz` locales differ by exactly one planet for

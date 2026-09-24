@@ -55,8 +55,10 @@ what happens if one arrives.
   an inherited key.
 - **`./observances`' `config` key is not settled by this record.** Its name belongs to the
   `./observances` rethink, which is still open.
-- **Internal helpers may keep a `config` parameter.** The rule governs the surface; a module-private
-  function is not on it.
+- **Point 1 holds inside `src/` too, not only on the surface.** Internal helpers kept a `config`
+  parameter for the first few hours, on the reading that the rule governs the surface; Andreas asked
+  the same day for one name throughout, so a reader of any function sees one word for one type. The
+  word `config` in `src/` now means an `ObservanceConfig` and nothing else.
 
 ## Enforcement
 

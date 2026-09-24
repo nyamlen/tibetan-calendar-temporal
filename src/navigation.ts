@@ -182,22 +182,26 @@ export function lunationFromMonth(
  * helper they delegate to. Guarding again inside each of them instead would leave an unreachable
  * branch, which is the redundancy `coverage` is run to find.
  */
-function lunationOf(subject: string, month: TibetanMonthFields, config: TraditionConfig): number {
+function lunationOf(
+	subject: string,
+	month: TibetanMonthFields,
+	tradition: TraditionConfig,
+): number {
 	const describe = () => `${subject}({ year: ${month.year}, month: ${month.month} })`;
 	const y = yearFromRoyalEra(month.year);
-	assertClosedFormYear(describe, y, config);
+	assertClosedFormYear(describe, y, tradition);
 
 	const isLeap = month.isLeapMonth ?? false;
 	// Without this, asking for a leap month that does not exist returns the *previous* month's count
 	// rather than refusing — a wrong answer indistinguishable from a right one.
-	if (isLeap && !sharesNumberWithLeapMonth(config, y, month.month)) {
+	if (isLeap && !sharesNumberWithLeapMonth(tradition, y, month.month)) {
 		throw rangeError(
 			"TCT_NO_SUCH_LEAP_MONTH",
 			`${describe()}: month ${month.month} of ${month.year} has no leap month. Drop isLeapMonth, ` +
 				"or use monthsFor to see which month of a year is doubled.",
 		);
 	}
-	return trueMonthCount(config, y, month.month, isLeap);
+	return trueMonthCount(tradition, y, month.month, isLeap);
 }
 
 /**
@@ -234,16 +238,16 @@ export function monthFromLunation(
 }
 
 /** The month at an already-validated lunation, reporting under the caller's name. */
-function monthAt(name: string, lunation: number, config: TraditionConfig): TibetanMonth {
+function monthAt(name: string, lunation: number, tradition: TraditionConfig): TibetanMonth {
 	const subject = () => `${name}(${lunation})`;
 	// Before monthFromCount, not after: it multiplies by 65 first, so an unbounded count loses
 	// precision and returns an identity built from noise rather than throwing.
-	assertLunation(subject, lunation, config);
+	assertLunation(subject, lunation, tradition);
 
-	const identity = monthFromCount(config, lunation);
-	assertClosedFormYear(subject, identity.year, config);
+	const identity = monthFromCount(tradition, lunation);
+	assertClosedFormYear(subject, identity.year, tradition);
 
-	const scaled = scalingFor(config);
+	const scaled = scalingFor(tradition);
 	// Bound both ends before describeMonth renders them. assertLunation above only keeps the *month
 	// count* arithmetic exact; the boundaries come from true_date, whose range is far narrower, and
 	// without this a lunation in between produced an uncoded `RangeError: Duration was not valid`
@@ -642,22 +646,22 @@ function nextPhase(
 	name: string,
 	lunarDay: number,
 	date: Temporal.PlainDate | TibetanDate,
-	config: TraditionConfig,
+	tradition: TraditionConfig,
 ): TibetanDate {
-	assertTraditionConfig(config);
+	assertTraditionConfig(tradition);
 	const from = phaseStart(name, date);
-	const scaled = scalingFor(config);
+	const scaled = scalingFor(tradition);
 	const target = julianDayFromIso(from);
 	assertExactJulianDay(scaled, target, () => `${name}(${from.toString()})`);
 
-	let lunation = isoToTibetan(from, config).lunation;
+	let lunation = isoToTibetan(from, tradition).lunation;
 	let julianDay = julianDayOfLunarDay(scaled, lunarDay, lunation);
 	if (julianDay <= target) {
 		lunation += 1;
 		julianDay = julianDayOfLunarDay(scaled, lunarDay, lunation);
 	}
 	assertExactJulianDay(scaled, julianDay, () => `${name}(${from.toString()})`);
-	return isoToTibetan(isoFromJulianDayUnchecked(julianDay), config);
+	return isoToTibetan(isoFromJulianDayUnchecked(julianDay), tradition);
 }
 
 /**

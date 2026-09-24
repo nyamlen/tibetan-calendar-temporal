@@ -106,7 +106,7 @@ export function moonEquation(scaled: ScaledTradition, day: number, monthCount: n
 	// moonTabArgDen, because multiplying by 28 exactly cancels the factor of 28 below.
 	const argument = lunarAnomaly(scaled, day, monthCount);
 	return interpolate(
-		(index) => moonTabAt(scaled.config.moonTab, index),
+		(index) => moonTabAt(scaled.tradition.moonTab, index),
 		argument,
 		scaled.moonTabArgDen,
 	);
@@ -122,7 +122,7 @@ export function moonEquation(scaled: ScaledTradition, day: number, monthCount: n
 export function sunEquation(scaled: ScaledTradition, day: number, monthCount: number): number {
 	const argument = solarAnomaly(scaled, day, monthCount);
 	return interpolate(
-		(index) => sunTabAt(scaled.config.sunTab, index),
+		(index) => sunTabAt(scaled.tradition.sunTab, index),
 		argument,
 		scaled.sunTabArgDen,
 	);

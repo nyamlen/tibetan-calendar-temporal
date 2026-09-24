@@ -171,7 +171,7 @@ export function monthAttributesFor(
 	month: TibetanMonthFields,
 	tradition: TraditionConfig = PHUGPA,
 ): MonthAttributes {
-	// Validated first, as every root function does, so a bad tradition is reported before a bad date.
+	// Validated first, so a bad tradition is reported before a bad date, as it was when this took a bag.
 	scalingFor(tradition);
 	rejectTemporalInstance("monthAttributesFor", month);
 	rejectInvalidLeapFlags("monthAttributesFor", month);

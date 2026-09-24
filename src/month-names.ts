@@ -314,8 +314,8 @@ const at = <T>(table: readonly T[], index: number, what: string): T =>
  * `TCT_ATTRIBUTE_NOT_SOURCED` for a tradition without the list, while {@link monthNamesFor} reports
  * `null` for the one system that needs it. The refusal stays in `./astrology`.
  */
-export function monthsAfterTigerMonth(config: TraditionConfig, month: number): number | null {
-	const animals = config.naming?.monthAnimals;
+export function monthsAfterTigerMonth(tradition: TraditionConfig, month: number): number | null {
+	const animals = tradition.naming?.monthAnimals;
 	return animals === undefined ? null : mod(month - animals.tigerMonth, 12);
 }
 

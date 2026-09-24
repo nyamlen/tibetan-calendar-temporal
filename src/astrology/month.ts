@@ -6,7 +6,7 @@
  * **This is where the traditions genuinely fork**, and they fork on the *rules* rather than on
  * constants. Phugpa's month 1 is Dragon and Tsurphu's is Tiger; Phugpa restarts its element run from
  * the year's element every year while Tsurphu lets one cycle run on for ever; only Tsurphu numbers
- * its months at all. So every function here reads `config.naming.monthAnimals`, and **refuses** when a
+ * its months at all. So every function here reads `tradition.naming.monthAnimals`, and **refuses** when a
  * tradition has no such block — which is the Bhutanese case, where Janson tabulates no month-animal
  * list and a Phugpa answer would be a confident invention.
  *
@@ -78,10 +78,10 @@ export interface MonthAttributes {
  *
  * @throws RangeError with code `TCT_ATTRIBUTE_NOT_SOURCED`, always.
  */
-function unsourced(config: TraditionConfig): never {
+function unsourced(tradition: TraditionConfig): never {
 	throw rangeError(
 		"TCT_ATTRIBUTE_NOT_SOURCED",
-		`${config.name} has no sourced month attributes: Janson gives no month-animal list for ` +
+		`${tradition.name} has no sourced month attributes: Janson gives no month-animal list for ` +
 			"this version, and the element and number rules follow from that list. Nothing about the " +
 			"date you asked about is wrong — the attribute simply has no source. Year and " +
 			"calendar-day attributes do not depend on the month-animal list and still answer",
@@ -94,9 +94,9 @@ function unsourced(config: TraditionConfig): never {
  * @throws RangeError with code `TCT_ATTRIBUTE_NOT_SOURCED` if the tradition has no sourced month
  * attributes — the Bhutanese configs, today.
  */
-function monthAnimals(config: TraditionConfig): TraditionMonthAnimals {
-	const animals = config.naming?.monthAnimals;
-	return animals === undefined ? unsourced(config) : animals;
+function monthAnimals(tradition: TraditionConfig): TraditionMonthAnimals {
+	const animals = tradition.naming?.monthAnimals;
+	return animals === undefined ? unsourced(tradition) : animals;
 }
 
 /**
@@ -110,9 +110,9 @@ function monthAnimals(config: TraditionConfig): TraditionMonthAnimals {
  * @throws RangeError with code `TCT_ATTRIBUTE_NOT_SOURCED` if the tradition has no sourced month
  * attributes.
  */
-export function monthAnimalNumber(config: TraditionConfig, month: number): number {
-	const steps = monthsAfterTigerMonth(config, month);
-	return amod((steps === null ? unsourced(config) : steps) + TIGER, 12);
+export function monthAnimalNumber(tradition: TraditionConfig, month: number): number {
+	const steps = monthsAfterTigerMonth(tradition, month);
+	return amod((steps === null ? unsourced(tradition) : steps) + TIGER, 12);
 }
 
 /**
@@ -144,8 +144,12 @@ export function monthAnimalNumber(config: TraditionConfig, month: number): numbe
  * @throws RangeError with code `TCT_ATTRIBUTE_NOT_SOURCED` if the tradition has no sourced month
  * attributes.
  */
-export function monthElementNumber(config: TraditionConfig, year: number, month: number): number {
-	const { tigerMonth, elementRule } = monthAnimals(config);
+export function monthElementNumber(
+	tradition: TraditionConfig,
+	year: number,
+	month: number,
+): number {
+	const { tigerMonth, elementRule } = monthAnimals(tradition);
 	const stepsFromTiger = (offset: number) => floorDiv(month - tigerMonth + offset, 2);
 
 	if (elementRule === "continuous") return amod(year - 2 + stepsFromTiger(0), 5);
@@ -179,14 +183,14 @@ export function monthElementNumber(config: TraditionConfig, year: number, month:
  * attributes. Never a silent fallback to Phugpa's.
  */
 export function monthAttributes(
-	config: TraditionConfig,
+	tradition: TraditionConfig,
 	year: number,
 	month: number,
 ): MonthAttributes {
-	const numbered = config.naming?.nineNumbers?.months === "descending";
-	const animal = at(ANIMALS, monthAnimalNumber(config, month), "month animal");
+	const numbered = tradition.naming?.nineNumbers?.months === "descending";
+	const animal = at(ANIMALS, monthAnimalNumber(tradition, month), "month animal");
 	const gender: TibetanGender = month % 2 === 1 ? "male" : "female";
-	const element = at(ELEMENTS, monthElementNumber(config, year, month), "month element");
+	const element = at(ELEMENTS, monthElementNumber(tradition, year, month), "month element");
 
 	return {
 		animal,
