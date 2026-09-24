@@ -21,7 +21,7 @@
  */
 
 import { mod } from "./computation/arithmetic.js";
-import { assertInternal, rangeError } from "./errors.js";
+import { assertInternal, assertQueryOptions } from "./errors.js";
 import { deepFreeze } from "./freeze.js";
 import { daysInMonth } from "./months.js";
 import { PHUGPA } from "./traditions/phugpa.js";
@@ -319,17 +319,6 @@ export function monthsAfterTigerMonth(config: TraditionConfig, month: number): n
 	return animals === undefined ? null : mod(month - animals.tigerMonth, 12);
 }
 
-function assertOptions(options: unknown): void {
-	// `=== undefined` below, never `??`, for the reason `./astrology`'s copy of this guard gives: an
-	// explicit `{ tradition: null }` must be rejected, not replaced by PHUGPA.
-	if (options === null || typeof options !== "object") {
-		throw rangeError(
-			"TCT_INVALID_ARGUMENT",
-			`monthNamesFor: options must be an object like { tradition } or omitted, received ${JSON.stringify(options)}`,
-		);
-	}
-}
-
 /**
  * Every name of a Tibetan month: its lunar mansion, its Indian month name, and its season in each
  * seasonal system.
@@ -352,7 +341,7 @@ function assertOptions(options: unknown): void {
  * usually not used", and does not say which seasonal version.
  *
  * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` for a non-integer or out-of-range field;
- * `TCT_INVALID_ARGUMENT` if `month` is not an object naming a Tibetan month or `options` is not an
+ * `TCT_INVALID_ARGUMENT` if `month` is not an object naming a Tibetan month or `options` is not a non-array
  * object; `TCT_INVALID_TRADITION_CONFIG` if `tradition` is not a valid config; `TCT_NO_SUCH_LEAP_MONTH` if `isLeapMonth` is set for a month with no leap twin that year; or
  * `TCT_OUTSIDE_EXACT_RANGE` past the tradition's exact range.
  *
@@ -376,7 +365,7 @@ export function monthNamesFor(
 	month: TibetanMonthFields,
 	options: { readonly tradition?: TraditionConfig } = {},
 ): MonthNames {
-	assertOptions(options);
+	assertQueryOptions("monthNamesFor", "{ tradition }", options);
 	const tradition = options.tradition === undefined ? PHUGPA : options.tradition;
 	rejectTemporalInstance("monthNamesFor", month);
 	rejectInvalidLeapFlags("monthNamesFor", month);

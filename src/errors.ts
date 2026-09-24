@@ -250,7 +250,7 @@ export function assertQueryOptions(functionName: string, shape: string, options:
 		throw rangeError(
 			"TCT_INVALID_ARGUMENT",
 			`${functionName}: options must be an object like ${shape} or omitted, received ` +
-				`${JSON.stringify(options)}`,
+				`${describe(options)}`,
 		);
 	}
 }

@@ -42,7 +42,7 @@ import {
 import { julianDayOfLunarDay } from "./computation/corrections.js";
 import { royalEraFromYear, yearFromRoyalEra } from "./computation/epoch.js";
 import { scalingFor } from "./computation/scaling.js";
-import { assertQueryOptions, rangeError } from "./errors.js";
+import { assertQueryOptions, describe, rangeError } from "./errors.js";
 import { describeMonth } from "./months.js";
 import { PHUGPA } from "./traditions/phugpa.js";
 import type { TraditionConfig } from "./traditions/types.js";
@@ -530,7 +530,7 @@ export function addMonthsToDate(
 	if (overflow !== "constrain" && overflow !== "reject") {
 		throw rangeError(
 			"TCT_INVALID_ARGUMENT",
-			`addMonthsToDate: overflow must be "constrain" or "reject", received ${JSON.stringify(overflow)}`,
+			`addMonthsToDate: overflow must be "constrain" or "reject", received ${describe(overflow)}`,
 		);
 	}
 	assertTraditionConfig(config);

@@ -341,6 +341,18 @@ describe("the guard", () => {
 			"TCT_INVALID_ARGUMENT",
 		],
 		[
+			// Its private guard was a fifth copy of assertQueryOptions without the array refusal, so a
+			// point-free map answered; found by review 2026-09-24.
+			"an array as options",
+			() => monthNamesFor({ year: 2153, month: 1 }, [] as never),
+			"TCT_INVALID_ARGUMENT",
+		],
+		[
+			"a bigint as options",
+			() => monthNamesFor({ year: 2153, month: 1 }, 10n as never),
+			"TCT_INVALID_ARGUMENT",
+		],
+		[
 			"a null tradition",
 			// Reaches the config validator rather than being replaced by PHUGPA — the `=== undefined` read.
 			() => monthNamesFor({ year: 2153, month: 1 }, { tradition: null as never }),
