@@ -322,6 +322,16 @@ the single-day view ignores an out-of-range date and shows today. The first pass
 reported 1900 and 1950 as compared; both pages held 2000. Check that each fetched page holds the year
 requested.
 
+**Its sojong schedule, measured 2026-09-27 over all 101 years, is the first sojong source outside
+FPMT**, and it settled the counted schedule's missing piece as a candidate: every one of its 2,490
+sojongs follows from a count re-anchored each year on the month-1 full moon, with no sojong on
+Losar. The rule, and FPMT's 17-day departure from it in 2022, are in
+[almanac-sources.md](almanac-sources.md#sojong-a-counted-schedule-once-falsified-by-a-misreading).
+**Its lineage matters more here than for the day numbers.** For day numbers Rabten is Henning's
+arithmetic agreeing with itself; for sojong, nothing says where its schedule comes from, so its
+agreement with FPMT on 82 of 99 sojongs counts as independent only if the two do not copy one
+almanac — which is unknown. The rule is fitted to Rabten, not sourced from it.
+
 ### Bhutan's month attributes — a negative result, recorded so it is not re-walked
 
 Searched 2026-09-10, for the animal and element each **month** of the Bhutanese year carries.

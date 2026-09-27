@@ -1101,7 +1101,13 @@ nothing and reports success.
       residue is a one-day excursion (2022-03-18, undone at 2022-04-30) and one permanent extra day
       from 2023-01-07, which a 354-day scheme needs every few years to stay with the moon. **Where
       that extra day goes is the one unsourced piece**, and it was put to Ven. Thubten Chöying for
-      her teacher on 2026-09-19. Sojong also lands on days 14, 16 and 1, which no day-number rule can
+      her teacher on 2026-09-19. **Superseded 2026-09-27: there is no extra day.** Rabten Choeling's
+      calendar, 2000–2100, is reproduced in full by re-anchoring the count each year on the month-1
+      full moon, and under that rule the 2022-03-18 "excursion" is the anchor and the 2023-01-07
+      "extra day" is FPMT undoing a 14-day fortnight it gave month 2 on 2022-04-30. Inferred, not
+      sourced; the rule and its limits are in
+      [almanac-sources.md](almanac-sources.md#sojong-a-counted-schedule-once-falsified-by-a-misreading).
+      Sojong also lands on days 14, 16 and 1, which no day-number rule can
       produce, and it is not the astronomical syzygy either (a 51-hour spread across timezones).
       It is **computation**, so shipping it needs a counted-schedule rule shape the model lacks.
 
@@ -1199,8 +1205,11 @@ nothing and reports success.
       and spec — not folded into this task. **Superseded 2026-09-19:** the day-quality codes join the
       convention layer (above), so the placement question is answered and the two are one brainstorm.
 - [ ] **Sojong — moved from Beyond v1 to pre-1.0.0 on 2026-09-19 (Andreas).** The rule is a
-      counted schedule (see the reversal in the boundary item above); what remains is sourcing where
-      the extra day goes, and a counted-schedule rule shape. Additive — `ObservanceConfig.rules` is an array, so a
+      counted schedule (see the reversal in the boundary item above); what remains is sourcing what
+      keeps the count with the moon — since 2026-09-27 an inferred annual anchor on the month-1 full
+      moon, from Rabten Choeling's calendar, see
+      [almanac-sources.md](almanac-sources.md#sojong-a-counted-schedule-once-falsified-by-a-misreading)
+      — and a counted-schedule rule shape. Additive — `ObservanceConfig.rules` is an array, so a
       row can be added without a breaking change. Phase 3 established that it is **not** a fixed day
       number: against FPMT's calendars for 2022–2025, a 15th-and-30th rule misses 38 occurrences and
       invents 36, and the misses are not random. It lands a day early in some months and not others:
@@ -1223,7 +1232,9 @@ nothing and reports success.
 
       **The question this item used to put to FPMT** — what decides the 29th against the 30th, and
       why the first of a doubled day — is answered by the count. What remains is narrower: where the
-      extra day goes, asked of Ven. Thubten Chöying, and sent 2026-09-19.
+      extra day goes, asked of Ven. Thubten Chöying, and sent 2026-09-19. Since 2026-09-27 the
+      candidate answer is an annual anchor rather than an extra day, inferred from Rabten Choeling's
+      calendar and still unsourced.
 
       **A candidate answer surfaced 2026-08-28, outside this repo, and was falsified 2026-09-04.**
       [almanac-sources.md](almanac-sources.md) records an oral-teaching source (Geshe Gyaltsen, translated by

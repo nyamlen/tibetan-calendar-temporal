@@ -32,8 +32,8 @@
  *   an even one, which reproduces 96 of the 98 intervals between FPMT's sojongs of 2022-2025. A
  *   count lands on a calendar day, which is why it fell on the first of the doubled 30 of
  *   19-20 November 2025 while the great days take the second: no doubled-day convention applies.
- *   Where the occasional extra day goes, which such a count needs to stay with the moon, is not
- *   yet sourced, and a count is a rule shape `ObservanceRule` cannot express. So it is left out
+ *   What keeps such a count in step with the moon is not yet sourced, and a count is a rule shape
+ *   `ObservanceRule` cannot express. So it is left out
  *   rather than shipped approximately wrong. The `ObservanceKind` union keeps `"sojong"` so a
  *   caller who knows their own community's schedule can supply it. Tracked in the pre-1.0.0
  *   checklist in `docs/roadmap.md`.

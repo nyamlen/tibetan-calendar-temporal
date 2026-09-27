@@ -331,6 +331,29 @@ The one unsourced piece is where the occasional extra day goes, which a 354-day 
 The full account is under the boundary item in [roadmap.md](roadmap.md).
 The instruction this section used to end with — not to re-test without new material — was wrong: the material was already in hand.
 
+**Superseded 2026-09-27: there is no extra day, only an anchor.**
+Rabten Choeling's calendar (see [validation-sources.md](validation-sources.md#rabten-choelings-calendar-hennings-lunar-anomaly-value-method-unstated)) prints sojong on every day it falls from 2000 to 2100, and marks the ones after a 14-day fortnight "Sojong 14".
+All 2,490 of its sojongs are reproduced, with none missed and none extra, by this rule:
+
+1. **An anchor each year:** the full moon of the year's first month 1, so the leap twin in a year with a leap month 1.
+   That is day 15; the day after 14 if 15 is skipped; the first of the pair if 15 is doubled.
+2. **A count from the anchor:** a waxing fortnight is 15 days, a waning one 14 in an odd month and 15 in an even one.
+   A leap month takes its own number's parity, so a leap month 6 is even because 6 is, and a leap month 1 is odd.
+3. **The next year's anchor replaces the count**, so the fortnight into it runs 14, 15 or 16 days.
+   That re-anchoring is what keeps a 354-day count with the moon.
+4. **No sojong on Losar.** Where the count lands on it, in six years of the century, that sojong is dropped, leaving 29 or 30 days to the anchor.
+   The data cannot say whether the exclusion is Losar alone or the first days of month 1, because the count only ever lands on day 1.
+
+It gives the same schedule under `PHUGPA` and `PHUGPA_HENNING`.
+Against FPMT's 99 sojongs of 2022–2025 it agrees on 82.
+The other 17 are one run, FPMT a day early throughout, opened by a 14-day waning fortnight in month 2 (2022-04-30, where an even month gives 15) and closed by a 16-day waxing fortnight in month 11 (2023-01-07).
+So what the 2026-09-19 reading took for a one-day excursion at 2022-03-18 is the anchor on Chötrul Düchen, and what it took for a permanent extra day at 2023-01-07 is FPMT returning to the schedule.
+
+**This is an inferred rule, not a sourced one**, and so it does not yet meet the bar for shipping.
+Rabten states no method, and its lineage is unknown: if it and FPMT copy one almanac, their agreement is one witness, not two.
+The question sent to Ven. Thubten Chöying on 2026-09-19 asked where the extra day goes; it is the sourcing question for this rule now, and it is unanswered.
+FPMT's convention for a skipped or doubled day 15 in month 1 is also untested: none occurs in its 2022–2025 window.
+
 ## No cutting hair: the day-by-day table
 
 Recorded only.
@@ -425,8 +448,10 @@ recorded in [other-implementations.md](other-implementations.md).
   both still need a source. See the boundary item in [roadmap.md](roadmap.md).
 - **What GCH means** — answered 2026-09-19: FPMT's key defines it as "Good for cutting hair".
 - **NCH and the hair-cutting table disagree in scope**, as above.
-- **Where sojong's extra day goes.** The 2026-08-28 candidate holds as a count of days; only the
-  occasional extra day is unsourced. See [Sojong](#sojong-a-counted-schedule-once-falsified-by-a-misreading).
+- **What keeps sojong's count with the moon.** The 2026-08-28 candidate holds as a count of days.
+  Since 2026-09-27 the answer is a candidate rather than a gap: Rabten's calendar re-anchors the count
+  on the month-1 full moon every year, and that reproduces it for a century. It is inferred, not
+  sourced. See [Sojong](#sojong-a-counted-schedule-once-falsified-by-a-misreading).
 - **Zurkhai's lineage is unknown**, and that is what keeps it out of
   [validation-sources.md](validation-sources.md).
   It states "the Phugpa school" and cites no scholar, almanac edition or repository.

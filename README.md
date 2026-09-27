@@ -473,7 +473,7 @@ one: a fixed 15th-and-30th convention misses 38 of FPMT's published occurrences 
 invents 36, so whatever governs it is not a day number. It is a **counted schedule** — the fortnight
 ending at a sojong is 15 days, or 14 at the end of an odd month — which reproduces 96 of the 98
 intervals between FPMT's sojongs over those years. It stays unshipped for two reasons that are not
-"nobody knows": where the occasional extra day goes is not yet sourced, and a count is a rule shape
+"nobody knows": what keeps the count in step with the moon is not yet sourced, and a count is a rule shape
 `ObservanceRule` cannot express. If you query for sojong and get nothing, that is why — not a mistake
 in your query. `DEFAULT_OBSERVANCES`' own docblock carries the full reasoning and the worked dates.
 
