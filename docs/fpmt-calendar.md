@@ -1,7 +1,7 @@
 # FPMT's calendar: what it prints, and how it is dated
 
 FPMT publishes a monthly Tibetan calendar at `fpmt.org/resources/calendar/YYYY/Month.php`.
-This document records facts about that calendar that are specific to FPMT and that this package does not ship: how FPMT dates eclipses, and which anniversaries it prints on which dates.
+This document records facts about that calendar that are specific to FPMT and that this package does not ship: how FPMT dates eclipses, which anniversaries it prints on which dates, and where its sojong departs from the counted schedule.
 It is not shipped, and its figures are not validation claims about the package — those are in [why-trust-these-dates.md](why-trust-these-dates.md).
 
 Every Western date below is a Western (Gregorian) date, and every "month" and "day" is Tibetan, Phugpa tradition.
@@ -88,6 +88,18 @@ These fall on the same Western date every year.
 | Karma Rishi | 9–15 September | 2026 only, a seven-day period |
 
 This list is the part that changes: in five years a birthday stopped, an anniversary began, and a period appeared.
+
+## Sojong: one 17-day departure from the counted schedule
+
+FPMT prints 99 sojongs from 2022 to 2025.
+Rabten Choeling's calendar follows a counted schedule re-anchored every year on the month-1 full moon, the rule set out in [almanac-sources.md](almanac-sources.md#sojong-a-counted-schedule-once-falsified-by-a-misreading); FPMT agrees with it on 82 of the 99.
+The other 17 are one run, 30 April 2022 to 22 December 2022, every one a day earlier than the rule.
+It opens with a 14-day waning fortnight in the 2nd month, which is even and gives 15 under the rule, and it closes on 7 January 2023 with a 16-day waxing fortnight in the 11th month.
+FPMT therefore came back into step two months before the 2023 anchor would have forced it to.
+
+Whether the run is a slip or a rule this package lacks is not known.
+It was put to Ven. Thubten Chöying on 2026-09-27, with whether FPMT re-anchors on Chötrul Düchen at all and whether it drops a sojong falling on Losar.
+The window has no month-1 day 15 that is skipped or doubled, so FPMT's choice for those two cases is untested.
 
 ## What FPMT's guidance page dates, and what it leaves undated
 

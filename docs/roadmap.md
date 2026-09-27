@@ -1209,7 +1209,12 @@ nothing and reports success.
       keeps the count with the moon — since 2026-09-27 an inferred annual anchor on the month-1 full
       moon, from Rabten Choeling's calendar, see
       [almanac-sources.md](almanac-sources.md#sojong-a-counted-schedule-once-falsified-by-a-misreading)
-      — and a counted-schedule rule shape. Additive — `ObservanceConfig.rules` is an array, so a
+      — and a counted-schedule rule shape. **Rabten's data arrives with the rule, not before it**
+      (decided 2026-09-27): a generator in `scripts/`, a fixture in `test/fixtures/` of every sojong
+      and its 14/15 tag for 2000–2100, and a suite in `test/validation/` that imports it, in the same
+      commit series as the rule in `src/`. Landed earlier it would be a fixture nothing reads. Its
+      entry in [validation-sources.md](validation-sources.md) must state that Rabten's lineage is
+      unknown, so its agreement with FPMT may be one witness rather than two. Additive — `ObservanceConfig.rules` is an array, so a
       row can be added without a breaking change. Phase 3 established that it is **not** a fixed day
       number: against FPMT's calendars for 2022–2025, a 15th-and-30th rule misses 38 occurrences and
       invents 36, and the misses are not random. It lands a day early in some months and not others:
