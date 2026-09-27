@@ -354,8 +354,9 @@ The list is grouped by subject, not by sequence, and one run of items does have 
 
 1. **`./observances`** — the rule vocabulary, sojong, and whichever content ships. **This blocks the
    review passes**, and the reason is recorded on that item: *"a code review that reads a ruleset
-   which may still change content, membership or name is reviewing a moving target."* Currently
-   paused pending Ven. Thubten Chöying's reply.
+   which may still change content, membership or name is reviewing a moving target."* Its design
+   has been under way since 2026-09-27; which rules ship, and their parameters, wait on
+   Ven. Thubten Chöying's reply.
 2. The four **Review passes** below, in the order given there.
 3. The **`docs/` folder restructure**, last of all — every review before it produces documentation
    edits, and moving files once after they have landed is one link-fixing commit instead of four.
@@ -443,6 +444,14 @@ that its first step is still open.
       below, in the research that became [almanac-sources.md](almanac-sources.md); that file's
       deliberation was dropped when it moved into this repo on 2026-09-05, because the decisions it
       argued toward are the ones recorded here.
+
+      **Decided 2026-09-27 (Andreas): composition is by JSON-storable layers.** A layer over a base
+      config holds rules to add, rules that replace a base rule by id, and ids to remove. Naming an id
+      the base lacks is an error rather than ignored, so a typo or a base that renamed a rule fails
+      loudly; the cost is that renaming a shipped rule becomes a migration for stored layers.
+      Removing a rule changes the config, and is distinct from hiding one, a query-time filter on
+      `rule.id`, which is what a front end wants for "I don't keep this" so it can be switched back
+      on. The layer's field names and the convention-field conflict above are still to design.
 
       **Outstanding with it: the observance names break the names-keyed-by-language rule**
       ([decisions/2026-09-13-names-keyed-by-language.md](decisions/2026-09-13-names-keyed-by-language.md)),
@@ -1181,6 +1190,35 @@ nothing and reports success.
         needs a Tibetan source before it ships. NWR and the standalone UD look like month-and-day
         tables; PF, PP and VUD show no pattern. Their rules were asked of FPMT's calendar compiler via
         Ven. Chöying. FPMT-specific facts live in [fpmt-calendar.md](fpmt-calendar.md).
+
+      **Amended 2026-09-27: the rule vocabulary is being designed**, in four scopes taken in order —
+      (A) what a rule's `when` can say and how each form resolves to days, (A′) a next-occurrence
+      query, (B) a rule's metadata, (C) configs and composition, (D) the subpath name. Decided by
+      Andreas while scoping (A):
+
+      - **The vocabulary is designed fresh**, keeping today's tested resolution behaviour and the
+        existing suites, which must pass with only their `when` literals translated.
+      - **A rule is local or bounded-lookback, never unbounded.** A day's observances follow from its
+        own calendar facts, or from calendar facts back to an anchor the calendar itself locates
+        within a fixed bound — sojong's month-1 full moon, never more than a year back. A count from
+        a fixed epoch is refused. This is what makes `observancesOn(date)` and "when is the next
+        sojong" answerable from any starting day.
+      - **No rule refers to another — provisionally.** Gaye may need it: if it falls on the sojong
+        ending the rains retreat, its date comes from the sojong count. Ven. Chöying's answer on
+        which sojong gaye replaces decides it. Allowing references later is additive; allowing them
+        now and forbidding them later would not be.
+      - **A rule may list several days or dates**, so Precepts' monthly days or Naga puja's table is
+        one rule with one name. To be reviewed when Ven. Chöying replies.
+      - **A next-occurrence query ships**, on the pattern of `nextFullMoon`. Additive, so it does not
+        block 1.0.0.
+      - **[decisions/2026-08-12-observance-policy.md](decisions/2026-08-12-observance-policy.md) is
+        superseded by a new record once (A) to (C) are settled**, not amended piecemeal: four of its
+        five "What this makes true" bullets are overtaken, and its subpath section says nothing in
+        the layer is falsifiable, which a counted schedule tiled against Rabten's century is.
+      - **Still to express, easy to lose:** the line above says the model must also express "an
+        age" for a consumer's own anniversaries (FPMT prints "90th birthday"). Nothing in (A) does
+        yet; it is a count of years from a stated year, so it is either an optional field on a date
+        rule or result metadata in (B).
 
       Once both are settled: confirm each surviving rule's day, tier and source against FPMT's
       current guidance rather than trusting the 2022-2025 fixture check alone to still hold.
