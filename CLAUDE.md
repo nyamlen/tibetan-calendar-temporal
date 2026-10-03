@@ -18,9 +18,9 @@ dependencies, built on Temporal.
   it rather than restating a number. It ships to npm too
 - **FPMT's calendar, specifically**: [docs/fpmt-calendar.md](docs/fpmt-calendar.md) — **not shipped**.
   What FPMT prints that the package does not claim: eclipses dated by UTC against FPMT's own "date in
-  India" guidance, and its anniversaries by Tibetan and Western date. Decided 2026-09-19 that
-  FPMT-specific validation — the FPMT config the test suite will hold — reports its window **here**,
-  not in `why-trust-these-dates.md`, which states only what the package itself claims
+  India" guidance, and its anniversaries by Tibetan and Western date. FPMT-specific validation —
+  the FPMT config the test suite will hold — reports its window **there**, not in
+  `why-trust-these-dates.md`, which states only what the package itself claims
 - What else computes Tibetan dates, and when to use it instead:
   [docs/other-implementations.md](docs/other-implementations.md) — every claim from public metadata
   with an access date, and **no competitor source is ever read**
@@ -57,13 +57,10 @@ history is this project's proof of independent derivation from Janson, and that 
 exactly as much as the claim that nobody here has read the alternative. Reading it cannot be undone
 and cannot be disproved afterwards.
 
-Do not restate the older rationale, which was wrong and was corrected on 2026-08-23. It ran: neither
-repository carries a `LICENSE` file, therefore the code is all-rights-reserved, therefore reading it
-would poison this project's MIT licence. The premise is checkable and true — there is no `LICENSE`
-file on GitHub, on the current GitLab home, or in the published tarball. The conclusion does not
-follow: `tibetan-date-calculator` declares `"license": "MIT"` in `package.json`, and has on every
-version since 1.0.0 in June 2019, which is a licence grant. The constraint is unchanged; only its
-justification is, and the new one does not depend on anybody's licence.
+Do not justify the constraint by licence. Neither repository carries a `LICENSE` file — not on
+GitHub, the GitLab home, or in the published tarball — but `tibetan-date-calculator` declares
+`"license": "MIT"` in `package.json`, and has since 1.0.0 in June 2019, which is a licence grant.
+An argument from the missing file is therefore wrong, and the constraint does not depend on it.
 
 Implement solely from Svante Janson, "Tibetan Calendar Mathematics" (arXiv:1401.6285).
 
@@ -75,10 +72,9 @@ arithmetic, and the repository already proves that: `DEFAULT_OBSERVANCES`'s obse
 Tibetan and rabjung names cite Wiktionary, THL, CLDR, Csoma, Monier-Williams and wisdomlib — five
 independent checks, because for a name a single Janson table is explicitly *not* sufficient.
 
-State this because the flat reading cost real time on 2026-09-03: scoping the `./astrology` work,
-the sole-source line was read as forbidding Henning's lunar-mansion element table, and a sibling npm
-package was designed to escape a constraint that does not apply. Janson himself does not derive that
-table — he cites Henning for it — so using it is an ordinary citation chain, not two sources
+Read flatly, the sole-source line forbids Henning's lunar-mansion element table, and a sibling npm
+package was once designed to escape a constraint that does not apply. Janson himself does not derive
+that table — he cites Henning for it — so using it is an ordinary citation chain, not two sources
 disagreeing. **Do not confuse this rule with the clean-room constraint above**, which is a different
 thing entirely: that one names two specific unlicensed implementations and is about evidence of
 independent derivation, not about which scholarship may be cited.
@@ -87,8 +83,7 @@ independent derivation, not about which scholarship may be cited.
 Fetch it with `curl -L -o 1401.6285.gz https://arxiv.org/e-print/1401.6285`, then `gzip -dc` it to
 `tibet.tex`. **`-L` is not optional**: arXiv redirects `/e-print/` to `/src/`, so without it curl
 saves a 215-byte redirect page, `gzip -dc` produces an empty file, and the failure surfaces much
-later as "label not found" rather than as a download error. Found by following these instructions on
-2026-08-21 and getting an empty file.
+later as "label not found" rather than as a download error.
 Keep it outside the repository: arXiv's default submission licence grants arXiv distribution
 rights, not third-party redistribution, so vendoring a copy here would raise exactly the licence
 question this project exists to avoid.
@@ -126,8 +121,7 @@ independent checks and refuses to emit if any fails.
 
 **And his sixty-year name table is not independent evidence at all**: his own LaTeX says it is
 "taken from `\cite{Henning}`", so his Sanskrit column and Henning's are one witness rather than two.
-That went unnoticed for months while the table was treated as the Tibetan-lineage authority. The
-independent witness is **Csoma de Kőrös, *A Grammar of the Tibetan Language* (Calcutta 1834)**, whose
+The independent witness is **Csoma de Kőrös, *A Grammar of the Tibetan Language* (Calcutta 1834)**, whose
 §233 plates print the Sanskrit in Tibetan script — the only script any source attests for that list.
 Before citing a source as corroboration for a name, check whose lineage it is; the date on the title
 page is not the answer. Corrections to the source live in that script
@@ -180,8 +174,8 @@ text, and it is the wrong text: a generator would pair months with the wrong sea
 about the output would look wrong. Janson gives months 1 and 3 of the system and cites Henning for
 the rest, so his two statements check the file without being a second witness. **The pairing was
 confirmed against the scanned pages by eye**, it is twelve rows, and every row cites a page — taken
-from the OCR layer's placement, which was **not** checked by eye, as the file says. Added
-2026-09-14; `npm run test:conventions` row X8 proves it passes Rule 7 by the allowlist rather than by a
+from the OCR layer's placement, which was **not** checked by eye, as the file says.
+`npm run test:conventions` row X8 proves it passes Rule 7 by the allowlist rather than by a
 script happening to mention its name. Do not regenerate it from the OCR.
 
 **A further provenance category, which is not an exception.** A file in `test/fixtures/` that
@@ -213,29 +207,25 @@ trap.** 1 January 2022 to 25 February 2028 is the *union* of four sources and co
 observance labels is `test/fixtures/fpmt-observances.ts`, and it runs **2022–2025** — so a claim
 about which days carry a puja has three fewer years behind it than a claim about which Tibetan day a
 date is. `docs/why-trust-these-dates.md` states both correctly; the trap is that this file states
-only the wider one, and an agent answering an observance question reaches for what it read here.
-Done on 2026-09-10, answering which days carried Tara puja in late 2026: the dates were corroborated
-by three external calendars and the *labels* by nothing, and the reply claimed FPMT coverage that
-stops a year earlier. Cite 2022–2025 for an observance, 1 January 2022 to 25 February 2028 for a date.
+only the wider one, and an agent answering an observance question reaches for what it read here —
+an answer about Tara puja days in late 2026 once claimed FPMT coverage for the *labels* when only the
+dates were corroborated. Cite 2022–2025 for an observance, 1 January 2022 to 25 February 2028 for a date.
 **A full or new moon has the observance window too**, 2022–2025, from the same fixture's moon icons
-since 2026-09-19 — and it is agreement with FPMT's icons, whose own source is unrecorded, not with
+— and it is agreement with FPMT's icons, whose own source is unrecorded, not with
 the almanac. Count moons, not icons: FPMT marks both halves of some doubled dates, and those extra
 icons are recorded in `docs/testing.md`, deliberately not on the shipped page.
 
 **Before calling a source falsified, test every reading its words allow — and read it to the end.**
-The sojong teaching said sojong "at the end of the odd months" is "the 14th". On 2026-09-04 that was
-tested as Tibetan date 29 against 30, failed, and was recorded as falsified with an instruction not
-to re-test it without new material. On 2026-09-19 it turned out to mean the **14th day counted since
-the previous sojong** — the notes' own last line says "14 or 15 days between the Sojongs" — and read
-that way it reproduces 96 of FPMT's 98 intervals. Three readings of "which month" had been tried and
-none of "which day". Two habits come out of it. A number in a rule can be a **label or a count**, and
-a test of one says nothing about the other. And a source that seems to **contradict itself** — FPMT
-putting sojong on the first of a doubled day while keeping düchens on the second, which reached two
-shipped docblocks and three documents as evidence that the convention is inconsistent — is first evidence that the
-model of the item is wrong: sojong was never a date, so no doubled-day convention applied to it.
+The sojong teaching said sojong "at the end of the odd months" is "the 14th". Tested as Tibetan date
+29 against 30, it failed and was recorded as falsified; it means the **14th day counted since the
+previous sojong** — the notes' own last line says "14 or 15 days between the Sojongs" — and read that
+way it reproduces 96 of FPMT's 98 intervals. A number in a rule can be a **label or a count**, and a
+test of one says nothing about the other. And a source that seems to **contradict itself** — FPMT
+putting sojong on the first of a doubled day while keeping düchens on the second — is first evidence
+that the model of the item is wrong: sojong was never a date, so no doubled-day convention applied to it.
 Never write "do not re-test" into a verdict; record which readings were tested instead.
 
-**Since 2026-09-12 there is a third tier, and it is the weakest of the three.** The `./astrology`
+**There is a third tier, and it is the weakest of the three.** The `./astrology`
 attributes are **not** covered by either figure above, and the differences are not about years:
 
 - The attribute **cycles** — the year's five elements, the month's and lunar day's labels, the
@@ -247,15 +237,13 @@ attributes are **not** covered by either figure above, and the differences are n
   residual is characterised rather than excused. **It is FPMT's, not the arithmetic's**: Henning's daily
   Phugpa calendars match this engine on all 1,459 days and fail on the same 35. The 35 are one-sided
   (FPMT gives the *next* mansion late in a mansion), cluster in 2025, have no established cause, and
-  **six of them fit no pattern**. This replaced, on 2026-09-14, an explanation blaming Janson's `/27`
-  approximation — which he gives as the almanac's own method, so it could never have separated the two.
-  Before explaining a residual by a formula, check whether the source uses the same formula.
+  **six of them fit no pattern**. Janson's `/27` approximation cannot explain them: he gives it as the
+  almanac's own method, so it cannot separate the two. Before explaining a residual by a formula, check whether the source uses the same formula.
 - **Yoga favorability** agrees with FPMT's printed prefixes on 99.7% of **its own 1,460 days** — every
   day whose code has a readable prefix and pair, one more than the mansion's, because 2024-09-12's
   `UD-EW` names no yoga and so cannot force a mansion element but is still a favorability claim. That
   check is independent of the mansion because it reads FPMT's own pair letters.
-- **The yoga table's element pairs and its grading** have, since 2026-09-14, a Tibetan witness outside
-  Henning: the *tshig mdzod chen mo*'s `'phrod sbyor` states the same pair for all ten, and grades the
+- **The yoga table's element pairs and its grading** have a Tibetan witness outside Henning: the *tshig mdzod chen mo*'s `'phrod sbyor` states the same pair for all ten, and grades the
   ten into good, restorative, bad and worst, which ships as `auspiciousness`. It is a check on **ten
   table rows**, not on days, so it has no window. **The grading's membership is inferred from list
   order** — the entry gives each group's size and never its members — and `favorable` agreeing with it
@@ -263,8 +251,8 @@ attributes are **not** covered by either figure above, and the differences are n
 
 So never answer an attribute question with the date window, and never call the mansion "validated"
 without the 97.6% and its six unexplained days. `docs/testing.md` holds the table;
-`docs/why-trust-these-dates.md` states the consumer-facing version, and the bullet there that used to
-read "no astrological information is computed" is the shape of error to expect when a layer lands.
+`docs/why-trust-these-dates.md` states the consumer-facing version. When a layer lands, check that
+page for a sentence the layer has made false — it once said "no astrological information is computed".
 
 `scripts/rabjung-names.data.json` is **not** a second exception, because it is not a fixture: no
 test reads it, and nothing in `src/` depends on it. It holds the one **authored** column of
@@ -274,8 +262,8 @@ can tell sourced columns from authored ones at a glance, and it now prints both 
 gloss of the Tibetan and a sourced Sanskrit sense side by side precisely so the difference is
 visible rather than asserted.
 
-Its Lhasa-phonetic column was retired on 2026-08-21 when THL Simplified phonetics replaced it. That
-is the general rule, not a one-off: **house conventions govern prose, a published standard governs a
+Its phonetic column uses THL Simplified phonetics, not the house Lhasa rendering. That is the general
+rule, not a one-off: **house conventions govern prose, a published standard governs a
 shipped or tabulated data column**, because house style cannot be verified against anything.
 
 Permitted: running those libraries locally and comparing *computed dates* against ours. Dates
@@ -313,82 +301,46 @@ derivation; in `docs/` they are just noise.
   platforms.
 - **Zero runtime dependencies.** Temporal is a language built-in; the engine depends on nothing.
 - **ESM only.** `"type": "module"`. No dual CJS build.
-- **A new subsystem duplicates the boundary code it cannot import, and it has done so twice.**
-  When `./astrology` landed on 2026-09-12 it wrote its own `isoOf`, duplicating `navigation.ts`'s
-  private `phaseStart`, and its own `assertQueryOptions`, duplicating `./observances`'. Neither was
-  carelessness: the existing helpers were **private to another module**, so there was nothing to
-  import and nowhere obvious to look. Both copies then drifted, and each shipped an error message
-  that misdescribes its own function — `nextFullMoon` naming two accepted shapes while accepting
-  four, `attributesFor` naming four while never mentioning the resolved `TibetanDate` it takes.
-  A sweep on 2026-09-23 found **four** duplicate clusters across 172 functions, one of which this
-  file already documented and nobody had cleaned up. **That 172 is the count before the boundary
-  work landed later the same day**, which added `temporal-kind.ts` and merged three describers away,
-  leaving 171 in 37 files. Two measurements a day apart would be obvious; two on the same date are
-  not, so re-run the count rather than reading the date beside it.
+- **Boundary and guard code has one named home, and a new subsystem must not write its own.**
+  A subsystem that cannot import a helper private to another module writes a copy, and copies fail
+  two ways. They drift: `./astrology`'s copies shipped error messages that misdescribe their own
+  functions — `nextFullMoon` naming two accepted shapes while accepting four. Or they are borrowed,
+  so an export reports errors under another export's name, which `test/error-subjects.test.ts` pins.
+  The homes: `assertSafeYear`, `assertQueryOptions` and `describe` in `src/errors.ts`;
+  `assertTibetanShape` and `assertTibetanRanges` in `src/types.ts`; `asWesternDay`, `monthCountFor`
+  and `julianDayOfFields` in `src/computation/conversion.ts`; `boundedMonth` in `src/months.ts`.
 
-  So **boundary and guard code has one named home**, and `check:conventions` rule 14 refuses two
-  functions in `src/` that share a body. **Rule 14 catches copy-paste and cannot catch this** —
-  `phaseStart` and `isoOf` differ in body and in arity, so no predicate groups them. What catches
-  it is a question at review, when a new subsystem lands: **which boundary helpers did you write,
-  and did one already exist?** Ask it about guards, normalisers, validators and value-renderers
-  specifically; those are what every subsystem needs and what nobody thinks to look for.
-
-  **All four clusters were closed on 2026-09-23**, so this passage is now a record of what was
-  found rather than a list of open debt. `assertSafeYear` and `describe` went to `src/errors.ts`
-  in `8f28389`; `assertQueryOptions` joined them, taking its message's shape example as a
-  parameter, which was the **only** thing the two copies differed in; the three value-describers —
-  `describeValue`, `describeFlagValue` and a third `describe` in `parse.ts` — merged into
-  `errors.ts`'s. `phaseStart` and `isoOf` became `asWesternDay` in `computation/conversion.ts`.
-
-  **And there was a fifth, found 2026-09-24**, so "all four" was the count of what had been found.
-  `month-names.ts` carried a private `assertOptions`, the options guard again with a different body
-  — invisible to rule 14 for the same reason as `phaseStart` — and it missed the array refusal
-  `assertQueryOptions` had gained the day before, so `monthNamesFor(m, [])` answered. An adversarial
-  review of an unrelated plan found it by grepping for `JSON.stringify` in messages, which is what the
-  copies shared. It now calls `assertQueryOptions`.
-
-  **And two more on 2026-09-24, found by the same review question.** The **Tibetan field guard** —
-  year a safe integer, month 1–12, day 1–30 — was written six times, with five copies of the field
-  lists, and is now `assertTibetanShape` and `assertTibetanRanges` in `src/types.ts` (`eb2f73a`). The
-  **leap-twin preamble** was written five times in three wordings, and is now `monthCountFor` and
-  `julianDayOfFields` in `computation/conversion.ts` (`12e2e21`), with `boundedMonth` in `months.ts`
-  guarding the month tier (`beb24e1`). The cost of these copies was not drift but **delegation**:
-  seven exports borrowed another's guard and reported errors under its name, which
-  `test/error-subjects.test.ts` now pins, and one copy bounded only the last day of a month, so four
-  exports answered for a month the rest refused.
+  `check:conventions` rule 14 refuses two functions in `src/` that share a body. **It catches
+  copy-paste, not a re-implementation** with a different body or arity, such as a private
+  `assertOptions` that missed the array refusal the shared guard had gained. What catches that is a
+  question at review, when a new subsystem lands: **which boundary helpers did you write, and did
+  one already exist?** Ask it about guards, normalisers, validators and value-renderers
+  specifically; those are what every subsystem needs and what nobody thinks to look for. Grepping
+  error messages for an idiom the copies share, such as `JSON.stringify`, finds what the rule cannot.
+  Re-run any count of functions or clusters rather than quoting one.
 
   **A justification for dropping a branch has to hold for every caller, not the one you are looking
-  at** — and this passage stated the bad one for a day. The merge dropped `describeValue`'s
-  `constructor?.name` arm because "it existed to name a `Temporal.PlainDate`, and `temporalTypeNameOf`
-  now does that from the brand". True of `asPlainDate`, which consults `temporalTypeNameOf`.
-  `asWesternDay` and `parse.ts` never do, so for them the arm was doing a second job, and
-  `new Date()` — the likeliest wrong argument in a package whose first rule is *Temporal only, never
-  `Date`* — began rendering as "an object" followed by an irrelevant paragraph about
-  `{ year, month, day }`. The arm is back, narrowed to a *named* class so a plain object is still
-  "an object". Found by an independent review; nothing in the suite could fail, because message text
-  is not contract.
+  at.** Merging the describers dropped a `constructor?.name` arm because `temporalTypeNameOf` now
+  names a `Temporal.PlainDate` — true for `asPlainDate`, which consults it, and false for
+  `asWesternDay` and `parse.ts`, which do not. So `new Date()` — the likeliest wrong argument in a
+  package whose first rule is *Temporal only* — rendered as "an object". The arm stays, narrowed to a
+  *named* class so a plain object is still "an object". Nothing in the suite could fail, because
+  message text is not contract.
 
-  **And the class rule 14 cannot see now has a rule of its own for the case that caused it.**
-  Rule 15 refuses `instanceof` against `Temporal` or any of the three constructor names, in every
-  file of `src/` but `src/temporal-kind.ts`, in code lines only. **Its reach is the idiom and not
-  the concept** — a single-identifier alias (`const P = Temporal.PlainDate; v instanceof P`) and a
-  `getPrototypeOf` comparison still pass, and catching those needs binding resolution. So it is a
-  ratchet against the accident rather than a proof that no identity check exists; do not cite it as
-  one.
+  **Rule 15 refuses `instanceof` against `Temporal` or any of the three constructor names**, in
+  every file of `src/` but `src/temporal-kind.ts`, in code lines only — qualified, aliased and
+  destructured (`const { PlainDate } = Temporal; v instanceof PlainDate`) forms included. **Its
+  reach is the idiom and not the concept**: a single-identifier alias
+  (`const P = Temporal.PlainDate; v instanceof P`) and a `getPrototypeOf` comparison still pass, and
+  catching those needs binding resolution. So it is a ratchet against the accident rather than a
+  proof that no identity check exists; do not cite it as one. It is checkable only because the home
+  is **one named file**, and it is about one idiom — the review question above still catches the rest.
 
-  **The first pattern was written from the shape the codebase happened to contain, and that is the
-  transferable mistake.** It tested `instanceof Temporal` literally, which missed the qualified,
-  aliased and destructured forms — and the destructured one,
-  `const { PlainDate } = Temporal; v instanceof PlainDate`, is idiomatic JavaScript and therefore
-  the *likeliest accidental* member of the population the rule exists for. A review caught the first
-  two; the third nobody had thought of, and it surfaced only when the evasions were finally
-  **measured against the checker** instead of reasoned about. Widening cost one character class and
-  produces zero false positives. **Before deciding a guard's reach is good enough, write down the
-  forms the thing it hunts can take and run each one past it** — the cost of checking is minutes,
-  and "nobody would write that" is an assumption about other people. That is
-  checkable precisely because the home is **one named file**; a rule saying "outside the guards"
-  would need the checker to know which functions count as guards. It does not generalise — rule 15
-  is about one idiom, and the review question above is still what catches the rest.
+  **Before deciding a guard's reach is good enough, write down the forms the thing it hunts can take
+  and run each one past it.** Rule 15's first pattern was written from the shape the codebase
+  happened to contain and missed the destructured form — idiomatic JavaScript, and therefore the
+  *likeliest* accidental one. It surfaced only when the evasions were **measured against the
+  checker** instead of reasoned about. "Nobody would write that" is an assumption about other people.
 - **Pure stateless functions.** Same input, same output, no side effects — measured by what a
   **caller** can observe, not by whether a module holds a variable. Memoising a pure function is
   therefore allowed and already done three times: `scalingFor` on a `WeakMap`, the config validators
@@ -403,33 +355,26 @@ derivation; in `docs/` they are just noise.
   one consumer's `sort()` corrupts the next consumer's.
 - **Tradition constants are injected** via `TraditionConfig`, never hardcoded. v1 ships `PHUGPA`,
   `PHUGPA_HENNING`, `BHUTAN` and `BHUTAN_HENNING`; Tsurphu and the Mongolian version must remain
-  addable without touching the algorithm, and the promise is no longer theoretical — Bhutan was added
-  that way on 2026-08-16, and it took two new config fields and no change to any formula.
+  addable without touching the algorithm — Bhutan was added that way, with two new config fields
+  and no change to any formula.
 
-  **That promise was false until 2026-08-16, and the way it was false is the lesson.** Every
-  *constant* was injected, but the **leap-month rule itself** was hardcoded to Phugpa's — Janson
-  states a different one for each version (48/49 Phugpa, 0/1 Tsurphu, 46/47 Mongolian, 57/58
-  Bhutanese). A Tsurphu config built from constants alone would have placed leap months in the wrong
-  years, with no error and nothing about the output looking wrong. It is now
-  `leapIndexThreshold`, and `β` and the true-month rounding term derive from it. When adding a
-  tradition, check that the *rules* are injected too, not only the numbers.
-  **It extends to the docblocks as well as the code**, which is subtler and was live until
-  2026-08-16. `leapMonthNumberFor` (then `leapMonthOfYear`) takes a config and its example read
-  `leapMonthOfYear(2151) // 6`
-  — true for Phugpa and for nothing else: varying `leapIndexThreshold` alone gives Mongolian 5 and
-  Bhutanese 10 (the shipped `BHUTAN` config, which also sets `leapMonthPosition`, gives **8** — quote
-  such a figure with the constant it varies), and Tsurphu has no leap
-  month that year at all. The same docblock stated that a leap month "precedes the regular month
-  sharing it", which holds for every version Janson gives **except Bhutan**, where it follows — the
-  position gap [docs/traditions.md](docs/traditions.md) records as unmodelled. So a docblock on a
-  config-taking function was promising something the engine does not do. If a function takes a
-  `TraditionConfig`, its examples state **one** tradition's answer and must say which, and any
-  structural claim has to be checked against Bhutan specifically, which is where the versions
-  diverge most. `test/docblock-examples.test.ts` pins the thresholds; a third instance of the
-  "precedes" claim survives in `src/types.ts` on `lunation`, where it explains tuple sort order,
-  and was made tradition-aware when `leapMonthPosition` landed; the stale claim that survived instead
-  was on `leapMonthNumberFor`, corrected 2026-08-23 after a smoke client found it shipping in
-  `dist`. It was `leapMonthOfYear` until 2026-08-26, when it was renamed as the last public `*Of`.
+  **Inject the rules, not only the numbers.** The **leap-month rule** differs per version — Janson
+  states 48/49 Phugpa, 0/1 Tsurphu, 46/47 Mongolian, 57/58 Bhutanese — and while it was hardcoded to
+  Phugpa's, a Tsurphu config built from constants alone would have placed leap months in the wrong
+  years, with no error and nothing about the output looking wrong. It is `leapIndexThreshold`, and
+  `β` and the true-month rounding term derive from it. When adding a tradition, check that every
+  *rule* is injected too.
+
+  **The same holds for docblocks.** If a function takes a `TraditionConfig`, its examples state
+  **one** tradition's answer and must say which: `leapMonthNumberFor(2151)` is 6 for Phugpa, while
+  varying `leapIndexThreshold` alone gives Mongolian 5 and Bhutanese 10 (the shipped `BHUTAN` config,
+  which also sets `leapMonthPosition`, gives **8** — quote such a figure with the constant it varies),
+  and Tsurphu has no leap month that year at all. Any structural claim has to be checked against
+  Bhutan specifically, where the versions diverge most: a leap month "precedes the regular month
+  sharing it" in every version Janson gives **except Bhutan**, where it follows — the position gap
+  [docs/traditions.md](docs/traditions.md) records. `test/docblock-examples.test.ts` pins the
+  thresholds; the "precedes" claim on `lunation` in `src/types.ts`, which explains tuple sort order,
+  is tradition-aware.
 
   This extends to anything **derived from** those constants. The `±3` search window in
   `isoToTibetan` was proved from `(25 + 11)/60` — Phugpa's largest `moonTab` and `sunTab` entries —
@@ -439,9 +384,7 @@ derivation; in `docs/` they are just noise.
   numbers, derive it from that config; assertions specific to Phugpa's values belong in the test
   suite, where they also catch a mistyped transcription.
 - **The shipped configs are deeply frozen.** All five — `PHUGPA`, `PHUGPA_HENNING`, `BHUTAN`,
-  `BHUTAN_HENNING` and `DEFAULT_OBSERVANCES` — go through `deepFreeze` in `src/freeze.ts`. This rule named only
-  three until 2026-08-26; the two Bhutanese configs were frozen from the day they landed and the
-  rule simply was not updated with them. They are the objects the docs point at for `{ ...PHUGPA, … }`,
+  `BHUTAN_HENNING` and `DEFAULT_OBSERVANCES` — go through `deepFreeze` in `src/freeze.ts`. They are the objects the docs point at for `{ ...PHUGPA, … }`,
   so they are the ones a keystroke off a spread mutates — and because scaling and validation are
   both memoised on the config object, a mutation after first use yields neither the old constants
   nor the new ones but a stale mix. Do not unfreeze one to make a test easier.
@@ -449,7 +392,7 @@ derivation; in `docs/` they are just noise.
   barrel in `src/index.ts` makes a name API — exporting from a module under `src/` does not, which
   is how `describeMonth` and `asPlainDate` are shared without being published.
   [docs/decisions/2026-08-12-public-surface.md](docs/decisions/2026-08-12-public-surface.md) governs
-  the decision, and its 2026-08-15 revision is the part to read: the **wrong-or-impossible** test
+  the decision, and its revision is the part to read: the **wrong-or-impossible** test
   applies to computation internals and contested conventions, where the failure mode is a plausible
   wrong answer. A thin composition over already-public functions is judged instead by whether a
   calendar library normally provides it **and** whether it has one obvious correct semantics.
@@ -460,77 +403,61 @@ derivation; in `docs/` they are just noise.
   `test/public-api.test.ts` pins the list and each name's kind, and `test/docblock-examples.test.ts`
   asserts every `@example` in `src/` that states a value — docblocks compile into `dist/*.d.ts`, so
   a stale one ships as contract. **That suite is maintained by hand and nothing checks it is
-  complete**: `monthNamesFor`'s `mansion.sanskritName` example line went unasserted from 2026-09-17
-  until a code review found it on 2026-09-18. Adding an `@example` line means adding its `expect` in
+  complete** — an example line can go unasserted until a review finds it. Adding an `@example` line means adding its `expect` in
   the same commit. A failure in the first means the surface
   changed, so decide whether that was intended before editing the list.
 
   **But it sees runtime exports only, and a type is not one.** It reads `Object.keys(api)` and
-  `typeof`, so removing an exported *interface* or *type alias* passes it — proved on 2026-08-25,
-  when `RabjungName` and `SanskritName` came off the surface and the only thing that caught the
-  now-false type list in `README.md` was a grep.
+  `typeof`, so removing an exported *interface* or *type alias* passes it.
 
-  **`check:conventions` rule 13 now closes the list half**, comparing all three barrels' `export type`
+  **`check:conventions` rule 13 closes the list half**, comparing all three barrels' `export type`
   blocks against `README.md`'s three "Type-only exports" lists as sets, so ordering within a list is
-  free. It held **two** barrels and a single boundary string until 2026-09-12, and a third entry point
-  broke the *shape* rather than the list: one boundary cannot separate three sections, and the failure
-  was silent — the unextended rule kept passing while checking nothing about `./astrology`. Each
-  barrel now declares the README heading its section opens with, and the rule refuses to guess if a
-  heading is missing or out of order. **Rule 16 is its runtime sibling, since 2026-09-23**: each
-  barrel's runtime exports against the *Export* column of its README section's API tables, and the
-  error table against the `TibetanCalendarErrorCode` union — the polyfill probe found the configs
-  table listing two of four and the error table a code short. **A type declared in a barrel is invisible to it**, because it
-  reads `export type { … } from` blocks: that is why `DayAttributes` lives
-  in `src/astrology/types.ts` rather than in the barrel — as `AstrologyQueryOptions` did until it was
-  removed on 2026-09-24 — and the rule is what found them there. **It does
-  not close the prose half.** A sentence describing a type's *fields* is still unguarded: the same
-  README called `rabjungFor`'s `name` "the Tibetan and Sanskrit name" for hours after the Sanskrit
-  came off, and the grep that found the stale list named the removed types rather than the field, so
-  it sailed past. Removing or renaming a type therefore still needs the hand sweep for everything
-  except the list — `docs/architecture.md`'s shapes (**25** exported types defined as interface
-  blocks, plus `SanskritName`, `TibetanAnimal`, `TibetanElement`, `TibetanGender`, `TibetanName`, `TibetanWeekday`,
-  `TibetanWeekdayName` and `TibetanYearName` named in field positions), `docs/guide.md` (4), and any
-  docblock naming it. This figure read 7 until 2026-08-26, 10 until 2026-08-27, and moved twice on
-  2026-09-12 — 13 when `TraditionNaming` and `TraditionMonthNaming` gained shapes, then 20 with the
-  seven `./astrology` ones — and to 21 on 2026-09-13, when `TraditionMonthNaming` split into
-  `TraditionMonthAnimals` and `TraditionNineNumbers`, and to 24 on 2026-09-14 with `monthNamesFor`'s three result types, then 25 with `LunarMansion`, and to 26 with `YogaAuspiciousness`, and back to 25 on 2026-09-24 when `AstrologyQueryOptions` was removed; it moves whenever
-  a shape is added, so **re-count it rather than trusting the number written here** — the count is
+  free. Each barrel declares the README heading its section opens with, and the rule refuses to guess
+  if a heading is missing or out of order — a single boundary string kept passing while checking
+  nothing about a third entry point. **Rule 16 is its runtime sibling**: each barrel's runtime exports
+  against the *Export* column of its README section's API tables, and the error table against the
+  `TibetanCalendarErrorCode` union. **A type declared in a barrel is invisible to it**, because it
+  reads `export type { … } from` blocks: that is why `DayAttributes` lives in
+  `src/astrology/types.ts` rather than in the barrel. **It does not close the prose half.** A
+  sentence describing a type's *fields* is still unguarded: the README called `rabjungFor`'s `name`
+  "the Tibetan and Sanskrit name" for hours after the Sanskrit came off, and a grep for the removed
+  type names sailed past it. Removing or renaming a type therefore still needs the hand sweep for
+  everything except the list — `docs/architecture.md`'s shapes (exported types defined as interface
+  blocks — 25 on 2026-10-03 — plus `SanskritName`, `TibetanAnimal`, `TibetanElement`, `TibetanGender`,
+  `TibetanName`, `TibetanWeekday`, `TibetanWeekdayName` and `TibetanYearName` named in field
+  positions), `docs/guide.md` (4), and any docblock naming it. The interface count moves whenever a
+  shape is added, so **re-count it rather than trusting the number written here**:
   `grep -c '^interface ' docs/architecture.md`.
 
   Those shapes are **complete** — every field, not a selection — and that is the rule that keeps
-  failing silently. `TibetanDate` had drifted to 10 of its 15 fields with nothing saying so; the
-  2026-08-27 sweep then found `TibetanYearName` at **3 of 6**, the three `*Name` fields having
-  arrived with the naming layer on 2026-08-16 without the shape being touched, and
-  `TibetanMonthFields` missing its `calendarId` phantom. Nothing mechanical sees any of this. When
+  failing silently: `TibetanDate` once drifted to 10 of its 15 fields with nothing saying so.
+  Nothing mechanical sees this. When
   you add a field to an exported type, the shape in `docs/architecture.md` is part of the change.
 
   **And a signature is not a runtime export either.** The suite pins *names* and *kinds* —
   `Object.keys` and `typeof` — so changing a function's parameters passes every one of the ten
   commands as a **surface** check. When the reshape of `getObservances(from, to, config?,
-  tradition?)` to an options bag was actually done on 2026-08-26 it broke **16 call sites**, one of
+  tradition?)` to an options bag was done it broke **16 call sites**, one of
   them production code (`src/observances/index.ts`, where `observancesOn` delegates), and nothing
   reported it as an API change — it surfaced as ordinary type errors scattered across suites, which
   is what a *typo* looks like too. When changing a signature, count the call sites first and say the
   number in the commit message; the compiler will find them, but only after you have decided the
   change was small.
 
-  **That number was written here as 21 before the work was done, and it was wrong.** The estimate
-  counted every *occurrence* of the two names; only the calls actually passing a config or tradition
-  positionally break, and `(from, to)` calls still compile. The lesson is not the arithmetic: **a
-  figure recorded in this file before the work is an estimate, and must be re-measured and corrected
-  when the work lands**, because everything else here reads as measured. Found by the doc-drift
-  sweep, not by any check.
+  Count the calls that actually break, not every occurrence of the name. **A figure recorded in
+  this file before the work is an estimate, and must be re-measured and corrected when the work
+  lands**, because everything else here reads as measured.
 
   **A widening is not "purely additive" if the added arm is structurally ambiguous with an existing
-  one.** `nextFullMoon` was widened on 2026-08-26 to take `TibetanDateFields` beside
+  one.** `nextFullMoon` was once widened to take `TibetanDateFields` beside
   `Temporal.PlainDate`, judged additive because it removed nothing. It was additive in the *type*
   and breaking in the *contract*: a bare `{ year, month, day }` is a genuine value of both, so the
   parameter silently resolved a calendar ambiguity that `asPlainDate` refuses everywhere else, and
   `nextFullMoon({ year: 2026, month: 1, day: 1 })` meant as a Western date returned a day in
-  **1899**. Narrowed back on 2026-08-27; both the rule and the two arguments that lost are in
+  **1899**. It takes the narrow shapes only; the rule and the two arguments that lost are in
   [docs/decisions/2026-08-12-public-surface.md](docs/decisions/2026-08-12-public-surface.md).
 
-  The rule that came out of it: **a parameter spanning two calendars accepts only shapes that say
+  **A parameter spanning two calendars accepts only shapes that say
   which one they mean** — a `Temporal` instance or a resolved `TibetanDate`, never loose fields.
   It does **not** generalise to the fields-in convention elsewhere: `addDays`, `daysBetween` and
   `addMonthsToDate` take one calendar, so they have no ambiguity and keep taking loose fields.
@@ -539,8 +466,7 @@ derivation; in `docs/` they are just noise.
   Two corollaries worth having before the next such change. Reversibility cuts the same way it does
   for the `TibetanWeekday` brand — widening later is free, narrowing never is — so ship the narrow
   arm and widen on demand. And when a batch adds a **composition** and a **convenience the
-  composition subsumes**, check the pair against each other before both ship: `resolveDate` landed
-  in the same batch as this widening and was never compared with it, and
+  composition subsumes**, check the pair against each other before both ship:
   `nextFullMoon(resolveDate(x))` is what the widening was avoiding.
 
   **A `TraditionConfig` is judged by a different rule, because it is a different kind of claim.**
@@ -561,18 +487,14 @@ derivation; in `docs/` they are just noise.
 - **Errors carry codes; do not add an error class.** Throw through `rangeError`/`codedError` in
   `src/errors.ts`, never a bare `new RangeError` — the code is the part consumers branch on, and a
   bare construction silently omits it. `SkippedDayError` is the only class and stays the only one.
-  `check:conventions` now enforces this; the one bare `new Error` that predated it sat in
-  `epoch.ts` discharging a `noUncheckedIndexedAccess` widening. That is what `assertInternal` is
-  for, and it is the required idiom — the alternative, a cast, lets a bad index return `undefined`
-  wearing the element type, which is how the same constraint was discharged two different ways in
-  the same codebase.
+  `check:conventions` enforces this. To discharge a `noUncheckedIndexedAccess` widening, use
+  `assertInternal`, never a cast — a cast lets a bad index return `undefined` wearing the element
+  type.
   **A code has one error type, and a second throw site is where that stops being true.**
-  `TCT_MISSING_TEMPORAL` was thrown through `codedError` at the import guard and, for one day in
-  2026-09-23's boundary work, through `rangeError` at a new call-time site — so the README's
-  "`TCT_INTERNAL` and `TCT_MISSING_TEMPORAL` are plain `Error`s, deliberately" was false for
-  whichever site a consumer happened to hit, and its table still said the code comes from "the
-  `import` itself". Nothing mechanical could notice: the new site is unreachable on Node 26 and
-  `c8 ignore`d, and `test/public-api.test.ts` lists the code as unreachable and passed. When you
+  `TCT_MISSING_TEMPORAL` is thrown through `codedError` at the import guard; a call-time site once
+  threw it through `rangeError`, making the README's "`TCT_INTERNAL` and `TCT_MISSING_TEMPORAL` are
+  plain `Error`s, deliberately" false for whichever site a consumer hit. Nothing mechanical could
+  notice: the site is unreachable on Node 26 and `c8 ignore`d. When you
   throw an existing code from a new place, check which constructor its first site used and what the
   docs say about *where* it comes from.
 
@@ -582,21 +504,14 @@ derivation; in `docs/` they are just noise.
   `TCT_NO_SUCH_LEAP_MONTH`; everything else rethrows — and must not go back to a denylist: as one, a
   single bare `RangeError` in `scaleTo` made it report that Losar 2026 does not exist.
 
-  **This sentence read "three codes answer `false`" until 2026-09-23, which was wrong**, and it was
-  the **eighth** site saying so: the nyamlen polyfill probe found the rule stated two ways in
-  `dist`, an adversarial review found three more, a spec panel found a seventh in an inline comment,
-  and the doc-drift sweep before clearing that session found this one. `TCT_SKIPPED_DAY` is **not**
-  matched as a code at all, so an error carrying it without the class would rethrow. The lesson is
-  not the miscount: it is that the rule book itself drifts with the code, and that a claim repeated
-  in N places is corrected in N places or not at all — **and N is never the number last written
-  down**. This passage said eight, twice, and was stale within the day: the sweep that closed it
-  found seven more in `src/` and three in `docs/`, the latter missed by a first pass that cleared
-  `docs/` on a phrase-grep where only a name-grep reaches them. Count again; do not quote this
-  sentence's number. Both rules and the message-writing
-  guidance:
+  `TCT_SKIPPED_DAY` is **not** matched as a code, so an error carrying it without the class
+  rethrows. This rule is stated in many places across `src/`, `docs/` and `test/`, and a claim
+  repeated in N places is corrected in N places or not at all — **and N is never the number last
+  written down**. Find every statement by the export's **name**, not by a phrase, which misses
+  rewordings. Both rules and the message-writing guidance:
   [docs/decisions/2026-08-12-error-codes-not-classes.md](docs/decisions/2026-08-12-error-codes-not-classes.md).
 
-  **A third semantics arrived with `./astrology` on 2026-09-12, and it is neither of the two below.**
+  **A third semantics, neither of the two below:**
   `TCT_ATTRIBUTE_NOT_SOURCED` means the caller's input is **fine** and no source gives the answer —
   the Bhutanese month and lunar-day attributes, which Janson does not tabulate. It is
   `TCT_INVALID_ARGUMENT`'s neighbour rather than `TCT_FIELD_OUT_OF_RANGE`'s, it is deliberately
@@ -613,7 +528,7 @@ derivation; in `docs/` they are just noise.
   which is what makes a caller's type confusion throw instead of being reported as a date that does
   not exist. A new shape check uses the second, never the first:
   [docs/decisions/2026-08-15-argument-errors-split.md](docs/decisions/2026-08-15-argument-errors-split.md).
-- **How a tradition is passed: seven points, approved by Andreas on 2026-09-24.**
+- **How a tradition is passed: seven points, approved by Andreas.**
   (1) A `TraditionConfig` is always named `tradition` — positional parameter or bag key.
   (2) When the tradition is a function's only choice, it is the last parameter, positional:
   `f(x, tradition?)`. (3) With two or more choices, all of them go in one bag, and that bag extends
@@ -621,34 +536,26 @@ derivation; in `docs/` they are just noise.
   function's own bag. (5) Bags refuse unknown keys, `TCT_INVALID_ARGUMENT` naming the key.
   (6) A new choice is optional, and its default reproduces the previous behaviour, pinned by a test.
   (7) A one-choice function that gains a second choice converts to a bag — free before 1.0.0, a
-  breaking change after it, taken knowingly. This replaced "a function with two axes of choice
-  takes an options bag", which decided the bag's **shape** and left its **keys** to inheritance:
-  `config` meant a `TraditionConfig` in `addMonthsToDate`'s bag and an `ObservanceConfig` in
-  `./observances'`, and from plain JavaScript `attributesFor(d, BHUTAN)` and
-  `addMonthsToDate(f, 0, { tradition: BHUTAN })` silently answered Phugpa's. **A consumer cannot be
+  breaking change after it, taken knowingly. The keys matter as much as the bag's shape: when
+  `config` meant a `TraditionConfig` in one bag and an `ObservanceConfig` in another, from plain
+  JavaScript `attributesFor(d, BHUTAN)` and `addMonthsToDate(f, 0, { tradition: BHUTAN })` silently
+  answered Phugpa's. **A consumer cannot be
   asked to know which entry point a function is on**, which is why the rule is keyed on the number
   of choices and not on the subpath:
   [docs/decisions/2026-09-24-how-a-tradition-is-passed.md](docs/decisions/2026-09-24-how-a-tradition-is-passed.md).
   `./observances`' own `config` key is left to the observances rethink.
 
-  The bag half of the rule dates from 2026-08-26, when two sequential optionals made a caller wanting
-  a custom tradition with the default observances write
-  `getObservances(from, to, undefined, tradition)`. **Two things a bag gets wrong, both hit while
-  building the first one.** It is a
-  **new argument boundary and needs its own guard** — without one `observancesOn(date, null)` reads
+  A bag exists so a caller never writes `getObservances(from, to, undefined, tradition)`.
+  **Two things a bag gets wrong.** It is a **new argument boundary and needs its own guard** — without one `observancesOn(date, null)` reads
   a property off `null` and throws an uncoded `TypeError`, which is precisely the failure the
   config validators exist to end, one level further out. And **read it with `=== undefined`, never
   `??`**: nullish-coalescing treats an explicit `null` as absent, so `{ config: null }` silently
   becomes the default where the positional signature had rejected it — a validation quietly lost in
   a refactor that looked like a pure move.
-  **`addMonthsToDate`'s bag had no guard at all until 2026-09-23, and the shared one let an array
-  through**, since an array is an object. Together they made `[t].flatMap(addMonthsToDate)` — the
-  index landing in the count, the array in the bag — return a confident wrong date, under a README
-  sentence promising "a throw rather than a wrong calendar". `assertQueryOptions` now refuses an
-  array by name. Found by the close-out's final review, not by any suite. The same function read its bag
-  with `??` until later that day, so `{ config: null }` became the default, against the rule above;
-  it now tests `=== undefined`, and `test/navigation.test.ts` pins both null fields — `{ tradition:
-  null }` and `{ overflow: null }`, the key having been renamed from `config` on 2026-09-24.
+  **A bag guard must refuse an array**, since an array is an object: `[t].flatMap(addMonthsToDate)`
+  — the index landing in the count, the array in the bag — once returned a confident wrong date.
+  `assertQueryOptions` refuses an array by name, and `test/navigation.test.ts` pins both null fields,
+  `{ tradition: null }` and `{ overflow: null }`.
 - **Every consumer config gets a validator, and every export gets a guard.** `TraditionConfig` and
   `ObservanceConfig` are both documented extension points, so both are checked at the boundary and
   memoised per object. Add a config type, add a validator — `TraditionConfig` went unchecked for
@@ -660,13 +567,12 @@ derivation; in `docs/` they are just noise.
   give it a separate name like `isoFromJulianDayUnchecked` rather than leaving the export bare.
   **A parameter typed as a closed union still needs its guard**: `elementalYoga`'s docblock argued
   TypeScript already constrained its two elements, and from JavaScript a misspelt one was reported
-  as `TCT_INTERNAL` — the engine's bug — until 2026-09-24. And a guard renders a value it has **not
+  as `TCT_INTERNAL` — the engine's bug. And a guard renders a value it has **not
   yet type-checked** through `describe` in `src/errors.ts`, never a bare `${}`, which throws on a
   Symbol and cannot tell `10n` from `"10"`; a bare `${}` is fine once the value is proved a number.
   `test/hostile-inputs.test.ts` holds every export to never escaping uncoded, which is the outcome
-  and not the idiom — **and it hid a message helper behind its only Proxy until review**, because a
-  revoked Proxy throws at the first trap any code reaches, which was a guard that already caught it.
-  Probe with one throwing trap at a time.
+  and not the idiom. **Probe with one throwing trap at a time**: a revoked Proxy throws at the first
+  trap any code reaches, so a single one hides every helper behind the first guard that catches it.
 
 ## Environment
 
@@ -683,22 +589,17 @@ failures.
 
 **Testing against a polyfill needs `installImplementation()`, and two of `temporal-polyfill`'s three
 entry points cannot test anything here.** `temporal-polyfill/global` installs **only where no native
-`Temporal` exists**, so on Node 26 and current Chrome it is a no-op — and so, measured 2026-09-23, is
-its **main export**: `import { Temporal } from "temporal-polyfill"` returns objects for which
-`x instanceof globalThis.Temporal.PlainDate` is `true`. A first attempt to reproduce a
-cross-implementation defect used the main export, saw every call behave correctly, and would have
-reported the defect as unreproducible.
+`Temporal` exists**, so on Node 26 and current Chrome it is a no-op — and so is its **main
+export**: `import { Temporal } from "temporal-polyfill"` returns objects for which
+`x instanceof globalThis.Temporal.PlainDate` is `true`, so a cross-implementation defect reproduced
+through it looks unreproducible.
 
 So: `temporal-polyfill/implementation` for a genuinely **second** class, and `installImplementation()`
 from `temporal-polyfill/shim` to force the polyfill **over** a native global. Neither belongs in this
 package's dependency tree — resolve them from a scratch directory outside the repo, the same way
-`scripts/fetch-eszthoff-fixtures.mjs` resolves its package. The evidence that the surface agrees
-under a polyfill is the nyamlen polyfill probe of 2026-09-23 — **fourteen dumps byte-identical** at
-`5c954b3`, including real iOS Safari 26.6 and Safari 17.6 — and its re-run the same day at `48cf255`,
-after the boundary rewrite: twelve configurations with **the same hash**, adding
-`temporal-polyfill/full` and `@js-temporal/polyfill`, plus the whole Phugpa date window day by day
-and `test/validation/` under a forced polyfill. `docs/testing.md`'s *Under a polyfill* is the
-record. **The real devices have not been re-run since the rewrite**; that is a pre-1.0.0 item.
+`scripts/fetch-eszthoff-fixtures.mjs` resolves its package. `docs/testing.md`'s *Under a
+polyfill* records the evidence that the surface agrees under a polyfill, and which configurations
+and devices it covers.
 **Playwright's WebKit build has a native `Temporal` and shipping Safari does not**, so a
 Playwright "Safari" run under `temporal-polyfill/global` tests the built-in, not the polyfill.
 
@@ -751,68 +652,58 @@ any script's source names it, and the harness names `fixtures/bhutan.js`.
 
 **`check:conventions` enforces the rules in this file that lint, typecheck and the suite cannot
 see**, which before it existed was all of them: the zero-dependency claim, integer-only arithmetic,
-coded errors, `{@link}` targets — and, since 2026-09-23, that a link in a docblock which ships
-targets something an entry point exports — the reality of every `TCT_` code named in a `@throws`, the
+coded errors, `{@link}` targets — and that a link in a docblock which ships targets something an
+entry point exports — the reality of every `TCT_` code named in a `@throws`, the
 decision-record format, fixture provenance, whether
 [docs/coding-standards.md](docs/coding-standards.md) still names real commands and paths, that a
 validation suite is named for the fixture it validates, that an exported **tradition** config is
 imported by one — rule 10 matches only `export … from "./traditions/…"` in `src/index.ts`, so it
 does **not** see `ObservanceConfig` or anything on the `./observances` or `./astrology` barrels, and
 rule 13 is type-only, so neither guards a runtime value export on either — `DEFAULT_OBSERVANCES`,
-`ELEMENTAL_YOGAS` and `LUNAR_MANSIONS` are held by `test/public-api.test.ts`, which is also the
-only thing that noticed `./astrology` had shipped three mansion names nobody could use, and since
-2026-09-23 by rule 16, which requires every runtime export to have a row in the README's API table
+`ELEMENTAL_YOGAS` and `LUNAR_MANSIONS` are held by `test/public-api.test.ts` and by rule 16,
+which requires every runtime export to have a row in the README's API table
 for its entry point — a rule about **documentation**, not about validation —
 that a suite in `test/<name>/` is named for a module in `src/<name>/`, and that **a generated document does
-not hardcode a count its generator computes** — `docs/names/rabjung.md` read "Four values are marked,
-at positions …" beside an interpolated list for three commits, and there were five positions and nine
-cells. Each of those fails silently
+not hardcode a count its generator computes** — `docs/names/rabjung.md` once read "Four values are
+marked, at positions …" beside an interpolated list of five. Each of those fails silently
 rather than loudly. When you add a rule here, check whether `scripts/check-conventions.mjs` can hold
 it, and write the failing case before the check — a guard that has never failed proves nothing.
 
 **A check placed after the emit gate cannot fail the run, whatever its comment claims.**
 `scripts/verify-rabjung-names.mjs` writes its fixture immediately after the `problems` gate, and the
 divergence self-invalidation sat *below* that write — so its promise that "the run fails if his table
-no longer says that" had never once been true, and nothing revealed it until a deliberate mutation
-did. When adding a check to a generator, put it above the gate and then **prove it by mutation**:
-break the thing it guards and watch it refuse to write. This is the same rule as "a guard that has
-never failed proves nothing", one level up — the guard existed, was correct, and was unreachable.
+no longer says that" had never once been true until a deliberate mutation revealed it. When adding
+a check to a generator, put it above the gate and then **prove it by mutation**: break the thing it
+guards and watch it refuse to write.
 
-**A mutation harness needs a control, or it proves nothing either.** This is the same rule as
-"a guard that has never failed proves nothing", one level further up, and it cost three false proofs
-on 2026-08-25 alone. Twice a set of mutants all exited non-zero and were read as refusals; they had
-died on a `SyntaxError` introduced by the mutation itself, and then on `ERR_MODULE_NOT_FOUND`,
+**A mutation harness needs a control, or it proves nothing either.** Mutants that all exit non-zero
+can have died on a `SyntaxError` introduced by the mutation itself, or on `ERR_MODULE_NOT_FOUND`
 because the mutant was written to a scratch directory while its relative imports resolve against the
 file. Both look identical to a guard firing — a non-zero exit and no output you happened to be
 grepping for. **So every mutation run includes an unmutated control expected to PASS**, and asserting
 on the failure *message*, not the exit code, is what makes the difference visible. The control
 failing is the only signal that the harness is measuring nothing.
 
-**The same holds for a single test's RED: read why it failed.** On 2026-09-24 a test for the
-options guard polluted `Object.prototype` with a non-writable key, and it failed before the fix —
-on `Cannot assign to read only property 'polluted'`, thrown by Vitest's own machinery, not on the
-assertion. It then failed after the fix too, which is how it was noticed. Made writable, it was
-re-run against the **old** code, where it failed for the right reason ("unknown option
-`polluted`"). A red test is evidence only when its message is the bug's.
+**The same holds for a single test's RED: read why it failed.** A test that polluted
+`Object.prototype` with a non-writable key failed before the fix on `Cannot assign to read only
+property 'polluted'`, thrown by Vitest's own machinery rather than the assertion, and failed after it
+too. A red test is evidence only when its message is the bug's.
 **So never mark an expected-red row `it.fails`.** It passes on any throw, including a `TypeError`
 from a typo, so it cannot show the reason. Assert today's wrong message instead, and change the
 expectation in the commit that fixes it, so the diff shows the old message against the new one.
-Found by an adversarial review of the field-guard merge plan on 2026-09-24.
 
 **An inequality is the weaker assertion, and for one bug shape it is no assertion at all.** Where a
 bug's signature is "two things that should differ stop differing", `expect(a).not.toBe(b)` usually
 cannot fail — something *else* already distinguishes them. The doubled-day yoga is the case: the two
 halves of a doubled date have different weekday elements whatever the mansion does, so
-`expect(first.yoga).not.toBe(second.yoga)` held with the bug reinstated, and deleting the fix left 990
-tests green while changing 19 of 31 doubled-first days. **Pin the value.** The plan that specified the
-inequality had the same blind spot, so this is a rule about the instruction as much as the test.
-**And the inequality's premise was false**: the halves can share a yoga, because the mansion can move
-with the weekday — 9 and 10 July 2024 are both *death*. "The two halves get different yogas" had
-reached the README, the guide and three docblocks before the polyfill probe caught it on 2026-09-23;
-the index test now pins both pairs by value, one that differs and one that does not.
+`expect(first.yoga).not.toBe(second.yoga)` held with the bug reinstated, while 19 of 31
+doubled-first days changed. **Pin the value** — and specify it that way in a plan, too. The
+inequality's premise was also false: the halves can share a yoga, because the mansion can move with
+the weekday — 9 and 10 July 2024 are both *death*. The index test pins both pairs by value, one that
+differs and one that does not.
 
 **A comparison that agrees everywhere cannot detect being weakened, so mutate it to disagree.** The
-first mutant written for `mismatchesIn` on 2026-09-18 dropped its `isLeapDay` field, and no test
+first mutant written for `mismatchesIn` dropped its `isLeapDay` field, and no test
 could fail: against Lotsawa House and eszthoff it already reports nothing, and a predicate that
 compares less can only report less. The mutant that proved it **inverted** the field instead. The
 same fact limits what the suites claim: "agrees on every day" guards against a predicate that
@@ -829,105 +720,77 @@ mutant proves a predicate once; an injected row proves it on every run.** Each i
 unmodified row's value first, so the counterexample self-invalidates if the fixture changes under it.
 
 **A list of mismatches says nothing about the cases that agree, so enumerate the population, not the
-failures.** FPMT's moon icon was read on 2026-09-19 as marking the *Tibetan date*, because both
+failures.** FPMT's moon icon was once read as marking the *Tibetan date*, because both
 doubled dates that showed up as mismatches carried an icon on each half. There are **four** doubled
 dates carrying a moon in the window, and the other two carry one icon only — invisible to any
 mismatch list, because an icon on the engine's own day is not a mismatch. The rule it was taken to
 support is false, and the count behind it ("2 of 2") was really 2 of 4. Before explaining a residual
-by a rule, list every case the rule covers and check the agreeing ones too; a spec-panel review found
-this and no amount of staring at the mismatch list would have.
+by a rule, list every case the rule covers and check the agreeing ones too.
 
 **A guard can be well-formed, correct, and aimed where the risk is not — and it then reports
-"nothing found" for ever.** This is the sibling of "a guard that has never failed proves nothing":
-that one is about a guard nobody has tested, this one about a guard whose *search space* excludes
-what it was built to find. On 2026-09-20 the question was whether a pre-project research document
-had read a competing implementation's source. The check classified the document's **code blocks** by
-heading and language tag, found them all proposing architecture for this engine, and reported no
-contamination. The exposure was a **90-line prose section** headed "Architecture & API Surface",
-"Mathematical Foundation", "Test Coverage" — containing **no code fences at all**, the first being
-290 lines later. A check aimed at fenced regions could not fire on it, whatever it found. The
-verdict was reported as reassurance and had to be withdrawn. **Before trusting a guard's silence,
-state where the thing it hunts would live and check that the guard looks there.** An independent
-review found this; three passes by the check's own author did not.
+"nothing found" for ever.** A check of whether a research document had read a competing
+implementation's source classified the document's **code blocks**, and reported no contamination;
+the exposure was a 90-line **prose** section with no code fences at all. **Before trusting a guard's
+silence, state where the thing it hunts would live and check that the guard looks there.** An
+independent review is what finds this; the check's own author tends not to.
 
 **A correction's sweep must cover `test/` too, where a name can assert the thing being corrected.**
-The 2026-09-23 pass over `tibetanDateExists`'s rule swept `src/` and `docs/` and stopped. Two
-statements survived in `test/`, and the worse one was a **test name** — `"answers false for exactly
-three codes"` — four lines above the test that pins the opposite. A test name is read as a statement
+A test named `"answers false for exactly three codes"` once sat four lines above the test that pins
+the opposite. A test name is read as a statement
 of the contract by anyone scanning output, and it is the one place a false claim is printed on every
 green run.
 
-**And check which module a probe is importing from before reading what it reports.** The evidence
-script for that same session called `observancesOn` and `attributesFor` off the **root** barrel,
-which exports neither: one row printed `THROW TypeError (no code)` and read as a defect, the other
-short-circuited through `?.()` to `OK undefined` and read as a pass. Both had measured nothing since
-the first run. A row that says `THROW` and a row that says `OK` both look like measurements.
+**And check which module a probe is importing from before reading what it reports.** A probe that
+called `observancesOn` and `attributesFor` off the **root** barrel, which exports neither, printed
+`THROW TypeError (no code)` for one — read as a defect — and `OK undefined` through `?.()` for the
+other — read as a pass. A row that says `THROW` and a row that says `OK` both look like measurements.
 
 **A sweep whose calling convention is wrong reports agreement, which is indistinguishable from a
-passing check.** Sweeping all 27 affected exports on 2026-09-23, every multi-argument one was called
-as `fn(date, date)` — so `addDays`, `addMonths`, `addMonthsToDate`, `daysBetween` and `monthsBetween`
+passing check.** A sweep of 27 exports called every multi-argument one as `fn(date, date)` — so `addDays`, `addMonths`, `addMonthsToDate`, `daysBetween` and `monthsBetween`
 received a date where a **count** belongs. They threw for that reason, matched the control, and read
 as unaffected. Called properly, all five were defective: `addDays(foreignDate, 1)` returned a
-confident wrong Tibetan date. **Five of seventeen findings were invisible**, and nothing about the
-output looked wrong.
-
-This is the measurement-shaped sibling of the guard rule above, and the same session produced three
-more instances — a phrase-grep that could not reach the docblocks it was hunting, a two-site reading
-of a five-site problem, and a test fake too thin to exercise the path it was written for. **State
-what a sweep's arguments mean before trusting what it agrees about**, and prefer a sweep that names
+confident wrong Tibetan date, and nothing about the output looked wrong. **State what a sweep's
+arguments mean before trusting what it agrees about**, and prefer a sweep that names
 each call's argument shape in its output, so a wrong convention is visible rather than silent.
 
 **A shipped instruction is contract exactly as a shipped example is, and this project's own setup is
 the worst possible evidence for one.** `test/docblock-examples.test.ts` and `test/guide.test.ts`
 assert every *example* that states a value; nothing asserts an *instruction* that tells a consumer
-how to configure their project, and one shipped wrong for a month. The README said **"No `"lib"`
-setting is needed — TypeScript 7's default already carries it"**. Measured 2026-09-22 on
-typescript@7.0.2 with `module`/`moduleResolution: nodenext` and `strict`: **twelve
-`TS2503: Cannot find namespace 'Temporal'`**, which is the whole surface, because dates are the
-product.
+how to configure their project. The README once said **"No `"lib"` setting is needed —
+TypeScript 7's default already carries it"**, and a consumer following it got
+`TS2503: Cannot find namespace 'Temporal'` on the whole surface.
 
 **`tsconfig.json` here sets `target: ES2024` *and* `lib: ["ES2024", "ESNext.Temporal"]`** — exactly
-the pair where the explicit lib is **required**. So `npm run typecheck` was green forever while a
-consumer following the landing page could not compile a line. A repository's configuration is
+the pair where the explicit lib is **required**, so `npm run typecheck` stays green whatever the
+README tells a consumer. A repository's configuration is
 written by people who already know the answer, so it is systematically biased towards masking this
-class of defect; `test:pack` did not catch it either, because it imports and computes rather than
-type-checking. `docs/guide.md` was right for a reason worth copying: it **printed a working
-`tsconfig.json`** instead of describing one. Prescribe by printing something runnable, and run it in
+class of defect; `test:pack` cannot catch it either, because it imports and computes rather than
+type-checking. `docs/guide.md` **prints a working `tsconfig.json`** instead of describing one. Prescribe by printing something runnable, and run it in
 a clean consumer before shipping it.
 
 **The status in a tracking document describes the tracker, not the thing tracked**, and the two get
-confused in the direction that invents work. `nyamlen/spikes/VERDICTS.md` was built on 2026-09-20 by
-enumerating three friction lists **without cross-checking this repository's log**, so all eighteen
-rows read `open` — meaning *nobody has written a verdict here*. Both roadmaps then restated it as
-*the API has not survived contact with a consumer*, and an ordering was built on top of it that put
-a documentation pass in front of a release. Sixteen of the eighteen had been answered on 26–27
-August, by commits naming the spike's finding numbers in their own bodies. **An unrecorded fact is
-not an absent one.** The error is available even to a session that has just finished documenting it:
-hours later, the same session argued for a decision on the ground that the public record "only now"
-existed, when those commits predated the claim by three weeks.
+confused in the direction that invents work. `nyamlen/spikes/VERDICTS.md` once listed eighteen
+rows as `open` — meaning *nobody has written a verdict here* — and was restated as *the API has not
+survived contact with a consumer*, when sixteen had been answered by commits naming the finding
+numbers in their bodies. **An unrecorded fact is not an absent one**: cross-check this repository's
+log before treating a tracker's status as the state of the work.
 
 **A finding is not one claim, and the commit that answers it is not a reading of it.** Decompose a
 source's report from **its own text** before reading whatever discharged it — a commit body
 *describes* the finding it answers, and a description is not the finding. `friction-list.md`'s
-finding 13 makes three claims and `864f88e` answers one; closing the row on that commit would have
-shipped two reproducible defects as the evidence closing a 1.0.0 gate. Eighteen rows held
-twenty-two claims once decomposed.
+finding 13 makes three claims and `864f88e` answers one.
 
-**And a closure can be honest and still wrong, in two ways this pass found.** `aef049f` closed a
-finding correctly and documented a **remedy that does not work** — only running a consumer's
-typecheck showed it. `864f88e` closed one correctly and its **subject moved underneath it**: the
-sojong model it cited was overturned on 2026-09-19, and the correction reached four files but not
-the README paragraph that commit had written. Nothing in that paragraph was false, which is what
-made it survive; it had simply stopped where the source now goes on. **Re-check a closed item when
+**And a closure can be honest and still wrong.** It can document a **remedy that does not work** —
+only running a consumer's typecheck shows it — or its **subject can move underneath it**, as when the
+sojong model a closure cited was overturned and the correction missed the README paragraph it had
+written. **Re-check a closed item when
 its subject moves**, and do it by re-reading the finding rather than the verdict.
 
 **An ordering written as prose goes stale silently, because nothing checks that its first step is
-still open.** The pre-1.0.0 checklist's preamble read "The rabjung name shape settles first" — true
-when written, and stale from 2026-08-25 when that item was ticked. On 2026-09-20 a reading of it
-duly proposed starting there, a month after the step was finished. The same failure is available to
-every ordering and count in this file: a `[x]` beside an item does not reach the prose that names
-it. When you tick an item, grep for its name. This file is full of prose orderings and measured
-figures, and it says so about itself elsewhere — this is the instance that was actually paid for.
+still open.** The pre-1.0.0 checklist's preamble once read "The rabjung name shape settles first" a
+month after that item was ticked, and a reading of it proposed starting there. A `[x]` beside an
+item does not reach the prose that names it, here or in this file: when you tick an item, grep for
+its name.
 
 **A new layer that reuses an existing accessor inherits its tradition-dependence, whether or not a
 source licenses that.** The elemental yoga read `weekdayNameFor(weekday, tradition)` for its weekday
@@ -939,18 +802,16 @@ naming or config layer, ask which tradition-dependence comes with the call, and 
 establishes it; the default is the table the paper actually prints.
 
 **And restore the mutant from a copy, never with `git checkout` — which silently cannot restore a file
-that is not yet tracked.** Proved on 2026-09-12: two mutations of a brand-new `src/astrology/` module
-were "reverted" by `git checkout <path>`, which failed with `pathspec did not match any file` while
-the loop carried on, so the next mutant ran on top of the previous one. The tell was a run reporting
+that is not yet tracked.** On an untracked file `git checkout <path>` fails with `pathspec did not
+match any file` while the loop carries on, so the next mutant runs on top of the previous one. The tell was a run reporting
 *more* failures than the mutation could explain — not an error, and not a pass. `cp` the file aside
 first, restore from that, and re-run the control after every restore.
 
 **Take the original from a pristine copy made before the harness exists, and refuse to start if the
 live file differs from it.** A harness that writes mutants in place restores in a `finally` that an
-interrupted run never reaches. On 2026-09-18 the Claude pane in VS Code hung and was closed mid-run,
-which kills the session's background shells, and `verify-month-and-yoga-names.mjs` was left carrying
-a mutant. A harness that copied the live file as its "original" on the next start would have made that
-mutant permanent. After any interruption, compare the files a harness edits against the saved copies
+interrupted run never reaches — closing the Claude pane in VS Code kills the session's background
+shells, and once left `verify-month-and-yoga-names.mjs` carrying a mutant. A harness that copies the
+live file as its "original" on the next start makes such a mutant permanent. After any interruption, compare the files a harness edits against the saved copies
 before doing anything else. Run long harnesses in the foreground, in batches under the tool's
 10-minute limit.
 
@@ -963,8 +824,7 @@ URL on Windows) replaces `globalThis.fetch` and serves saved pages, one edit per
 generator under test is the shipped file unchanged. **Record those pages during the byte-identical
 baseline run**, with a second preload that saves every response — then the control is served exactly
 what the baseline read, every run is offline and repeatable, and a diff cannot be blamed on a source
-that moved. `scripts/fetch-fpmt-observances.mjs` was proved this way on 2026-09-19, 15 mutants and a
-control that reproduced the committed fixture before and after.
+that moved. `scripts/fetch-fpmt-observances.mjs` was proved this way.
 
 **`\b` does not bound a Sanskrit word in IAST, because JavaScript's `\b` treats a diacritic letter as
 a non-word character.** `/\bmāsa\b/` matches inside *ṣaṇmāsa*: `\b` sees a boundary after *ṇ*. Use
@@ -973,8 +833,8 @@ two: the first one written here, *samāsa*, has a plain *a* before *māsa*, so b
 and the mutant passed.
 
 **Mutate a guard's input, not the predicate it calls, or a self-test answers instead of the guard.**
-On 2026-09-14 a mutant for the yoga verifier's "group counts sum to ten" check edited the count table
-`statedGrouping` reads. The script's own predicate proof rejected it first — exit 2, "the checker itself
+A mutant for the yoga verifier's "group counts sum to ten" check that edited the count table
+`statedGrouping` reads was rejected first by the script's own predicate proof — exit 2, "the checker itself
 is broken" — so the run-level guard was never reached, and a harness asserting only "non-zero exit"
 would have counted it proved. Asserting on the expected message is what exposed it. The re-run
 altered the dictionary text the predicate is handed (`tha chad gcig` → `gnyis`) and the guard refused
@@ -988,12 +848,11 @@ is pinned. Without it a single altered cell is unattributable, and the temptatio
 yours. It costs one full pass, about four minutes for `verify:rabjung-names`. Remember that the
 comparison only means anything **after** `npx biome check --write` on the emitted fixture: the raw run
 differs from the committed file by roughly +60/−3148 lines purely through reflow, which looks like a
-catastrophe and is not. Same principle as proving a guard by mutation, one step earlier — establish
-that the instrument reads zero before you measure with it.
+catastrophe and is not. Establish that the instrument reads zero before you measure with it.
 
 **That applies to a throwaway check just as much as to a generator, which is easy to forget because
 a one-off script feels too small to need proving.** An ad-hoc comparison of every shape block in
-`docs/architecture.md` against `src/` reported three drifted types on 2026-08-27 —
+`docs/architecture.md` against `src/` reported three drifted types —
 `TraditionConfig`, `ObservanceRule`, `ObservanceConfig` — and all three were **false**: the field
 extractor did not skip `readonly`, so it read those interfaces as having no fields at all. The two
 *real* drifts it found were real, which is what makes this the dangerous shape of error — a
@@ -1001,23 +860,21 @@ believable result mixed with noise. The tell was `src=0`, an impossible reading 
 to assert on. Give a one-off check a case whose answer you already know before you trust the cases
 whose answers you do not.
 
-**The script now proves its own predicates on every run**, before any rule, reporting "the checker
-itself is broken" rather than a violation. That is not decoration: the `test/computation/` naming
-rule was first written to split a suite name on its first `-`, which rejects
-`mean-astronomy.test.ts` — a file that was already correct — and only reading caught it. Two kinds
-of check, catching **disjoint** failures, so write both. An **invariant derived from the tree**
+**`check:conventions` proves its own predicates on every run**, before any rule, reporting "the
+checker itself is broken" rather than a violation — a naming rule that split a suite name on its
+first `-` would reject the correct `mean-astronomy.test.ts`. Two kinds of check catch **disjoint**
+failures, so write both. An **invariant derived from the tree**
 catches what nobody thought of: "every module's own name is an acceptable suite name" fails the
 segment-splitting predicate immediately and mentions no filename. A **literal case** catches what
 the invariant cannot see: an equality-only predicate satisfies that invariant and still rejects
-`calendar-leap-index-threshold`. When this was demonstrated by mutation, the invariant caught the
-real bug and all three literal cases passed.
+`calendar-leap-index-threshold`.
 
 **A throw inside the checker must not cost the report, and a rule must not be able to vanish.**
-Until 2026-09-12 one unreadable file — a deletion staged on one side only — crashed the run on
-`ENOENT` and discarded every finding already collected. Each rule is now a function in `RULES`, run
+One unreadable file — a deletion staged on one side only — must not crash the run on `ENOENT` and
+discard every finding already collected. Each rule is a function in `RULES`, run
 under its own guard; each shared corpus is built under its own; a backstop prints what was collected
 before rethrowing anything else; and `tracked()` reports a path the index holds but the disk does not
-instead of handing it to a rule. The registry is the new silent failure — an unregistered rule
+instead of handing it to a rule. The registry is itself a silent failure — an unregistered rule
 collects nothing and the run reads "All conventions hold" — so the self-test refuses a registry
 missing any rule number or pairing one with another rule's function. Every one of those is a row in
 `npm run test:conventions`, which is what keeps them proved rather than recorded once in a commit.
@@ -1026,19 +883,16 @@ missing any rule number or pairing one with another rule's function. Every one o
 template a generator writes, and the invariant proving that rule is not passing vacuously used a
 second copy of the same path pattern. Moving the documents into `docs/names/` would have stopped
 both matching at the same moment — the rule checking nothing, and the invariant written to catch
-exactly that reporting nothing wrong. The guard is now a deliberately cruder, independent signal, so
-a break in the precise pattern still surfaces. Found by making the move, not by reading.
+exactly that reporting nothing wrong. The guard is a deliberately cruder, independent signal, so
+a break in the precise pattern still surfaces.
 
 **And the opposite failure exists, so the rule above is not "never share".** Rule 15's self-test
-asserts that its exempt file still *contains* the check it exempts — and read the **whole file** to
-decide. `src/temporal-kind.ts` says `instanceof Temporal` three times in its own docblock explaining
-why it is the only file allowed to, so the self-test was satisfied by the prose it was meant to be
-independent of: deleting the single real check left it green. So did the whole vitest suite, 24 of
-24, because a native `PlainDate` then simply takes the `from(String(x))` path and answers
-identically. Found by an independent review on 2026-09-23; three passes by its author did not see it.
-
-The fix was to make the rule and its self-test share **one** predicate — the exact move the rule
-above warns against — because here the hazard runs the other way. Rule 12's danger was two copies
+asserts that its exempt file still *contains* the check it exempts. Reading the **whole file**, it
+was satisfied by `src/temporal-kind.ts`'s own docblock, which says `instanceof Temporal` three
+times: deleting the single real check left it green, and the vitest suite too, because a native
+`PlainDate` then takes the `from(String(x))` path and answers identically. So rule 15 and its
+self-test share **one** predicate — the move the rule above warns against — because here the hazard
+runs the other way. Rule 12's danger was two copies
 drifting into agreeing wrongly; this one's was a checker reading *more* than the rule does, and
 being satisfied by text the rule deliberately ignores. **Ask which direction the hazard runs**: if
 the guard could pass by reading something the rule would never act on, sharing the predicate is the
@@ -1057,7 +911,7 @@ The last two are the only checks that see the **published** package. Every test 
 match `exports` is invisible to the suite and fails only for a consumer, after publishing.
 `check:publish` runs publint and attw against the manifest; `test:pack` deletes `dist/` and packs
 the tarball **without building**, so the build in it can only have come from the `prepack` script —
-which is how that script is proved, since 2026-09-24 — then installs
+which is how that script is proved — then installs
 it into a scratch directory **outside** the repository — a `node_modules` copy inside the working
 tree would be picked up by Biome, the link checker and Vitest — and imports all three subpaths,
 asserting real values through each so a compilation that damaged the arithmetic is caught rather than
@@ -1073,7 +927,7 @@ re-checks it against Wiktionary, THL and CLDR, and `npm run verify:rabjung-names
 same for the sixty rabjung year names against Janson, the Indic saṃvatsara list, Sewell & Fleet,
 **Monier-Williams via the Cologne scan** (the Sanskrit senses, uncapped and citing a printed page),
 **wisdomlib** (the Bṛhat Saṃhitā's cycle position, and which non-MW lexicons carry a headword) and
-Wiktionary — which is now only a second attestation, never the sense source, because its Sanskrit
+Wiktionary — which is only a second attestation, never the sense source, because its Sanskrit
 senses **are** Monier-Williams verbatim and corroborating it with anything MW-derived would be MW
 agreeing with itself — and `npm run verify:month-and-yoga-names`, which verifies the mansion month names,
 the season names, the ten elemental yogas and the twelve Indian month names against the Mahāvyutpatti, Das, Jäschke, the two
@@ -1088,8 +942,8 @@ their committed output, `test/fixtures/names.ts`, `test/fixtures/rabjung-names.t
 `test/fixtures/trigram-names.ts`, which the suite reads. **Run Biome on the last four after every run**, for the same reason as below.
 
 **`verify:rabjung-names` emits one row per line and Biome reflows it, so run
-`npx biome check --write test/fixtures/rabjung-names.ts` after every run.** This has always been
-required and was never written down, and it surfaces as an unattributed formatting diff — `biome
+`npx biome check --write test/fixtures/rabjung-names.ts` after every run.** Skipping it surfaces
+as an unattributed formatting diff — `biome
 check .` reports it without naming the file, and the obvious suspects are the files you just edited
 rather than the one the generator rewrote. Provenance is checked before a release;
 integrity is checked on every push.
@@ -1098,17 +952,16 @@ integrity is checked on every push.
 licence line there is narrow.** The copyrighted dictionaries — Ives Waldo, Rangjung Yeshe and the *tshig
 mdzod chen mo* here, and the *dung dkar tshig mdzod chen mo* in `verify:month-and-yoga-names` and `verify:mansion-and-trigram-names` — may **gate** and may never be **quoted** — they are modern copyrighted works, so exactly four
 facts are taken: that a headword exists, the cycle position an entry states, the element–animal
-year an entry states, and the register tag on a sense — and a fifth, the spelling of each member of a
-set an entry enumerates, approved on 2026-09-13 for the elemental-yoga check and now in the script's
-table. A sixth and seventh were approved on 2026-09-14: **the element pair an enumeration assigns each
-member, and the grouping it states** — the *tshig mdzod chen mo*'s `'phrod sbyor` closes "three good,
+year an entry states, and the register tag on a sense — plus three approved for the elemental-yoga
+check and listed in the script's table: the spelling of each member of a set an entry enumerates,
+**the element pair an enumeration assigns each member, and the grouping it states** — the *tshig mdzod chen mo*'s `'phrod sbyor` closes "three good,
 three restorative, three bad, one worst". **The grouping gives sizes, never members**, so which yoga is
 in which group is not a taken fact but an inference from list order, and it is marked as one in the
-fixture, the `auspiciousness` docblock and the guide. This sentence said "three" while the script said
-four. **No gloss text is stored, printed or emitted**, and the year is computed from
+fixture, the `auspiciousness` docblock and the guide. The script's table is the authoritative list
+of taken facts; do not restate its count here. **No gloss text is stored, printed or emitted**, and the year is computed from
 the cycle and never read off a dictionary, which is what stops the check being circular. The reading
 logic lives in `scripts/tibetan-dictionary.mjs`, shared with `scripts/survey-ngonjo.mjs` and both
-newer verifiers — including, since 2026-09-15, `fetchAggregate`, which refuses the 469-byte error page
+newer verifiers — including `fetchAggregate`, which refuses the 469-byte error page
 the aggregate's host serves with a 200 rather than reading it as a dictionary with no headwords — and carries
 the traps that logic exists to avoid — chief among them that **a register tag has two scopes** and
 that **the prefix before an entry's first numbered sense is a sense**, not merely where a tag lives.
@@ -1129,21 +982,19 @@ typo the source contradicts itself about (57 रूधिर → रुधिर
 near neighbour is glossed (58 रक्ताक्षि → रक्ताक्ष). Do not patch a name by editing the output.
 
 **A correction that rests on a dictionary *lacking* a sense is the least reliable kind, so write it as
-self-invalidating data before anyone decides it.** On 2026-09-15 mansion 21 was decided as *śravaṇa*
+self-invalidating data before anyone decides it.** Mansion 21 was once decided as *śravaṇa*
 because Monier-Williams, read by hand, gave *śravaṇā* only as "a female monk or nun" — the rabjung 9
 and 56 trap. The correction's own check refused on its first run: a separate entry on p. 1097 gives
-*śravaṇā* as the nakṣatra, and the hand reading had seen two of five entries. The decision was taken
-back. An absence is established only by a reader that sees every entry, and the verifier's
+*śravaṇā* as the nakṣatra, and the hand reading had seen two of five entries. An absence is established only by a reader that sees every entry, and the verifier's
 "a headword **whose entry names the sense**" check, not the headword's presence, is what caught it.
 
-**That reader is `entriesHeadedBy` in `scripts/cologne.mjs`, shared since 2026-09-18, and it is the
-only one that sees every entry.** Every Monier-Williams check in the mansion and month-and-yoga
-verifiers now goes through it; `verify-rabjung-names.mjs` keeps its own. The six-season and yoga checks were the last to move, on 2026-09-18, off an older
-reader that took the **first** entry Cologne returned, and the move found two wrong citations that
-had shipped in fixtures. The yoga *siddhi* was cited at p. 1215, which is *1. siddhi* "driving off",
+**That reader is `entriesHeadedBy` in `scripts/cologne.mjs`, and it is the only one that sees every
+entry.** Every Monier-Williams check in the mansion and month-and-yoga verifiers goes through it;
+`verify-rabjung-names.mjs` keeps its own. A reader that took the **first** entry Cologne returned
+shipped two wrong citations in fixtures. The yoga *siddhi* was cited at p. 1215, which is *1. siddhi* "driving off",
 a homograph, while its own English was cited from p. 1216. The rains were routed through *varṣa*
 under the stated belief that no entry is headed *varṣā*, and p. 927 heads it with "the rains,
-rainy season". Nothing had flagged either one. **Choose a page by the sense it prints, never by
+rainy season". **Choose a page by the sense it prints, never by
 position**: the first entry headed *varṣā* is a bare "See p. 927".
 
 The shared reader's head-splitting has been wrong twice, and each time on a head shape nobody had
@@ -1152,16 +1003,15 @@ listed. The first time, it did not end a headword at a gender mark carrying its 
 failed closed — four month names read as absent — but the same bug can make a word printed in a
 definition ("relating to the constellation Maghā") count as a headword, which passes silently. The
 second time, it missed a form headed **inside another record**, after a sense boundary:
-`prati —kūlam ind. … [ ID=131428 ] prati —kūla n. inverted order, opposition`. The old whole-text
-search had found "opposition" there only by accident. Give every new head shape a self-proof case.
+`prati —kūlam ind. … [ ID=131428 ] prati —kūla n. inverted order, opposition`. Give every new head shape a self-proof case.
 
 **A correction is not a lookup rung, and conflating them inflates both.** A correction changes what
 the table *prints* and needs authored evidence; a rung of the ladder in `scripts/indic.ts` changes
 only what is *queried* and states a rule of Sanskrit — the `-in` stems printed in the nominative, the
-anusvāra spellings, a missing virāma. Eleven of the sixty rows resolve only through a rung, and an
-earlier draft was going to write all of them up as editorial judgements.
+anusvāra spellings, a missing virāma. Eleven of the sixty rows resolve only through a rung; none of
+them is an editorial judgement.
 
-**There are now six ways a value reaches that table, and they are deliberately separate because they
+**There are six ways a value reaches that table, and they are deliberately separate because they
 carry different weights of evidence.** Collapsing any two inflates the weaker one:
 
 | Mechanism | Changes | Standard it must meet |
@@ -1187,13 +1037,8 @@ no `src/bench/`, which is the reason rather than an omission from a list: the ru
 a suite is either about a module or about an external source, and a benchmark is neither. A benchmark
 is not a test.
 
-**That set was four hardcoded names until 2026-09-12, and this passage stated the count as a fact.**
-Of the four, two held no suites and one was the external-source home, so exactly one — `computation` —
-was a module-suite mirror. The list went stale the moment `src/` grew a second subsystem, leaving
-`src/observances/` with nowhere to put a module suite and an exemption in the checker to hide it.
-Deriving the set from `src/` fixed that; **the count in this file was left behind**, which is this
-file's own warning about prose counts biting the file that gives it.
-`package.json#files` already excludes `bench/`, and `tsconfig.json` and `biome.json` include it
+The set is derived from `src/`, so a new subsystem gets a suite directory without touching the
+checker. `package.json#files` already excludes `bench/`, and `tsconfig.json` and `biome.json` include it
 deliberately so it is not an unchecked corner.
 
 It exists because two numbers were load-bearing and unmeasured, and it corrected one on its first
@@ -1213,26 +1058,20 @@ by `check:conventions`, because every available predicate fires on `docs/validat
 itself; `test/why-trust-these-dates.test.ts` guards the two documents allowed to state one, against
 the fixtures, and nothing guards the rest. Both in
 [docs/decisions/2026-08-23-readme-is-the-landing-page.md](docs/decisions/2026-08-23-readme-is-the-landing-page.md).
-`package.json#files` ships `docs/guide.md`, `docs/why-trust-these-dates.md` and — since 2026-08-24 —
+`package.json#files` ships `docs/guide.md`, `docs/why-trust-these-dates.md` and
 `docs/how-it-is-calculated.md`, so **their examples are contract exactly as the README's are**.
 
-**One suite per shipped document, and each now has one.** This passage read "`test/guide.test.ts`
-asserts every one that states a value" until 2026-09-17, which was true of `docs/guide.md` and of
-nothing else: that suite reads only its own document, by deliberate design — "a suite named for one
-document while guarding another names the wrong file when it fails". So `docs/how-it-is-calculated.md`
-went unasserted from the day it shipped, and it cost a figure — it said a doubled or skipped day
-occurs in "roughly a quarter of all months" where the true rate is **94% skipped, 64% doubled**, a
-claim that also contradicted the arithmetic the same document teaches. It now has
-`test/how-it-is-calculated.test.ts`. `docs/why-trust-these-dates.md` had none until 2026-09-18,
-the worst of the three to leave, since its whole content is windows and agreement percentages; building
-`test/why-trust-these-dates.test.ts` found **four false statements** on the page.
-When a document joins `files`, it needs its own suite in the same commit.
+**One suite per shipped document**: `test/guide.test.ts`, `test/how-it-is-calculated.test.ts` and
+`test/why-trust-these-dates.test.ts`. Each reads only its own document, by design — "a suite named for
+one document while guarding another names the wrong file when it fails". An unasserted document
+drifts: `docs/how-it-is-calculated.md` once said a doubled or skipped day occurs in "roughly a quarter
+of all months" where the true rate is **94% skipped, 64% doubled**. When a document joins `files`, it
+needs its own suite in the same commit.
 
 **A suite guarding a document reads it; it never restates it.** A hand copy of a table or a figure
 passes while the document drifts, which is the failure the suite exists to prevent — so parse the
-table out of the markdown and regex the figure out of the prose, as `test/guide.test.ts` does. A
-first draft of the how-it-is-calculated suite restated twelve rows and two percentages, and a code
-review caught it; two of its assertions were comparing the copy against itself.
+table out of the markdown and regex the figure out of the prose, as `test/guide.test.ts` does.
+An assertion against a restated copy compares the copy against itself.
 
 **And it measures with the validation suites' own predicates, from `test/support/`.** "Agrees",
 "differs" and "the trusted window" each have one definition, and the why-trust suite calls it: a
@@ -1250,61 +1089,50 @@ This is the lineage rule applied to the project's own documents.
 were false were as often **quantifiers** as numbers — "the three other implementations side with the
 engine on each of these days" (none has data for the first), four sources that "overlap across the
 same period" (all four share only two years), "the first sixty-year cycle" (Janson's is 65) — and a
-hunt for figures walked past every one of them. The suite now fails on any digit or number word not
+hunt for figures walks past every one of them. The suite fails on any digit or number word not
 inside a claim, asserted or listed with its reason, which closes for that document the gap the
 docblock suite still has.
 
 **A percentage names its day set, and two figures may not share "of those days" unless they are
 measured over the same days.** The mansion's 97.6% is over the 1,459 days whose code can force a
 mansion element; favorability's 99.7% is over its own 1,460, because 2024-09-12's `UD-EW` names no
-yoga but is still a favorability claim. The page said "99.7% of those days" beside the 1,459, where
-the figure over those days is 99.8%, and the mansion computation was quietly counting that day as an
-agreement.
+yoga but is still a favorability claim. Over the 1,459, favorability is 99.8%.
 
 **Prose windows are as exact as the table beside them; only durations are rounded.** "2022–2027" and
-"early 2030" could not be checked by the reader the page is written for, and both hid an error:
+"early 2030" cannot be checked by the reader the page is written for, and both once hid an error:
 2022–2027 was a union no single source reaches, and the early-2030 table count included 273 days no
 test compares. "1 January 2022 to 25 February 2028" is as safe, being true, and checkable.
 
-**An independent review of a plan finds what its author's passes do not.** The why-trust plan had
-two self-reviews and a simulated expert panel behind it; a fresh agent given only the plan and the
-repository then found six errors, one of which (the mansion's day set) no earlier pass had any way
-to see. For a plan whose output is a claim to readers, run one before building.
+**An independent review of a plan finds what its author's passes do not** — a fresh agent given
+only the plan and the repository, after two self-reviews and a simulated panel, has found errors
+no earlier pass could see. For a plan whose output is a claim to readers, run one before building.
 
 **A year in this repository is a Tibetan year unless it says otherwise, and a prose window must say
 which era it is.** `monthsFor(1900)` is Tibetan 1900, which runs from **1773-02-22 to 1974-02-21 CE**.
 A sweep written as "1900–2100" and described in a shipped document as "the two centuries 1900–2100"
-therefore measured one window and claimed another, on 2026-09-17. **No measurement can catch this**:
+therefore measures one window and claims another. **No measurement can catch this**:
 both windows round to the same 94% and 64%, so the mutant that swapped them passed. What catches it
 is stating the window **twice, in both eras**, and having the test check the correspondence — that
 Tibetan 2027 begins in 1900 CE and 2227 ends in 2101. Do that for any measured figure in a document.
 
-The third document joined them to answer a
-question the shipped types raise and cannot answer: a `Rabjung` carries a Tibetan year name and **no**
+`docs/how-it-is-calculated.md` also answers a question the shipped types raise and cannot answer: a `Rabjung` carries a Tibetan year name and **no**
 Sanskrit one, and a consumer who expected *Prabhava* beside it needs to be told that the cycle has
 **two** Sanskrit name lists which disagree at five positions, so pairing either with the Tibetan name
-would misname 8% of years. That reason replaced an earlier one on 2026-08-25, when the Sanskrit came
-off the type — the document is shipped for what it explains, not for a field that no longer exists. A shipped document's relative links must resolve inside
+would misname 8% of years. A shipped document's relative links must resolve inside
 the tarball, which `check-pack` enforces, so anything repo-only is linked by absolute URL — that is
-why that file links its four repo-only documents absolutely, six links in all. **The converse is
-enforced too, since 2026-09-23**: a shipped document may not reach a file that ships by absolute
-URL. `why-trust-these-dates.md` listed `how-it-is-calculated.md` among the documents "not included
-in the published package" for a month after it began shipping, and the README reached both by URL;
-a link that works cannot fail anything, so only the polyfill probe's reading found it.
+why that file links its repo-only documents absolutely. **The converse is enforced too**: a shipped
+document may not reach a file that ships by absolute URL — a link that works cannot fail anything,
+so a shipped document can otherwise go on describing another as unshipped.
 
-**`npm run coverage` is not one of the ten, so nothing gates it.** It was broken on `main` for an
-unknown stretch and nobody noticed: the 200-year moon-phase sweep runs in well under a second bare
-but takes 5–8 seconds under v8 instrumentation, against Vitest's 5s default, so `test` passed while
-`coverage` failed. The long sweeps now carry explicit timeouts. Run it before a release, and give
-any new multi-century test an explicit timeout rather than discovering this again.
+**`npm run coverage` is not one of the ten, so nothing gates it.** The 200-year moon-phase sweep
+runs in well under a second bare but takes 5–8 seconds under v8 instrumentation, against Vitest's
+5s default, so `test` can pass while `coverage` fails. Run it before a release, and give any new
+multi-century test an explicit timeout.
 
-Run it for what it *reports*, not only to keep it passing. An unreachable-line report is how the
-2026-08-13 review pass found that a new config check sat after the `scaleTo` call that already
-guarded the same condition — the test passed, because both throws carry the same code, and only
-coverage showed the check could never run. It paid again on 2026-09-12, on code written the same
-hour: an **uncovered branch** in `./astrology`'s options guard was the `undefined` arm of its error
-message, unreachable because every caller defaults the parameter to `{}`. `./observances`' copy of
-that guard still carries the arm, which is how it got there.
+Run it for what it *reports*, not only to keep it passing. An unreachable-line report shows a check
+placed after another that already guards the same condition — the test passes, because both throws
+carry the same code — and an **uncovered branch** shows an arm no caller can reach, such as an
+`undefined` message arm when every caller defaults the parameter to `{}`.
 
 `check:links` validates relative markdown links and `#fragments` against the filesystem. Docs
 here cross-reference heavily, so renaming or deleting one breaks inbound links silently; fix them
@@ -1315,16 +1143,14 @@ you link to.** `slugify` collapses each run of whitespace to a single `-`, while
 `-` per space — so `### FPMT's moon icons — lineage unknown` anchors as `…-icons-lineage-unknown`
 here and `…-icons--lineage-unknown` there, and whichever you write, one of the two is wrong. The
 collapse is deliberate, for the emoji case its comment documents, so it is the **heading** that has
-to change: a colon reads the same and slugs identically under both. Found 2026-09-19, when
-`check:links` rejected a link that GitHub would have accepted; the reverse — a link this checker
-accepts and GitHub 404s — is the silent direction.
+to change: a colon reads the same and slugs identically under both. The dangerous direction is a
+link this checker accepts and GitHub 404s, which nothing reports.
 
 ## Conventions
 
 **No exported identifier names an institution.** An export name states what a thing *is* — its
 shape, its role in the API — never who published the convention it encodes. `GELUG`, the observance
-config's export name until it was renamed to `DEFAULT_OBSERVANCES` on 2026-09-05 (decided
-2026-09-03), violated this: it was FPMT's specific published convention (`doubledDay: "second"`,
+config's former export name, violated this: it was FPMT's specific published convention (`doubledDay: "second"`,
 `leapMonth: "leap"`, plus its particular rule set), not "the Gelug way" — Kopan Monastery, also
 Gelug, prints the *opposite* `doubledDay` for the 2024 Chokhor Duchen. Naming the export after an
 institution therefore didn't just look institution-specific, it overclaimed a universality the
@@ -1334,8 +1160,8 @@ Provenance belongs in a `source` field and the docblock, which can carry a URL a
 an identifier cannot, and readers take a name at face value in a way they do not take prose.
 
 **The rule governs exported identifiers, not data fields, and the two deliberately disagree.**
-Settled 2026-09-04: `config.id` stays `"gelug"` and `config.name` stays `"Gelug (FPMT)"` even as the
-export becomes `DEFAULT_OBSERVANCES`. Those fields are values inside a config object, read as data,
+`config.id` stays `"gelug"` and `config.name` stays `"Gelug (FPMT)"` on the export
+`DEFAULT_OBSERVANCES`. Those fields are values inside a config object, read as data,
 and they are the only machine-readable statement of whose convention it is — deleting that buys
 nothing and loses the provenance the rule says to keep. The asymmetry is also load-bearing in one
 direction only: an **export name** may name a role, because it can be repointed at whatever plays
@@ -1343,9 +1169,8 @@ that role, but `id` is documented as a *stable identifier*, so `id: "default"` w
 to another object — breaking that stability — or sit on an object that is no longer the default the
 moment a second config ships. `test/public-api.test.ts` asserts the id explicitly so a later
 "consistency fix" fails loudly rather than quietly.
-Decided 2026-09-03, after Andreas asked that nothing in the package be named after an institution
-(FPMT was the example) while scoping the astrological-attributes work; `GELUG` was the first
-casualty. This is distinct from
+The rule is Andreas' request that nothing in the package be named after an institution. It is
+distinct from
 `PHUGPA`/`TSURPHU`/`BHUTAN`-style names on a `TraditionConfig`, which name an objective, falsifiable
 calendrical system Janson describes — not one institution's convention among several that legitimately
 disagree — see the "Kind of claim" distinction between `TraditionConfig` and `ObservanceConfig`
@@ -1359,8 +1184,8 @@ as describing the second. Both rules are surface-wide and one-way doors at 1.0.0
 [docs/decisions/2026-09-13-names-keyed-by-language.md](docs/decisions/2026-09-13-names-keyed-by-language.md).
 The surface does not yet hold to them everywhere — `ObservanceKind` uses ASCII Tibetan as keys and
 `ObservanceRule.name` is a bare string — which the pre-1.0.0 checklist in [docs/roadmap.md](docs/roadmap.md)
-tracks; `./astrology` has held to them since 2026-09-15. **Three shapes are in use, and the record's
-2026-09-15 amendment says which applies where**: sibling `*Name` fields for an object that is a name
+tracks; `./astrology` holds to them. **Three shapes are in use, and the record's amendment says
+which applies where**: sibling `*Name` fields for an object that is a name
 (`TibetanYearName`), a nested `{ englishName, tibetanName }` for a value inside an object with its own
 name (`yoga.auspiciousness`), and a trailing `tibetanNames` block for a block of labels (the four
 attribute results). The third has nothing structural tying a label to its name, so
@@ -1377,23 +1202,19 @@ Markdown uses semantic line breaks — one sentence or clause per line, so diffs
 the sentence that changed. `.markdownlint.jsonc` disables the rules that fight this (`MD013`
 above all). Do not re-wrap prose to satisfy a linter, and do not remove those exclusions.
 
-**Two guards have been investigated and rejected, both with measurements, so neither is proposed
-again.** A **semantic-line-break check** is easy to write — a sentence terminator followed by a
-capital, mid-line — and fires **2,221 times across 41 files**, with this file third on the list at
-182. The convention is real but observed unevenly, no document is clean enough to ratchet from, and
-adopting it would mean reflowing every document in one unreviewable diff. A **path-liveness check
-over `CLAUDE.md`**, extending the one Rule 6 already runs over
-[docs/coding-standards.md](docs/coding-standards.md), fires exactly twice — on `test/bench/` and
-`src/bench/`, both named here precisely to say they must *not* exist — and would have caught **none**
-of the six drift findings a review turned up on 2026-09-12, because those were a stated count and a
-rule description rather than dead paths. Both measured 2026-09-12. This is the same
-"deliberately unguarded, and here is why" note the validation-window rule already carries.
+**Two guards have been investigated and rejected, so neither is proposed again.** A
+**semantic-line-break check** is easy to write — a sentence terminator followed by a capital,
+mid-line — and fires thousands of times across the docs: the convention is observed unevenly, no
+document is clean enough to ratchet from, and adopting it would mean reflowing every document in one
+unreviewable diff. A **path-liveness check over `CLAUDE.md`**, extending the one Rule 6 already runs
+over [docs/coding-standards.md](docs/coding-standards.md), fires only on `test/bench/` and
+`src/bench/`, named here precisely to say they must *not* exist, and cannot catch the drift this
+file actually suffers — stated counts and rule descriptions, not dead paths.
 
 **Test files must not export, and a shared helper goes in `test/support/`.** Biome enforces the
-first; the second is what it forces. This is not cosmetic — `names.test.ts` briefly imported a guard
-from `unicode-tibetan.test.ts`, which made vitest **re-run that file's 28 tests** as part of the
-importer. The suite reported 669 tests where 641 existed. A count that quietly inflates is worse
-than a lint error.
+first; the second is what it forces. This is not cosmetic — a test file importing from another
+makes vitest **re-run the imported file's tests** as part of the importer, and a test count that
+quietly inflates is worse than a lint error.
 
 **In a sweep over thousands of fixture rows, collect violations and assert once.** Do not call
 `expect` per row with a message built from a `Temporal` date: eleven thousand rows times six
@@ -1405,11 +1226,10 @@ offending date instead of only the first.
 `test/fixtures/fpmt-observances.ts`. Its rows run to 238 characters because they carry observance
 labels, advice codes and moon icons, and at the default width Biome explodes each into eight lines — turning a reviewable
 one-row-per-line fixture into a 12k-line one. `scripts/fixture-row.mjs` documents the same problem
-for the cross-check fixtures, which avoid it by staying short. Do not remove the override.
-It is 250 since 2026-09-19, when the codes and icons were added. **Measure with Biome, not with a
-character count**: it counts the leading tab as `indentWidth`, so the longest row is 238 characters
-and 239 by its measure, and an override set to the character count has no headroom at all — the
-first extra code on that day explodes the row, surfacing as an unattributed formatting diff. Raise
+for the cross-check fixtures, which avoid it by staying short. The override is 250. **Measure with
+Biome, not with a character count**: it counts the leading tab as `indentWidth`, so the longest row
+is 238 characters and 239 by its measure, and an override set to the character count has no
+headroom — the next extra code explodes the row, surfacing as an unattributed formatting diff. Raise
 it when a field is added, and never remove it.
 
 Decision records document a **constraint a contributor would otherwise violate**, not a replay of
