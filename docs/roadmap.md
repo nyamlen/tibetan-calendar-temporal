@@ -342,6 +342,12 @@ Setup work not yet done. None of it blocks Phase 3.
       does not resolve at all, so anyone typing it dead-ends
 - [ ] Decide whether to register `nyamlen.org` and `nyamlen.dev` (both free as of 2026-08-11)
 - [ ] Record `Melong` as the name of the practice review screen in the app spec
+- [ ] **Development-tool vulnerabilities.** `npm audit` reported 14 (3 low, 4 moderate, 7 high)
+      on 2026-10-16, every one in development tools — the `markdownlint-cli2` chain (`braces`,
+      `micromatch`, `js-yaml` and others) and `vitest` with `@vitest/coverage-v8` — and none in
+      the published package: `npm audit --omit=dev` found 0. Update them as a change of their own,
+      run all ten CI commands, and take anything that needs `npm audit fix --force` (a
+      major-version jump) separately. Re-measure the count first; it moves as advisories appear
 
 ## Pre-v1.0.0 checklist
 
