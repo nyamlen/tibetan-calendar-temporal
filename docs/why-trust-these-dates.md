@@ -37,14 +37,14 @@ Agreement quoted without its window is not evidence; it is advertising.
 
 ### How much has actually been checked
 
-Nearly **18,000 rows** of published calendar data are committed to this repository and compared
+More than **18,000 rows** of published calendar data are committed to this repository and compared
 against the engine on every change. That number is worth breaking down rather than quoting, because
 the shape of it matters more than the size:
 
 | What | Rows | Against |
 |---|---|---|
 | Bhutanese days, 1 Jan 2000 – 2 Apr 2030 | 11,050 | one lineage (Henning's software) |
-| Phugpa days, 1 Jan 2022 – 25 Feb 2028 | 6,579 | **four independent sources** |
+| Phugpa days, 1 Jan 2022 – 25 Feb 2028 | 6,944 | **four independent sources** |
 | Royal Government of Bhutan days, 2025–2026 | 25 | an independent almanac |
 | Losar, 1927–2046 | 120 | Janson |
 | Leap months across four traditions, 2000–2030 | 124 | Janson (for 2021–2030, Janson's own values from his published source files, which he left out of the printed paper) |
@@ -53,8 +53,8 @@ the shape of it matters more than the size:
 **Two honest qualifications, and they are the reason the table is here rather than a headline
 number.**
 
-The 6,579 Phugpa rows are **comparisons, not distinct days**: the four sources overlap only in part
-— all four cover the same days only from 1 January 2024 to 31 December 2025 — and between them they
+The 6,944 Phugpa rows are **comparisons, not distinct days**: the four sources overlap only in part
+— all four cover the same days only from 1 January 2024 to 31 December 2026 — and between them they
 cover **2,247 distinct days**, every day from 1 January 2022 to 25 February 2028.
 Four independent sources agreeing on the same day is much stronger evidence than one source checked
 on four times as many days, which is exactly why the number is presented this way round.
@@ -81,7 +81,7 @@ Each source covers its own window, and a claim resting on one of them should quo
 
 | Source | What it is | First day | Last day | Days | Agree |
 |---|---|---|---|---|---|
-| FPMT monthly calendars | published almanac | 1 Jan 2022 | 31 Dec 2025 | 1,461 | 1,458 — three days differ, explained below |
+| FPMT monthly calendars | published almanac | 1 Jan 2022 | 31 Dec 2026 | 1,826 | 1,823 — three days differ, explained below |
 | Lotsawa House | independent implementation | 21 Feb 2023 | 25 Feb 2028 | 1,831 | all |
 | eszthoff | independent implementation | 1 Jan 2023 | 31 Dec 2027 | 1,826 | all |
 | christian-steinert | independent implementation | 1 Jan 2024 | 31 Dec 2027 | 1,461 | 1,438 |
@@ -115,10 +115,10 @@ The precise statement of what that does and does not establish is at
 [testing.md, what that does and does not cover](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/testing.md#what-that-does-and-does-not-cover).
 
 **Full and new moons** are checked against the moon icons FPMT prints on its monthly calendars, from
-1 January 2022 to 31 December 2025.
-Over those four years FPMT marks 99 full and new moons, and the engine puts 98 of them on the same
+1 January 2022 to 31 December 2026.
+Over those five years FPMT marks 124 full and new moons, and the engine puts 123 of them on the same
 day.
-The 99th is the new moon of February 2025: day 30 is skipped that month, so the engine places the new
+The 124th is the new moon of February 2025: day 30 is skipped that month, so the engine places the new
 moon on the 27th, and FPMT marks it one day later, on the 28th.
 Where FPMT's moon icons come from is not recorded, so this is agreement with FPMT's calendar rather
 than with the almanac behind it.
@@ -148,7 +148,7 @@ Three qualifications, all of which matter:
 ### Observances
 
 FPMT's observance set, shipped as `DEFAULT_OBSERVANCES`, is checked against **FPMT's own published
-monthly calendars for 2022–2025** — not merely against FPMT's guidance page, but against the
+monthly calendars for 2022–2026** — not merely against FPMT's guidance page, but against the
 calendars themselves, day by day.
 
 ## What is not established
@@ -182,13 +182,13 @@ Stating this is the point of the page.
   and the honest version is longer. The cycles — the year's five elements, the month's and lunar
   day's labels, the calendar day's — are closed forms checked against Janson's own printed tables,
   which catches a transcription or formula error and is **not** external corroboration. The **lunar
-  mansion** needs real astronomy and agrees with FPMT's published codes on **97.6%** of the 1,459 days
-  in 2022–2025 whose code can name one. Henning's published daily calendars, compared once outside the
-  test suite, give the same mansion as this engine on all 1,459 of those days and disagree with FPMT
+  mansion** needs real astronomy and agrees with FPMT's published codes on **98.0%** of the 1,821 days
+  in 2022–2026 whose code can name one. Henning's published daily calendars, compared outside the
+  test suite, give the same mansion as this engine on all 1,821 of those days and disagree with FPMT
   on the same ones, so the difference is on FPMT's side: its moon runs slightly ahead, mostly on days
-  late in a mansion, and far more often in 2025 than in the three years before.
-  No cause is established, and **six days in four years fit no pattern at all**. Yoga
-  **favorability** is FPMT's convention, and agrees with their printed prefixes on 99.7% of the 1,460
+  late in a mansion, and far more often in 2025 than in any other year.
+  No cause is established, and **eight days in five years fit no pattern at all**. Yoga
+  **favorability** is FPMT's convention, and agrees with their printed prefixes on 99.8% of the 1,825
   days whose code can be read.
   A Tibetan dictionary, the *tshig mdzod chen mo*, states the same element pair for each of the ten
   yogas and grades them into four groups, shipped as `auspiciousness`; its grading agrees with

@@ -5,7 +5,7 @@ This document records facts about that calendar that are specific to FPMT and th
 It is not shipped, and its figures are not validation claims about the package — those are in [why-trust-these-dates.md](why-trust-these-dates.md).
 
 Every Western date below is a Western (Gregorian) date, and every "month" and "day" is Tibetan, Phugpa tradition.
-The observations cover FPMT's calendars from January 2022 to October 2026: `test/fixtures/fpmt-observances.ts` for 2022–2025, and the published monthly pages for January to October 2026, read on 2026-09-19.
+The observations cover FPMT's calendars from January 2022 to December 2026, all in `test/fixtures/fpmt-observances.ts`. The 2026 pages were first read by hand on 2026-09-19, January to October, and generated into the fixture on 2026-11-08, once December had been published.
 What each of FPMT's codes means, and where it is sourced, is in [almanac-sources.md](almanac-sources.md).
 
 ## Eclipses

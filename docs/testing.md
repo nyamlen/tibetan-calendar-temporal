@@ -220,7 +220,7 @@ number, everywhere else before. That shifts day-level dates and the true month c
 | Lotsawa House | 21 Feb 2023 – 25 Feb 2028, 1,831 days | **all** |
 | eszthoff | 1 Jan 2023 – 31 Dec 2027, 1,826 days | **all** |
 | christian-steinert | 1 Jan 2024 – 31 Dec 2027, 1,461 days | 1,438 — see below |
-| FPMT monthly calendars | 1 Jan 2022 – 31 Dec 2025, 1,461 days | 1,458 — see below |
+| FPMT monthly calendars | 1 Jan 2022 – 31 Dec 2026, 1,826 days | 1,823 — see below |
 
 Two of the three implementations agree with the engine on every single day, including every
 doubled date, both leap months, and every skipped-date gap. The fourth source is not an
@@ -236,7 +236,7 @@ becomes 1927–2046 at one day per year, plus the epoch itself, plus that window
 | Check | Range | Source |
 |-------|-------|--------|
 | Cross-check fixtures, day by day | 1 Jan 2022 – 25 Feb 2028, between them | three implementations + FPMT |
-| Full and new moons, day by day | 1 Jan 2022 – 31 Dec 2025 | FPMT's moon icons — see [below](#fpmts-moon-icons) |
+| Full and new moons, day by day | 1 Jan 2022 – 31 Dec 2026 | FPMT's moon icons — see [below](#fpmts-moon-icons) |
 | Losar table, one day per year | 1927–2046 | Janson |
 | Epoch constants to six decimals | 806 | Janson |
 | `a₂` divergence dates | 2001, 2006, 2025 | Janson |
@@ -244,7 +244,7 @@ becomes 1927–2046 at one day per year, plus the epoch itself, plus that window
 
 **The astrological attributes have a third window, narrower than either, and confusing them is a
 live trap.** Dates are validated from 1 January 2022 to 25 February 2028 and observances only
-2022–2025; the attribute layer is
+2022–2026; the attribute layer is
 narrower still.
 
 | Check | Range | Source | What it settles |
@@ -253,39 +253,44 @@ narrower still.
 | Month attributes: animal, gender | all 12 months, Phugpa **and** Tsurphu | Janson's own month-animal table | the same: transcription and formula error, not corroboration |
 | Month attributes: element | 1900–2100, both element rules | Janson's **prose**, there being no printed table | that the Tiger month takes the son of the year's element, that each element runs two months, and that Phugpa restarts annually where Tsurphu does not |
 | Lunar-day attributes | every day of every month | Janson's **prose** | the opening animal of odd and even months, and the opening trigram and number he names for each month animal |
-| Lunar mansion, day by day | 2022–2025, Phugpa only | FPMT's day-quality codes | the mansion arithmetic, at **97.6%** — see below |
-| Yoga favorability, day by day | 2022–2025, and tradition-free | FPMT's `FD-`/`UD-` prefixes | the favorability table, at **99.7%** — it reads FPMT's own pair letters, so the mansion residual cannot reach it, and the four disagreements are days FPMT contradicts itself on |
+| Lunar mansion, day by day | 2022–2026, Phugpa only | FPMT's day-quality codes | the mansion arithmetic, at **98.0%** — see below |
+| Yoga favorability, day by day | 2022–2026, and tradition-free | FPMT's `FD-`/`UD-` prefixes | the favorability table, at **99.8%** — it reads FPMT's own pair letters, so the mansion residual cannot reach it, and the four disagreements are days FPMT contradicts itself on |
 | Yoga element pairs and grading | the ten rows; no window | the *tshig mdzod chen mo*'s `'phrod sbyor`, through `verify:month-and-yoga-names` | that Henning's ten pairs are the dictionary's, and that `auspiciousness` is its grading — **membership read by list order**, since it states group sizes only. `test/astrology/yoga.test.ts` pins that good + restorative are exactly the favorable six |
 
-**That 97.6% is a characterised figure, not a tolerance.** 1,424 of 1,459 days agree — a **2.4%**
-residual, re-measured 2026-09-12 rather than carried over: the plan's working figure of 3.9% predated
-both the doubled-day rule and a leap-month fix in the cross-check itself, and two files had inherited
-it. **All 31 doubled-first days now agree**, where before the doubled-day rule 19 of them did not.
+**That 98.0% is a characterised figure, not a tolerance.** 1,784 of 1,821 days agree — a **2.0%**
+residual. Over 2022–2025 alone it was 2.4%, 1,424 of 1,459, re-measured 2026-09-12 rather than carried
+over: the plan's working figure of 3.9% predated both the doubled-day rule and a leap-month fix in the
+cross-check itself, and two files had inherited it. **All 31 doubled-first days now agree**, where before the doubled-day rule 19 of them did not.
 
 **The residual is FPMT's, not this arithmetic's.** Henning's daily Phugpa calendars give the same
-mansion as this engine on **all 1,459 days** and disagree with FPMT on exactly the same 35. That is
+mansion as this engine on **all 1,821 days** and disagree with FPMT on exactly the same 37. That is
 the engine's own lineage, so it proves the implementation rather than the calendar — but it does
-locate the difference. Measured 2026-09-14.
+locate the difference. Measured 2026-09-14 for 2022–2025 and 2026-11-08 for 2026, where Henning's
+file spells one mansion *gro zhin* and the engine *gro bzhin*: the same mansion.
 
-**And the 35 are one-sided.** 28 sit in the last 15% of the moon's mansion, and on 27 of those FPMT's
-element is the *next* mansion's; one sits at the start of a mansion; six are mid-mansion. FPMT's
+**And the 37 are one-sided.** 28 sit in the last 15% of the moon's mansion, and on 27 of those FPMT's
+element is the *next* mansion's; one sits at the start of a mansion; eight are mid-mansion. FPMT's
 moon runs slightly ahead, and not by a constant amount: 2022, 2023 and 2024 have 6, 2 and 5
-disagreements, 2025 has 22. No cause is established. Ruled out — the karaṇa moon longitude, a
+disagreements, 2025 has 22, and 2026 has 2. No cause is established. Ruled out — the karaṇa moon longitude, a
 constant offset, a later time of day, the other `a₂` — with the measurements in
 [validation-sources.md](validation-sources.md).
 **One candidate is outstanding rather than ruled out**, and it is not arithmetic: FPMT was asked on
 2026-09-19 whether anything changed in how the calendar was prepared in 2025. The question is worth
 recording because a second, independent residual clusters in the same year — the engine's `FD-`/`UD-`
-code matches FPMT on 642 of 669 days from January 2025 to October 2026, and 22 of those 27
-disagreements are in 2025. A change of preparer or source almanac would account for both at once,
-which nothing derived from the formulas has managed. **It is a question asked, not a finding**, and
-no reply has come; the 642/669 figure is a working measurement that becomes a stated one only when
-the fixture captures 2026. **This corrects an earlier explanation** that blamed
+code matches FPMT on 703 of 730 days from January 2025 to December 2026, and 22 of those 27
+disagreements are in 2025. The other five are all in 2026 and none after July: three provably
+impossible `UD-EF` codes, on 22, 23 and 29 April, and the mid-mansion days of 26 June and 17 July.
+Over January 2025 to October 2026 alone the figure was 642 of 669, the same 27; November and
+December 2026 add no disagreement. A change of preparer or source almanac would account for the
+2025 cluster, which nothing derived from the formulas has managed, and 2026 returning to two
+mansion disagreements does not decide between a change that was later undone and a bad year.
+**It is a question asked, not a finding**, and no reply has come.
+**This corrects an earlier explanation** that blamed
 Janson's `/27` approximation of the moon's motion: Janson gives that approximation as the almanac's
 own method, and Henning uses it too, so it cannot be what separates an almanac from this engine.
 
-The six mid-mansion days fit neither pattern and are recorded as unexplained rather than dismissed;
-FPMT's calendars already carry four provably impossible codes. The suite **pins where the 35 sit**,
+The eight mid-mansion days fit neither pattern and are recorded as unexplained rather than dismissed;
+FPMT's calendars already carry four provably impossible codes. The suite **pins where the 37 sit**,
 not merely the score: a bare threshold would keep passing if a real bug scattered them elsewhere.
 
 **Three of those rows are checked against prose rather than a table, and that is weaker in a specific
@@ -297,7 +302,7 @@ for a Dragon month, which is what he says a Dragon month opens with, from a form
 independently of that sentence.
 
 **Quote the right window.** A claim about a Tibetan date has just over six years behind it, about an observance
-four, and about a mansion four *for Phugpa alone* — Bhutan's attributes have no external check at all.
+five, and about a mansion five *for Phugpa alone* — Bhutan's attributes have no external check at all.
 Of the rows above, the three **cycle** rows are Janson against Janson and are not external
 corroboration; only the **mansion** and the **yoga's favorability** have an outside witness over
 days, and that witness is FPMT in both cases. The yoga table's pairs and grading also have the *tshig
@@ -368,7 +373,7 @@ Men-Tsee-Khang calendar. That makes it the one fixture capable of carrying infor
 [decisions/2026-08-12-lunar-anomaly-a2-default.md](decisions/2026-08-12-lunar-anomaly-a2-default.md),
 written when no such source was to hand.
 
-**It decides for the shipped default.** Against 1,461 days, `PHUGPA` (`a₂ = 1/28`) diverges on
+**It decides for the shipped default.** Against 1,826 days, `PHUGPA` (`a₂ = 1/28`) diverges on
 three; `PHUGPA_HENNING` diverges on those three *and* the 2025 cluster Janson names, where FPMT
 sides with the engine.
 
@@ -383,7 +388,7 @@ next day:
 | 2024-12-08 | 8 of month 10; 7 skipped | 7 of month 10; 8 skipped |
 
 Stated in terms of the number consumed, FPMT is one higher every time — the same direction as
-christian-steinert's 23, though not the same rule, since FPMT agrees on the other 1,458 days where
+christian-steinert's 23, though not the same rule, since FPMT agrees on the other 1,823 days where
 Steinert's rule would diverge far more often.
 
 Four explanations were tested and each is ruled out:
@@ -414,13 +419,14 @@ Where the icons come from is not known —
 [validation-sources.md](validation-sources.md#fpmts-moon-icons-lineage-unknown) — so this is
 agreement with FPMT's icons, not with the almanac.
 
-**The unit is the moon, not the icon.** Over 1 January 2022 to 31 December 2025 the engine computes
-**99** full and new moons and FPMT prints **101** icons, 50 full and 51 new. **98 of the 99 moons**
+**The unit is the moon, not the icon.** Over 1 January 2022 to 31 December 2026 the engine computes
+**124** full and new moons and FPMT prints **126** icons, 63 full and 63 new. **123 of the 124 moons**
 fall on a day FPMT marks with an icon of the same kind. The other is the new moon of February 2025:
 day 30 is skipped that month, so the engine's new moon falls in the day numbered 29, 27 February,
 and FPMT marks 28 February, the first of the next month. It is the only skipped-30 new moon in
-January 2022 to October 2026, so one case cannot say whether it is a convention or a slip; the
-next moon on a skipped day is the full moon of 23 December 2026, a skipped 15.
+January 2022 to December 2026, so one case cannot say whether it is a convention or a slip. The
+only other moon on a skipped day is the full moon of 23 December 2026, a skipped 15, which FPMT
+marks on the engine's own day, so it does not repeat February 2025.
 
 **The two extra icons are FPMT's practice on doubled dates, not disagreements.** Four doubled dates
 carry a moon in the window, and FPMT marks each on the engine's day, the second half. On two it

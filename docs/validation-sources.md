@@ -88,7 +88,7 @@ replaced diacritics with their absence while appearing to strengthen the provena
 | `crosscheck-lotsawa.ts` | independent impl. | HTML grid | 1,831 days, 21 Feb 2023 – 25 Feb 2028 | day numbers, doubled/skipped marks |
 | `crosscheck-steinert.ts` | independent impl. | JSON API | 1,461 days, 1 Jan 2024 – 31 Dec 2027 | day numbers, doubled + leap-month flags |
 | `crosscheck-eszthoff.ts` | independent impl. | npm package, run not read | 1,826 days, 1 Jan 2023 – 31 Dec 2027 | day numbers |
-| `fpmt-observances.ts` | **almanac** (Men-Tsee-Khang) | HTML tables | 1,461 days, 2022–2025 | day numbers — the source that settled `a₂`; since 2026-09-12 also the **lunar mansion**, via the day-quality codes; since 2026-09-19 the **full and new moons**, via its moon icons, whose own lineage is unknown — see [below](#fpmts-moon-icons-lineage-unknown) |
+| `fpmt-observances.ts` | **almanac** (Men-Tsee-Khang) | HTML tables | 1,826 days, 2022–2026 | day numbers — the source that settled `a₂`; since 2026-09-12 also the **lunar mansion**, via the day-quality codes; since 2026-09-19 the **full and new moons**, via its moon icons, whose own lineage is unknown — see [below](#fpmts-moon-icons-lineage-unknown) |
 | `fpmt-holy-days.ts` | almanac, via prose | hand-curated | selected days | observance placement only |
 | `losar.ts`, `janson-epoch.ts`, `sixty-year-cycle.ts` | Janson | LaTeX, generated | 1927–2046 Losar; epoch | month count, leap rule, year naming |
 
@@ -221,6 +221,16 @@ being treated as independent.
 
 Do not use a Drukpa Kagyu source for Tsurphu. Drukpa follows the derivative described above; Drikung
 Kagyu follows a Tsurphu/Phugpa hybrid. Neither is Tsurphu.
+
+**A day-by-day Tsurphu source exists, and has not been obtained.** The Nitartha calendar from Nalandabodhi
+prints in every day's cell the Tsurluk (Tsurphu) month and lunar day, beside the Phugpa month and day.
+Its publications manager answered on 2026-10-22 that the Tsurphu data is computed by hand by Lama Tenzin
+Namdak, who studied with Dr. Karma Drubgyu — **not** with Henning's software. That is the publisher's own
+statement of lineage, and nothing here has checked it; the lineage rule above applies until it has.
+It would settle **dates** only. By the same reply it prints **no** daily or monthly nine number, includes
+no seasonal month names, and takes the solstices it does print from the Gregorian calendar, so it does not
+answer the nine-number questions above, and the solstice question stays open.
+The store that sells it has not yet said whether the current edition or back issues can be bought.
 
 **The calendar day's nine number needs day-level data too, and more of it than a date check.** Janson
 remarks that Tsurphu calendars restart it from the solstices — 5 on the first Wood–Mouse day after the
@@ -375,6 +385,13 @@ those FPMT's element is the *next* mansion's. One sits in the first 15%; six are
 previous mansion has a different element and the moon is in the first 10% of its own, FPMT agrees
 with the engine on all 101 such days. By year: 6, 2, 5 and **22** for 2022–2025. FPMT's moon runs
 ahead of the siddhānta computation, rarely before 2025 and often in it.
+
+**Extended 2026-11-08, once FPMT had published 2026.** The same measurement over 2022–2026 is 1,784 of
+1,821 days, with Henning's mansion equal to this engine's on all 1,821 and the residual now 37. The two
+new days, 26 June and 17 July 2026, are mid-mansion (positions 0.56 and 0.46), so eight days fit no
+pattern, not six. By year the residual is 6, 2, 5, 22 and **2**: 2026 returns to the level of 2023, so
+the 2025 cluster is not a trend. Henning's file spells one mansion *gro zhin*, which this engine spells
+*gro bzhin*; it is the same mansion.
 
 | Explanation | Test | Result |
 |---|---|---|

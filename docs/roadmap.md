@@ -693,8 +693,12 @@ that its first step is still open.
 - [x] **`docs/why-trust-these-dates.md`** — the reader-facing account of what has been validated and
       over which years, written for a non-programmer. It is the only document besides
       [testing.md](testing.md) permitted to quote a validation window; everything else links to it
-- [ ] **Extend FPMT's calendars through 2026, once December 2026 is published — after the
-      why-trust suite, which landed 2026-09-18.** Run `scripts/fetch-fpmt-observances.mjs` with
+- [x] **Extend FPMT's calendars through 2026, once December 2026 is published — after the
+      why-trust suite, which landed 2026-09-18.** Done 2026-11-08: the generator's baseline run
+      reproduced the committed 2022–2025 fixture byte-for-byte, then `2022 2026` added 365 rows (the
+      generator now defaults to 2026). The mansion residual came back to 2 in 2026, so 2025 is not a
+      trend; the Henning comparison over 2026 agrees on all 362 counted days. The text below is the
+      original plan, kept for its reasoning. Run `scripts/fetch-fpmt-observances.mjs` with
       `2022 2026`. Not before: the script takes whole years only, deliberately, since its day-count
       check assumes them and a partial year would let the fixture shrink silently, and months not yet
       past are forecasts FPMT can revise. As of 2026-09-18 it publishes through October 2026.

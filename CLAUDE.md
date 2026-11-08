@@ -204,13 +204,13 @@ twenty-five government-published days — so cite the window whenever citing the
 
 **The observance window is narrower than the date window, and quoting the wrong one is a live
 trap.** 1 January 2022 to 25 February 2028 is the *union* of four sources and covers **dates**. The only source carrying
-observance labels is `test/fixtures/fpmt-observances.ts`, and it runs **2022–2025** — so a claim
-about which days carry a puja has three fewer years behind it than a claim about which Tibetan day a
+observance labels is `test/fixtures/fpmt-observances.ts`, and it runs **2022–2026** — so a claim
+about which days carry a puja has fewer years behind it than a claim about which Tibetan day a
 date is. `docs/why-trust-these-dates.md` states both correctly; the trap is that this file states
 only the wider one, and an agent answering an observance question reaches for what it read here —
 an answer about Tara puja days in late 2026 once claimed FPMT coverage for the *labels* when only the
-dates were corroborated. Cite 2022–2025 for an observance, 1 January 2022 to 25 February 2028 for a date.
-**A full or new moon has the observance window too**, 2022–2025, from the same fixture's moon icons
+dates were corroborated. Cite 2022–2026 for an observance, 1 January 2022 to 25 February 2028 for a date.
+**A full or new moon has the observance window too**, 2022–2026, from the same fixture's moon icons
 — and it is agreement with FPMT's icons, whose own source is unrecorded, not with
 the almanac. Count moons, not icons: FPMT marks both halves of some doubled dates, and those extra
 icons are recorded in `docs/testing.md`, deliberately not on the shipped page.
@@ -233,15 +233,16 @@ attributes are **not** covered by either figure above, and the differences are n
   else**. He computed those tables from the formulas implemented here, so agreement catches a
   transcription or formula error and is **not external corroboration**. There is no window to quote,
   because there is no external source.
-- The **lunar mansion** agrees with FPMT on **97.6%** of 1,459 days, 2022–2025, Phugpa only — and the
+- The **lunar mansion** agrees with FPMT on **98.0%** of 1,821 days, 2022–2026, Phugpa only — and the
   residual is characterised rather than excused. **It is FPMT's, not the arithmetic's**: Henning's daily
-  Phugpa calendars match this engine on all 1,459 days and fail on the same 35. The 35 are one-sided
-  (FPMT gives the *next* mansion late in a mansion), cluster in 2025, have no established cause, and
-  **six of them fit no pattern**. Janson's `/27` approximation cannot explain them: he gives it as the
+  Phugpa calendars match this engine on all 1,821 days and fail on the same 37. The 37 are one-sided
+  (FPMT gives the *next* mansion late in a mansion), cluster in 2025 (22, against 2 in 2026), have no
+  established cause, and **eight of them fit no pattern**. Janson's `/27` approximation cannot explain them: he gives it as the
   almanac's own method, so it cannot separate the two. Before explaining a residual by a formula, check whether the source uses the same formula.
-- **Yoga favorability** agrees with FPMT's printed prefixes on 99.7% of **its own 1,460 days** — every
-  day whose code has a readable prefix and pair, one more than the mansion's, because 2024-09-12's
-  `UD-EW` names no yoga and so cannot force a mansion element but is still a favorability claim. That
+- **Yoga favorability** agrees with FPMT's printed prefixes on 99.8% of **its own 1,825 days** — every
+  day whose code has a readable prefix and pair, four more than the mansion's, because 2024-09-12's
+  `UD-EW` and three `UD-EF` codes in April 2026 name no yoga consistent with their weekday and so
+  cannot force a mansion element but are still favorability claims. That
   check is independent of the mansion because it reads FPMT's own pair letters.
 - **The yoga table's element pairs and its grading** have a Tibetan witness outside Henning: the *tshig mdzod chen mo*'s `'phrod sbyor` states the same pair for all ten, and grades the
   ten into good, restorative, bad and worst, which ships as `auspiciousness`. It is a check on **ten
@@ -250,7 +251,7 @@ attributes are **not** covered by either figure above, and the differences are n
   on all ten is two claims coinciding, not a validation of either.
 
 So never answer an attribute question with the date window, and never call the mansion "validated"
-without the 97.6% and its six unexplained days. `docs/testing.md` holds the table;
+without the 98.0% and its eight unexplained days. `docs/testing.md` holds the table;
 `docs/why-trust-these-dates.md` states the consumer-facing version. When a layer lands, check that
 page for a sentence the layer has made false — it once said "no astrological information is computed".
 
@@ -1094,9 +1095,10 @@ inside a claim, asserted or listed with its reason, which closes for that docume
 docblock suite still has.
 
 **A percentage names its day set, and two figures may not share "of those days" unless they are
-measured over the same days.** The mansion's 97.6% is over the 1,459 days whose code can force a
-mansion element; favorability's 99.7% is over its own 1,460, because 2024-09-12's `UD-EW` names no
-yoga but is still a favorability claim. Over the 1,459, favorability is 99.8%.
+measured over the same days.** The mansion's 98.0% is over the 1,821 days whose code can force a
+mansion element; favorability's 99.8% is over its own 1,825, because four days' codes name no yoga
+consistent with their weekday but are still favorability claims. Over the 1,821, favorability is
+also 99.8%, so here the two day sets give the same rounded figure; keep naming the set regardless.
 
 **Prose windows are as exact as the table beside them; only durations are rounded.** "2022–2027" and
 "early 2030" cannot be checked by the reader the page is written for, and both once hid an error:
