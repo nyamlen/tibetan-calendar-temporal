@@ -80,10 +80,10 @@ describe("FPMT published holy days", () => {
  * information about the `a2` fork. See docs/decisions/2026-08-12-lunar-anomaly-a2-default.md,
  * which was written when no such source was to hand.
  */
-describe("FPMT monthly calendars, 2022-2025", () => {
+describe("FPMT monthly calendars, 2022-2026", () => {
 	const numbering = fpmtNumberingMismatches;
 
-	it("agrees on all but three of 1,461 days", () => {
+	it("agrees on all but three of 1,826 days", () => {
 		expect(numbering().map((r) => r.iso)).toEqual(["2022-12-03", "2023-11-09", "2024-12-08"]);
 	});
 

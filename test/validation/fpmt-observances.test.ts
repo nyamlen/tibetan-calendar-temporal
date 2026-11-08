@@ -43,8 +43,12 @@ const NUMBERING_DIVERGENCES = new Set(["2022-12-02", "2022-12-03", "2024-12-08",
 // what makes them a tested claim rather than a transcription -- the failure mode CLAUDE.md
 // records for an early draft of docs/testing.md, which put Losar 2026 a day out.
 
-describe("observances against FPMT's published calendars, 2022-2025", () => {
-	const emitted = getObservances(iso("2022-01-01"), iso("2025-12-31"));
+describe("observances against FPMT's published calendars", () => {
+	// The window is the fixture's own, so extending the fixture cannot leave rows beyond the range
+	// being emitted, which would report every one of them as a label the engine failed to produce.
+	const first = FPMT_OBSERVANCES[0]?.iso ?? "";
+	const last = FPMT_OBSERVANCES.at(-1)?.iso ?? "";
+	const emitted = getObservances(iso(first), iso(last));
 
 	const byDate = new Map<string, Set<string>>();
 	for (const o of emitted) {
@@ -85,17 +89,17 @@ describe("observances against FPMT's published calendars, 2022-2025", () => {
  * Three sources meet: Janson gives the mansion number, Henning the element each mansion carries,
  * FPMT the pair. None derives from another, so agreement means something.
  *
- * ## What the measured 97.6% actually says
+ * ## What the measured 98.0% actually says
  *
- * 1,424 of 1,459 days agree. **The residual is on FPMT's side, not in this arithmetic**: Henning's own
+ * 1,784 of 1,821 days agree. **The residual is on FPMT's side, not in this arithmetic**: Henning's own
  * daily Phugpa calendars (`kalacakra.org/calendar/tdata/pl_YYYY.txt`) give the same mansion as this
- * engine on all 1,459 days, and fail against FPMT on exactly the same 35. Henning is this engine's
+ * engine on all 1,821 days, and fail against FPMT on exactly the same 37. Henning is this engine's
  * lineage, so that is a check on the implementation rather than corroboration of the calendar.
  *
- * **The 35 are one-sided.** 28 sit in the last 15% of the moon's mansion, and on 27 of those FPMT's
- * element is the *next* mansion's; one sits at the start of a mansion; six are mid-mansion. FPMT's
+ * **The 37 are one-sided.** 28 sit in the last 15% of the moon's mansion, and on 27 of those FPMT's
+ * element is the *next* mansion's; one sits at the start of a mansion; eight are mid-mansion. FPMT's
  * moon runs slightly ahead of the one Janson describes the almanac computing. And the failures are
- * **not spread evenly over time**: 2022, 2023 and 2024 have 6, 2 and 5, and 2025 has 22.
+ * **not spread evenly over time**: 2022, 2023 and 2024 have 6, 2 and 5, 2025 has 22, and 2026 has 2.
  *
  * **Not Janson's approximation.** `moon_calendar_day` treats the moon as circling in 27 days, but
  * Janson gives that as the almanac's own method, and Henning uses it too, so it cannot separate an
@@ -103,7 +107,7 @@ describe("observances against FPMT's published calendars, 2022-2025", () => {
  * karaṇa moon longitude almanacs also print, a constant offset, a later time of day, and the other
  * value of `a₂`.
  *
- * The six mid-mansion days fit neither pattern. The calendar is hand-prepared and already carries
+ * The eight mid-mansion days fit neither pattern. The calendar is hand-prepared and already carries
  * four provably impossible codes, so ordinary mistakes are the likeliest reading — but they are
  * recorded as unexplained rather than dismissed.
  *
@@ -139,7 +143,7 @@ describe("the elemental yoga against FPMT's day-quality codes", () => {
 		expect(agreed / mansionDays.length).toBeGreaterThan(0.97);
 		// Measured over the days whose code can force a mansion element, and pinned by value: the
 		// fixture is static, and the shipped page quotes both numbers.
-		expect({ agreed, of: mansionDays.length }).toEqual({ agreed: 1424, of: 1459 });
+		expect({ agreed, of: mansionDays.length }).toEqual({ agreed: 1784, of: 1821 });
 	});
 
 	it("puts its disagreements at the late edge of a mansion, on one side only", () => {
@@ -151,13 +155,13 @@ describe("the elemental yoga against FPMT's day-quality codes", () => {
 			late: disagreements.filter((d) => d.position > 0.85).length,
 			early: disagreements.filter((d) => d.position < 0.15).length,
 			middle: disagreements.filter((d) => d.position >= 0.15 && d.position <= 0.85).length,
-		}).toEqual({ late: 28, early: 1, middle: 6 });
+		}).toEqual({ late: 28, early: 1, middle: 8 });
 	});
 
 	it("leaves only a handful of days unexplained by either", () => {
 		const stranded = mansionDisagreements().filter((d) => d.position >= 0.15 && d.position <= 0.85);
 		// Pinned rather than bounded loosely: if this grows, something changed and wants looking at.
-		expect(stranded.length).toBeLessThanOrEqual(6);
+		expect(stranded.length).toBeLessThanOrEqual(8);
 	});
 
 	it("validates what the export returns, not only the internals", () => {
@@ -259,14 +263,14 @@ describe("the yoga's favorability against FPMT's published prefixes", () => {
 // The first external check of `isFullMoon`/`isNewMoon`, and through them `nextFullMoon` and
 // `nextNewMoon`. Counted as moons, not icons: see `fpmtMoonComparison` for why an icon on the first
 // half of a doubled date is a match through its twin rather than a disagreement.
-describe("the full and new moons against FPMT's moon icons, 2022-2025", () => {
+describe("the full and new moons against FPMT's moon icons, 2022-2026", () => {
 	const moons = fpmtMoonComparison();
 
-	it("puts 98 of its 99 moons on a day FPMT marks with an icon of the same kind", () => {
-		expect(moons.engineMoons).toHaveLength(99);
+	it("puts 123 of its 124 moons on a day FPMT marks with an icon of the same kind", () => {
+		expect(moons.engineMoons).toHaveLength(124);
 		// The shipped page says "on the same day", so that is the figure it takes: every match today
 		// is on the moon's own day, and a twin-only match would have to change the sentence.
-		expect(moons.sameDayEngineMoons).toHaveLength(98);
+		expect(moons.sameDayEngineMoons).toHaveLength(123);
 		expect(moons.matchedEngineMoons).toEqual(moons.sameDayEngineMoons);
 	});
 
@@ -308,9 +312,9 @@ describe("the full and new moons against FPMT's moon icons, 2022-2025", () => {
 		]);
 	});
 
-	it("accounts for every icon: 101 of them, 50 full and 51 new, marking 99 moons", () => {
+	it("accounts for every icon: 126 of them, 63 full and 63 new, marking 124 moons", () => {
 		const count = (kind: string) => moons.icons.filter((i) => i.kind === kind).length;
-		expect([moons.icons.length, count("full"), count("new")]).toEqual([101, 50, 51]);
+		expect([moons.icons.length, count("full"), count("new")]).toEqual([126, 63, 63]);
 		// The two directions reconcile: the icons left after the twins and the unmatched one are the
 		// same moons the engine side counts as matched on their own day. Subtracting the pinned counts
 		// from the pinned total would only be arithmetic.
@@ -332,8 +336,8 @@ describe("the full and new moons against FPMT's moon icons, 2022-2025", () => {
 		});
 		expect(FPMT_OBSERVANCES.find((row) => row.iso === "2023-04-06")?.moon).toBe("full");
 		const result = fpmtMoonComparison(PHUGPA, moved);
-		expect(result.matchedEngineMoons).toHaveLength(98);
-		expect(result.sameDayEngineMoons).toHaveLength(97);
+		expect(result.matchedEngineMoons).toHaveLength(123);
+		expect(result.sameDayEngineMoons).toHaveLength(122);
 		expect(result.unmatchedEngineMoons).toEqual(moons.unmatchedEngineMoons);
 	});
 
@@ -361,6 +365,6 @@ describe("FPMT's advice codes, as recorded", () => {
 	});
 
 	it("carries codes on nearly every day", () => {
-		expect(FPMT_OBSERVANCES.filter((r) => r.codes !== undefined)).toHaveLength(1407);
+		expect(FPMT_OBSERVANCES.filter((r) => r.codes !== undefined)).toHaveLength(1772);
 	});
 });

@@ -100,6 +100,7 @@ const NUMBER_WORDS: Record<number, string> = {
 	4: "four",
 	5: "five",
 	6: "six",
+	8: "eight",
 	10: "ten",
 	25: "twenty-five",
 	27: "twenty-seven",
@@ -173,11 +174,15 @@ const OVERLAP = {
 const LEAP_ROWS = CROSS_VERSION_LEAP.length * VERSIONS.length;
 const LEAP_COMMENTED = CROSS_VERSION_LEAP.filter((row) => row.commented).map((row) => row.year);
 const TOTAL_ROWS = PHUGPA_ROWS + TRUSTED_DAYS + RGOB_DAYS.length + LOSAR_DATES.length + LEAP_ROWS;
-/** "Nearly 18,000": the total rounded up to the thousand, and within five hundred of it. */
-const NEARLY =
+/**
+ * The total as the page rounds it: "Nearly 18,000" when it sits within five hundred below a round
+ * thousand, "More than 18,000" otherwise. The wording and the figure are asserted together, so a
+ * total that crosses the line cannot keep a "nearly" that has become false.
+ */
+const ROUNDED_TOTAL =
 	Math.ceil(TOTAL_ROWS / 1000) * 1000 - TOTAL_ROWS <= 500
-		? count(Math.ceil(TOTAL_ROWS / 1000) * 1000)
-		: `<${count(TOTAL_ROWS)} is not nearly a round thousand>`;
+		? { lead: "Nearly", figure: count(Math.ceil(TOTAL_ROWS / 1000) * 1000) }
+		: { lead: "More than", figure: count(Math.floor(TOTAL_ROWS / 1000) * 1000) };
 
 const LOSAR_WINDOW = windowOf(LOSAR_DATES.map((row) => ({ iso: row.losar })));
 const FPMT_WINDOW = windowOf(FPMT_OBSERVANCES);
@@ -261,13 +266,13 @@ const CLAIMS: readonly Claim[] = [
 	// How much has actually been checked
 	{
 		what: "the total, rounded",
-		pattern: /Nearly \*\*([\d,]+) rows\*\* of published calendar data/,
-		expected: () => [NEARLY],
+		pattern: /(Nearly|More than) \*\*([\d,]+) rows\*\* of published calendar data/,
+		expected: () => [ROUNDED_TOTAL.lead, ROUNDED_TOTAL.figure],
 	},
 	{
 		what: "the total, as the headline the page declines",
 		pattern: /the useful summary is not "([\d,]+) days verified"/,
-		expected: () => [NEARLY],
+		expected: () => [ROUNDED_TOTAL.figure],
 	},
 	{
 		what: "the summary table's Bhutanese row",
@@ -709,7 +714,7 @@ const CLAIMS: readonly Claim[] = [
 	{
 		what: "the mansion figure, its days, and the Henning comparison tied to them",
 		pattern:
-			/agrees with FPMT's published codes on \*\*([\d.]+)%\*\* of the ([\d,]+) days in (\d+)–(\d+) whose code can name one\. Henning's published daily calendars, compared once outside the test suite, give the same mansion as this engine on all ([\d,]+) of those days/,
+			/agrees with FPMT's published codes on \*\*([\d.]+)%\*\* of the ([\d,]+) days in (\d+)–(\d+) whose code can name one\. Henning's published daily calendars, compared outside the test suite, give the same mansion as this engine on all ([\d,]+) of those days/,
 		expected: () => [
 			pct(mansionDays.length - mansionDisagreements().length, mansionDays.length),
 			count(mansionDays.length),
@@ -723,16 +728,19 @@ const CLAIMS: readonly Claim[] = [
 	{
 		what: "the mansion residual's shape over time, and the days fitting no pattern",
 		pattern:
-			/and far more often in (\d+) than in the (\w+) years before\. No cause is established, and \*\*(\w+) days in (\w+) years fit no pattern at all\*\*/,
+			/and far more often in (\d+) than in any other year\. No cause is established, and \*\*(\w+) days in (\w+) years fit no pattern at all\*\*/,
 		expected: () => {
-			const years = [...MANSION_BY_YEAR.keys()].sort();
-			const last = years.at(-1) as number;
-			const lastCount = MANSION_BY_YEAR.get(last) ?? 0;
-			const far = years.slice(0, -1).every((y) => 2 * (MANSION_BY_YEAR.get(y) ?? 0) <= lastCount);
+			const years = [...MANSION_BY_YEAR.keys()];
+			const peak = years.reduce((a, b) =>
+				(MANSION_BY_YEAR.get(b) ?? 0) > (MANSION_BY_YEAR.get(a) ?? 0) ? b : a,
+			);
+			const peakCount = MANSION_BY_YEAR.get(peak) ?? 0;
+			const far = years
+				.filter((y) => y !== peak)
+				.every((y) => 2 * (MANSION_BY_YEAR.get(y) ?? 0) <= peakCount);
 			const middle = mansionDisagreements().filter((d) => d.position >= 0.15 && d.position <= 0.85);
 			return [
-				far ? last : `<${last} is not far above the others>`,
-				word(years.length - 1),
+				far ? peak : `<${peak} is not far above the others>`,
 				word(middle.length),
 				word(FPMT_WINDOW.last.year - FPMT_WINDOW.first.year + 1),
 			];

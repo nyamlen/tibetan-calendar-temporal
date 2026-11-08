@@ -88,11 +88,11 @@ const MONTHS = [
 /**
  * Whole years only — the day-count check at the end assumes it, and a partial year would let the
  * fixture shrink silently. FPMT publishes ahead of the current date but not a full year ahead:
- * as of August 2026 the last complete year on the site is 2025, and 2026 stops at September.
+ * on 2026-11-08 the last complete year on the site is 2026, published through December.
  * Pages exist back to 2018.
  */
 const fromYear = Number(process.argv[2] ?? 2022);
-const toYear = Number(process.argv[3] ?? 2025);
+const toYear = Number(process.argv[3] ?? 2026);
 
 /** Lines that are purely astrological codes, which are not observances. */
 const CODE_LINE = /^(?:[A-Z]{1,4}(?:-[A-Z]{2})?)(?:\s+[A-Z]{1,4}(?:-[A-Z]{2})?)*$/;
