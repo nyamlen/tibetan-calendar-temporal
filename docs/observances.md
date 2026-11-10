@@ -105,6 +105,9 @@ Its levels are three, named here by intent: **universal**, **open practice**, an
 | Tsok, 10th and 25th | initiated practice | cited: FPMT's "Dates Explained", a commitment for Highest Yoga Tantra initiates |
 | Protector puja, 29th | initiated practice | authored: see the next section |
 
+A configuration carries **no source field** (decided 2026-11-10): a centre is the authority on its own practice days, and none of this provenance is for the person reading the calendar.
+So the basis column lives here, beside the example, and the fire offering's note travels as a label on the practice, which a front end can turn into a sentence.
+
 **Cited** means a published statement of the requirement exists and is quoted.
 **Authored** means assigned by judgement, by Andreas and this project, with no such statement found.
 An authored level is not arbitrary — each has a reason — but a reader cannot check it, which is why every level says which kind it is, and why a cited one is preferred wherever a publisher states the requirement.
@@ -131,7 +134,6 @@ The last two points are why practice days are configuration and not engine: the 
 ## What is still open
 
 - **The names of the three example levels.** The intent is fixed; the words are not.
-- **Where a note such as the fire offering's lives.** Its level is open practice, with the note that the practice itself is restricted; a configuration needs somewhere to say so, and whether that is the rule's `source` or a field of its own is for the rule's shape to settle.
 - **Which text each example practice names**, so that its level can be cited rather than authored.
 - **Where the four great occasions are marked**, now that kind is gone. The suggestion on the table is an optional list of labels on each practice, with the great occasions carrying one.
 - **Which practice the 10th, 25th and 29th name** in the example, since FPMT's labels do not say. The example should not invent one.
