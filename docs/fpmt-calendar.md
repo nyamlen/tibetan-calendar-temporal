@@ -113,3 +113,15 @@ FPMT's "Dates Explained" page (`fpmt.org/media/resources/dharma-dates/dates-expl
 
 So the tiers this repository once assigned — tier 3 for tsog, tier 2 for the Protector puja, tier 1 for the Medicine Buddha and Tārā pujas — rest on this page only for tsog.
 The rest were authored, and the question of which practice "Tsog" means, and who each day is for, was put to Ven. Thubten Chöying on 2026-09-19.
+Her reply on 2026-09-30 answered that section with a different proposal — let each user hide what they do not keep, instead of tiers — and did not say which practice "Tsog" means.
+
+### The labels mark a date, not a practice
+
+FPMT's calendars label every day numbered 10 or 25 "Tsog" and every day numbered 29 "Protector puja", without exception and without naming a practice.
+Counted over the fixture's 1,826 days, 2022 to 2026: "Tsog" on all 62 days numbered 10 and all 60 numbered 25, never on the 29th; "Protector puja" on all 60 days numbered 29.
+
+Read as practice knowledge, which Andreas stated on 2026-11-10 and no published source here confirms, those labels name the date that several practices share, not any one of them.
+A tsok is always offered within a sādhana, and the Yamāntaka practice — a protector practice — carries a tsok commitment, so a day labelled "Protector puja" can be a tsok day too.
+An open calendar printing "Tsog" tells an initiate the day and tells someone uninitiated nothing about what to do.
+**So neither label identifies a practice, and neither says who the day is for.**
+What this means for a configuration, and the levels that replaced the tiers, is in [observances.md](observances.md#who-a-practice-is-for).

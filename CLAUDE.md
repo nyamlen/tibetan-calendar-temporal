@@ -21,6 +21,11 @@ dependencies, built on Temporal.
   India" guidance, and its anniversaries by Tibetan and Western date. FPMT-specific validation —
   the FPMT config the test suite will hold — reports its window **there**, not in
   `why-trust-these-dates.md`, which states only what the package itself claims
+- **The observances system, and who a practice is for**: [docs/observances.md](docs/observances.md)
+  — **not shipped**, and written ahead of the 1.0.0 redesign it describes. Levels are declared by
+  the config, never fixed in the engine, and there is no `kind`; it also records why FPMT's "Tsog"
+  and "Protector puja" labels mark a date rather than a practice. Its practice knowledge is marked
+  as Andreas' and unsourced; keep it marked
 - What else computes Tibetan dates, and when to use it instead:
   [docs/other-implementations.md](docs/other-implementations.md) — every claim from public metadata
   with an access date, and **no competitor source is ever read**
