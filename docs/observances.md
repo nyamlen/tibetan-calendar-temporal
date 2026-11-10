@@ -78,11 +78,15 @@ FPMT's Foundation Store prints a requirement in the description of many of its t
 | *Medicine Buddha Long Retreat Sadhana* | "restricted to only those with the appropriate tantric empowerment" |
 | *A Short Practice of Green Tara* | a Kriya Tantra empowerment for self-generation; "one can do this practice without such an empowerment as long as one does not generate oneself as the deity" |
 | *The Beacon of the Blazing Wisdom Light: Cittamani Tara Fire Puja* | "restricted to only those with the appropriate tantric empowerment" |
-| *Praises to the Twenty-One Taras* | none found in its description |
+| *Praises to the Twenty-One Taras* | none found in its own description; FPMT includes "three versions of Praises to the Twenty-One Taras" in *A Short Practice of Green Tara*, above |
 
 Two limits follow.
 A calendar label rarely names its text — FPMT's "Medicine Buddha" and "Tara puja" days do not — so a level cited from a text is sourced only if the configuration says which text it means.
 And a missing notice is not a statement that a text is open.
+
+Sources outside FPMT state the same distinction.
+Study Buddhism's glossary (the Berzin Archives) defines a fire offering as "A tantric ritual, performed mostly upon completion of a mantra-recitation retreat of a Buddha-figure for which one has received an empowerment".
+Andreas adds two observations of practice, unsourced: the Praises to the Twenty-One Taras are recited by non-initiates in several traditions, and many centres now let non-initiates take part in a fire offering although the practice itself is restricted.
 
 ### The levels in the shipped example
 
@@ -95,8 +99,8 @@ Its levels are three, named here by intent: **universal**, **open practice**, an
 | Anniversaries | universal | authored |
 | Vow renewal | open practice | authored |
 | Medicine Buddha puja | open practice | cited, if the example names *The Wish-Granting Sovereign*: "Anyone with faith can perform this practice" |
-| Tārā puja | open practice | cited, if the example names a front-generation text such as *A Short Practice of Green Tara*; authored otherwise |
-| Fire offering | **contested**: open practice by Andreas' first assignment, but both FPMT fire-offering manuals found are restricted | to be decided |
+| Tārā puja | open practice | cited, if the example names a front-generation text such as *A Short Practice of Green Tara*, which includes the Praises to the Twenty-One Taras; authored otherwise |
+| Fire offering | open practice, **noted as coming from a restricted practice** | authored (decided 2026-11-10): the practice is restricted — both FPMT manuals found, and Study Buddhism's definition — while many centres let non-initiates take part (Andreas' observation) |
 | Naga puja | open practice | authored: FPMT prints it on its open calendar; no text found |
 | Tsok, 10th and 25th | initiated practice | cited: FPMT's "Dates Explained", a commitment for Highest Yoga Tantra initiates |
 | Protector puja, 29th | initiated practice | authored: see the next section |
@@ -127,7 +131,7 @@ The last two points are why practice days are configuration and not engine: the 
 ## What is still open
 
 - **The names of the three example levels.** The intent is fixed; the words are not.
-- **The fire offering's level.** Andreas assigned it to open practice; both FPMT fire-offering manuals found are restricted to those with the appropriate empowerment. FPMT's "Fire puja" label marks a day suited to the offering, and does not say who makes it.
+- **Where a note such as the fire offering's lives.** Its level is open practice, with the note that the practice itself is restricted; a configuration needs somewhere to say so, and whether that is the rule's `source` or a field of its own is for the rule's shape to settle.
 - **Which text each example practice names**, so that its level can be cited rather than authored.
 - **Where the four great occasions are marked**, now that kind is gone. The suggestion on the table is an optional list of labels on each practice, with the great occasions carrying one.
 - **Which practice the 10th, 25th and 29th name** in the example, since FPMT's labels do not say. The example should not invent one.
