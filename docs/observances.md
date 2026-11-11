@@ -73,6 +73,7 @@ Kind and level are different questions — what a practice is, and who it is for
 Nothing the engine computes depended on it, and the grouping a calendar's reader needs is the level.
 The one job it did, picking out the four great occasions, is done by **labels** instead (decided 2026-11-10): a practice may carry any number of free labels, which the engine never acts on, and the four great occasions carry one saying so.
 The same labels mark a tsok day and a practice that comes from a restricted one.
+The labels are a **list**, each label its own entry — never one string divided by commas or semicolons — so a label may contain either character, and a single string given in place of a list is refused rather than read as one label.
 
 ### Where a level can be sourced: the practice text, not the day
 
