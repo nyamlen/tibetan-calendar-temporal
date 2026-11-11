@@ -389,6 +389,12 @@ derivation; in `docs/` they are just noise.
   `ScaledTradition.searchHalfWidth`, computed per tradition. If a bound is proved from a config's
   numbers, derive it from that config; assertions specific to Phugpa's values belong in the test
   suite, where they also catch a mistyped transcription.
+
+  **A rule form that walks outward from a date needs a stated bound under every convention value,
+  and a refusal is a legitimate bound.** A counted observance under `skippedDay: "omit"` had no
+  day to anchor on, so its lookback was unbounded; the fix was to refuse that setting on counted
+  rules, not to cap the loop. Ask what stops the walk under each value, and pin the refusal or the
+  bound with a test that names the setting.
 - **The shipped configs are deeply frozen.** All five — `PHUGPA`, `PHUGPA_HENNING`, `BHUTAN`,
   `BHUTAN_HENNING` and `EXAMPLE_OBSERVANCES` — go through `deepFreeze` in `src/freeze.ts`. They are the objects the docs point at for `{ ...PHUGPA, … }`,
   so they are the ones a keystroke off a spread mutates — and because scaling and validation are
@@ -1115,6 +1121,12 @@ test compares. "1 January 2022 to 25 February 2028" is as safe, being true, and 
 only the plan and the repository, after two self-reviews and a simulated panel, has found errors
 no earlier pass could see. For a plan whose output is a claim to readers, run one before building.
 
+**The same holds for code, task by task.** Building the observance rebuild with a fresh reviewer
+after every task found a real defect in most of them: duplicate results across month boundaries,
+a guard silently dropped when a function was extracted, a stale "200 years" in a README row. The
+implementer's own self-review had passed each one. Do not let a task's green suite stand in for the
+review.
+
 **A year in this repository is a Tibetan year unless it says otherwise, and a prose window must say
 which era it is.** `monthsFor(1900)` is Tibetan 1900, which runs from **1773-02-22 to 1974-02-21 CE**.
 A sweep written as "1900–2100" and described in a shipped document as "the two centuries 1900–2100"
@@ -1248,3 +1260,8 @@ Their format is fixed: filename `YYYY-MM-DD-slug.md`, YAML front matter carrying
 `status` (`accepted` / `superseded` / `deprecated`), a single H1 title, then a bold `**Decision:**`
 line stating the outcome before any reasoning. Do not put `title` in the front matter — it
 duplicates the H1 and makes markdownlint read the file as having two titles.
+
+**When a record's decision changes, rewrite the whole section that states it, never one line.** A
+one-line edit left the input-validation record saying a cap was 10 years in its decision and 200 in
+the paragraph beneath. After any amendment, grep the record for every figure and name the change
+touched, and read the section top to bottom.
