@@ -63,6 +63,24 @@ describe("getObservances", () => {
 		getObservances(iso("1900-01-01"), iso("2099-12-31"), EXAMPLE_OBSERVANCES);
 	});
 
+	// A formula rule converts every calendar day of the range, so it is the one form whose cost is
+	// not per month; its 200 years bound the cap for a config that contains one.
+	const withFormula = {
+		...EXAMPLE_OBSERVANCES,
+		rules: [
+			...EXAMPLE_OBSERVANCES.rules,
+			{
+				id: "formula",
+				englishName: "Formula",
+				when: { type: "formula" as const, formula: "lunarDayPlusWeekdayMod4" as const },
+			},
+		],
+	};
+
+	bench("the maximum admissible span, 200 years, with a formula rule", () => {
+		getObservances(iso("1900-01-01"), iso("2099-12-31"), withFormula);
+	});
+
 	bench("one year, the realistic case", () => {
 		getObservances(iso("2026-01-01"), iso("2026-12-31"), EXAMPLE_OBSERVANCES);
 	});
