@@ -105,6 +105,7 @@ Every one of the fourteen names must pass all of them, or it ships **English onl
    Das counts only where a page was read, and none was.
    Das against the Mahāvyutpatti is one witness where both attest, since Das partly rests on the canonical lexicons.
    **A person:** two independent groups, each stating the **proposed spelling itself** — equal to it or opening with it as whole words, honorifics kept — from BDRC's person record, a gate-only headword, Lotsawa House's Tibetan page heading, or Tibetan Wikipedia; BDRC's record must also be the right person.
+   **One named exception**, decided by Andreas on 2026-11-11: the Sixteenth Karmapa ships on a single witness, held as data in the verifier and applying to no other name.
 4. **The sense is read, not the presence.**
    A headword's entry must state the calendar, ritual or biographical sense, not merely exist: `dus chen` and `zla ba` have other senses, and the homograph trap is the one [month-and-yoga-sourcing.md](month-and-yoga-sourcing.md) records.
 5. **THL phonetics from the converter's word-separated mode, with the word boundaries marked** (Andreas, 2026-11-11), as in the tables: "Words separated by" joins the syllables of each word and applies THL's own sandhi (*chönkhor*, *chontrül*), where the syllable-by-syllable mode the other shipped names use gives "so jong" and "dü chen".
@@ -131,12 +132,18 @@ The verifier refuses to emit if any check fails, and a check placed after the em
 5. **Decided 2026-11-11:** the Buddhist Digital Resource Center's person records are the source for the persons' names, to be checked when the verifier is written.
 6. **Decided 2026-11-11, after the first run:** a copyrighted-dictionary headword may count as a witness (gate only, one group); a person's name may not drop an honorific; the Sixteenth Karmapa stays `rgyal ba karma pa bcu drug pa`, not BDRC's numeric form.
 7. **Approved 2026-11-11:** Lotsawa House's Tibetan page headings and Tibetan Wikipedia's article titles and list of Tibetan scholars as witness types for a person's name.
+8. **Decided 2026-11-11, Tsong Khapa: no change.**
+   The Tibetan stays `rje tsong kha pa`, marked `rje-tsong kha pa`, and the phonetic stays *jé tsongkhapa*, which is what THL returns for that marking; the English name stays "Lama Tsong Khapa".
+   Andreas' "one word, not two" meant *tsongkhapa* joined, and not *tsong kha pa* split.
+9. **Decided 2026-11-11, an explicit exception:** the Sixteenth Karmapa ships on **one** witness, Tibetan Wikipedia's list of Tibetan scholars (Andreas: "maybe accept one witness for this one").
+   It is held as data in the verifier, naming the rule, the one witness allowed and why; it applies to no other name, and it refuses to run if that witness stops stating the spelling or a second one appears.
+   The fixture row carries `singleWitness: true`.
+   Rigpa Wiki is **not** an approved witness type.
 
 ## Results of the run
 
-**Run of 2026-11-11, after Andreas' three rulings (`npm run verify:observance-names`): 13 of the 14 names pass all five checks, and the Sixteenth Karmapa fails check 3 with the spelling as proposed.**
-The verifier therefore still refuses to emit, and `test/fixtures/observance-names.ts` does not exist.
-The first run, before the rulings, passed 5 of 14.
+**Run of 2026-11-11, after Andreas' rulings (`npm run verify:observance-names`): all 14 names pass, the Sixteenth Karmapa under the single-witness exception of item 9 above, and the verifier wrote `test/fixtures/observance-names.ts`.**
+The first run, before the rulings, passed 5 of 14; the second passed 13.
 
 | Rule | 1 script | 2 round trip | 3 witnesses | 4 sense | 5 phonetics |
 |---|---|---|---|---|---|
@@ -144,7 +151,7 @@ The first run, before the rulings, passed 5 of 14.
 | `saga-dawa-month`, `sojong`, `fire-puja` | pass | pass | pass | pass | pass |
 | `milarepa`, `guru-rinpoche`, `gampopa`, `tsongkhapa`, `dudjom-rinpoche` | pass | pass | pass | pass | pass |
 | `sakya-pandita` | pass | pass | pass | pass | pass (corrected) |
-| `karmapa-16` | pass | pass | **fail: one witness** | not read | pass (corrected) |
+| `karmapa-16` | pass | pass | **one witness, by exception** | pass | pass (corrected) |
 
 ### A finding about the sources, which changed the check
 
@@ -188,7 +195,7 @@ Its search needs a credential that its web page embeds, which this verifier does
 | `milarepa` | P1853 | BDRC (`mi la ras pa`); *tshig mdzod chen mo* headword (gate); Tibetan Wikipedia title |
 | `guru-rinpoche` | P4956 | BDRC (`gu ru rin po che`); Tibetan Wikipedia title *གུ་རུ་རིན་པོ་ཆེ་*, **a redirect** to the Padmasambhava article |
 | `gampopa` | P1844 | BDRC (`sgam po pa bsod nams rin chen`); *dung dkar* headword `sgam po pa` (gate) |
-| `karmapa-16` | P865 | **only** Tibetan Wikipedia's list of Tibetan scholars, which prints *རྒྱལ་བ་ཀརྨ་པ་བཅུ་དྲུག་པ།* |
+| `karmapa-16` | P865 | **only** Tibetan Wikipedia's list of Tibetan scholars, which prints *རྒྱལ་བ་ཀརྨ་པ་བཅུ་དྲུག་པ།* (the single-witness exception) |
 | `tsongkhapa` | P64 | *dung dkar* headword `rje tsong kha pa blo bzang grags pa` (gate; opens with the name); Lotsawa House heading *རྗེ་ཙོང་ཁ་པ།*; BDRC states `tsong kha pa blo bzang grags pa` and `rje rin po che blo bzang grags pa`, **not** the proposed form |
 | `sakya-pandita` | P1056 | BDRC (`sa skya paN+Di ta kun dga' rgyal mtshan`); *dung dkar* headword `sa skya paN+Di ta` (gate) |
 | `dudjom-rinpoche` | P736 | Lotsawa House heading *བདུད་འཇོམས་རིན་པོ་ཆེ།*; Tibetan Wikipedia's list of Tibetan scholars; BDRC states `bdud 'joms 'jigs bral ye shes rdo rje`, **not** the proposed form |
@@ -196,9 +203,9 @@ Its search needs a credential that its web page embeds, which this verifier does
 Two witnesses are weak and are recorded as such: *guru-rinpoche*'s second witness is a Wikipedia redirect title, and *dudjom-rinpoche*'s two are web pages, a heading and a list.
 For `tsongkhapa` and `dudjom-rinpoche` BDRC is the identity anchor and **not** a witness to the spelling, which is what keeping the honorific costs.
 
-### The Sixteenth Karmapa: what was searched and found
+### The Sixteenth Karmapa: what was searched, and the exception
 
-`rgyal ba karma pa bcu drug pa` has one witness.
+`rgyal ba karma pa bcu drug pa` has one witness, and ships under the exception of item 9.
 Searched, with the spelling as proposed, and **not found**:
 
 - BDRC person record P865: its Wylie names are *karma pa 16 pa*, *karma pa 16 rang byung rig pa'i rdo rje* and *rang byung rig pa'i rdo rje* (its Tibetan-script labels, read through Wikidata's mirror, are the same names); the numeric form is ruled out.
@@ -206,13 +213,11 @@ Searched, with the spelling as proposed, and **not found**:
 - Lotsawa House's Tibetan page for the Sixteenth Karmapa: titled *ཀརྨ་པ་རང་བྱུང་རིག་པའི་རྡོ་རྗེ།*, and printing *karma pa bcu drug pa* only after *rgyal dbang* and *'jig rten dbang phyug*.
 - Tibetan Wikipedia: no article titled with it, and among thirty full-text hits for *karma pa bcu drug pa* none prints the spelling.
 - Wikidata's Tibetan labels for the BDRC record: *ཀརྨ་པ ༡༦* and the personal name.
+- Sources Andreas supplied: `rywiki.tsadra.org/index.php/skyabs_rje_kar_ma_pa_bcu_drug_pa` (titled *skyabs rje kar ma pa bcu drug pa*, a different spelling; copyrighted dictionary text, so a headword's existence would be the only fact taken); `buddhanature.tsadra.org/index.php/Karma_pa_bcu_drug_pa`; and Rigpa Wiki pages for him — **all three answer the verifier with a Cloudflare challenge (403) on every request tried, and none was worked around, so what they print is unknown**.
+  A web search for the exact spelling on Rigpa Wiki returned no page.
+  If Rigpa Wiki prints the exact spelling it would be a candidate only; it is not an approved witness type.
+- `library.bdrc.io/show/bdr:MW1KG3815_8ABDB7`, read through BDRC's record `purl.bdrc.io/resource/MW1KG3815_8ABDB7`: part 12 of a work, pp. 388–400, whose only title is *chos rje byang chub rdo rje'i rnam thar mdor bsdus*; it prints no *karma pa bcu drug pa* at all.
 - *Found:* only the list of Tibetan scholars in Tibetan Wikipedia (the article བོད་ཀྱི་མཁས་དབང་།), which prints it exactly.
-- Two sources Andreas supplied, read afterwards, neither of which is a witness:
-  - `rywiki.tsadra.org/index.php/skyabs_rje_kar_ma_pa_bcu_drug_pa` could not be read: the site answers the verifier's request, and its API, with a Cloudflare 403 challenge, and that is not worked around.
-    Its title, *skyabs rje kar ma pa bcu drug pa*, is in any case a different spelling (another honorific, and *kar ma* divided), so it would not count; it carries copyrighted dictionary text, so a headword's existence would be the only fact taken.
-  - `library.bdrc.io/show/bdr:MW1KG3815_8ABDB7`, read through BDRC's record `purl.bdrc.io/resource/MW1KG3815_8ABDB7`, is part 12 of a work, pp. 388–400, whose only title is *chos rje byang chub rdo rje'i rnam thar mdor bsdus*; it prints no *karma pa bcu drug pa* at all.
-
-Whether one witness suffices, whether a further source should be sought, or the spelling should change is Andreas' decision; **the verifier has not been loosened**.
 
 ### The corrections
 
@@ -224,5 +229,23 @@ The other twelve phonetics are THL's output unchanged and equal the tables above
 
 ### Proved by mutation
 
-The served responses were altered one at a time against the unmutated run as control: THL returning *gyelwa karmapa chudrukpa* makes the run say "correction for karmapa-16 is no longer justified: it expects THL to return …"; THL returning *mila(?)repa* fails check 5 naming the marker; a BDRC record whose label reads *mi la ras ba* fails check 3 for `milarepa` (run on the first version of the checks).
-The converter, round-trip and sense checks and the emit path are **not yet** proved by mutation, because no run can emit while the Karmapa fails.
+A scratch copy of the verifier, with its own `test/fixtures/`, was run against **recorded** responses (38 recorded during the real run that wrote the fixture); each mutant alters one served response or one converter output, and every mutant is asserted on its failure **message**, with no fixture written.
+The control is unmutated, exits 0 and writes the fixture, and was run first and last.
+
+| Mutant | Check | Message asserted |
+|---|---|---|
+| control | none | exit 0, fixture written |
+| converter returns an extra tsheg for `gso sbyong` | 1 | `EWTS converters disagree on "gso sbyong"` |
+| `toWylie` reads back `sbyin sreg x` | 2 | `which reads back as "sbyin sreg x"` |
+| Jäschke index moves `dus chen` to a leaf 200 pages away | 4 | `Jäschke's index puts "dus chen" at p. 454, not p. 255` |
+| Mahāvyutpatti pairs `sbyin sreg` with `homa` | 4 | `the Mahāvyutpatti no longer pairs "sbyin sreg" with homaḥ` |
+| Monier-Williams entry for *homa* loses "oblation with fire" | 4 | `no Monier-Williams entry headed homa prints "oblation with fire"` |
+| the *tshig mdzod chen mo* loses `dus chen` | 3, terms | `head word "dus chen" has 1 independent witness group(s) read, not 2` |
+| the Wikipedia list loses the Karmapa's item | 3, exception | `the single-witness exception for karmapa-16 expects exactly "Tibetan Wikipedia list" and no other group, but no group states the spelling` |
+| BDRC's record gains the exact spelling | 3, exception | `a second witness exists, so the exception is no longer needed` |
+| `milarepa` loses BDRC and the dictionary, keeping only Wikipedia | 3, the exception cannot reach another name | `"mi la ras pa" has 1 independent witness(es) stating that spelling, not 2` |
+| THL returns *karmapa* for the Karmapa | 5, correction | `correction for karmapa-16 is no longer justified` |
+
+The emit path is proved by the same table: every mutant leaves no fixture, and the control writes one.
+**Baseline:** the control's fixture, formatted with `npx biome check --write`, is byte-identical to the committed fixture, which came from the real run.
+Not proved by mutation: check 5's "(?)" marker and the BDRC label check for persons were proved in an earlier round on live responses, before this rewrite of check 3; the Lotsawa House heading check and the Wikipedia title check have no mutant of their own.

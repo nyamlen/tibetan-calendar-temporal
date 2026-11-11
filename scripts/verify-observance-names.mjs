@@ -238,6 +238,26 @@ const CORRECTIONS = [
 ];
 
 /**
+ * The one name that ships on a single witness, as Andreas ruled on 2026-11-11 ("maybe accept one
+ * witness for this one"). It is data, not a loosened check: it names the rule, the one group allowed
+ * to stand alone and why, and it **self-invalidates** — the run refuses if that group stops stating the
+ * spelling, or if a second group ever does (the exception is then unneeded). It applies to no other
+ * name, and a name that is not a person is never eligible.
+ */
+const SINGLE_WITNESS_EXCEPTIONS = [
+	{
+		id: "karmapa-16",
+		group: "Tibetan Wikipedia list",
+		why:
+			"no source read prints rgyal ba karma pa bcu drug pa but the list of Tibetan scholars in Tibetan " +
+			"Wikipedia: BDRC prints only the numeral form, the dictionaries head karma pa alone, and Lotsawa " +
+			"House prints karma pa bcu drug pa under other honorifics (rgyal dbang, 'jig rten dbang phyug); " +
+			"the sources Andreas supplied for him (rywiki, Buddha-Nature) answer the verifier with a " +
+			"Cloudflare challenge, and a BDRC work part he supplied does not print it",
+	},
+];
+
+/**
  * What was read in Jäschke's printed pages, by eye, from the page images (archive.org
  * `tibetanenglishdi00jsuoft`, image n = printed page + 25). **The aggregate's Jäschke index is not
  * evidence that a headword is printed**: it also lists headwords from later works (it has *bdud 'joms
@@ -768,13 +788,25 @@ for (const name of NAMES) {
 			name.provenance.notes.push(
 				`Jäschke p. ${variant.page} prints "${variant.printed}", a variant spelling, so not a witness to "${name.wylie}"`,
 			);
-		if (groups.size < 2)
+		const exception = SINGLE_WITNESS_EXCEPTIONS.find((e) => e.id === name.id);
+		name.singleWitness = false;
+		if (exception) {
+			const only = [...groups.keys()];
+			if (only.length !== 1 || only[0] !== exception.group)
+				fail(
+					name.id,
+					3,
+					`the single-witness exception for ${name.id} expects exactly "${exception.group}" and no other group, but ${only.length === 0 ? "no group states the spelling" : `found ${only.join(", ")}`}` +
+						`${only.length > 1 ? " — a second witness exists, so the exception is no longer needed" : ""}; not found: ${states.join("; ")}`,
+				);
+			else name.singleWitness = true;
+		} else if (groups.size < 2)
 			fail(
 				name.id,
 				3,
 				`"${name.wylie}" has ${groups.size} independent witness(es) stating that spelling, not 2 (${[...groups.keys()].join(", ") || "none"}); not found: ${states.join("; ")}`,
 			);
-		if (record && groups.size >= 2)
+		if (record && (groups.size >= 2 || name.singleWitness))
 			name.provenance.sense.push({
 				source: "BDRC person record",
 				entry: `bdr:${name.bdrc}`,
@@ -807,6 +839,10 @@ async function thlFor(marked) {
 	return thlPhoneticsOf(html);
 }
 
+for (const exception of SINGLE_WITNESS_EXCEPTIONS) {
+	if (NAMES.find((n) => n.id === exception.id)?.kind !== "person")
+		fail(exception.id, 3, "a single-witness exception names no person here");
+}
 for (const correction of CORRECTIONS) {
 	if (!NAMES.some((n) => n.id === correction.id))
 		fail(correction.id, 5, "a correction names a rule that has no name here");
@@ -893,7 +929,7 @@ const q = (s) => JSON.stringify(s);
 const cite = (c) =>
 	`{ source: ${q(c.source)}, entry: ${q(c.entry)}, page: ${c.page ?? "null"}${c.label ? `, label: ${q(c.label)}` : ""}${c.gateOnly ? ", gateOnly: true" : ""} }`;
 const row = (n) =>
-	`\t{ id: ${q(n.id)}, kind: ${q(n.kind)}, tibetan: ${q(n.tibetan)}, wylie: ${q(n.wylie)}, marked: ${q(n.marked)}, phonetic: ${q(n.phonetic)}, thlPhonetic: ${q(n.thl)}, phoneticCorrected: ${n.corrected ? "true" : "false"}, witnesses: [${n.provenance.witnesses.map(cite).join(", ")}], sense: [${n.provenance.sense.map((s) => `{ ${cite(s).slice(2, -2)}, sense: ${q(s.sense)} }`).join(", ")}] },`;
+	`\t{ id: ${q(n.id)}, kind: ${q(n.kind)}, tibetan: ${q(n.tibetan)}, wylie: ${q(n.wylie)}, marked: ${q(n.marked)}, phonetic: ${q(n.phonetic)}, thlPhonetic: ${q(n.thl)}, phoneticCorrected: ${n.corrected ? "true" : "false"}, singleWitness: ${n.singleWitness ? "true" : "false"}, witnesses: [${n.provenance.witnesses.map(cite).join(", ")}], sense: [${n.provenance.sense.map((s) => `{ ${cite(s).slice(2, -2)}, sense: ${q(s.sense)} }`).join(", ")}] },`;
 
 writeFileSync(
 	join(root, "test", "fixtures", "observance-names.ts"),
@@ -912,6 +948,11 @@ writeFileSync(
  * turned into \`thlPhonetic\`. \`phonetic\` is that, except where \`phoneticCorrected\` is true: then it is
  * Andreas' correction of a "(?)" in THL's output, held in the script as data that refuses to run if THL
  * stops returning the expected value.
+ *
+ * \`singleWitness\` is true for the one name that ships on a single witness, by Andreas' ruling of
+ * 2026-11-11: the Sixteenth Karmapa, whose only witness to \`rgyal ba karma pa bcu drug pa\` is the list
+ * of Tibetan scholars in Tibetan Wikipedia. It is an exception held as data in the script, which
+ * refuses to run if it is needed for any other name or if a second witness appears.
  */
 
 export interface ObservanceNameCitation {
@@ -931,6 +972,7 @@ export interface ObservanceNameRow {
 	phonetic: string;
 	thlPhonetic: string;
 	phoneticCorrected: boolean;
+	singleWitness: boolean;
 	witnesses: readonly ObservanceNameCitation[];
 	sense: readonly (ObservanceNameCitation & { sense: string })[];
 }
