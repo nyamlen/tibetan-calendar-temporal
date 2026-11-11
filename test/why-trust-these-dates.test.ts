@@ -922,7 +922,7 @@ describe("why-trust-these-dates claims", () => {
 		// Duchen, so "Gelug" claimed a universality the data contradicts — the reason the export was
 		// renamed DEFAULT_OBSERVANCES.
 		expect(document).not.toMatch(/Gelug/);
-		expect(Object.keys(observances)).toContain("DEFAULT_OBSERVANCES");
+		expect(Object.keys(observances)).toContain("EXAMPLE_OBSERVANCES");
 	});
 
 	it("ships no Tsurphu or Mongolian calendar on any entry point", () => {

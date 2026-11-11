@@ -3,7 +3,7 @@ import { lunarMansionFor } from "../../src/astrology/index.js";
 import { mansionElement } from "../../src/astrology/mansion-elements.js";
 import { mansionNumber } from "../../src/astrology/mansions.js";
 import { isoToTibetan } from "../../src/computation/conversion.js";
-import { getObservances } from "../../src/observances/index.js";
+import { EXAMPLE_OBSERVANCES, getObservances } from "../../src/observances/index.js";
 import { PHUGPA } from "../../src/traditions/phugpa.js";
 import { FPMT_OBSERVANCES } from "../fixtures/fpmt-observances.js";
 import { fpmtMoonComparison } from "../support/fpmt.js";
@@ -26,10 +26,10 @@ const iso = (s: string) => Temporal.PlainDate.from(s);
  * them would be asserting on absence rather than on the engine.
  */
 const LABEL_TO_IDS: Record<string, readonly string[]> = {
-	Tsog: ["tsok-10", "tsok-25"],
-	"Protector puja": ["protector-29"],
-	"Tara puja": ["tara-8"],
-	"Medicine Buddha": ["medicine-buddha-8", "medicine-buddha-15"],
+	Tsog: ["heruka-day", "dakini-day"],
+	"Protector puja": ["dharma-protector-day"],
+	"Tara puja": ["tara"],
+	"Medicine Buddha": ["medicine-buddha"],
 };
 
 /**
@@ -48,7 +48,7 @@ describe("observances against FPMT's published calendars", () => {
 	// being emitted, which would report every one of them as a label the engine failed to produce.
 	const first = FPMT_OBSERVANCES[0]?.iso ?? "";
 	const last = FPMT_OBSERVANCES.at(-1)?.iso ?? "";
-	const emitted = getObservances(iso(first), iso(last));
+	const emitted = getObservances(iso(first), iso(last), EXAMPLE_OBSERVANCES);
 
 	const byDate = new Map<string, Set<string>>();
 	for (const o of emitted) {

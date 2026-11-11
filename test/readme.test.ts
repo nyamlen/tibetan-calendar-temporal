@@ -19,7 +19,7 @@ import {
 	monthsFor,
 } from "../src/months.js";
 import { addMonths, monthsBetween, nextFullMoon } from "../src/navigation.js";
-import { getObservances } from "../src/observances/index.js";
+import { EXAMPLE_OBSERVANCES, getObservances } from "../src/observances/index.js";
 import { BHUTAN, BHUTAN_HENNING } from "../src/traditions/bhutan.js";
 import { PHUGPA, PHUGPA_HENNING } from "../src/traditions/phugpa.js";
 
@@ -170,13 +170,13 @@ describe("README usage examples", () => {
 // worked example that drifts is worse than none -- see docs/testing.md on the contract suites.
 describe("README observance examples", () => {
 	it("lists the four great days of 2026 as documented", () => {
-		const duchen = getObservances(iso("2026-01-01"), iso("2026-12-31")).filter(
-			(o) => o.rule.kind === "duchen",
+		const duchen = getObservances(iso("2026-01-01"), iso("2026-12-31"), EXAMPLE_OBSERVANCES).filter(
+			(o) => o.rule.id.endsWith("-duchen"),
 		);
 
-		expect(duchen.map((o) => `${o.rule.name}: ${o.date.isoDate}`)).toEqual([
+		expect(duchen.map((o) => `${o.rule.englishName}: ${o.date.isoDate}`)).toEqual([
 			"Chotrul Duchen: 2026-03-03",
-			"Saka Dawa Duchen: 2026-05-31",
+			"Saga Dawa Duchen: 2026-05-31",
 			"Chokhor Duchen: 2026-07-18",
 			"Lhabab Duchen: 2026-11-01",
 		]);

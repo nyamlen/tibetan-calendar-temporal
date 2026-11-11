@@ -56,8 +56,12 @@ check(
 );
 
 const duchen = observances
-	.getObservances(Temporal.PlainDate.from("2026-01-01"), Temporal.PlainDate.from("2026-12-31"))
-	.filter((o) => o.rule.kind === "duchen");
+	.getObservances(
+		Temporal.PlainDate.from("2026-01-01"),
+		Temporal.PlainDate.from("2026-12-31"),
+		observances.EXAMPLE_OBSERVANCES,
+	)
+	.filter((o) => o.rule.id.endsWith("-duchen"));
 check(
 	duchen.length === 4,
 	`observances subpath returned ${duchen.length} duchen for 2026, wanted 4`,

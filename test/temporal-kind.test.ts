@@ -28,7 +28,7 @@ import {
 	tibetanDateExists,
 	tibetanToIso,
 } from "../src/index.js";
-import { getObservances, observancesOn } from "../src/observances/index.js";
+import { EXAMPLE_OBSERVANCES, getObservances, observancesOn } from "../src/observances/index.js";
 import { temporalKindOf, temporalTypeNameOf } from "../src/temporal-kind.js";
 
 /**
@@ -164,8 +164,8 @@ describe("direction B: a foreign PlainDate is a Western date", () => {
 			["isoToTibetan", (d) => isoToTibetan(d).isoDate.toString()],
 			["nextFullMoon", (d) => nextFullMoon(d).isoDate.toString()],
 			["nextNewMoon", (d) => nextNewMoon(d).isoDate.toString()],
-			["observancesOn", (d) => observancesOn(d).length],
-			["getObservances", (d, s) => getObservances(d, s).length],
+			["observancesOn", (d) => observancesOn(d, EXAMPLE_OBSERVANCES).length],
+			["getObservances", (d, s) => getObservances(d, s, EXAMPLE_OBSERVANCES).length],
 			["attributesFor", (d) => attributesFor(d).calendarDay.element],
 			["calendarDayAttributesFor", (d) => calendarDayAttributesFor(d).element],
 			["elementalYogaFor", (d) => elementalYogaFor(d).englishName],

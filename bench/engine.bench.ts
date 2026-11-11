@@ -1,7 +1,7 @@
 import { bench, describe } from "vitest";
 import { isoToTibetan } from "../src/computation/conversion.js";
 import { monthsFor } from "../src/months.js";
-import { getObservances } from "../src/observances/index.js";
+import { EXAMPLE_OBSERVANCES, getObservances } from "../src/observances/index.js";
 import { PHUGPA } from "../src/traditions/phugpa.js";
 
 /**
@@ -60,10 +60,10 @@ describe("monthsFor cache", () => {
 
 describe("getObservances", () => {
 	bench("the maximum admissible span, 200 years", () => {
-		getObservances(iso("1900-01-01"), iso("2099-12-31"));
+		getObservances(iso("1900-01-01"), iso("2099-12-31"), EXAMPLE_OBSERVANCES);
 	});
 
 	bench("one year, the realistic case", () => {
-		getObservances(iso("2026-01-01"), iso("2026-12-31"));
+		getObservances(iso("2026-01-01"), iso("2026-12-31"), EXAMPLE_OBSERVANCES);
 	});
 });

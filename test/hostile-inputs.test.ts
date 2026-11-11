@@ -44,7 +44,7 @@ import {
 	weekdayNameFor,
 	yearNameFor,
 } from "../src/index.js";
-import { DEFAULT_OBSERVANCES, getObservances, observancesOn } from "../src/observances/index.js";
+import { EXAMPLE_OBSERVANCES, getObservances, observancesOn } from "../src/observances/index.js";
 import { thrownBy } from "./support/thrown.js";
 
 // Part B of the tradition-parameter plan, 2026-09-24. The README promises that every failure
@@ -99,7 +99,8 @@ const HOSTILE: readonly (readonly [string, unknown])[] = [
 const ISO = Temporal.PlainDate.from("2026-02-18");
 const LOSAR = { year: 2153, month: 1, day: 1 };
 const MONTH = { year: 2153, month: 1 };
-const RULE = DEFAULT_OBSERVANCES.rules[0];
+const RULE = EXAMPLE_OBSERVANCES.rules[0];
+const LEVEL_CONFIG = EXAMPLE_OBSERVANCES;
 
 type Call = (value: unknown) => unknown;
 type Row = readonly [shape: string, call: Call, answers?: readonly string[]];
@@ -137,9 +138,9 @@ const SCALAR: readonly Row[] = [
 	["attributesFor(date)", (x) => attributesFor(v(x))],
 	["elementalYoga(weekdayElement, mansion)", (x) => elementalYoga(v(x), "fire")],
 	["elementalYoga(weekdayElement, mansion) second", (x) => elementalYoga("fire", v(x))],
-	["getObservances(from, to) from", (x) => getObservances(v(x), ISO)],
-	["getObservances(from, to) to", (x) => getObservances(ISO, v(x))],
-	["observancesOn(date)", (x) => observancesOn(v(x))],
+	["getObservances(from, to, config) from", (x) => getObservances(v(x), ISO, EXAMPLE_OBSERVANCES)],
+	["getObservances(from, to, config) to", (x) => getObservances(ISO, v(x), EXAMPLE_OBSERVANCES)],
+	["observancesOn(date, config)", (x) => observancesOn(v(x), EXAMPLE_OBSERVANCES)],
 	// The whole fields argument, where a date or month object belongs.
 	["tibetanToIso(fields)", (x) => tibetanToIso(v(x))],
 	["tibetanDateExists(fields)", (x) => tibetanDateExists(v(x))],
@@ -224,28 +225,110 @@ const CONFIG: readonly Row[] = [
 	["elementalYogaFor(date, tradition)", (x) => elementalYogaFor(ISO, v(x))],
 	["lunarMansionFor(date, tradition)", (x) => lunarMansionFor(ISO, v(x))],
 	["attributesFor(date, tradition)", (x) => attributesFor(ISO, v(x))],
-	// Inside a bag: its tradition, and ./observances' own ObservanceConfig.
+	// Inside a bag: addMonthsToDate's tradition. ./observances takes both choices positionally.
 	[
 		"addMonthsToDate(fields, 1, { tradition })",
 		(x) => addMonthsToDate(LOSAR, 1, v({ tradition: x })),
 	],
-	["getObservances(from, to, { tradition })", (x) => getObservances(ISO, ISO, v({ tradition: x }))],
-	["observancesOn(date, { tradition })", (x) => observancesOn(ISO, v({ tradition: x }))],
-	["getObservances(from, to, { config })", (x) => getObservances(ISO, ISO, v({ config: x }))],
-	["observancesOn(date, { config })", (x) => observancesOn(ISO, v({ config: x }))],
+	["getObservances(from, to, config)", (x) => getObservances(ISO, ISO, v(x))],
+	[
+		"getObservances(from, to, config, tradition)",
+		(x) => getObservances(ISO, ISO, EXAMPLE_OBSERVANCES, v(x)),
+	],
+	["observancesOn(date, config)", (x) => observancesOn(ISO, v(x))],
+	["observancesOn(date, config, tradition)", (x) => observancesOn(ISO, EXAMPLE_OBSERVANCES, v(x))],
 ];
 
-// A consumer's ObservanceConfig rule, whose day and month the validator renders.
-const observanceRule = (when: object) =>
-	v({ config: { ...DEFAULT_OBSERVANCES, rules: [{ ...RULE, when }] } });
+// A consumer's ObservanceConfig, whose rule fields the validator renders. `LEVEL_CONFIG` declares a
+// level so that a rule's `level` is a value under test rather than always undeclared.
+const withRule = (patch: object) =>
+	v({
+		...LEVEL_CONFIG,
+		levels: [{ id: "lv", englishName: "Level" }],
+		rules: [{ ...RULE, ...patch }],
+	});
+// A non-empty string is a valid id, name or tag, so the one hostile value that is one answers.
+const STRING_OK = ["numeric string"];
+const withWhen = (when: unknown) => withRule({ when });
 const RULE_FIELD: readonly Row[] = [
 	[
-		"getObservances(…, { config: rule.when.day })",
-		(x) => getObservances(ISO, ISO, observanceRule({ day: x })),
+		"getObservances(…, config) monthly days entry",
+		(x) => getObservances(ISO, ISO, withWhen({ type: "monthly", days: [x] })),
 	],
 	[
-		"getObservances(…, { config: rule.when.month })",
-		(x) => getObservances(ISO, ISO, observanceRule({ month: x, day: 1 })),
+		"getObservances(…, config) when.type",
+		(x) => getObservances(ISO, ISO, withWhen({ type: x, days: [1] })),
+	],
+	[
+		"getObservances(…, config) annual dates entry month",
+		(x) => getObservances(ISO, ISO, withWhen({ type: "annual", dates: [{ month: x, day: 1 }] })),
+	],
+	[
+		"getObservances(…, config) annual dates entry day",
+		(x) => getObservances(ISO, ISO, withWhen({ type: "annual", dates: [{ month: 1, day: x }] })),
+	],
+	[
+		"getObservances(…, config) tags element",
+		(x) => getObservances(ISO, ISO, withRule({ tags: [x] })),
+		STRING_OK,
+	],
+	["getObservances(…, config) rule level", (x) => getObservances(ISO, ISO, withRule({ level: x }))],
+	[
+		"getObservances(…, config) levels entry id",
+		(x) => getObservances(ISO, ISO, v({ ...LEVEL_CONFIG, levels: [{ id: x, englishName: "L" }] })),
+		STRING_OK,
+	],
+	...["tibetan", "wylie", "phonetic"].map(
+		(part): Row => [
+			`getObservances(…, config) tibetanName.${part}`,
+			(x) =>
+				getObservances(
+					ISO,
+					ISO,
+					withRule({ tibetanName: { tibetan: "a", wylie: "a", phonetic: "a", [part]: x } }),
+				),
+			STRING_OK,
+		],
+	),
+	[
+		"getObservances(…, config) rule id",
+		(x) => getObservances(ISO, ISO, withRule({ id: x })),
+		STRING_OK,
+	],
+	[
+		"getObservances(…, config) rule englishName",
+		(x) => getObservances(ISO, ISO, withRule({ englishName: x })),
+		STRING_OK,
+	],
+];
+
+// Where a whole object belongs, so a Proxy is the caller's own code throwing and is left out.
+const RULE_OBJECT: readonly Row[] = [
+	[
+		"getObservances(…, config) monthly days",
+		(x) => getObservances(ISO, ISO, withWhen({ type: "monthly", days: x })),
+	],
+	["getObservances(…, config) when", (x) => getObservances(ISO, ISO, withWhen(x))],
+	[
+		"getObservances(…, config) annual dates entry",
+		(x) => getObservances(ISO, ISO, withWhen({ type: "annual", dates: [x] })),
+	],
+	["getObservances(…, config) tags", (x) => getObservances(ISO, ISO, withRule({ tags: x }))],
+	[
+		"getObservances(…, config) levels entry",
+		(x) => getObservances(ISO, ISO, v({ ...LEVEL_CONFIG, levels: [x] })),
+	],
+	[
+		"getObservances(…, config) levels",
+		(x) => getObservances(ISO, ISO, v({ ...LEVEL_CONFIG, levels: x })),
+	],
+	[
+		"getObservances(…, config) tibetanName",
+		(x) => getObservances(ISO, ISO, withRule({ tibetanName: x })),
+	],
+	[
+		"getObservances(…, config) rule",
+		(x) => getObservances(ISO, ISO, v({ ...LEVEL_CONFIG, rules: [x] })),
 	],
 ];
 
@@ -260,8 +343,6 @@ const EMPTY_BAGS = [
 // The bag itself, and its other key.
 const BAG: readonly Row[] = [
 	["addMonthsToDate(fields, 1, options)", (x) => addMonthsToDate(LOSAR, 1, v(x)), EMPTY_BAGS],
-	["getObservances(from, to, options)", (x) => getObservances(ISO, ISO, v(x)), EMPTY_BAGS],
-	["observancesOn(date, options)", (x) => observancesOn(ISO, v(x)), EMPTY_BAGS],
 	[
 		"addMonthsToDate(fields, 1, { overflow })",
 		(x) => addMonthsToDate(LOSAR, 1, v({ overflow: x })),
@@ -304,6 +385,7 @@ table("a hostile value as the argument", SCALAR, HOSTILE);
 table("a hostile value as one field", FIELD, HOSTILE);
 table("a hostile value as the tradition or config", CONFIG, NOT_A_PROXY);
 table("a hostile value in a consumer's observance rule", RULE_FIELD, HOSTILE);
+table("a hostile object in a consumer's observance rule", RULE_OBJECT, NOT_A_PROXY);
 table("a hostile value as the options bag", BAG, HOSTILE);
 
 describe('a message tells 10n, the string "10" and the number 10 apart', () => {

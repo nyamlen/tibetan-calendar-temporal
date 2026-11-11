@@ -261,12 +261,15 @@ describe("error codes", () => {
 		// consumer, and for the TypeScript one whose config came from JSON.parse or a form field.
 		TCT_INVALID_OBSERVANCE_CONFIG: () =>
 			observances.observancesOn(iso("2026-08-12"), {
-				config: {
-					...observances.DEFAULT_OBSERVANCES,
-					doubledDay: "1st" as observances.DoubledDayChoice,
-				},
+				...observances.EXAMPLE_OBSERVANCES,
+				doubledDay: "1st" as observances.DoubledDayChoice,
 			}),
-		TCT_SPAN_TOO_WIDE: () => observances.getObservances(iso("1500-01-01"), iso("2500-01-01")),
+		TCT_SPAN_TOO_WIDE: () =>
+			observances.getObservances(
+				iso("1500-01-01"),
+				iso("2500-01-01"),
+				observances.EXAMPLE_OBSERVANCES,
+			),
 		// Reachable as of 2026-09-12, when ./astrology landed. Before that it sat in the unreachable
 		// list below: the code existed and the modules threw it, but nothing exported them.
 		TCT_ATTRIBUTE_NOT_SOURCED: () =>
@@ -564,7 +567,7 @@ describe("error codes", () => {
  * conventions that published sources disagree about. See `src/observances/types.ts`.
  */
 const EXPECTED_OBSERVANCE_EXPORTS = [
-	"DEFAULT_OBSERVANCES",
+	"EXAMPLE_OBSERVANCES",
 	"getObservances",
 	"observancesOn",
 ] as const;
@@ -574,45 +577,75 @@ describe("observances API surface", () => {
 		expect(Object.keys(observances).sort()).toEqual([...EXPECTED_OBSERVANCE_EXPORTS]);
 	});
 
-	it("ships the default observance config (id `gelug`) as spreadable plain data, like a tradition config", () => {
-		expect(typeof observances.DEFAULT_OBSERVANCES).toBe("object");
-		expect(observances.DEFAULT_OBSERVANCES.id).toBe("gelug");
+	it("ships the example observance config (id `example`) as spreadable plain data, like a tradition config", () => {
+		expect(typeof observances.EXAMPLE_OBSERVANCES).toBe("object");
+		expect(observances.EXAMPLE_OBSERVANCES.id).toBe("example");
 		// An institution differs by spreading, never by subclassing.
-		const kopan = { ...observances.DEFAULT_OBSERVANCES, id: "kopan", doubledDay: "first" as const };
-		expect(kopan.rules).toBe(observances.DEFAULT_OBSERVANCES.rules);
-		expect(kopan.doubledDay).not.toBe(observances.DEFAULT_OBSERVANCES.doubledDay);
+		const kopan = { ...observances.EXAMPLE_OBSERVANCES, id: "kopan", doubledDay: "first" as const };
+		expect(kopan.rules).toBe(observances.EXAMPLE_OBSERVANCES.rules);
+		expect(kopan.doubledDay).not.toBe(observances.EXAMPLE_OBSERVANCES.doubledDay);
 	});
 
-	it("cites a source for every shipped rule", () => {
-		for (const rule of observances.DEFAULT_OBSERVANCES.rules) {
-			expect(rule.source).toMatch(/^https:\/\/fpmt\.org\//);
-		}
+	it("no longer ships the default config the examples once took implicitly", () => {
+		expect("DEFAULT_OBSERVANCES" in observances).toBe(false);
 	});
 
-	// The shipped config must satisfy the rules imposed on consumer configs. Without this, DEFAULT_OBSERVANCES
+	// A type is not a runtime export, so `Object.keys` cannot see these; this fails to compile,
+	// under `npm run typecheck`, if either leaves the barrel. `check:conventions` rule 13 holds the
+	// README's list of them.
+	it("exports TibetanMonthDay and ObservanceLevel as types", () => {
+		const date: observances.TibetanMonthDay = { month: 1, day: 15 };
+		const level: observances.ObservanceLevel = { id: "great", englishName: "Great days" };
+		expect([date.month, level.id]).toEqual([1, "great"]);
+	});
+
+	// The shipped config must satisfy the rules imposed on consumer configs. Without this, EXAMPLE_OBSERVANCES
 	// could drift out of its own contract and only a consumer would ever find out.
 	it("passes the validation it imposes on consumer configs", () => {
 		const day = Temporal.PlainDate.from("2026-01-01");
 		expect(() =>
-			observances.getObservances(day, day, { config: observances.DEFAULT_OBSERVANCES }),
+			observances.getObservances(day, day, observances.EXAMPLE_OBSERVANCES),
 		).not.toThrow();
 
-		const ids = observances.DEFAULT_OBSERVANCES.rules.map((r) => r.id);
+		const ids = observances.EXAMPLE_OBSERVANCES.rules.map((r) => r.id);
 		expect(new Set(ids).size).toBe(ids.length);
-		for (const rule of observances.DEFAULT_OBSERVANCES.rules) {
-			expect(rule.when.day).toBeGreaterThanOrEqual(1);
-			expect(rule.when.day).toBeLessThanOrEqual(30);
-			if ("month" in rule.when) {
-				expect(rule.when.month).toBeGreaterThanOrEqual(1);
-				expect(rule.when.month).toBeLessThanOrEqual(12);
+		// Read by the `type` tag: a check on a field no form carries would pass vacuously.
+		const forms = new Set<string>();
+		for (const rule of observances.EXAMPLE_OBSERVANCES.rules) {
+			forms.add(rule.when.type);
+			const entries =
+				rule.when.type === "monthly" ? rule.when.days : rule.when.dates.map((d) => d.day);
+			expect(entries.length).toBeGreaterThan(0);
+			for (const day of entries) {
+				expect(day).toBeGreaterThanOrEqual(1);
+				expect(day).toBeLessThanOrEqual(30);
+			}
+			if (rule.when.type === "annual") {
+				for (const { month } of rule.when.dates) {
+					expect(month).toBeGreaterThanOrEqual(1);
+					expect(month).toBeLessThanOrEqual(12);
+				}
 			}
 		}
+		expect([...forms].sort()).toEqual(["annual", "monthly"]);
 	});
 
 	// Shipping an anniversary would put institution-specific data on a release cycle it does not
-	// belong on -- a new spiritual director should not need a package publish.
-	it("ships no teacher anniversaries, only the shape for a caller to supply them", () => {
-		expect(observances.DEFAULT_OBSERVANCES.rules.some((r) => r.kind === "anniversary")).toBe(false);
+	// belong on -- a new spiritual director should not need a package publish. The `kind` that said
+	// so is gone, and the anniversary ids are not fixed until the example's content lands (Task 10
+	// of the observance rebuild, which reverses this test), so the check is on what an anniversary
+	// is: an annual rule that is not one of the four great days.
+	it("ships none of the seven anniversary ids: its only annual rules are the four great days", () => {
+		const annual = observances.EXAMPLE_OBSERVANCES.rules
+			.filter((r) => r.when.type === "annual")
+			.map((r) => r.id)
+			.sort();
+		expect(annual).toEqual([
+			"chokhor-duchen",
+			"chotrul-duchen",
+			"lhabab-duchen",
+			"saga-dawa-duchen",
+		]);
 	});
 
 	/**
@@ -631,8 +664,11 @@ describe("observances API surface", () => {
 				return (error as { code?: string }).code;
 			}
 		};
-		expect(codeOf(() => observances.getObservances(bare, bare))).toBe("TCT_INVALID_ARGUMENT");
-		expect(codeOf(() => observances.observancesOn(bare))).toBe("TCT_INVALID_ARGUMENT");
+		const config = observances.EXAMPLE_OBSERVANCES;
+		expect(codeOf(() => observances.getObservances(bare, bare, config))).toBe(
+			"TCT_INVALID_ARGUMENT",
+		);
+		expect(codeOf(() => observances.observancesOn(bare, config))).toBe("TCT_INVALID_ARGUMENT");
 	});
 });
 

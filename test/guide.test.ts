@@ -13,7 +13,7 @@ import { formatTibetanDate } from "../src/format.js";
 import { monthNamesFor } from "../src/month-names.js";
 import { monthsFor } from "../src/months.js";
 import { nextFullMoon } from "../src/navigation.js";
-import { DEFAULT_OBSERVANCES, getObservances, observancesOn } from "../src/observances/index.js";
+import { EXAMPLE_OBSERVANCES, getObservances, observancesOn } from "../src/observances/index.js";
 import { parseTibetanDate } from "../src/parse.js";
 import { BHUTAN } from "../src/traditions/bhutan.js";
 import { SkippedDayError } from "../src/types.js";
@@ -154,18 +154,18 @@ describe("guide examples", () => {
 	});
 
 	it("moves the 2024 Chokhor Duchen to 9 July under a spread config", () => {
-		const kopan = { ...DEFAULT_OBSERVANCES, id: "kopan", doubledDay: "first" as const };
-		expect(observancesOn(iso("2024-07-09"), { config: kopan }).map((o) => o.rule.id)).toContain(
+		const kopan = { ...EXAMPLE_OBSERVANCES, id: "kopan", doubledDay: "first" as const };
+		expect(observancesOn(iso("2024-07-09"), kopan).map((o) => o.rule.id)).toContain(
 			"chokhor-duchen",
 		);
 	});
 
-	// The README prints the three convention fields, their allowed values and DEFAULT_OBSERVANCES's defaults as a
+	// The README prints the three convention fields, their allowed values and EXAMPLE_OBSERVANCES's defaults as a
 	// table. A default changing there and not here would put a wrong date in front of a reader.
-	it("documents DEFAULT_OBSERVANCES's convention defaults correctly", () => {
-		expect(DEFAULT_OBSERVANCES.doubledDay).toBe("second");
-		expect(DEFAULT_OBSERVANCES.skippedDay).toBe("preceding");
-		expect(DEFAULT_OBSERVANCES.leapMonth).toBe("leap");
+	it("documents EXAMPLE_OBSERVANCES's convention defaults correctly", () => {
+		expect(EXAMPLE_OBSERVANCES.doubledDay).toBe("second");
+		expect(EXAMPLE_OBSERVANCES.skippedDay).toBe("preceding");
+		expect(EXAMPLE_OBSERVANCES.leapMonth).toBe("leap");
 	});
 
 	// The list of `resolution` values reads as exhaustive, and once was not -- it omitted
@@ -175,11 +175,11 @@ describe("guide examples", () => {
 		const documented = ["exact", "firstOfDoubled", "secondOfDoubled", "shiftedFromSkipped"];
 		const seen = new Set<string>();
 		for (const doubledDay of ["first", "second", "both"] as const) {
-			const config = { ...DEFAULT_OBSERVANCES, id: `readme-${doubledDay}`, doubledDay };
+			const config = { ...EXAMPLE_OBSERVANCES, id: `readme-${doubledDay}`, doubledDay };
 			// A wide window on purpose: "exact" and the two doubled cases appear within months, but a
 			// rule's own day being skipped is rarer than a skipped day, so a few years would not
 			// exercise "shiftedFromSkipped" and the assertion would pass for the wrong reason.
-			for (const o of getObservances(iso("2010-01-01"), iso("2030-12-31"), { config })) {
+			for (const o of getObservances(iso("2010-01-01"), iso("2030-12-31"), config)) {
 				seen.add(o.resolution);
 			}
 		}
@@ -189,22 +189,19 @@ describe("guide examples", () => {
 	// The `myCentre` example: extend `rules` by spreading, never replace it.
 	it("accepts the documented custom-rule config", () => {
 		const myCentre = {
-			...DEFAULT_OBSERVANCES,
+			...EXAMPLE_OBSERVANCES,
 			id: "my-centre",
 			rules: [
-				...DEFAULT_OBSERVANCES.rules,
+				...EXAMPLE_OBSERVANCES.rules,
 				{
 					id: "founder-anniversary",
-					name: "Founder's anniversary",
-					kind: "anniversary" as const,
-					tier: 2 as const,
-					when: { month: 4, day: 15 },
-					source: "https://example.org/calendar",
+					englishName: "Founder's anniversary",
+					when: { type: "annual" as const, dates: [{ month: 4, day: 15 }] },
 					skippedDay: "preceding" as const,
 				},
 			],
 		};
-		const found = getObservances(iso("2026-01-01"), iso("2026-12-31"), { config: myCentre }).filter(
+		const found = getObservances(iso("2026-01-01"), iso("2026-12-31"), myCentre).filter(
 			(o) => o.rule.id === "founder-anniversary",
 		);
 		expect(found).toHaveLength(1);
