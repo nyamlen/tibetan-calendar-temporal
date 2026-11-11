@@ -72,13 +72,26 @@ function idsOf(value: unknown, field: string): { id: string; item: unknown }[] {
 	});
 }
 
-function assertDistinct(ids: readonly string[], field: string): void {
-	const seen = new Set<string>();
-	for (const id of ids) {
-		if (seen.has(id)) {
-			throw rangeError(CODE, `${SUBJECT}: ${field} names "${id}" twice`);
+/**
+ * Refuses an id that appears twice across the given lists, naming it and the lists it is in.
+ *
+ * @remarks
+ * Strict on purpose: an id in `remove` and `add` would silently move a rule to the end, which
+ * `replace` exists to avoid, and loosening later is free where tightening after 1.0.0 is not.
+ */
+function assertNoRepeats(lists: readonly (readonly [string, readonly string[]])[], label: string) {
+	const where = new Map<string, string[]>();
+	for (const [field, ids] of lists) {
+		for (const id of ids) where.set(id, [...(where.get(id) ?? []), field]);
+	}
+	for (const [id, fields] of where) {
+		if (fields.length > 1) {
+			throw rangeError(
+				CODE,
+				`${label}: "${id}" appears ${fields.length} times, in ${fields.join(" and ")}; ` +
+					"an id may appear once in a layer",
+			);
 		}
-		seen.add(id);
 	}
 }
 
@@ -103,11 +116,16 @@ function assertDistinct(ids: readonly string[], field: string): void {
  *
  * **Rules** are changed in the order remove, replace, add: the layer's `remove` ids are dropped,
  * each `replace` rule takes the position of the base rule with the same id, and `add` rules follow,
- * in the order given. `add` is checked against the base **after** `remove`, so a rule removed in
- * a layer may be added back in it; `replace` is how to change a rule that stays.
+ * in the order given. An id may appear **once** in a layer, across `remove`, `replace` and `add`
+ * together: removing a rule and adding it back is refused, because it would silently move the rule
+ * to the end, and `replace` is how to change a rule and keep its place. `add` refuses an id the
+ * base has.
  *
  * **Levels** keep the base's order minus `removeLevels`, then `addLevels` follow in the order given.
- * There is no reordering. A level a remaining rule still names cannot be removed.
+ * There is no reordering. A level id may appear once across `removeLevels` and `addLevels`, and a
+ * level a remaining rule still names cannot be removed. A layer therefore cannot rename or edit a
+ * level, deliberately: there is no `replaceLevels`, so keep the level, or remove it and `replace`
+ * the rules that name it.
  *
  * **Nothing the caller passed in is changed or frozen**, however deep: the result is built from
  * copies, so a base the caller owns stays theirs to edit, and an object in the layer is never an
@@ -117,10 +135,11 @@ function assertDistinct(ids: readonly string[], field: string): void {
  * @param layer - The differences; its keys are those of {@link ObservanceLayer} and no others.
  * @throws RangeError with code `TCT_INVALID_OBSERVANCE_CONFIG`, naming the offending id or key, for
  *   a `base` or `layer` that is not an object or is malformed; an unknown layer key; a `remove` or
- *   `replace` naming a rule the base does not have; an `add` naming a rule it keeps; an id
- *   twice in one list; a `removeLevels` naming an undeclared level; a level removed while a
- *   remaining rule names it; a rule naming a level that is not declared; an added level that
- *   exists; and any rule or level the validator refuses.
+ *   `replace` naming a rule the base does not have; an `add` naming a rule the base has; a rule
+ *   id appearing twice across `remove`, `replace` and `add`, whether in one list or two; a
+ *   `removeLevels` naming an undeclared level; a level id appearing twice across `removeLevels` and
+ *   `addLevels`; an added level the base declares; a level removed while a remaining rule names
+ *   it; a rule naming a level that is not declared; and any rule or level the validator refuses.
  */
 export function composeObservances(
 	base: ObservanceConfig,
@@ -144,19 +163,20 @@ export function composeObservances(
 	const add = idsOf(layer.add, "add");
 	const removeLevels = idList(layer.removeLevels, "removeLevels");
 	const addLevels = idsOf(layer.addLevels, "addLevels");
-	assertDistinct(remove, "remove");
-	assertDistinct(
-		replace.map((r) => r.id),
-		"replace",
+	assertNoRepeats(
+		[
+			["remove", remove],
+			["replace", replace.map((r) => r.id)],
+			["add", add.map((r) => r.id)],
+		],
+		label,
 	);
-	assertDistinct(
-		add.map((r) => r.id),
-		"add",
-	);
-	assertDistinct(removeLevels, "removeLevels");
-	assertDistinct(
-		addLevels.map((l) => l.id),
-		"addLevels",
+	assertNoRepeats(
+		[
+			["removeLevels", removeLevels],
+			["addLevels", addLevels.map((l) => l.id)],
+		],
+		label,
 	);
 
 	const baseRuleIds = new Set(base.rules.map((rule) => rule.id));
@@ -170,12 +190,9 @@ export function composeObservances(
 		if (!baseRuleIds.has(id)) {
 			throw rangeError(CODE, `${label}: replace names "${id}", which the base does not have`);
 		}
-		if (removed.has(id)) {
-			throw rangeError(CODE, `${label}: "${id}" is both removed and replaced`);
-		}
 	}
 	for (const { id } of add) {
-		if (baseRuleIds.has(id) && !removed.has(id)) {
+		if (baseRuleIds.has(id)) {
 			throw rangeError(
 				CODE,
 				`${label}: add names "${id}", which the base already has; use replace to change it`,
@@ -195,7 +212,7 @@ export function composeObservances(
 	}
 	const removedLevels = new Set(removeLevels);
 	for (const { id } of addLevels) {
-		if (baseLevelIds.has(id) && !removedLevels.has(id)) {
+		if (baseLevelIds.has(id)) {
 			throw rangeError(CODE, `${label}: addLevels names "${id}", which the base already declares`);
 		}
 	}
@@ -207,13 +224,8 @@ export function composeObservances(
 			.map((rule) => replacements.get(rule.id) ?? rule),
 		...add.map(({ item }) => item as ObservanceRule),
 	];
-	const readded = new Set(addLevels.map(({ id }) => id));
 	for (const rule of rules) {
-		if (
-			typeof rule.level === "string" &&
-			removedLevels.has(rule.level) &&
-			!readded.has(rule.level)
-		) {
+		if (typeof rule.level === "string" && removedLevels.has(rule.level)) {
 			throw rangeError(
 				CODE,
 				`${label}: removeLevels names "${rule.level}", which rule "${rule.id}" still names`,

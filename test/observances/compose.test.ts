@@ -111,27 +111,6 @@ describe("composeObservances", () => {
 		expect(levelIds(result)).toEqual(["great", "tiny", "new"]);
 	});
 
-	it("lets a removed rule id be added back (add checks the base after remove)", () => {
-		const result = composeObservances(
-			plainBase(),
-			layer({ remove: ["a"], add: [monthly("a", { englishName: "A2" })] }),
-		);
-		expect(ruleIds(result)).toEqual(["b", "c", "a"]);
-		expect(result.rules[2]?.englishName).toBe("A2");
-	});
-
-	it("lets a removed level id be added back", () => {
-		const result = composeObservances(
-			plainBase(),
-			layer({
-				remove: ["a"],
-				removeLevels: ["great"],
-				addLevels: [{ id: "great", englishName: "Great 2" }],
-			}),
-		);
-		expect(levelIds(result)).toEqual(["small", "tiny", "great"]);
-	});
-
 	it("takes id, englishName and tibetanName from the layer only", () => {
 		const base = plainBase();
 		const bare = composeObservances(base, layer());
@@ -179,6 +158,25 @@ describe("composeObservances", () => {
 			["add naming an id the base keeps", plainBase(), layer({ add: [monthly("a")] })],
 			["an id twice in remove", plainBase(), layer({ remove: ["a", "a"] })],
 			["an id twice in replace", plainBase(), layer({ replace: [monthly("a"), monthly("a")] })],
+			[
+				"an id in both remove and add",
+				plainBase(),
+				layer({ remove: ["a"], add: [monthly("a", { englishName: "A2" })] }),
+			],
+			[
+				"an id in both replace and add",
+				plainBase(),
+				layer({ replace: [monthly("a")], add: [monthly("a")] }),
+			],
+			[
+				"a level in both removeLevels and addLevels",
+				plainBase(),
+				layer({
+					remove: ["a"],
+					removeLevels: ["great"],
+					addLevels: [{ id: "great", englishName: "G2" }],
+				}),
+			],
 			["an id twice in add", plainBase(), layer({ add: [monthly("q"), monthly("q")] })],
 			[
 				"an id in both remove and replace",
@@ -383,5 +381,97 @@ describe("composeObservances", () => {
 	it("returns a fresh result each call", () => {
 		const base = plainBase();
 		expect(composeObservances(base, layer())).not.toBe(composeObservances(base, layer()));
+	});
+});
+
+describe("composeObservances: hostile values nested in rules and levels", () => {
+	const values: [string, unknown][] = [
+		["function", () => 1],
+		["Symbol", Symbol("x")],
+		["bigint", 10n],
+		[
+			"throwing getter",
+			{
+				get boom() {
+					throw new Error("getter");
+				},
+			},
+		],
+	];
+	const sites: [string, (x: unknown) => [ObservanceConfig, unknown]][] = [
+		["added rule tags", (x) => [plainBase(), layer({ add: [monthly("q", { tags: [x] })] })]],
+		[
+			"added rule when.days",
+			(x) => [
+				plainBase(),
+				layer({ add: [monthly("q", { when: { type: "monthly", days: [x] } })] }),
+			],
+		],
+		[
+			"added rule when.dates month",
+			(x) => [
+				plainBase(),
+				layer({
+					add: [monthly("q", { when: { type: "annual", dates: [{ month: x, day: 1 }] } })],
+				}),
+			],
+		],
+		[
+			"added rule englishName",
+			(x) => [plainBase(), layer({ add: [monthly("q", { englishName: x })] })],
+		],
+		["added rule level", (x) => [plainBase(), layer({ add: [monthly("q", { level: x })] })]],
+		["replaced rule tags", (x) => [plainBase(), layer({ replace: [monthly("a", { tags: [x] })] })]],
+		[
+			"replaced rule englishName",
+			(x) => [plainBase(), layer({ replace: [monthly("a", { englishName: x })] })],
+		],
+		[
+			"replaced rule when.days",
+			(x) => [
+				plainBase(),
+				layer({ replace: [monthly("a", { when: { type: "monthly", days: [x] } })] }),
+			],
+		],
+		[
+			"added level englishName",
+			(x) => [plainBase(), layer({ addLevels: [{ id: "n", englishName: x }] })],
+		],
+		[
+			"added level tibetanName part",
+			(x) => [
+				plainBase(),
+				layer({ addLevels: [{ id: "n", englishName: "N", tibetanName: { ...NAME, wylie: x } }] }),
+			],
+		],
+		[
+			"base rule tags",
+			(x) => {
+				const base = plainBase();
+				(base.rules[0] as unknown as { tags: unknown[] }).tags = [x];
+				return [base, layer()];
+			},
+		],
+		[
+			"base level tibetanName part",
+			(x) => {
+				const base = plainBase();
+				(
+					(base.levels as unknown as { tibetanName: { wylie: unknown } }[])[0] as {
+						tibetanName: { wylie: unknown };
+					}
+				).tibetanName.wylie = x;
+				return [base, layer()];
+			},
+		],
+	];
+	const cases = sites.flatMap(([site, build]) =>
+		values.map(([name, value]) => [`${site} holding a ${name}`, build, value] as const),
+	);
+	it.each(cases)("%s is refused with a code", (_label, build, value) => {
+		const [base, l] = build(value);
+		const error = thrownBy(() => composeObservances(base, l as ObservanceLayer));
+		expect(error?.constructor?.name).not.toBe("DOMException");
+		expect(error?.code).toBe(INVALID);
 	});
 });
