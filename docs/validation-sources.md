@@ -342,6 +342,12 @@ arithmetic agreeing with itself; for sojong, nothing says where its schedule com
 agreement with FPMT on 82 of 99 sojongs counts as independent only if the two do not copy one
 almanac — which is unknown. The rule is fitted to Rabten, not sourced from it.
 
+Its sojong days are now a generated fixture, `test/fixtures/rabten-sojong.ts`, and
+`test/validation/rabten-sojong.test.ts` holds the `counted` form to them; the window is in
+[testing.md](testing.md#rabten-choelings-sojong-schedule).
+The generator found that the page marks today's day with an extra attribute after its label, which a
+pattern ending at the label's closing quote silently skips.
+
 ### Bhutan's month attributes — a negative result, recorded so it is not re-walked
 
 Searched 2026-09-10, for the animal and element each **month** of the Bhutanese year carries.
