@@ -16,7 +16,7 @@
  */
 
 import { assertSafeYear, describe, rangeError } from "../errors.js";
-import type { ObservanceConfig, ObservanceRule, ObservanceWhen } from "./types.js";
+import type { FormulaName, ObservanceConfig, ObservanceRule, ObservanceWhen } from "./types.js";
 
 const CODE = "TCT_INVALID_OBSERVANCE_CONFIG";
 
@@ -51,6 +51,8 @@ const YEAR_KEYS = ["fromYear", "untilYear", "ageFromYear"] as const;
 const ANNUAL_KEYS = ["type", "dates", ...YEAR_KEYS];
 const WESTERN_KEYS = ["type", "month", "day", ...YEAR_KEYS];
 const PERIOD_KEYS = ["type", "first", "last"];
+const FORMULA_KEYS = ["type", "formula"];
+const FORMULA_NAMES: readonly FormulaName[] = ["lunarDayPlusWeekdayMod4"];
 const DATE_KEYS = ["month", "day"];
 const TIBETAN_NAME_KEYS = ["tibetan", "wylie", "phonetic"];
 
@@ -70,6 +72,7 @@ const SETTINGS_BY_FORM: Record<ObservanceWhen["type"], readonly FormSetting[]> =
 	annual: ["doubledDay", "skippedDay", "leapMonth"],
 	period: ["leapMonth"],
 	western: [],
+	formula: [],
 };
 
 /** Days in each Gregorian month in a leap year, the most any year gives it. */
@@ -305,9 +308,14 @@ function assertWhen(when: unknown, subject: string): void {
 		assertYearFields(when, subject);
 		return;
 	}
+	if (when.type === "formula") {
+		assertKnownKeys(when, FORMULA_KEYS, `${subject}: when`);
+		assertChoice(when.formula, FORMULA_NAMES, `${subject}: when.formula`);
+		return;
+	}
 	throw rangeError(
 		CODE,
-		`${subject}: when.type must be "monthly", "annual", "period" or "western", received ${describe(when.type)}`,
+		`${subject}: when.type must be "monthly", "annual", "period", "western" or "formula", received ${describe(when.type)}`,
 	);
 }
 

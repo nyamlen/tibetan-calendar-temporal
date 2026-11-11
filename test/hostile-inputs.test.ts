@@ -304,6 +304,10 @@ const RULE_FIELD: readonly Row[] = [
 			),
 	],
 	[
+		"getObservances(…, config) formula name",
+		(x) => getObservances(ISO, ISO, withWhen({ type: "formula", formula: x })),
+	],
+	[
 		"getObservances(…, config) western month",
 		(x) => getObservances(ISO, ISO, withWhen({ type: "western", month: x, day: 1 })),
 	],

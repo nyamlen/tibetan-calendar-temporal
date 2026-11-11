@@ -3,6 +3,8 @@ import { lunarMansionFor } from "../../src/astrology/index.js";
 import { mansionElement } from "../../src/astrology/mansion-elements.js";
 import { mansionNumber } from "../../src/astrology/mansions.js";
 import { isoToTibetan } from "../../src/computation/conversion.js";
+import { datesFor } from "../../src/months.js";
+import { formulaHolds } from "../../src/observances/formulas.js";
 import { EXAMPLE_OBSERVANCES, getObservances } from "../../src/observances/index.js";
 import { PHUGPA } from "../../src/traditions/phugpa.js";
 import { FPMT_OBSERVANCES } from "../fixtures/fpmt-observances.js";
@@ -366,5 +368,82 @@ describe("FPMT's advice codes, as recorded", () => {
 
 	it("carries codes on nearly every day", () => {
 		expect(FPMT_OBSERVANCES.filter((r) => r.codes !== undefined)).toHaveLength(1772);
+	});
+});
+
+describe('the fire puja formula against FPMT\'s "Fire puja" labels, 2022-2026', () => {
+	// Measured on the engine's own TibetanDate for each day, not on the day number FPMT prints: the
+	// two differ on three days (2022-12-03, 2023-11-09, 2024-12-08), and the claim is about the
+	// engine. The miss list is a literal captured from the first run, so a change in either the
+	// formula or the arithmetic shows as a named date.
+	const MISSES: readonly string[] = [
+		"2022-03-12",
+		"2022-03-15",
+		"2022-04-14",
+		"2022-04-15",
+		"2022-04-17",
+		"2022-06-22",
+		"2022-08-05",
+		"2022-08-14",
+		"2022-11-17",
+		"2022-11-21",
+		"2022-11-23",
+		"2022-11-24",
+		"2023-04-04",
+		"2023-05-05",
+		"2023-05-11",
+		"2023-05-12",
+		"2023-05-19",
+		"2023-05-26",
+		"2024-01-05",
+		"2024-01-06",
+		"2024-01-07",
+		"2024-03-14",
+		"2024-03-15",
+		"2024-03-16",
+		"2024-03-31",
+		"2024-05-18",
+		"2024-06-15",
+		"2024-08-01",
+		"2024-09-14",
+		"2025-02-04",
+		"2025-02-16",
+		"2025-03-16",
+		"2025-04-04",
+		"2025-04-13",
+		"2025-08-02",
+		"2026-04-10",
+		"2026-07-22",
+		"2026-07-23",
+		"2026-10-07",
+		"2026-11-01",
+	];
+
+	const measured = FPMT_OBSERVANCES.map((row) => {
+		const date = isoToTibetan(iso(row.iso), PHUGPA);
+		const labelled = (row.labels ?? []).includes("Fire puja");
+		return {
+			iso: row.iso,
+			date,
+			agrees: formulaHolds("lunarDayPlusWeekdayMod4", date) === labelled,
+		};
+	});
+	const misses = measured.filter((m) => !m.agrees);
+
+	it("agrees on 1,786 of 1,826 days", () => {
+		expect(measured).toHaveLength(1826);
+		expect(measured.length - misses.length).toBe(1786);
+		expect(misses.map((m) => m.iso)).toEqual(MISSES);
+	});
+
+	it("counts the misses lying in a month holding a doubled or skipped day", () => {
+		const irregular = (m: (typeof measured)[number]) => {
+			const days = datesFor(
+				{ year: m.date.year, month: m.date.month, isLeapMonth: m.date.isLeapMonth },
+				PHUGPA,
+			);
+			return days.some((d) => d.isDoubledDay) || new Set(days.map((d) => d.day)).size < 30;
+		};
+		expect(misses.filter(irregular)).toHaveLength(39);
 	});
 });

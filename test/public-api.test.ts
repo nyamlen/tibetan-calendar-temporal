@@ -620,8 +620,10 @@ describe("observances API surface", () => {
 						? rule.when.dates.map((d) => d.day)
 						: rule.when.type === "period"
 							? [rule.when.first.day, rule.when.last.day]
-							: [rule.when.day];
-			expect(entries.length).toBeGreaterThan(0);
+							: rule.when.type === "western"
+								? [rule.when.day]
+								: [];
+			if (rule.when.type !== "formula") expect(entries.length).toBeGreaterThan(0);
 			for (const day of entries) {
 				expect(day).toBeGreaterThanOrEqual(1);
 				expect(day).toBeLessThanOrEqual(30);

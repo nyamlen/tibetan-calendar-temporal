@@ -719,7 +719,7 @@ positional, config first — see [Two kinds of config](docs/guide.md#two-kinds-o
 | `EXAMPLE_OBSERVANCES` | | An example config, translated from FPMT's published practice dates |
 
 Type-only exports: `Observance`, `ObservanceConfig`, `ObservanceRule`, `ObservanceWhen`,
-`ObservanceLevel`, `TibetanMonthDay`, `ObservanceResolution`, `DoubledDayChoice`,
+`ObservanceLevel`, `TibetanMonthDay`, `FormulaName`, `ObservanceResolution`, `DoubledDayChoice`,
 `SkippedDayChoice`, `LeapMonthChoice`.
 
 Note that `SkippedDayError` is exported from the **root** only. Nothing in this layer throws it —

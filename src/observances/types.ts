@@ -76,6 +76,18 @@ export type SkippedDayChoice = "preceding" | "following" | "omit";
 export type LeapMonthChoice = "regular" | "leap" | "both";
 
 /**
+ * The named rule a `formula` form tests every calendar day against.
+ *
+ * @remarks
+ * - `"lunarDayPlusWeekdayMod4"` — holds when the Tibetan day number plus the weekday's number
+ *   (Sunday 0) leaves 1 or 2 when divided by four.
+ *
+ * **This union is open to additions.** Further formulas may be added in a minor release, so a
+ * consumer switching on one handles an unknown value with a `default` branch.
+ */
+export type FormulaName = "lunarDayPlusWeekdayMod4";
+
+/**
  * A Tibetan month and day, the date an annual observance is fixed to.
  *
  * @remarks
@@ -106,6 +118,11 @@ export type TibetanMonthDay = { readonly month: number; readonly day: number };
  *   with two months of that number; under `"both"` `first` takes the earlier twin and `last` the
  *   later, so the span covers both. A span may not cross the new year. Its results are
  *   `"inPeriod"`, one per calendar day, each carrying {@link Observance.period}.
+ *
+ * - `"formula"` — on every calendar day for which the named {@link FormulaName} holds. Each calendar
+ *   day is tested, not each day number: the two halves of a doubled date differ in weekday and may
+ *   differ in result, and a skipped number is never seen. It reads no per-rule setting, and its
+ *   results are always `"exact"`.
  *
  * `annual` and `western` take a year window, `fromYear` and `untilYear` (both inclusive; absent
  * means unbounded), and `ageFromYear`. **Each counts its own form's calendar**: on `annual` a
@@ -152,6 +169,11 @@ export type ObservanceWhen =
 			readonly untilYear?: number;
 			/** The Western year counted as age 0; see {@link Observance.age}. */
 			readonly ageFromYear?: number;
+	  }
+	| {
+			readonly type: "formula";
+			/** The formula tested against each calendar day. */
+			readonly formula: FormulaName;
 	  };
 
 /**
