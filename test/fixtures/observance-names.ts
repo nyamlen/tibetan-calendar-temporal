@@ -15,8 +15,8 @@
  * stops returning the expected value.
  *
  * `singleWitness` is true for the one name that ships on a single witness, by Andreas' ruling of
- * 2026-11-11: the Sixteenth Karmapa, whose only witness to `rgyal ba karma pa bcu drug pa` is the list
- * of Tibetan scholars in Tibetan Wikipedia. It is an exception held as data in the script, which
+ * 2026-11-11: the Sixteenth Karmapa, whose only witness to `rgyal dbang karma pa bcu drug pa` is the Google Books
+ * catalogue record of his collected works (a published title, not a headword). It is an exception held as data in the script, which
  * refuses to run if it is needed for any other name or if a second witness appears.
  */
 
@@ -291,17 +291,17 @@ export const OBSERVANCE_NAMES: readonly ObservanceNameRow[] = [
 	{
 		id: "karmapa-16",
 		kind: "person",
-		tibetan: "རྒྱལ་བ་ཀརྨ་པ་བཅུ་དྲུག་པ",
-		wylie: "rgyal ba karma pa bcu drug pa",
-		marked: "rgyal ba-karma pa-bcu drug pa",
-		phonetic: "gyelwa karmapa chudrukpa",
-		thlPhonetic: "gyelwa kama(?)pa chudrukpa",
+		tibetan: "རྒྱལ་དབང་ཀརྨ་པ་བཅུ་དྲུག་པ",
+		wylie: "rgyal dbang karma pa bcu drug pa",
+		marked: "rgyal dbang-karma pa-bcu drug pa",
+		phonetic: "gyelwang karmapa chudrukpa",
+		thlPhonetic: "gyelwang kama(?)pa chudrukpa",
 		phoneticCorrected: true,
 		singleWitness: true,
 		witnesses: [
 			{
-				source: "Tibetan Wikipedia, the list in the article བོད་ཀྱི་མཁས་དབང་།",
-				entry: "རྒྱལ་བ་ཀརྨ་པ་བཅུ་དྲུག་པ",
+				source: "Google Books catalogue record (a published title, not a headword)",
+				entry: "id=s61Sj5amlx0C: རྒྱལ་དབང་ཀརྨ་པ་བཅུ་དྲུག་པ་ཆེན་པོའི་གསུང་འབུམ།",
 				page: null,
 			},
 		],

@@ -36,7 +36,7 @@ The label says only that the day commemorates the person; it does not say whethe
 | `milarepa` | Milarepa | `mi la ras pa` | མི་ལ་རས་པ | `mi la ras pa` | *milarepa* |
 | `guru-rinpoche` | Guru Rinpoche | `gu ru rin po che` | གུ་རུ་རིན་པོ་ཆེ | `gu ru-rin po che` | *guru rinpoché* |
 | `gampopa` | Gampopa | `sgam po pa` | སྒམ་པོ་པ | `sgam po pa` | *gampopa* |
-| `karmapa-16` | Sixteenth Karmapa | `rgyal ba karma pa bcu drug pa` | རྒྱལ་བ་ཀརྨ་པ་བཅུ་དྲུག་པ | `rgyal ba-karma pa-bcu drug pa` | *gyelwa karmapa chudrukpa* (a correction: THL returns *gyelwa kama(?)pa chudrukpa*) |
+| `karmapa-16` | Sixteenth Karmapa | `rgyal dbang karma pa bcu drug pa` | རྒྱལ་དབང་ཀརྨ་པ་བཅུ་དྲུག་པ | `rgyal dbang-karma pa-bcu drug pa` | *gyelwang karmapa chudrukpa* (a correction: THL returns *gyelwang kama(?)pa chudrukpa*) |
 | `tsongkhapa` | Lama Tsong Khapa | `rje tsong kha pa` | རྗེ་ཙོང་ཁ་པ | `rje-tsong kha pa` | *jé tsongkhapa* |
 | `sakya-pandita` | Sakya Pandita | `sa skya paN+Di ta` | ས་སྐྱ་པཎྜི་ཏ | `sa skya-paN+Di ta` | *sakya pandita* (a correction: THL returns *sakya pandi(?)ta*) |
 | `dudjom-rinpoche` | Dudjom Rinpoche | `bdud 'joms rin po che` | བདུད་འཇོམས་རིན་པོ་ཆེ | `bdud 'joms-rin po che` | *dünjom rinpoché* |
@@ -46,7 +46,7 @@ The last column in both tables is what THL's converter returned on 2026-11-11 fo
 **Two of THL's results carry its own uncertainty marker, "(?)":** *kama(?)pa* and *pandi(?)ta*.
 THL's converter page says its output cannot be 100% accurate and that someone who understands the text should check it.
 Andreas checked them on 2026-11-11 and is sure of *karmapa* and *pandita*, so **these two phonetics are corrections to THL's output**, not THL's output.
-They are held as data in the verifier, in the pattern of the other corrections in this project ([CLAUDE.md](../../CLAUDE.md)): each states the value THL is expected to return (*gyelwa kama(?)pa chudrukpa* and *sakya pandi(?)ta*) and the value it is corrected to, and **the run refuses if THL no longer returns the expected value**, so a correction cannot outlive its reason.
+They are held as data in the verifier, in the pattern of the other corrections in this project ([CLAUDE.md](../../CLAUDE.md)): each states the value THL is expected to return (*gyelwang kama(?)pa chudrukpa* and *sakya pandi(?)ta*) and the value it is corrected to, and **the run refuses if THL no longer returns the expected value**, so a correction cannot outlive its reason.
 The evidence for each is Andreas' own knowledge of the pronunciation, which is a witness of a different kind from a dictionary, and the record says so rather than presenting it as sourced.
 Nothing else is corrected: the other twelve phonetics are THL's output unchanged.
 
@@ -68,7 +68,7 @@ The facts below are headword existence only, from the sources the verifier reads
   Only `cho 'phrul dus chen` and `lha babs dus chen` are (in the *dung dkar*); the other two düchens pass on the head word *dus chen* and the sense read from Jäschke p. 255.
 - **FPMT's "Lama Tsong Khapa": `rje tsong kha pa` or a `bla ma` form.**
   Settled in item 8 under "For Andreas to approve": `rje tsong kha pa`.
-- **The Sixteenth Karmapa's form** is settled for now in item 6 and item 9 under "For Andreas to approve".
+- **The Sixteenth Karmapa's form** is settled in items 9 to 11 under "For Andreas to approve".
 
 ## Sources, and what each is trusted for
 
@@ -92,13 +92,23 @@ The Buddhist Digital Resource Center's person records are accepted as a biograph
 - **A headword of the *tshig mdzod chen mo* or the *dung dkar tshig mdzod chen mo* may count as a witness**, for a term and for a person.
   It stays gate only: the fact taken is that a headword exists, and nothing from either dictionary is quoted or stored.
   The two are one group, never two witnesses, because both are modern Tibetan–Tibetan compilations.
-- **A person's name may not drop an honorific** (*rje*, *rgyal ba*, *rin po che*).
+- **A person's name may not drop an honorific** (*rje*, *rgyal dbang*, *rin po che*).
   A witness must state the proposed spelling itself, equal to it or opening with it as whole words (BDRC's *sgam po pa bsod nams rin chen* states *sgam po pa*).
-- **The Sixteenth Karmapa stays `rgyal ba karma pa bcu drug pa`**, whose last words *karma pa bcu drug pa* mean the sixteenth Karmapa.
-  BDRC's numeric *karma pa 16 pa* is not an acceptable spelling for the shipped name, and a source printing *karma pa bcu drug pa* under a different honorific (*rgyal dbang*, *'jig rten dbang phyug*) is not a witness to it.
+- **The Sixteenth Karmapa was first `rgyal ba karma pa bcu drug pa`, and is now `rgyal dbang karma pa bcu drug pa`** (Andreas, 2026-11-11, after the earlier form found one witness only).
+  Both end in *karma pa bcu drug pa*, "the sixteenth Karmapa".
+  BDRC's numeric *karma pa 16 pa* is not an acceptable spelling for the shipped name.
 
-**Andreas approved two further witness types on 2026-11-11, both for a person's name:** a **Lotsawa House** Tibetan page heading for the master, and a **Tibetan Wikipedia** article title (a redirect counts) or an item of its list of Tibetan scholars.
-Neither is lexicography: each is a published page naming the person, and the verifier takes only that the page prints the spelling, as a heading, a title or a list item.
+**Andreas approved these further witness types on 2026-11-11, all for a person's name:**
+
+- a **Lotsawa House** Tibetan page heading for the master;
+- a **Tibetan Wikipedia** article title (a redirect counts) or an item of its list of Tibetan scholars — a title and a list item are **one** group, being one site;
+- a **published title naming the person with the exact spelling**, as a library catalogue records it: a **Google Books** record whose title opens with the spelling.
+  It is a catalogue record, **not a headword**; it is read from the page's `<title>`, and what it shows is that a published work is titled with the name, not that any dictionary heads it.
+  Andreas approved the type by supplying the first such record, the Sixteenth Karmapa's collected works.
+
+**Not approved, and so not counted:** a Lotsawa House *text* page's heading.
+The sixteenth Karmapa's page there carries a prayer titled *རྒྱལ་དབང་ཀརྨ་པ་བཅུ་དྲུག་པ་ཆེན་པོའི་ཞབས་བརྟན།*, which opens with the new spelling; whether a text-page heading may count awaits Andreas' ruling.
+
 A person passes with two independent groups stating the spelling, BDRC's record being the identity anchor (it must be the right person and carry the name's core).
 A source that prints a near spelling — another honorific, a numeral, a different word division — is not a witness.
 If a name cannot be attested by two groups, it ships English only, and Andreas decides.
@@ -115,8 +125,8 @@ Every one of the fourteen names must pass all of them, or it ships **English onl
    **A term:** its head word (the whole term where it is a single word), with the page or entry cited, in two of three groups: a Jäschke page read from the image, the Mahāvyutpatti's pairing, and a headword of the *tshig mdzod chen mo* or *dung dkar* (gate only; both together are one group, per Andreas' ruling).
    Das counts only where a page was read, and none was.
    Das against the Mahāvyutpatti is one witness where both attest, since Das partly rests on the canonical lexicons.
-   **A person:** two independent groups, each stating the **proposed spelling itself** — equal to it or opening with it as whole words, honorifics kept — from BDRC's person record, a gate-only headword, Lotsawa House's Tibetan page heading, or Tibetan Wikipedia; BDRC's record must also be the right person.
-   **One named exception**, decided by Andreas on 2026-11-11: the Sixteenth Karmapa ships on a single witness, held as data in the verifier and applying to no other name.
+   **A person:** two independent groups, each stating the **proposed spelling itself** — equal to it or opening with it as whole words, honorifics kept — from BDRC's person record, a gate-only headword, Lotsawa House's Tibetan page heading, Tibetan Wikipedia (title and list are one group), or a Google Books catalogue record whose title opens with it; BDRC's record must also be the right person.
+   **One named exception**, decided by Andreas on 2026-11-11: the Sixteenth Karmapa ships on a single witness, the Google Books record, held as data in the verifier and applying to no other name.
 4. **The sense is read, not the presence.**
    A headword's entry must state the calendar, ritual or biographical sense, not merely exist: `dus chen` and `zla ba` have other senses, and the homograph trap is the one [month-and-yoga-sourcing.md](month-and-yoga-sourcing.md) records.
 5. **THL phonetics from the converter's word-separated mode, with the word boundaries marked** (Andreas, 2026-11-11), as in the tables: "Words separated by" joins the syllables of each word and applies THL's own sandhi (*chönkhor*, *chontrül*), where the syllable-by-syllable mode the other shipped names use gives "so jong" and "dü chen".
@@ -139,21 +149,24 @@ The verifier refuses to emit if any check fails, and a check placed after the em
 1. The fourteen rules above are the only ones that ship a Tibetan name.
 2. The five checks, and that a name failing any of them ships English only.
 3. That the spelling variants above are settled by the checks and not by this page.
-4. **Decided 2026-11-11:** the two "(?)" phonetics are corrected to *gyelwa karmapa chudrukpa* and *sakya pandita*, as self-invalidating data (Andreas: "use karmapa and pandita; I am sure of this").
+4. **Decided 2026-11-11:** the two "(?)" phonetics are corrected as self-invalidating data, to *gyelwang karmapa chudrukpa* (for the Karmapa's current form; first *gyelwa karmapa chudrukpa*) and *sakya pandita* (Andreas: "use karmapa and pandita; I am sure of this").
 5. **Decided 2026-11-11:** the Buddhist Digital Resource Center's person records are the source for the persons' names, to be checked when the verifier is written.
-6. **Decided 2026-11-11, after the first run:** a copyrighted-dictionary headword may count as a witness (gate only, one group); a person's name may not drop an honorific; the Sixteenth Karmapa stays `rgyal ba karma pa bcu drug pa`, not BDRC's numeric form.
+6. **Decided 2026-11-11, after the first run:** a copyrighted-dictionary headword may count as a witness (gate only, one group); a person's name may not drop an honorific; BDRC's numeric Karmapa form is not a spelling that ships.
 7. **Approved 2026-11-11:** Lotsawa House's Tibetan page headings and Tibetan Wikipedia's article titles and list of Tibetan scholars as witness types for a person's name.
 8. **Decided 2026-11-11, Tsong Khapa: no change.**
    The Tibetan stays `rje tsong kha pa`, marked `rje-tsong kha pa`, and the phonetic stays *jé tsongkhapa*, which is what THL returns for that marking; the English name stays "Lama Tsong Khapa".
    Andreas' "one word, not two" meant *tsongkhapa* joined, and not *tsong kha pa* split.
-9. **Decided 2026-11-11, an explicit exception:** the Sixteenth Karmapa ships on **one** witness, Tibetan Wikipedia's list of Tibetan scholars (Andreas: "maybe accept one witness for this one").
-   It is held as data in the verifier, naming the rule, the one witness allowed and why; it applies to no other name, and it refuses to run if that witness stops stating the spelling or a second one appears.
-   The fixture row carries `singleWitness: true`.
-   Rigpa Wiki is **not** an approved witness type.
+9. **Decided 2026-11-11: the Sixteenth Karmapa's spelling changed to `rgyal dbang karma pa bcu drug pa`**; the earlier `rgyal ba karma pa bcu drug pa` found one witness only.
+10. **Approved 2026-11-11:** a Google Books catalogue record whose published title opens with the exact spelling, as a witness type (a catalogue record, not a headword), by Andreas supplying the Sixteenth Karmapa's collected works.
+11. **Decided 2026-11-11, an explicit exception:** the Sixteenth Karmapa ships on **one** witness, that Google Books record (Andreas: if the source works use it, otherwise accept the single source).
+    It is held as data in the verifier, naming the rule, the one witness allowed and why; it applies to no other name, and it refuses to run if that witness stops stating the spelling or a second one appears.
+    The fixture row carries `singleWitness: true`.
+    Rigpa Wiki is **not** an approved witness type.
+12. **Awaiting Andreas:** whether a Lotsawa House *text* page's heading may count as a witness (it would give the Karmapa a second group), and the Saga Dawa and Chokhor düchens' spellings (see "Spelling questions").
 
 ## Results of the run
 
-**Run of 2026-11-11, after Andreas' rulings (`npm run verify:observance-names`): all 14 names pass, the Sixteenth Karmapa under the single-witness exception of item 9 above, and the verifier wrote `test/fixtures/observance-names.ts`.**
+**Run of 2026-11-11, after Andreas' rulings (`npm run verify:observance-names`): all 14 names pass, the Sixteenth Karmapa under the single-witness exception of item 11 above, and the verifier wrote `test/fixtures/observance-names.ts`.**
 The first run, before the rulings, passed 5 of 14; the second passed 13.
 
 | Rule | 1 script | 2 round trip | 3 witnesses | 4 sense | 5 phonetics |
@@ -218,37 +231,36 @@ Its search needs a credential that its web page embeds, which this verifier does
 | `milarepa` | P1853 | BDRC (`mi la ras pa`); *tshig mdzod chen mo* headword (gate); Tibetan Wikipedia title |
 | `guru-rinpoche` | P4956 | BDRC (`gu ru rin po che`); Tibetan Wikipedia title *གུ་རུ་རིན་པོ་ཆེ་*, **a redirect** to the Padmasambhava article |
 | `gampopa` | P1844 | BDRC (`sgam po pa bsod nams rin chen`); *dung dkar* headword `sgam po pa` (gate) |
-| `karmapa-16` | P865 | **only** Tibetan Wikipedia's list of Tibetan scholars, which prints *རྒྱལ་བ་ཀརྨ་པ་བཅུ་དྲུག་པ།* (the single-witness exception) |
+| `karmapa-16` | P865 | **only** the Google Books catalogue record `id=s61Sj5amlx0C`, a volume (vol. 2, Tsurphu Labrang and the Amnye Machen Institute, 2016; contributor the Buddhist Digital Resource Center) titled *རྒྱལ་དབང་ཀརྨ་པ་བཅུ་དྲུག་པ་ཆེན་པོའི་གསུང་འབུམ།* (the single-witness exception) |
 | `tsongkhapa` | P64 | *dung dkar* headword `rje tsong kha pa blo bzang grags pa` (gate; opens with the name); Lotsawa House heading *རྗེ་ཙོང་ཁ་པ།*; BDRC states `tsong kha pa blo bzang grags pa` and `rje rin po che blo bzang grags pa`, **not** the proposed form |
 | `sakya-pandita` | P1056 | BDRC (`sa skya paN+Di ta kun dga' rgyal mtshan`); *dung dkar* headword `sa skya paN+Di ta` (gate) |
 | `dudjom-rinpoche` | P736 | Lotsawa House heading *བདུད་འཇོམས་རིན་པོ་ཆེ།*; Tibetan Wikipedia's list of Tibetan scholars; BDRC states `bdud 'joms 'jigs bral ye shes rdo rje`, **not** the proposed form |
 
-Tibetan Wikipedia's list of Tibetan scholars was read at revision 130662 (9 January 2016, the latest revision on 2026-11-11), so the Karmapa's and Dudjom's list witnesses are not at risk of a recent edit.
+Tibetan Wikipedia's list of Tibetan scholars was read at revision 130662 (9 January 2016, the latest revision on 2026-11-11), so Dudjom's list witness is not at risk of a recent edit.
 A Wikipedia title and a list item count as **one** witness group, being one site and one editing community.
 
 Two witnesses are weak and are recorded as such: *guru-rinpoche*'s second witness is a Wikipedia redirect title, and *dudjom-rinpoche*'s two are web pages, a heading and a list.
 For `tsongkhapa` and `dudjom-rinpoche` BDRC is the identity anchor and **not** a witness to the spelling, which is what keeping the honorific costs.
 
-### The Sixteenth Karmapa: what was searched, and the exception
+### The Sixteenth Karmapa: the spelling, what was searched, and the exception
 
-`rgyal ba karma pa bcu drug pa` has one witness, and ships under the exception of item 9.
-Searched, with the spelling as proposed, and **not found**:
+**The first form, `rgyal ba karma pa bcu drug pa`, found one witness only** (Tibetan Wikipedia's list of Tibetan scholars) and was replaced, by Andreas' ruling, with `rgyal dbang karma pa bcu drug pa` (item 9).
+The converters agree on its script, which reads back exactly; THL returns *gyelwang kama(?)pa chudrukpa* for the marked Wylie `rgyal dbang-karma pa-bcu drug pa`, which is corrected to *gyelwang karmapa chudrukpa*.
 
-- BDRC person record P865: its Wylie names are *karma pa 16 pa*, *karma pa 16 rang byung rig pa'i rdo rje* and *rang byung rig pa'i rdo rje* (its Tibetan-script labels, read through Wikidata's mirror, are the same names); the numeric form is ruled out.
-- The *tshig mdzod chen mo*, *dung dkar*, the Mahāvyutpatti and the Jäschke and Das indexes: no headword of that spelling or opening with it; the dictionaries head *karma pa* alone.
-- Lotsawa House's Tibetan page for the Sixteenth Karmapa: titled *ཀརྨ་པ་རང་བྱུང་རིག་པའི་རྡོ་རྗེ།*, and printing *karma pa bcu drug pa* only after *rgyal dbang* and *'jig rten dbang phyug*.
-- Tibetan Wikipedia: no article titled with it, and among thirty full-text hits for *karma pa bcu drug pa* none prints the spelling.
-- Wikidata's Tibetan labels for the BDRC record: *ཀརྨ་པ ༡༦* and the personal name.
-- Sources Andreas supplied: `rywiki.tsadra.org/index.php/skyabs_rje_kar_ma_pa_bcu_drug_pa` (titled *skyabs rje kar ma pa bcu drug pa*, a different spelling; copyrighted dictionary text, so a headword's existence would be the only fact taken); `buddhanature.tsadra.org/index.php/Karma_pa_bcu_drug_pa`; and Rigpa Wiki pages for him — **all three answer the verifier with a Cloudflare challenge (403) on every request tried, and none was worked around, so what they print is unknown**.
-  A web search for the exact spelling on Rigpa Wiki returned no page.
-  If Rigpa Wiki prints the exact spelling it would be a candidate only; it is not an approved witness type.
-- `library.bdrc.io/show/bdr:MW1KG3815_8ABDB7`, read through BDRC's record `purl.bdrc.io/resource/MW1KG3815_8ABDB7`: part 12 of a work, pp. 388–400, whose only title is *chos rje byang chub rdo rje'i rnam thar mdor bsdus*; it prints no *karma pa bcu drug pa* at all.
-- *Found:* only the list of Tibetan scholars in Tibetan Wikipedia (the article བོད་ཀྱི་མཁས་དབང་།), which prints it exactly.
+`rgyal dbang karma pa bcu drug pa` has **one counted witness**, and ships under the exception of item 11:
+
+- **Found, and counted:** the Google Books catalogue record `books.google.com/books/about/x.html?id=s61Sj5amlx0C`.
+  Its page title is *རྒྱལ་དབང་ཀརྨ་པ་བཅུ་དྲུག་པ་ཆེན་པོའི་གསུང་འབུམ།* ("Collected Works of the Great Sixteenth Karmapa"), which opens with the spelling followed by *ཆེན་པོའི་*.
+  Its record fields: *Volume 2*; contributor the Buddhist Digital Resource Center; publisher Tsurphu Labrang and the Amnye Machen Institute, 2016; digitised by Google on 31 October 2025.
+  It is a catalogue record, not a headword.
+- **Found, and not counted:** Lotsawa House's Tibetan page for Dudjom Rinpoche's short prayer for the Sixteenth Karmapa's long life, titled *རྒྱལ་དབང་ཀརྨ་པ་བཅུ་དྲུག་པ་ཆེན་པོའི་ཞབས་བརྟན།* — a text-page heading, a type Andreas has not ruled on (item 12).
+- **Not found:** BDRC person record P865 (its Wylie names are *karma pa 16 pa*, *karma pa 16 rang byung rig pa'i rdo rje* and *rang byung rig pa'i rdo rje*; the numeral form is ruled out); a headword in the *tshig mdzod chen mo*, the *dung dkar* or the Mahāvyutpatti (they head *karma pa* alone, and nothing opens with *rgyal dbang karma pa*); a Tibetan Wikipedia article titled with it, and thirty full-text hits for *karma pa bcu drug pa* none of which prints the new spelling; Wikidata's Tibetan labels for the BDRC record; Lotsawa House's heading for the master himself, *ཀརྨ་པ་རང་བྱུང་རིག་པའི་རྡོ་རྗེ།*.
+- Sources Andreas supplied earlier that could not be read: `rywiki.tsadra.org` (titled *skyabs rje kar ma pa bcu drug pa*, a different spelling), `buddhanature.tsadra.org/index.php/Karma_pa_bcu_drug_pa` and Rigpa Wiki all answer the verifier with a Cloudflare challenge (403), and none was worked around; `library.bdrc.io/show/bdr:MW1KG3815_8ABDB7` is part 12 of a work titled *chos rje byang chub rdo rje'i rnam thar mdor bsdus* and prints no *karma pa bcu drug pa*.
 
 ### The corrections
 
 Both expected values were returned by THL on this run, so both corrections stand.
-The Sixteenth Karmapa: expected *gyelwa kama(?)pa chudrukpa*, corrected to *gyelwa karmapa chudrukpa*.
+The Sixteenth Karmapa: expected *gyelwang kama(?)pa chudrukpa*, corrected to *gyelwang karmapa chudrukpa*.
 Sakya Pandita: expected *sakya pandi(?)ta*, corrected to *sakya pandita*.
 Both are Andreas' corrections of 2026-11-11.
 The other twelve phonetics are THL's output unchanged and equal the tables above; none carries "(?)".
@@ -269,7 +281,7 @@ The harness, the replay preload, the recorded responses and the run outputs are 
 | Mahāvyutpatti pairs `sbyin sreg` with `homa` | 4 | `the Mahāvyutpatti no longer pairs "sbyin sreg" with homaḥ` |
 | Monier-Williams entry for *homa* loses "oblation with fire" | 4 | `no Monier-Williams entry headed homa prints "oblation with fire"` |
 | the *tshig mdzod chen mo* loses `dus chen` | 3, terms | `head word "dus chen" has 1 independent witness group(s) read, not 2` |
-| the Wikipedia list loses the Karmapa's item | 3, exception | `the single-witness exception for karmapa-16 expects exactly "Tibetan Wikipedia" and no other group, but no group states the spelling` |
+| the Google Books title loses its first letter | 3, exception | `the single-witness exception for karmapa-16 expects exactly "Google Books record" and no other group, but no group states the spelling` |
 | BDRC's record gains the exact spelling | 3, exception | `a second witness exists, so the exception is no longer needed` |
 | `milarepa` loses BDRC and the dictionary, keeping only a Wikipedia title | 3, the exception cannot reach another name | `"mi la ras pa" has 1 independent witness(es) stating that spelling, not 2` |
 | `milarepa` loses BDRC and the dictionary and gains both a Wikipedia title and a list item | 3, Wikipedia is one group | `"mi la ras pa" has 1 independent witness(es) stating that spelling, not 2 (Tibetan Wikipedia)` |

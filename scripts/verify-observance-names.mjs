@@ -20,7 +20,8 @@
  *    *dung dkar* (gate only: a headword exists, nothing quoted; both are one group, by Andreas'
  *    ruling of 2026-11-11). A person: two groups, each stating the proposed spelling itself, honorifics
  *    kept — equal to it or opening with it as whole words — from BDRC's person record, a gate-only
- *    headword, Lotsawa House's Tibetan page heading, or Tibetan Wikipedia; BDRC's record is also the
+ *    headword, Lotsawa House's Tibetan page heading, Tibetan Wikipedia (title and list are one group), or a
+ *    Google Books catalogue record whose published title opens with it; BDRC's record is also the
  *    identity anchor. Das's index is never a witness, because the aggregate's indexes list headwords
  *    their book does not print.
  * 4. **The sense is read, not the presence.** A Jäschke sense is carried as data read from the page
@@ -179,9 +180,10 @@ const NAMES = [
 		id: "karmapa-16",
 		kind: "person",
 		anchor: "karma pa",
-		wylie: "rgyal ba karma pa bcu drug pa",
-		marked: "rgyal ba-karma pa-bcu drug pa",
-		recordPhonetic: "gyelwa kama(?)pa chudrukpa",
+		wylie: "rgyal dbang karma pa bcu drug pa",
+		marked: "rgyal dbang-karma pa-bcu drug pa",
+		recordPhonetic: "gyelwang kama(?)pa chudrukpa",
+		googleBooks: "s61Sj5amlx0C",
 		bdrc: "P865",
 	},
 	{
@@ -224,8 +226,8 @@ const NAMES = [
 const CORRECTIONS = [
 	{
 		id: "karmapa-16",
-		thlExpected: "gyelwa kama(?)pa chudrukpa",
-		correctedTo: "gyelwa karmapa chudrukpa",
+		thlExpected: "gyelwang kama(?)pa chudrukpa",
+		correctedTo: "gyelwang karmapa chudrukpa",
 		evidence: "Andreas, 2026-11-11: sure of the pronunciation karmapa; THL marks its own kama(?)pa",
 	},
 	{
@@ -247,13 +249,12 @@ const CORRECTIONS = [
 const SINGLE_WITNESS_EXCEPTIONS = [
 	{
 		id: "karmapa-16",
-		group: "Tibetan Wikipedia",
+		group: "Google Books record",
 		why:
-			"no source read prints rgyal ba karma pa bcu drug pa but the list of Tibetan scholars in Tibetan " +
-			"Wikipedia: BDRC prints only the numeral form, the dictionaries head karma pa alone, and Lotsawa " +
-			"House prints karma pa bcu drug pa under other honorifics (rgyal dbang, 'jig rten dbang phyug); " +
-			"the sources Andreas supplied for him (rywiki, Buddha-Nature) answer the verifier with a " +
-			"Cloudflare challenge, and a BDRC work part he supplied does not print it",
+			"no other source read prints rgyal dbang karma pa bcu drug pa: BDRC prints only the numeral " +
+			"form, the dictionaries and Tibetan Wikipedia lack it, and Lotsawa House prints it only in the " +
+			"title of a prayer on his page, a type Andreas has not ruled on; the one witness is the " +
+			"catalogue record of his collected works, which Andreas supplied",
 	},
 ];
 
@@ -367,6 +368,17 @@ function ewtsLabels(record) {
 /** Whether a label states `wylie`: equal to it, or opening with it as whole words. */
 const labelStates = (label, wylie) => label === wylie || label.startsWith(`${wylie} `);
 
+/** Numeric and the four named HTML entities, as Google Books writes a Tibetan title. */
+function decodeEntities(text) {
+	return text
+		.replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
+		.replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(Number.parseInt(n, 16)))
+		.replace(/&quot;/g, '"')
+		.replace(/&lt;/g, "<")
+		.replace(/&gt;/g, ">")
+		.replace(/&amp;/g, "&");
+}
+
 /** The `<textarea>` THL's page puts the phonetics in: the second one on the page. */
 function thlPhoneticsOf(html) {
 	const areas = [...html.matchAll(/<textarea[^>]*>([\s\S]*?)<\/textarea>/g)].map((m) =>
@@ -418,6 +430,8 @@ function proveOwnPredicates() {
 		"saga dawa"
 	)
 		broken.push("thlPhoneticsOf read the wrong textarea");
+	if (decodeEntities("&#97;&#98;&amp;&lt;") !== "ab&<")
+		broken.push("decodeEntities read an entity wrongly");
 	if (broken.length > 0) {
 		console.error(
 			`the checker itself is broken, so nothing below can be trusted:\n  - ${broken.join("\n  - ")}`,
@@ -774,6 +788,27 @@ for (const name of NAMES) {
 				fail(name.id, 3, `Lotsawa House lookup failed: ${error.message}`);
 			}
 		}
+		if (name.googleBooks) {
+			try {
+				const html = await fetchWithRetry(
+					`https://books.google.com/books/about/x.html?id=${name.googleBooks}`,
+					undefined,
+					"Google Books",
+				);
+				const title = decodeEntities(/<title>([^<]*)<\/title>/.exec(html)?.[1] ?? "")
+					.replace(/ - Google Books$/, "")
+					.trim();
+				if (title.startsWith(`${name.tibetan}་`))
+					groups.set("Google Books record", {
+						source: "Google Books catalogue record (a published title, not a headword)",
+						entry: `id=${name.googleBooks}: ${title}`,
+						page: null,
+					});
+				else states.push(`the Google Books title is "${title}"`);
+			} catch (error) {
+				fail(name.id, 3, `Google Books lookup failed: ${error.message}`);
+			}
+		}
 		const wikiTitle = await wikipediaTitleFor(name.tibetan);
 		const wikipedia = [];
 		if (wikiTitle === null) states.push("no Tibetan Wikipedia title");
@@ -964,8 +999,8 @@ writeFileSync(
  * stops returning the expected value.
  *
  * \`singleWitness\` is true for the one name that ships on a single witness, by Andreas' ruling of
- * 2026-11-11: the Sixteenth Karmapa, whose only witness to \`rgyal ba karma pa bcu drug pa\` is the list
- * of Tibetan scholars in Tibetan Wikipedia. It is an exception held as data in the script, which
+ * 2026-11-11: the Sixteenth Karmapa, whose only witness to \`rgyal dbang karma pa bcu drug pa\` is the Google Books
+ * catalogue record of his collected works (a published title, not a headword). It is an exception held as data in the script, which
  * refuses to run if it is needed for any other name or if a second witness appears.
  */
 
