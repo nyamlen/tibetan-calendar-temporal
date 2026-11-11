@@ -7,7 +7,7 @@ status: accepted
 
 **Decision:** every exported function validates its own input — integrality, range, and config
 shape — and everything under `src/computation/` assumes that work is already done. `getObservances`
-additionally refuses spans wider than 200 years.
+additionally refuses spans wider than 10 years.
 
 ## Add a guard when you add a public function
 

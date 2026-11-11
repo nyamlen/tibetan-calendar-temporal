@@ -12,7 +12,8 @@ import { isoFromJulianDay } from "../src/computation/conversion.js";
 import { trueDate } from "../src/computation/corrections.js";
 import { deriveScaling } from "../src/computation/scaling.js";
 import { formatTibetanDate, isoToTibetan, PHUGPA, tibetanDateExists } from "../src/index.js";
-import { EXAMPLE_OBSERVANCES, getObservances } from "../src/observances/index.js";
+import { EXAMPLE_OBSERVANCES } from "../src/observances/index.js";
+import { getObservancesChunked } from "./support/observances-chunked.js";
 
 const scaled = deriveScaling(PHUGPA);
 
@@ -217,7 +218,7 @@ describe("moon phases", () => {
 // smuggle in a policy, which is easy to misread it as doing.
 describe("skipped days are never observance days", () => {
 	it("never places an observance on a date no calendar day carries", () => {
-		const found = getObservances(
+		const found = getObservancesChunked(
 			Temporal.PlainDate.from("1950-01-01"),
 			Temporal.PlainDate.from("2150-12-31"),
 			EXAMPLE_OBSERVANCES,
@@ -240,7 +241,7 @@ describe("skipped days are never observance days", () => {
 		for (const skippedDay of ["preceding", "following", "omit"] as const) {
 			for (const doubledDay of ["first", "second", "both"] as const) {
 				const config = { ...EXAMPLE_OBSERVANCES, skippedDay, doubledDay };
-				for (const o of getObservances(
+				for (const o of getObservancesChunked(
 					Temporal.PlainDate.from("2020-01-01"),
 					Temporal.PlainDate.from("2040-12-31"),
 					config,

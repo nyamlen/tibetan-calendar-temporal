@@ -74,9 +74,9 @@ export type {
  * The widest range {@link getObservances} will answer, in years.
  *
  * @remarks
- * Compared as `to.year - from.year`, so 1950 to 2150 is 200 and admissible.
+ * Compared as `to.year - from.year`, so 2020-01-01 to 2030-12-31 is 10 and admissible.
  */
-const MAX_SPAN_YEARS = 200;
+const MAX_SPAN_YEARS = 10;
 
 /**
  * Which of two results for one rule on one calendar day is kept: lower wins.
@@ -118,18 +118,20 @@ function precedence(resolution: ObservanceResolution): number {
  * naming days 29 and 30 in a month whose 30th is skipped — the exact landing is kept, then a
  * doubled half, then a shifted day.
  *
- * **The span is capped at 200 years** (`MAX_SPAN_YEARS`, an internal constant). Cost is linear
- * in the range, and what the cap guards against is not the cap itself — the maximum admissible
- * span runs in about 270 ms on the machine recorded in `bench/RESULTS.md`, a 2017 dual-core
- * laptop — but the range beyond it. `Temporal.PlainDate` reaches from -271821 to +275760, about
- * 547,000 years, so a service forwarding user-supplied `from`/`to` straight through would hand
- * its event loop three orders of magnitude more than that, synchronously and without yielding.
+ * **The span is capped at 10 years** (`MAX_SPAN_YEARS`, an internal constant), compared as
+ * `to.year - from.year`, so 2020-01-01 to 2030-12-31 is admitted and 2031-01-01 is not. Cost is
+ * linear in the range, and what the cap guards against is the range beyond it: `Temporal.PlainDate`
+ * reaches from -271821 to +275760, about 547,000 years, so a service forwarding user-supplied
+ * `from`/`to` straight through would hand its event loop four orders of magnitude more than the
+ * cap admits, synchronously and without yielding. A day, month, year or planning view needs at most
+ * about two years. Measured on the machine recorded in `bench/RESULTS.md`, the 10-year worst case
+ * over a config holding one rule of each form but `counted` takes about 22 ms, and two years about
+ * 4 ms.
  *
- * The cap is deliberately far beyond real use: the Phugpa tradition dates from 1447, so 200 years
- * exceeds any span an almanac or an application asks for. A caller who genuinely wants a wider
- * table — the whole rabjung era, 1027–2027, is the realistic example — requests it in chunks and
- * concatenates. That is correct because this function is pure and restarts its month walk per
- * call.
+ * A caller who genuinely wants a wider table — the whole rabjung era, 1027–2027, is the realistic
+ * example — requests it in chunks and concatenates. That is correct because this function is pure
+ * and restarts its month walk per call, and consecutive chunks that cut on a day boundary lose and
+ * repeat nothing.
  *
  * Arguments are checked in a fixed order: the dates, then the config, then the tradition, and only
  * then the empty-range shortcut — so a reversed range with no config still throws.
@@ -145,7 +147,7 @@ function precedence(resolution: ObservanceResolution): number {
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `from` or `to` is not a value
  * `asPlainDate` accepts; `TCT_INVALID_OBSERVANCE_CONFIG` if `config` is missing or invalid;
  * `TCT_INVALID_TRADITION_CONFIG` if `tradition` is invalid; or `TCT_SPAN_TOO_WIDE` if the span
- * exceeds 200 years.
+ * exceeds 10 years.
  */
 export function getObservances(
 	from: Temporal.PlainDate,
@@ -155,7 +157,7 @@ export function getObservances(
 ): Observance[] {
 	// Normalised before anything else touches from/to: Temporal.PlainDate.compare and the span-cap
 	// comparison below both accept a raw string without complaint, which let a string range slip
-	// past the cap (NaN > 200 is false) and let null/number arguments reach Temporal as uncoded
+	// past the cap (NaN > 10 is false) and let null/number arguments reach Temporal as uncoded
 	// TypeErrors instead of this package's coded RangeError.
 	from = asPlainDate(from);
 	to = asPlainDate(to);
@@ -170,7 +172,7 @@ export function getObservances(
 	if (Temporal.PlainDate.compare(from, to) > 0) return [];
 
 	// Compared as year numbers rather than elapsed days, which is how the docblock reads and what
-	// keeps the invariant suite's 1950-01-01 to 2150-12-31 sweep -- 201 calendar years -- admissible.
+	// keeps a range ending on 31 December ten years on -- 11 calendar years -- admissible.
 	if (to.year - from.year > MAX_SPAN_YEARS) {
 		throw rangeError(
 			"TCT_SPAN_TOO_WIDE",

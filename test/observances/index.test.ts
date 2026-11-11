@@ -5,6 +5,10 @@ import { EXAMPLE_OBSERVANCES, getObservances, observancesOn } from "../../src/ob
 import type { ObservanceConfig, ObservanceRule } from "../../src/observances/types.js";
 import { BHUTAN } from "../../src/traditions/bhutan.js";
 import { PHUGPA } from "../../src/traditions/phugpa.js";
+import {
+	getObservancesChunked,
+	OBSERVANCE_SPAN_CAP_YEARS,
+} from "../support/observances-chunked.js";
 import { thrownBy } from "../support/thrown.js";
 
 const iso = (s: string) => Temporal.PlainDate.from(s);
@@ -165,40 +169,78 @@ describe("observance resolution", () => {
 
 	// Cost is linear in the span and the per-month work is real, so an unbounded query is minutes
 	// of synchronous CPU -- Temporal.PlainDate spans about 547,000 years.
-	it("caps the span, and admits exactly 200 years", () => {
+	it("caps the span, and admits exactly 10 years", () => {
 		const span = (a: string, b: string) => () =>
 			getObservances(iso(a), iso(b), EXAMPLE_OBSERVANCES);
-		expect(span("1950-01-01", "2150-12-31")).not.toThrow();
-		expect(thrownBy(span("1950-01-01", "2151-01-01"))?.code).toBe("TCT_SPAN_TOO_WIDE");
+		expect(span("2020-01-01", "2030-12-31")).not.toThrow();
+		expect(thrownBy(span("2020-01-01", "2031-01-01"))?.code).toBe("TCT_SPAN_TOO_WIDE");
 		expect(thrownBy(span("0001-01-01", "9999-12-31"))?.code).toBe("TCT_SPAN_TOO_WIDE");
 	});
 
-	// The bug this task fixes: `to.year - from.year` was compared before anything normalised the
-	// arguments, so a string has no numeric `.year` and `NaN > 200` is `false`. A >200-year string
-	// range used to return 15,000+ observances silently instead of throwing.
+	// The chunking helper takes its chunk size from a copy of the cap, so the copy is held to the
+	// real thing here: a chunk of that size is admitted and one year more is refused.
+	it("matches the chunking helper's copy of the cap", () => {
+		const n = OBSERVANCE_SPAN_CAP_YEARS;
+		const span = (years: number) => () =>
+			getObservances(iso("2020-01-01"), iso(`${2020 + years}-12-31`), EXAMPLE_OBSERVANCES);
+		expect(span(n)).not.toThrow();
+		expect(thrownBy(span(n + 1))?.code).toBe("TCT_SPAN_TOO_WIDE");
+	});
+
+	// The bug this task fixed: `to.year - from.year` was compared before anything normalised the
+	// arguments, so a string has no numeric `.year` and `NaN > 10` is `false`. A string range over
+	// the cap used to return thousands of observances silently instead of throwing.
 	it("still catches the span cap when the range is given as strings", () => {
-		expect(
-			thrownBy(() =>
-				getObservances(
-					"1500-01-01" as unknown as Temporal.PlainDate,
-					"1900-01-01" as unknown as Temporal.PlainDate,
-					EXAMPLE_OBSERVANCES,
-				),
-			)?.code,
-		).toBe("TCT_SPAN_TOO_WIDE");
+		const range = (to: string) => () =>
+			getObservances(
+				"2020-01-01" as unknown as Temporal.PlainDate,
+				to as unknown as Temporal.PlainDate,
+				EXAMPLE_OBSERVANCES,
+			);
+		expect(range("2030-12-31")).not.toThrow();
+		expect(thrownBy(range("2031-01-01"))?.code).toBe("TCT_SPAN_TOO_WIDE");
+		expect(thrownBy(range("1900-01-01"))?.code).toBeUndefined();
 	});
 
 	it("still catches the span cap when the range is given as PlainDateTimes", () => {
-		expect(
-			thrownBy(() =>
-				getObservances(
-					Temporal.PlainDateTime.from("1500-01-01T00:00:00") as unknown as Temporal.PlainDate,
-					Temporal.PlainDateTime.from("1900-01-01T00:00:00") as unknown as Temporal.PlainDate,
-					EXAMPLE_OBSERVANCES,
-				),
-			)?.code,
-		).toBe("TCT_SPAN_TOO_WIDE");
+		const range = (to: string) => () =>
+			getObservances(
+				Temporal.PlainDateTime.from("2020-01-01T00:00:00") as unknown as Temporal.PlainDate,
+				Temporal.PlainDateTime.from(`${to}T00:00:00`) as unknown as Temporal.PlainDate,
+				EXAMPLE_OBSERVANCES,
+			);
+		expect(range("2030-12-31")).not.toThrow();
+		expect(thrownBy(range("2031-01-01"))?.code).toBe("TCT_SPAN_TOO_WIDE");
 	});
+
+	// A day belongs to exactly one chunk, so the chunked result is what one wide call returns. The
+	// wide call is not available past the cap, so the reference is the same range cut at odd, unequal
+	// places -- through a doubled half and a shifted day -- which is the property the helper rests on:
+	// the function is pure and restarts per call.
+	it("gives the same result chunked as cut anywhere else, with no day lost or repeated", () => {
+		const config = { ...EXAMPLE_OBSERVANCES, doubledDay: "both" as const };
+		const cuts = [
+			"2007-03-05",
+			"2007-03-06",
+			"2011-07-10",
+			"2011-07-11",
+			"2019-02-28",
+			"2025-05-05",
+		];
+		const edges = ["1999-06-01", ...cuts, "2031-09-17"];
+		const reference: ReturnType<typeof getObservances> = [];
+		for (let i = 0; i < edges.length - 1; i++) {
+			const start = iso(edges[i] as string).add({ days: i === 0 ? 0 : 1 });
+			reference.push(...getObservances(start, iso(edges[i + 1] as string), config));
+		}
+		const chunked = getObservancesChunked(iso("1999-06-01"), iso("2031-09-17"), config);
+		const key = (o: (typeof chunked)[number]) =>
+			`${o.rule.id} ${o.date.isoDate.toString()} ${o.resolution}`;
+		expect(chunked.map(key)).toEqual(reference.map(key));
+		expect(new Set(chunked.map(key)).size).toBe(chunked.length);
+		expect(chunked.some((o) => o.resolution === "firstOfDoubled")).toBe(true);
+		expect(getObservancesChunked(iso("2026-01-02"), iso("2026-01-01"), config)).toEqual([]);
+	}, 30_000);
 });
 
 // The other half of the same bug: `Temporal.PlainDate.compare` accepted `null`, a number, and other
@@ -401,7 +443,7 @@ describe("one result per rule per calendar day", () => {
 	it("never gives one rule two results on a calendar day, over 1900-1999", () => {
 		const doubled: string[] = [];
 		const seen = new Set<string>();
-		for (const o of getObservances(
+		for (const o of getObservancesChunked(
 			iso("1900-01-01"),
 			iso("1999-12-31"),
 			twoDays({ doubledDay: "both" }, [1, 29, 30]),
@@ -1350,7 +1392,7 @@ describe("the counted form", () => {
 		// the same day taken from a long range, which holds the anchor in the middle.
 		it("answers a single day exactly as the whole range does, on the two days before an anchor", () => {
 			const config = sojongConfig();
-			const whole = getObservances(iso("2001-01-01"), iso("2100-12-31"), config);
+			const whole = getObservancesChunked(iso("2001-01-01"), iso("2100-12-31"), config);
 			const anchors = whole.filter((o) => o.resolution !== "counted");
 			expect(anchors.length).toBeGreaterThan(95);
 			const bad: string[] = [];
@@ -1368,7 +1410,7 @@ describe("the counted form", () => {
 		}, 30_000);
 
 		it("reports no sojong on the day before or the two days before an anchor", () => {
-			const whole = getObservances(iso("2001-01-01"), iso("2100-12-31"), sojongConfig());
+			const whole = getObservancesChunked(iso("2001-01-01"), iso("2100-12-31"), sojongConfig());
 			const dates = new Set(whole.map((o) => o.date.isoDate.toString()));
 			const bad: string[] = [];
 			for (const anchor of whole.filter((o) => o.resolution !== "counted")) {

@@ -1,7 +1,7 @@
 import { bench, describe } from "vitest";
 import { isoToTibetan } from "../src/computation/conversion.js";
 import { monthsFor } from "../src/months.js";
-import { EXAMPLE_OBSERVANCES, getObservances } from "../src/observances/index.js";
+import { EXAMPLE_OBSERVANCES, getObservances, observancesOn } from "../src/observances/index.js";
 import { PHUGPA } from "../src/traditions/phugpa.js";
 
 /**
@@ -11,9 +11,10 @@ import { PHUGPA } from "../src/traditions/phugpa.js";
  *
  * Each case exists because a number is already load-bearing somewhere and nothing measures it:
  *
- * - `getObservances` over its maximum admissible span justifies `MAX_SPAN_YEARS`, and therefore
- *   the `TCT_SPAN_TOO_WIDE` error a consumer can hit. `src/observances/index.ts` puts it at
- *   "about 190 ms". A materially different figure is a finding about that cap, not a benchmark to
+ * - `getObservances` over its maximum admissible span, 10 years, justifies `MAX_SPAN_YEARS`, and
+ *   therefore the `TCT_SPAN_TOO_WIDE` error a consumer can hit. The day, month, year and two-year
+ *   cases are the approved budgets of 5, 10, 50 and 100 ms, which the figures in `RESULTS.md` are
+ *   compared against. A materially different figure is a finding about that cap, not a benchmark to
  *   tune.
  * - `monthsFor`'s cache is the one memoisation whose keep is argued from a number (`CLAUDE.md`:
  *   "~180 µs to under 1 µs"), and that number has never had a harness.
@@ -59,16 +60,40 @@ describe("monthsFor cache", () => {
 });
 
 describe("getObservances", () => {
-	bench("the maximum admissible span, 200 years", () => {
-		getObservances(iso("1900-01-01"), iso("2099-12-31"), EXAMPLE_OBSERVANCES);
-	});
-
-	// A formula rule converts every calendar day of the range, so it is the one form whose cost is
-	// not per month; its 200 years bound the cap for a config that contains one.
-	const withFormula = {
-		...EXAMPLE_OBSERVANCES,
+	// One rule of each form that exists, so the figures cover the dearest of each: monthly and
+	// annual and period walk months, western walks days of the Western calendar, and a formula rule
+	// tests every calendar day, which is the one form whose cost is not per month.
+	const everyForm = {
+		id: "every-form",
+		englishName: "One rule of each form",
+		doubledDay: "both" as const,
+		skippedDay: "preceding" as const,
+		leapMonth: "leap" as const,
 		rules: [
-			...EXAMPLE_OBSERVANCES.rules,
+			{
+				id: "monthly",
+				englishName: "Monthly",
+				when: { type: "monthly" as const, days: [8, 15, 30] },
+			},
+			{
+				id: "annual",
+				englishName: "Annual",
+				when: { type: "annual" as const, dates: [{ month: 4, day: 15 }] },
+			},
+			{
+				id: "period",
+				englishName: "Period",
+				when: {
+					type: "period" as const,
+					first: { month: 4, day: 1 },
+					last: { month: 4, day: 15 },
+				},
+			},
+			{
+				id: "western",
+				englishName: "Western",
+				when: { type: "western" as const, month: 3, day: 21 },
+			},
 			{
 				id: "formula",
 				englishName: "Formula",
@@ -77,11 +102,33 @@ describe("getObservances", () => {
 		],
 	};
 
-	bench("the maximum admissible span, 200 years, with a formula rule", () => {
-		getObservances(iso("1900-01-01"), iso("2099-12-31"), withFormula);
+	// The cap's worst case: `MAX_SPAN_YEARS` in `src/observances/index.ts`, 10 years, over every
+	// existing form at once.
+	bench("the maximum admissible span, 10 years, every form", () => {
+		getObservances(iso("2020-01-01"), iso("2030-12-31"), everyForm);
 	});
 
-	bench("one year, the realistic case", () => {
+	bench("the maximum admissible span, 10 years, EXAMPLE_OBSERVANCES", () => {
+		getObservances(iso("2020-01-01"), iso("2030-12-31"), EXAMPLE_OBSERVANCES);
+	});
+
+	bench("two years, every form (the planning chunk)", () => {
+		getObservances(iso("2026-01-01"), iso("2027-12-31"), everyForm);
+	});
+
+	bench("one year, every form (the year view)", () => {
+		getObservances(iso("2026-01-01"), iso("2026-12-31"), everyForm);
+	});
+
+	bench("one month, every form (the month view)", () => {
+		getObservances(iso("2026-08-01"), iso("2026-08-31"), everyForm);
+	});
+
+	bench("one day, every form (the day view)", () => {
+		observancesOn(iso("2026-08-12"), everyForm);
+	});
+
+	bench("one year, EXAMPLE_OBSERVANCES, the realistic case", () => {
 		getObservances(iso("2026-01-01"), iso("2026-12-31"), EXAMPLE_OBSERVANCES);
 	});
 });

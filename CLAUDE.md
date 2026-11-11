@@ -1048,8 +1048,9 @@ checker. `package.json#files` already excludes `bench/`, and `tsconfig.json` and
 deliberately so it is not an unchecked corner.
 
 It exists because two numbers were load-bearing and unmeasured, and it corrected one on its first
-run: the `getObservances` span cap — which justifies a shipped `TCT_SPAN_TOO_WIDE` — costs about
-**270 ms**, not the 190 ms its docblock claimed. **A performance number may be quoted only with its
+run: the `getObservances` span cap — which justifies a shipped `TCT_SPAN_TOO_WIDE` — cost about
+**270 ms** at its former 200 years, not the 190 ms its docblock claimed; the cap is now 10 years and its
+figures are in `bench/RESULTS.md`. **A performance number may be quoted only with its
 harness**, recorded in `bench/RESULTS.md`: machine, OS, Node version, date. The project refuses
 unsourced numbers from its calendar sources and the same rule applies to its own. Deliberately no
 regression threshold and not in CI — shared runners would fire on the runner rather than on the

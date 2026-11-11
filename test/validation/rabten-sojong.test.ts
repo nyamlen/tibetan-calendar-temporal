@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { getObservances } from "../../src/observances/index.js";
 import type { ObservanceConfig } from "../../src/observances/types.js";
 import { PHUGPA, PHUGPA_HENNING } from "../../src/traditions/phugpa.js";
 import { RABTEN_SOJONG } from "../fixtures/rabten-sojong.js";
+import { getObservancesChunked } from "../support/observances-chunked.js";
 
 // The sojong schedule inferred from Rabten Choeling's calendar, held against Rabten's own days.
 // The rule is a fit to one source and is not sourced from it: Rabten states no method. Agreement is
@@ -46,7 +46,7 @@ describe("Rabten Choeling's sojong schedule, counted from an annual anchor", () 
 		"yields exactly Rabten's days under %s, in both directions",
 		(_name, tradition) => {
 			const engine = new Set(
-				getObservances(
+				getObservancesChunked(
 					Temporal.PlainDate.from(FIRST),
 					Temporal.PlainDate.from(LAST),
 					SOJONG,

@@ -49,7 +49,7 @@
  *   would be a confident false claim.
  * - `TCT_INVALID_TRADITION_CONFIG` — a `TraditionConfig` is malformed.
  * - `TCT_INVALID_OBSERVANCE_CONFIG` — an `ObservanceConfig` or one of its rules is malformed.
- * - `TCT_SPAN_TOO_WIDE` — `getObservances` was asked for more than 200 years at once.
+ * - `TCT_SPAN_TOO_WIDE` — `getObservances` was asked for more than 10 years at once.
  * - `TCT_ATTRIBUTE_NOT_SOURCED` — an astrological attribute was asked for in a tradition no source
  *   gives it for. Thrown by the month and lunar-day attributes for the Bhutanese configs, because
  *   Janson tabulates no month-animal list for that version. **Nothing about the caller's input is

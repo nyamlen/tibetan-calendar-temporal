@@ -17,6 +17,7 @@ import { EXAMPLE_OBSERVANCES, getObservances, observancesOn } from "../src/obser
 import { parseTibetanDate } from "../src/parse.js";
 import { BHUTAN } from "../src/traditions/bhutan.js";
 import { SkippedDayError } from "../src/types.js";
+import { getObservancesChunked } from "./support/observances-chunked.js";
 
 const iso = (s: string) => Temporal.PlainDate.from(s);
 
@@ -179,7 +180,7 @@ describe("guide examples", () => {
 			// A wide window on purpose: "exact" and the two doubled cases appear within months, but a
 			// rule's own day being skipped is rarer than a skipped day, so a few years would not
 			// exercise "dayBeforeSkipped" and the assertion would pass for the wrong reason.
-			for (const o of getObservances(iso("2010-01-01"), iso("2030-12-31"), config)) {
+			for (const o of getObservancesChunked(iso("2010-01-01"), iso("2030-12-31"), config)) {
 				seen.add(o.resolution);
 			}
 		}
