@@ -132,3 +132,74 @@ describe("getObservances", () => {
 		getObservances(iso("2026-01-01"), iso("2026-12-31"), EXAMPLE_OBSERVANCES);
 	});
 });
+
+describe("getObservances, a counted (sojong) rule", () => {
+	// The Rabten-shaped rule: a count walks the whole range from its anchors, and the month walk
+	// widens to the Tibetan year either side of the range, so it is the form whose cost differs most
+	// between a day view and a year view.
+	const counted = {
+		id: "sojong",
+		englishName: "Sojong",
+		when: {
+			type: "counted" as const,
+			anchor: { month: 1, day: 15 },
+			waxingDays: 15,
+			waningDays: { oddMonth: 14, evenMonth: 15 },
+			exclude: [{ month: 1, day: 1 }],
+		},
+	};
+	const alone = {
+		id: "counted-alone",
+		englishName: "A counted rule alone",
+		doubledDay: "first" as const,
+		skippedDay: "following" as const,
+		leapMonth: "leap" as const,
+		rules: [counted],
+	};
+	const withFive = {
+		...alone,
+		id: "counted-and-five",
+		englishName: "A counted rule with one of each other form",
+		rules: [
+			...[
+				{ id: "monthly", when: { type: "monthly" as const, days: [8, 15, 30] } },
+				{ id: "annual", when: { type: "annual" as const, dates: [{ month: 4, day: 15 }] } },
+				{
+					id: "period",
+					when: {
+						type: "period" as const,
+						first: { month: 4, day: 1 },
+						last: { month: 4, day: 15 },
+					},
+				},
+				{ id: "western", when: { type: "western" as const, month: 3, day: 21 } },
+				{
+					id: "formula",
+					when: { type: "formula" as const, formula: "lunarDayPlusWeekdayMod4" as const },
+				},
+			].map((rule) => ({ ...rule, englishName: rule.id })),
+			counted,
+		],
+	};
+
+	for (const [label, config] of [
+		["counted alone", alone],
+		["counted and the five other forms", withFive],
+	] as const) {
+		bench(`10 years, ${label}`, () => {
+			getObservances(iso("2020-01-01"), iso("2030-12-31"), config);
+		});
+		bench(`2 years, ${label}`, () => {
+			getObservances(iso("2026-01-01"), iso("2027-12-31"), config);
+		});
+		bench(`1 year, ${label}`, () => {
+			getObservances(iso("2026-01-01"), iso("2026-12-31"), config);
+		});
+		bench(`1 month, ${label}`, () => {
+			getObservances(iso("2026-08-01"), iso("2026-08-31"), config);
+		});
+		bench(`1 day, ${label}`, () => {
+			observancesOn(iso("2026-08-12"), config);
+		});
+	}
+});

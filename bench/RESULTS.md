@@ -96,6 +96,25 @@ Node v26.11.1, Vitest 4.1.10, `vitest bench --run`), run with nothing else runni
 
 The 10-year worst case is under the year-view budget, and every view is well inside its budget.
 
+## The `counted` form, 2026-11-11
+
+Same machine and harness as the 10-year cap section (Intel Core Ultra 7 365, Windows 11 Pro
+10.0.26300, Node v26.11.1, Vitest 4.1.10, `vitest bench --run`), run with nothing else running.
+The rule is Rabten-shaped: anchor 1/15, 15 waxing, 14 and 15 waning, `exclude` 1/1. A counted rule
+widens the month walk to the Tibetan year before the range and the one after it, so a day view walks
+about three years. "And the five other forms" is the `every form` config of the cap section plus
+the counted rule.
+
+| Case | Mean, counted alone | Mean, counted and the five other forms | Budget |
+|---|---|---|---|
+| `observancesOn`, 1 day (day view) | 0.042 ms | 0.95 ms | 5 ms |
+| `getObservances`, 1 month (month view) | 0.052 ms | 1.07 ms | 10 ms |
+| `getObservances`, 1 year (year view) | 0.25 ms | 2.82 ms | 50 ms |
+| `getObservances`, 2 years (planning chunk) | 0.46 ms | 4.92 ms | 100 ms |
+| `getObservances`, 10 years (the cap) | 2.40 ms | 22.1 ms | |
+
+Every view is well inside its budget, and no cache is needed for the form.
+
 ## What is deliberately not here
 
 No regression thresholds, and `bench` is **not** in CI. Shared runners vary enough that a threshold
