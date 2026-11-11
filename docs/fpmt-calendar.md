@@ -83,11 +83,11 @@ These fall on the same Western date every year.
 |---|---|---|
 | H.H. the Dalai Lama's birthday | 6 July | 2022–2026, with his age |
 | H.H. Sakya Trichen's birthday | 7 September | 2022–2026, with his age |
-| Lama Zopa Rinpoche's birthday | 3 December | 2022–2025 |
+| Lama Zopa Rinpoche's birthday | 3 December | 2022–2026, after his passing too |
 | Lama Zopa Rinpoche | 13 April | 2024–2026, after his passing in 2023 |
 | Karma Rishi | 9–15 September | 2026 only, a seven-day period |
 
-This list is the part that changes: in five years a birthday stopped, an anniversary began, and a period appeared.
+This list is the part that changes: in five years an anniversary began beside a birthday that continued, and a period appeared.
 
 ## Sojong: one 17-day departure from the counted schedule
 
