@@ -34,7 +34,7 @@ import {
 } from "../computation/conversion.js";
 import { yearFromRoyalEra } from "../computation/epoch.js";
 import { scalingFor } from "../computation/scaling.js";
-import { rangeError } from "../errors.js";
+import { codedError, rangeError } from "../errors.js";
 import { PHUGPA } from "../traditions/phugpa.js";
 import type { TraditionConfig } from "../traditions/types.js";
 import { assertTraditionConfig } from "../traditions/validate.js";
@@ -226,7 +226,7 @@ export function getObservances(
 		for (const hit of westernOccurrences(rule.when, from.year, to.year)) claim(rule, hit);
 	}
 
-	const found: { julianDay: number; rule: ObservanceRule; resolution: ObservanceResolution }[] = [];
+	const found: (Occurrence & { rule: ObservanceRule })[] = [];
 	for (const [rule, held] of bestByRule) {
 		for (const hit of held.values()) found.push({ ...hit, rule });
 	}
@@ -243,17 +243,39 @@ export function getObservances(
 
 	// Convert once per distinct day rather than once per hit: a 15th carries several rules.
 	const dates = new Map<number, ReturnType<typeof isoToTibetan>>();
+	const tibetanDateOf = (julianDay: number) => {
+		let date = dates.get(julianDay);
+		if (date === undefined) {
+			date = isoToTibetan(isoFromJulianDayUnchecked(julianDay), resolvedTradition);
+			dates.set(julianDay, date);
+		}
+		return date;
+	};
 	const results: Observance[] = [];
 	for (const hit of found) {
-		let date = dates.get(hit.julianDay);
-		if (date === undefined) {
-			date = isoToTibetan(isoFromJulianDayUnchecked(hit.julianDay), resolvedTradition);
-			dates.set(hit.julianDay, date);
-		}
+		const date = tibetanDateOf(hit.julianDay);
 		const when = hit.rule.when;
 		if (when.type === "monthly") {
 			results.push({ date, rule: hit.rule, resolution: hit.resolution });
 			continue;
+		}
+		if (when.type === "period") {
+			/* c8 ignore next */
+			if (hit.span === undefined) throw codedError("TCT_INTERNAL", "a period day carries no span");
+			results.push({
+				date,
+				rule: hit.rule,
+				resolution: hit.resolution,
+				period: {
+					first: tibetanDateOf(hit.span.first),
+					last: tibetanDateOf(hit.span.last),
+				},
+			});
+			continue;
+		}
+		/* c8 ignore next */
+		if (when.type !== "annual" && when.type !== "western") {
+			throw codedError("TCT_INTERNAL", `unhandled when type ${JSON.stringify(when)}`);
 		}
 		// The occurrence's own year, of the resolved day: a Tibetan month-12 date can fall in January,
 		// where its Tibetan year and its Western year differ.

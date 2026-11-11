@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { isoToTibetan, losarFor, tibetanDateExists } from "../../src/computation/conversion.js";
+import { daysInMonth } from "../../src/months.js";
 import { EXAMPLE_OBSERVANCES, getObservances, observancesOn } from "../../src/observances/index.js";
 import type { ObservanceConfig, ObservanceRule } from "../../src/observances/types.js";
 import { BHUTAN } from "../../src/traditions/bhutan.js";
@@ -1078,5 +1079,200 @@ describe("the western form, year windows and ages", () => {
 		const config = annual({ ageFromYear: 2100 });
 		expect(on("2026-01-31", config)[0]?.age).toBe(52);
 		expect(on("2026-01-31", annual({ ageFromYear: 2026 }))[0]?.age).toBe(126);
+	});
+});
+
+describe("the period form", () => {
+	const CODE = "TCT_INVALID_OBSERVANCE_CONFIG";
+	const configWith = (rule: Record<string, unknown>): ObservanceConfig =>
+		({
+			...EXAMPLE_OBSERVANCES,
+			id: "periods",
+			rules: [{ id: "p", englishName: "P", ...rule }],
+		}) as unknown as ObservanceConfig;
+	const period = (first: unknown, last: unknown, rule: Record<string, unknown> = {}) =>
+		configWith({ when: { type: "period", first, last }, ...rule });
+	const isoDays = (from: string, to: string, config: ObservanceConfig) =>
+		getObservances(iso(from), iso(to), config);
+	const isoList = (found: ReturnType<typeof getObservances>) =>
+		found.map((o) => o.date.isoDate.toString());
+	const codeOf = (config: ObservanceConfig) =>
+		thrownBy(() => getObservances(iso("2026-01-01"), iso("2026-01-02"), config))?.code;
+	const spanOf = (found: ReturnType<typeof getObservances>) => {
+		const first = found[0]?.period;
+		return first === undefined
+			? undefined
+			: [first.first.isoDate.toString(), first.last.isoDate.toString()];
+	};
+
+	it("gives one result per calendar day of Saga Dawa 2026 (Tibetan 2153, month 4)", () => {
+		const found = isoDays(
+			"2026-05-01",
+			"2026-07-31",
+			period({ month: 4, day: 1 }, { month: 4, day: 30 }),
+		);
+		const length = daysInMonth({ year: 2153, month: 4 });
+		expect(length).toBe(30);
+		expect(found).toHaveLength(length);
+		expect(isoList(found)[0]).toBe("2026-05-17");
+		expect(isoList(found)[length - 1]).toBe("2026-06-15");
+		expect(new Set(found.map((o) => o.resolution))).toEqual(new Set(["inPeriod"]));
+		for (const o of found) {
+			expect(o.period?.first.isoDate.toString()).toBe("2026-05-17");
+			expect(o.period?.last.isoDate.toString()).toBe("2026-06-15");
+		}
+	});
+
+	it("is a membership test: a doubled number contributes both days, a skipped one none", () => {
+		// 2153 month 2 runs 2026-03-19 to 04-17; its 12 is skipped and its 17 is doubled.
+		const found = isoDays(
+			"2026-03-01",
+			"2026-04-30",
+			period({ month: 2, day: 10 }, { month: 2, day: 20 }),
+		);
+		expect(isoList(found)).toEqual([
+			"2026-03-28",
+			"2026-03-29",
+			"2026-03-30",
+			"2026-03-31",
+			"2026-04-01",
+			"2026-04-02",
+			"2026-04-03",
+			"2026-04-04",
+			"2026-04-05",
+			"2026-04-06",
+			"2026-04-07",
+		]);
+		expect(found.map((o) => o.date.day)).toEqual([10, 11, 13, 14, 15, 16, 17, 17, 18, 19, 20]);
+		expect(spanOf(found)).toEqual(["2026-03-28", "2026-04-07"]);
+	});
+
+	it("lets a skipped endpoint number bound the span, and takes both halves of a doubled one", () => {
+		const skipped = isoDays(
+			"2026-03-01",
+			"2026-04-30",
+			period({ month: 2, day: 12 }, { month: 2, day: 14 }),
+		);
+		expect(isoList(skipped)).toEqual(["2026-03-30", "2026-03-31"]);
+		expect(spanOf(skipped)).toEqual(["2026-03-30", "2026-03-31"]);
+		const doubled = isoDays(
+			"2026-03-01",
+			"2026-04-30",
+			period({ month: 2, day: 17 }, { month: 2, day: 17 }),
+		);
+		expect(isoList(doubled)).toEqual(["2026-04-03", "2026-04-04"]);
+		expect(spanOf(doubled)).toEqual(["2026-04-03", "2026-04-04"]);
+	});
+
+	it("never consults the config's doubledDay or skippedDay", () => {
+		const config = {
+			...period({ month: 2, day: 10 }, { month: 2, day: 20 }),
+			doubledDay: "first" as const,
+			skippedDay: "omit" as const,
+		};
+		expect(isoDays("2026-03-01", "2026-04-30", config)).toHaveLength(11);
+	});
+
+	describe("over a leap month (2154 has leap month 2: 2027-03-09 to 04-06, then 04-07 to 05-06)", () => {
+		const whole = (leapMonth: string) =>
+			period({ month: 2, day: 1 }, { month: 2, day: 30 }, { leapMonth });
+		const run = (leapMonth: string) => {
+			const found = isoDays("2027-02-01", "2027-06-30", whole(leapMonth));
+			return [isoList(found)[0], isoList(found).at(-1), found.length, spanOf(found)];
+		};
+
+		it("covers the leap month alone under leap", () => {
+			expect(run("leap")).toEqual(["2027-03-09", "2027-04-06", 29, ["2027-03-09", "2027-04-06"]]);
+		});
+
+		it("covers the regular month alone under regular", () => {
+			expect(run("regular")).toEqual([
+				"2027-04-07",
+				"2027-05-06",
+				30,
+				["2027-04-07", "2027-05-06"],
+			]);
+		});
+
+		it("covers both under both, first from the earlier twin and last from the later", () => {
+			expect(run("both")).toEqual(["2027-03-09", "2027-05-06", 59, ["2027-03-09", "2027-05-06"]]);
+		});
+
+		it("takes the config's leapMonth when the rule sets none", () => {
+			const config = {
+				...period({ month: 2, day: 1 }, { month: 2, day: 30 }),
+				leapMonth: "regular" as const,
+			};
+			expect(isoList(isoDays("2027-02-01", "2027-06-30", config))[0]).toBe("2027-04-07");
+		});
+
+		it("runs through the twin between a leap start and a later month", () => {
+			const found = isoDays(
+				"2027-02-01",
+				"2027-06-30",
+				period({ month: 2, day: 25 }, { month: 3, day: 3 }, { leapMonth: "leap" }),
+			);
+			expect(isoList(found)[0]).toBe("2027-04-01");
+			expect(isoList(found).at(-1)).toBe("2027-05-09");
+			expect(spanOf(found)).toEqual(["2027-04-01", "2027-05-09"]);
+		});
+	});
+
+	it("keeps the whole span's bounds when the query cuts into it", () => {
+		const found = isoDays(
+			"2026-06-01",
+			"2026-06-02",
+			period({ month: 4, day: 1 }, { month: 4, day: 30 }),
+		);
+		expect(isoList(found)).toEqual(["2026-06-01", "2026-06-02"]);
+		expect(spanOf(found)).toEqual(["2026-05-17", "2026-06-15"]);
+	});
+
+	it("does not carry a period on the other forms", () => {
+		const found = observancesOn(iso("2024-07-10"), EXAMPLE_OBSERVANCES);
+		expect(found.every((o) => !("period" in o))).toBe(true);
+	});
+
+	it.each([
+		["first after last by day", { month: 4, day: 20 }, { month: 4, day: 10 }],
+		["first after last by month", { month: 5, day: 1 }, { month: 4, day: 30 }],
+		["a span across the new year", { month: 12, day: 20 }, { month: 1, day: 5 }],
+		["month 13", { month: 13, day: 1 }, { month: 13, day: 2 }],
+		["day 31", { month: 4, day: 1 }, { month: 4, day: 31 }],
+		["day 0", { month: 4, day: 0 }, { month: 4, day: 5 }],
+		["a missing last", { month: 4, day: 1 }, undefined],
+		["a missing first", undefined, { month: 4, day: 1 }],
+		["an unknown key on first", { month: 4, day: 1, isLeapMonth: true }, { month: 4, day: 2 }],
+		["an unknown key on last", { month: 4, day: 1 }, { month: 4, day: 2, isLeapMonth: true }],
+	])("refuses %s", (_label, first, last) => {
+		expect(codeOf(period(first, last))).toBe(CODE);
+	});
+
+	it("accepts first equal to last", () => {
+		expect(codeOf(period({ month: 4, day: 5 }, { month: 4, day: 5 }))).toBeUndefined();
+	});
+
+	it("refuses an unknown key on a period when", () => {
+		expect(
+			codeOf(
+				configWith({
+					when: {
+						type: "period",
+						first: { month: 4, day: 1 },
+						last: { month: 4, day: 2 },
+						days: [1],
+					},
+				}),
+			),
+		).toBe(CODE);
+	});
+
+	it.each([
+		["doubledDay", "first"],
+		["skippedDay", "omit"],
+	])("refuses %s on a period rule", (setting, value) => {
+		expect(codeOf(period({ month: 4, day: 1 }, { month: 4, day: 2 }, { [setting]: value }))).toBe(
+			CODE,
+		);
 	});
 });

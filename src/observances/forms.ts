@@ -6,7 +6,12 @@
  * case here and a further arm of the validator, and nothing in the query changes.
  */
 
-import { classifyDay, firstDayOfMonth } from "../computation/calendar.js";
+import {
+	classifyDay,
+	firstDayOfMonth,
+	sharesNumberWithLeapMonth,
+	trueMonthCount,
+} from "../computation/calendar.js";
 import { julianDayFromIso } from "../computation/conversion.js";
 import type { ScaledTradition } from "../computation/scaling.js";
 import { codedError } from "../errors.js";
@@ -21,6 +26,8 @@ import type {
 export interface Occurrence {
 	readonly julianDay: number;
 	readonly resolution: ObservanceResolution;
+	/** For a period: the Julian days of the whole span's first and last calendar days. */
+	readonly span?: { readonly first: number; readonly last: number };
 }
 
 /** The Julian days one day number occupies in one month, with how each was arrived at. */
@@ -128,6 +135,73 @@ function appliesToMonth(
 }
 
 /**
+ * The true month count an endpoint of a period means in a year, given the leap-month convention.
+ *
+ * @remarks
+ * Where the year has two months of the number, `"leap"` and `"regular"` pick one and `"both"` puts
+ * `first` on the earlier twin and `last` on the later, so the span covers both. "Earlier" is by
+ * count and not by which twin is the leap one, because that order is the tradition's.
+ */
+function periodEndpointCount(
+	scaled: ScaledTradition,
+	choice: string,
+	year: number,
+	month: number,
+	end: "first" | "last",
+): number {
+	const tradition = scaled.tradition;
+	const regular = trueMonthCount(tradition, year, month, false);
+	if (!sharesNumberWithLeapMonth(tradition, year, month)) return regular;
+	const leap = trueMonthCount(tradition, year, month, true);
+	if (choice === "leap") return leap;
+	if (choice === "regular") return regular;
+	if (choice === "both") return end === "first" ? Math.min(regular, leap) : Math.max(regular, leap);
+	/* c8 ignore next */
+	throw codedError("TCT_INTERNAL", `unhandled leapMonth choice ${JSON.stringify(choice)}`);
+}
+
+/**
+ * Every calendar day of a period, resolved once, from the visit to the month the span opens in.
+ *
+ * @remarks
+ * A membership test: each day number from the first endpoint's to the last's, in month order,
+ * contributes the calendar days that carry it — both halves of a doubled number, none of a skipped
+ * one — so neither `doubledDay` nor `skippedDay` is consulted. Emitting the whole span at its first
+ * month, and nothing at the others, keeps each span from being found once per month it covers.
+ * A span cannot cross the new year, so the year of the visited month is the span's year.
+ */
+function periodOccurrences(
+	rule: ObservanceRule,
+	config: ObservanceConfig,
+	scaled: ScaledTradition,
+	monthCount: number,
+	year: number,
+	when: Extract<ObservanceWhen, { type: "period" }>,
+): Occurrence[] {
+	const choice = rule.leapMonth === undefined ? config.leapMonth : rule.leapMonth;
+	const start = periodEndpointCount(scaled, choice, year, when.first.month, "first");
+	if (monthCount !== start) return [];
+	const end = periodEndpointCount(scaled, choice, year, when.last.month, "last");
+
+	const days: number[] = [];
+	for (let count = start; count <= end; count++) {
+		const lowest = count === start ? when.first.day : 1;
+		const highest = count === end ? when.last.day : 30;
+		for (let day = lowest; day <= highest; day++) {
+			const found = classifyDay(scaled, day, count);
+			if (found.kind === "skipped") continue;
+			if (found.kind === "doubled") days.push(found.leapJulianDay as number);
+			days.push(found.julianDay as number);
+		}
+	}
+	const first = days[0];
+	const last = days[days.length - 1];
+	if (first === undefined || last === undefined) return [];
+	const span = { first, last };
+	return days.map((julianDay) => ({ julianDay, resolution: "inPeriod" as const, span }));
+}
+
+/**
  * The occurrences of one rule in one month, in the order its entries are listed.
  *
  * @remarks
@@ -144,7 +218,7 @@ export function occurrencesInMonth(
 	config: ObservanceConfig,
 	scaled: ScaledTradition,
 	monthCount: number,
-	month: { month: number; isLeap: boolean },
+	month: { year: number; month: number; isLeap: boolean },
 	yearHasLeapOfThisNumber: boolean,
 ): Occurrence[] {
 	const when: ObservanceWhen = rule.when;
@@ -157,6 +231,8 @@ export function occurrencesInMonth(
 					? resolveInMonth(scaled, monthCount, date.day, rule, config)
 					: [],
 			);
+		case "period":
+			return periodOccurrences(rule, config, scaled, monthCount, month.year, when);
 		case "western":
 			// Fixed to the Gregorian calendar, so it is not found by walking Tibetan months; see
 			// `westernOccurrences`.

@@ -50,6 +50,7 @@ const MONTHLY_KEYS = ["type", "days"];
 const YEAR_KEYS = ["fromYear", "untilYear", "ageFromYear"] as const;
 const ANNUAL_KEYS = ["type", "dates", ...YEAR_KEYS];
 const WESTERN_KEYS = ["type", "month", "day", ...YEAR_KEYS];
+const PERIOD_KEYS = ["type", "first", "last"];
 const DATE_KEYS = ["month", "day"];
 const TIBETAN_NAME_KEYS = ["tibetan", "wylie", "phonetic"];
 
@@ -67,6 +68,7 @@ type FormSetting = "doubledDay" | "skippedDay" | "leapMonth";
 const SETTINGS_BY_FORM: Record<ObservanceWhen["type"], readonly FormSetting[]> = {
 	monthly: ["doubledDay", "skippedDay"],
 	annual: ["doubledDay", "skippedDay", "leapMonth"],
+	period: ["leapMonth"],
 	western: [],
 };
 
@@ -196,6 +198,23 @@ const DAY_WHY =
 const MONTH_WHY =
 	"A leap month is selected by the leapMonth convention, not by a thirteenth number";
 
+/** The shared `TibetanMonthDay` guard: month 1-12 and day 1-30, and no other key. */
+function assertMonthDay(
+	date: unknown,
+	subject: string,
+	entry: string,
+): asserts date is { month: number; day: number } {
+	if (!isRecord(date)) {
+		throw rangeError(
+			CODE,
+			`${subject}: ${entry} must be a { month, day } object, received ${describe(date)}`,
+		);
+	}
+	assertKnownKeys(date, DATE_KEYS, `${subject}: ${entry}`);
+	assertIntegerInRange(date.month, 1, 12, `${subject}: month`, MONTH_WHY);
+	assertIntegerInRange(date.day, 1, 30, `${subject}: day`, DAY_WHY);
+}
+
 function assertWhen(when: unknown, subject: string): void {
 	if (!isRecord(when)) {
 		throw rangeError(
@@ -232,16 +251,7 @@ function assertWhen(when: unknown, subject: string): void {
 		}
 		const seen = new Set<string>();
 		for (const date of dates) {
-			if (!isRecord(date)) {
-				throw rangeError(
-					CODE,
-					`${subject}: every when.dates entry must be a { month, day } object, received ` +
-						describe(date),
-				);
-			}
-			assertKnownKeys(date, DATE_KEYS, `${subject}: a when.dates entry`);
-			assertIntegerInRange(date.month, 1, 12, `${subject}: month`, MONTH_WHY);
-			assertIntegerInRange(date.day, 1, 30, `${subject}: day`, DAY_WHY);
+			assertMonthDay(date, subject, "every when.dates entry");
 			const key = `${date.month}-${date.day}`;
 			if (seen.has(key)) {
 				throw rangeError(
@@ -252,6 +262,27 @@ function assertWhen(when: unknown, subject: string): void {
 			seen.add(key);
 		}
 		assertYearFields(when, subject);
+		return;
+	}
+	if (when.type === "period") {
+		assertKnownKeys(when, PERIOD_KEYS, `${subject}: when`);
+		const { first, last } = when;
+		assertMonthDay(first, subject, "when.first");
+		assertMonthDay(last, subject, "when.last");
+		if (first.month > last.month) {
+			throw rangeError(
+				CODE,
+				`${subject}: a period may not cross the new year, but when.first is in month ` +
+					`${first.month} and when.last in month ${last.month}`,
+			);
+		}
+		if (first.month === last.month && first.day > last.day) {
+			throw rangeError(
+				CODE,
+				`${subject}: when.first (month ${first.month} day ${first.day}) is after when.last ` +
+					`(day ${last.day}), so the period would be empty`,
+			);
+		}
 		return;
 	}
 	if (when.type === "western") {
@@ -276,7 +307,7 @@ function assertWhen(when: unknown, subject: string): void {
 	}
 	throw rangeError(
 		CODE,
-		`${subject}: when.type must be "monthly", "annual" or "western", received ${describe(when.type)}`,
+		`${subject}: when.type must be "monthly", "annual", "period" or "western", received ${describe(when.type)}`,
 	);
 }
 

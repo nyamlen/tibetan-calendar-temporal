@@ -618,7 +618,9 @@ describe("observances API surface", () => {
 					? rule.when.days
 					: rule.when.type === "annual"
 						? rule.when.dates.map((d) => d.day)
-						: [rule.when.day];
+						: rule.when.type === "period"
+							? [rule.when.first.day, rule.when.last.day]
+							: [rule.when.day];
 			expect(entries.length).toBeGreaterThan(0);
 			for (const day of entries) {
 				expect(day).toBeGreaterThanOrEqual(1);

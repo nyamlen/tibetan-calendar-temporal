@@ -268,6 +268,42 @@ const RULE_FIELD: readonly Row[] = [
 		(x) => getObservances(ISO, ISO, withWhen({ type: "annual", dates: [{ month: 1, day: x }] })),
 	],
 	[
+		"getObservances(…, config) period first endpoint month",
+		(x) =>
+			getObservances(
+				ISO,
+				ISO,
+				withWhen({ type: "period", first: { month: x, day: 1 }, last: { month: 12, day: 30 } }),
+			),
+	],
+	[
+		"getObservances(…, config) period first endpoint day",
+		(x) =>
+			getObservances(
+				ISO,
+				ISO,
+				withWhen({ type: "period", first: { month: 1, day: x }, last: { month: 12, day: 30 } }),
+			),
+	],
+	[
+		"getObservances(…, config) period last endpoint month",
+		(x) =>
+			getObservances(
+				ISO,
+				ISO,
+				withWhen({ type: "period", first: { month: 1, day: 1 }, last: { month: x, day: 1 } }),
+			),
+	],
+	[
+		"getObservances(…, config) period last endpoint day",
+		(x) =>
+			getObservances(
+				ISO,
+				ISO,
+				withWhen({ type: "period", first: { month: 1, day: 1 }, last: { month: 1, day: x } }),
+			),
+	],
+	[
 		"getObservances(…, config) western month",
 		(x) => getObservances(ISO, ISO, withWhen({ type: "western", month: x, day: 1 })),
 	],
@@ -362,6 +398,20 @@ const RULE_OBJECT: readonly Row[] = [
 		(x) => getObservances(ISO, ISO, withWhen({ type: "annual", dates: [x] })),
 	],
 	["getObservances(…, config) tags", (x) => getObservances(ISO, ISO, withRule({ tags: x }))],
+	[
+		"getObservances(…, config) period first endpoint",
+		(x) =>
+			getObservances(
+				ISO,
+				ISO,
+				withWhen({ type: "period", first: x, last: { month: 12, day: 30 } }),
+			),
+	],
+	[
+		"getObservances(…, config) period last endpoint",
+		(x) =>
+			getObservances(ISO, ISO, withWhen({ type: "period", first: { month: 1, day: 1 }, last: x })),
+	],
 	[
 		"getObservances(…, config) levels entry",
 		(x) => getObservances(ISO, ISO, v({ ...LEVEL_CONFIG, levels: [x] })),

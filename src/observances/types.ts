@@ -97,6 +97,16 @@ export type TibetanMonthDay = { readonly month: number; readonly day: number };
  *   on 6 July, which is not a Tibetan calendar fact. A 29 February occurs in leap years only and is
  *   not moved in the others. It reads no per-rule setting, and its results are always `"exact"`.
  *
+ * - `"period"` — on every calendar day whose Tibetan date lies from `first` to `last` inclusive, in
+ *   month order within one Tibetan year: a stretch such as the whole of Saga Dawa. It is a
+ *   **membership test** and not two resolved endpoints, so a doubled number inside the span
+ *   contributes both its days and a skipped number contributes none, and neither `doubledDay` nor
+ *   `skippedDay` is read. A skipped number named as an endpoint still bounds the span. The only
+ *   per-rule setting is `leapMonth`, which chooses which twin each endpoint's month means in a year
+ *   with two months of that number; under `"both"` `first` takes the earlier twin and `last` the
+ *   later, so the span covers both. A span may not cross the new year. Its results are
+ *   `"inPeriod"`, one per calendar day, each carrying {@link Observance.period}.
+ *
  * `annual` and `western` take a year window, `fromYear` and `untilYear` (both inclusive; absent
  * means unbounded), and `ageFromYear`. **Each counts its own form's calendar**: on `annual` a
  * Tibetan year, numbered as {@link TibetanDate.year} is (2153 is the year that begins on
@@ -122,6 +132,13 @@ export type ObservanceWhen =
 			readonly untilYear?: number;
 			/** The Tibetan year counted as age 0; see {@link Observance.age}. */
 			readonly ageFromYear?: number;
+	  }
+	| {
+			readonly type: "period";
+			/** The span's first Tibetan month and day. */
+			readonly first: TibetanMonthDay;
+			/** The span's last Tibetan month and day: not before `first`, in the same Tibetan year. */
+			readonly last: TibetanMonthDay;
 	  }
 	| {
 			readonly type: "western";
@@ -243,7 +260,8 @@ export type ObservanceResolution =
 	| "dayBeforeSkipped"
 	| "dayAfterSkipped"
 	| "firstOfDoubled"
-	| "secondOfDoubled";
+	| "secondOfDoubled"
+	| "inPeriod";
 
 /** One occurrence of one rule on one calendar day. */
 export interface Observance {
@@ -269,4 +287,14 @@ export interface Observance {
 	 * `ageFromYear`, and absent rather than negative before it.
 	 */
 	readonly age?: number;
+
+	/**
+	 * For a `"period"` rule, the first and last calendar days of the whole span this day belongs to.
+	 *
+	 * @remarks
+	 * Calendar days, so they can differ from the rule's `first` and `last` numbers when those are
+	 * skipped or doubled. They describe the span as a whole, not the part inside the query's range, so
+	 * a query that cuts into a span still reports where it begins and ends. Absent on every other form.
+	 */
+	readonly period?: { readonly first: TibetanDate; readonly last: TibetanDate };
 }
