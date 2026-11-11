@@ -38,12 +38,7 @@ import { codedError, rangeError } from "../errors.js";
 import { PHUGPA } from "../traditions/phugpa.js";
 import type { TraditionConfig } from "../traditions/types.js";
 import { assertTraditionConfig } from "../traditions/validate.js";
-import {
-	formulaOccurrences,
-	type Occurrence,
-	occurrencesInMonth,
-	westernOccurrences,
-} from "./forms.js";
+import { type Occurrence, occurrencesInMonth, westernOccurrences } from "./forms.js";
 import type {
 	Observance,
 	ObservanceConfig,
@@ -236,12 +231,8 @@ export function getObservances(
 	}
 
 	for (const rule of config.rules) {
-		if (rule.when.type === "western") {
-			for (const hit of westernOccurrences(rule.when, from.year, to.year)) claim(rule, hit);
-		} else if (rule.when.type === "formula") {
-			for (const hit of formulaOccurrences(rule.when, from, to, resolvedTradition))
-				claim(rule, hit);
-		}
+		if (rule.when.type !== "western") continue;
+		for (const hit of westernOccurrences(rule.when, from.year, to.year)) claim(rule, hit);
 	}
 
 	const found: (Occurrence & { rule: ObservanceRule })[] = [];

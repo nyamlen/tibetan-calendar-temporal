@@ -30,15 +30,18 @@
  */
 
 import { codedError } from "../errors.js";
-import type { TibetanDate } from "../types.js";
 import type { FormulaName } from "./types.js";
 
-/** Whether `name` holds on a calendar day, from its Tibetan date. */
-export function formulaHolds(name: FormulaName, date: TibetanDate): boolean {
+/**
+ * Whether `name` holds on a calendar day, from its Tibetan day number and its weekday.
+ *
+ * @param day - The Tibetan day number, 1-30.
+ * @param weekday - The weekday counted Sunday 0, Monday 1, … Saturday 6. Not `TibetanDate.weekday`,
+ * which counts Saturday 0.
+ */
+export function formulaHolds(name: FormulaName, day: number, weekday: number): boolean {
 	if (name === "lunarDayPlusWeekdayMod4") {
-		// Temporal counts Monday 1 to Sunday 7; the rule counts Sunday 0. `TibetanDate.weekday` counts
-		// Saturday 0 and is not the same thing.
-		const remainder = (date.day + (date.isoDate.dayOfWeek % 7)) % 4;
+		const remainder = (day + weekday) % 4;
 		return remainder === 1 || remainder === 2;
 	}
 	/* c8 ignore next */

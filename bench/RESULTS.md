@@ -53,6 +53,30 @@ whether the cap costs 190 ms or 270 ms. What was wrong was the number, not the r
 **Single-date conversion is the figure the README may quote**: about 74,000 conversions a second on
 the machine above, or a full year of days in under 6 ms.
 
+## The `formula` form, 2026-11-11
+
+A second machine, so these figures are **not comparable** with the table above.
+
+| | |
+|---|---|
+| Date | 2026-11-11 |
+| CPU | Intel Core Ultra 7 365, 8 logical cores |
+| Memory | 32 GB |
+| OS | Windows 11 Pro (10.0.26300), x64 |
+| Node | v26.11.1 |
+| Vitest | 4.1.10, `vitest bench --run` |
+
+| Case | Mean | Note |
+|---|---|---|
+| `getObservances`, 200 years, `EXAMPLE_OBSERVANCES` | 116 ms | min 110, max 120 |
+| `getObservances`, 200 years, plus one `formula` rule | 424 ms | min 393, max 573; an earlier run gave 352 ms |
+
+A formula rule tests every calendar day, so it is the one form whose cost is per day and not per
+month. It walks months like the others, classifies each day number and tests the formula on the
+number and a weekday taken from the Julian day, building a Tibetan date only for its results. Its
+first version converted every calendar day (`isoToTibetan`) and took 988 ms here, about 2 s on the
+machine in the first table.
+
 ## What is deliberately not here
 
 No regression thresholds, and `bench` is **not** in CI. Shared runners vary enough that a threshold

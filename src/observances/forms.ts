@@ -12,10 +12,9 @@ import {
 	sharesNumberWithLeapMonth,
 	trueMonthCount,
 } from "../computation/calendar.js";
-import { isoToTibetan, julianDayFromIso } from "../computation/conversion.js";
+import { julianDayFromIso } from "../computation/conversion.js";
 import type { ScaledTradition } from "../computation/scaling.js";
 import { codedError } from "../errors.js";
-import type { TraditionConfig } from "../traditions/types.js";
 import { formulaHolds } from "./formulas.js";
 import type {
 	ObservanceConfig,
@@ -204,6 +203,37 @@ function periodOccurrences(
 }
 
 /**
+ * The calendar days of one month a `formula` form holds on.
+ *
+ * @remarks
+ * A formula is a property of a calendar day, so each day number is classified and every calendar
+ * day it occupies is tested on its own: both halves of a doubled number, none of a skipped one.
+ * The weekday comes from the Julian day, which is a Monday at 0 modulo 7, so Sunday counts 0 as
+ * `(julianDay + 1) % 7`; no Tibetan date is built until a day is a result. Always `"exact"`.
+ */
+function formulaOccurrences(
+	when: Extract<ObservanceWhen, { type: "formula" }>,
+	scaled: ScaledTradition,
+	monthCount: number,
+): Occurrence[] {
+	const found: Occurrence[] = [];
+	for (let day = 1; day <= 30; day++) {
+		const classification = classifyDay(scaled, day, monthCount);
+		if (classification.kind === "skipped") continue;
+		const days =
+			classification.kind === "doubled"
+				? [classification.leapJulianDay as number, classification.julianDay as number]
+				: [classification.julianDay as number];
+		for (const julianDay of days) {
+			if (formulaHolds(when.formula, day, (julianDay + 1) % 7)) {
+				found.push({ julianDay, resolution: "exact" });
+			}
+		}
+	}
+	return found;
+}
+
+/**
  * The occurrences of one rule in one month, in the order its entries are listed.
  *
  * @remarks
@@ -240,9 +270,7 @@ export function occurrencesInMonth(
 			// `westernOccurrences`.
 			return [];
 		case "formula":
-			// Tested against every calendar day of the range rather than found by walking months; see
-			// `formulaOccurrences`.
-			return [];
+			return formulaOccurrences(when, scaled, monthCount);
 		default:
 			/* c8 ignore next */
 			throw codedError("TCT_INTERNAL", `unhandled when type ${JSON.stringify(when)}`);
@@ -267,29 +295,6 @@ export function westernOccurrences(
 			continue;
 		const date = Temporal.PlainDate.from({ year, month: when.month, day: when.day });
 		found.push({ julianDay: julianDayFromIso(date), resolution: "exact" });
-	}
-	return found;
-}
-
-/**
- * The Julian days a `formula` form holds on, among the calendar days from `from` to `to`.
- *
- * @remarks
- * Every calendar day is converted and tested: a formula is a property of a day, so it cannot be
- * read off a day number, and the two halves of a doubled date are tested separately. Always
- * `"exact"`.
- */
-export function formulaOccurrences(
-	when: Extract<ObservanceWhen, { type: "formula" }>,
-	from: Temporal.PlainDate,
-	to: Temporal.PlainDate,
-	tradition: TraditionConfig,
-): Occurrence[] {
-	const found: Occurrence[] = [];
-	for (let day = from; Temporal.PlainDate.compare(day, to) <= 0; day = day.add({ days: 1 })) {
-		if (formulaHolds(when.formula, isoToTibetan(day, tradition))) {
-			found.push({ julianDay: julianDayFromIso(day), resolution: "exact" });
-		}
 	}
 	return found;
 }

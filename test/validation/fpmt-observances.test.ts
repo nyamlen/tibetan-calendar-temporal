@@ -425,7 +425,8 @@ describe('the fire puja formula against FPMT\'s "Fire puja" labels, 2022-2026', 
 		return {
 			iso: row.iso,
 			date,
-			agrees: formulaHolds("lunarDayPlusWeekdayMod4", date) === labelled,
+			agrees:
+				formulaHolds("lunarDayPlusWeekdayMod4", date.day, date.isoDate.dayOfWeek % 7) === labelled,
 		};
 	});
 	const misses = measured.filter((m) => !m.agrees);
