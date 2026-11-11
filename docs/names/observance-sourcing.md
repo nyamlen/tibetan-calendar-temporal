@@ -86,9 +86,10 @@ The Buddhist Digital Resource Center's person records are accepted as a biograph
 - **The Sixteenth Karmapa stays `rgyal ba karma pa bcu drug pa`**, whose last words *karma pa bcu drug pa* mean the sixteenth Karmapa.
   BDRC's numeric *karma pa 16 pa* is not an acceptable spelling for the shipped name, and a source printing *karma pa bcu drug pa* under a different honorific (*rgyal dbang*, *'jig rten dbang phyug*) is not a witness to it.
 
-Further published sources the verifier reads for a person, each stating the spelling or not: **Lotsawa House**'s Tibetan page heading for the master, and **Tibetan Wikipedia**'s article titles and its list of Tibetan scholars.
-Neither is lexicography; both are published pages naming the person.
+**Andreas approved two further witness types on 2026-11-11, both for a person's name:** a **Lotsawa House** Tibetan page heading for the master, and a **Tibetan Wikipedia** article title (a redirect counts) or an item of its list of Tibetan scholars.
+Neither is lexicography: each is a published page naming the person, and the verifier takes only that the page prints the spelling, as a heading, a title or a list item.
 A person passes with two independent groups stating the spelling, BDRC's record being the identity anchor (it must be the right person and carry the name's core).
+A source that prints a near spelling — another honorific, a numeral, a different word division — is not a witness.
 If a name cannot be attested by two groups, it ships English only, and Andreas decides.
 
 ## The checks
@@ -129,6 +130,7 @@ The verifier refuses to emit if any check fails, and a check placed after the em
 4. **Decided 2026-11-11:** the two "(?)" phonetics are corrected to *gyelwa karmapa chudrukpa* and *sakya pandita*, as self-invalidating data (Andreas: "use karmapa and pandita; I am sure of this").
 5. **Decided 2026-11-11:** the Buddhist Digital Resource Center's person records are the source for the persons' names, to be checked when the verifier is written.
 6. **Decided 2026-11-11, after the first run:** a copyrighted-dictionary headword may count as a witness (gate only, one group); a person's name may not drop an honorific; the Sixteenth Karmapa stays `rgyal ba karma pa bcu drug pa`, not BDRC's numeric form.
+7. **Approved 2026-11-11:** Lotsawa House's Tibetan page headings and Tibetan Wikipedia's article titles and list of Tibetan scholars as witness types for a person's name.
 
 ## Results of the run
 
@@ -205,6 +207,10 @@ Searched, with the spelling as proposed, and **not found**:
 - Tibetan Wikipedia: no article titled with it, and among thirty full-text hits for *karma pa bcu drug pa* none prints the spelling.
 - Wikidata's Tibetan labels for the BDRC record: *ཀརྨ་པ ༡༦* and the personal name.
 - *Found:* only the list of Tibetan scholars in Tibetan Wikipedia (the article བོད་ཀྱི་མཁས་དབང་།), which prints it exactly.
+- Two sources Andreas supplied, read afterwards, neither of which is a witness:
+  - `rywiki.tsadra.org/index.php/skyabs_rje_kar_ma_pa_bcu_drug_pa` could not be read: the site answers the verifier's request, and its API, with a Cloudflare 403 challenge, and that is not worked around.
+    Its title, *skyabs rje kar ma pa bcu drug pa*, is in any case a different spelling (another honorific, and *kar ma* divided), so it would not count; it carries copyrighted dictionary text, so a headword's existence would be the only fact taken.
+  - `library.bdrc.io/show/bdr:MW1KG3815_8ABDB7`, read through BDRC's record `purl.bdrc.io/resource/MW1KG3815_8ABDB7`, is part 12 of a work, pp. 388–400, whose only title is *chos rje byang chub rdo rje'i rnam thar mdor bsdus*; it prints no *karma pa bcu drug pa* at all.
 
 Whether one witness suffices, whether a further source should be sought, or the spelling should change is Andreas' decision; **the verifier has not been loosened**.
 
