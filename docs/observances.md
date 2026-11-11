@@ -111,7 +111,7 @@ Whether centres use established Tibetan headings for these groups is a question 
 | Practice | Level | Labels | Basis for the level |
 |---|---|---|---|
 | The four great occasions | For everyone | great occasion | authored |
-| Seven lineage anniversaries — Milarepa, Guru Rinpoche, Gampopa, the Sixteenth Karmapa, Lama Tsongkhapa, Sakya Paṇḍita, Dudjom Rinpoche | For everyone | | authored |
+| Seven lineage anniversaries, named as FPMT prints them — Milarepa, Guru Rinpoche, Gampopa, Sixteenth Karmapa, Lama Tsong Khapa, Sakya Pandita, Dudjom Rinpoche | For everyone | anniversary | authored (the names are FPMT's labels, verbatim; the label does not say whether a day is a birth or a passing, and FPMT does not either) |
 | Saga Dawa, the 4th month | For everyone | | authored |
 | Vow renewal, counted | No empowerment needed | | authored |
 | Medicine Buddha puja, 8th and 15th | No empowerment needed | | cited: the example means *Medicine Buddha: The Wish-Granting Sovereign*, whose FPMT listing says "Anyone with faith can perform this practice" |
@@ -123,7 +123,7 @@ Whether centres use established Tibetan headings for these groups is a question 
 
 The two texts are what the **example** means (decided 2026-11-11), not what any centre is known to perform on those days: centres' own pages name *The Wish-Fulfilling Jewel* by Panchen Losang Chökyi Gyaltsen as their Medicine Buddha puja, for which no requirement was found, and the Medicine Buddha notice quoted is from the Sinhalese edition's listing, the English one not checked.
 
-**Tibetan names** ship only for the six practices whose names are attested in dictionaries — the four great occasions, Saga Dawa and vow renewal — and are checked by the name verifier before release; every other practice in the example is named in English only.
+**Tibetan names** ship only for the fourteen rules whose names are attested — the four great occasions, Saga Dawa, vow renewal, the fire offering and the seven persons of the anniversaries — and are checked by the name verifier before release, as [observance-sourcing.md](names/observance-sourcing.md) records (a name that fails a check ships English only); every other practice in the example is named in English only.
 
 Left out of the example: Lama Thubten Yeshe's anniversary, which belongs to FPMT as its founder and is kept in the test suite's FPMT configuration with the rest of FPMT's own set; Western-dated birthdays; Precepts and Naga puja, whose rules are not known; and eclipses, which are a front end's to date.
 
