@@ -102,20 +102,27 @@ Andreas adds two observations of practice, unsourced: the Praises to the Twenty-
 The package ships one configuration as an **example** of how to populate one, not as any institution's calendar.
 It is named neutrally, as an example practice calendar, and claims no lineage (decided 2026-11-11).
 Its conventions for doubled days and leap months are FPMT's — the second half of a doubled day, and the leap month rather than the regular one — and Kopan's opposite answer for doubled days is the reason a centre may need to differ.
-Its levels are three, named here by intent: **universal**, **open practice**, and **initiated practice**; the exact names are not yet settled.
+Its three levels are named **by requirement** (decided 2026-11-11): **For everyone**; **Practitioners, no empowerment needed**; and **Practitioners, empowerment required**.
+The names say what a plain "universal, open, initiated" hides — that the second and third apply to practitioners only.
+They are English only. No traditional three-level scheme fits: the nearest traditional division, Sūtra and Secret Mantra (*sūtra* सूत्र; མདོ *do*; *guhyamantra* गुह्यमन्त्र; གསང་སྔགས *sangngak*), would mislabel the practices that are tantric in origin but done without empowerment by visualising the deity in front, so a Tibetan heading would have to be composed, and a composed name is not shipped unmarked.
+Whether centres use established Tibetan headings for these groups is a question for a teacher.
 
 | Practice | Level | Labels | Basis for the level |
 |---|---|---|---|
-| The four great occasions | universal | great occasion | authored |
-| Seven lineage anniversaries — Milarepa, Guru Rinpoche, Gampopa, the Sixteenth Karmapa, Lama Tsongkhapa, Sakya Paṇḍita, Dudjom Rinpoche | universal | | authored |
-| Saga Dawa, the 4th month | universal | | authored |
-| Vow renewal, counted | open practice | | authored |
-| Medicine Buddha puja, 8th and 15th | open practice | | cited, if the example names *The Wish-Granting Sovereign*: "Anyone with faith can perform this practice" |
-| Tārā puja, 8th | open practice | | cited, if the example names a front-generation text such as *A Short Practice of Green Tara*, which includes the Praises to the Twenty-One Taras; authored otherwise |
-| Fire offering | open practice | from a restricted practice | authored (decided 2026-11-10): the practice is restricted — both FPMT manuals found, and Study Buddhism's definition — while many centres let non-initiates take part (Andreas' observation) |
-| Heruka Day, 10th | open practice | tsok | authored: anyone may mark the day; the tsok within it is a commitment for Highest Yoga Tantra initiates, which FPMT's "Dates Explained" states |
-| Ḍākinī Day, 25th | open practice | tsok | as Heruka Day |
-| Dharma Protector Day, 29th | initiated practice | tsok | authored: see the next section |
+| The four great occasions | For everyone | great occasion | authored |
+| Seven lineage anniversaries — Milarepa, Guru Rinpoche, Gampopa, the Sixteenth Karmapa, Lama Tsongkhapa, Sakya Paṇḍita, Dudjom Rinpoche | For everyone | | authored |
+| Saga Dawa, the 4th month | For everyone | | authored |
+| Vow renewal, counted | No empowerment needed | | authored |
+| Medicine Buddha puja, 8th and 15th | No empowerment needed | | cited: the example means *Medicine Buddha: The Wish-Granting Sovereign*, whose FPMT listing says "Anyone with faith can perform this practice" |
+| Tārā puja, 8th | No empowerment needed | | cited: the example means the *Praises to the Twenty-One Taras* as included in *A Short Practice of Green Tara*, open without empowerment as long as one does not generate oneself as the deity |
+| Fire offering | No empowerment needed | from a restricted practice | authored (decided 2026-11-10): the practice is restricted — both FPMT manuals found, and Study Buddhism's definition — while many centres let non-initiates take part (Andreas' observation) |
+| Heruka Day, 10th | No empowerment needed | tsok | authored: anyone may mark the day; the tsok within it is a commitment for Highest Yoga Tantra initiates, which FPMT's "Dates Explained" states |
+| Ḍākinī Day, 25th | No empowerment needed | tsok | as Heruka Day |
+| Dharma Protector Day, 29th | Empowerment required | tsok | authored: see the next section |
+
+The two texts are what the **example** means (decided 2026-11-11), not what any centre is known to perform on those days: centres' own pages name *The Wish-Fulfilling Jewel* by Panchen Losang Chökyi Gyaltsen as their Medicine Buddha puja, for which no requirement was found, and the Medicine Buddha notice quoted is from the Sinhalese edition's listing, the English one not checked.
+
+**Tibetan names** ship only for the six practices whose names are attested in dictionaries — the four great occasions, Saga Dawa and vow renewal — and are checked by the name verifier before release; every other practice in the example is named in English only.
 
 Left out of the example: Lama Thubten Yeshe's anniversary, which belongs to FPMT as its founder and is kept in the test suite's FPMT configuration with the rest of FPMT's own set; Western-dated birthdays; Precepts and Naga puja, whose rules are not known; and eclipses, which are a front end's to date.
 
@@ -138,7 +145,7 @@ What follows is practice knowledge stated by Andreas on 2026-11-10; no published
 - Not every puja includes a tsok.
   The higher tantric practices almost always do; a common Tārā puja, such as the Praises to the Twenty-One Tārās, uses ordinary offerings.
 - The Yamāntaka practice (*Yamāntaka* यमान्तक; གཤིན་རྗེ་གཤེད *shinjé shé*), a protector practice, carries a tsok commitment.
-  A day labelled "Protector puja" can therefore be a tsok day as well, which is why the example labels the 29th a tsok day like the 10th and 25th, and keeps it at initiated practice.
+  A day labelled "Protector puja" can therefore be a tsok day as well, which is why the example labels the 29th a tsok day like the 10th and 25th, and keeps it at empowerment required.
 - Across Highest Yoga Tantra lineages the 10th (the Heruka day) and the 25th (the Ḍākinī day) are the baseline tsok days, and someone holding several empowerments can meet all their tsok commitments there with one practice, such as Guru Puja.
 - Centres adjust: because the 25th and 29th are four days apart, some combine their monthly practices or move them to the nearest weekend.
 - Kālacakra (*Kālacakra* कालचक्र; དུས་ཀྱི་འཁོར་ལོ *dükyin khorlo*) centres, such as Jonang or Rimé groups, often hold tsok on the full moon, the new moon and during eclipses.
@@ -161,7 +168,6 @@ The other monthly dedications differ between traditions — the 15th is the Amit
 
 ## What is still open
 
-- **The names of the three example levels.** The intent is fixed; the words are not.
-- **Which text each example practice names**, so that its level can be cited rather than authored.
+- **Established Tibetan headings for the three levels**, if centres use any; a question for a teacher.
 - **Naga puja's three dates that appear only in some years**, and the remaining FPMT labels whose rules are unsourced.
 - **How a fire offering's count treats a doubled or skipped day**, which Lama Zopa Rinpoche's advice tells the reader to check and does not explain; a question for a Tibetan teacher or scholar.
