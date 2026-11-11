@@ -714,7 +714,7 @@ positional, config first — see [Two kinds of config](docs/guide.md#two-kinds-o
 
 | Export | Signature | Notes |
 |---|---|---|
-| `getObservances` | `(from: Temporal.PlainDate, to: Temporal.PlainDate, config: ObservanceConfig, tradition?: TraditionConfig) => Observance[]` | Date order. Returns `[]` if `to` precedes `from`; throws above a 200-year span |
+| `getObservances` | `(from: Temporal.PlainDate, to: Temporal.PlainDate, config: ObservanceConfig, tradition?: TraditionConfig) => Observance[]` | Date order. Returns `[]` if `to` precedes `from`; throws above a 10-year span |
 | `observancesOn` | `(date: Temporal.PlainDate, config: ObservanceConfig, tradition?: TraditionConfig) => Observance[]` | The single-day case |
 | `EXAMPLE_OBSERVANCES` | | An example config, translated from FPMT's published practice dates |
 

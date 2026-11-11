@@ -20,7 +20,10 @@ export const OBSERVANCE_SPAN_CAP_YEARS = 10;
  * from a given day to 31 December of the year `OBSERVANCE_SPAN_CAP_YEARS` later, and the next
  * begins on the following day, so a day belongs to exactly one chunk: nothing is duplicated or lost
  * at a boundary, including both halves of a doubled day under `doubledDay: "both"`.
- * `test/observances/chunked.test.ts` proves that against a single call.
+ * The chunk-edge test in `test/observances/index.test.ts` proves that the result does not depend
+ * on where a range is cut. That the result equals a single wide call was checked once, when the cap
+ * was lowered from 200 years, with a throwaway test that is not committed; the Rabten validation
+ * exercises it too, over a counted rule.
  */
 export function getObservancesChunked(
 	from: Temporal.PlainDate,

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { isoToTibetan, losarFor, tibetanDateExists } from "../../src/computation/conversion.js";
 import { daysInMonth } from "../../src/months.js";
 import { EXAMPLE_OBSERVANCES, getObservances, observancesOn } from "../../src/observances/index.js";
-import type { ObservanceConfig, ObservanceRule } from "../../src/observances/types.js";
+import type { Observance, ObservanceConfig, ObservanceRule } from "../../src/observances/types.js";
 import { BHUTAN } from "../../src/traditions/bhutan.js";
 import { PHUGPA } from "../../src/traditions/phugpa.js";
 import {
@@ -1407,6 +1407,53 @@ describe("the counted form", () => {
 				}
 			}
 			expect(bad).toEqual([]);
+		}, 30_000);
+
+		// A counted day depends on the next year's anchor, so it is the form most exposed to a cut.
+		// Sojong anchors in this range, taken from the rule itself: 2022-03-18, 2024-02-24 and
+		// 2027-02-20. The range is cut within two days either side of each, and must come out the same
+		// as the helper's own chunking.
+		it("gives the same sojong days however the range is cut near an anchor", () => {
+			const config = sojongConfig();
+			const anchors = getObservances(iso("2020-01-01"), iso("2029-12-31"), config)
+				.filter((o) => o.resolution !== "counted")
+				.map((o) => o.date.isoDate.toString());
+			expect(anchors).toContain("2022-03-18");
+			expect(anchors).toContain("2024-02-24");
+			expect(anchors).toContain("2027-02-20");
+			const cuts = [
+				"2022-03-16",
+				"2022-03-17",
+				"2022-03-18",
+				"2022-03-19",
+				"2022-03-20",
+				"2024-02-22",
+				"2024-02-23",
+				"2024-02-24",
+				"2024-02-25",
+				"2024-02-26",
+				"2027-02-18",
+				"2027-02-19",
+				"2027-02-20",
+				"2027-02-21",
+				"2027-02-22",
+			];
+			// Every 31 December as well, so the helper's own chunk edges (each a 1 January) are compared
+			// against a cut made by an independent route over a century.
+			const first = iso("1999-06-01");
+			const last = iso("2101-03-01");
+			const yearEnds = Array.from({ length: 102 }, (_, i) => `${1999 + i}-12-31`);
+			const edges = [...new Set([...cuts, ...yearEnds])].sort().filter((d) => d < last.toString());
+			const reference: Observance[] = [];
+			let start = first;
+			for (const end of [...edges, last.toString()]) {
+				reference.push(...getObservances(start, iso(end), config));
+				start = iso(end).add({ days: 1 });
+			}
+			const key = (o: Observance) => `${o.date.isoDate.toString()} ${o.resolution}`;
+			const chunked = getObservancesChunked(first, last, config);
+			expect(chunked.map(key)).toEqual(reference.map(key));
+			expect(chunked.filter((o) => o.resolution === "counted").length).toBeGreaterThan(200);
 		}, 30_000);
 
 		it("reports no sojong on the day before or the two days before an anchor", () => {
