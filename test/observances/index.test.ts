@@ -1276,3 +1276,156 @@ describe("the period form", () => {
 		);
 	});
 });
+
+describe("the counted form", () => {
+	const SOJONG_WHEN = {
+		type: "counted",
+		anchor: { month: 1, day: 15 },
+		waxingDays: 15,
+		waningDays: { oddMonth: 14, evenMonth: 15 },
+		exclude: [{ month: 1, day: 1 }],
+	};
+	const sojongConfig = (
+		when: Record<string, unknown> = {},
+		rule: Record<string, unknown> = {},
+	): ObservanceConfig =>
+		({
+			...EXAMPLE_OBSERVANCES,
+			id: "sojong",
+			doubledDay: "first",
+			skippedDay: "following",
+			leapMonth: "leap",
+			rules: [{ id: "s", englishName: "S", when: { ...SOJONG_WHEN, ...when }, ...rule }],
+		}) as unknown as ObservanceConfig;
+	const codeOf = (config: ObservanceConfig) =>
+		thrownBy(() => getObservances(iso("2026-01-01"), iso("2026-01-02"), config))?.code;
+	const days = (from: string, to: string, config: ObservanceConfig) =>
+		getObservances(iso(from), iso(to), config).map((o) => [
+			o.date.isoDate.toString(),
+			o.resolution,
+		]);
+
+	it("counts 2022 from its anchor on the full moon of month 1, odd and even months stepping 14 and 15", () => {
+		// 1/15 of Tibetan 2149 is 2022-03-18, and month 1 is odd, so the first waning step is 14 days.
+		// The previous year's count ends on 2022-03-02, 16 days before this anchor, outside the range.
+		expect(days("2022-03-10", "2022-06-30", sojongConfig())).toEqual([
+			["2022-03-18", "exact"],
+			["2022-04-01", "counted"],
+			["2022-04-16", "counted"],
+			["2022-05-01", "counted"],
+			["2022-05-16", "counted"],
+			["2022-05-30", "counted"],
+			["2022-06-14", "counted"],
+			["2022-06-29", "counted"],
+		]);
+	});
+
+	it("carries no interval, only a date, a rule and a resolution", () => {
+		const found = getObservances(iso("2022-03-18"), iso("2022-04-16"), sojongConfig());
+		expect(found).toHaveLength(3);
+		for (const o of found) expect(Object.keys(o).sort()).toEqual(["date", "resolution", "rule"]);
+	});
+
+	it("takes the leap twin of month 1 as the anchor under leapMonth leap, and the regular one under regular", () => {
+		// Tibetan 2127 (2000 CE) opens with leap month 1: its full moon is 2000-02-19, the regular
+		// month's is 2000-03-20.
+		expect(days("2000-02-10", "2000-02-25", sojongConfig())).toEqual([["2000-02-19", "exact"]]);
+		// Under "regular" 2000-02-19 is still a sojong, but counted from the previous year's anchor
+		// and not an anchor: it is the resolution that tells the two apart.
+		expect(days("2000-02-10", "2000-02-25", sojongConfig({}, { leapMonth: "regular" }))).toEqual([
+			["2000-02-19", "counted"],
+		]);
+		expect(days("2000-03-15", "2000-03-25", sojongConfig({}, { leapMonth: "regular" }))).toEqual([
+			["2000-03-20", "exact"],
+		]);
+	});
+
+	it("never drops an anchor, even when exclude names the anchor's own date", () => {
+		const config = sojongConfig({ exclude: [{ month: 1, day: 15 }] });
+		expect(days("2022-03-18", "2022-03-18", config)).toEqual([["2022-03-18", "exact"]]);
+	});
+
+	describe("the next year's anchor decides the days just before it", () => {
+		// observancesOn asks a one-day range, whose own next anchor is far off: it must still agree with
+		// the same day taken from a long range, which holds the anchor in the middle.
+		it("answers a single day exactly as the whole range does, on the two days before an anchor", () => {
+			const config = sojongConfig();
+			const whole = getObservances(iso("2001-01-01"), iso("2100-12-31"), config);
+			const anchors = whole.filter((o) => o.resolution !== "counted");
+			expect(anchors.length).toBeGreaterThan(95);
+			const bad: string[] = [];
+			for (const anchor of anchors) {
+				for (const before of [1, 2, 3]) {
+					const day = anchor.date.isoDate.subtract({ days: before });
+					const alone = observancesOn(day, config).map((o) => `${o.resolution}`);
+					const inRange = whole
+						.filter((o) => o.date.isoDate.equals(day))
+						.map((o) => `${o.resolution}`);
+					if (alone.join() !== inRange.join()) bad.push(`${day}: ${alone} vs ${inRange}`);
+				}
+			}
+			expect(bad).toEqual([]);
+		}, 30_000);
+
+		it("reports no sojong on the day before or the two days before an anchor", () => {
+			const whole = getObservances(iso("2001-01-01"), iso("2100-12-31"), sojongConfig());
+			const dates = new Set(whole.map((o) => o.date.isoDate.toString()));
+			const bad: string[] = [];
+			for (const anchor of whole.filter((o) => o.resolution !== "counted")) {
+				for (const before of [1, 2]) {
+					const day = anchor.date.isoDate.subtract({ days: before }).toString();
+					if (dates.has(day)) bad.push(`${day} before ${anchor.date.isoDate}`);
+				}
+			}
+			expect(bad).toEqual([]);
+		}, 30_000);
+	});
+
+	describe("refuses what it cannot count", () => {
+		it.each([
+			["waxingDays 12", { waxingDays: 12 }],
+			["waxingDays 17", { waxingDays: 17 }],
+			["waxingDays 14.5", { waxingDays: 14.5 }],
+			["waxingDays a string", { waxingDays: "15" }],
+			["waxingDays missing", { waxingDays: undefined }],
+			["oddMonth 12", { waningDays: { oddMonth: 12, evenMonth: 15 } }],
+			["evenMonth 17", { waningDays: { oddMonth: 14, evenMonth: 17 } }],
+			["evenMonth missing", { waningDays: { oddMonth: 14 } }],
+			["waningDays missing", { waningDays: undefined }],
+			["waningDays an array", { waningDays: [14, 15] }],
+			["anchor missing", { anchor: undefined }],
+			["anchor day 31", { anchor: { month: 1, day: 31 } }],
+			["anchor month 13", { anchor: { month: 13, day: 1 } }],
+			["exclude not an array", { exclude: { month: 1, day: 1 } }],
+			["an exclude entry with month 0", { exclude: [{ month: 0, day: 1 }] }],
+			["an exclude entry that is not an object", { exclude: [1] }],
+			["an unknown key on anchor", { anchor: { month: 1, day: 15, isLeapMonth: true } }],
+			[
+				"an unknown key on an exclude entry",
+				{ exclude: [{ month: 1, day: 1, isLeapMonth: true }] },
+			],
+			["an unknown key on waningDays", { waningDays: { oddMonth: 14, evenMonth: 15, both: 14 } }],
+			["an unknown key on the when", { interval: 14 }],
+		])("%s", (_label, patch) => {
+			expect(codeOf(sojongConfig(patch))).toBe(CONFIG_CODE);
+		});
+
+		it("accepts a step of exactly 13 and exactly 16, an empty exclude and no exclude", () => {
+			expect(
+				codeOf(sojongConfig({ waxingDays: 13, waningDays: { oddMonth: 13, evenMonth: 16 } })),
+			).toBe(undefined);
+			expect(codeOf(sojongConfig({ exclude: [] }))).toBe(undefined);
+			expect(codeOf(sojongConfig({ exclude: undefined }))).toBe(undefined);
+		});
+
+		it("accepts all three per-rule settings, which apply to the anchor and the exclusions", () => {
+			for (const setting of [
+				{ doubledDay: "second" },
+				{ skippedDay: "omit" },
+				{ leapMonth: "both" },
+			]) {
+				expect(codeOf(sojongConfig({}, setting))).toBe(undefined);
+			}
+		});
+	});
+});

@@ -22,6 +22,7 @@
  */
 
 import {
+	lastMonthCountOfYear,
 	monthFromCount,
 	sharesNumberWithLeapMonth,
 	trueMonthCount,
@@ -38,7 +39,14 @@ import { codedError, rangeError } from "../errors.js";
 import { PHUGPA } from "../traditions/phugpa.js";
 import type { TraditionConfig } from "../traditions/types.js";
 import { assertTraditionConfig } from "../traditions/validate.js";
-import { type Occurrence, occurrencesInMonth, westernOccurrences } from "./forms.js";
+import {
+	type CountedAnchor,
+	countedMonthDays,
+	countedSchedule,
+	type Occurrence,
+	occurrencesInMonth,
+	westernOccurrences,
+} from "./forms.js";
 import type {
 	Observance,
 	ObservanceConfig,
@@ -86,6 +94,10 @@ const PRECEDENCE: Record<ObservanceResolution, number> = {
 	inPeriod: 1,
 	dayBeforeSkipped: 2,
 	dayAfterSkipped: 2,
+	// Last: a counted day is derived from an anchor, so any claim to the same day that names the
+	// day itself outranks it. It never ties within one rule, since a count drops the days near an
+	// anchor, but the order is stated rather than left to that.
+	counted: 3,
 };
 
 function precedence(resolution: ObservanceResolution): number {
@@ -178,8 +190,17 @@ export function getObservances(
 	// month early and end a month late so a rule shifted off a skipped date cannot be missed.
 	const startYear = yearFromRoyalEra(isoToTibetan(from, resolvedTradition).year);
 	const endYear = yearFromRoyalEra(isoToTibetan(to, resolvedTradition).year);
-	const firstMonth = trueMonthCount(resolvedTradition, startYear, 1) - 1;
-	const lastMonth = trueMonthCount(resolvedTradition, endYear + 1, 1) + 1;
+	// A counted rule needs the anchors on both sides of the range, up to a year each way: the latest
+	// anchor on or before `from` is at most 385 days back, and the first one after `to` decides which
+	// of the last days before it the count keeps. So its walk covers the whole Tibetan year before
+	// the range and after it; the other forms are filtered to the range by `claim`.
+	const hasCounted = config.rules.some((rule) => rule.when.type === "counted");
+	const firstMonth = hasCounted
+		? trueMonthCount(resolvedTradition, startYear - 1, 1) - 1
+		: trueMonthCount(resolvedTradition, startYear, 1) - 1;
+	const lastMonth = hasCounted
+		? lastMonthCountOfYear(resolvedTradition, endYear + 1) + 1
+		: trueMonthCount(resolvedTradition, endYear + 1, 1) + 1;
 
 	const bestByRule = new Map<ObservanceRule, Map<number, Occurrence>>();
 	// One result per rule per calendar day, across the whole range and not per month: a skipped day
@@ -197,6 +218,11 @@ export function getObservances(
 			held.set(hit.julianDay, hit);
 		}
 	};
+
+	const countedDays = new Map<
+		ObservanceRule,
+		{ anchors: CountedAnchor[]; excluded: Set<number> }
+	>();
 
 	for (let monthCount = firstMonth; monthCount <= lastMonth; monthCount++) {
 		const month = monthFromCount(resolvedTradition, monthCount);
@@ -218,6 +244,25 @@ export function getObservances(
 		);
 
 		for (const rule of config.rules) {
+			if (rule.when.type === "counted") {
+				let held = countedDays.get(rule);
+				if (held === undefined) {
+					held = { anchors: [], excluded: new Set() };
+					countedDays.set(rule, held);
+				}
+				const here = countedMonthDays(
+					rule,
+					rule.when,
+					config,
+					scaled,
+					monthCount,
+					month,
+					yearHasLeapOfThisNumber,
+				);
+				held.anchors.push(...here.anchors);
+				for (const day of here.excluded) held.excluded.add(day);
+				continue;
+			}
 			const hits: Occurrence[] = occurrencesInMonth(
 				rule,
 				config,
@@ -233,6 +278,21 @@ export function getObservances(
 	for (const rule of config.rules) {
 		if (rule.when.type !== "western") continue;
 		for (const hit of westernOccurrences(rule.when, from.year, to.year)) claim(rule, hit);
+	}
+
+	for (const [rule, held] of countedDays) {
+		if (rule.when.type !== "counted") continue;
+		for (const hit of countedSchedule(
+			rule.when,
+			resolvedTradition,
+			scaled,
+			held.anchors,
+			held.excluded,
+			firstJd,
+			lastJd,
+		)) {
+			claim(rule, hit);
+		}
 	}
 
 	const found: (Occurrence & { rule: ObservanceRule })[] = [];
@@ -264,7 +324,7 @@ export function getObservances(
 	for (const hit of found) {
 		const date = tibetanDateOf(hit.julianDay);
 		const when = hit.rule.when;
-		if (when.type === "monthly" || when.type === "formula") {
+		if (when.type === "monthly" || when.type === "formula" || when.type === "counted") {
 			results.push({ date, rule: hit.rule, resolution: hit.resolution });
 			continue;
 		}

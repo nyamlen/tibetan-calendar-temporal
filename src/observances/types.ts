@@ -124,6 +124,26 @@ export type TibetanMonthDay = { readonly month: number; readonly day: number };
  *   differ in result, and a skipped number is never seen. It reads no per-rule setting, and its
  *   results are always `"exact"`.
  *
+ * - `"counted"` — on a schedule counted from an annual anchor, the shape of the sojong (vow renewal)
+ *   calendar. Each Tibetan year `anchor` resolves as an `annual` date does, under the rule's
+ *   `doubledDay`, `skippedDay` and `leapMonth`, and that calendar day is an occurrence. From each
+ *   anchor the count alternates a **waning** step and a **waxing** step: a waning step is
+ *   `waningDays.oddMonth` or `.evenMonth` days by the parity of the Tibetan month containing the
+ *   occurrence it starts from, a leap month taking its own number's parity; a waxing step is always
+ *   `waxingDays`. Each landing is an occurrence. The count stops at the last landing eight or more
+ *   days before the next year's anchor, which replaces whatever the count would have put near it.
+ *   Each `exclude` entry resolves to a calendar day under the same three settings as the anchor, and
+ *   a **counted** occurrence on that day is dropped, the count going on from it; an anchor is never
+ *   dropped. Every step is 13-16 days, a fortnight's, and is checked. Results are `"counted"`,
+ *   except an anchor, which keeps its own resolution (`"exact"`, `"firstOfDoubled"`, ...). A result
+ *   carries no interval: a consumer recovers a 14-day fortnight from the previous occurrence.
+ *   **The rule is inferred, not sourced.** It is the fit that reproduces Rabten Choeling's published
+ *   2000-2100 sojong schedule exactly — anchor 1/15, 15 days waxing, 14 waning in an odd month and 15
+ *   in an even one, `exclude` 1/1, with `leapMonth: "leap"`, `doubledDay: "first"` and
+ *   `skippedDay: "following"` — and Rabten states no method. FPMT's calendar departs from it for one
+ *   run in 2022-2023, which this form does not express. The window of the agreement is in
+ *   `docs/testing.md`.
+ *
  * `annual` and `western` take a year window, `fromYear` and `untilYear` (both inclusive; absent
  * means unbounded), and `ageFromYear`. **Each counts its own form's calendar**: on `annual` a
  * Tibetan year, numbered as {@link TibetanDate.year} is (2153 is the year that begins on
@@ -174,6 +194,19 @@ export type ObservanceWhen =
 			readonly type: "formula";
 			/** The formula tested against each calendar day. */
 			readonly formula: FormulaName;
+	  }
+	| {
+			readonly type: "counted";
+			/** The Tibetan date each year's count starts from, resolved as an `annual` date is. */
+			readonly anchor: TibetanMonthDay;
+			/** Days of every waxing step, 13-16. */
+			readonly waxingDays: number;
+			/** Days of a waning step by the parity of the month it starts in, each 13-16. */
+			readonly waningDays: { readonly oddMonth: number; readonly evenMonth: number };
+			/**
+			 * Dates whose resolved calendar day drops a counted occurrence. The anchor is never dropped.
+			 */
+			readonly exclude?: readonly TibetanMonthDay[];
 	  };
 
 /**
@@ -283,7 +316,8 @@ export type ObservanceResolution =
 	| "dayAfterSkipped"
 	| "firstOfDoubled"
 	| "secondOfDoubled"
-	| "inPeriod";
+	| "inPeriod"
+	| "counted";
 
 /** One occurrence of one rule on one calendar day. */
 export interface Observance {

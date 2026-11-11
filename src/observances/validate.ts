@@ -52,6 +52,8 @@ const ANNUAL_KEYS = ["type", "dates", ...YEAR_KEYS];
 const WESTERN_KEYS = ["type", "month", "day", ...YEAR_KEYS];
 const PERIOD_KEYS = ["type", "first", "last"];
 const FORMULA_KEYS = ["type", "formula"];
+const COUNTED_KEYS = ["type", "anchor", "waxingDays", "waningDays", "exclude"];
+const WANING_KEYS = ["oddMonth", "evenMonth"];
 const FORMULA_NAMES: readonly FormulaName[] = ["lunarDayPlusWeekdayMod4"];
 const DATE_KEYS = ["month", "day"];
 const TIBETAN_NAME_KEYS = ["tibetan", "wylie", "phonetic"];
@@ -73,6 +75,7 @@ const SETTINGS_BY_FORM: Record<ObservanceWhen["type"], readonly FormSetting[]> =
 	period: ["leapMonth"],
 	western: [],
 	formula: [],
+	counted: ["doubledDay", "skippedDay", "leapMonth"],
 };
 
 /** Days in each Gregorian month in a leap year, the most any year gives it. */
@@ -198,6 +201,8 @@ function assertYearFields(when: Record<string, unknown>, subject: string): void 
 const DAY_WHY =
 	"A rule names a Tibetan lunar day, which always runs 1-30; a day that no calendar day carries " +
 	"is handled by the skippedDay convention, not by omitting the rule";
+const FORTNIGHT_WHY =
+	"A step of a counted schedule is a fortnight's, 13-16 days; a wider value cannot be a half-month schedule";
 const MONTH_WHY =
 	"A leap month is selected by the leapMonth convention, not by a thirteenth number";
 
@@ -313,9 +318,43 @@ function assertWhen(when: unknown, subject: string): void {
 		assertChoice(when.formula, FORMULA_NAMES, `${subject}: when.formula`);
 		return;
 	}
+	if (when.type === "counted") {
+		assertKnownKeys(when, COUNTED_KEYS, `${subject}: when`);
+		assertMonthDay(when.anchor, subject, "when.anchor");
+		assertIntegerInRange(when.waxingDays, 13, 16, `${subject}: when.waxingDays`, FORTNIGHT_WHY);
+		const waning = when.waningDays;
+		if (!isRecord(waning)) {
+			throw rangeError(
+				CODE,
+				`${subject}: when.waningDays must be an { oddMonth, evenMonth } object, received ` +
+					describe(waning),
+			);
+		}
+		assertKnownKeys(waning, WANING_KEYS, `${subject}: when.waningDays`);
+		for (const key of WANING_KEYS) {
+			assertIntegerInRange(
+				waning[key],
+				13,
+				16,
+				`${subject}: when.waningDays.${key}`,
+				FORTNIGHT_WHY,
+			);
+		}
+		if (when.exclude !== undefined) {
+			if (!Array.isArray(when.exclude)) {
+				throw rangeError(
+					CODE,
+					`${subject}: when.exclude must be an array of { month, day }, received ` +
+						describe(when.exclude),
+				);
+			}
+			for (const date of when.exclude) assertMonthDay(date, subject, "every when.exclude entry");
+		}
+		return;
+	}
 	throw rangeError(
 		CODE,
-		`${subject}: when.type must be "monthly", "annual", "period", "western" or "formula", received ${describe(when.type)}`,
+		`${subject}: when.type must be "monthly", "annual", "period", "western", "formula" or "counted", received ${describe(when.type)}`,
 	);
 }
 

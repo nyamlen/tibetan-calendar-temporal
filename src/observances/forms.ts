@@ -9,12 +9,15 @@
 import {
 	classifyDay,
 	firstDayOfMonth,
+	lastDayOfMonth,
+	monthFromCount,
 	sharesNumberWithLeapMonth,
 	trueMonthCount,
 } from "../computation/calendar.js";
 import { julianDayFromIso } from "../computation/conversion.js";
 import type { ScaledTradition } from "../computation/scaling.js";
 import { codedError } from "../errors.js";
+import type { TraditionConfig } from "../traditions/types.js";
 import { formulaHolds } from "./formulas.js";
 import type {
 	ObservanceConfig,
@@ -271,6 +274,10 @@ export function occurrencesInMonth(
 			return [];
 		case "formula":
 			return formulaOccurrences(when, scaled, monthCount);
+		case "counted":
+			// A schedule is a property of a run of months, not of one: see `countedMonthDays` and
+			// `countedSchedule`.
+			return [];
 		default:
 			/* c8 ignore next */
 			throw codedError("TCT_INTERNAL", `unhandled when type ${JSON.stringify(when)}`);
@@ -295,6 +302,119 @@ export function westernOccurrences(
 			continue;
 		const date = Temporal.PlainDate.from({ year, month: when.month, day: when.day });
 		found.push({ julianDay: julianDayFromIso(date), resolution: "exact" });
+	}
+	return found;
+}
+
+/**
+ * How many days before the next year's anchor a counted day must fall to be kept.
+ *
+ * @remarks
+ * A count's landing days fall only 1, 0 or -1 days, or 14, 15 or 16 days, before the next anchor
+ * (measured 2026-11-11 over anchors 1999-2102, in both Phugpa configs), so every threshold from 2 to
+ * 14 behaves alike and only 1 and 15 change the output. Eight sits inside that gap: a landing within
+ * a week of the anchor is the anchor's own slot, and the anchor replaces it.
+ */
+const REANCHOR_DAYS = 8;
+
+/** A counted rule's anchor, with the true month it was resolved in, a starting point for the count. */
+export interface CountedAnchor extends Occurrence {
+	readonly monthCount: number;
+}
+
+/**
+ * The calendar days one month contributes to a `counted` rule: its anchors and its exclusions.
+ *
+ * @remarks
+ * The anchor and each `exclude` entry resolve exactly as an `annual` date does, through the same
+ * leap-month test and the same day resolution, under the rule's own three settings. Under
+ * `leapMonth: "both"` or `doubledDay: "both"` a year therefore has more than one anchor, and each
+ * starts its own count.
+ */
+export function countedMonthDays(
+	rule: ObservanceRule,
+	when: Extract<ObservanceWhen, { type: "counted" }>,
+	config: ObservanceConfig,
+	scaled: ScaledTradition,
+	monthCount: number,
+	month: { year: number; month: number; isLeap: boolean },
+	yearHasLeapOfThisNumber: boolean,
+): { anchors: CountedAnchor[]; excluded: number[] } {
+	const resolve = (date: { month: number; day: number }): Occurrence[] =>
+		appliesToMonth(rule, config, month, date.month, yearHasLeapOfThisNumber)
+			? resolveInMonth(scaled, monthCount, date.day, rule, config)
+			: [];
+	return {
+		anchors: resolve(when.anchor).map((hit) => ({ ...hit, monthCount })),
+		excluded: (when.exclude === undefined ? [] : when.exclude)
+			.flatMap(resolve)
+			.map((hit) => hit.julianDay),
+	};
+}
+
+/** The true month containing a Julian day, searching outward from a month known to be near it. */
+function monthCountOfDay(scaled: ScaledTradition, julianDay: number, near: number): number {
+	let count = near;
+	while (lastDayOfMonth(scaled, count) < julianDay) count++;
+	while (lastDayOfMonth(scaled, count - 1) >= julianDay) count--;
+	return count;
+}
+
+/**
+ * Every occurrence of a `counted` rule that can fall in a range, from the anchors around it.
+ *
+ * @remarks
+ * Each anchor starts a count that alternates a waning step and a waxing step. A waning step is
+ * `oddMonth` or `evenMonth` days by the parity of the Tibetan month containing the day it starts
+ * from, a leap month taking its own number's parity; a waxing step is always `waxingDays`. A count
+ * stops at the last landing `REANCHOR_DAYS` or more before the next anchor, which replaces whatever
+ * the count would have put near it. A landing on an excluded day is dropped but the count goes on
+ * from it; an anchor is never dropped.
+ *
+ * **Bounded both ways.** The count starts at the latest anchor on or before `firstJd`, at most 385
+ * days back, and the next anchor after `lastJd` must be in `anchors`, because the threshold decides
+ * a day just before an anchor by that anchor. Without it a query for the day before an anchor
+ * reports a sojong the whole range does not. `anchors` therefore covers the Tibetan year before the
+ * range and the one after it.
+ */
+export function countedSchedule(
+	when: Extract<ObservanceWhen, { type: "counted" }>,
+	tradition: TraditionConfig,
+	scaled: ScaledTradition,
+	anchors: readonly CountedAnchor[],
+	excluded: ReadonlySet<number>,
+	firstJd: number,
+	lastJd: number,
+): Occurrence[] {
+	const sorted = [...anchors].sort((a, b) => a.julianDay - b.julianDay);
+	let start = 0;
+	while (start + 1 < sorted.length && (sorted[start + 1] as CountedAnchor).julianDay <= firstJd) {
+		start++;
+	}
+
+	const found: Occurrence[] = [];
+	for (let i = start; i < sorted.length; i++) {
+		const anchor = sorted[i] as CountedAnchor;
+		if (anchor.julianDay > lastJd) break;
+		found.push({ julianDay: anchor.julianDay, resolution: anchor.resolution });
+
+		const next = sorted[i + 1];
+		const limit = next === undefined ? Number.POSITIVE_INFINITY : next.julianDay - REANCHOR_DAYS;
+		let at = anchor.julianDay;
+		let monthCount = anchor.monthCount;
+		let waning = true;
+		for (;;) {
+			let step = when.waxingDays;
+			if (waning) {
+				monthCount = monthCountOfDay(scaled, at, monthCount);
+				const odd = monthFromCount(tradition, monthCount).month % 2 === 1;
+				step = odd ? when.waningDays.oddMonth : when.waningDays.evenMonth;
+			}
+			at += step;
+			if (at > limit || at > lastJd) break;
+			if (!excluded.has(at)) found.push({ julianDay: at, resolution: "counted" });
+			waning = !waning;
+		}
 	}
 	return found;
 }
