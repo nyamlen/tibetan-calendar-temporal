@@ -402,7 +402,7 @@ export function assertSafeYear(
 	year: unknown,
 	suffix = "",
 	code: TibetanCalendarErrorCode = "TCT_FIELD_OUT_OF_RANGE",
-): void {
+): asserts year is number {
 	if (!Number.isSafeInteger(year)) {
 		throw rangeError(
 			code,
