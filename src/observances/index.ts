@@ -132,6 +132,11 @@ export function getObservances(
 
 	// One memo across the rules: a 15th carries several, and each needs the day's Tibetan date.
 	const tibetanDateOf = tibetanDateMemo(scaled);
+	// Both ends are converted whatever the config holds, so a range outside the tradition's exact
+	// arithmetic is refused with TCT_OUTSIDE_EXACT_RANGE even when no rule would convert a day: a
+	// config with no rules, or only `western` rules, otherwise answered `[]` for any such range.
+	tibetanDateOf(firstJd);
+	tibetanDateOf(lastJd);
 	const found: { julianDay: number; observance: Observance }[] = [];
 	for (const rule of config.rules) {
 		for (const observance of occurrencesOfRule(
