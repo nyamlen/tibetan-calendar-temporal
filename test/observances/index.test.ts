@@ -1470,6 +1470,58 @@ describe("the counted form", () => {
 		}, 30_000);
 	});
 
+	describe("the exclusion, resolved like the anchor", () => {
+		const isoOf = (found: ReturnType<typeof days>) => found.map(([d]) => d);
+
+		// A doubled day 1: Tibetan 2068 (1941 CE) opens on 1941-02-26 and 1941-02-27, both numbered 1,
+		// and the Rabten count lands on the first half. No such year is in Rabten's window.
+		it.each([
+			["first", false],
+			["second", true],
+			["both", false],
+		] as const)(
+			"on a doubled day 1 under doubledDay %s drops only the half that setting names (kept: %s)",
+			(choice, kept) => {
+				const control = days("1941-02-20", "1941-03-05", sojongConfig({ exclude: [] }));
+				expect(isoOf(control)).toContain("1941-02-26");
+				const found = days("1941-02-20", "1941-03-05", sojongConfig({}, { doubledDay: choice }));
+				expect(isoOf(found).includes("1941-02-26")).toBe(kept);
+			},
+		);
+
+		// SYNTHETIC. No real schedule makes the count land on the first real day of a year whose month 1
+		// day 1 is skipped (measured over 1447-2500 CE in all four shipped traditions: docs/testing.md),
+		// so this exercises the exclusion path through the public API with a valid but non-Rabten step:
+		// evenMonth 13 in place of Rabten's 15. Tibetan 2000 (1873 CE) skips its day 1, so its first
+		// real day, numbered 2, is 1873-02-28.
+		describe("SYNTHETIC: a count landing on the first real day of a year whose day 1 is skipped", () => {
+			const steps = { waningDays: { oddMonth: 14, evenMonth: 13 } };
+			const around = (config: ObservanceConfig) => isoOf(days("1873-02-20", "1873-03-10", config));
+
+			it("is a skipped day 1, and the first real day is day 2", () => {
+				expect(isoToTibetan(iso("1873-02-28")).day).toBe(2);
+				expect(isoToTibetan(iso("1873-02-28")).year).toBe(2000);
+				expect(isoToTibetan(iso("1873-02-27")).month).toBe(12);
+			});
+
+			it("control: with no exclusion the count lands there", () => {
+				expect(around(sojongConfig({ ...steps, exclude: [] }))).toContain("1873-02-28");
+			});
+
+			it('drops it under skippedDay "following", where 1/1 resolves to the first real day', () => {
+				expect(around(sojongConfig(steps))).not.toContain("1873-02-28");
+			});
+
+			it('keeps it under skippedDay "preceding", where 1/1 resolves to the day before', () => {
+				expect(around(sojongConfig(steps, { skippedDay: "preceding" }))).toContain("1873-02-28");
+			});
+
+			it('keeps it under skippedDay "omit", where 1/1 resolves to no day', () => {
+				expect(around(sojongConfig(steps, { skippedDay: "omit" }))).toContain("1873-02-28");
+			});
+		});
+	});
+
 	describe("refuses what it cannot count", () => {
 		it.each([
 			["waxingDays 12", { waxingDays: 12 }],

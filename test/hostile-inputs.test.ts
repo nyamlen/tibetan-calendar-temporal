@@ -250,6 +250,13 @@ const withRule = (patch: object) =>
 // A non-empty string is a valid id, name or tag, so the one hostile value that is one answers.
 const STRING_OK = ["numeric string"];
 const withWhen = (when: unknown) => withRule({ when });
+const COUNTED = {
+	type: "counted",
+	anchor: { month: 1, day: 15 },
+	waxingDays: 15,
+	waningDays: { oddMonth: 14, evenMonth: 15 },
+	exclude: [{ month: 1, day: 1 }],
+};
 const RULE_FIELD: readonly Row[] = [
 	[
 		"getObservances(…, config) monthly days entry",
@@ -306,6 +313,44 @@ const RULE_FIELD: readonly Row[] = [
 	[
 		"getObservances(…, config) formula name",
 		(x) => getObservances(ISO, ISO, withWhen({ type: "formula", formula: x })),
+	],
+	[
+		"getObservances(…, config) counted anchor month",
+		(x) => getObservances(ISO, ISO, withWhen({ ...COUNTED, anchor: { month: x, day: 15 } })),
+	],
+	[
+		"getObservances(…, config) counted anchor day",
+		(x) => getObservances(ISO, ISO, withWhen({ ...COUNTED, anchor: { month: 1, day: x } })),
+	],
+	[
+		"getObservances(…, config) counted waxingDays",
+		(x) => getObservances(ISO, ISO, withWhen({ ...COUNTED, waxingDays: x })),
+	],
+	[
+		"getObservances(…, config) counted waningDays oddMonth",
+		(x) =>
+			getObservances(
+				ISO,
+				ISO,
+				withWhen({ ...COUNTED, waningDays: { oddMonth: x, evenMonth: 15 } }),
+			),
+	],
+	[
+		"getObservances(…, config) counted waningDays evenMonth",
+		(x) =>
+			getObservances(
+				ISO,
+				ISO,
+				withWhen({ ...COUNTED, waningDays: { oddMonth: 14, evenMonth: x } }),
+			),
+	],
+	[
+		"getObservances(…, config) counted exclude entry month",
+		(x) => getObservances(ISO, ISO, withWhen({ ...COUNTED, exclude: [{ month: x, day: 1 }] })),
+	],
+	[
+		"getObservances(…, config) counted exclude entry day",
+		(x) => getObservances(ISO, ISO, withWhen({ ...COUNTED, exclude: [{ month: 1, day: x }] })),
 	],
 	[
 		"getObservances(…, config) western month",
@@ -402,6 +447,22 @@ const RULE_OBJECT: readonly Row[] = [
 		(x) => getObservances(ISO, ISO, withWhen({ type: "annual", dates: [x] })),
 	],
 	["getObservances(…, config) tags", (x) => getObservances(ISO, ISO, withRule({ tags: x }))],
+	[
+		"getObservances(…, config) counted anchor itself",
+		(x) => getObservances(ISO, ISO, withWhen({ ...COUNTED, anchor: x })),
+	],
+	[
+		"getObservances(…, config) counted waningDays itself",
+		(x) => getObservances(ISO, ISO, withWhen({ ...COUNTED, waningDays: x })),
+	],
+	[
+		"getObservances(…, config) counted exclude entry itself",
+		(x) => getObservances(ISO, ISO, withWhen({ ...COUNTED, exclude: [x] })),
+	],
+	[
+		"getObservances(…, config) counted exclude itself",
+		(x) => getObservances(ISO, ISO, withWhen({ ...COUNTED, exclude: x })),
+	],
 	[
 		"getObservances(…, config) period first endpoint",
 		(x) =>
