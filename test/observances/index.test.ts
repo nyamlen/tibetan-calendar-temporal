@@ -605,6 +605,48 @@ describe("consumer config validation", () => {
 		expect(codeOf({ ...EXAMPLE_OBSERVANCES, doubledDay: "1st" })).toBe(CONFIG_CODE);
 	});
 
+	// A setting a form cannot use is refused rather than silently ignored: a monthly rule has no
+	// month, so a leapMonth on it would be read by nothing and look as if it had been honoured.
+	describe("a per-rule setting the form cannot use", () => {
+		it("refuses leapMonth on a monthly rule", () => {
+			expect(codeOf(withRule({ leapMonth: "leap" }))).toBe(CONFIG_CODE);
+		});
+
+		it("names the setting and the form", () => {
+			const error = thrownBy(() => run(withRule({ leapMonth: "leap" })));
+			expect(error?.message).toContain("leapMonth");
+			expect(error?.message).toContain("monthly");
+		});
+
+		it("checks the value before the applicability", () => {
+			expect(thrownBy(() => run(withRule({ leapMonth: "bogus" })))?.message).toContain(
+				"leapMonth must be one of",
+			);
+			expect(thrownBy(() => run(withRule({ leapMonth: 7 })))?.message).toContain(
+				"leapMonth must be one of",
+			);
+		});
+
+		it("accepts the three settings an annual rule can use", () => {
+			const when = { type: "annual", dates: [{ month: 6, day: 4 }] };
+			for (const rule of [
+				{ doubledDay: "first" },
+				{ skippedDay: "omit" },
+				{ leapMonth: "regular" },
+			]) {
+				expect(() => run(withRule({ when, ...rule }))).not.toThrow();
+			}
+		});
+
+		it("accepts doubledDay and skippedDay on a monthly rule", () => {
+			expect(() => run(withRule({ doubledDay: "first", skippedDay: "omit" }))).not.toThrow();
+		});
+
+		it("never refuses a config-level default", () => {
+			expect(() => run(withRule({}, { leapMonth: "both" }))).not.toThrow();
+		});
+	});
+
 	// Validation is memoised per config object, so a repeated call must behave identically rather
 	// than passing the second time through.
 	it("stays rejected on a repeat call", () => {

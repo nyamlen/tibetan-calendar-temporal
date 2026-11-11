@@ -16,7 +16,7 @@
  */
 
 import { describe, rangeError } from "../errors.js";
-import type { ObservanceConfig } from "./types.js";
+import type { ObservanceConfig, ObservanceRule, ObservanceWhen } from "./types.js";
 
 const CODE = "TCT_INVALID_OBSERVANCE_CONFIG";
 
@@ -50,6 +50,22 @@ const MONTHLY_KEYS = ["type", "days"];
 const ANNUAL_KEYS = ["type", "dates"];
 const DATE_KEYS = ["month", "day"];
 const TIBETAN_NAME_KEYS = ["tibetan", "wylie", "phonetic"];
+
+type FormSetting = "doubledDay" | "skippedDay" | "leapMonth";
+
+/**
+ * The per-rule settings each form reads, keyed by `when.type`.
+ *
+ * @remarks
+ * A `Record` over the form names, so adding a form without a row is a compile error. A per-rule
+ * setting absent from its form's row is refused rather than ignored: a monthly rule has no month,
+ * so a `leapMonth` on it would be read by nothing and look as if it had been honoured. Config-level
+ * defaults are never refused — a form simply does not read the ones it cannot use.
+ */
+const SETTINGS_BY_FORM: Record<ObservanceWhen["type"], readonly FormSetting[]> = {
+	monthly: ["doubledDay", "skippedDay"],
+	annual: ["doubledDay", "skippedDay", "leapMonth"],
+};
 
 /**
  * Whether a value is a non-null object that is not an array.
@@ -223,6 +239,27 @@ function assertTags(tags: unknown, subject: string): void {
 }
 
 /**
+ * Refuses a per-rule setting the rule's form does not read, once its value has been checked.
+ *
+ * @remarks
+ * Called after the value checks, so `leapMonth: "bogus"` reports the bad value rather than its
+ * inapplicability.
+ */
+function assertSettingsApplicable(rule: Record<string, unknown>, ruleSubject: string): void {
+	const form = (rule.when as ObservanceRule["when"]).type;
+	const used = SETTINGS_BY_FORM[form];
+	for (const setting of ["doubledDay", "skippedDay", "leapMonth"] as const) {
+		if (rule[setting] !== undefined && !used.includes(setting)) {
+			throw rangeError(
+				CODE,
+				`${ruleSubject}: ${setting} does not apply to a "${form}" rule, which reads ` +
+					(used.length === 0 ? "no per-rule settings" : used.join(" and ")),
+			);
+		}
+	}
+}
+
+/**
  * The likeliest wrong objects in the config position, named for what they are.
  *
  * @remarks
@@ -355,6 +392,8 @@ function validateObservanceConfig(config: ObservanceConfig): void {
 		assertOptionalChoice(rule.doubledDay, DOUBLED_DAY_CHOICES, `${ruleSubject} doubledDay`);
 		assertOptionalChoice(rule.skippedDay, SKIPPED_DAY_CHOICES, `${ruleSubject} skippedDay`);
 		assertOptionalChoice(rule.leapMonth, LEAP_MONTH_CHOICES, `${ruleSubject} leapMonth`);
+
+		assertSettingsApplicable(rule, ruleSubject);
 	}
 }
 
