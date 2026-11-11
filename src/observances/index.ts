@@ -77,10 +77,18 @@ const MAX_SPAN_YEARS = 200;
  * the first is what the rule says, the second is what the almanac prints, and the third is a
  * substitute for a day that does not exist.
  */
+const PRECEDENCE: Record<ObservanceResolution, number> = {
+	exact: 0,
+	firstOfDoubled: 1,
+	secondOfDoubled: 1,
+	// Never competes within one rule: a period rule emits only this, and a day appears once in it.
+	inPeriod: 1,
+	dayBeforeSkipped: 2,
+	dayAfterSkipped: 2,
+};
+
 function precedence(resolution: ObservanceResolution): number {
-	if (resolution === "exact") return 0;
-	if (resolution === "dayBeforeSkipped" || resolution === "dayAfterSkipped") return 2;
-	return 1;
+	return PRECEDENCE[resolution];
 }
 
 /**
