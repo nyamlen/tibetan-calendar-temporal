@@ -172,7 +172,7 @@ export function getObservances(
 	const firstMonth = trueMonthCount(resolvedTradition, startYear, 1) - 1;
 	const lastMonth = trueMonthCount(resolvedTradition, endYear + 1, 1) + 1;
 
-	const found: { julianDay: number; rule: ObservanceRule; resolution: ObservanceResolution }[] = [];
+	const bestByRule = new Map<ObservanceRule, Map<number, Occurrence>>();
 
 	for (let monthCount = firstMonth; monthCount <= lastMonth; monthCount++) {
 		const month = monthFromCount(resolvedTradition, monthCount);
@@ -202,20 +202,30 @@ export function getObservances(
 				month,
 				yearHasLeapOfThisNumber,
 			);
-			// One result per rule per calendar day, so entries of one rule that land together are
-			// reduced to the one with the best claim to the day.
-			const best = new Map<number, Occurrence>();
 			for (const hit of hits) {
-				const held = best.get(hit.julianDay);
-				if (held === undefined || precedence(hit.resolution) < precedence(held.resolution)) {
-					best.set(hit.julianDay, hit);
+				if (hit.julianDay < firstJd || hit.julianDay > lastJd) continue;
+				// One result per rule per calendar day, across the whole range and not per month: a
+				// skipped day 1 shifts onto the previous month's last day, which the same rule may
+				// already hold exactly. Entries that land together reduce to the best claim.
+				let held = bestByRule.get(rule);
+				if (held === undefined) {
+					held = new Map();
+					bestByRule.set(rule, held);
+				}
+				const incumbent = held.get(hit.julianDay);
+				if (
+					incumbent === undefined ||
+					precedence(hit.resolution) < precedence(incumbent.resolution)
+				) {
+					held.set(hit.julianDay, hit);
 				}
 			}
-			for (const hit of best.values()) {
-				if (hit.julianDay < firstJd || hit.julianDay > lastJd) continue;
-				found.push({ ...hit, rule });
-			}
 		}
+	}
+
+	const found: { julianDay: number; rule: ObservanceRule; resolution: ObservanceResolution }[] = [];
+	for (const [rule, held] of bestByRule) {
+		for (const hit of held.values()) found.push({ ...hit, rule });
 	}
 
 	// Code-unit comparison, not localeCompare: that reads the host's default locale and ICU build,

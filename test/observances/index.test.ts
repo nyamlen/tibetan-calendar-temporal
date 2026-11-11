@@ -359,6 +359,59 @@ describe("one result per rule per calendar day", () => {
 		]);
 	});
 
+	// Losar 1977 opens on day 2, so the skipped month-1 day 1 shifts back onto month 12 day 30 of
+	// the year before -- the day the same rule already holds exactly. The two entries belong to
+	// different months, so a per-month reduction kept both.
+	it("emits one exact result where a skipped day 1 shifts onto the previous month's 30th", () => {
+		const found = getObservances(
+			iso("1977-02-15"),
+			iso("1977-02-21"),
+			twoDays({ doubledDay: "both" }, [1, 30]),
+		);
+		expect(found.map((o) => [o.date.isoDate.toString(), o.resolution])).toEqual([
+			["1977-02-18", "exact"],
+		]);
+	});
+
+	it("does the same for an annual rule across Losar 1901, in either entry order", () => {
+		const annual = (dates: { month: number; day: number }[]): ObservanceConfig => ({
+			...EXAMPLE_OBSERVANCES,
+			id: "annual-losar",
+			skippedDay: "preceding",
+			rules: [{ id: "losar-edge", englishName: "Losar edge", when: { type: "annual", dates } }],
+		});
+		for (const dates of [
+			[
+				{ month: 12, day: 30 },
+				{ month: 1, day: 1 },
+			],
+			[
+				{ month: 1, day: 1 },
+				{ month: 12, day: 30 },
+			],
+		]) {
+			const found = getObservances(iso("1901-02-10"), iso("1901-02-25"), annual(dates));
+			expect(found.map((o) => [o.date.isoDate.toString(), o.resolution])).toEqual([
+				["1901-02-19", "exact"],
+			]);
+		}
+	});
+
+	it("never gives one rule two results on a calendar day, over 1900-1999", () => {
+		const doubled: string[] = [];
+		const seen = new Set<string>();
+		for (const o of getObservances(
+			iso("1900-01-01"),
+			iso("1999-12-31"),
+			twoDays({ doubledDay: "both" }, [1, 29, 30]),
+		)) {
+			const key = `${o.rule.id} ${o.date.isoDate.toString()}`;
+			if (seen.has(key)) doubled.push(`${key} ${o.resolution}`);
+			seen.add(key);
+		}
+		expect(doubled).toEqual([]);
+	});
+
 	// Tibetan 2193 (2066 CE), month 8: the 29th is doubled (17 and 18 October) and the 30th is
 	// skipped, the day after being 2066-10-19 -- the only such month in 1900-2100. Under "both" the
 	// skipped 30th shifts onto the second half, which the doubled 29th already claims: the tie is
