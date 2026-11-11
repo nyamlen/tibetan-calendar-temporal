@@ -15,12 +15,14 @@
  *
  * 1. **Script** from two EWTS implementations that must agree.
  * 2. **A round trip** back to the Wylie it came from.
- * 3. **Witnesses.** A term: its head word (the whole term where it is a single word) must head an entry
- *    in at least two *independent* public-domain witnesses — Jäschke, and Das-or-the-Mahāvyutpatti
- *    counted as one, since Das partly rests on the canonical lexicons. A person: a Buddhist Digital
- *    Resource Center person record that states the name, **and** one published source that heads it.
- *    The *tshig mdzod chen mo* and the *dung dkar* are gate-only here: they may supply the second
- *    source for a person (a headword exists), and never a witness for a term, and nothing is quoted.
+ * 3. **Witnesses.** A term: its head word must be attested by two of three groups — a Jäschke page
+ *    read from the image, the Mahāvyutpatti's pairing, and a headword of the *tshig mdzod chen mo* or
+ *    *dung dkar* (gate only: a headword exists, nothing quoted; both are one group, by Andreas'
+ *    ruling of 2026-11-11). A person: two groups, each stating the proposed spelling itself, honorifics
+ *    kept — equal to it or opening with it as whole words — from BDRC's person record, a gate-only
+ *    headword, Lotsawa House's Tibetan page heading, or Tibetan Wikipedia; BDRC's record is also the
+ *    identity anchor. Das's index is never a witness, because the aggregate's indexes list headwords
+ *    their book does not print.
  * 4. **The sense is read, not the presence.** A Jäschke sense is carried as data read from the page
  *    image (archive.org `tibetanenglishdi00jsuoft`, image n = printed page + 25) with the index
  *    re-checked against its page; a Mahāvyutpatti sense is its Sanskrit pairing, read mechanically,
@@ -149,6 +151,7 @@ const NAMES = [
 	{
 		id: "milarepa",
 		kind: "person",
+		anchor: "mi la ras pa",
 		wylie: "mi la ras pa",
 		marked: "mi la ras pa",
 		recordPhonetic: "milarepa",
@@ -157,6 +160,7 @@ const NAMES = [
 	{
 		id: "guru-rinpoche",
 		kind: "person",
+		anchor: "gu ru rin po che",
 		wylie: "gu ru rin po che",
 		marked: "gu ru-rin po che",
 		recordPhonetic: "guru rinpoché",
@@ -165,6 +169,7 @@ const NAMES = [
 	{
 		id: "gampopa",
 		kind: "person",
+		anchor: "sgam po pa",
 		wylie: "sgam po pa",
 		marked: "sgam po pa",
 		recordPhonetic: "gampopa",
@@ -173,6 +178,7 @@ const NAMES = [
 	{
 		id: "karmapa-16",
 		kind: "person",
+		anchor: "karma pa",
 		wylie: "rgyal ba karma pa bcu drug pa",
 		marked: "rgyal ba-karma pa-bcu drug pa",
 		recordPhonetic: "gyelwa kama(?)pa chudrukpa",
@@ -181,6 +187,8 @@ const NAMES = [
 	{
 		id: "tsongkhapa",
 		kind: "person",
+		lotsawa: "tsongkhapa",
+		anchor: "tsong kha pa",
 		wylie: "rje tsong kha pa",
 		marked: "rje-tsong kha pa",
 		recordPhonetic: "jé tsongkhapa",
@@ -189,6 +197,7 @@ const NAMES = [
 	{
 		id: "sakya-pandita",
 		kind: "person",
+		anchor: "sa skya paN+Di ta",
 		wylie: "sa skya paN+Di ta",
 		marked: "sa skya-paN+Di ta",
 		recordPhonetic: "sakya pandi(?)ta",
@@ -197,6 +206,8 @@ const NAMES = [
 	{
 		id: "dudjom-rinpoche",
 		kind: "person",
+		lotsawa: "dudjom-rinpoche",
+		anchor: "bdud 'joms",
 		wylie: "bdud 'joms rin po che",
 		marked: "bdud 'joms-rin po che",
 		recordPhonetic: "dünjom rinpoché",
@@ -537,6 +548,42 @@ for (const name of NAMES) {
 // Checks 3 and 4: witnesses and the sense read
 // ---------------------------------------------------------------------------------------------
 
+const WIKI_UA = { "User-Agent": UA };
+async function wikipediaJson(url) {
+	for (let attempt = 0; attempt < 6; attempt++) {
+		const text = await (await fetch(url, { headers: WIKI_UA })).text();
+		try {
+			return JSON.parse(text);
+		} catch {
+			await sleep(20000);
+		}
+	}
+	throw new Error(`Tibetan Wikipedia kept refusing: ${url}`);
+}
+
+/** A Tibetan Wikipedia title (Tibetan titles end in a tsheg), following a redirect. Null if absent. */
+async function wikipediaTitleFor(script) {
+	const data = await wikipediaJson(
+		`https://bo.wikipedia.org/w/api.php?action=query&redirects=1&format=json&titles=${encodeURIComponent(`${script}་`)}`,
+	);
+	await sleep(1500);
+	const pages = Object.values(data.query?.pages ?? {});
+	if (pages.length === 0 || pages[0].missing !== undefined) return null;
+	return {
+		source: "Tibetan Wikipedia title",
+		entry: `${script}་${data.query.redirects ? " (a redirect)" : ""}`,
+		page: null,
+	};
+}
+
+const wikipediaListData = await wikipediaJson(
+	`https://bo.wikipedia.org/w/api.php?action=query&prop=revisions&rvprop=content&rvslots=main&format=json&titles=${encodeURIComponent("བོད་ཀྱི་མཁས་དབང་།")}`,
+);
+const wikipediaList =
+	Object.values(wikipediaListData.query?.pages ?? {})[0]?.revisions?.[0]?.slots?.main?.["*"] ?? "";
+if (wikipediaList.length < 500)
+	fail("all", 3, "the Tibetan Wikipedia list article could not be read, or has shrunk");
+
 const bdrcRecords = new Map();
 for (const name of NAMES.filter((n) => n.kind === "person")) {
 	try {
@@ -571,14 +618,26 @@ for (const name of NAMES) {
 				entry: `${sanskrit.form}|${sanskrit.sanskrit}`,
 				page: null,
 			});
-		const independent = (jaeschke && !jaeschkeProblem ? 1 : 0) + (sanskrit ? 1 : 0);
+		const headGate = ["tshig mdzod chen mo", "dung dkar tshig mdzod chen mo"].filter((d) =>
+			forms(name.head).some((f) => INDEX[d].has(f)),
+		);
+		if (headGate.length > 0)
+			name.provenance.witnesses.push({
+				source: headGate.join(" and "),
+				entry: name.head,
+				page: null,
+				gateOnly: true,
+			});
+		const independent =
+			(jaeschke && !jaeschkeProblem ? 1 : 0) + (sanskrit ? 1 : 0) + (headGate.length > 0 ? 1 : 0);
 		if (independent < 2)
 			fail(
 				name.id,
 				3,
-				`head word "${name.head}" has ${independent} independent public-domain witness(es) read, not 2 ` +
+				`head word "${name.head}" has ${independent} independent witness group(s) read, not 2 ` +
 					`(Jäschke page read: ${jaeschke ? `p. ${jaeschke.page}` : "none"}; ` +
 					`Mahāvyutpatti: ${sanskrit ? sanskrit.sanskrit : "no"}; ` +
+					`Tibetan–Tibetan headword (gate only, one group): ${headGate.join(", ") || "neither"}; ` +
 					`Das's index ${dasIndexed ? "lists it, but an index entry is not a page read" : "does not list it"})`,
 			);
 		const gate = ["tshig mdzod chen mo", "dung dkar tshig mdzod chen mo"].filter((d) =>
@@ -637,43 +696,85 @@ for (const name of NAMES) {
 			fail(name.id, 4, "no sense was read for this name");
 	} else {
 		const record = bdrcRecords.get(name.id);
+		const groups = new Map();
+		const states = [];
 		if (record) {
 			const labels = ewtsLabels(record);
-			const stated = labels.find((l) => labelStates(l, name.wylie));
 			const types = (record["@graph"] ?? []).filter((n) => n["@id"] === `bdr:${name.bdrc}`);
 			if (types.length === 0 || !String(types[0]["@type"]).includes("Person"))
 				fail(name.id, 3, `BDRC ${name.bdrc} is not a Person record`);
+			if (!labels.some((l) => l.includes(name.anchor)))
+				fail(
+					name.id,
+					3,
+					`BDRC bdr:${name.bdrc} has no name containing "${name.anchor}": ${labels.join("; ")}`,
+				);
+			const stated = labels.find((l) => labelStates(l, name.wylie));
 			if (stated)
-				name.provenance.witnesses.push({
+				groups.set("BDRC", {
 					source: "BDRC person record",
 					entry: `bdr:${name.bdrc}`,
 					page: null,
 					label: stated,
 				});
-			else
-				fail(
-					name.id,
-					3,
-					`BDRC bdr:${name.bdrc} states no name equal to or opening with "${name.wylie}"; its Wylie names are: ${labels.join("; ")}`,
-				);
+			else states.push(`BDRC bdr:${name.bdrc} states none (its Wylie names: ${labels.join("; ")})`);
 		}
-		const published = ["tshig mdzod chen mo", "dung dkar tshig mdzod chen mo"]
-			.map((d) => ({ d, hit: INDEX[d].has(name.wylie) }))
-			.filter((x) => x.hit);
-		for (const { d } of published)
-			name.provenance.witnesses.push({ source: d, entry: name.wylie, page: null, gateOnly: true });
+		const gateKeys = ["tshig mdzod chen mo", "dung dkar tshig mdzod chen mo"].flatMap((d) =>
+			[...INDEX[d].keys()].filter((k) => labelStates(k, name.wylie)).map((k) => ({ d, k })),
+		);
+		if (gateKeys.length > 0)
+			groups.set("Tibetan–Tibetan dictionaries", {
+				source: [...new Set(gateKeys.map((g) => g.d))].join(" and "),
+				entry: gateKeys
+					.map((g) => g.k)
+					.slice(0, 3)
+					.join("; "),
+				page: null,
+				gateOnly: true,
+			});
+		else states.push("neither Tibetan–Tibetan dictionary heads it");
+		if (name.lotsawa) {
+			try {
+				const html = await fetchWithRetry(
+					`https://www.lotsawahouse.org/bo/tibetan-masters/${name.lotsawa}/`,
+					undefined,
+					"Lotsawa House",
+				);
+				const title = /<h1 class="bo">([^<]*)<\/h1>/.exec(html)?.[1]?.replace(/།$/, "").trim();
+				if (title === name.tibetan)
+					groups.set("Lotsawa House", {
+						source: "Lotsawa House",
+						entry: `/bo/tibetan-masters/${name.lotsawa}/ (page heading)`,
+						page: null,
+					});
+				else states.push(`Lotsawa House's heading is "${title}"`);
+			} catch (error) {
+				fail(name.id, 3, `Lotsawa House lookup failed: ${error.message}`);
+			}
+		}
+		const wikiTitle = await wikipediaTitleFor(name.tibetan);
+		if (wikiTitle === null) states.push("no Tibetan Wikipedia title");
+		else groups.set("Tibetan Wikipedia title", wikiTitle);
+		if (wikipediaList.includes(`* ${name.tibetan}།`))
+			groups.set("Tibetan Wikipedia list", {
+				source: "Tibetan Wikipedia, the list in the article བོད་ཀྱི་མཁས་དབང་།",
+				entry: name.tibetan,
+				page: null,
+			});
+		else states.push("not listed in the Tibetan Wikipedia article བོད་ཀྱི་མཁས་དབང་།");
+		for (const w of groups.values()) name.provenance.witnesses.push(w);
 		const variant = JAESCHKE_VARIANTS[name.id];
 		if (variant)
 			name.provenance.notes.push(
 				`Jäschke p. ${variant.page} prints "${variant.printed}", a variant spelling, so not a witness to "${name.wylie}"`,
 			);
-		if (published.length === 0)
+		if (groups.size < 2)
 			fail(
 				name.id,
 				3,
-				`no published source read heads "${name.wylie}" (the Tibetan–Tibetan dictionaries are checked for a headword only; the aggregate indexes of Jäschke and Das are not evidence of a printed headword)`,
+				`"${name.wylie}" has ${groups.size} independent witness(es) stating that spelling, not 2 (${[...groups.keys()].join(", ") || "none"}); not found: ${states.join("; ")}`,
 			);
-		if (name.provenance.witnesses.length > 0 && record)
+		if (record && groups.size >= 2)
 			name.provenance.sense.push({
 				source: "BDRC person record",
 				entry: `bdr:${name.bdrc}`,

@@ -56,7 +56,8 @@ Nothing else is corrected: the other twelve phonetics are THL's output unchanged
 - Whether the Day of Miracles is spelled `cho 'phrul` or `chos 'phrul` in the dictionaries.
 - Whether the Saga Dawa festival is `sa ga zla ba dus chen` or carries the genitive, `sa ga zla ba'i dus chen`.
 - Whether each compound is a headword in its own right or only its last part is (`dus chen`), in which case the name ships only if the head word is found and the sense is read.
-- Whether FPMT's "Lama Tsong Khapa" should be `rje tsong kha pa` (the lord) or carry `bla ma` in the Tibetan, and whether the Sixteenth Karmapa is attested as `rgyal ba karma pa bcu drug pa` or by his personal name.
+- Whether FPMT's "Lama Tsong Khapa" should be `rje tsong kha pa` (the lord) or carry `bla ma` in the Tibetan.
+  **Settled for the Karmapa on 2026-11-11:** he stays `rgyal ba karma pa bcu drug pa`; whether the sources attest it is in the results below.
 
 ## Sources, and what each is trusted for
 
@@ -71,10 +72,24 @@ The same sources the other name verifiers already read, through [scripts/tibetan
 | ***tshig mdzod chen mo***, ***dung dkar tshig mdzod chen mo*** | Copyrighted: **gate only** | That a headword exists; never quoted |
 | THL's own phonetics converter | A published standard | The `phonetic` field |
 
-**For the seven persons a further source is needed, and the Buddhist Digital Resource Center was accepted for it on 2026-11-11.**
+**For the seven persons a further kind of source is needed, and the Buddhist Digital Resource Center was accepted for it on 2026-11-11.**
 The public-domain dictionaries are from 1881 and 1902, so they can carry the historical figures — Milarepa, Guru Rinpoche, Gampopa, Sakya Pandita, Tsong Khapa — but **cannot carry the two modern ones**, the Sixteenth Karmapa (1924–1981) and Dudjom Rinpoche (1904–1987).
-The natural witness for a person's name in Tibetan script is a biographical authority, and the Buddhist Digital Resource Center's person records are accepted as it; **whether they are available to the verifier, and what they state for each of the seven, has not been checked** and is the first thing the verifier's author does.
-If a modern person's name cannot be attested by two sources, it ships English only.
+The Buddhist Digital Resource Center's person records are accepted as a biographical authority; they are readable by the verifier and state Wylie names, not script.
+
+**Andreas ruled on 2026-11-11, after the first run, on what may count as a witness:**
+
+- **A headword of the *tshig mdzod chen mo* or the *dung dkar tshig mdzod chen mo* may count as a witness**, for a term and for a person.
+  It stays gate only: the fact taken is that a headword exists, and nothing from either dictionary is quoted or stored.
+  The two are one group, never two witnesses, because both are modern Tibetan–Tibetan compilations.
+- **A person's name may not drop an honorific** (*rje*, *rgyal ba*, *rin po che*).
+  A witness must state the proposed spelling itself, equal to it or opening with it as whole words (BDRC's *sgam po pa bsod nams rin chen* states *sgam po pa*).
+- **The Sixteenth Karmapa stays `rgyal ba karma pa bcu drug pa`**, whose last words *karma pa bcu drug pa* mean the sixteenth Karmapa.
+  BDRC's numeric *karma pa 16 pa* is not an acceptable spelling for the shipped name, and a source printing *karma pa bcu drug pa* under a different honorific (*rgyal dbang*, *'jig rten dbang phyug*) is not a witness to it.
+
+Further published sources the verifier reads for a person, each stating the spelling or not: **Lotsawa House**'s Tibetan page heading for the master, and **Tibetan Wikipedia**'s article titles and its list of Tibetan scholars.
+Neither is lexicography; both are published pages naming the person.
+A person passes with two independent groups stating the spelling, BDRC's record being the identity anchor (it must be the right person and carry the name's core).
+If a name cannot be attested by two groups, it ships English only, and Andreas decides.
 
 ## The checks
 
@@ -84,8 +99,11 @@ Every one of the fourteen names must pass all of them, or it ships **English onl
    `jsewts` and `tibetan-ewts-converter`, resolved from a scratch directory outside the repository, produce identical script from the Wylie.
 2. **A round trip.**
    The script converts back to the Wylie it came from.
-3. **A headword in at least two public-domain sources**, for the whole term or, for a compound, for its head word, with the page or entry cited; **for a person, a biographical authority and one published source naming the person with that spelling**, as above.
-   Where two sources are not independent (Das against the Mahāvyutpatti) they count as one witness.
+3. **Two independent witnesses.**
+   **A term:** its head word (the whole term where it is a single word), with the page or entry cited, in two of three groups: a Jäschke page read from the image, the Mahāvyutpatti's pairing, and a headword of the *tshig mdzod chen mo* or *dung dkar* (gate only; both together are one group, per Andreas' ruling).
+   Das counts only where a page was read, and none was.
+   Das against the Mahāvyutpatti is one witness where both attest, since Das partly rests on the canonical lexicons.
+   **A person:** two independent groups, each stating the **proposed spelling itself** — equal to it or opening with it as whole words, honorifics kept — from BDRC's person record, a gate-only headword, Lotsawa House's Tibetan page heading, or Tibetan Wikipedia; BDRC's record must also be the right person.
 4. **The sense is read, not the presence.**
    A headword's entry must state the calendar, ritual or biographical sense, not merely exist: `dus chen` and `zla ba` have other senses, and the homograph trap is the one [month-and-yoga-sourcing.md](month-and-yoga-sourcing.md) records.
 5. **THL phonetics from the converter's word-separated mode, with the word boundaries marked** (Andreas, 2026-11-11), as in the tables: "Words separated by" joins the syllables of each word and applies THL's own sandhi (*chönkhor*, *chontrül*), where the syllable-by-syllable mode the other shipped names use gives "so jong" and "dü chen".
@@ -110,33 +128,29 @@ The verifier refuses to emit if any check fails, and a check placed after the em
 3. That the spelling variants above are settled by the checks and not by this page.
 4. **Decided 2026-11-11:** the two "(?)" phonetics are corrected to *gyelwa karmapa chudrukpa* and *sakya pandita*, as self-invalidating data (Andreas: "use karmapa and pandita; I am sure of this").
 5. **Decided 2026-11-11:** the Buddhist Digital Resource Center's person records are the source for the persons' names, to be checked when the verifier is written.
+6. **Decided 2026-11-11, after the first run:** a copyrighted-dictionary headword may count as a witness (gate only, one group); a person's name may not drop an honorific; the Sixteenth Karmapa stays `rgyal ba karma pa bcu drug pa`, not BDRC's numeric form.
 
 ## Results of the run
 
-**Run of 2026-11-11 (`npm run verify:observance-names`): 5 of the 14 names passed all five checks, so the verifier refused to emit and `test/fixtures/observance-names.ts` does not exist.**
-Which names ship English only is Andreas' decision; this section records what the sources say.
+**Run of 2026-11-11, after Andreas' three rulings (`npm run verify:observance-names`): 13 of the 14 names pass all five checks, and the Sixteenth Karmapa fails check 3 with the spelling as proposed.**
+The verifier therefore still refuses to emit, and `test/fixtures/observance-names.ts` does not exist.
+The first run, before the rulings, passed 5 of 14.
 
 | Rule | 1 script | 2 round trip | 3 witnesses | 4 sense | 5 phonetics |
 |---|---|---|---|---|---|
-| `chotrul-duchen`, `saga-dawa-duchen`, `chokhor-duchen`, `lhabab-duchen` | pass | pass | **fail** | pass | pass |
-| `saga-dawa-month` | pass | pass | pass | pass | pass |
-| `sojong` | pass | pass | pass | pass | pass |
-| `fire-puja` | pass | pass | **fail** | pass | pass |
-| `milarepa` | pass | pass | pass | pass | pass |
-| `guru-rinpoche` | pass | pass | **fail** | pass | pass |
-| `gampopa` | pass | pass | pass | pass | pass |
-| `karmapa-16` | pass | pass | **fail** | not read | pass (corrected) |
-| `tsongkhapa` | pass | pass | **fail** | not read | pass |
+| the four düchens | pass | pass | pass | pass | pass |
+| `saga-dawa-month`, `sojong`, `fire-puja` | pass | pass | pass | pass | pass |
+| `milarepa`, `guru-rinpoche`, `gampopa`, `tsongkhapa`, `dudjom-rinpoche` | pass | pass | pass | pass | pass |
 | `sakya-pandita` | pass | pass | pass | pass | pass (corrected) |
-| `dudjom-rinpoche` | pass | pass | **fail** | not read | pass |
+| `karmapa-16` | pass | pass | **fail: one witness** | not read | pass (corrected) |
 
 ### A finding about the sources, which changed the check
 
 **The aggregate's Jäschke and Das indexes are not evidence that a headword is printed.**
 The Jäschke index lists *bdud 'joms rin po che* at a page of a book published in 1881, and lists *gu ru rin po che* at p. 69, where the page image prints only *gú-ru*, "spiritual teacher".
-The earlier verifiers use those indexes to re-check a page that was read from an image, which stays sound; used as a headword test they overstate.
+The earlier verifiers use those indexes only to re-check a page read from an image, which stays sound; used as a headword test they overstate.
 So a Jäschke witness here is a row read from the page image and carried as data, and the index is used only to re-check its page to within two.
-Das has no such rows, so **Das is not counted as a witness**; its index lists *sbyin sreg* (p. 940), and no page was read.
+Das has no such rows, so **Das is not counted**; its index lists *sbyin sreg* (p. 940), and no page was read.
 
 ### Jäschke pages read (archive.org `tibetanenglishdi00jsuoft`, image n = printed page + 25)
 
@@ -150,35 +164,49 @@ Das has no such rows, so **Das is not counted as a witness**; its index lists *s
 
 ### The terms
 
-- **The four düchens** fail check 3 on their head word: *dus chen* has Jäschke (p. 255) and no second public-domain witness (the Mahāvyutpatti lacks it; Das's index lists only the compound *dus chen dge ba 'bum 'gyur*).
-  The whole terms: the *dung dkar* has *cho 'phrul dus chen* and *lha babs dus chen* as headwords (gate only, never a witness); no public-domain source has *sa ga zla ba dus chen*, *chos 'khor dus chen* or *lha babs dus chen*.
-  *chos 'phrul* was not settled: the *tshig mdzod chen mo* and the Jäschke and Das indexes have *cho 'phrul*; *chos 'phrul* appears only in the Jäschke index.
-  The genitive *sa ga zla ba'i dus chen* was not searched for; the spelling without it is what the checks above read.
+- **The four düchens** pass on their head word *dus chen*: Jäschke p. 255, and a headword of the *tshig mdzod chen mo* (gate only), which is the second group the ruling made available.
+  Without that ruling each had one witness: the Mahāvyutpatti lacks *dus chen*, and Das's index lists only the compound *dus chen dge ba 'bum 'gyur*.
+  Whole terms: the *dung dkar* has *cho 'phrul dus chen* and *lha babs dus chen* as headwords; no public-domain source has *sa ga zla ba dus chen*, *chos 'khor dus chen* or *lha babs dus chen*.
+  *chos 'phrul* was not settled by the sources: the *tshig mdzod chen mo* and the Das index have *cho 'phrul*; *chos 'phrul* appears only in the Jäschke index, which is not evidence.
+  The genitive *sa ga zla ba'i dus chen* was not searched for.
 - **`saga-dawa-month`** passes on its head word *zla ba*: Jäschke p. 490, and the Mahāvyutpatti pairs it with *māsa* (month) beside *soma*; Monier-Williams p. 814 prints *māsa* as "a month or the 12th part of the Hindū year".
   *sa ga* is Jäschke p. 570 and the Mahāvyutpatti's *viśākhā*.
 - **`sojong`** passes: Jäschke p. 590 (*gso sbyong ba*) and the Mahāvyutpatti's *gso sbyong|poṣadhaḥ*.
   Monier-Williams does not head *poṣadha*, so its sense rests on the Mahāvyutpatti's pairing.
-- **`fire-puja`** fails check 3: the Mahāvyutpatti pairs *sbyin sreg* with *homa* (Monier-Williams p. 1306: "oblation with fire"), and no Jäschke page was found; Das's index lists it unread.
+- **`fire-puja`** passes: the Mahāvyutpatti pairs *sbyin sreg* with *homa* (Monier-Williams p. 1306: "oblation with fire"), and the *tshig mdzod chen mo* and *dung dkar* head it (gate only).
 
-### The persons, through BDRC
+### The persons
 
 BDRC is reachable and states names mechanically: `https://purl.bdrc.io/resource/P…` answers with JSON-LD (`Accept: application/ld+json`), whose labels are Wylie (`bo-x-ewts`) with a trailing `/`.
-It does **not** state the Tibetan script, only Wylie.
+It states Wylie only, not script.
 Its search needs a credential that its web page embeds, which this verifier does not use; the identifiers were found through Wikidata's BDRC property and each record is read from BDRC itself.
-The check is that a name label equals the Wylie or opens with it as whole words.
 
-| Rule | BDRC record | Names the record states that matter | Second source |
-|---|---|---|---|
-| `milarepa` | P1853 | `mi la ras pa` | *tshig mdzod chen mo* headword |
-| `guru-rinpoche` | P4956 | `gu ru rin po che` | **none** (Jäschke prints only *gu-ru*) |
-| `gampopa` | P1844 | `sgam po pa bsod nams rin chen` | *dung dkar* headword `sgam po pa` |
-| `karmapa-16` | P865 | **no match**: `karma pa 16 pa`, `karma pa 16 rang byung rig pa'i rdo rje` | **none** |
-| `tsongkhapa` | P64 | **no match** for `rje tsong kha pa`: `tsong kha pa blo bzang grags pa`, `rje rin po che blo bzang grags pa` | **none** (the *dung dkar* has `rje tsong kha pa blo bzang grags pa` and `tsong kha pa`, not the shorter whole) |
-| `sakya-pandita` | P1056 | `sa skya paN+Di ta kun dga' rgyal mtshan` | *dung dkar* headword `sa skya paN+Di ta` |
-| `dudjom-rinpoche` | P736 | **no match** for `bdud 'joms rin po che`: `bdud 'joms 'jigs bral ye shes rdo rje` | **none** |
+| Rule | BDRC record | Witnesses stating the proposed spelling |
+|---|---|---|
+| `milarepa` | P1853 | BDRC (`mi la ras pa`); *tshig mdzod chen mo* headword (gate); Tibetan Wikipedia title |
+| `guru-rinpoche` | P4956 | BDRC (`gu ru rin po che`); Tibetan Wikipedia title *གུ་རུ་རིན་པོ་ཆེ་*, **a redirect** to the Padmasambhava article |
+| `gampopa` | P1844 | BDRC (`sgam po pa bsod nams rin chen`); *dung dkar* headword `sgam po pa` (gate) |
+| `karmapa-16` | P865 | **only** Tibetan Wikipedia's list of Tibetan scholars, which prints *རྒྱལ་བ་ཀརྨ་པ་བཅུ་དྲུག་པ།* |
+| `tsongkhapa` | P64 | *dung dkar* headword `rje tsong kha pa blo bzang grags pa` (gate; opens with the name); Lotsawa House heading *རྗེ་ཙོང་ཁ་པ།*; BDRC states `tsong kha pa blo bzang grags pa` and `rje rin po che blo bzang grags pa`, **not** the proposed form |
+| `sakya-pandita` | P1056 | BDRC (`sa skya paN+Di ta kun dga' rgyal mtshan`); *dung dkar* headword `sa skya paN+Di ta` (gate) |
+| `dudjom-rinpoche` | P736 | Lotsawa House heading *བདུད་འཇོམས་རིན་པོ་ཆེ།*; Tibetan Wikipedia's list of Tibetan scholars; BDRC states `bdud 'joms 'jigs bral ye shes rdo rje`, **not** the proposed form |
 
-The persons that pass do so with a gate-only headword as their second source, which the record allowed for a person ("one published source naming the person with that spelling") and which Andreas has not been asked about.
-A second source that is public-domain exists for none of the seven.
+Two witnesses are weak and are recorded as such: *guru-rinpoche*'s second witness is a Wikipedia redirect title, and *dudjom-rinpoche*'s two are web pages, a heading and a list.
+For `tsongkhapa` and `dudjom-rinpoche` BDRC is the identity anchor and **not** a witness to the spelling, which is what keeping the honorific costs.
+
+### The Sixteenth Karmapa: what was searched and found
+
+`rgyal ba karma pa bcu drug pa` has one witness.
+Searched, with the spelling as proposed, and **not found**:
+
+- BDRC person record P865: its Wylie names are *karma pa 16 pa*, *karma pa 16 rang byung rig pa'i rdo rje* and *rang byung rig pa'i rdo rje* (its Tibetan-script labels, read through Wikidata's mirror, are the same names); the numeric form is ruled out.
+- The *tshig mdzod chen mo*, *dung dkar*, the Mahāvyutpatti and the Jäschke and Das indexes: no headword of that spelling or opening with it; the dictionaries head *karma pa* alone.
+- Lotsawa House's Tibetan page for the Sixteenth Karmapa: titled *ཀརྨ་པ་རང་བྱུང་རིག་པའི་རྡོ་རྗེ།*, and printing *karma pa bcu drug pa* only after *rgyal dbang* and *'jig rten dbang phyug*.
+- Tibetan Wikipedia: no article titled with it, and among thirty full-text hits for *karma pa bcu drug pa* none prints the spelling.
+- Wikidata's Tibetan labels for the BDRC record: *ཀརྨ་པ ༡༦* and the personal name.
+- *Found:* only the list of Tibetan scholars in Tibetan Wikipedia (the article བོད་ཀྱི་མཁས་དབང་།), which prints it exactly.
+
+Whether one witness suffices, whether a further source should be sought, or the spelling should change is Andreas' decision; **the verifier has not been loosened**.
 
 ### The corrections
 
@@ -190,5 +218,5 @@ The other twelve phonetics are THL's output unchanged and equal the tables above
 
 ### Proved by mutation
 
-The served responses were altered one at a time, each against the unmutated run as control: THL returning *gyelwa karmapa chudrukpa* makes the run say "correction for karmapa-16 is no longer justified: it expects THL to return …"; THL returning *mila(?)repa* fails check 5 naming the marker; a BDRC record whose label reads *mi la ras ba* fails check 3 for `milarepa`.
-The converter, round-trip and sense checks were not proved by mutation, and no run could emit, so the emitted fixture's byte-for-byte reproduction is untested.
+The served responses were altered one at a time against the unmutated run as control: THL returning *gyelwa karmapa chudrukpa* makes the run say "correction for karmapa-16 is no longer justified: it expects THL to return …"; THL returning *mila(?)repa* fails check 5 naming the marker; a BDRC record whose label reads *mi la ras ba* fails check 3 for `milarepa` (run on the first version of the checks).
+The converter, round-trip and sense checks and the emit path are **not yet** proved by mutation, because no run can emit while the Karmapa fails.
