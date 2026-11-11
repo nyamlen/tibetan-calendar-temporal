@@ -429,12 +429,47 @@ describe('the fire puja formula against FPMT\'s "Fire puja" labels, 2022-2026', 
 				formulaHolds("lunarDayPlusWeekdayMod4", date.day, date.isoDate.dayOfWeek % 7) === labelled,
 		};
 	});
+	const first = FPMT_OBSERVANCES[0]?.iso ?? "";
+	const last = FPMT_OBSERVANCES.at(-1)?.iso ?? "";
 	const misses = measured.filter((m) => !m.agrees);
 
 	it("agrees on 1,786 of 1,826 days", () => {
 		expect(measured).toHaveLength(1826);
 		expect(measured.length - misses.length).toBe(1786);
 		expect(misses.map((m) => m.iso)).toEqual(MISSES);
+	});
+
+	// The shipped path, which walks months and classifies day numbers, over the whole window: it
+	// crosses every month boundary and every skipped day in 2022-2026, which the two-month suite in
+	// test/observances/formulas.test.ts does not.
+	const shipped = getObservances(iso(first), iso(last), {
+		...EXAMPLE_OBSERVANCES,
+		id: "formula-sweep",
+		rules: [
+			{
+				id: "f",
+				englishName: "F",
+				when: { type: "formula", formula: "lunarDayPlusWeekdayMod4" },
+			},
+		],
+	}).map((o) => o.date.isoDate.toString());
+
+	it("returns, through getObservances, exactly the days the per-day conversion says hold", () => {
+		const expected = measured
+			.filter((m) =>
+				formulaHolds("lunarDayPlusWeekdayMod4", m.date.day, m.date.isoDate.dayOfWeek % 7),
+			)
+			.map((m) => m.iso);
+		expect(shipped).toEqual(expected);
+	});
+
+	it("agrees with FPMT's Fire puja labels through getObservances on 1,786 days, missing the same 40", () => {
+		const held = new Set(shipped);
+		const missed = FPMT_OBSERVANCES.filter(
+			(row) => held.has(row.iso) !== (row.labels ?? []).includes("Fire puja"),
+		).map((row) => row.iso);
+		expect(FPMT_OBSERVANCES.length - missed.length).toBe(1786);
+		expect(missed).toEqual(MISSES);
 	});
 
 	it("counts the misses lying in a month holding a doubled or skipped day", () => {

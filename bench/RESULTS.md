@@ -74,8 +74,7 @@ A second machine, so these figures are **not comparable** with the table above.
 A formula rule tests every calendar day, so it is the one form whose cost is per day and not per
 month. It walks months like the others, classifies each day number and tests the formula on the
 number and a weekday taken from the Julian day, building a Tibetan date only for its results. Its
-first version converted every calendar day (`isoToTibetan`) and took 988 ms here, about 2 s on the
-machine in the first table.
+first version converted every calendar day (`isoToTibetan`) and took 988 ms here.
 
 ## What is deliberately not here
 
