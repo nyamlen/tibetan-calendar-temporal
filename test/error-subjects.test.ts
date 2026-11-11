@@ -23,6 +23,7 @@ import {
 	tibetanDateExists,
 	tibetanToIso,
 } from "../src/index.js";
+import { EXAMPLE_OBSERVANCES, nextObservance } from "../src/observances/index.js";
 import { thrownBy } from "./support/thrown.js";
 
 // The property under test: **an error names the function the caller called**, and for a two-argument
@@ -563,5 +564,19 @@ describe("lunarDayAttributesFor, where the month and the day are both wrong", ()
 		expect(
 			thrownBy(() => lunarDayAttributesFor(date({ year: 11500, day: 31 }), PHUGPA_HENNING))?.code,
 		).toBe("TCT_FIELD_OUT_OF_RANGE");
+	});
+});
+
+describe("nextObservance names itself, not getObservances", () => {
+	const from = Temporal.PlainDate.from("2026-01-01");
+	const rows = [
+		["an unknown rule id", "nope"],
+		["a rule id that is not a string", 15],
+	] as const;
+	it.each(rows)("%s", (_label, ruleId) => {
+		const error = thrownBy(() => nextObservance(from, ruleId as never, EXAMPLE_OBSERVANCES));
+		expect(error?.code).toBe("TCT_INVALID_ARGUMENT");
+		expect(error?.message).toMatch(opening("nextObservance(ruleId): "));
+		expect(error?.message).not.toMatch(/getObservances/);
 	});
 });

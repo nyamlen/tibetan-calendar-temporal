@@ -35,11 +35,13 @@ const FIRST_CHUNK_DAYS: Record<ObservanceWhen["type"], number> = {
  * What a "next occurrence" screen wants, without computing every rule over a long range: only the
  * rule named is evaluated. The result is exactly what {@link getObservances} gives for that rule —
  * the same one result per calendar day, the same `age` and `period` — so a loop feeding each result's
- * date back in reproduces the range query:
+ * date back in reproduces the range query, here until 2030:
  *
  * ```ts
+ * const found: Observance[] = [];
  * let next = nextObservance(from, "chotrul-duchen", EXAMPLE_OBSERVANCES);
- * while (next !== null) {
+ * while (next !== null && next.date.isoDate.year < 2030) {
+ *   found.push(next);
  *   next = nextObservance(next.date.isoDate, "chotrul-duchen", EXAMPLE_OBSERVANCES);
  * }
  * ```

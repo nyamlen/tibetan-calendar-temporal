@@ -44,7 +44,12 @@ import {
 	weekdayNameFor,
 	yearNameFor,
 } from "../src/index.js";
-import { EXAMPLE_OBSERVANCES, getObservances, observancesOn } from "../src/observances/index.js";
+import {
+	EXAMPLE_OBSERVANCES,
+	getObservances,
+	nextObservance,
+	observancesOn,
+} from "../src/observances/index.js";
 import { thrownBy } from "./support/thrown.js";
 
 // Part B of the tradition-parameter plan, 2026-09-24. The README promises that every failure
@@ -141,6 +146,10 @@ const SCALAR: readonly Row[] = [
 	["getObservances(from, to, config) from", (x) => getObservances(v(x), ISO, EXAMPLE_OBSERVANCES)],
 	["getObservances(from, to, config) to", (x) => getObservances(ISO, v(x), EXAMPLE_OBSERVANCES)],
 	["observancesOn(date, config)", (x) => observancesOn(v(x), EXAMPLE_OBSERVANCES)],
+	[
+		"nextObservance(from, ruleId, config) from",
+		(x) => nextObservance(v(x), "tara", EXAMPLE_OBSERVANCES),
+	],
 	// The whole fields argument, where a date or month object belongs.
 	["tibetanToIso(fields)", (x) => tibetanToIso(v(x))],
 	["tibetanDateExists(fields)", (x) => tibetanDateExists(v(x))],
@@ -237,6 +246,15 @@ const CONFIG: readonly Row[] = [
 	],
 	["observancesOn(date, config)", (x) => observancesOn(ISO, v(x))],
 	["observancesOn(date, config, tradition)", (x) => observancesOn(ISO, EXAMPLE_OBSERVANCES, v(x))],
+	[
+		"nextObservance(from, ruleId, config) ruleId",
+		(x) => nextObservance(ISO, v(x), EXAMPLE_OBSERVANCES),
+	],
+	["nextObservance(from, ruleId, config)", (x) => nextObservance(ISO, "tara", v(x))],
+	[
+		"nextObservance(from, ruleId, config, tradition)",
+		(x) => nextObservance(ISO, "tara", EXAMPLE_OBSERVANCES, v(x)),
+	],
 ];
 
 // A consumer's ObservanceConfig, whose rule fields the validator renders. `LEVEL_CONFIG` declares a

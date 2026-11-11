@@ -569,12 +569,17 @@ describe("error codes", () => {
 const EXPECTED_OBSERVANCE_EXPORTS = [
 	"EXAMPLE_OBSERVANCES",
 	"getObservances",
+	"nextObservance",
 	"observancesOn",
 ] as const;
 
 describe("observances API surface", () => {
 	it("exports exactly the documented names", () => {
 		expect(Object.keys(observances).sort()).toEqual([...EXPECTED_OBSERVANCE_EXPORTS]);
+	});
+
+	it("exports nextObservance as a function", () => {
+		expect(typeof observances.nextObservance).toBe("function");
 	});
 
 	it("ships the example observance config (id `example`) as spreadable plain data, like a tradition config", () => {
