@@ -115,6 +115,37 @@ the counted rule.
 
 Every view is well inside its budget, and no cache is needed for the form.
 
+## `nextObservance`, 2026-11-11
+
+Same machine and harness as the 10-year cap section (Intel Core Ultra 7 365, Windows 11 Pro
+10.0.26300, Node v26.11.1, Vitest 4.1.10, `vitest bench --run`), run with nothing else running.
+Each config holds the one rule alone, from `2026-08-12`, under `doubledDay: "first"`,
+`skippedDay: "following"` and `leapMonth: "leap"`. The planning budget is 100 ms.
+
+| Case | Mean | Budget | Note |
+|---|---|---|---|
+| `monthly`, the next occurrence is near | 0.122 ms | 100 ms | max 8.3 |
+| `annual`, the next occurrence is near | 0.055 ms | 100 ms | max 9.4 |
+| `period`, the next occurrence is near | 0.240 ms | 100 ms | max 9.7 |
+| `western`, the next occurrence is near | 0.130 ms | 100 ms | max 35.1 |
+| `formula`, the next occurrence is near | 0.606 ms | 100 ms | max 75.6 |
+| `counted`, the next occurrence is near | 0.082 ms | 100 ms | max 75.1 |
+| `annual`, window ended: `null` after the full 10-year horizon | 0.192 ms | 100 ms | max 7.8 |
+| `western`, window ended: `null` after the full 10-year horizon | 0.153 ms | 100 ms | max 23.4 |
+| `western`, window starts beyond the horizon: `null` | 0.188 ms | 100 ms | max 54.2 |
+
+The worst case, `null` after the whole horizon, is the slowest of the `annual` and `western` rows
+and still about 500 times under the budget. The `formula` form is the slowest "near" case because it
+tests every calendar day of its chunk. A `max` far above the mean is a single collection pause, not
+the typical call.
+
+`nextObservance` walks one rule's months, so `getObservances` now does the same once per rule rather
+than walking each month once for every rule. Re-measured the same day, with the cases of the 10-year
+cap section: 10 years, every form, 28.9 ms (min 23.0, max 40.9; 18 samples); 2 years, every form,
+5.38 ms; 1 year, 3.30 ms; 1 month, 0.60 ms; 1 day, 0.50 ms. Every view is inside its budget (100, 50,
+10 and 5 ms), though the 10-year figure is above the 21.6 ms the cap section recorded, so the
+per-rule walk costs something on a config with many rules.
+
 ## What is deliberately not here
 
 No regression thresholds, and `bench` is **not** in CI. Shared runners vary enough that a threshold

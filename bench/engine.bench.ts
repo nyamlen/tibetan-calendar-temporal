@@ -1,7 +1,12 @@
 import { bench, describe } from "vitest";
 import { isoToTibetan } from "../src/computation/conversion.js";
 import { monthsFor } from "../src/months.js";
-import { EXAMPLE_OBSERVANCES, getObservances, observancesOn } from "../src/observances/index.js";
+import {
+	EXAMPLE_OBSERVANCES,
+	getObservances,
+	nextObservance,
+	observancesOn,
+} from "../src/observances/index.js";
 import { PHUGPA } from "../src/traditions/phugpa.js";
 
 /**
@@ -202,4 +207,66 @@ describe("getObservances, a counted (sojong) rule", () => {
 			observancesOn(iso("2026-08-12"), config);
 		});
 	}
+});
+
+describe("nextObservance", () => {
+	// One rule of each form, each alone in its config, searched from a day whose next occurrence is
+	// near: the usual case, held against the 100 ms planning budget.
+	const conventions = {
+		doubledDay: "first" as const,
+		skippedDay: "following" as const,
+		leapMonth: "leap" as const,
+	};
+	const alone = (id: string, when: object) =>
+		({
+			id: `next-${id}`,
+			englishName: id,
+			...conventions,
+			rules: [{ id, englishName: id, when }],
+		}) as never;
+	const near = [
+		["monthly", { type: "monthly", days: [8, 15, 30] }],
+		["annual", { type: "annual", dates: [{ month: 4, day: 15 }] }],
+		["period", { type: "period", first: { month: 4, day: 1 }, last: { month: 4, day: 15 } }],
+		["western", { type: "western", month: 3, day: 21 }],
+		["formula", { type: "formula", formula: "lunarDayPlusWeekdayMod4" }],
+		[
+			"counted",
+			{
+				type: "counted",
+				anchor: { month: 1, day: 15 },
+				waxingDays: 15,
+				waningDays: { oddMonth: 14, evenMonth: 15 },
+				exclude: [{ month: 1, day: 1 }],
+			},
+		],
+	] as const;
+	for (const [form, when] of near) {
+		const config = alone(form, when);
+		bench(`${form}, the next occurrence is near`, () => {
+			nextObservance(iso("2026-08-12"), form, config);
+		});
+	}
+
+	// The worst case is null after the whole 10-year horizon: nothing found, every chunk walked.
+	const ended = (form: "annual" | "western") =>
+		alone(
+			form,
+			form === "annual"
+				? { type: "annual", dates: [{ month: 4, day: 15 }], untilYear: 2020 }
+				: { type: "western", month: 3, day: 21, untilYear: 2020 },
+		);
+	bench("annual, window ended: null after the full horizon", () => {
+		nextObservance(iso("2026-08-12"), "annual", ended("annual"));
+	});
+	bench("western, window ended: null after the full horizon", () => {
+		nextObservance(iso("2026-08-12"), "western", ended("western"));
+	});
+	bench("western, window starts beyond the horizon: null", () => {
+		nextObservance(
+			iso("2026-08-12"),
+			"w",
+			alone("w", { type: "western", month: 3, day: 21, fromYear: 2040 }),
+		);
+	});
 });
