@@ -1,4 +1,4 @@
-# Sourcing the Tibetan names of six observances
+# Sourcing the Tibetan names of seven observances
 
 **Status: proposed, written ahead of the code.**
 It records what will be checked and what ships if a check fails, before the verifier that enforces it exists.
@@ -11,7 +11,7 @@ A spelling that fails a check does not ship, whatever this page says.
 
 ## What ships
 
-The shipped example configuration ([observances.md](../observances.md)) gives a `tibetanName` — script, Wylie and THL phonetics — to **six** of its rules, and to no others:
+The shipped example configuration ([observances.md](../observances.md)) gives a `tibetanName` — script, Wylie and THL phonetics — to **seven** of its rules, and to no others:
 
 | Rule | English name | Proposed Wylie | Proposed script | Word boundaries marked | THL phonetics, joined by word |
 |---|---|---|---|---|---|
@@ -21,10 +21,11 @@ The shipped example configuration ([observances.md](../observances.md)) gives a 
 | `lhabab-duchen` | Lord Buddha's descent from God Realm of Thirty Three | `lha babs dus chen` | ལྷ་བབས་དུས་ཆེན | `lha babs-dus chen` | *lhabap düchen* |
 | `saga-dawa-month` | Saga Dawa, Lord Buddha's month | `sa ga zla ba` | ས་ག་ཟླ་བ | `sa ga-zla ba` | *saga dawa* |
 | `sojong` | Sojong (vow renewal) | `gso sbyong` | གསོ་སྦྱོང | `gso sbyong` | *sojong* |
+| `fire-puja` | Fire puja | `sbyin sreg` | སྦྱིན་སྲེག | `sbyin sreg` | *jinsek* |
 
 The last column is what THL's converter returned on 2026-11-11 for the marked Wylie in "Words separated by" mode; the verifier must reproduce it, and a different result is a finding.
 
-Every other rule — the pujas, Heruka Day, Ḍākinī Day, Dharma Protector Day, the seven anniversaries and the fire offering — is **English only**.
+Every other rule — the Medicine Buddha and Tārā pujas, Heruka Day, Ḍākinī Day, Dharma Protector Day and the seven anniversaries — is **English only**.
 Their names are descriptive or composed here, not dictionary headwords, and a composed Tibetan name is not shipped unmarked ([CLAUDE.md](../../CLAUDE.md): a shipped name is printed by a source, or marked authored).
 
 **Open spelling questions the checks must settle, not this page:**
@@ -48,7 +49,7 @@ The same sources the other name verifiers already read, through [scripts/tibetan
 
 ## The checks
 
-Every one of the six names must pass all of them, or it ships **English only**:
+Every one of the seven names must pass all of them, or it ships **English only**:
 
 1. **Script from two independent converters.**
    `jsewts` and `tibetan-ewts-converter`, resolved from a scratch directory outside the repository, produce identical script from the Wylie.
@@ -60,18 +61,18 @@ Every one of the six names must pass all of them, or it ships **English only**:
    A headword's entry must state the calendar or ritual sense, not merely exist: `dus chen` and `zla ba` have other senses, and the homograph trap is the one [month-and-yoga-sourcing.md](month-and-yoga-sourcing.md) records.
 5. **THL phonetics from the converter's word-separated mode, with the word boundaries marked** (Andreas, 2026-11-11), as in the table: "Words separated by" joins the syllables of each word and applies THL's own sandhi (*chönkhor*, *chontrül*), where the syllable-by-syllable mode the other shipped names use gives "so jong" and "dü chen".
    **The boundaries are a judgement, so they are checked**: each marked word must be a headword (or part of one) found by check 3, and a boundary placed wrongly is silent — `sa ga zla ba'i dus chen` marked as one word gives "sagandawé düchen".
-   These six are the first shipped names to use this mode; the other 97 stay spaced until the surface-wide roadmap item lands, so for now the package is inconsistent on purpose.
+   These seven are the first shipped names to use this mode; the other 97 stay spaced until the surface-wide roadmap item lands, so for now the package is inconsistent on purpose.
 
 The verifier refuses to emit if any check fails, and a check placed after the emit gate cannot fail the run, so each is placed above it and proved by mutation of its **input**, with an unmutated control.
 
 ## What this record does not claim
 
-- That any of the six names is *correct* Tibetan: it claims only that a name which passes the checks is attested by the sources named, in the form given.
+- That any of the seven names is *correct* Tibetan: it claims only that a name which passes the checks is attested by the sources named, in the form given.
 - That the English names are translations. They are cited to FPMT's calendar labels or to Cornu's *Tibetan Astrology*, or marked authored, as [observances.md](../observances.md) records.
 - That a Tibetan teacher agrees with the choice of name for a festival. Whether centres use these spellings, and the established Tibetan headings for the three levels, are questions for a teacher.
 
 ## For Andreas to approve
 
-1. The six rules above are the only ones that ship a Tibetan name.
+1. The seven rules above are the only ones that ship a Tibetan name.
 2. The five checks, and that a name failing any of them ships English only.
 3. That the spelling variants above are settled by the checks and not by this page.
