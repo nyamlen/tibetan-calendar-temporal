@@ -7,6 +7,7 @@
  */
 
 import { classifyDay, firstDayOfMonth } from "../computation/calendar.js";
+import { julianDayFromIso } from "../computation/conversion.js";
 import type { ScaledTradition } from "../computation/scaling.js";
 import { codedError } from "../errors.js";
 import type {
@@ -156,8 +157,34 @@ export function occurrencesInMonth(
 					? resolveInMonth(scaled, monthCount, date.day, rule, config)
 					: [],
 			);
+		case "western":
+			// Fixed to the Gregorian calendar, so it is not found by walking Tibetan months; see
+			// `westernOccurrences`.
+			return [];
 		default:
 			/* c8 ignore next */
 			throw codedError("TCT_INTERNAL", `unhandled when type ${JSON.stringify(when)}`);
 	}
+}
+
+/**
+ * The Julian days a `western` form falls on in each Western year from `firstYear` to `lastYear`.
+ *
+ * @remarks
+ * A 29 February has no day in a common year and is skipped there rather than moved: a Gregorian
+ * anniversary on 29 February is kept in leap years only. Always `"exact"`.
+ */
+export function westernOccurrences(
+	when: Extract<ObservanceWhen, { type: "western" }>,
+	firstYear: number,
+	lastYear: number,
+): Occurrence[] {
+	const found: Occurrence[] = [];
+	for (let year = firstYear; year <= lastYear; year++) {
+		if (Temporal.PlainDate.from({ year, month: when.month, day: 1 }).daysInMonth < when.day)
+			continue;
+		const date = Temporal.PlainDate.from({ year, month: when.month, day: when.day });
+		found.push({ julianDay: julianDayFromIso(date), resolution: "exact" });
+	}
+	return found;
 }

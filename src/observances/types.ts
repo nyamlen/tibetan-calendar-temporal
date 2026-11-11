@@ -92,17 +92,50 @@ export type TibetanMonthDay = { readonly month: number; readonly day: number };
  * @remarks
  * - `"monthly"` — on each of the listed day numbers, every month. A leap month's pair both carry
  *   it, because the leap-month convention is about observances that have one occurrence a year.
- * - `"annual"` — on each of the listed month-and-day dates, once a year.
+ * - `"annual"` — on each of the listed Tibetan month-and-day dates, once a year.
+ * - `"western"` — on a Gregorian month and day, once a year: FPMT prints the Dalai Lama's birthday
+ *   on 6 July, which is not a Tibetan calendar fact. A 29 February occurs in leap years only and is
+ *   not moved in the others. It reads no per-rule setting, and its results are always `"exact"`.
+ *
+ * `annual` and `western` take a year window, `fromYear` and `untilYear` (both inclusive; absent
+ * means unbounded), and `ageFromYear`. **Each counts its own form's calendar**: on `annual` a
+ * Tibetan year, numbered as {@link TibetanDate.year} is (2153 is the year that begins on
+ * 2026-02-18 CE); on `western` a Western year. The year tested is that of the occurrence's
+ * **resolved** date, after the leap-month, doubled-day and skipped-day conventions have chosen the
+ * day. A Tibetan month-12 date can therefore fall in January: 2026-01-31 is Tibetan 2152, so
+ * `untilYear: 2152` keeps it and `untilYear: 2151` does not, whatever its Western year.
  *
  * **This union is open to additions.** Further forms may be added in a minor release, so a
  * consumer switching on `type` handles an unknown value with a `default` branch.
- *
- * A Gregorian-fixed anniversary — FPMT prints the Dalai Lama's birthday on 6 July — is not a
- * Tibetan calendar fact and is not one of these.
  */
 export type ObservanceWhen =
-	| { readonly type: "monthly"; readonly days: readonly number[] }
-	| { readonly type: "annual"; readonly dates: readonly TibetanMonthDay[] };
+	| {
+			readonly type: "monthly";
+			readonly days: readonly number[];
+	  }
+	| {
+			readonly type: "annual";
+			readonly dates: readonly TibetanMonthDay[];
+			/** First Tibetan year (inclusive) the observance is kept, numbered as `TibetanDate.year`. */
+			readonly fromYear?: number;
+			/** Last Tibetan year (inclusive) the observance is kept, numbered as `TibetanDate.year`. */
+			readonly untilYear?: number;
+			/** The Tibetan year counted as age 0; see {@link Observance.age}. */
+			readonly ageFromYear?: number;
+	  }
+	| {
+			readonly type: "western";
+			/** Gregorian month, 1-12. */
+			readonly month: number;
+			/** Day of that month; 29 February is accepted and occurs in leap years only. */
+			readonly day: number;
+			/** First Western year (inclusive) the observance is kept. */
+			readonly fromYear?: number;
+			/** Last Western year (inclusive) the observance is kept. */
+			readonly untilYear?: number;
+			/** The Western year counted as age 0; see {@link Observance.age}. */
+			readonly ageFromYear?: number;
+	  };
 
 /**
  * A named grouping of rules, declared once on the config and named by each rule's
@@ -229,4 +262,11 @@ export interface Observance {
 
 	/** How it landed here. */
 	readonly resolution: ObservanceResolution;
+
+	/**
+	 * Years since the rule's `ageFromYear`: the occurrence's year minus it, in the form's own
+	 * calendar — Tibetan years on `annual`, Western on `western`. Absent when the rule names no
+	 * `ageFromYear`, and absent rather than negative before it.
+	 */
+	readonly age?: number;
 }

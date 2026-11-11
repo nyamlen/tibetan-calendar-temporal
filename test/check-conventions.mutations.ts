@@ -280,7 +280,7 @@ const R: Record<number, Row> = {
 			tree.edit(
 				"src/months.ts",
 				(source) =>
-					`${source}\nfunction assertSafeYearCopy(subject: string | (() => string), year: number, suffix = ""): void {\n\tif (!Number.isSafeInteger(year)) {\n\t\tthrow rangeError(\n\t\t\t"TCT_FIELD_OUT_OF_RANGE",\n\t\t\t\`\${typeof subject === "string" ? subject : subject()}: year must be a safe integer, \` +\n\t\t\t\t\`received \${describe(year)}\${suffix}\`,\n\t\t);\n\t}\n}\n`,
+					`${source}\nfunction assertSafeYearCopy(\n\tsubject: string | (() => string),\n\tyear: unknown,\n\tsuffix = "",\n\tcode: TibetanCalendarErrorCode = "TCT_FIELD_OUT_OF_RANGE",\n): void {\n\tif (!Number.isSafeInteger(year)) {\n\t\tthrow rangeError(\n\t\t\tcode,\n\t\t\t\`\${typeof subject === "string" ? subject : subject()}: year must be a safe integer, \` +\n\t\t\t\t\`received \${describe(year)}\${suffix}\`,\n\t\t);\n\t}\n}\n`,
 				"the end of src/months.ts",
 			),
 		must: ["no two functions in src/ share a body", "assertSafeYearCopy"],

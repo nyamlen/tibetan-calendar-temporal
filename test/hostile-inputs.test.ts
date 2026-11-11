@@ -268,6 +268,54 @@ const RULE_FIELD: readonly Row[] = [
 		(x) => getObservances(ISO, ISO, withWhen({ type: "annual", dates: [{ month: 1, day: x }] })),
 	],
 	[
+		"getObservances(…, config) western month",
+		(x) => getObservances(ISO, ISO, withWhen({ type: "western", month: x, day: 1 })),
+	],
+	[
+		"getObservances(…, config) western day",
+		(x) => getObservances(ISO, ISO, withWhen({ type: "western", month: 1, day: x })),
+	],
+	[
+		"getObservances(…, config) annual fromYear",
+		(x) =>
+			getObservances(
+				ISO,
+				ISO,
+				withWhen({ type: "annual", dates: [{ month: 1, day: 1 }], fromYear: x }),
+			),
+	],
+	[
+		"getObservances(…, config) western fromYear",
+		(x) => getObservances(ISO, ISO, withWhen({ type: "western", month: 1, day: 1, fromYear: x })),
+	],
+	[
+		"getObservances(…, config) annual untilYear",
+		(x) =>
+			getObservances(
+				ISO,
+				ISO,
+				withWhen({ type: "annual", dates: [{ month: 1, day: 1 }], untilYear: x }),
+			),
+	],
+	[
+		"getObservances(…, config) western untilYear",
+		(x) => getObservances(ISO, ISO, withWhen({ type: "western", month: 1, day: 1, untilYear: x })),
+	],
+	[
+		"getObservances(…, config) annual ageFromYear",
+		(x) =>
+			getObservances(
+				ISO,
+				ISO,
+				withWhen({ type: "annual", dates: [{ month: 1, day: 1 }], ageFromYear: x }),
+			),
+	],
+	[
+		"getObservances(…, config) western ageFromYear",
+		(x) =>
+			getObservances(ISO, ISO, withWhen({ type: "western", month: 1, day: 1, ageFromYear: x })),
+	],
+	[
 		"getObservances(…, config) tags element",
 		(x) => getObservances(ISO, ISO, withRule({ tags: [x] })),
 		STRING_OK,

@@ -944,3 +944,139 @@ describe('skippedDay: "following"', () => {
 		).toEqual([]);
 	});
 });
+
+describe("the western form, year windows and ages", () => {
+	const CODE = "TCT_INVALID_OBSERVANCE_CONFIG";
+	const configWith = (rule: Record<string, unknown>): ObservanceConfig =>
+		({
+			...EXAMPLE_OBSERVANCES,
+			id: "years",
+			rules: [{ id: "r", englishName: "R", ...rule }],
+		}) as unknown as ObservanceConfig;
+	const western = (fields: Record<string, unknown>, rule: Record<string, unknown> = {}) =>
+		configWith({ when: { type: "western", ...fields }, ...rule });
+	const annual = (fields: Record<string, unknown>) =>
+		configWith({ when: { type: "annual", dates: [{ month: 12, day: 14 }], ...fields } });
+	const on = (day: string, config: ObservanceConfig) => observancesOn(iso(day), config);
+	const codeOf = (config: ObservanceConfig) =>
+		thrownBy(() => getObservances(iso("2026-01-01"), iso("2026-01-02"), config))?.code;
+
+	it("lands a western rule on its Gregorian date, exact, with a Tibetan date", () => {
+		const found = on("2026-07-06", western({ month: 7, day: 6 }));
+		expect(found.map((o) => [o.resolution, o.date.isoDate.toString()])).toEqual([
+			["exact", "2026-07-06"],
+		]);
+		expect(found[0]?.date.year).toBe(isoToTibetan(iso("2026-07-06")).year);
+		expect(on("2026-07-07", western({ month: 7, day: 6 }))).toEqual([]);
+	});
+
+	it("honours fromYear: absent in 2019, present in 2024", () => {
+		const config = western({ month: 4, day: 13, fromYear: 2024 });
+		expect(on("2019-04-13", config)).toEqual([]);
+		expect(on("2024-04-13", config)).toHaveLength(1);
+	});
+
+	it("honours untilYear inclusively: present in 2025, absent in 2026", () => {
+		const config = western({ month: 12, day: 3, untilYear: 2025 });
+		expect(on("2025-12-03", config)).toHaveLength(1);
+		expect(on("2026-12-03", config)).toEqual([]);
+	});
+
+	it("is unbounded without a window: present in 1950 and 2100", () => {
+		const config = western({ month: 4, day: 13 });
+		expect(on("1950-04-13", config)).toHaveLength(1);
+		expect(on("2100-04-13", config)).toHaveLength(1);
+	});
+
+	it("gives age 90 on 2025-07-06 for ageFromYear 1935, and none on 1934-07-06", () => {
+		const config = western({ month: 7, day: 6, ageFromYear: 1935 });
+		expect(on("2025-07-06", config)[0]?.age).toBe(90);
+		expect(on("1935-07-06", config)[0]?.age).toBe(0);
+		const before = on("1934-07-06", config);
+		expect(before).toHaveLength(1);
+		expect("age" in (before[0] as object)).toBe(false);
+	});
+
+	it("carries no age when no ageFromYear is given", () => {
+		expect("age" in (on("2026-07-06", western({ month: 7, day: 6 }))[0] as object)).toBe(false);
+	});
+
+	it("puts 29 February in leap years only, and does not shift it", () => {
+		const config = western({ month: 2, day: 29 });
+		expect(on("2024-02-29", config)).toHaveLength(1);
+		const year = getObservances(iso("2025-01-01"), iso("2025-12-31"), config);
+		expect(year).toEqual([]);
+	});
+
+	it.each([
+		["30 February", { month: 2, day: 30 }],
+		["31 April", { month: 4, day: 31 }],
+		["month 13", { month: 13, day: 1 }],
+		["month 0", { month: 0, day: 1 }],
+		["day 0", { month: 1, day: 0 }],
+		["a fractional day", { month: 1, day: 1.5 }],
+		["a missing day", { month: 1 }],
+		["a missing month", { day: 1 }],
+	])("refuses %s on a western rule", (_label, fields) => {
+		expect(codeOf(western(fields))).toBe(CODE);
+	});
+
+	it("refuses a key a western form does not have", () => {
+		expect(codeOf(western({ month: 7, day: 6, days: [1] }))).toBe(CODE);
+		expect(codeOf(western({ month: 7, day: 6, isLeapMonth: true }))).toBe(CODE);
+	});
+
+	it("refuses fromYear after untilYear, and accepts them equal", () => {
+		expect(codeOf(western({ month: 7, day: 6, fromYear: 2026, untilYear: 2025 }))).toBe(CODE);
+		expect(codeOf(annual({ fromYear: 2153, untilYear: 2152 }))).toBe(CODE);
+		expect(codeOf(western({ month: 7, day: 6, fromYear: 2025, untilYear: 2025 }))).toBeUndefined();
+	});
+
+	it.each(["fromYear", "untilYear", "ageFromYear"])("refuses a non-integer %s", (field) => {
+		for (const bad of [2024.5, "2024", Number.NaN, Number.POSITIVE_INFINITY, null, 2 ** 53]) {
+			expect(codeOf(western({ month: 7, day: 6, [field]: bad }))).toBe(CODE);
+			expect(codeOf(annual({ [field]: bad }))).toBe(CODE);
+		}
+	});
+
+	it.each(["doubledDay", "skippedDay", "leapMonth"])("refuses %s on a western rule", (setting) => {
+		const value = setting === "doubledDay" ? "first" : setting === "skippedDay" ? "omit" : "leap";
+		expect(codeOf(western({ month: 7, day: 6 }, { [setting]: value }))).toBe(CODE);
+	});
+
+	// 2026-01-31 is Tibetan 2152 month 12 day 14 (Tibetan 2153 begins 2026-02-18), so this
+	// occurrence's Tibetan year (2152) and Western year (2026) differ. A window that read the
+	// Western year would emit it for untilYear 2151 and keep emitting it in 2027.
+	describe("an annual window tests the Tibetan year (2026-01-31 is Tibetan 2152, month 12 day 14)", () => {
+		const found = (from: string, to: string, fields: Record<string, unknown>) =>
+			getObservances(iso(from), iso(to), annual(fields)).map((o) => o.date.isoDate.toString());
+
+		it("is Tibetan 2152 on 2026-01-31, in Western 2026", () => {
+			const date = isoToTibetan(iso("2026-01-31"));
+			expect([date.year, date.month, date.day]).toEqual([2152, 12, 14]);
+		});
+
+		it("emits it with untilYear 2152", () => {
+			expect(found("2026-01-01", "2026-03-01", { untilYear: 2152 })).toEqual(["2026-01-31"]);
+		});
+
+		it("does not emit it with untilYear 2151", () => {
+			expect(found("2026-01-01", "2026-03-01", { untilYear: 2151 })).toEqual([]);
+		});
+
+		it("does not emit the following Tibetan year (2153) with untilYear 2152", () => {
+			expect(found("2027-01-01", "2027-03-31", { untilYear: 2152 })).toEqual([]);
+		});
+
+		it("emits it from fromYear 2152 and not from 2153", () => {
+			expect(found("2026-01-01", "2026-03-01", { fromYear: 2152 })).toEqual(["2026-01-31"]);
+			expect(found("2026-01-01", "2026-03-01", { fromYear: 2153 })).toEqual([]);
+		});
+	});
+
+	it("counts an annual ageFromYear in Tibetan years, pinned by value", () => {
+		const config = annual({ ageFromYear: 2100 });
+		expect(on("2026-01-31", config)[0]?.age).toBe(52);
+		expect(on("2026-01-31", annual({ ageFromYear: 2026 }))[0]?.age).toBe(126);
+	});
+});

@@ -38,7 +38,7 @@ import { rangeError } from "../errors.js";
 import { PHUGPA } from "../traditions/phugpa.js";
 import type { TraditionConfig } from "../traditions/types.js";
 import { assertTraditionConfig } from "../traditions/validate.js";
-import { type Occurrence, occurrencesInMonth } from "./forms.js";
+import { type Occurrence, occurrencesInMonth, westernOccurrences } from "./forms.js";
 import type {
 	Observance,
 	ObservanceConfig,
@@ -173,6 +173,21 @@ export function getObservances(
 	const lastMonth = trueMonthCount(resolvedTradition, endYear + 1, 1) + 1;
 
 	const bestByRule = new Map<ObservanceRule, Map<number, Occurrence>>();
+	// One result per rule per calendar day, across the whole range and not per month: a skipped day
+	// 1 shifts onto the previous month's last day, which the same rule may already hold exactly.
+	// Entries that land together reduce to the best claim.
+	const claim = (rule: ObservanceRule, hit: Occurrence): void => {
+		if (hit.julianDay < firstJd || hit.julianDay > lastJd) return;
+		let held = bestByRule.get(rule);
+		if (held === undefined) {
+			held = new Map();
+			bestByRule.set(rule, held);
+		}
+		const incumbent = held.get(hit.julianDay);
+		if (incumbent === undefined || precedence(hit.resolution) < precedence(incumbent.resolution)) {
+			held.set(hit.julianDay, hit);
+		}
+	};
 
 	for (let monthCount = firstMonth; monthCount <= lastMonth; monthCount++) {
 		const month = monthFromCount(resolvedTradition, monthCount);
@@ -202,25 +217,13 @@ export function getObservances(
 				month,
 				yearHasLeapOfThisNumber,
 			);
-			for (const hit of hits) {
-				if (hit.julianDay < firstJd || hit.julianDay > lastJd) continue;
-				// One result per rule per calendar day, across the whole range and not per month: a
-				// skipped day 1 shifts onto the previous month's last day, which the same rule may
-				// already hold exactly. Entries that land together reduce to the best claim.
-				let held = bestByRule.get(rule);
-				if (held === undefined) {
-					held = new Map();
-					bestByRule.set(rule, held);
-				}
-				const incumbent = held.get(hit.julianDay);
-				if (
-					incumbent === undefined ||
-					precedence(hit.resolution) < precedence(incumbent.resolution)
-				) {
-					held.set(hit.julianDay, hit);
-				}
-			}
+			for (const hit of hits) claim(rule, hit);
 		}
+	}
+
+	for (const rule of config.rules) {
+		if (rule.when.type !== "western") continue;
+		for (const hit of westernOccurrences(rule.when, from.year, to.year)) claim(rule, hit);
 	}
 
 	const found: { julianDay: number; rule: ObservanceRule; resolution: ObservanceResolution }[] = [];
@@ -240,14 +243,32 @@ export function getObservances(
 
 	// Convert once per distinct day rather than once per hit: a 15th carries several rules.
 	const dates = new Map<number, ReturnType<typeof isoToTibetan>>();
-	return found.map((hit) => {
+	const results: Observance[] = [];
+	for (const hit of found) {
 		let date = dates.get(hit.julianDay);
 		if (date === undefined) {
 			date = isoToTibetan(isoFromJulianDayUnchecked(hit.julianDay), resolvedTradition);
 			dates.set(hit.julianDay, date);
 		}
-		return { date, rule: hit.rule, resolution: hit.resolution };
-	});
+		const when = hit.rule.when;
+		if (when.type === "monthly") {
+			results.push({ date, rule: hit.rule, resolution: hit.resolution });
+			continue;
+		}
+		// The occurrence's own year, of the resolved day: a Tibetan month-12 date can fall in January,
+		// where its Tibetan year and its Western year differ.
+		const year =
+			when.type === "western" ? isoFromJulianDayUnchecked(hit.julianDay).year : date.year;
+		if (when.fromYear !== undefined && year < when.fromYear) continue;
+		if (when.untilYear !== undefined && year > when.untilYear) continue;
+		const age = when.ageFromYear === undefined ? -1 : year - when.ageFromYear;
+		results.push(
+			age < 0
+				? { date, rule: hit.rule, resolution: hit.resolution }
+				: { date, rule: hit.rule, resolution: hit.resolution, age },
+		);
+	}
+	return results;
 }
 
 /**

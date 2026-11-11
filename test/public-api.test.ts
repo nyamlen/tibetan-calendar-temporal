@@ -614,7 +614,11 @@ describe("observances API surface", () => {
 		for (const rule of observances.EXAMPLE_OBSERVANCES.rules) {
 			forms.add(rule.when.type);
 			const entries =
-				rule.when.type === "monthly" ? rule.when.days : rule.when.dates.map((d) => d.day);
+				rule.when.type === "monthly"
+					? rule.when.days
+					: rule.when.type === "annual"
+						? rule.when.dates.map((d) => d.day)
+						: [rule.when.day];
 			expect(entries.length).toBeGreaterThan(0);
 			for (const day of entries) {
 				expect(day).toBeGreaterThanOrEqual(1);

@@ -15,7 +15,7 @@
  * key, an undeclared level.
  */
 
-import { describe, rangeError } from "../errors.js";
+import { assertSafeYear, describe, rangeError } from "../errors.js";
 import type { ObservanceConfig, ObservanceRule, ObservanceWhen } from "./types.js";
 
 const CODE = "TCT_INVALID_OBSERVANCE_CONFIG";
@@ -47,7 +47,9 @@ const RULE_KEYS = [
 ];
 const LEVEL_KEYS = ["id", "englishName", "tibetanName"];
 const MONTHLY_KEYS = ["type", "days"];
-const ANNUAL_KEYS = ["type", "dates"];
+const YEAR_KEYS = ["fromYear", "untilYear", "ageFromYear"] as const;
+const ANNUAL_KEYS = ["type", "dates", ...YEAR_KEYS];
+const WESTERN_KEYS = ["type", "month", "day", ...YEAR_KEYS];
 const DATE_KEYS = ["month", "day"];
 const TIBETAN_NAME_KEYS = ["tibetan", "wylie", "phonetic"];
 
@@ -65,7 +67,11 @@ type FormSetting = "doubledDay" | "skippedDay" | "leapMonth";
 const SETTINGS_BY_FORM: Record<ObservanceWhen["type"], readonly FormSetting[]> = {
 	monthly: ["doubledDay", "skippedDay"],
 	annual: ["doubledDay", "skippedDay", "leapMonth"],
+	western: [],
 };
+
+/** Days in each Gregorian month in a leap year, the most any year gives it. */
+const WESTERN_MONTH_LENGTHS = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
 /**
  * Whether a value is a non-null object that is not an array.
@@ -78,7 +84,14 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 	return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
-/** Refuses any own key of `value` that is not in `allowed`, naming it. */
+/**
+ * Refuses any own key of `value` that is not in `allowed`, naming it.
+ *
+ * @remarks
+ * A second unknown-key checker beside `assertQueryOptions` in `src/errors.ts`, deliberately: that
+ * one guards a function's options bag and throws `TCT_INVALID_ARGUMENT`, while this guards objects
+ * inside a config and throws `TCT_INVALID_OBSERVANCE_CONFIG`, so the two differ in code and subject.
+ */
 function assertKnownKeys(value: object, allowed: readonly string[], subject: string): void {
 	for (const key of Object.keys(value)) {
 		if (!allowed.includes(key)) {
@@ -154,6 +167,29 @@ function assertIntegerInRange(
 	}
 }
 
+/**
+ * Checks the year window and age origin shared by `annual` and `western`, whose calendar differs
+ * but whose checks do not. Each must be a safe integer, and a window must not end before it starts.
+ */
+function assertYearFields(when: Record<string, unknown>, subject: string): void {
+	for (const field of YEAR_KEYS) {
+		if (when[field] !== undefined) {
+			assertSafeYear(`${subject}: when.${field}`, when[field], "", CODE);
+		}
+	}
+	if (
+		when.fromYear !== undefined &&
+		when.untilYear !== undefined &&
+		(when.fromYear as number) > (when.untilYear as number)
+	) {
+		throw rangeError(
+			CODE,
+			`${subject}: when.fromYear (${when.fromYear}) is after when.untilYear (${when.untilYear}), ` +
+				"so the rule could never occur",
+		);
+	}
+}
+
 const DAY_WHY =
 	"A rule names a Tibetan lunar day, which always runs 1-30; a day that no calendar day carries " +
 	"is handled by the skippedDay convention, not by omitting the rule";
@@ -215,11 +251,32 @@ function assertWhen(when: unknown, subject: string): void {
 			}
 			seen.add(key);
 		}
+		assertYearFields(when, subject);
+		return;
+	}
+	if (when.type === "western") {
+		assertKnownKeys(when, WESTERN_KEYS, `${subject}: when`);
+		assertIntegerInRange(
+			when.month,
+			1,
+			12,
+			`${subject}: month`,
+			"A western rule names a Gregorian month",
+		);
+		const longest = WESTERN_MONTH_LENGTHS[(when.month as number) - 1] as number;
+		assertIntegerInRange(
+			when.day,
+			1,
+			longest,
+			`${subject}: day`,
+			`Gregorian month ${when.month} has at most ${longest} days`,
+		);
+		assertYearFields(when, subject);
 		return;
 	}
 	throw rangeError(
 		CODE,
-		`${subject}: when.type must be "monthly" or "annual", received ${describe(when.type)}`,
+		`${subject}: when.type must be "monthly", "annual" or "western", received ${describe(when.type)}`,
 	);
 }
 
