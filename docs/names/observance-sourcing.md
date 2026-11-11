@@ -110,3 +110,85 @@ The verifier refuses to emit if any check fails, and a check placed after the em
 3. That the spelling variants above are settled by the checks and not by this page.
 4. **Decided 2026-11-11:** the two "(?)" phonetics are corrected to *gyelwa karmapa chudrukpa* and *sakya pandita*, as self-invalidating data (Andreas: "use karmapa and pandita; I am sure of this").
 5. **Decided 2026-11-11:** the Buddhist Digital Resource Center's person records are the source for the persons' names, to be checked when the verifier is written.
+
+## Results of the run
+
+**Run of 2026-11-11 (`npm run verify:observance-names`): 5 of the 14 names passed all five checks, so the verifier refused to emit and `test/fixtures/observance-names.ts` does not exist.**
+Which names ship English only is Andreas' decision; this section records what the sources say.
+
+| Rule | 1 script | 2 round trip | 3 witnesses | 4 sense | 5 phonetics |
+|---|---|---|---|---|---|
+| `chotrul-duchen`, `saga-dawa-duchen`, `chokhor-duchen`, `lhabab-duchen` | pass | pass | **fail** | pass | pass |
+| `saga-dawa-month` | pass | pass | pass | pass | pass |
+| `sojong` | pass | pass | pass | pass | pass |
+| `fire-puja` | pass | pass | **fail** | pass | pass |
+| `milarepa` | pass | pass | pass | pass | pass |
+| `guru-rinpoche` | pass | pass | **fail** | pass | pass |
+| `gampopa` | pass | pass | pass | pass | pass |
+| `karmapa-16` | pass | pass | **fail** | not read | pass (corrected) |
+| `tsongkhapa` | pass | pass | **fail** | not read | pass |
+| `sakya-pandita` | pass | pass | pass | pass | pass (corrected) |
+| `dudjom-rinpoche` | pass | pass | **fail** | not read | pass |
+
+### A finding about the sources, which changed the check
+
+**The aggregate's Jäschke and Das indexes are not evidence that a headword is printed.**
+The Jäschke index lists *bdud 'joms rin po che* at a page of a book published in 1881, and lists *gu ru rin po che* at p. 69, where the page image prints only *gú-ru*, "spiritual teacher".
+The earlier verifiers use those indexes to re-check a page that was read from an image, which stays sound; used as a headword test they overstate.
+So a Jäschke witness here is a row read from the page image and carried as data, and the index is used only to re-check its page to within two.
+Das has no such rows, so **Das is not counted as a witness**; its index lists *sbyin sreg* (p. 940), and no page was read.
+
+### Jäschke pages read (archive.org `tibetanenglishdi00jsuoft`, image n = printed page + 25)
+
+- p. 255, *dus-čén* under *dus* (Comp.): "festival".
+- p. 161, *čo-ʼprúl*: "magical trick, jugglery" — states no festival sense.
+- p. 163, *čos-ʼkór* under *čos* (Comp.): "prayer-mill" — **not** the wheel of the teaching, so Jäschke does not support the *chos 'khor* of *chos 'khor dus chen*; the homograph trap, found.
+- p. 570, *sá-ga*: one of the lunar mansions, "and hence also n. of a month, part of March and April"; the same page prints *sa-skyá pandi-ta*, "a famous Lama, born 1180", a variant spelling of *sa skya paN+Di ta*.
+- p. 490, *zlá-ba*: "moon … temporal moon or month".
+- p. 590, *yso-sbyoń-ba* (*gso sbyong ba*; Jäschke prints *g* as *y*): "to get quit of sin by confession to a priest … a renewal of obligations".
+- p. 69: no *gu ru rin po che*.
+
+### The terms
+
+- **The four düchens** fail check 3 on their head word: *dus chen* has Jäschke (p. 255) and no second public-domain witness (the Mahāvyutpatti lacks it; Das's index lists only the compound *dus chen dge ba 'bum 'gyur*).
+  The whole terms: the *dung dkar* has *cho 'phrul dus chen* and *lha babs dus chen* as headwords (gate only, never a witness); no public-domain source has *sa ga zla ba dus chen*, *chos 'khor dus chen* or *lha babs dus chen*.
+  *chos 'phrul* was not settled: the *tshig mdzod chen mo* and the Jäschke and Das indexes have *cho 'phrul*; *chos 'phrul* appears only in the Jäschke index.
+  The genitive *sa ga zla ba'i dus chen* was not searched for; the spelling without it is what the checks above read.
+- **`saga-dawa-month`** passes on its head word *zla ba*: Jäschke p. 490, and the Mahāvyutpatti pairs it with *māsa* (month) beside *soma*; Monier-Williams p. 814 prints *māsa* as "a month or the 12th part of the Hindū year".
+  *sa ga* is Jäschke p. 570 and the Mahāvyutpatti's *viśākhā*.
+- **`sojong`** passes: Jäschke p. 590 (*gso sbyong ba*) and the Mahāvyutpatti's *gso sbyong|poṣadhaḥ*.
+  Monier-Williams does not head *poṣadha*, so its sense rests on the Mahāvyutpatti's pairing.
+- **`fire-puja`** fails check 3: the Mahāvyutpatti pairs *sbyin sreg* with *homa* (Monier-Williams p. 1306: "oblation with fire"), and no Jäschke page was found; Das's index lists it unread.
+
+### The persons, through BDRC
+
+BDRC is reachable and states names mechanically: `https://purl.bdrc.io/resource/P…` answers with JSON-LD (`Accept: application/ld+json`), whose labels are Wylie (`bo-x-ewts`) with a trailing `/`.
+It does **not** state the Tibetan script, only Wylie.
+Its search needs a credential that its web page embeds, which this verifier does not use; the identifiers were found through Wikidata's BDRC property and each record is read from BDRC itself.
+The check is that a name label equals the Wylie or opens with it as whole words.
+
+| Rule | BDRC record | Names the record states that matter | Second source |
+|---|---|---|---|
+| `milarepa` | P1853 | `mi la ras pa` | *tshig mdzod chen mo* headword |
+| `guru-rinpoche` | P4956 | `gu ru rin po che` | **none** (Jäschke prints only *gu-ru*) |
+| `gampopa` | P1844 | `sgam po pa bsod nams rin chen` | *dung dkar* headword `sgam po pa` |
+| `karmapa-16` | P865 | **no match**: `karma pa 16 pa`, `karma pa 16 rang byung rig pa'i rdo rje` | **none** |
+| `tsongkhapa` | P64 | **no match** for `rje tsong kha pa`: `tsong kha pa blo bzang grags pa`, `rje rin po che blo bzang grags pa` | **none** (the *dung dkar* has `rje tsong kha pa blo bzang grags pa` and `tsong kha pa`, not the shorter whole) |
+| `sakya-pandita` | P1056 | `sa skya paN+Di ta kun dga' rgyal mtshan` | *dung dkar* headword `sa skya paN+Di ta` |
+| `dudjom-rinpoche` | P736 | **no match** for `bdud 'joms rin po che`: `bdud 'joms 'jigs bral ye shes rdo rje` | **none** |
+
+The persons that pass do so with a gate-only headword as their second source, which the record allowed for a person ("one published source naming the person with that spelling") and which Andreas has not been asked about.
+A second source that is public-domain exists for none of the seven.
+
+### The corrections
+
+Both expected values were returned by THL on this run, so both corrections stand.
+The Sixteenth Karmapa: expected *gyelwa kama(?)pa chudrukpa*, corrected to *gyelwa karmapa chudrukpa*.
+Sakya Pandita: expected *sakya pandi(?)ta*, corrected to *sakya pandita*.
+Both are Andreas' corrections of 2026-11-11.
+The other twelve phonetics are THL's output unchanged and equal the tables above; none carries "(?)".
+
+### Proved by mutation
+
+The served responses were altered one at a time, each against the unmutated run as control: THL returning *gyelwa karmapa chudrukpa* makes the run say "correction for karmapa-16 is no longer justified: it expects THL to return …"; THL returning *mila(?)repa* fails check 5 naming the marker; a BDRC record whose label reads *mi la ras ba* fails check 3 for `milarepa`.
+The converter, round-trip and sense checks were not proved by mutation, and no run could emit, so the emitted fixture's byte-for-byte reproduction is untested.
