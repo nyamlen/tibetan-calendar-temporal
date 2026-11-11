@@ -4,7 +4,7 @@ What a Tibetan Buddhist calendar marks on a day **as a practice day** — the gr
 
 Written for someone building a practice calendar: the reader who has a date already and needs to know what is kept on it, and by whom.
 
-**Status: designed, not yet built (2026-11-10).**
+**Status: designed, not yet built (2026-11-11).**
 The `tibetan-calendar-temporal/observances` subpath ships today with an earlier, smaller model; this document describes the redesign decided for 1.0.0, whose open points are listed at the end.
 Like [astrology.md](astrology.md), it explains the *system* and deliberately states **no API examples**: signatures belong in the README and [guide.md](guide.md), which ship and have their values asserted.
 What FPMT's own calendar prints, practice by practice, is in [fpmt-calendar.md](fpmt-calendar.md).
@@ -20,6 +20,12 @@ Two centres of the same lineage can print different days for the same occasion �
 
 So the package computes dates and **resolves** observances: a configuration states the conventions, and the engine finds the days they name.
 It never chooses one institution's answer, and nothing it exports is named after one ([the decision record](decisions/2026-09-03-no-institution-names-in-exports.md)).
+**Every question about observances names its configuration; there is no default** (decided 2026-11-11), so every answer says whose convention it follows.
+
+A configuration is plain data, storable as JSON.
+A centre either writes a complete one — its practices, and the three conventions for doubled days, skipped days and leap months that apply to all of them — or writes only its **differences** from another: practices removed, replaced or added, and any convention it keeps differently.
+Kopan's difference from a configuration following FPMT is a single convention, the first half of a doubled day instead of the second.
+A difference that names a practice the other configuration does not have is refused rather than ignored.
 
 ## How a calendar fixes a practice day
 
@@ -36,6 +42,7 @@ Every practice day found in the calendars examined so far is fixed in one of six
   The rule is Lama Zopa Rinpoche's advice as published by FPMT; [fpmt-calendar.md](fpmt-calendar.md) and the design notes record how closely FPMT's printed days follow it.
 - **A Western date.** Birthdays and passings of living or recent teachers, which communities keep by the Western calendar — H.H. the Dalai Lama's birthday on 6 July.
   Such an anniversary begins in a stated year: a passing anniversary must not appear in the years before the passing.
+  The shipped example carries none, because a living teacher's birthday changes when they pass; the guide shows one as a worked example.
 
 ## Who a practice is for
 
@@ -56,6 +63,7 @@ Why the configuration declares them:
 - **A level's names and order come from the data**, so a front end gets its group headings, in English and Tibetan, without a lookup table of its own.
 
 The cost is one block in each configuration listing its levels, checked when the configuration is first used, and a rule that a practice may only name a level its configuration declares.
+Both are optional (decided 2026-11-10): a configuration may declare no levels, and a practice may carry none, in which case a front end shows it ungrouped and it still has its own switch.
 
 ### There is no separate "kind" of observance
 
@@ -63,7 +71,8 @@ An earlier model also gave every practice a *kind* — great occasion, vow renew
 It is **dropped** (decided 2026-11-10).
 Kind and level are different questions — what a practice is, and who it is for — and kind does not predict level: a puja can be open or require an empowerment, and so can a day labelled with an offering.
 Nothing the engine computes depended on it, and the grouping a calendar's reader needs is the level.
-The one job it did, picking out the four great occasions, still needs a home; that is open.
+The one job it did, picking out the four great occasions, is done by **labels** instead (decided 2026-11-10): a practice may carry any number of free labels, which the engine never acts on, and the four great occasions carry one saying so.
+The same labels mark a tsok day and a practice that comes from a restricted one.
 
 ### Where a level can be sourced: the practice text, not the day
 
@@ -91,19 +100,24 @@ Andreas adds two observations of practice, unsourced: the Praises to the Twenty-
 ### The levels in the shipped example
 
 The package ships one configuration as an **example** of how to populate one, not as any institution's calendar.
+It is named neutrally, as an example practice calendar, and claims no lineage (decided 2026-11-11).
+Its conventions for doubled days and leap months are FPMT's — the second half of a doubled day, and the leap month rather than the regular one — and Kopan's opposite answer for doubled days is the reason a centre may need to differ.
 Its levels are three, named here by intent: **universal**, **open practice**, and **initiated practice**; the exact names are not yet settled.
 
-| Practice | Level | Basis |
-|---|---|---|
-| The four great occasions | universal | authored |
-| Anniversaries | universal | authored |
-| Vow renewal | open practice | authored |
-| Medicine Buddha puja | open practice | cited, if the example names *The Wish-Granting Sovereign*: "Anyone with faith can perform this practice" |
-| Tārā puja | open practice | cited, if the example names a front-generation text such as *A Short Practice of Green Tara*, which includes the Praises to the Twenty-One Taras; authored otherwise |
-| Fire offering | open practice, **noted as coming from a restricted practice** | authored (decided 2026-11-10): the practice is restricted — both FPMT manuals found, and Study Buddhism's definition — while many centres let non-initiates take part (Andreas' observation) |
-| Naga puja | open practice | authored: FPMT prints it on its open calendar; no text found |
-| Tsok, 10th and 25th | initiated practice | cited: FPMT's "Dates Explained", a commitment for Highest Yoga Tantra initiates |
-| Protector puja, 29th | initiated practice | authored: see the next section |
+| Practice | Level | Labels | Basis for the level |
+|---|---|---|---|
+| The four great occasions | universal | great occasion | authored |
+| Seven lineage anniversaries — Milarepa, Guru Rinpoche, Gampopa, the Sixteenth Karmapa, Lama Tsongkhapa, Sakya Paṇḍita, Dudjom Rinpoche | universal | | authored |
+| Saga Dawa, the 4th month | universal | | authored |
+| Vow renewal, counted | open practice | | authored |
+| Medicine Buddha puja, 8th and 15th | open practice | | cited, if the example names *The Wish-Granting Sovereign*: "Anyone with faith can perform this practice" |
+| Tārā puja, 8th | open practice | | cited, if the example names a front-generation text such as *A Short Practice of Green Tara*, which includes the Praises to the Twenty-One Taras; authored otherwise |
+| Fire offering | open practice | from a restricted practice | authored (decided 2026-11-10): the practice is restricted — both FPMT manuals found, and Study Buddhism's definition — while many centres let non-initiates take part (Andreas' observation) |
+| Heruka Day, 10th | open practice | tsok | authored: anyone may mark the day; the tsok within it is a commitment for Highest Yoga Tantra initiates, which FPMT's "Dates Explained" states |
+| Ḍākinī Day, 25th | open practice | tsok | as Heruka Day |
+| Dharma Protector Day, 29th | initiated practice | tsok | authored: see the next section |
+
+Left out of the example: Lama Thubten Yeshe's anniversary, which belongs to FPMT as its founder and is kept in the test suite's FPMT configuration with the rest of FPMT's own set; Western-dated birthdays; Precepts and Naga puja, whose rules are not known; and eclipses, which are a front end's to date.
 
 A configuration carries **no source field** (decided 2026-11-10): a centre is the authority on its own practice days, and none of this provenance is for the person reading the calendar.
 So the basis column lives here, beside the example, and the fire offering's note travels as a label on the practice, which a front end can turn into a sentence.
@@ -124,18 +138,30 @@ What follows is practice knowledge stated by Andreas on 2026-11-10; no published
 - Not every puja includes a tsok.
   The higher tantric practices almost always do; a common Tārā puja, such as the Praises to the Twenty-One Tārās, uses ordinary offerings.
 - The Yamāntaka practice (*Yamāntaka* यमान्तक; གཤིན་རྗེ་གཤེད *shinjé shé*), a protector practice, carries a tsok commitment.
-  A day labelled "Protector puja" can therefore be a tsok day as well, which is why the example gives the 29th the same level as the 10th and 25th.
+  A day labelled "Protector puja" can therefore be a tsok day as well, which is why the example labels the 29th a tsok day like the 10th and 25th, and keeps it at initiated practice.
 - Across Highest Yoga Tantra lineages the 10th (the Heruka day) and the 25th (the Ḍākinī day) are the baseline tsok days, and someone holding several empowerments can meet all their tsok commitments there with one practice, such as Guru Puja.
 - Centres adjust: because the 25th and 29th are four days apart, some combine their monthly practices or move them to the nearest weekend.
 - Kālacakra (*Kālacakra* कालचक्र; དུས་ཀྱི་འཁོར་ལོ *dükyin khorlo*) centres, such as Jonang or Rimé groups, often hold tsok on the full moon, the new moon and during eclipses.
 
 The last two points are why practice days are configuration and not engine: the same lineage keeps the same practice on different days in different places, and a configuration is where a community says which.
 
+### Naming the days by their dedication
+
+Because the labels mark a date and not a practice, the example names the 10th, 25th and 29th by what the **day** is dedicated to, which names no single practice and so invents none.
+The names rest on sources read on 2026-11-11:
+
+- **The 10th: Heruka Day.** Philippe Cornu's *Tibetan Astrology*, summarising Dudjom Rinpoche, as published by Shambhala Publications: "In the three schools of the New Tradition (Kagyü, Sakya, and Geluk), the 10th day of the month is sacred to Heruka, the wrathful form of the buddhas."
+  Lama Zopa Rinpoche's advice on tsog offering rests on the Heruka Root Tantra — "Every waxing and waning of each month do tsog" — which he glosses as the 10th and the 25th.
+  **The Nyingma call the same day Guru Rinpoche Day**: "The 10th is Guru Rinpoche day", in the same book, and so do Lion's Roar and Dzogchen College's practice calendar.
+  The example follows the New Tradition schools, which also pairs the day with the Ḍākinī Day; a Nyingma centre renames it in its own configuration.
+- **The 25th: Ḍākinī Day.** "25th day: Day of the dakinis", in the same book; Lion's Roar and Dzogchen College agree.
+- **The 29th: Dharma Protector Day.** "29th day: Day of the Dharmapalas, protectors of the Dharma", in the same book.
+
+The other monthly dedications differ between traditions — the 15th is the Amitābha day in some, while FPMT prints Medicine Buddha on it — so only these three are named this way.
+
 ## What is still open
 
 - **The names of the three example levels.** The intent is fixed; the words are not.
 - **Which text each example practice names**, so that its level can be cited rather than authored.
-- **Where the four great occasions are marked**, now that kind is gone. The suggestion on the table is an optional list of labels on each practice, with the great occasions carrying one.
-- **Which practice the 10th, 25th and 29th name** in the example, since FPMT's labels do not say. The example should not invent one.
 - **Naga puja's three dates that appear only in some years**, and the remaining FPMT labels whose rules are unsourced.
 - **How a fire offering's count treats a doubled or skipped day**, which Lama Zopa Rinpoche's advice tells the reader to check and does not explain; a question for a Tibetan teacher or scholar.
