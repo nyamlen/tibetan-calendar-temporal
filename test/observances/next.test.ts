@@ -1,0 +1,331 @@
+import { describe, expect, it } from "vitest";
+import { isoToTibetan } from "../../src/computation/conversion.js";
+import {
+	EXAMPLE_OBSERVANCES,
+	getObservances,
+	nextObservance,
+} from "../../src/observances/index.js";
+import type { Observance, ObservanceConfig } from "../../src/observances/types.js";
+import { PHUGPA } from "../../src/traditions/phugpa.js";
+import { thrownBy } from "../support/thrown.js";
+
+const iso = (s: string) => Temporal.PlainDate.from(s);
+
+// `Temporal` objects have no own enumerable fields, so `toEqual` on two `Observance`s compares every
+// date as equal. Everything here compares this projection instead.
+const key = (o: Observance) =>
+	[
+		o.rule.id,
+		o.date.isoDate.toString(),
+		o.date.isLeapDay,
+		o.resolution,
+		o.age,
+		o.period?.first.isoDate.toString(),
+		o.period?.last.isoDate.toString(),
+	].join("|");
+
+const INVALID_ARGUMENT = "TCT_INVALID_ARGUMENT";
+
+const SOJONG_WHEN = {
+	type: "counted",
+	anchor: { month: 1, day: 15 },
+	waxingDays: 15,
+	waningDays: { oddMonth: 14, evenMonth: 15 },
+	exclude: [{ month: 1, day: 1 }],
+};
+
+const withRules = (rules: Record<string, unknown>[]): ObservanceConfig =>
+	({
+		id: "next",
+		englishName: "Next",
+		doubledDay: "second",
+		skippedDay: "preceding",
+		leapMonth: "leap",
+		rules: rules.map((rule) => ({ englishName: "R", ...rule })),
+	}) as unknown as ObservanceConfig;
+
+const EVERY_FORM = withRules([
+	{ id: "monthly", when: { type: "monthly", days: [8, 15, 30] } },
+	{ id: "annual", when: { type: "annual", dates: [{ month: 4, day: 15 }], ageFromYear: 2000 } },
+	{
+		id: "period",
+		when: { type: "period", first: { month: 4, day: 1 }, last: { month: 4, day: 15 } },
+	},
+	{ id: "western", when: { type: "western", month: 3, day: 21 } },
+	{ id: "formula", when: { type: "formula", formula: "lunarDayPlusWeekdayMod4" } },
+	{
+		id: "sojong",
+		doubledDay: "first",
+		skippedDay: "following",
+		leapMonth: "leap",
+		when: SOJONG_WHEN,
+	},
+]);
+
+/** What feeding each result's date back in visits, from before `from` up to `to`. */
+const chain = (
+	from: string,
+	to: string,
+	ruleId: string,
+	config: ObservanceConfig,
+): Observance[] => {
+	const visited: Observance[] = [];
+	const last = iso(to);
+	let at = iso(from).subtract({ days: 1 });
+	for (;;) {
+		const next = nextObservance(at, ruleId, config);
+		if (next === null || Temporal.PlainDate.compare(next.date.isoDate, last) > 0) break;
+		// A result that does not advance would loop for ever, so it ends the walk and fails the caller's
+		// comparison instead.
+		if (Temporal.PlainDate.compare(next.date.isoDate, at) <= 0) {
+			visited.push(next, next);
+			break;
+		}
+		visited.push(next);
+		at = next.date.isoDate;
+	}
+	return visited;
+};
+
+const ofRule = (found: Observance[], ruleId: string) => found.filter((o) => o.rule.id === ruleId);
+
+describe("nextObservance, strictly after", () => {
+	it("returns the following occurrence when `from` is itself one", () => {
+		expect(
+			nextObservance(
+				iso("2026-03-03"),
+				"chotrul-duchen",
+				EXAMPLE_OBSERVANCES,
+			)?.date.isoDate.toString(),
+		).toBe("2027-02-20");
+		expect(
+			nextObservance(
+				iso("2026-03-02"),
+				"chotrul-duchen",
+				EXAMPLE_OBSERVANCES,
+			)?.date.isoDate.toString(),
+		).toBe("2026-03-03");
+	});
+
+	it("accepts the date shapes getObservances accepts", () => {
+		const viaString = nextObservance("2026-03-02" as never, "chotrul-duchen", EXAMPLE_OBSERVANCES);
+		expect(viaString?.date.isoDate.toString()).toBe("2026-03-03");
+	});
+});
+
+describe("nextObservance, chained", () => {
+	it("reproduces getObservances over 2026 for each rule of EXAMPLE_OBSERVANCES", () => {
+		const range = getObservances(iso("2026-01-01"), iso("2026-12-31"), EXAMPLE_OBSERVANCES);
+		const bad: string[] = [];
+		for (const rule of EXAMPLE_OBSERVANCES.rules) {
+			const want = ofRule(range, rule.id).map(key);
+			const got = chain("2026-01-01", "2026-12-31", rule.id, EXAMPLE_OBSERVANCES).map(key);
+			if (want.length === 0)
+				bad.push(`${rule.id}: the range holds nothing, so this proves nothing`);
+			if (JSON.stringify(want) !== JSON.stringify(got)) bad.push(rule.id);
+		}
+		expect(bad).toEqual([]);
+	});
+
+	it("reproduces getObservances over 2026 for one rule of each form", () => {
+		const range = getObservances(iso("2026-01-01"), iso("2026-12-31"), EVERY_FORM);
+		const bad: string[] = [];
+		for (const rule of EVERY_FORM.rules) {
+			const want = ofRule(range, rule.id).map(key);
+			const got = chain("2026-01-01", "2026-12-31", rule.id, EVERY_FORM).map(key);
+			if (want.length === 0)
+				bad.push(`${rule.id}: the range holds nothing, so this proves nothing`);
+			if (JSON.stringify(want) !== JSON.stringify(got)) bad.push(rule.id);
+		}
+		expect(bad).toEqual([]);
+	});
+
+	it("carries age and the period bounds exactly as the range query does", () => {
+		const annual = nextObservance(iso("2026-01-01"), "annual", EVERY_FORM);
+		expect(annual?.date.isoDate.toString()).toBe("2026-05-31");
+		expect(annual?.age).toBe(153);
+		const period = nextObservance(iso("2026-01-01"), "period", EVERY_FORM);
+		expect(period?.period?.first.isoDate.toString()).toBe("2026-05-17");
+		expect(period?.period?.last.isoDate.toString()).toBe("2026-05-31");
+	});
+
+	describe("a doubled day under doubledDay: both", () => {
+		const both = withRules([
+			{ id: "twenty-fifth", doubledDay: "both", when: { type: "monthly", days: [25] } },
+		]);
+
+		it("visits each half exactly once", () => {
+			// Tibetan 25 of 2153 month 1 is doubled: 11 and 12 February 2026.
+			const days = chain("2026-02-01", "2026-02-28", "twenty-fifth", both).map(
+				(o) => `${o.date.isoDate.toString()} ${o.resolution}`,
+			);
+			expect(days).toEqual(["2026-02-11 firstOfDoubled", "2026-02-12 secondOfDoubled"]);
+			expect(nextObservance(iso("2026-02-11"), "twenty-fifth", both)?.date.isoDate.toString()).toBe(
+				"2026-02-12",
+			);
+			expect(nextObservance(iso("2026-02-12"), "twenty-fifth", both)?.date.isoDate.toString()).toBe(
+				"2026-03-13",
+			);
+		});
+	});
+});
+
+describe("nextObservance, a period rule", () => {
+	const saga = withRules([
+		{
+			id: "saga",
+			when: { type: "period", first: { month: 4, day: 1 }, last: { month: 4, day: 30 } },
+		},
+	]);
+
+	it("steps by day inside a span, carrying the span's bounds", () => {
+		const next = nextObservance(iso("2026-06-01"), "saga", saga);
+		expect(next?.date.isoDate.toString()).toBe("2026-06-02");
+		expect(next?.resolution).toBe("inPeriod");
+		expect(next?.period?.first.isoDate.toString()).toBe("2026-05-17");
+		expect(next?.period?.last.isoDate.toString()).toBe("2026-06-15");
+	});
+
+	it("gives the first day of the next span from outside one, and from a span's last day", () => {
+		for (const from of ["2026-05-16", "2026-08-01"]) {
+			const next = nextObservance(iso(from), "saga", saga);
+			expect(next?.date.isoDate.toString(), from).toBe(
+				from === "2026-05-16" ? "2026-05-17" : "2027-06-05",
+			);
+		}
+		const lastDay = nextObservance(iso("2026-06-15"), "saga", saga);
+		expect(lastDay?.date.isoDate.toString()).toBe("2027-06-05");
+		expect(lastDay?.period?.last.isoDate.toString()).toBe("2027-07-04");
+	});
+});
+
+describe("nextObservance, null", () => {
+	it("is null once an annual or western window has ended", () => {
+		const ended = withRules([
+			{
+				id: "annual",
+				when: { type: "annual", dates: [{ month: 4, day: 15 }], untilYear: 2020 },
+			},
+			{ id: "western", when: { type: "western", month: 3, day: 21, untilYear: 2020 } },
+		]);
+		expect(nextObservance(iso("2026-01-01"), "annual", ended)).toBeNull();
+		expect(nextObservance(iso("2026-01-01"), "western", ended)).toBeNull();
+	});
+
+	it("looks 10 years ahead and no further", () => {
+		const beyond = (fromYear: number) =>
+			withRules([{ id: "w", when: { type: "western", month: 3, day: 21, fromYear } }]);
+		expect(nextObservance(iso("2026-01-01"), "w", beyond(2036))).toBeNull();
+		expect(nextObservance(iso("2026-01-01"), "w", beyond(2031))?.date.isoDate.toString()).toBe(
+			"2031-03-21",
+		);
+		expect(nextObservance(iso("2026-01-01"), "w", beyond(2035))?.date.isoDate.toString()).toBe(
+			"2035-03-21",
+		);
+	});
+
+	it("finds a 29 February seven years on, across the 2100 gap", () => {
+		const leapDay = withRules([{ id: "leap", when: { type: "western", month: 2, day: 29 } }]);
+		expect(nextObservance(iso("2097-02-28"), "leap", leapDay)?.date.isoDate.toString()).toBe(
+			"2104-02-29",
+		);
+	});
+});
+
+describe("nextObservance, the end of the computable range", () => {
+	/** The last ISO day PHUGPA converts, found by the conversion's own refusal. */
+	const lastConvertible = (() => {
+		let ok = iso("2026-01-01");
+		let bad = iso("+275760-01-01");
+		while (ok.until(bad, { largestUnit: "days" }).days > 1) {
+			const middle = ok.add({ days: Math.floor(ok.until(bad, { largestUnit: "days" }).days / 2) });
+			if (thrownBy(() => isoToTibetan(middle, PHUGPA)) === undefined) ok = middle;
+			else bad = middle;
+		}
+		return ok;
+	})();
+	const march = withRules([{ id: "w", when: { type: "western", month: 3, day: 1 } }]);
+
+	it("finds the end through the refusal", () => {
+		expect(thrownBy(() => isoToTibetan(lastConvertible, PHUGPA))).toBeUndefined();
+		expect(thrownBy(() => isoToTibetan(lastConvertible.add({ days: 1 }), PHUGPA))?.code).toBe(
+			"TCT_OUTSIDE_EXACT_RANGE",
+		);
+	});
+
+	it("is null when the next occurrence would fall beyond the end", () => {
+		const from = lastConvertible.subtract({ days: 3 });
+		expect(from.year).toBe(lastConvertible.year);
+		// The same rule, one year earlier, does find its day: the null is the range's doing.
+		const earlier = lastConvertible.subtract({ years: 1, days: 3 });
+		expect(nextObservance(earlier, "w", march)?.date.isoDate.toString()).toBe(
+			`+${lastConvertible.year - 1}-03-01`,
+		);
+		expect(nextObservance(from, "w", march)).toBeNull();
+	});
+
+	it("is null for a monthly rule asked on the last convertible day", () => {
+		const monthly = withRules([{ id: "m", when: { type: "monthly", days: [8, 15] } }]);
+		expect(nextObservance(lastConvertible, "m", monthly)).toBeNull();
+	});
+
+	it("throws TCT_OUTSIDE_EXACT_RANGE for a `from` beyond the end", () => {
+		const error = thrownBy(() => nextObservance(lastConvertible.add({ days: 1 }), "w", march));
+		expect(error?.code).toBe("TCT_OUTSIDE_EXACT_RANGE");
+	});
+});
+
+describe("nextObservance, a counted rule", () => {
+	const sojong = withRules([
+		{ id: "s", doubledDay: "first", skippedDay: "following", leapMonth: "leap", when: SOJONG_WHEN },
+	]);
+
+	it("agrees with the range query from the day before every sojong of 2026-2027", () => {
+		const range = getObservances(iso("2025-06-01"), iso("2028-06-01"), sojong);
+		const bad: string[] = [];
+		let checked = 0;
+		for (const found of range) {
+			const before = found.date.isoDate.subtract({ days: 1 });
+			if (before.year < 2026 || before.year > 2027) continue;
+			checked++;
+			// The nearest sojong after `before` is `found` itself, since nothing lies between.
+			const got = nextObservance(before, "s", sojong);
+			if (got === null || key(got) !== key(found)) {
+				bad.push(`${before.toString()}: ${got === null ? "null" : key(got)} against ${key(found)}`);
+			}
+		}
+		expect(checked).toBeGreaterThan(40);
+		expect(bad).toEqual([]);
+	});
+
+	it("gives the 2026 anchor from the day before it", () => {
+		const range = getObservances(iso("2026-01-01"), iso("2026-12-31"), sojong);
+		const anchor = range.find((o) => o.resolution !== "counted");
+		expect(anchor?.date.isoDate.toString()).toBe("2026-03-03");
+		expect(nextObservance(iso("2026-03-02"), "s", sojong)?.date.isoDate.toString()).toBe(
+			"2026-03-03",
+		);
+	});
+});
+
+describe("nextObservance, its arguments", () => {
+	it("throws TCT_INVALID_ARGUMENT for a rule id the config does not have", () => {
+		expect(
+			thrownBy(() => nextObservance(iso("2026-01-01"), "nope", EXAMPLE_OBSERVANCES))?.code,
+		).toBe(INVALID_ARGUMENT);
+	});
+
+	it("throws TCT_INVALID_ARGUMENT for a rule id that is not a string", () => {
+		for (const bad of [undefined, null, 15, 10n, {}, ["tara"], Symbol("tara")]) {
+			expect(
+				thrownBy(() => nextObservance(iso("2026-01-01"), bad as never, EXAMPLE_OBSERVANCES))?.code,
+			).toBe(INVALID_ARGUMENT);
+		}
+	});
+
+	it("checks the config before the rule id", () => {
+		expect(
+			thrownBy(() => nextObservance(iso("2026-01-01"), "nope", undefined as never))?.code,
+		).toBe("TCT_INVALID_OBSERVANCE_CONFIG");
+	});
+});

@@ -32,6 +32,7 @@ import type { Observance, ObservanceConfig } from "./types.js";
 import { ensureValidated } from "./validate.js";
 
 export { EXAMPLE_OBSERVANCES } from "./example-observances.js";
+export { nextObservance } from "./next.js";
 export type {
 	DoubledDayChoice,
 	FormulaName,
