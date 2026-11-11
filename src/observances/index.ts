@@ -21,38 +21,14 @@
  * @packageDocumentation
  */
 
-import {
-	lastMonthCountOfYear,
-	monthFromCount,
-	sharesNumberWithLeapMonth,
-	trueMonthCount,
-} from "../computation/calendar.js";
-import {
-	asPlainDate,
-	isoFromJulianDayUnchecked,
-	isoToTibetan,
-	julianDayFromIso,
-} from "../computation/conversion.js";
-import { yearFromRoyalEra } from "../computation/epoch.js";
+import { asPlainDate, julianDayFromIso } from "../computation/conversion.js";
 import { scalingFor } from "../computation/scaling.js";
-import { codedError, rangeError } from "../errors.js";
+import { rangeError } from "../errors.js";
 import { PHUGPA } from "../traditions/phugpa.js";
 import type { TraditionConfig } from "../traditions/types.js";
 import { assertTraditionConfig } from "../traditions/validate.js";
-import {
-	type CountedAnchor,
-	countedMonthDays,
-	countedSchedule,
-	type Occurrence,
-	occurrencesInMonth,
-	westernOccurrences,
-} from "./forms.js";
-import type {
-	Observance,
-	ObservanceConfig,
-	ObservanceResolution,
-	ObservanceRule,
-} from "./types.js";
+import { MAX_SPAN_YEARS, occurrencesOfRule, tibetanDateMemo } from "./occurrences.js";
+import type { Observance, ObservanceConfig } from "./types.js";
 import { ensureValidated } from "./validate.js";
 
 export { EXAMPLE_OBSERVANCES } from "./example-observances.js";
@@ -69,40 +45,6 @@ export type {
 	SkippedDayChoice,
 	TibetanMonthDay,
 } from "./types.js";
-
-/**
- * The widest range {@link getObservances} will answer, in years.
- *
- * @remarks
- * Compared as `to.year - from.year`, so 2020-01-01 to 2030-12-31 is 10 and admissible.
- */
-const MAX_SPAN_YEARS = 10;
-
-/**
- * Which of two results for one rule on one calendar day is kept: lower wins.
- *
- * @remarks
- * An exact landing beats a doubled half, which beats a day shifted off a skipped number, because
- * the first is what the rule says, the second is what the almanac prints, and the third is a
- * substitute for a day that does not exist.
- */
-const PRECEDENCE: Record<ObservanceResolution, number> = {
-	exact: 0,
-	firstOfDoubled: 1,
-	secondOfDoubled: 1,
-	// Never competes within one rule: a period rule emits only this, and a day appears once in it.
-	inPeriod: 1,
-	dayBeforeSkipped: 2,
-	dayAfterSkipped: 2,
-	// Last: a counted day is derived from an anchor, so any claim to the same day that names the
-	// day itself outranks it. It never ties within one rule, since a count drops the days near an
-	// anchor, but the order is stated rather than left to that.
-	counted: 3,
-};
-
-function precedence(resolution: ObservanceResolution): number {
-	return PRECEDENCE[resolution];
-}
 
 /**
  * Every observance falling between two dates, inclusive, in date order.
@@ -187,119 +129,20 @@ export function getObservances(
 	const firstJd = julianDayFromIso(from);
 	const lastJd = julianDayFromIso(to);
 
-	// Walk months linearly by true month count, which needs no special case for leap months —
-	// that is exactly what trueMonthCount and monthFromCount are an inverse pair for. Start a
-	// month early and end a month late so a rule shifted off a skipped date cannot be missed.
-	const startYear = yearFromRoyalEra(isoToTibetan(from, resolvedTradition).year);
-	const endYear = yearFromRoyalEra(isoToTibetan(to, resolvedTradition).year);
-	// A counted rule needs the anchors on both sides of the range, up to a year each way: the latest
-	// anchor on or before `from` is at most 385 days back, and the first one after `to` decides which
-	// of the last days before it the count keeps. So its walk covers the whole Tibetan year before
-	// the range and after it; the other forms are filtered to the range by `claim`.
-	const hasCounted = config.rules.some((rule) => rule.when.type === "counted");
-	const firstMonth = hasCounted
-		? trueMonthCount(resolvedTradition, startYear - 1, 1) - 1
-		: trueMonthCount(resolvedTradition, startYear, 1) - 1;
-	const lastMonth = hasCounted
-		? lastMonthCountOfYear(resolvedTradition, endYear + 1) + 1
-		: trueMonthCount(resolvedTradition, endYear + 1, 1) + 1;
-
-	const bestByRule = new Map<ObservanceRule, Map<number, Occurrence>>();
-	// One result per rule per calendar day, across the whole range and not per month: a skipped day
-	// 1 shifts onto the previous month's last day, which the same rule may already hold exactly.
-	// Entries that land together reduce to the best claim.
-	const claim = (rule: ObservanceRule, hit: Occurrence): void => {
-		if (hit.julianDay < firstJd || hit.julianDay > lastJd) return;
-		let held = bestByRule.get(rule);
-		if (held === undefined) {
-			held = new Map();
-			bestByRule.set(rule, held);
-		}
-		const incumbent = held.get(hit.julianDay);
-		if (incumbent === undefined || precedence(hit.resolution) < precedence(incumbent.resolution)) {
-			held.set(hit.julianDay, hit);
-		}
-	};
-
-	const countedDays = new Map<
-		ObservanceRule,
-		{ anchors: CountedAnchor[]; excluded: Set<number> }
-	>();
-
-	for (let monthCount = firstMonth; monthCount <= lastMonth; monthCount++) {
-		const month = monthFromCount(resolvedTradition, monthCount);
-		// Whether this year holds two months of this number, which is what makes the leap-month
-		// convention bite.
-		//
-		// Asked of the month directly rather than by probing the neighbour at `monthCount ± 1`, which
-		// is what this did until 2026-08-16. That probe assumed a leap month's twin sits at `+1` and a
-		// regular month's at `−1` — true only while leap months precede, and exactly inverted under
-		// `leapMonthPosition: "after"`. The failure was not a mirrored answer but a missed one: the
-		// probe found no twin, `yearHasLeapOfThisNumber` went false, `appliesToMonth` returned early,
-		// and the `leapMonth` convention was bypassed altogether — firing the observance in *both*
-		// months rather than the selected one. `sharesNumberWithLeapMonth` is directionless and
-		// answers the same question without knowing where to look.
-		const yearHasLeapOfThisNumber = sharesNumberWithLeapMonth(
-			resolvedTradition,
-			month.year,
-			month.month,
-		);
-
-		for (const rule of config.rules) {
-			if (rule.when.type === "counted") {
-				let held = countedDays.get(rule);
-				if (held === undefined) {
-					held = { anchors: [], excluded: new Set() };
-					countedDays.set(rule, held);
-				}
-				const here = countedMonthDays(
-					rule,
-					rule.when,
-					config,
-					scaled,
-					monthCount,
-					month,
-					yearHasLeapOfThisNumber,
-				);
-				held.anchors.push(...here.anchors);
-				for (const day of here.excluded) held.excluded.add(day);
-				continue;
-			}
-			const hits: Occurrence[] = occurrencesInMonth(
-				rule,
-				config,
-				scaled,
-				monthCount,
-				month,
-				yearHasLeapOfThisNumber,
-			);
-			for (const hit of hits) claim(rule, hit);
-		}
-	}
-
+	// One memo across the rules: a 15th carries several, and each needs the day's Tibetan date.
+	const tibetanDateOf = tibetanDateMemo(scaled);
+	const found: { julianDay: number; observance: Observance }[] = [];
 	for (const rule of config.rules) {
-		if (rule.when.type !== "western") continue;
-		for (const hit of westernOccurrences(rule.when, from.year, to.year)) claim(rule, hit);
-	}
-
-	for (const [rule, held] of countedDays) {
-		if (rule.when.type !== "counted") continue;
-		for (const hit of countedSchedule(
-			rule.when,
-			resolvedTradition,
-			scaled,
-			held.anchors,
-			held.excluded,
+		for (const observance of occurrencesOfRule(
+			rule,
 			firstJd,
 			lastJd,
+			config,
+			scaled,
+			tibetanDateOf,
 		)) {
-			claim(rule, hit);
+			found.push({ julianDay: julianDayFromIso(observance.date.isoDate), observance });
 		}
-	}
-
-	const found: (Occurrence & { rule: ObservanceRule })[] = [];
-	for (const [rule, held] of bestByRule) {
-		for (const hit of held.values()) found.push({ ...hit, rule });
 	}
 
 	// Code-unit comparison, not localeCompare: that reads the host's default locale and ICU build,
@@ -309,59 +152,14 @@ export function getObservances(
 	// identically either way, so nothing here would ever have caught it.
 	found.sort(
 		(a, b) =>
-			a.julianDay - b.julianDay || (a.rule.id < b.rule.id ? -1 : a.rule.id > b.rule.id ? 1 : 0),
+			a.julianDay - b.julianDay ||
+			(a.observance.rule.id < b.observance.rule.id
+				? -1
+				: a.observance.rule.id > b.observance.rule.id
+					? 1
+					: 0),
 	);
-
-	// Convert once per distinct day rather than once per hit: a 15th carries several rules.
-	const dates = new Map<number, ReturnType<typeof isoToTibetan>>();
-	const tibetanDateOf = (julianDay: number) => {
-		let date = dates.get(julianDay);
-		if (date === undefined) {
-			date = isoToTibetan(isoFromJulianDayUnchecked(julianDay), resolvedTradition);
-			dates.set(julianDay, date);
-		}
-		return date;
-	};
-	const results: Observance[] = [];
-	for (const hit of found) {
-		const date = tibetanDateOf(hit.julianDay);
-		const when = hit.rule.when;
-		if (when.type === "monthly" || when.type === "formula" || when.type === "counted") {
-			results.push({ date, rule: hit.rule, resolution: hit.resolution });
-			continue;
-		}
-		if (when.type === "period") {
-			/* c8 ignore next */
-			if (hit.span === undefined) throw codedError("TCT_INTERNAL", "a period day carries no span");
-			results.push({
-				date,
-				rule: hit.rule,
-				resolution: hit.resolution,
-				period: {
-					first: tibetanDateOf(hit.span.first),
-					last: tibetanDateOf(hit.span.last),
-				},
-			});
-			continue;
-		}
-		/* c8 ignore next */
-		if (when.type !== "annual" && when.type !== "western") {
-			throw codedError("TCT_INTERNAL", `unhandled when type ${JSON.stringify(when)}`);
-		}
-		// The occurrence's own year, of the resolved day: a Tibetan month-12 date can fall in January,
-		// where its Tibetan year and its Western year differ.
-		const year =
-			when.type === "western" ? isoFromJulianDayUnchecked(hit.julianDay).year : date.year;
-		if (when.fromYear !== undefined && year < when.fromYear) continue;
-		if (when.untilYear !== undefined && year > when.untilYear) continue;
-		const age = when.ageFromYear === undefined ? -1 : year - when.ageFromYear;
-		results.push(
-			age < 0
-				? { date, rule: hit.rule, resolution: hit.resolution }
-				: { date, rule: hit.rule, resolution: hit.resolution, age },
-		);
-	}
-	return results;
+	return found.map((entry) => entry.observance);
 }
 
 /**
