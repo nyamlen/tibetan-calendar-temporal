@@ -1,0 +1,376 @@
+/**
+ * The boundary guard for an {@link ObservanceConfig}.
+ *
+ * @remarks
+ * Internal: the barrel exports nothing from here. `ObservanceConfig` is the documented extension
+ * point, and the mean-motion formulas are linear in the lunar day, so they extrapolate past the end
+ * of a month rather than failing — `day: 31` once returned the 1st of the *following* month and
+ * `day: 0` the 30th of the *previous* one, each labelled `"exact"`. An out-of-range month failed the
+ * other way, silently yielding no hits so the observance vanished from the year. Every field is
+ * therefore checked, and every object a config contains refuses a key it does not know, because a
+ * config written for an earlier shape — `kind`, `tier`, `source`, `name`, or `isLeapMonth` inside a
+ * date — would otherwise be half-read and answer confidently.
+ *
+ * Every problem is `TCT_INVALID_OBSERVANCE_CONFIG`: a bad value, an inapplicable setting, an unknown
+ * key, an undeclared level.
+ */
+
+import { describe, rangeError } from "../errors.js";
+import type { ObservanceConfig } from "./types.js";
+
+const CODE = "TCT_INVALID_OBSERVANCE_CONFIG";
+
+const DOUBLED_DAY_CHOICES = ["first", "second", "both"];
+const SKIPPED_DAY_CHOICES = ["preceding", "omit"];
+const LEAP_MONTH_CHOICES = ["leap", "regular", "both"];
+
+const CONFIG_KEYS = [
+	"id",
+	"englishName",
+	"tibetanName",
+	"doubledDay",
+	"skippedDay",
+	"leapMonth",
+	"levels",
+	"rules",
+];
+const RULE_KEYS = [
+	"id",
+	"englishName",
+	"tibetanName",
+	"level",
+	"tags",
+	"when",
+	"doubledDay",
+	"skippedDay",
+	"leapMonth",
+];
+const LEVEL_KEYS = ["id", "englishName", "tibetanName"];
+const MONTHLY_KEYS = ["type", "days"];
+const ANNUAL_KEYS = ["type", "dates"];
+const DATE_KEYS = ["month", "day"];
+const TIBETAN_NAME_KEYS = ["tibetan", "wylie", "phonetic"];
+
+/**
+ * Whether a value is a non-null object that is not an array.
+ *
+ * @remarks
+ * An array is an object, so it must be refused by name where a record belongs: `[t].flatMap(f)`
+ * hands an array to a parameter nobody meant to be one.
+ */
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+/** Refuses any own key of `value` that is not in `allowed`, naming it. */
+function assertKnownKeys(value: object, allowed: readonly string[], subject: string): void {
+	for (const key of Object.keys(value)) {
+		if (!allowed.includes(key)) {
+			throw rangeError(
+				CODE,
+				`${subject} has no key ${JSON.stringify(key)}; its keys are ${allowed.join(", ")}`,
+			);
+		}
+	}
+}
+
+function assertNonEmptyString(value: unknown, subject: string): void {
+	if (typeof value !== "string" || value === "") {
+		throw rangeError(CODE, `${subject} must be a non-empty string, received ${describe(value)}`);
+	}
+}
+
+/**
+ * Rejects a **required** field that is not one of its documented values, `undefined` included.
+ *
+ * @remarks
+ * The `undefined` case is the whole point of the split from {@link assertOptionalChoice}. The three
+ * conventions are required on `ObservanceConfig`, and a missing one used to fall through to
+ * whichever branch of the resolver came last.
+ */
+function assertChoice(value: unknown, allowed: readonly string[], subject: string): void {
+	if (typeof value !== "string" || !allowed.includes(value)) {
+		throw rangeError(
+			CODE,
+			`${subject} must be one of ${allowed.map((a) => `"${a}"`).join(", ")}, received ` +
+				`${describe(value)}`,
+		);
+	}
+}
+
+/**
+ * Rejects a per-rule override that is present but not one of its documented values.
+ *
+ * @remarks
+ * Absent is legitimate here and only here: a missing override means "use the config's default".
+ */
+function assertOptionalChoice(value: unknown, allowed: readonly string[], subject: string): void {
+	if (value !== undefined) assertChoice(value, allowed, subject);
+}
+
+/** `{ tibetan, wylie, phonetic }`, three non-empty strings, when present. */
+function assertOptionalTibetanName(value: unknown, subject: string): void {
+	if (value === undefined) return;
+	if (!isRecord(value)) {
+		throw rangeError(
+			CODE,
+			`${subject} must be a { tibetan, wylie, phonetic } object, received ${describe(value)}`,
+		);
+	}
+	assertKnownKeys(value, TIBETAN_NAME_KEYS, subject);
+	for (const part of TIBETAN_NAME_KEYS) {
+		assertNonEmptyString(value[part], `${subject}.${part}`);
+	}
+}
+
+function assertIntegerInRange(
+	value: unknown,
+	min: number,
+	max: number,
+	subject: string,
+	why: string,
+): void {
+	if (!Number.isInteger(value) || (value as number) < min || (value as number) > max) {
+		throw rangeError(
+			CODE,
+			`${subject} must be an integer ${min}-${max}, received ${describe(value)}. ${why}`,
+		);
+	}
+}
+
+const DAY_WHY =
+	"A rule names a Tibetan lunar day, which always runs 1-30; a day that no calendar day carries " +
+	"is handled by the skippedDay convention, not by omitting the rule";
+const MONTH_WHY =
+	"A leap month is selected by the leapMonth convention, not by a thirteenth number";
+
+function assertWhen(when: unknown, subject: string): void {
+	if (!isRecord(when)) {
+		throw rangeError(
+			CODE,
+			`${subject}: when must be an object with a type, received ${describe(when)}`,
+		);
+	}
+	if (when.type === "monthly") {
+		assertKnownKeys(when, MONTHLY_KEYS, `${subject}: when`);
+		const days = when.days;
+		if (!Array.isArray(days) || days.length === 0) {
+			throw rangeError(
+				CODE,
+				`${subject}: when.days must be a non-empty array of day numbers, received ${describe(days)}`,
+			);
+		}
+		for (const day of days) {
+			assertIntegerInRange(day, 1, 30, `${subject}: day`, DAY_WHY);
+		}
+		if (new Set(days).size !== days.length) {
+			throw rangeError(CODE, `${subject}: when.days must not repeat a day`);
+		}
+		return;
+	}
+	if (when.type === "annual") {
+		assertKnownKeys(when, ANNUAL_KEYS, `${subject}: when`);
+		const dates = when.dates;
+		if (!Array.isArray(dates) || dates.length === 0) {
+			throw rangeError(
+				CODE,
+				`${subject}: when.dates must be a non-empty array of { month, day }, received ` +
+					describe(dates),
+			);
+		}
+		const seen = new Set<string>();
+		for (const date of dates) {
+			if (!isRecord(date)) {
+				throw rangeError(
+					CODE,
+					`${subject}: every when.dates entry must be a { month, day } object, received ` +
+						describe(date),
+				);
+			}
+			assertKnownKeys(date, DATE_KEYS, `${subject}: a when.dates entry`);
+			assertIntegerInRange(date.month, 1, 12, `${subject}: month`, MONTH_WHY);
+			assertIntegerInRange(date.day, 1, 30, `${subject}: day`, DAY_WHY);
+			const key = `${date.month}-${date.day}`;
+			if (seen.has(key)) {
+				throw rangeError(
+					CODE,
+					`${subject}: when.dates repeats month ${date.month} day ${date.day}`,
+				);
+			}
+			seen.add(key);
+		}
+		return;
+	}
+	throw rangeError(
+		CODE,
+		`${subject}: when.type must be "monthly" or "annual", received ${describe(when.type)}`,
+	);
+}
+
+function assertTags(tags: unknown, subject: string): void {
+	if (tags === undefined) return;
+	if (!Array.isArray(tags)) {
+		throw rangeError(
+			CODE,
+			`${subject}: tags must be an array of strings, received ${describe(tags)}. A single ` +
+				'string is refused: a JSON array is `["tsok"]`, not `"tsok"`',
+		);
+	}
+	for (const tag of tags) assertNonEmptyString(tag, `${subject}: a tag`);
+	if (new Set(tags).size !== tags.length) {
+		throw rangeError(CODE, `${subject}: tags must be distinct`);
+	}
+}
+
+/**
+ * The likeliest wrong objects in the config position, named for what they are.
+ *
+ * @remarks
+ * A `TraditionConfig` and the `{ config }` bag the signature took until 2026-11-11 are what a
+ * caller migrating from the old shape or confusing the two kinds of config passes. Without this a
+ * caller is told `epochYear` is an unknown key — a field they never meant to write.
+ */
+function assertNotAnotherShape(config: Record<string, unknown>): void {
+	if (config.id === undefined && "config" in config) {
+		throw rangeError(
+			CODE,
+			"ObservanceConfig expected, received an object like { config }. The config is a required " +
+				"positional parameter, as in getObservances(from, to, config, tradition): pass the " +
+				"ObservanceConfig itself",
+		);
+	}
+	if (
+		"epochYear" in config ||
+		"moonTab" in config ||
+		("tradition" in config && config.id === undefined)
+	) {
+		throw rangeError(
+			CODE,
+			"ObservanceConfig expected, received what looks like a TraditionConfig or a { tradition } " +
+				"bag. The tradition is the last parameter, after the config: " +
+				"getObservances(from, to, config, tradition)",
+		);
+	}
+}
+
+/**
+ * Rejects a config whose rules could not resolve to the days they name.
+ *
+ * @throws RangeError with code `TCT_INVALID_OBSERVANCE_CONFIG`, naming the offending rule.
+ */
+function validateObservanceConfig(config: ObservanceConfig): void {
+	// The config object itself, before anything dereferences it: `observancesOn(date, null)` once
+	// produced a raw uncoded TypeError.
+	if (!isRecord(config)) {
+		throw rangeError(
+			CODE,
+			`ObservanceConfig must be an object, received ${describe(config)}. Pass EXAMPLE_OBSERVANCES, ` +
+				"or a config spread from it, as the config argument",
+		);
+	}
+	assertNotAnotherShape(config);
+	assertKnownKeys(config, CONFIG_KEYS, "ObservanceConfig");
+
+	// `config.id` is interpolated into the messages below, so it is checked before they can quote it.
+	assertNonEmptyString(config.id, "observance config id");
+	const subject = `observance config "${config.id}"`;
+	assertNonEmptyString(config.englishName, `${subject}: englishName`);
+	assertOptionalTibetanName(config.tibetanName, `${subject}: tibetanName`);
+
+	assertChoice(config.doubledDay, DOUBLED_DAY_CHOICES, "config doubledDay");
+	assertChoice(config.skippedDay, SKIPPED_DAY_CHOICES, "config skippedDay");
+	assertChoice(config.leapMonth, LEAP_MONTH_CHOICES, "config leapMonth");
+
+	const levelIds = new Set<string>();
+	if (config.levels !== undefined) {
+		if (!Array.isArray(config.levels)) {
+			throw rangeError(
+				CODE,
+				`${subject}: levels must be an array, received ${describe(config.levels)}`,
+			);
+		}
+		for (const level of config.levels) {
+			if (!isRecord(level)) {
+				throw rangeError(
+					CODE,
+					`${subject}: every level must be an object, received ${describe(level)}`,
+				);
+			}
+			assertKnownKeys(level, LEVEL_KEYS, `${subject}: a level`);
+			assertNonEmptyString(level.id, `${subject}: level id`);
+			if (levelIds.has(level.id as string)) {
+				throw rangeError(CODE, `${subject}: level id must be unique, "${level.id}" repeats`);
+			}
+			levelIds.add(level.id as string);
+			assertNonEmptyString(level.englishName, `${subject}: level "${level.id}": englishName`);
+			assertOptionalTibetanName(level.tibetanName, `${subject}: level "${level.id}": tibetanName`);
+		}
+	}
+
+	if (!Array.isArray(config.rules)) {
+		throw rangeError(
+			CODE,
+			`${subject}: rules must be an array. An institution is built by spreading a shipped ` +
+				"config — `{ ...EXAMPLE_OBSERVANCES, rules: [...EXAMPLE_OBSERVANCES.rules, mine] }` — " +
+				"never by supplying a partial one",
+		);
+	}
+
+	const seen = new Set<string>();
+	for (const rule of config.rules) {
+		if (!isRecord(rule)) {
+			throw rangeError(
+				CODE,
+				`${subject}: every rule must be an object, received ${describe(rule)}`,
+			);
+		}
+		assertKnownKeys(rule, RULE_KEYS, "an observance rule");
+		assertNonEmptyString(rule.id, "observance rule id");
+		// Documented as "unique within a config" and never enforced; duplicates silently produced
+		// duplicate results, ordered only by the sort's stability.
+		if (seen.has(rule.id as string)) {
+			throw rangeError(
+				CODE,
+				`observance rule id must be unique within a config, "${rule.id}" repeats`,
+			);
+		}
+		seen.add(rule.id as string);
+
+		const ruleSubject = `observance rule "${rule.id}"`;
+		assertNonEmptyString(rule.englishName, `${ruleSubject}: englishName`);
+		assertOptionalTibetanName(rule.tibetanName, `${ruleSubject}: tibetanName`);
+
+		if (rule.level !== undefined) {
+			assertNonEmptyString(rule.level, `${ruleSubject}: level`);
+			if (!levelIds.has(rule.level as string)) {
+				throw rangeError(
+					CODE,
+					`${ruleSubject}: level "${rule.level}" is not declared in the config's levels`,
+				);
+			}
+		}
+		assertTags(rule.tags, ruleSubject);
+		assertWhen(rule.when, ruleSubject);
+
+		assertOptionalChoice(rule.doubledDay, DOUBLED_DAY_CHOICES, `${ruleSubject} doubledDay`);
+		assertOptionalChoice(rule.skippedDay, SKIPPED_DAY_CHOICES, `${ruleSubject} skippedDay`);
+		assertOptionalChoice(rule.leapMonth, LEAP_MONTH_CHOICES, `${ruleSubject} leapMonth`);
+	}
+}
+
+/**
+ * Configs already validated, so a config passed on every frame of a UI is checked once.
+ *
+ * @remarks
+ * Keyed on the object, matching `scalingFor`. A consumer who mutates a config in place after first
+ * use escapes revalidation, which is the same bargain the scaling cache already makes. The bargain
+ * covers **consumer-supplied** configs only: `EXAMPLE_OBSERVANCES` is deeply frozen.
+ */
+const validatedConfigs = new WeakSet<ObservanceConfig>();
+
+/** Validates `config` once per object. */
+export function ensureValidated(config: ObservanceConfig): void {
+	if (isRecord(config) && validatedConfigs.has(config)) return;
+	validateObservanceConfig(config);
+	validatedConfigs.add(config);
+}

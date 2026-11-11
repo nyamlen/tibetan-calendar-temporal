@@ -22,8 +22,7 @@
  * @packageDocumentation
  */
 
-import type { TraditionOptions } from "../traditions/types.js";
-import type { TibetanDate } from "../types.js";
+import type { TibetanDate, TibetanName } from "../types.js";
 
 /**
  * Which calendar day carries an observance whose date is doubled.
@@ -73,58 +72,73 @@ export type SkippedDayChoice = "preceding" | "omit";
 export type LeapMonthChoice = "regular" | "leap" | "both";
 
 /**
- * What kind of occasion an observance is.
+ * A Tibetan month and day, the date an annual observance is fixed to.
  *
  * @remarks
- * The tradition's own categories, kept rather than flattened into one undifferentiated list,
- * because a consumer filtering for "the four great days" should not have to match on names.
- *
- * - `"duchen"` — a great occasion (*düchen* དུས་ཆེན་), commemorating an event in the Buddha's
- *   life. Merit is traditionally held to be multiplied on these.
- * - `"sojong"` — vow renewal (*sojong* གསོ་སྦྱོང་; Sanskrit *poṣadha* पोषध), on the full and new
- *   moon.
- * - `"tsok"` — a *tsok* ཚོགས་ offering (Sanskrit *gaṇacakra* गणचक्र), on the 10th and 25th.
- * - `"puja"` — a recurring dedicated practice, such as the Medicine Buddha and Tārā pujas on the
- *   8th or the protector puja on the 29th.
- * - `"anniversary"` — a teacher or lineage anniversary. **No data of this kind ships**; the kind
- *   exists so a caller can supply their own. See {@link ObservanceConfig}.
+ * `month` is the month's number, 1-12; whether a leap month of that number carries the observance
+ * is the {@link ObservanceConfig.leapMonth} convention's question, never a field here. A date
+ * entry with any other key — `isLeapMonth` above all — is refused rather than read as the month
+ * alone.
  */
-export type ObservanceKind = "duchen" | "sojong" | "tsok" | "puja" | "anniversary";
+export type TibetanMonthDay = { readonly month: number; readonly day: number };
 
 /**
- * When an observance falls: a fixed date each year, or a day number every month.
+ * When an observance falls, as one of a small set of forms discriminated by `type`.
  *
  * @remarks
- * These are the only two shapes the sources use. A Gregorian-fixed anniversary — FPMT prints the
- * Dalai Lama's birthday on 6 July — is deliberately not expressible: it is not a Tibetan calendar
- * fact, and a consumer already has `Temporal.PlainDate` for it.
+ * - `"monthly"` — on each of the listed day numbers, every month. A leap month's pair both carry
+ *   it, because the leap-month convention is about observances that have one occurrence a year.
+ * - `"annual"` — on each of the listed month-and-day dates, once a year.
+ *
+ * **This union is open to additions.** Further forms may be added in a minor release, so a
+ * consumer switching on `type` handles an unknown value with a `default` branch.
+ *
+ * A Gregorian-fixed anniversary — FPMT prints the Dalai Lama's birthday on 6 July — is not a
+ * Tibetan calendar fact and is not one of these.
  */
 export type ObservanceWhen =
-	| { readonly month: number; readonly day: number }
-	| { readonly day: number };
+	| { readonly type: "monthly"; readonly days: readonly number[] }
+	| { readonly type: "annual"; readonly dates: readonly TibetanMonthDay[] };
+
+/**
+ * A named grouping of rules, declared once on the config and named by each rule's
+ * {@link ObservanceRule.level}.
+ *
+ * @remarks
+ * The engine never acts on a level. It is a label a consumer filters or groups by, declared so that
+ * a rule naming one that does not exist is an error rather than a silent typo.
+ */
+export interface ObservanceLevel {
+	/** Identifier a rule names in {@link ObservanceRule.level}. Unique within a config. */
+	readonly id: string;
+
+	/** English name. */
+	readonly englishName: string;
+
+	/** The Tibetan name, where there is one. */
+	readonly tibetanName?: TibetanName;
+}
 
 /** One observance rule. */
 export interface ObservanceRule {
 	/** Stable identifier, e.g. `"chokhor-duchen"`. Unique within a config. */
 	readonly id: string;
 
-	/** English name, as the source gives it. */
-	readonly name: string;
+	/** English name. */
+	readonly englishName: string;
 
-	/** What kind of occasion this is. */
-	readonly kind: ObservanceKind;
+	/** The Tibetan name, where there is one. */
+	readonly tibetanName?: TibetanName;
+
+	/** The id of one of the config's {@link ObservanceConfig.levels}. */
+	readonly level?: string;
 
 	/**
-	 * Who may keep it: 1 universal, 2 general practice, 3 requires empowerment.
-	 *
-	 * @remarks
-	 * Advisory metadata for a consumer to filter on. The calendar cannot know what a given
-	 * practitioner holds, which is why this is a property of the observance rather than a
-	 * judgement about the reader.
+	 * Free labels for a consumer to filter on, distinct and non-empty. The engine never acts on one.
 	 */
-	readonly tier: 1 | 2 | 3;
+	readonly tags?: readonly string[];
 
-	/** A fixed month and day each year, or a day number recurring every month. */
+	/** When the observance falls. */
 	readonly when: ObservanceWhen;
 
 	/** Overrides the config's {@link ObservanceConfig.doubledDay} for this rule alone. */
@@ -135,16 +149,6 @@ export interface ObservanceRule {
 
 	/** Overrides the config's {@link ObservanceConfig.leapMonth} for this rule alone. */
 	readonly leapMonth?: LeapMonthChoice;
-
-	/**
-	 * Where this rule comes from.
-	 *
-	 * @remarks
-	 * Required, and required for consumer-supplied rules too. `CONTRIBUTING.md` asks for a
-	 * citation per fixture row; putting it in the published type carries that discipline outward,
-	 * so a rule invented from memory is at least conspicuously uncited.
-	 */
-	readonly source: string;
 }
 
 /**
@@ -154,23 +158,24 @@ export interface ObservanceRule {
  * Plain data, like `PHUGPA`, so an institution that differs spreads one rather than subclassing:
  *
  * ```ts
- * const kopan = { ...DEFAULT_OBSERVANCES, id: "kopan", doubledDay: "first" as const };
+ * const kopan = { ...EXAMPLE_OBSERVANCES, id: "kopan", doubledDay: "first" as const };
  * ```
  *
- * **Teacher anniversaries are not shipped.** {@link ObservanceKind} includes `"anniversary"` so a
- * caller can add them, but the data is institution-specific and changes within a decade — a new
- * spiritual director adds a row — and a zero-dependency computation engine should not need a
- * release when it does.
+ * It is a required argument of every query: no config is the default, because which days a
+ * practice keeps is a convention and the package does not choose one for a caller.
+ *
+ * **An object carrying a key this type does not have is refused**, naming the key, so a config
+ * written for an earlier shape fails rather than being half-read.
  */
 export interface ObservanceConfig {
-	/** Stable identifier, e.g. `"gelug"`. */
+	/** Stable identifier, e.g. `"example"`. */
 	readonly id: string;
 
-	/** Human-readable name. */
-	readonly name: string;
+	/** English name. */
+	readonly englishName: string;
 
-	/** The rules. Order does not matter; results are returned in date order. */
-	readonly rules: readonly ObservanceRule[];
+	/** The Tibetan name, where there is one. */
+	readonly tibetanName?: TibetanName;
 
 	/** Default for rules that do not set {@link ObservanceRule.doubledDay}. */
 	readonly doubledDay: DoubledDayChoice;
@@ -180,6 +185,12 @@ export interface ObservanceConfig {
 
 	/** Default for rules that do not set {@link ObservanceRule.leapMonth}. */
 	readonly leapMonth: LeapMonthChoice;
+
+	/** The levels rules may name. A rule naming a level not declared here is refused. */
+	readonly levels?: readonly ObservanceLevel[];
+
+	/** The rules. Order does not matter; results are returned in date order. */
+	readonly rules: readonly ObservanceRule[];
 }
 
 /**
@@ -207,33 +218,10 @@ export interface Observance {
 	 * @remarks
 	 * The **same object** the config holds, not a copy — so for a consumer-supplied config,
 	 * mutating this mutates their own rule table. `readonly` says so at compile time; the shipped
-	 * `DEFAULT_OBSERVANCES` is deeply frozen, so this aliases a frozen object there.
+	 * `EXAMPLE_OBSERVANCES` is deeply frozen, so this aliases a frozen object there.
 	 */
 	readonly rule: ObservanceRule;
 
 	/** How it landed here. */
 	readonly resolution: ObservanceResolution;
-}
-
-/**
- * Options for {@link getObservances} and {@link observancesOn}.
- *
- * @remarks
- * A bag rather than two sequential optional parameters, which is what these took until
- * 2026-08-26. That shape made a caller wanting a custom tradition with the default observances
- * write `getObservances(from, to, undefined, myTradition)` — passing `undefined` positionally to
- * reach past a parameter they had no opinion about. It was the only two-sequential-optionals
- * defect on the surface, and free to fix before 1.0.0.
- *
- * {@link addMonthsToDate} takes the same shape, which makes the bag this surface's stated pattern
- * for a function with two or more choices rather than a one-off exception to uniformity. Both
- * extend the same base, so the tradition's key is `tradition` in each. `config` here is the
- * `ObservanceConfig`, and its name belongs to the `./observances` rethink.
- */
-export interface ObservanceQueryOptions extends TraditionOptions {
-	/**
-	 * Which observances, and the conventions for resolving them.
-	 * Defaults to {@link DEFAULT_OBSERVANCES}.
-	 */
-	config?: ObservanceConfig;
 }
