@@ -450,7 +450,7 @@ that its first step is still open.
   Hyphens were considered and rejected: they are house style rather than a published standard, and
   a hyphen per syllable ("sa-ga-da-ba") does not mark a word.
   **A one-way door at 1.0.0, and surface-wide**: changing only some names would leave the package
-  inconsistent. Until it lands, new names (the `./observances` example's six) ship spaced like the rest.
+  inconsistent. The `./observances` example's six names (the four düchens, Saga Dawa and sojong) are the first to use it, by Andreas' decision of 2026-11-11, so until the rest follow the package is inconsistent on purpose.
 - [ ] **Composable/additive `ObservanceConfig`s — decide before 1.0.0, not after.** Today, a
       consumer combining several institutions' rule sets (e.g. `DEFAULT_OBSERVANCES` plus a `TEACHERS` and a
       `TANTRA` config) hand-rolls
