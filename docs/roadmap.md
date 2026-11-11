@@ -434,6 +434,23 @@ that its first step is still open.
       2026-09-14** for the composable-`ObservanceConfig` item below, which is where `ObservanceKind`
       and `ObservanceRule.name` are now tracked. A draft of this line first held the item open for
       them, which would have kept a completed item unticked against work it no longer covers.
+- [ ] **Join phonetics by word, surface-wide, through THL's word-separated mode.** Decided by
+  Andreas 2026-11-11. Every shipped `phonetic` today comes from THL's converter with each syllable
+  separate — 97 multi-syllable names, all spaced ("dru mang po"), none hyphenated — so *saga dawa*
+  ships as "sa ga da ba".
+  The converter's four word modes, checked 2026-11-11: "Use built-in word list" (`auto`, partial:
+  "sa ga dawa"), "Handle each syllable separately" (`none`), "Syllables in a word joined by"
+  (`join`, which needs a marker inside words; with none it behaves as `none`, which is what the
+  verifiers use), and "Words separated by" (`sep`), which gives "saga dawa" from `sa ga/zla ba`
+  and applies sandhi within a word (*chontrül*).
+  So each name needs its word boundaries supplied, and the output stays THL's.
+  The boundaries are a judgement, so they must be checkable: place them at dictionary headwords,
+  which the verifiers already confirm exist, and make the check mechanical. A boundary placed wrong
+  is silent — `sa ga zla ba'i dus chen` marked as one word gives "sagandawé düchen".
+  Hyphens were considered and rejected: they are house style rather than a published standard, and
+  a hyphen per syllable ("sa-ga-da-ba") does not mark a word.
+  **A one-way door at 1.0.0, and surface-wide**: changing only some names would leave the package
+  inconsistent. Until it lands, new names (the `./observances` example's six) ship spaced like the rest.
 - [ ] **Composable/additive `ObservanceConfig`s — decide before 1.0.0, not after.** Today, a
       consumer combining several institutions' rule sets (e.g. `DEFAULT_OBSERVANCES` plus a `TEACHERS` and a
       `TANTRA` config) hand-rolls
