@@ -230,11 +230,11 @@ consistency with Phugpa, and this is the open question a Bhutanese almanac would
 
 ### Observances are not validated for Bhutan
 
-`getObservances(from, to, { config: DEFAULT_OBSERVANCES, tradition: BHUTAN })` type-checks the
-moment `BHUTAN` is exported, and nothing establishes it. `DEFAULT_OBSERVANCES` is FPMT's
+`getObservances(from, to, EXAMPLE_OBSERVANCES, BHUTAN)` type-checks the
+moment `BHUTAN` is exported, and nothing establishes it. `EXAMPLE_OBSERVANCES` is FPMT's
 Tibetan-practice observance calendar; Bhutan's state calendar has its own holidays, including a
 winter solstice computed at mean solar longitude 250° that has no counterpart in
-`DEFAULT_OBSERVANCES` at all. Treat that pairing as out of scope.
+`EXAMPLE_OBSERVANCES` at all. Treat that pairing as out of scope.
 
 ### Still Bhutan's, and still not modelled
 

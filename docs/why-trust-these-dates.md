@@ -147,7 +147,7 @@ Three qualifications, all of which matter:
 
 ### Observances
 
-FPMT's observance set, shipped as `DEFAULT_OBSERVANCES`, is checked against **FPMT's own published
+FPMT's observance set, shipped as `EXAMPLE_OBSERVANCES`, is checked against **FPMT's own published
 monthly calendars for 2022–2026** — not merely against FPMT's guidance page, but against the
 calendars themselves, day by day.
 

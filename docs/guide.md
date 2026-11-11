@@ -201,28 +201,30 @@ the second half of a doubled pair and the other has it as an ordinary day. Compa
 
 ### Two kinds of config
 
-Both `getObservances` and `observancesOn` take **two** optional configs, and they are unrelated
+Both `getObservances` and `observancesOn` take **two** configs, and they are unrelated
 things that happen to share a word. Getting them the wrong way round is the easiest mistake to
 make against this API, so they are contrasted here rather than left to be inferred:
 
 ```js
-getObservances(from, to, { config: observanceConfig, tradition: traditionConfig });
-observancesOn(date, { config: observanceConfig, tradition: traditionConfig });
+getObservances(from, to, observanceConfig, traditionConfig);
+observancesOn(date, observanceConfig, traditionConfig);
 ```
 
-They travel in **one options bag**, and both keys are optional, so wanting a custom tradition with
-the default observances is `{ tradition }` alone. Until 2026-08-26 they were two sequential
-positional parameters, which made that case read `getObservances(from, to, undefined, tradition)`.
+Both are positional. The observance config is **required**: no config is the default, because which
+days a practice keeps is a convention and the package does not choose one for you, so a call
+without one throws `TCT_INVALID_OBSERVANCE_CONFIG`. The tradition is last and optional, defaulting
+to `PHUGPA`. Until 2026-11-11 both travelled in one options bag; passing that bag, or a
+`TraditionConfig`, where the config belongs throws the same code, naming the signature.
 
 | | `TraditionConfig` | `ObservanceConfig` |
 |---|---|---|
 | **Answers** | When is Tibetan day *n*? | Which days does an institution mark? |
-| **Contains** | Astronomical constants — mean motions, correction tables, epoch | Rules, each with a source URL, plus three convention defaults |
+| **Contains** | Astronomical constants — mean motions, correction tables, epoch | Rules, plus three convention defaults |
 | **Import from** | `tibetan-calendar-temporal` | `tibetan-calendar-temporal/observances` |
-| **Shipped** | `PHUGPA` (default), `PHUGPA_HENNING`, `BHUTAN`, `BHUTAN_HENNING` | `DEFAULT_OBSERVANCES` (default) |
+| **Shipped** | `PHUGPA` (default), `PHUGPA_HENNING`, `BHUTAN`, `BHUTAN_HENNING` | `EXAMPLE_OBSERVANCES` (an example, never a default) |
 | **Kind of claim** | **Falsifiable** — checkable against Janson and against an almanac. A disagreement is a bug | **Convention** — published sources legitimately disagree. A difference is a difference, not a bug |
 | **Wrong value gives** | A wrong calendar | A different institution's calendar |
-| **Named** | `tradition` — the parameter's name everywhere, and the key in every bag | `config`, the key in this bag |
+| **Named** | `tradition` — the parameter's name everywhere, and the key in every bag | `config`, the second positional parameter here |
 
 The root export never takes an `ObservanceConfig`, which is the point of the split: a consumer who
 only converts dates never inherits anyone's conventions. Both are extended the same way — spread a
@@ -338,15 +340,15 @@ as a table rather than as configuration, because no source disagrees with FPMT a
 Institutions differ by spreading the config, the same way `PHUGPA_HENNING` is built from `PHUGPA`:
 
 ```js
-const kopan = { ...DEFAULT_OBSERVANCES, id: 'kopan', doubledDay: 'first' };
-observancesOn(Temporal.PlainDate.from('2024-07-09'), { config: kopan });
-// Chokhor Duchen — where the shipped default puts it on 10 July
+const kopan = { ...EXAMPLE_OBSERVANCES, id: 'kopan', doubledDay: 'first' };
+observancesOn(Temporal.PlainDate.from('2024-07-09'), kopan);
+// Chokhor Duchen — where the shipped example puts it on 10 July
 ```
 
 Three convention fields decide what happens when a rule's day is not an ordinary one. Each can be
 set on the config as a default and overridden per rule:
 
-| Field | Values | Default in `DEFAULT_OBSERVANCES` | Decides |
+| Field | Values | Value in `EXAMPLE_OBSERVANCES` | Decides |
 |---|---|---|---|
 | `doubledDay` | `'first'` `'second'` `'both'` | `'second'` | Which half of a doubled day carries the observance, or both |
 | `skippedDay` | `'preceding'` `'omit'` | `'preceding'` | Whether a skipped day moves to the day before, or vanishes that month |
@@ -356,17 +358,14 @@ To add your own days, extend `rules` rather than replacing it:
 
 ```js
 const myCentre = {
-  ...DEFAULT_OBSERVANCES,
+  ...EXAMPLE_OBSERVANCES,
   id: 'my-centre',
   rules: [
-    ...DEFAULT_OBSERVANCES.rules,
+    ...EXAMPLE_OBSERVANCES.rules,
     {
       id: 'founder-anniversary',
-      name: 'Founder’s anniversary',
-      kind: 'anniversary',
-      tier: 2,
-      when: { month: 4, day: 15 },
-      source: 'https://example.org/calendar',
+      englishName: 'Founder’s anniversary',
+      when: { type: 'annual', dates: [{ month: 4, day: 15 }] },
       skippedDay: 'preceding',   // optional; falls back to the config default
     },
   ],
@@ -379,8 +378,8 @@ almanac's footnote rather than presenting a moved date as an exact one.
 
 Losar is deliberately *not* here: it is a calendar fact rather than a convention, so it is
 `losarFor` on the root export. Teacher anniversaries are not shipped either — that data is
-institution-specific and changes within a decade — but `kind: 'anniversary'` exists so you can
-supply your own, as above.
+institution-specific and changes within a decade — but a rule of your own, as above, can carry
+them.
 
 Calendar export (ICS) is deliberately out of scope: `getObservances` returns plain objects that a
 consumer maps to whatever format they need, and an `@nyamlen/icalendar` package remains open if

@@ -73,7 +73,7 @@ Implement solely from Svante Janson, "Tibetan Calendar Mathematics" (arXiv:1401.
 *algorithm* — epochs, mean motions, correction tables, leap-month and skipped-day rules — where a
 second source means reconciling two formulas for one number, which is how the `a₂` fork and the
 mixed-radix traps happened. It has never governed the **data** this package ships alongside the
-arithmetic, and the repository already proves that: `DEFAULT_OBSERVANCES`'s observance rules cite **FPMT**, and the
+arithmetic, and the repository already proves that: `EXAMPLE_OBSERVANCES`'s observance rules cite **FPMT**, and the
 Tibetan and rabjung names cite Wiktionary, THL, CLDR, Csoma, Monier-Williams and wisdomlib — five
 independent checks, because for a name a single Janson table is explicitly *not* sufficient.
 
@@ -390,7 +390,7 @@ derivation; in `docs/` they are just noise.
   numbers, derive it from that config; assertions specific to Phugpa's values belong in the test
   suite, where they also catch a mistyped transcription.
 - **The shipped configs are deeply frozen.** All five — `PHUGPA`, `PHUGPA_HENNING`, `BHUTAN`,
-  `BHUTAN_HENNING` and `DEFAULT_OBSERVANCES` — go through `deepFreeze` in `src/freeze.ts`. They are the objects the docs point at for `{ ...PHUGPA, … }`,
+  `BHUTAN_HENNING` and `EXAMPLE_OBSERVANCES` — go through `deepFreeze` in `src/freeze.ts`. They are the objects the docs point at for `{ ...PHUGPA, … }`,
   so they are the ones a keystroke off a spread mutates — and because scaling and validation are
   both memoised on the config object, a mutation after first use yields neither the old constants
   nor the new ones but a stale mix. Do not unfreeze one to make a test easier.
@@ -665,7 +665,7 @@ decision-record format, fixture provenance, whether
 validation suite is named for the fixture it validates, that an exported **tradition** config is
 imported by one — rule 10 matches only `export … from "./traditions/…"` in `src/index.ts`, so it
 does **not** see `ObservanceConfig` or anything on the `./observances` or `./astrology` barrels, and
-rule 13 is type-only, so neither guards a runtime value export on either — `DEFAULT_OBSERVANCES`,
+rule 13 is type-only, so neither guards a runtime value export on either — `EXAMPLE_OBSERVANCES`,
 `ELEMENTAL_YOGAS` and `LUNAR_MANSIONS` are held by `test/public-api.test.ts` and by rule 16,
 which requires every runtime export to have a row in the README's API table
 for its entry point — a rule about **documentation**, not about validation —
@@ -1167,8 +1167,9 @@ Provenance belongs in a `source` field and the docblock, which can carry a URL a
 an identifier cannot, and readers take a name at face value in a way they do not take prose.
 
 **The rule governs exported identifiers, not data fields, and the two deliberately disagree.**
-`config.id` stays `"gelug"` and `config.name` stays `"Gelug (FPMT)"` on the export
-`DEFAULT_OBSERVANCES`. Those fields are values inside a config object, read as data,
+`config.id` was `"gelug"` and `config.name` `"Gelug (FPMT)"` on the export now named
+`EXAMPLE_OBSERVANCES`, whose id is `"example"` since the observance rebuild (Task 1, 2026-11-11).
+The passage below argues for the old values and is rewritten in that rebuild's Task 10. Those fields are values inside a config object, read as data,
 and they are the only machine-readable statement of whose convention it is — deleting that buys
 nothing and loses the provenance the rule says to keep. The asymmetry is also load-bearing in one
 direction only: an **export name** may name a role, because it can be repointed at whatever plays
@@ -1189,9 +1190,8 @@ already drawn elsewhere in this file.
 precedes the name objects it identifies, because an English word printed after two name blocks reads
 as describing the second. Both rules are surface-wide and one-way doors at 1.0.0:
 [docs/decisions/2026-09-13-names-keyed-by-language.md](docs/decisions/2026-09-13-names-keyed-by-language.md).
-The surface does not yet hold to them everywhere — `ObservanceKind` uses ASCII Tibetan as keys and
-`ObservanceRule.name` is a bare string — which the pre-1.0.0 checklist in [docs/roadmap.md](docs/roadmap.md)
-tracks; `./astrology` holds to them. **Three shapes are in use, and the record's amendment says
+The surface held to them nowhere in `./observances` until the rebuild removed `ObservanceKind` and renamed
+`ObservanceRule.name` to `englishName` (2026-11-11); `./astrology` holds to them. **Three shapes are in use, and the record's amendment says
 which applies where**: sibling `*Name` fields for an object that is a name
 (`TibetanYearName`), a nested `{ englishName, tibetanName }` for a value inside an object with its own
 name (`yoga.auspiciousness`), and a trailing `tibetanNames` block for a block of labels (the four

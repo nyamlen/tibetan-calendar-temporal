@@ -126,7 +126,9 @@ tibetan-calendar-temporal/
 │   ├── observances/
 │   │   ├── index.ts                # getObservances, observancesOn (Layer 4)
 │   │   ├── types.ts                # ObservanceRule, ObservanceConfig, Observance
-│   │   └── default-observances.ts  # DEFAULT_OBSERVANCES — FPMT's published rules, each cited
+│   │   ├── validate.ts             # the config guard, memoised per config (internal)
+│   │   ├── forms.ts                # how each form of `when` lands on a day (internal)
+│   │   └── example-observances.ts  # EXAMPLE_OBSERVANCES — FPMT's published rules, as an example
 │   ├── astrology/                  # Janson's Appendix E (Layer 4) — one concern per file
 │   │   ├── index.ts                # the six *For entry points and the composition
 │   │   ├── types.ts                # DayAttributes, LunarMansion — the surface's own
@@ -345,26 +347,39 @@ interface TibetanYearName {
   animalName: TibetanName;  // རྟ *rta* for horse, སྟག *stag* for tiger
 }
 
+interface TibetanMonthDay {
+  month: number;   // 1-12; a leap month is chosen by the leapMonth convention
+  day: number;     // 1-30
+}
+
+interface ObservanceLevel {
+  id: string;            // named by a rule's `level`; unique within a config
+  englishName: string;
+  tibetanName?: TibetanName;
+}
+
 interface ObservanceRule {
   id: string;
-  name: string;
-  kind: 'duchen' | 'sojong' | 'tsok' | 'puja' | 'anniversary';
-  tier: 1 | 2 | 3;                        // Universal, General Practice, Empowerment-Required
-  when: { month: number; day: number }    // annual
-      | { day: number };                  // every month
+  englishName: string;
+  tibetanName?: TibetanName;
+  level?: string;                         // the id of one of the config's levels
+  tags?: readonly string[];               // distinct, non-empty; the engine never acts on one
+  when: { type: 'monthly'; days: readonly number[] }          // every month
+      | { type: 'annual'; dates: readonly TibetanMonthDay[] }; // once a year
   doubledDay?: 'first' | 'second' | 'both';   // overrides the config default
   skippedDay?: 'preceding' | 'omit';
   leapMonth?: 'regular' | 'leap' | 'both';
-  source: string;                         // required, including for caller-supplied rules
 }
 
 interface ObservanceConfig {
   id: string;
-  name: string;
-  rules: readonly ObservanceRule[];
+  englishName: string;
+  tibetanName?: TibetanName;
   doubledDay: 'first' | 'second' | 'both';
   skippedDay: 'preceding' | 'omit';
   leapMonth: 'regular' | 'leap' | 'both';
+  levels?: readonly ObservanceLevel[];
+  rules: readonly ObservanceRule[];
 }
 
 interface YearAttributes {

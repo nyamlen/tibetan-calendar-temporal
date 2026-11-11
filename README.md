@@ -64,7 +64,7 @@ see [why you can trust these dates](docs/why-trust-these-dates.md).
 | **Month grids** | A year's months in calendar order with their boundaries, and one entry per calendar day of a month, so a grid needs no arithmetic of its own |
 | **A full almanac row** | Fifteen fields per date: royal-era year, month code, day, true full and new moon, ISO and Tibetan weekday with its planet and element. The element–animal year name and the rabjung cycle position are properties of the *year*, so they are closed-form lookups rather than one value repeated on all 354 days |
 | **Names in three renderings** | Tibetan script, Wylie, and THL Simplified phonetics for every weekday, element, gender, animal and rabjung year — each verified against five independent sources before it shipped |
-| **Observances** | The great holy days and the monthly cycle, as configurable rules that carry their citation. Each result says *how* it landed on its day, so a display can show the almanac's footnote instead of presenting a moved date as an exact one |
+| **Observances** | The great holy days and the monthly cycle, as configurable rules. Each result says *how* it landed on its day, so a display can show the almanac's footnote instead of presenting a moved date as an exact one |
 | **Astrological attributes** | What kind of day it is, not just which day: the year's five elements, the month's and lunar day's labels, the calendar day's own, and the elemental yoga — which needs the moon's real position, not a cycle. A separate subpath, sourced piece by piece |
 | **Four traditions** | Phugpa and Bhutanese, each in two parameterisations. Constants and rules are injected as data, so a further tradition is a config object rather than a code change |
 | **Date arithmetic** | Add days or months, count between two dates, find the next true full or new moon, and reduce a month to one sortable integer for a database key |
@@ -109,7 +109,7 @@ differs from a published almanac and why, and which questions no available sourc
 | Date type | legacy `Date` | `Date` + Julian day | writes text files | `Temporal.PlainDate` |
 | Traditions | Phugpa | 3, as fixed classes | Phugpa, Tsurphu, Zhonnu Pal | 4 configs, more addable as data |
 | What a date carries | ~9 properties | a 6-element tuple | text columns | 15 fields, names in three scripts |
-| Observances | — | — | hardcoded columns | configurable, cited, with resolutions |
+| Observances | — | — | hardcoded columns | configurable, with resolutions |
 | Astrological data | — | — | **planets, lunar mansions, eclipses** | attributes and the yoga; no planets or eclipses |
 | Stated validated range | — | — | — | every claim carries its window |
 
@@ -450,32 +450,33 @@ Which days an institution marks — the great holy days and the monthly cycle �
 separate subpath:
 
 ```js
-import { getObservances, observancesOn, DEFAULT_OBSERVANCES } from 'tibetan-calendar-temporal/observances';
+import { getObservances, observancesOn, EXAMPLE_OBSERVANCES } from 'tibetan-calendar-temporal/observances';
 
 const duchen = getObservances(
   Temporal.PlainDate.from('2026-01-01'),
   Temporal.PlainDate.from('2026-12-31'),
-).filter((o) => o.rule.kind === 'duchen');
+  EXAMPLE_OBSERVANCES,
+).filter((o) => o.rule.id.endsWith('-duchen'));
 
-duchen.map((o) => `${o.rule.name}: ${o.date.isoDate}`);
-// [ "Chotrul Duchen: 2026-03-03", "Saka Dawa Duchen: 2026-05-31",
+duchen.map((o) => `${o.rule.englishName}: ${o.date.isoDate}`);
+// [ "Chotrul Duchen: 2026-03-03", "Saga Dawa Duchen: 2026-05-31",
 //   "Chokhor Duchen: 2026-07-18", "Lhabab Duchen: 2026-11-01" ]
 ```
 
 Each `Observance` is three fields — `date`, the `TibetanDate` it falls on and always a real calendar
-day; `rule`, the rule that produced it, carrying `id`, `name`, `kind` and `tier`; and `resolution`,
+day; `rule`, the rule that produced it, carrying `id` and `englishName`; and `resolution`,
 how it landed there. The `rule` is the **same object** the config holds rather than a copy, so for a
-config you supplied, mutating it mutates your own rule table; the shipped `DEFAULT_OBSERVANCES` is deeply frozen.
+config you supplied, mutating it mutates your own rule table; the shipped `EXAMPLE_OBSERVANCES` is deeply frozen.
 
-**`DEFAULT_OBSERVANCES` ships ten rules, and none of them is *sojong*.** Its kinds are `duchen`, `puja` and
-`tsok`. The `"sojong"` kind exists so you can supply your own rule, but no shipped rule produces
-one: a fixed 15th-and-30th convention misses 38 of FPMT's published occurrences over 2022–2025 and
+**`EXAMPLE_OBSERVANCES` ships nine rules, and none of them is *sojong*.** They are the four great
+days, the Medicine Buddha, Tara, Heruka, Dakini and protector days. No shipped rule produces
+sojong: a fixed 15th-and-30th convention misses 38 of FPMT's published occurrences over 2022–2025 and
 invents 36, so whatever governs it is not a day number. It is a **counted schedule** — the fortnight
 ending at a sojong is 15 days, or 14 at the end of an odd month — which reproduces 96 of the 98
 intervals between FPMT's sojongs over those years. It stays unshipped for two reasons that are not
 "nobody knows": what keeps the count in step with the moon is not yet sourced, and a count is a rule shape
-`ObservanceRule` cannot express. If you query for sojong and get nothing, that is why — not a mistake
-in your query. `DEFAULT_OBSERVANCES`' own docblock carries the full reasoning and the worked dates.
+`ObservanceWhen` cannot yet express. If you query for sojong and get nothing, that is why — not a mistake
+in your query. `EXAMPLE_OBSERVANCES`' own docblock carries the full reasoning and the worked dates.
 
 It is a separate import for a reason. Everything on the root export makes a **falsifiable** claim:
 a constant checks against Janson, a date against an almanac, and a disagreement is a bug. Nothing
@@ -707,20 +708,19 @@ Type-only exports, erased at runtime: `TibetanDate`, `TibetanDateFields`, `Tibet
 
 ### `tibetan-calendar-temporal/observances`
 
-A separate subpath, so a consumer who only converts dates never loads it. `config` here is an
-`ObservanceConfig` defaulting to `DEFAULT_OBSERVANCES`, and `tradition` is the `TraditionConfig`; both travel
-in one options bag rather than as two positional optionals — see
-[Two kinds of config](docs/guide.md#two-kinds-of-config).
+A separate subpath, so a consumer who only converts dates never loads it. `config` here is a required
+`ObservanceConfig`, and `tradition` is the `TraditionConfig`, defaulting to `PHUGPA`; both are
+positional, config first — see [Two kinds of config](docs/guide.md#two-kinds-of-config).
 
 | Export | Signature | Notes |
 |---|---|---|
-| `getObservances` | `(from: Temporal.PlainDate, to: Temporal.PlainDate, options?) => Observance[]` | `options` is `{ config?, tradition? }`, and any other key is refused. Date order. Returns `[]` if `to` precedes `from`; throws above a 200-year span |
-| `observancesOn` | `(date: Temporal.PlainDate, options?) => Observance[]` | The single-day case, same options |
-| `DEFAULT_OBSERVANCES` | | The default config, sourced from FPMT with a URL on every rule |
+| `getObservances` | `(from: Temporal.PlainDate, to: Temporal.PlainDate, config: ObservanceConfig, tradition?: TraditionConfig) => Observance[]` | Date order. Returns `[]` if `to` precedes `from`; throws above a 200-year span |
+| `observancesOn` | `(date: Temporal.PlainDate, config: ObservanceConfig, tradition?: TraditionConfig) => Observance[]` | The single-day case |
+| `EXAMPLE_OBSERVANCES` | | An example config, translated from FPMT's published practice dates |
 
-Type-only exports: `Observance`, `ObservanceConfig`, `ObservanceRule`, `ObservanceKind`,
-`ObservanceWhen`, `ObservanceResolution`, `DoubledDayChoice`, `SkippedDayChoice`,
-`LeapMonthChoice`, `ObservanceQueryOptions`.
+Type-only exports: `Observance`, `ObservanceConfig`, `ObservanceRule`, `ObservanceWhen`,
+`ObservanceLevel`, `TibetanMonthDay`, `ObservanceResolution`, `DoubledDayChoice`,
+`SkippedDayChoice`, `LeapMonthChoice`.
 
 Note that `SkippedDayError` is exported from the **root** only. Nothing in this layer throws it —
 a skipped day is handled by the `skippedDay` convention instead.
