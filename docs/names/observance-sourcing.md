@@ -37,16 +37,19 @@ The label says only that the day commemorates the person; it does not say whethe
 | `milarepa` | Milarepa | `mi la ras pa` | མི་ལ་རས་པ | `mi la ras pa` | *milarepa* |
 | `guru-rinpoche` | Guru Rinpoche | `gu ru rin po che` | གུ་རུ་རིན་པོ་ཆེ | `gu ru-rin po che` | *guru rinpoché* |
 | `gampopa` | Gampopa | `sgam po pa` | སྒམ་པོ་པ | `sgam po pa` | *gampopa* |
-| `karmapa-16` | Sixteenth Karmapa | `rgyal ba karma pa bcu drug pa` | རྒྱལ་བ་ཀརྨ་པ་བཅུ་དྲུག་པ | `rgyal ba-karma pa-bcu drug pa` | *gyelwa kama(?)pa chudrukpa* |
+| `karmapa-16` | Sixteenth Karmapa | `rgyal ba karma pa bcu drug pa` | རྒྱལ་བ་ཀརྨ་པ་བཅུ་དྲུག་པ | `rgyal ba-karma pa-bcu drug pa` | *gyelwa karmapa chudrukpa* (a correction: THL returns *gyelwa kama(?)pa chudrukpa*) |
 | `tsongkhapa` | Lama Tsong Khapa | `rje tsong kha pa` | རྗེ་ཙོང་ཁ་པ | `rje-tsong kha pa` | *jé tsongkhapa* |
-| `sakya-pandita` | Sakya Pandita | `sa skya paN+Di ta` | ས་སྐྱ་པཎྜི་ཏ | `sa skya-paN+Di ta` | *sakya pandi(?)ta* |
+| `sakya-pandita` | Sakya Pandita | `sa skya paN+Di ta` | ས་སྐྱ་པཎྜི་ཏ | `sa skya-paN+Di ta` | *sakya pandita* (a correction: THL returns *sakya pandi(?)ta*) |
 | `dudjom-rinpoche` | Dudjom Rinpoche | `bdud 'joms rin po che` | བདུད་འཇོམས་རིན་པོ་ཆེ | `bdud 'joms-rin po che` | *dünjom rinpoché* |
 
 The last column in both tables is what THL's converter returned on 2026-11-11 for the marked Wylie in "Words separated by" mode; the verifier must reproduce it, and a different result is a finding.
 
-**Two of those results carry THL's own uncertainty marker, "(?)":** *kama(?)pa* and *pandi(?)ta*.
+**Two of THL's results carry its own uncertainty marker, "(?)":** *kama(?)pa* and *pandi(?)ta*.
 THL's converter page says its output cannot be 100% accurate and that someone who understands the text should check it.
-**A phonetic that contains "(?)" fails check 5**, and since a `tibetanName` needs all three of script, Wylie and phonetics, those two names would ship English only unless a decision below says otherwise.
+Andreas checked them on 2026-11-11 and is sure of *karmapa* and *pandita*, so **these two phonetics are corrections to THL's output**, not THL's output.
+They are held as data in the verifier, in the pattern of the other corrections in this project ([CLAUDE.md](../../CLAUDE.md)): each states the value THL is expected to return (*gyelwa kama(?)pa chudrukpa* and *sakya pandi(?)ta*) and the value it is corrected to, and **the run refuses if THL no longer returns the expected value**, so a correction cannot outlive its reason.
+The evidence for each is Andreas' own knowledge of the pronunciation, which is a witness of a different kind from a dictionary, and the record says so rather than presenting it as sourced.
+Nothing else is corrected: the other twelve phonetics are THL's output unchanged.
 
 **Open spelling questions the checks must settle, not this page:**
 
@@ -68,9 +71,9 @@ The same sources the other name verifiers already read, through [scripts/tibetan
 | ***tshig mdzod chen mo***, ***dung dkar tshig mdzod chen mo*** | Copyrighted: **gate only** | That a headword exists; never quoted |
 | THL's own phonetics converter | A published standard | The `phonetic` field |
 
-**For the seven persons a further source is needed, and none has been chosen.**
+**For the seven persons a further source is needed, and the Buddhist Digital Resource Center was accepted for it on 2026-11-11.**
 The public-domain dictionaries are from 1881 and 1902, so they can carry the historical figures — Milarepa, Guru Rinpoche, Gampopa, Sakya Pandita, Tsong Khapa — but **cannot carry the two modern ones**, the Sixteenth Karmapa (1924–1981) and Dudjom Rinpoche (1904–1987).
-The natural witness for a person's name in Tibetan script is a biographical authority such as the Buddhist Digital Resource Center's person records; **whether it is available to the verifier, and what it states, has not been checked**.
+The natural witness for a person's name in Tibetan script is a biographical authority, and the Buddhist Digital Resource Center's person records are accepted as it; **whether they are available to the verifier, and what they state for each of the seven, has not been checked** and is the first thing the verifier's author does.
 If a modern person's name cannot be attested by two sources, it ships English only.
 
 ## The checks
@@ -87,7 +90,7 @@ Every one of the fourteen names must pass all of them, or it ships **English onl
    A headword's entry must state the calendar, ritual or biographical sense, not merely exist: `dus chen` and `zla ba` have other senses, and the homograph trap is the one [month-and-yoga-sourcing.md](month-and-yoga-sourcing.md) records.
 5. **THL phonetics from the converter's word-separated mode, with the word boundaries marked** (Andreas, 2026-11-11), as in the tables: "Words separated by" joins the syllables of each word and applies THL's own sandhi (*chönkhor*, *chontrül*), where the syllable-by-syllable mode the other shipped names use gives "so jong" and "dü chen".
    **The boundaries are a judgement, so they are checked**: each marked word must be a headword (or part of one) found by check 3, and a boundary placed wrongly is silent — `sa ga zla ba'i dus chen` marked as one word gives "sagandawé düchen".
-   **A phonetic containing THL's "(?)" marker fails this check.**
+   **A phonetic containing THL's "(?)" marker fails this check, unless a recorded correction (the two above) replaces it.**
    These fourteen are the first shipped names to use this mode; the other 97 stay spaced until the surface-wide roadmap item lands, so for now the package is inconsistent on purpose.
 
 The verifier refuses to emit if any check fails, and a check placed after the emit gate cannot fail the run, so each is placed above it and proved by mutation of its **input**, with an unmutated control.
@@ -96,6 +99,7 @@ The verifier refuses to emit if any check fails, and a check placed after the em
 
 - That any of the fourteen names is *correct* Tibetan: it claims only that a name which passes the checks is attested by the sources named, in the form given.
 - That the English names for the observances are translations. They are cited to FPMT's calendar labels or to Cornu's *Tibetan Astrology*, or marked authored, as [observances.md](../observances.md) records.
+- That the two corrected phonetics are THL's: they are Andreas' corrections of THL's output, and the verifier says so.
 - That an anniversary is a birth or a passing. The `anniversary` label does not say, and FPMT does not either; an event type could be added later as a further label.
 - That a Tibetan teacher agrees with the choice of name for a festival. Whether centres use these spellings, and the established Tibetan headings for the three levels, are questions for a teacher.
 
@@ -104,5 +108,5 @@ The verifier refuses to emit if any check fails, and a check placed after the em
 1. The fourteen rules above are the only ones that ship a Tibetan name.
 2. The five checks, and that a name failing any of them ships English only.
 3. That the spelling variants above are settled by the checks and not by this page.
-4. **What to do about the two "(?)" phonetics** (the Sixteenth Karmapa and Sakya Pandita): ship those two English only (recommended, since a hand-corrected phonetic would be an authored form where the project's rule is a published standard), or supply a correction from THL's own definition of the phonetic system.
-5. **A source for the persons' names**, in particular the two modern ones, to be chosen before the verifier is written.
+4. **Decided 2026-11-11:** the two "(?)" phonetics are corrected to *gyelwa karmapa chudrukpa* and *sakya pandita*, as self-invalidating data (Andreas: "use karmapa and pandita; I am sure of this").
+5. **Decided 2026-11-11:** the Buddhist Digital Resource Center's person records are the source for the persons' names, to be checked when the verifier is written.
