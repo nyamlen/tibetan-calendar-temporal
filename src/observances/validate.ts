@@ -20,9 +20,9 @@ import type { FormulaName, ObservanceConfig, ObservanceRule, ObservanceWhen } fr
 
 const CODE = "TCT_INVALID_OBSERVANCE_CONFIG";
 
-const DOUBLED_DAY_CHOICES = ["first", "second", "both"];
-const SKIPPED_DAY_CHOICES = ["preceding", "following", "omit"];
-const LEAP_MONTH_CHOICES = ["leap", "regular", "both"];
+export const DOUBLED_DAY_CHOICES = ["first", "second", "both"];
+export const SKIPPED_DAY_CHOICES = ["preceding", "following", "omit"];
+export const LEAP_MONTH_CHOICES = ["leap", "regular", "both"];
 
 const CONFIG_KEYS = [
 	"id",
@@ -88,7 +88,7 @@ const WESTERN_MONTH_LENGTHS = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
  * An array is an object, so it must be refused by name where a record belongs: `[t].flatMap(f)`
  * hands an array to a parameter nobody meant to be one.
  */
-function isRecord(value: unknown): value is Record<string, unknown> {
+export function isRecord(value: unknown): value is Record<string, unknown> {
 	return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
@@ -100,7 +100,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
  * one guards a function's options bag and throws `TCT_INVALID_ARGUMENT`, while this guards objects
  * inside a config and throws `TCT_INVALID_OBSERVANCE_CONFIG`, so the two differ in code and subject.
  */
-function assertKnownKeys(value: object, allowed: readonly string[], subject: string): void {
+export function assertKnownKeys(value: object, allowed: readonly string[], subject: string): void {
 	for (const key of Object.keys(value)) {
 		if (!allowed.includes(key)) {
 			throw rangeError(
@@ -111,7 +111,7 @@ function assertKnownKeys(value: object, allowed: readonly string[], subject: str
 	}
 }
 
-function assertNonEmptyString(value: unknown, subject: string): void {
+export function assertNonEmptyString(value: unknown, subject: string): void {
 	if (typeof value !== "string" || value === "") {
 		throw rangeError(CODE, `${subject} must be a non-empty string, received ${describe(value)}`);
 	}
@@ -141,12 +141,16 @@ function assertChoice(value: unknown, allowed: readonly string[], subject: strin
  * @remarks
  * Absent is legitimate here and only here: a missing override means "use the config's default".
  */
-function assertOptionalChoice(value: unknown, allowed: readonly string[], subject: string): void {
+export function assertOptionalChoice(
+	value: unknown,
+	allowed: readonly string[],
+	subject: string,
+): void {
 	if (value !== undefined) assertChoice(value, allowed, subject);
 }
 
 /** `{ tibetan, wylie, phonetic }`, three non-empty strings, when present. */
-function assertOptionalTibetanName(value: unknown, subject: string): void {
+export function assertOptionalTibetanName(value: unknown, subject: string): void {
 	if (value === undefined) return;
 	if (!isRecord(value)) {
 		throw rangeError(

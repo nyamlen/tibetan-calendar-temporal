@@ -23,7 +23,11 @@ import {
 	tibetanDateExists,
 	tibetanToIso,
 } from "../src/index.js";
-import { EXAMPLE_OBSERVANCES, nextObservance } from "../src/observances/index.js";
+import {
+	composeObservances,
+	EXAMPLE_OBSERVANCES,
+	nextObservance,
+} from "../src/observances/index.js";
 import { thrownBy } from "./support/thrown.js";
 
 // The property under test: **an error names the function the caller called**, and for a two-argument
@@ -564,6 +568,21 @@ describe("lunarDayAttributesFor, where the month and the day are both wrong", ()
 		expect(
 			thrownBy(() => lunarDayAttributesFor(date({ year: 11500, day: 31 }), PHUGPA_HENNING))?.code,
 		).toBe("TCT_FIELD_OUT_OF_RANGE");
+	});
+});
+
+describe("composeObservances names itself, not the validator", () => {
+	const layerRows = [
+		["a layer that is not an object", null, "the layer must be an object"],
+		["an unknown layer key", { id: "l", englishName: "L", rules: [] }, "has no key"],
+		["a layer id that is not a string", { id: 5, englishName: "L" }, "id"],
+		["a remove naming no rule", { id: "l", englishName: "L", remove: ["nope"] }, "remove"],
+		["an add naming a kept rule", { id: "l", englishName: "L", add: [{ id: "tara" }] }, "add"],
+	] as const;
+	it.each(layerRows)("%s", (_label, layer) => {
+		const error = thrownBy(() => composeObservances(EXAMPLE_OBSERVANCES, layer as never));
+		expect(error?.code).toBe("TCT_INVALID_OBSERVANCE_CONFIG");
+		expect(error?.message).toMatch(opening("composeObservances(layer"));
 	});
 });
 

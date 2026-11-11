@@ -305,6 +305,59 @@ export interface ObservanceConfig {
 }
 
 /**
+ * The differences between one {@link ObservanceConfig} and another, to be combined with
+ * {@link composeObservances}.
+ *
+ * @remarks
+ * Plain JSON-able data: a centre that differs from a base configuration writes only what differs.
+ * `id`, `englishName` and `tibetanName` name the **result**, and are never read from the base. Every
+ * other field is optional, and absent means no change.
+ *
+ * - `remove`: ids of base rules to drop.
+ * - `replace`: rules that take the place, at the same position, of the base rule with the same id.
+ * - `add`: rules appended after the base's.
+ * - `removeLevels`: ids of base levels to drop. A rule that still names one is refused.
+ * - `addLevels`: levels appended after the base's remaining ones, in the order given.
+ * - `doubledDay`, `skippedDay`, `leapMonth`: the result's defaults in place of the base's.
+ *
+ * **The keys are exactly these**, and any other is refused, naming it.
+ */
+export interface ObservanceLayer {
+	/** Stable identifier of the composed config. */
+	readonly id: string;
+
+	/** English name of the composed config. */
+	readonly englishName: string;
+
+	/** The Tibetan name of the composed config, where there is one. */
+	readonly tibetanName?: TibetanName;
+
+	/** Ids of base rules to drop. */
+	readonly remove?: readonly string[];
+
+	/** Rules replacing the base rules that share their ids, in place. */
+	readonly replace?: readonly ObservanceRule[];
+
+	/** Rules appended after the base's, in the order given. */
+	readonly add?: readonly ObservanceRule[];
+
+	/** Ids of base levels to drop. */
+	readonly removeLevels?: readonly string[];
+
+	/** Levels appended after the base's remaining ones, in the order given. */
+	readonly addLevels?: readonly ObservanceLevel[];
+
+	/** Replaces the base's {@link ObservanceConfig.doubledDay}. */
+	readonly doubledDay?: DoubledDayChoice;
+
+	/** Replaces the base's {@link ObservanceConfig.skippedDay}. */
+	readonly skippedDay?: SkippedDayChoice;
+
+	/** Replaces the base's {@link ObservanceConfig.leapMonth}. */
+	readonly leapMonth?: LeapMonthChoice;
+}
+
+/**
  * How an observance came to land on the day it did.
  *
  * @remarks

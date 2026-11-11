@@ -683,7 +683,7 @@ a `code`, which is what to branch on rather than the type:
 | `TCT_NO_SUCH_LEAP_MONTH` | every function taking a Tibetan month's or date's **fields**, except `tibetanDateExists`, which answers `false`, and the two formatters | `isLeapMonth: true` for a month with no leap twin that year |
 | `TCT_OUTSIDE_EXACT_RANGE` | any conversion, `nextObservance` for a `from` past the end, and the closed-form year functions `hasLeapMonth`, `leapMonthNumberFor`, `monthsInYear` | Beyond where this tradition's integer arithmetic stays exact. For a conversion, `PHUGPA` and `BHUTAN` are exact from about ISO year −245,737 to 236,312; `PHUGPA_HENNING` and `BHUTAN_HENNING` from about −20,781 to 11,356. Both ranges end inside Temporal's own. The three year functions are closed forms with a bound of their own, far wider: `hasLeapMonth(300000)` answers |
 | `TCT_INVALID_TRADITION_CONFIG` | any function taking a tradition | The `TraditionConfig` is malformed, or is not one at all — `null`, or a `{ tradition }` bag passed where the config itself belongs. The message names the field |
-| `TCT_INVALID_OBSERVANCE_CONFIG` | `getObservances`, `observancesOn`, `nextObservance` | The `ObservanceConfig` or one of its rules is malformed |
+| `TCT_INVALID_OBSERVANCE_CONFIG` | `getObservances`, `observancesOn`, `nextObservance`, `composeObservances` | The `ObservanceConfig` or one of its rules is malformed |
 | `TCT_SPAN_TOO_WIDE` | `getObservances` | More than 10 years requested at once. Chunk it; the function is pure, so concatenating is correct |
 | `TCT_ATTRIBUTE_NOT_SOURCED` | `monthAttributesFor`, `lunarDayAttributesFor` | Your input is fine; no source gives this attribute for this tradition. Thrown under `BHUTAN` and `BHUTAN_HENNING`, whose month animals Janson does not tabulate. `attributesFor` reports the same gap as `null` instead |
 | `TCT_MISSING_TEMPORAL` | the `import` itself, and any date entry point if the global `Temporal` is deleted afterwards | No `Temporal` in this runtime — see [Requirements](#requirements) |
@@ -717,10 +717,11 @@ positional, config first — see [Two kinds of config](docs/guide.md#two-kinds-o
 | `getObservances` | `(from: Temporal.PlainDate, to: Temporal.PlainDate, config: ObservanceConfig, tradition?: TraditionConfig) => Observance[]` | Date order. Returns `[]` if `to` precedes `from`; throws above a 10-year span |
 | `observancesOn` | `(date: Temporal.PlainDate, config: ObservanceConfig, tradition?: TraditionConfig) => Observance[]` | The single-day case |
 | `nextObservance` | `(from: Temporal.PlainDate, ruleId: string, config: ObservanceConfig, tradition?: TraditionConfig) => Observance \| null` | The first occurrence of one rule strictly after `from`. `null` means none within 10 years, or before the end of the computable range, not never |
+| `composeObservances` | `(base: ObservanceConfig, layer: ObservanceLayer) => ObservanceConfig` | A base and a layer of differences give a new validated, frozen configuration; the inputs are never changed |
 | `EXAMPLE_OBSERVANCES` | | An example config, translated from FPMT's published practice dates |
 
 Type-only exports: `Observance`, `ObservanceConfig`, `ObservanceRule`, `ObservanceWhen`,
-`ObservanceLevel`, `TibetanMonthDay`, `FormulaName`, `ObservanceResolution`, `DoubledDayChoice`,
+`ObservanceLayer`, `ObservanceLevel`, `TibetanMonthDay`, `FormulaName`, `ObservanceResolution`, `DoubledDayChoice`,
 `SkippedDayChoice`, `LeapMonthChoice`.
 
 Note that `SkippedDayError` is exported from the **root** only. Nothing in this layer throws it —

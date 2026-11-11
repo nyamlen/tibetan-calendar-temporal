@@ -45,6 +45,7 @@ import {
 	yearNameFor,
 } from "../src/index.js";
 import {
+	composeObservances,
 	EXAMPLE_OBSERVANCES,
 	getObservances,
 	nextObservance,
@@ -255,6 +256,13 @@ const CONFIG: readonly Row[] = [
 		"nextObservance(from, ruleId, config, tradition)",
 		(x) => nextObservance(ISO, "tara", EXAMPLE_OBSERVANCES, v(x)),
 	],
+	...["id", "englishName", "doubledDay", "skippedDay", "leapMonth"].map(
+		(field): Row => [
+			`composeObservances(base, layer) layer.${field}`,
+			(x) => composeObservances(EXAMPLE_OBSERVANCES, v({ id: "l", englishName: "L", [field]: x })),
+			field === "id" || field === "englishName" ? ["numeric string"] : [],
+		],
+	),
 ];
 
 // A consumer's ObservanceConfig, whose rule fields the validator renders. `LEVEL_CONFIG` declares a
@@ -454,7 +462,37 @@ const RULE_FIELD: readonly Row[] = [
 ];
 
 // Where a whole object belongs, so a Proxy is the caller's own code throwing and is left out.
+const layerWith = (patch: object) => v({ id: "l", englishName: "L", ...patch });
 const RULE_OBJECT: readonly Row[] = [
+	["composeObservances(base, layer) base", (x) => composeObservances(v(x), layerWith({}))],
+	["composeObservances(base, layer) layer", (x) => composeObservances(EXAMPLE_OBSERVANCES, v(x))],
+	...["tibetanName", "remove", "replace", "add", "removeLevels", "addLevels"].flatMap(
+		(field): Row[] => [
+			[
+				`composeObservances(base, layer) layer.${field}`,
+				(x) => composeObservances(EXAMPLE_OBSERVANCES, layerWith({ [field]: x })),
+			],
+			...(field === "tibetanName"
+				? []
+				: ([
+						[
+							`composeObservances(base, layer) layer.${field} entry`,
+							(x: unknown) => composeObservances(EXAMPLE_OBSERVANCES, layerWith({ [field]: [x] })),
+						],
+					] as Row[])),
+		],
+	),
+	...["tibetan", "wylie", "phonetic"].map(
+		(part): Row => [
+			`composeObservances(base, layer) layer.tibetanName.${part}`,
+			(x) =>
+				composeObservances(
+					EXAMPLE_OBSERVANCES,
+					layerWith({ tibetanName: { tibetan: "a", wylie: "a", phonetic: "a", [part]: x } }),
+				),
+			STRING_OK,
+		],
+	),
 	[
 		"getObservances(…, config) monthly days",
 		(x) => getObservances(ISO, ISO, withWhen({ type: "monthly", days: x })),

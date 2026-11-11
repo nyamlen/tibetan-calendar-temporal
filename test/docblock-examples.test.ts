@@ -17,6 +17,7 @@ import {
 	monthsBetween,
 	nextFullMoon,
 } from "../src/navigation.js";
+import { composeObservances, EXAMPLE_OBSERVANCES } from "../src/observances/index.js";
 import { BHUTAN } from "../src/traditions/bhutan.js";
 import { PHUGPA } from "../src/traditions/phugpa.js";
 import { asTibetanWeekday, type TibetanWeekday } from "../src/types.js";
@@ -256,6 +257,17 @@ describe("docblock examples", () => {
 	});
 	// `src/astrology/`'s docblocks compile into `dist/astrology/*.d.ts`, so their examples ship as
 	// contract like every other module's.
+	describe("observances/compose.ts", () => {
+		it("composes Kopan's one-key layer on the example config", () => {
+			const kopan = composeObservances(EXAMPLE_OBSERVANCES, {
+				id: "kopan",
+				englishName: "Kopan",
+				doubledDay: "first",
+			});
+			expect(kopan.doubledDay).toBe("first");
+			expect(kopan.rules).toEqual(EXAMPLE_OBSERVANCES.rules);
+		});
+	});
 	describe("astrology/month.ts and astrology/lunar-day.ts", () => {
 		it("states Phugpa's month 1 of 2026 correctly", () => {
 			expect(monthAttributes(PHUGPA, 2026, 1)).toMatchObject({

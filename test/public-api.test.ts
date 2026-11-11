@@ -568,6 +568,7 @@ describe("error codes", () => {
  */
 const EXPECTED_OBSERVANCE_EXPORTS = [
 	"EXAMPLE_OBSERVANCES",
+	"composeObservances",
 	"getObservances",
 	"nextObservance",
 	"observancesOn",
@@ -576,6 +577,12 @@ const EXPECTED_OBSERVANCE_EXPORTS = [
 describe("observances API surface", () => {
 	it("exports exactly the documented names", () => {
 		expect(Object.keys(observances).sort()).toEqual([...EXPECTED_OBSERVANCE_EXPORTS]);
+	});
+
+	it("exports composeObservances as a function and ObservanceLayer as a type", () => {
+		expect(typeof observances.composeObservances).toBe("function");
+		const layer: observances.ObservanceLayer = { id: "kopan", englishName: "Kopan" };
+		expect(layer.id).toBe("kopan");
 	});
 
 	it("exports nextObservance as a function", () => {

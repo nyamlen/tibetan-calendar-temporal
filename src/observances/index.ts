@@ -31,6 +31,7 @@ import { MAX_SPAN_YEARS, occurrencesOfRule, tibetanDateMemo } from "./occurrence
 import type { Observance, ObservanceConfig } from "./types.js";
 import { ensureValidated } from "./validate.js";
 
+export { composeObservances } from "./compose.js";
 export { EXAMPLE_OBSERVANCES } from "./example-observances.js";
 export { nextObservance } from "./next.js";
 export type {
@@ -39,6 +40,7 @@ export type {
 	LeapMonthChoice,
 	Observance,
 	ObservanceConfig,
+	ObservanceLayer,
 	ObservanceLevel,
 	ObservanceResolution,
 	ObservanceRule,
