@@ -261,7 +261,7 @@ It has **two independent witnesses**, and meets the rule with no exception:
 
 - The Google Books catalogue record `books.google.com/books/about/x.html?id=s61Sj5amlx0C`.
   Its page title is *རྒྱལ་དབང་ཀརྨ་པ་བཅུ་དྲུག་པ་ཆེན་པོའི་གསུང་འབུམ།* ("Collected Works of the Great Sixteenth Karmapa"), which opens with the spelling followed by *ཆེན་པོའི་*.
-  Its record fields: *Volume 2*; contributor the Buddhist Digital Resource Center; publisher Tsurphu Labrang and the Amnye Machen Institute, 2016; digitised by Google on 31 October 2025.
+  Its record fields: *Volume 2*; contributor the Buddhist Digital Resource Center; publisher Tsurphu Labrang and the Amnye Machen Institute, 2016; digitised by Google on 31 October 2025. *Volume 2*, the publisher and 2016 are in the recorded response; the contributor and the digitising date were read on the live page on 2026-11-11 and are not in the recorded response.
   It is a catalogue record, not a headword.
 - Lotsawa House's Tibetan page for Dudjom Rinpoche's short prayer for the Sixteenth Karmapa's long life, whose title is *རྒྱལ་དབང་ཀརྨ་པ་བཅུ་དྲུག་པ་ཆེན་པོའི་ཞབས་བརྟན།*, a work's title page (the type approved in item 11).
 
