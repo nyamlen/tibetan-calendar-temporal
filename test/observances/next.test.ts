@@ -275,6 +275,231 @@ describe("nextObservance, the end of the computable range", () => {
 	});
 });
 
+/** The first and last ISO days PHUGPA converts, each found by the conversion's own refusal. */
+const convertibleEnds = (() => {
+	const converts = (d: Temporal.PlainDate) => thrownBy(() => isoToTibetan(d, PHUGPA)) === undefined;
+	const days = (a: Temporal.PlainDate, b: Temporal.PlainDate) =>
+		Math.abs(a.until(b, { largestUnit: "days" }).days);
+	const bisect = (ok0: Temporal.PlainDate, bad0: Temporal.PlainDate) => {
+		let ok = ok0;
+		let bad = bad0;
+		while (days(ok, bad) > 1) {
+			const step = Math.floor(days(ok, bad) / 2);
+			const middle =
+				Temporal.PlainDate.compare(bad, ok) > 0
+					? ok.add({ days: step })
+					: ok.subtract({ days: step });
+			if (converts(middle)) ok = middle;
+			else bad = middle;
+		}
+		return ok;
+	};
+	return {
+		first: bisect(iso("2026-01-01"), iso("-271821-04-19")),
+		last: bisect(iso("2026-01-01"), iso("+275760-01-01")),
+	};
+})();
+
+const FORM_CONFIGS: readonly (readonly [string, ObservanceConfig, string])[] = [
+	["no rules", withRules([]), ""],
+	[
+		"a western-only config",
+		withRules([{ id: "r", when: { type: "western", month: 3, day: 1 } }]),
+		"r",
+	],
+	["a monthly config", withRules([{ id: "r", when: { type: "monthly", days: [8, 15] } }]), "r"],
+	["a counted config", withRules([{ id: "r", when: SOJONG_WHEN }]), "r"],
+	[
+		"a formula config",
+		withRules([{ id: "r", when: { type: "formula", formula: "lunarDayPlusWeekdayMod4" } }]),
+		"r",
+	],
+];
+
+describe("a range end refused whatever the config holds", () => {
+	const { first, last } = convertibleEnds;
+	const OUTSIDE = "TCT_OUTSIDE_EXACT_RANGE";
+
+	it("finds both ends through the conversion's refusal", () => {
+		expect(thrownBy(() => isoToTibetan(first, PHUGPA))).toBeUndefined();
+		expect(thrownBy(() => isoToTibetan(first.subtract({ days: 1 }), PHUGPA))?.code).toBe(OUTSIDE);
+		expect(thrownBy(() => isoToTibetan(last.add({ days: 1 }), PHUGPA))?.code).toBe(OUTSIDE);
+	});
+
+	describe.each(FORM_CONFIGS)("getObservances with %s", (_label, config) => {
+		it("refuses a `from` before the range", () => {
+			const from = first.subtract({ days: 1 });
+			expect(thrownBy(() => getObservances(from, first.add({ days: 5 }), config))?.code).toBe(
+				OUTSIDE,
+			);
+		});
+		it("refuses a `from` after the range", () => {
+			const from = last.add({ days: 1 });
+			expect(thrownBy(() => getObservances(from, from.add({ days: 5 }), config))?.code).toBe(
+				OUTSIDE,
+			);
+		});
+		it("refuses a `to` before the range", () => {
+			const to = first.subtract({ days: 1 });
+			expect(thrownBy(() => getObservances(to.subtract({ days: 5 }), to, config))?.code).toBe(
+				OUTSIDE,
+			);
+		});
+		it("refuses a `to` after the range", () => {
+			const to = last.add({ days: 1 });
+			expect(thrownBy(() => getObservances(last.subtract({ days: 5 }), to, config))?.code).toBe(
+				OUTSIDE,
+			);
+		});
+	});
+
+	describe.each(FORM_CONFIGS.filter(([, , id]) => id !== ""))(
+		"nextObservance with %s",
+		(_label, config, id) => {
+			it("refuses a `from` before the range", () => {
+				expect(thrownBy(() => nextObservance(first.subtract({ days: 1 }), id, config))?.code).toBe(
+					OUTSIDE,
+				);
+			});
+			it("refuses a `from` after the range", () => {
+				expect(thrownBy(() => nextObservance(last.add({ days: 1 }), id, config))?.code).toBe(
+					OUTSIDE,
+				);
+			});
+		},
+	);
+});
+
+const EXPECTED_AT_THE_END: Record<string, string[]> = {
+	monthly: ["a day", "null"],
+	annual: ["null"],
+	period: ["null"],
+	counted: ["a day", "null"],
+	formula: ["a day", "null"],
+};
+
+describe("nextObservance, month walks that cross the end of the range", () => {
+	const { last } = convertibleEnds;
+	const forms: readonly (readonly [string, Record<string, unknown>])[] = [
+		["monthly", { type: "monthly", days: [8, 15] }],
+		["annual", { type: "annual", dates: [{ month: 1, day: 15 }] }],
+		["period", { type: "period", first: { month: 11, day: 1 }, last: { month: 11, day: 20 } }],
+		["counted", SOJONG_WHEN],
+		["formula", { type: "formula", formula: "lunarDayPlusWeekdayMod4" }],
+	];
+
+	it.each(forms)(
+		"%s answers null or a day on or before the end, or throws a coded range error",
+		(_form, when) => {
+			const config = withRules([{ id: "r", when }]);
+			const bad: string[] = [];
+			const outcomes = new Set<string>();
+			for (let back = 40; back >= 0; back--) {
+				const from = last.subtract({ days: back });
+				let found: Observance | null = null;
+				const error = thrownBy(() => {
+					found = nextObservance(from, "r", config);
+				});
+				if (error !== undefined) {
+					outcomes.add(`threw ${error.code}`);
+					if (error.code !== "TCT_OUTSIDE_EXACT_RANGE")
+						bad.push(`${from.toString()}: threw ${error.code}`);
+					continue;
+				}
+				const result = found as Observance | null;
+				outcomes.add(result === null ? "null" : "a day");
+				if (result !== null && Temporal.PlainDate.compare(result.date.isoDate, last) > 0) {
+					bad.push(`${from.toString()}: ${result.date.isoDate.toString()} is past the end`);
+				}
+			}
+			expect(bad).toEqual([]);
+			// What actually happens, pinned: the walk past the edge neither throws nor finds a day beyond it.
+			expect([...outcomes].sort()).toEqual(EXPECTED_AT_THE_END[_form] ?? []);
+		},
+	);
+});
+
+describe("nextObservance, a hit on the first day of a later search chunk", () => {
+	// The search starts the day after `from`, spans FIRST_CHUNK_DAYS[form] days, then doubles, so the
+	// second chunk's first day is `from` + size + 1 and the third's is `from` + 3 * size + 1. A hit on
+	// exactly those days is found only if the search does not drop a chunk's first day. Monthly,
+	// formula and counted rules recur within 31 days, so no chunk of theirs is ever empty and no
+	// pin can sit on an edge for them; western (2922), annual (731) and period (62) can.
+	const fromOffset = (target: string, offset: number) => iso(target).subtract({ days: offset });
+	const at = (from: Temporal.PlainDate, id: string, config: ObservanceConfig) =>
+		nextObservance(from, id, config)?.date.isoDate.toString();
+
+	it("western: the second chunk's first day, 2923 days on", () => {
+		const config = withRules([
+			{ id: "w", when: { type: "western", month: 3, day: 21, fromYear: 2030, untilYear: 2030 } },
+		]);
+		expect(at(fromOffset("2030-03-21", 2923), "w", config)).toBe("2030-03-21");
+		expect(at(fromOffset("2030-03-21", 2922), "w", config)).toBe("2030-03-21");
+		expect(at(fromOffset("2030-03-21", 2924), "w", config)).toBe("2030-03-21");
+	});
+
+	it("annual: the second chunk's first day, 732 days on, and the third's, 2193", () => {
+		const config = withRules([
+			{
+				id: "a",
+				when: { type: "annual", dates: [{ month: 4, day: 15 }], fromYear: 2153, untilYear: 2153 },
+			},
+		]);
+		for (const offset of [731, 732, 733, 2192, 2193, 2194]) {
+			expect(at(fromOffset("2026-05-31", offset), "a", config), String(offset)).toBe("2026-05-31");
+		}
+	});
+
+	it("period: a span's first day on the second and third chunks' first days", () => {
+		const config = withRules([
+			{
+				id: "p",
+				when: { type: "period", first: { month: 4, day: 1 }, last: { month: 4, day: 30 } },
+			},
+		]);
+		for (const offset of [62, 63, 64, 186, 187, 188]) {
+			const next = nextObservance(fromOffset("2026-05-17", offset), "p", config);
+			expect(next?.date.isoDate.toString(), String(offset)).toBe("2026-05-17");
+			expect(next?.period?.last.isoDate.toString(), String(offset)).toBe("2026-06-15");
+		}
+	});
+
+	it("period: a span cut by a chunk's end still carries its whole bounds", () => {
+		const config = withRules([
+			{
+				id: "p",
+				when: { type: "period", first: { month: 4, day: 1 }, last: { month: 4, day: 30 } },
+			},
+		]);
+		// From 2026-03-24 the first chunk is 2026-03-25..2026-05-25, which ends inside the span.
+		const next = nextObservance(iso("2026-03-24"), "p", config);
+		expect(next?.date.isoDate.toString()).toBe("2026-05-17");
+		expect(next?.period?.first.isoDate.toString()).toBe("2026-05-17");
+		expect(next?.period?.last.isoDate.toString()).toBe("2026-06-15");
+	});
+
+	it("doubledDay both: a pair whose halves straddle a chunk edge is visited once each", () => {
+		// Tibetan 25 of month 12 of 2152 is doubled: 11 and 12 February 2026.
+		const config = withRules([
+			{
+				id: "d",
+				doubledDay: "both",
+				when: { type: "annual", dates: [{ month: 12, day: 25 }], fromYear: 2152, untilYear: 2152 },
+			},
+		]);
+		// 731 days on is the first half, the last day of the first chunk; the second half then opens
+		// the second chunk. One day sooner both halves open it.
+		for (const offset of [731, 732, 733]) {
+			expect(at(fromOffset("2026-02-11", offset), "d", config), String(offset)).toBe("2026-02-11");
+		}
+		const visited = chain("2024-02-11", "2026-03-31", "d", config).map(
+			(o) => `${o.date.isoDate.toString()} ${o.resolution}`,
+		);
+		expect(visited).toEqual(["2026-02-11 firstOfDoubled", "2026-02-12 secondOfDoubled"]);
+		expect(at(fromOffset("2026-02-12", 731), "d", config)).toBe("2026-02-11");
+	});
+});
+
 describe("nextObservance, a counted rule", () => {
 	const sojong = withRules([
 		{ id: "s", doubledDay: "first", skippedDay: "following", leapMonth: "leap", when: SOJONG_WHEN },
