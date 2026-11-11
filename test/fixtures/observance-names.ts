@@ -14,10 +14,10 @@
  * Andreas' correction of a "(?)" in THL's output, held in the script as data that refuses to run if THL
  * stops returning the expected value.
  *
- * `singleWitness` is true for the one name that ships on a single witness, by Andreas' ruling of
- * 2026-11-11: the Sixteenth Karmapa, whose only witness to `rgyal dbang karma pa bcu drug pa` is the Google Books
- * catalogue record of his collected works (a published title, not a headword). It is an exception held as data in the script, which
- * refuses to run if it is needed for any other name or if a second witness appears.
+ * A witness with `humanSupplied` was read in a browser and pasted by Andreas on 2026-11-11 and was
+ * **not fetched** by the script: the four Rigpa Wiki passages for the düchens, held in
+ * `scripts/observance-name-rigpa-passages.data.json`. They cannot be re-fetched here, so the baseline
+ * cannot detect the pages changing.
  */
 
 export interface ObservanceNameCitation {
@@ -26,6 +26,7 @@ export interface ObservanceNameCitation {
 	page: number | null;
 	label?: string;
 	gateOnly?: true;
+	humanSupplied?: true;
 }
 
 export interface ObservanceNameRow {
@@ -37,7 +38,6 @@ export interface ObservanceNameRow {
 	phonetic: string;
 	thlPhonetic: string;
 	phoneticCorrected: boolean;
-	singleWitness: boolean;
 	witnesses: readonly ObservanceNameCitation[];
 	sense: readonly (ObservanceNameCitation & { sense: string })[];
 }
@@ -52,10 +52,16 @@ export const OBSERVANCE_NAMES: readonly ObservanceNameRow[] = [
 		phonetic: "chontrül düchen",
 		thlPhonetic: "chontrül düchen",
 		phoneticCorrected: false,
-		singleWitness: false,
 		witnesses: [
 			{ source: "Jäschke 1881", entry: "dus-čén, under dus (Comp.)", page: 255 },
 			{ source: "tshig mdzod chen mo", entry: "dus chen", page: null, gateOnly: true },
+			{
+				source:
+					"Rigpa Wiki, the whole term (read in a browser and pasted by Andreas, 2026-11-11; not fetched by the script)",
+				entry: "https://rigpawiki.org/index.php?title=Chotrul_D%C3%BCchen",
+				page: null,
+				humanSupplied: true,
+			},
 		],
 		sense: [
 			{
@@ -75,10 +81,16 @@ export const OBSERVANCE_NAMES: readonly ObservanceNameRow[] = [
 		phonetic: "saga dawa düchen",
 		thlPhonetic: "saga dawa düchen",
 		phoneticCorrected: false,
-		singleWitness: false,
 		witnesses: [
 			{ source: "Jäschke 1881", entry: "dus-čén, under dus (Comp.)", page: 255 },
 			{ source: "tshig mdzod chen mo", entry: "dus chen", page: null, gateOnly: true },
+			{
+				source:
+					"Rigpa Wiki, the whole term (read in a browser and pasted by Andreas, 2026-11-11; not fetched by the script)",
+				entry: "https://rigpawiki.org/index.php?title=Saga_Dawa_D%C3%BCchen",
+				page: null,
+				humanSupplied: true,
+			},
 		],
 		sense: [
 			{
@@ -98,10 +110,16 @@ export const OBSERVANCE_NAMES: readonly ObservanceNameRow[] = [
 		phonetic: "chönkhor düchen",
 		thlPhonetic: "chönkhor düchen",
 		phoneticCorrected: false,
-		singleWitness: false,
 		witnesses: [
 			{ source: "Jäschke 1881", entry: "dus-čén, under dus (Comp.)", page: 255 },
 			{ source: "tshig mdzod chen mo", entry: "dus chen", page: null, gateOnly: true },
+			{
+				source:
+					"Rigpa Wiki, the whole term (read in a browser and pasted by Andreas, 2026-11-11; not fetched by the script)",
+				entry: "https://rigpawiki.org/index.php?title=Ch%C3%B6khor_D%C3%BCchen",
+				page: null,
+				humanSupplied: true,
+			},
 		],
 		sense: [
 			{
@@ -121,10 +139,16 @@ export const OBSERVANCE_NAMES: readonly ObservanceNameRow[] = [
 		phonetic: "lhabap düchen",
 		thlPhonetic: "lhabap düchen",
 		phoneticCorrected: false,
-		singleWitness: false,
 		witnesses: [
 			{ source: "Jäschke 1881", entry: "dus-čén, under dus (Comp.)", page: 255 },
 			{ source: "tshig mdzod chen mo", entry: "dus chen", page: null, gateOnly: true },
+			{
+				source:
+					"Rigpa Wiki, the whole term (read in a browser and pasted by Andreas, 2026-11-11; not fetched by the script)",
+				entry: "https://rigpawiki.org/index.php?title=Lha_Bab_D%C3%BCchen",
+				page: null,
+				humanSupplied: true,
+			},
 		],
 		sense: [
 			{
@@ -144,7 +168,6 @@ export const OBSERVANCE_NAMES: readonly ObservanceNameRow[] = [
 		phonetic: "saga dawa",
 		thlPhonetic: "saga dawa",
 		phoneticCorrected: false,
-		singleWitness: false,
 		witnesses: [
 			{ source: "Jäschke 1881", entry: "zlá-ba", page: 490 },
 			{ source: "Mahāvyutpatti", entry: "zla ba|somaḥ", page: null },
@@ -169,7 +192,6 @@ export const OBSERVANCE_NAMES: readonly ObservanceNameRow[] = [
 		phonetic: "sojong",
 		thlPhonetic: "sojong",
 		phoneticCorrected: false,
-		singleWitness: false,
 		witnesses: [
 			{ source: "Jäschke 1881", entry: "yso-sbyoń-ba", page: 590 },
 			{ source: "Mahāvyutpatti", entry: "gso sbyong|poṣadhaḥ", page: null },
@@ -193,7 +215,6 @@ export const OBSERVANCE_NAMES: readonly ObservanceNameRow[] = [
 		phonetic: "jinsek",
 		thlPhonetic: "jinsek",
 		phoneticCorrected: false,
-		singleWitness: false,
 		witnesses: [
 			{ source: "Mahāvyutpatti", entry: "sbyin sreg|homaḥ", page: null },
 			{
@@ -222,7 +243,6 @@ export const OBSERVANCE_NAMES: readonly ObservanceNameRow[] = [
 		phonetic: "milarepa",
 		thlPhonetic: "milarepa",
 		phoneticCorrected: false,
-		singleWitness: false,
 		witnesses: [
 			{ source: "BDRC person record", entry: "bdr:P1853", page: null, label: "mi la ras pa" },
 			{ source: "tshig mdzod chen mo", entry: "mi la ras pa", page: null, gateOnly: true },
@@ -246,7 +266,6 @@ export const OBSERVANCE_NAMES: readonly ObservanceNameRow[] = [
 		phonetic: "guru rinpoché",
 		thlPhonetic: "guru rinpoché",
 		phoneticCorrected: false,
-		singleWitness: false,
 		witnesses: [
 			{ source: "BDRC person record", entry: "bdr:P4956", page: null, label: "gu ru rin po che" },
 			{ source: "Tibetan Wikipedia title", entry: "གུ་རུ་རིན་པོ་ཆེ་ (a redirect)", page: null },
@@ -269,7 +288,6 @@ export const OBSERVANCE_NAMES: readonly ObservanceNameRow[] = [
 		phonetic: "gampopa",
 		thlPhonetic: "gampopa",
 		phoneticCorrected: false,
-		singleWitness: false,
 		witnesses: [
 			{
 				source: "BDRC person record",
@@ -297,8 +315,13 @@ export const OBSERVANCE_NAMES: readonly ObservanceNameRow[] = [
 		phonetic: "gyelwang karmapa chudrukpa",
 		thlPhonetic: "gyelwang kama(?)pa chudrukpa",
 		phoneticCorrected: true,
-		singleWitness: true,
 		witnesses: [
+			{
+				source: "Lotsawa House, a work's title page",
+				entry:
+					"/bo/tibetan-masters/dudjom-rinpoche/short-prayer-for-long-life-of-sixteenth-karmapa (རྒྱལ་དབང་ཀརྨ་པ་བཅུ་དྲུག་པ་ཆེན་པོའི་ཞབས་བརྟན)",
+				page: null,
+			},
 			{
 				source: "Google Books catalogue record (a published title, not a headword)",
 				entry: "id=s61Sj5amlx0C: རྒྱལ་དབང་ཀརྨ་པ་བཅུ་དྲུག་པ་ཆེན་པོའི་གསུང་འབུམ།",
@@ -323,7 +346,6 @@ export const OBSERVANCE_NAMES: readonly ObservanceNameRow[] = [
 		phonetic: "jé tsongkhapa",
 		thlPhonetic: "jé tsongkhapa",
 		phoneticCorrected: false,
-		singleWitness: false,
 		witnesses: [
 			{
 				source: "dung dkar tshig mdzod chen mo",
@@ -332,8 +354,8 @@ export const OBSERVANCE_NAMES: readonly ObservanceNameRow[] = [
 				gateOnly: true,
 			},
 			{
-				source: "Lotsawa House",
-				entry: "/bo/tibetan-masters/tsongkhapa/ (page heading)",
+				source: "Lotsawa House, the master's page heading",
+				entry: "/bo/tibetan-masters/tsongkhapa/ (རྗེ་ཙོང་ཁ་པ)",
 				page: null,
 			},
 		],
@@ -355,7 +377,6 @@ export const OBSERVANCE_NAMES: readonly ObservanceNameRow[] = [
 		phonetic: "sakya pandita",
 		thlPhonetic: "sakya pandi(?)ta",
 		phoneticCorrected: true,
-		singleWitness: false,
 		witnesses: [
 			{
 				source: "BDRC person record",
@@ -388,11 +409,10 @@ export const OBSERVANCE_NAMES: readonly ObservanceNameRow[] = [
 		phonetic: "dünjom rinpoché",
 		thlPhonetic: "dünjom rinpoché",
 		phoneticCorrected: false,
-		singleWitness: false,
 		witnesses: [
 			{
-				source: "Lotsawa House",
-				entry: "/bo/tibetan-masters/dudjom-rinpoche/ (page heading)",
+				source: "Lotsawa House, the master's page heading",
+				entry: "/bo/tibetan-masters/dudjom-rinpoche/ (བདུད་འཇོམས་རིན་པོ་ཆེ)",
 				page: null,
 			},
 			{

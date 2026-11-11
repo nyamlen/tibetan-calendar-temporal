@@ -18,9 +18,11 @@
  * 3. **Witnesses.** A term: its head word must be attested by two of three groups — a Jäschke page
  *    read from the image, the Mahāvyutpatti's pairing, and a headword of the *tshig mdzod chen mo* or
  *    *dung dkar* (gate only: a headword exists, nothing quoted; both are one group, by Andreas'
- *    ruling of 2026-11-11). A person: two groups, each stating the proposed spelling itself, honorifics
+ *    ruling of 2026-11-11), and — for the four düchens — a Rigpa Wiki passage printing the whole term,
+ *    held as data in `scripts/observance-name-rigpa-passages.data.json` (read by Andreas in a browser,
+ *    never fetched here; one group). A person: two groups, each stating the proposed spelling itself, honorifics
  *    kept — equal to it or opening with it as whole words — from BDRC's person record, a gate-only
- *    headword, Lotsawa House's Tibetan page heading, Tibetan Wikipedia (title and list are one group), or a
+ *    headword, Lotsawa House's Tibetan page heading or a work's title page, Tibetan Wikipedia (title and list are one group), or a
  *    Google Books catalogue record whose published title opens with it; BDRC's record is also the
  *    identity anchor. Das's index is never a witness, because the aggregate's indexes list headwords
  *    their book does not print.
@@ -41,7 +43,7 @@
  * Nothing is taken from the two copyrighted dictionaries but whether a headword exists.
  */
 
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -184,6 +186,7 @@ const NAMES = [
 		marked: "rgyal dbang-karma pa-bcu drug pa",
 		recordPhonetic: "gyelwang kama(?)pa chudrukpa",
 		googleBooks: "s61Sj5amlx0C",
+		lotsawaText: "dudjom-rinpoche/short-prayer-for-long-life-of-sixteenth-karmapa",
 		bdrc: "P865",
 	},
 	{
@@ -236,25 +239,6 @@ const CORRECTIONS = [
 		correctedTo: "sakya pandita",
 		evidence:
 			"Andreas, 2026-11-11: sure of the pronunciation pandita; THL marks its own pandi(?)ta",
-	},
-];
-
-/**
- * The one name that ships on a single witness, as Andreas ruled on 2026-11-11 ("maybe accept one
- * witness for this one"). It is data, not a loosened check: it names the rule, the one group allowed
- * to stand alone and why, and it **self-invalidates** — the run refuses if that group stops stating the
- * spelling, or if a second group ever does (the exception is then unneeded). It applies to no other
- * name, and a name that is not a person is never eligible.
- */
-const SINGLE_WITNESS_EXCEPTIONS = [
-	{
-		id: "karmapa-16",
-		group: "Google Books record",
-		why:
-			"no other source read prints rgyal dbang karma pa bcu drug pa: BDRC prints only the numeral " +
-			"form, the dictionaries and Tibetan Wikipedia lack it, and Lotsawa House prints it only in the " +
-			"title of a prayer on his page, a type Andreas has not ruled on; the one witness is the " +
-			"catalogue record of his collected works, which Andreas supplied",
 	},
 ];
 
@@ -584,6 +568,24 @@ for (const name of NAMES) {
 // Checks 3 and 4: witnesses and the sense read
 // ---------------------------------------------------------------------------------------------
 
+/**
+ * Four Rigpa Wiki passages, one per düchen, **read in a browser and pasted by Andreas on 2026-11-11 and not
+ * fetched by this script** (the site answers it with a Cloudflare challenge). The file holds each page's
+ * URL and the Tibetan and Wylie it prints. The run refuses if the file is missing or unreadable, if a
+ * düchen has no entry, or if an entry's strings differ from the name's own; it claims no live fetch, and
+ * so it cannot notice the page changing. Rigpa Wiki is wiki text whose lineage is not independent of the
+ * THL-style transcriptions, so it counts as **one** group, beside the dictionary head word.
+ */
+const RIGPA_FILE = join(root, "scripts", "observance-name-rigpa-passages.data.json");
+const RIGPA_IDS = ["chotrul-duchen", "saga-dawa-duchen", "chokhor-duchen", "lhabab-duchen"];
+let rigpaPassages = {};
+try {
+	rigpaPassages = JSON.parse(readFileSync(RIGPA_FILE, "utf8")).passages ?? {};
+} catch (error) {
+	for (const id of RIGPA_IDS)
+		fail(id, 3, `the Rigpa Wiki witness file is missing or unreadable (${error.message})`);
+}
+
 const WIKI_UA = { "User-Agent": UA };
 async function wikipediaJson(url) {
 	for (let attempt = 0; attempt < 6; attempt++) {
@@ -664,8 +666,32 @@ for (const name of NAMES) {
 				page: null,
 				gateOnly: true,
 			});
+		let rigpa = false;
+		if (RIGPA_IDS.includes(name.id)) {
+			const passage = rigpaPassages[name.id];
+			if (!passage) fail(name.id, 3, `the Rigpa Wiki witness file has no passage for ${name.id}`);
+			else if (passage.tibetan?.replace(/་$/, "") !== name.tibetan || passage.wylie !== name.wylie)
+				fail(
+					name.id,
+					3,
+					`the Rigpa Wiki passage for ${name.id} prints "${passage.tibetan}" and "${passage.wylie}", not "${name.tibetan}" and "${name.wylie}"`,
+				);
+			else {
+				rigpa = true;
+				name.provenance.witnesses.push({
+					source:
+						"Rigpa Wiki, the whole term (read in a browser and pasted by Andreas, 2026-11-11; not fetched by the script)",
+					entry: passage.url,
+					page: null,
+					humanSupplied: true,
+				});
+			}
+		}
 		const independent =
-			(jaeschke && !jaeschkeProblem ? 1 : 0) + (sanskrit ? 1 : 0) + (headGate.length > 0 ? 1 : 0);
+			(jaeschke && !jaeschkeProblem ? 1 : 0) +
+			(sanskrit ? 1 : 0) +
+			(headGate.length > 0 ? 1 : 0) +
+			(rigpa ? 1 : 0);
 		if (independent < 2)
 			fail(
 				name.id,
@@ -769,21 +795,27 @@ for (const name of NAMES) {
 				gateOnly: true,
 			});
 		else states.push("neither Tibetan–Tibetan dictionary heads it");
-		if (name.lotsawa) {
+		for (const page of [
+			name.lotsawa && { path: `${name.lotsawa}/`, kind: "the master's page heading", exact: true },
+			name.lotsawaText && { path: name.lotsawaText, kind: "a work's title page", exact: false },
+		].filter(Boolean)) {
 			try {
 				const html = await fetchWithRetry(
-					`https://www.lotsawahouse.org/bo/tibetan-masters/${name.lotsawa}/`,
+					`https://www.lotsawahouse.org/bo/tibetan-masters/${page.path}`,
 					undefined,
 					"Lotsawa House",
 				);
 				const title = /<h1 class="bo">([^<]*)<\/h1>/.exec(html)?.[1]?.replace(/།$/, "").trim();
-				if (title === name.tibetan)
+				const states_it = page.exact
+					? title === name.tibetan
+					: title?.startsWith(`${name.tibetan}་`);
+				if (states_it)
 					groups.set("Lotsawa House", {
-						source: "Lotsawa House",
-						entry: `/bo/tibetan-masters/${name.lotsawa}/ (page heading)`,
+						source: `Lotsawa House, ${page.kind}`,
+						entry: `/bo/tibetan-masters/${page.path} (${title})`,
 						page: null,
 					});
-				else states.push(`Lotsawa House's heading is "${title}"`);
+				else states.push(`Lotsawa House's ${page.kind} reads "${title}"`);
 			} catch (error) {
 				fail(name.id, 3, `Lotsawa House lookup failed: ${error.message}`);
 			}
@@ -828,25 +860,13 @@ for (const name of NAMES) {
 			name.provenance.notes.push(
 				`Jäschke p. ${variant.page} prints "${variant.printed}", a variant spelling, so not a witness to "${name.wylie}"`,
 			);
-		const exception = SINGLE_WITNESS_EXCEPTIONS.find((e) => e.id === name.id);
-		name.singleWitness = false;
-		if (exception) {
-			const only = [...groups.keys()];
-			if (only.length !== 1 || only[0] !== exception.group)
-				fail(
-					name.id,
-					3,
-					`the single-witness exception for ${name.id} expects exactly "${exception.group}" and no other group, but ${only.length === 0 ? "no group states the spelling" : `found ${only.join(", ")}`}` +
-						`${only.length > 1 ? " — a second witness exists, so the exception is no longer needed" : ""}; not found: ${states.join("; ")}`,
-				);
-			else name.singleWitness = true;
-		} else if (groups.size < 2)
+		if (groups.size < 2)
 			fail(
 				name.id,
 				3,
 				`"${name.wylie}" has ${groups.size} independent witness(es) stating that spelling, not 2 (${[...groups.keys()].join(", ") || "none"}); not found: ${states.join("; ")}`,
 			);
-		if (record && (groups.size >= 2 || name.singleWitness))
+		if (record && groups.size >= 2)
 			name.provenance.sense.push({
 				source: "BDRC person record",
 				entry: `bdr:${name.bdrc}`,
@@ -879,10 +899,6 @@ async function thlFor(marked) {
 	return thlPhoneticsOf(html);
 }
 
-for (const exception of SINGLE_WITNESS_EXCEPTIONS) {
-	if (NAMES.find((n) => n.id === exception.id)?.kind !== "person")
-		fail(exception.id, 3, "a single-witness exception names no person here");
-}
 for (const correction of CORRECTIONS) {
 	if (!NAMES.some((n) => n.id === correction.id))
 		fail(correction.id, 5, "a correction names a rule that has no name here");
@@ -976,9 +992,9 @@ if (problems.length > 0) {
 
 const q = (s) => JSON.stringify(s);
 const cite = (c) =>
-	`{ source: ${q(c.source)}, entry: ${q(c.entry)}, page: ${c.page ?? "null"}${c.label ? `, label: ${q(c.label)}` : ""}${c.gateOnly ? ", gateOnly: true" : ""} }`;
+	`{ source: ${q(c.source)}, entry: ${q(c.entry)}, page: ${c.page ?? "null"}${c.label ? `, label: ${q(c.label)}` : ""}${c.gateOnly ? ", gateOnly: true" : ""}${c.humanSupplied ? ", humanSupplied: true" : ""} }`;
 const row = (n) =>
-	`\t{ id: ${q(n.id)}, kind: ${q(n.kind)}, tibetan: ${q(n.tibetan)}, wylie: ${q(n.wylie)}, marked: ${q(n.marked)}, phonetic: ${q(n.phonetic)}, thlPhonetic: ${q(n.thl)}, phoneticCorrected: ${n.corrected ? "true" : "false"}, singleWitness: ${n.singleWitness ? "true" : "false"}, witnesses: [${n.provenance.witnesses.map(cite).join(", ")}], sense: [${n.provenance.sense.map((s) => `{ ${cite(s).slice(2, -2)}, sense: ${q(s.sense)} }`).join(", ")}] },`;
+	`\t{ id: ${q(n.id)}, kind: ${q(n.kind)}, tibetan: ${q(n.tibetan)}, wylie: ${q(n.wylie)}, marked: ${q(n.marked)}, phonetic: ${q(n.phonetic)}, thlPhonetic: ${q(n.thl)}, phoneticCorrected: ${n.corrected ? "true" : "false"}, witnesses: [${n.provenance.witnesses.map(cite).join(", ")}], sense: [${n.provenance.sense.map((s) => `{ ${cite(s).slice(2, -2)}, sense: ${q(s.sense)} }`).join(", ")}] },`;
 
 writeFileSync(
 	join(root, "test", "fixtures", "observance-names.ts"),
@@ -998,10 +1014,10 @@ writeFileSync(
  * Andreas' correction of a "(?)" in THL's output, held in the script as data that refuses to run if THL
  * stops returning the expected value.
  *
- * \`singleWitness\` is true for the one name that ships on a single witness, by Andreas' ruling of
- * 2026-11-11: the Sixteenth Karmapa, whose only witness to \`rgyal dbang karma pa bcu drug pa\` is the Google Books
- * catalogue record of his collected works (a published title, not a headword). It is an exception held as data in the script, which
- * refuses to run if it is needed for any other name or if a second witness appears.
+ * A witness with \`humanSupplied\` was read in a browser and pasted by Andreas on 2026-11-11 and was
+ * **not fetched** by the script: the four Rigpa Wiki passages for the düchens, held in
+ * \`scripts/observance-name-rigpa-passages.data.json\`. They cannot be re-fetched here, so the baseline
+ * cannot detect the pages changing.
  */
 
 export interface ObservanceNameCitation {
@@ -1010,6 +1026,7 @@ export interface ObservanceNameCitation {
 	page: number | null;
 	label?: string;
 	gateOnly?: true;
+	humanSupplied?: true;
 }
 
 export interface ObservanceNameRow {
@@ -1021,7 +1038,6 @@ export interface ObservanceNameRow {
 	phonetic: string;
 	thlPhonetic: string;
 	phoneticCorrected: boolean;
-	singleWitness: boolean;
 	witnesses: readonly ObservanceNameCitation[];
 	sense: readonly (ObservanceNameCitation & { sense: string })[];
 }
