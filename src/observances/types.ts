@@ -138,11 +138,13 @@ export type TibetanMonthDay = { readonly month: number; readonly day: number };
  *   except an anchor, which keeps its own resolution (`"exact"`, `"firstOfDoubled"`, ...). A result
  *   carries no interval: a consumer recovers a 14-day fortnight from the previous occurrence.
  *   **The rule is inferred, not sourced.** It is the fit that reproduces Rabten Choeling's published
- *   2000-2100 sojong schedule exactly — anchor 1/15, 15 days waxing, 14 waning in an odd month and 15
- *   in an even one, `exclude` 1/1, with `leapMonth: "leap"`, `doubledDay: "first"` and
- *   `skippedDay: "following"` — and Rabten states no method. FPMT's calendar departs from it for one
- *   run in 2022-2023, which this form does not express. The window of the agreement is in
- *   `docs/testing.md`.
+ *   sojong schedule exactly — anchor 1/15, 15 days waxing, 14 waning in an odd month and 15 in an even
+ *   one, `exclude` 1/1, with `leapMonth: "leap"`, `doubledDay: "first"` and `skippedDay: "following"` —
+ *   and Rabten states no method. FPMT's calendar departs from it for one run in 2022-2023, which this
+ *   form does not express. The window of the agreement is in `docs/testing.md`. **`skippedDay: "omit"`
+ *   is refused**, set on the rule or inherited from the config: an omitted anchor leaves that year
+ *   with no anchor and the schedule undefined, so a query's answer would depend on where its range
+ *   starts.
  *
  * `annual` and `western` take a year window, `fromYear` and `untilYear` (both inclusive; absent
  * means unbounded), and `ageFromYear`. **Each counts its own form's calendar**: on `annual` a

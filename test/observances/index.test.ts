@@ -1515,10 +1515,6 @@ describe("the counted form", () => {
 			it('keeps it under skippedDay "preceding", where 1/1 resolves to the day before', () => {
 				expect(around(sojongConfig(steps, { skippedDay: "preceding" }))).toContain("1873-02-28");
 			});
-
-			it('keeps it under skippedDay "omit", where 1/1 resolves to no day', () => {
-				expect(around(sojongConfig(steps, { skippedDay: "omit" }))).toContain("1873-02-28");
-			});
 		});
 	});
 
@@ -1559,14 +1555,61 @@ describe("the counted form", () => {
 			expect(codeOf(sojongConfig({ exclude: undefined }))).toBe(undefined);
 		});
 
-		it("accepts all three per-rule settings, which apply to the anchor and the exclusions", () => {
-			for (const setting of [
-				{ doubledDay: "second" },
-				{ skippedDay: "omit" },
-				{ leapMonth: "both" },
-			]) {
+		it("accepts doubledDay and leapMonth on the rule, which apply to the anchor and the exclusions", () => {
+			for (const setting of [{ doubledDay: "second" }, { leapMonth: "both" }]) {
 				expect(codeOf(sojongConfig({}, setting))).toBe(undefined);
 			}
+		});
+
+		// An omitted anchor leaves a year with no anchor, and two in a row leave a gap wider than the
+		// lookback, so a query's answer would depend on where its range starts.
+		describe('skippedDay "omit" is refused, because an omitted anchor leaves the schedule undefined', () => {
+			const withDefault = (skippedDay: string, rule: Record<string, unknown> = {}) =>
+				({ ...sojongConfig({}, rule), skippedDay }) as unknown as ObservanceConfig;
+
+			it("on the rule itself", () => {
+				expect(codeOf(sojongConfig({}, { skippedDay: "omit" }))).toBe(CONFIG_CODE);
+			});
+
+			it("inherited from the config's default, and says where it came from", () => {
+				const config = withDefault("omit");
+				expect(codeOf(config)).toBe(CONFIG_CODE);
+				expect(thrownBy(() => observancesOn(iso("2026-01-01"), config))?.message).toContain(
+					"config default",
+				);
+			});
+
+			it("but accepted when the rule sets its own under an omitting default", () => {
+				expect(codeOf(withDefault("omit", { skippedDay: "following" }))).toBe(undefined);
+			});
+
+			it.each(["preceding", "following"])("accepts %s", (choice) => {
+				expect(codeOf(sojongConfig({}, { skippedDay: choice }))).toBe(undefined);
+			});
+		});
+
+		// A regression guard, not a fix: under "following" the answer already agreed. With "omit"
+		// accepted, Tibetan 2135 and 2136 (2008 and 2009 CE) had no anchor and observancesOn returned
+		// nothing on the counted days from 2009-03-09 to 2010-02-11 that a longer range reported.
+		it("answers each day of 2009-03-09 to 2010-02-11 alone as a range from 2005 does", () => {
+			const config = sojongConfig();
+			const range = getObservances(iso("2005-01-01"), iso("2010-03-01"), config);
+			const bad: string[] = [];
+			for (let day = iso("2009-03-09"); Temporal.PlainDate.compare(day, iso("2010-02-11")) <= 0; ) {
+				const alone = observancesOn(day, config)
+					.map((o) => o.resolution)
+					.join();
+				const inRange = range
+					.filter((o) => o.date.isoDate.equals(day))
+					.map((o) => o.resolution)
+					.join();
+				if (alone !== inRange) bad.push(`${day}: ${alone} vs ${inRange}`);
+				day = day.add({ days: 1 });
+			}
+			expect(bad).toEqual([]);
+			expect(range.filter((o) => o.date.isoDate.toString() >= "2009-03-09").length).toBeGreaterThan(
+				20,
+			);
 		});
 	});
 });

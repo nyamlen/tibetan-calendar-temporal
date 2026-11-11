@@ -395,6 +395,34 @@ function assertSettingsApplicable(rule: Record<string, unknown>, ruleSubject: st
 }
 
 /**
+ * Refuses a value a form cannot use, once the effective setting is known.
+ *
+ * @remarks
+ * A `counted` rule refuses `skippedDay: "omit"`. An omitted anchor removes that year's anchor, and
+ * two in a row leave a gap wider than the lookback, so the schedule is undefined there and a query's
+ * answer would depend on where its range starts. The effective setting is checked, the rule's own or
+ * else the config's default, which has already been validated by now.
+ */
+function assertFormValues(
+	rule: Record<string, unknown>,
+	config: ObservanceConfig,
+	ruleSubject: string,
+): void {
+	if ((rule.when as ObservanceRule["when"]).type !== "counted") return;
+	const own = rule.skippedDay !== undefined;
+	const effective = own ? rule.skippedDay : config.skippedDay;
+	if (effective === "omit") {
+		throw rangeError(
+			CODE,
+			`${ruleSubject}: a "counted" rule does not accept skippedDay "omit", set ${
+				own ? "on the rule" : "by the config default, which the rule inherits"
+			}: an omitted anchor leaves that year with no schedule. Use "preceding" or "following"` +
+				(own ? "" : ", on the rule or as the config default"),
+		);
+	}
+}
+
+/**
  * The likeliest wrong objects in the config position, named for what they are.
  *
  * @remarks
@@ -529,6 +557,7 @@ function validateObservanceConfig(config: ObservanceConfig): void {
 		assertOptionalChoice(rule.leapMonth, LEAP_MONTH_CHOICES, `${ruleSubject} leapMonth`);
 
 		assertSettingsApplicable(rule, ruleSubject);
+		assertFormValues(rule, config, ruleSubject);
 	}
 }
 
