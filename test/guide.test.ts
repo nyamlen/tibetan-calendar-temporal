@@ -172,13 +172,13 @@ describe("guide examples", () => {
 	// "firstOfDoubled", which any config setting `doubledDay: 'first'` produces. Asserting the set
 	// rather than a sample is the point.
 	it("produces every resolution the README lists, and no other", () => {
-		const documented = ["exact", "firstOfDoubled", "secondOfDoubled", "shiftedFromSkipped"];
+		const documented = ["dayBeforeSkipped", "exact", "firstOfDoubled", "secondOfDoubled"];
 		const seen = new Set<string>();
 		for (const doubledDay of ["first", "second", "both"] as const) {
 			const config = { ...EXAMPLE_OBSERVANCES, id: `readme-${doubledDay}`, doubledDay };
 			// A wide window on purpose: "exact" and the two doubled cases appear within months, but a
 			// rule's own day being skipped is rarer than a skipped day, so a few years would not
-			// exercise "shiftedFromSkipped" and the assertion would pass for the wrong reason.
+			// exercise "dayBeforeSkipped" and the assertion would pass for the wrong reason.
 			for (const o of getObservances(iso("2010-01-01"), iso("2030-12-31"), config)) {
 				seen.add(o.resolution);
 			}

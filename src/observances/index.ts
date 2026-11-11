@@ -79,7 +79,7 @@ const MAX_SPAN_YEARS = 200;
  */
 function precedence(resolution: ObservanceResolution): number {
 	if (resolution === "exact") return 0;
-	if (resolution === "shiftedFromSkipped") return 2;
+	if (resolution === "dayBeforeSkipped" || resolution === "dayAfterSkipped") return 2;
 	return 1;
 }
 

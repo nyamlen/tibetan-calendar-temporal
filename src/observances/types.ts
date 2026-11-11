@@ -52,10 +52,14 @@ export type DoubledDayChoice = "first" | "second" | "both";
  * - `"preceding"` — the day before the missing number. Principled as well as sourced: the skipped
  *   number's lunar day begins and ends inside the calendar day numbered one lower, so that day
  *   does carry it astronomically even though it is not named for it.
+ * - `"following"` — the day after the one carrying the number below the missing one, so a skipped 30
+ *   rolls into the next month's first day, and a skipped day followed by a doubled one lands on the
+ *   first half of the doubled day. Not sourced by either publication above: it is the choice for a
+ *   tradition that moves a skipped observance later.
  * - `"omit"` — no {@link Observance} at all. Correct for a caller who wants only exact matches,
  *   but it makes an annual observance vanish from a year, which no almanac does.
  */
-export type SkippedDayChoice = "preceding" | "omit";
+export type SkippedDayChoice = "preceding" | "following" | "omit";
 
 /**
  * Which of two months sharing a number carries an observance, in a year that has a leap month.
@@ -198,12 +202,13 @@ export interface ObservanceConfig {
  *
  * @remarks
  * Reported so a consumer can show the almanac-style footnote rather than presenting a moved date
- * as if it were exact. `"shiftedFromSkipped"` in particular is worth surfacing: the observance is
- * a day earlier than its nominal date, and a practitioner will want to know why.
+ * as if it were exact. `"dayBeforeSkipped"` and `"dayAfterSkipped"` in particular are worth surfacing: the
+ * observance is a day away from its nominal date, and a practitioner will want to know why.
  */
 export type ObservanceResolution =
 	| "exact"
-	| "shiftedFromSkipped"
+	| "dayBeforeSkipped"
+	| "dayAfterSkipped"
 	| "firstOfDoubled"
 	| "secondOfDoubled";
 

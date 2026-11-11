@@ -21,7 +21,7 @@ import type { ObservanceConfig } from "./types.js";
 const CODE = "TCT_INVALID_OBSERVANCE_CONFIG";
 
 const DOUBLED_DAY_CHOICES = ["first", "second", "both"];
-const SKIPPED_DAY_CHOICES = ["preceding", "omit"];
+const SKIPPED_DAY_CHOICES = ["preceding", "following", "omit"];
 const LEAP_MONTH_CHOICES = ["leap", "regular", "both"];
 
 const CONFIG_KEYS = [

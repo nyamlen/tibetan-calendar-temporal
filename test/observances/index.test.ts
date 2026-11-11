@@ -110,7 +110,7 @@ describe("observance resolution", () => {
 				(o) => o.resolution,
 			),
 		);
-		// "shiftedFromSkipped" is absent from the shipped config by design: the four great days
+		// "dayBeforeSkipped" is absent from the shipped config by design: the four great days
 		// use it, but none of them met a skipped date in this window.
 		expect(kinds.has("exact")).toBe(true);
 		expect(kinds.has("secondOfDoubled")).toBe(true);
@@ -282,7 +282,7 @@ describe("a rule on day 1, where the preceding day belongs to the previous month
 	// -- and across a *year* boundary -- onto the 30th of month 12 of the year before.
 	it("shifts back across the month boundary when day 1 is skipped", () => {
 		const shifted = getObservances(iso("1977-01-01"), iso("1977-12-31"), dayOne).filter(
-			(o) => o.resolution === "shiftedFromSkipped",
+			(o) => o.resolution === "dayBeforeSkipped",
 		);
 		expect(shifted).toHaveLength(1);
 
@@ -308,7 +308,7 @@ describe("a rule on day 1, where the preceding day belongs to the previous month
 		}
 		// One shift and one doubled day among them, so this year exercises all three resolutions.
 		const resolutions = new Set(found.map((o) => o.resolution));
-		expect([...resolutions].sort()).toEqual(["exact", "secondOfDoubled", "shiftedFromSkipped"]);
+		expect([...resolutions].sort()).toEqual(["dayBeforeSkipped", "exact", "secondOfDoubled"]);
 	});
 });
 
@@ -827,5 +827,78 @@ describe("consumer config validation", () => {
 		}
 
 		expect(uncoded).toEqual([]);
+	});
+});
+
+// "following" is the calendar day after the one carrying day d-1, taken by Julian day. Not the day
+// carrying d+1: when d+1 is doubled that would pick its second half, and the first is the day after.
+describe('skippedDay: "following"', () => {
+	const following = (days: readonly number[]): ObservanceConfig => ({
+		...EXAMPLE_OBSERVANCES,
+		id: "following",
+		skippedDay: "following",
+		rules: [
+			{
+				id: "day-rule",
+				englishName: "Day rule",
+				when: { type: "monthly", days },
+			},
+		],
+	});
+
+	// Tibetan 2151 (2025 CE) month 12 has no 30th: day 29 is 2025-02-27 and Losar is the next day.
+	it("rolls a skipped 30 into the first day of the next month", () => {
+		const found = getObservances(iso("2025-02-26"), iso("2025-03-01"), following([30]));
+		expect(found.map((o) => [o.date.isoDate.toString(), o.resolution])).toEqual([
+			["2025-02-28", "dayAfterSkipped"],
+		]);
+		const landed = isoToTibetan(iso("2025-02-28"));
+		expect({ month: landed.month, day: landed.day }).toEqual({ month: 1, day: 1 });
+	});
+
+	// Tibetan 2123 (1996 CE) month 10: day 15 is skipped and 16 is doubled, on 1996-11-25 and 26.
+	it("lands on the first half of a doubled day that follows the skipped one", () => {
+		const first = isoToTibetan(iso("1996-11-25"));
+		const second = isoToTibetan(iso("1996-11-26"));
+		expect([first.day, second.day]).toEqual([16, 16]);
+		expect(isoToTibetan(iso("1996-11-24")).day).toBe(14);
+
+		const found = getObservances(iso("1996-11-20"), iso("1996-11-30"), following([15]));
+		expect(found.map((o) => [o.date.isoDate.toString(), o.resolution])).toEqual([
+			["1996-11-25", "dayAfterSkipped"],
+		]);
+	});
+
+	it("lands on the day after day d-1 for every skipped-then-doubled pair, 1950-2050", () => {
+		const cases: Array<[string, number]> = [
+			["1956-08-14", 7],
+			["1965-01-25", 22],
+			["1984-09-06", 10],
+			["1996-11-26", 15],
+			["2029-05-06", 22],
+			["2037-04-07", 21],
+			["2046-05-24", 18],
+		];
+		const bad: string[] = [];
+		for (const [secondHalf, skipped] of cases) {
+			const day = Temporal.PlainDate.from(secondHalf);
+			const found = getObservances(
+				day.subtract({ days: 6 }),
+				day.add({ days: 6 }),
+				following([skipped]),
+			);
+			const landed = found.map((o) => o.date.isoDate.toString());
+			const expected = day.subtract({ days: 1 }).toString();
+			if (landed.length !== 1 || landed[0] !== expected) bad.push(`${secondHalf}: ${landed}`);
+		}
+		expect(bad).toEqual([]);
+	});
+
+	it("reports a skipped day as omitted under a rule override of omit", () => {
+		const config = following([30]);
+		const rule = { ...config.rules[0], skippedDay: "omit" as const } as ObservanceRule;
+		expect(
+			getObservances(iso("2025-02-26"), iso("2025-03-01"), { ...config, rules: [rule] }),
+		).toEqual([]);
 	});
 });

@@ -237,7 +237,7 @@ describe("skipped days are never observance days", () => {
 	});
 
 	it("holds under every skipped-day and doubled-day convention", () => {
-		for (const skippedDay of ["preceding", "omit"] as const) {
+		for (const skippedDay of ["preceding", "following", "omit"] as const) {
 			for (const doubledDay of ["first", "second", "both"] as const) {
 				const config = { ...EXAMPLE_OBSERVANCES, skippedDay, doubledDay };
 				for (const o of getObservances(

@@ -36,7 +36,7 @@ function resolveInMonth(
 		return [{ julianDay: classification.julianDay as number, resolution: "exact" }];
 
 	if (classification.kind === "doubled") {
-		const choice = rule.doubledDay ?? config.doubledDay;
+		const choice = rule.doubledDay === undefined ? config.doubledDay : rule.doubledDay;
 		const first = {
 			julianDay: classification.leapJulianDay as number,
 			resolution: "firstOfDoubled" as const,
@@ -58,34 +58,50 @@ function resolveInMonth(
 	}
 
 	// Skipped: no calendar day carries this number.
-	const skipped = rule.skippedDay ?? config.skippedDay;
+	const skipped = rule.skippedDay === undefined ? config.skippedDay : rule.skippedDay;
 	if (skipped === "omit") return [];
+	if (skipped === "preceding") return [precedingDay(scaled, monthCount, day)];
+	if (skipped === "following") return [followingDay(scaled, monthCount, day)];
 	/* c8 ignore next */
-	if (skipped !== "preceding") {
-		/* c8 ignore next */
-		throw codedError("TCT_INTERNAL", `unhandled skippedDay choice ${JSON.stringify(skipped)}`);
-	}
+	throw codedError("TCT_INTERNAL", `unhandled skippedDay choice ${JSON.stringify(skipped)}`);
+}
 
-	// The preceding calendar day. Taking it as a Julian day rather than as a day *number* handles
-	// day 1 without a special case, where the preceding day belongs to the previous month.
-	// Janson's own advice for month boundaries is the same: add or subtract one from the JD
-	// rather than reason about numbers that may not exist.
-	//
+/**
+ * The calendar day before a skipped number, taken as a Julian day rather than a day number, so
+ * day 1 needs no special case beyond reading the month's first day: its predecessor belongs to
+ * the previous month. Janson's own advice for month boundaries is the same.
+ *
+ * The number below is never also skipped: that would need three lunar day ends inside one
+ * calendar day, so two consecutive lunar days totalling under 24 hours against a 21.5-hour
+ * minimum. So one step back always lands on a real day.
+ */
+function precedingDay(scaled: ScaledTradition, monthCount: number, day: number): Occurrence {
 	// Exactly 1, not `<= 1`: day is validated to 1-30 before it reaches here, so the wider guard
 	// only ever hid an invalid rule behind a plausible-looking result.
 	if (day === 1)
-		return [
-			{ julianDay: firstDayOfMonth(scaled, monthCount) - 1, resolution: "shiftedFromSkipped" },
-		];
-
-	// The number below is never also skipped: that would need three lunar day ends inside one
-	// calendar day, so two consecutive lunar days totalling under 24 hours against a 21.5-hour
-	// minimum. So one step back always lands on a real day.
-	const preceding = classifyDay(scaled, day - 1, monthCount);
-	const julianDay = preceding.julianDay ?? preceding.leapJulianDay;
+		return { julianDay: firstDayOfMonth(scaled, monthCount) - 1, resolution: "dayBeforeSkipped" };
+	const before = classifyDay(scaled, day - 1, monthCount);
+	const julianDay = before.julianDay ?? before.leapJulianDay;
 	/* c8 ignore next */
-	if (julianDay === undefined) return [];
-	return [{ julianDay, resolution: "shiftedFromSkipped" }];
+	if (julianDay === undefined) throw codedError("TCT_INTERNAL", `no day carries ${day - 1}`);
+	return { julianDay, resolution: "dayBeforeSkipped" };
+}
+
+/**
+ * The calendar day after the one carrying the number below a skipped one, by Julian day.
+ *
+ * `julianDay` of d - 1 is the later half when d - 1 is doubled, so one step on is always the day
+ * that follows. It is not `julianDay ?? leapJulianDay` of d + 1, which picks the second half of a
+ * doubled d + 1 and leaves its first half between. A skipped 30 rolls into the next month's first
+ * day. A skipped day 1 means the month opens on day 2, so the day after is that first day.
+ */
+function followingDay(scaled: ScaledTradition, monthCount: number, day: number): Occurrence {
+	if (day === 1)
+		return { julianDay: firstDayOfMonth(scaled, monthCount), resolution: "dayAfterSkipped" };
+	const carrying = classifyDay(scaled, day - 1, monthCount).julianDay;
+	/* c8 ignore next */
+	if (carrying === undefined) throw codedError("TCT_INTERNAL", `no day carries ${day - 1}`);
+	return { julianDay: carrying + 1, resolution: "dayAfterSkipped" };
 }
 
 /** Whether an annual rule applies to this month, given the leap-month convention. */
@@ -102,7 +118,7 @@ function appliesToMonth(
 	// Explicit rather than positional, for the same reason as resolveInMonth's branches: `"regular"`
 	// was the fall-through, so a missing `leapMonth` put an annual observance in the regular month
 	// with no error — one month off what FPMT prints for the 2024 Chokhor Duchen.
-	const choice = rule.leapMonth ?? config.leapMonth;
+	const choice = rule.leapMonth === undefined ? config.leapMonth : rule.leapMonth;
 	if (choice === "both") return true;
 	if (choice === "leap") return month.isLeap;
 	if (choice === "regular") return !month.isLeap;

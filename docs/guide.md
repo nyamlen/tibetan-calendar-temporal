@@ -373,7 +373,7 @@ const myCentre = {
 ```
 
 Every result carries a `resolution` saying how it got there — one of `"exact"`,
-`"firstOfDoubled"`, `"secondOfDoubled"` or `"shiftedFromSkipped"` — so a display can show the
+`"firstOfDoubled"`, `"secondOfDoubled"` or `"dayBeforeSkipped"` — so a display can show the
 almanac's footnote rather than presenting a moved date as an exact one.
 
 Losar is deliberately *not* here: it is a calendar fact rather than a convention, so it is
