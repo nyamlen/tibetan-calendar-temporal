@@ -1,13 +1,12 @@
 # Sourcing the Tibetan names of fourteen observances
 
-**Status: proposed, written ahead of the code.**
-It records what will be checked and what ships if a check fails, before the verifier that enforces it exists.
-That verifier will be `scripts/verify-observance-names.mjs`, and its output `test/fixtures/observance-names.ts`.
+**Status: checked.**
+The record was written ahead of the code and has been checked against it: `scripts/verify-observance-names.mjs` re-checks every claim below on each run, and its output is `test/fixtures/observance-names.ts`.
 It follows [month-and-yoga-sourcing.md](month-and-yoga-sourcing.md), and the rule it inherits from [validation-sources.md](../validation-sources.md): **agreement is only evidence if the source did not reach its answer the way we did.**
 
-**Nothing below has been checked yet.**
-The Tibetan spellings in the tables are proposals from the author's own knowledge, put here so that a verifier has something to test, and **they are not evidence**.
+The Tibetan spellings in the tables were proposals from the author's own knowledge and **were never evidence**; each ships only because the checks below found it attested.
 A spelling that fails a check does not ship, whatever this page says.
+What the run found, per name and per check, is under "Results of the run".
 
 ## What ships
 
@@ -16,7 +15,7 @@ Every other rule — the Medicine Buddha and Tārā pujas, Heruka Day, Ḍākin�
 
 ### The seven observances
 
-| Rule | English name | Proposed Wylie | Proposed script | Word boundaries marked | THL phonetics, joined by word |
+| Rule | English name | Wylie | Script | Word boundaries marked | THL phonetics, joined by word |
 |---|---|---|---|---|---|
 | `chotrul-duchen` | Day of Miracles | `cho 'phrul dus chen` | ཆོ་འཕྲུལ་དུས་ཆེན | `cho 'phrul-dus chen` | *chontrül düchen* |
 | `saga-dawa-duchen` | Lord Buddha's birth, enlightenment and parinirvana | `sa ga zla ba dus chen` | ས་ག་ཟླ་བ་དུས་ཆེན | `sa ga-zla ba-dus chen` | *saga dawa düchen* |
@@ -32,7 +31,7 @@ Decided by Andreas on 2026-11-11: the seven lineage anniversaries are **named as
 The English names are FPMT's labels verbatim — each is a label in its fixture, so they are **cited**, not authored.
 The label says only that the day commemorates the person; it does not say whether it is a birth or a passing, and neither does FPMT.
 
-| Rule | English name (FPMT's label) | Proposed Wylie | Proposed script | Word boundaries marked | THL phonetics, joined by word |
+| Rule | English name (FPMT's label) | Wylie | Script | Word boundaries marked | THL phonetics, joined by word |
 |---|---|---|---|---|---|
 | `milarepa` | Milarepa | `mi la ras pa` | མི་ལ་རས་པ | `mi la ras pa` | *milarepa* |
 | `guru-rinpoche` | Guru Rinpoche | `gu ru rin po che` | གུ་རུ་རིན་པོ་ཆེ | `gu ru-rin po che` | *guru rinpoché* |
@@ -42,7 +41,7 @@ The label says only that the day commemorates the person; it does not say whethe
 | `sakya-pandita` | Sakya Pandita | `sa skya paN+Di ta` | ས་སྐྱ་པཎྜི་ཏ | `sa skya-paN+Di ta` | *sakya pandita* (a correction: THL returns *sakya pandi(?)ta*) |
 | `dudjom-rinpoche` | Dudjom Rinpoche | `bdud 'joms rin po che` | བདུད་འཇོམས་རིན་པོ་ཆེ | `bdud 'joms-rin po che` | *dünjom rinpoché* |
 
-The last column in both tables is what THL's converter returned on 2026-11-11 for the marked Wylie in "Words separated by" mode; the verifier must reproduce it, and a different result is a finding.
+The last column in both tables is what THL's converter returned on 2026-11-11 for the marked Wylie in "Words separated by" mode; the verifier reproduces it on every run, and a different result is a finding.
 
 **Two of THL's results carry its own uncertainty marker, "(?)":** *kama(?)pa* and *pandi(?)ta*.
 THL's converter page says its output cannot be 100% accurate and that someone who understands the text should check it.
@@ -51,13 +50,25 @@ They are held as data in the verifier, in the pattern of the other corrections i
 The evidence for each is Andreas' own knowledge of the pronunciation, which is a witness of a different kind from a dictionary, and the record says so rather than presenting it as sourced.
 Nothing else is corrected: the other twelve phonetics are THL's output unchanged.
 
-**Open spelling questions the checks must settle, not this page:**
+## Spelling questions, and what the sources say
 
-- Whether the Day of Miracles is spelled `cho 'phrul` or `chos 'phrul` in the dictionaries.
-- Whether the Saga Dawa festival is `sa ga zla ba dus chen` or carries the genitive, `sa ga zla ba'i dus chen`.
-- Whether each compound is a headword in its own right or only its last part is (`dus chen`), in which case the name ships only if the head word is found and the sense is read.
-- Whether FPMT's "Lama Tsong Khapa" should be `rje tsong kha pa` (the lord) or carry `bla ma` in the Tibetan.
-  **Settled for the Karmapa on 2026-11-11:** he stays `rgyal ba karma pa bcu drug pa`; whether the sources attest it is in the results below.
+These were open when the record was written.
+The facts below are headword existence only, from the sources the verifier reads; the decisions are Andreas'.
+
+- **`cho 'phrul` or `chos 'phrul`.**
+  The *dung dkar* heads `cho 'phrul dus chen` as a whole term; the *tshig mdzod chen mo* and Jäschke (p. 161, *čo-ʼprúl*) head `cho 'phrul`; no accepted source heads `chos 'phrul`, which appears only in the Jäschke *index*, and the record's finding below is that the index is not evidence.
+  The sources support `cho 'phrul`.
+- **`sa ga zla ba dus chen`, or the genitive `sa ga zla ba'i dus chen`.**
+  No accepted source heads either form as a whole term; the Tibetan–Tibetan dictionaries head `sa ga zla ba` alone.
+  The name passes check 3 on its head word *dus chen* only, and **the sources do not settle which form is right**: this is Andreas' to decide.
+- **`chos 'khor dus chen`.**
+  The *tshig mdzod chen mo* heads `chos 'khor bskor ba'i dus chen` ("the festival of turning the wheel"), not `chos 'khor dus chen`; Jäschke (p. 163) prints `chos 'khor` as "prayer-mill".
+  The name passes check 3 on its head word *dus chen* only, and **the attested whole form differs from the shipped one**: this is Andreas' to decide.
+- **Whether each compound is a headword in its own right or only its last part is.**
+  Only `cho 'phrul dus chen` and `lha babs dus chen` are (in the *dung dkar*); the other two düchens pass on the head word *dus chen* and the sense read from Jäschke p. 255.
+- **FPMT's "Lama Tsong Khapa": `rje tsong kha pa` or a `bla ma` form.**
+  Settled in item 8 under "For Andreas to approve": `rje tsong kha pa`.
+- **The Sixteenth Karmapa's form** is settled for now in item 6 and item 9 under "For Andreas to approve".
 
 ## Sources, and what each is trusted for
 
@@ -149,9 +160,21 @@ The first run, before the rulings, passed 5 of 14; the second passed 13.
 |---|---|---|---|---|---|
 | the four düchens | pass | pass | pass | pass | pass |
 | `saga-dawa-month`, `sojong`, `fire-puja` | pass | pass | pass | pass | pass |
-| `milarepa`, `guru-rinpoche`, `gampopa`, `tsongkhapa`, `dudjom-rinpoche` | pass | pass | pass | pass | pass |
-| `sakya-pandita` | pass | pass | pass | pass | pass (corrected) |
-| `karmapa-16` | pass | pass | **one witness, by exception** | pass | pass (corrected) |
+| `milarepa`, `guru-rinpoche`, `gampopa`, `tsongkhapa`, `dudjom-rinpoche` | pass | pass | pass | biographical by kind | pass |
+| `sakya-pandita` | pass | pass | pass | biographical by kind | pass (corrected) |
+| `karmapa-16` | pass | pass | **one witness, by exception** | biographical by kind | pass (corrected) |
+
+**Check 4 for a person is not a sense-read.**
+A BDRC person record is biographical by kind, so the verifier records it as the sense and reads nothing more; the sense checks that read printed text are the six terms'.
+
+### What the all-pass table does not say
+
+- **Two düchens pass on their head word alone.**
+  `chos 'khor dus chen` and `sa ga zla ba dus chen` are not headwords anywhere the verifier reads; they pass because *dus chen* has two witness groups (Jäschke p. 255, and a *tshig mdzod chen mo* headword) and a read sense, "festival".
+  Jäschke p. 163 gives `chos 'khor` as "prayer-mill", not the wheel of the teaching, and the *tshig mdzod chen mo* heads the whole festival as `chos 'khor bskor ba'i dus chen`.
+- **Two spellings are not settled by the sources** and ship anyway pending Andreas: the Saga Dawa Düchen's form (`sa ga zla ba dus chen` against the genitive, which the sources do not settle) and the Chokhor Düchen's (`chos 'khor dus chen` against the attested `chos 'khor bskor ba'i dus chen`).
+  The sources do support `cho 'phrul` against `chos 'phrul`, under "Spelling questions" above.
+- **The witnesses for `guru-rinpoche` and `dudjom-rinpoche` are weak**, and `tsongkhapa`'s BDRC record does not state its spelling; see the persons table.
 
 ### A finding about the sources, which changed the check
 
@@ -200,6 +223,9 @@ Its search needs a credential that its web page embeds, which this verifier does
 | `sakya-pandita` | P1056 | BDRC (`sa skya paN+Di ta kun dga' rgyal mtshan`); *dung dkar* headword `sa skya paN+Di ta` (gate) |
 | `dudjom-rinpoche` | P736 | Lotsawa House heading *བདུད་འཇོམས་རིན་པོ་ཆེ།*; Tibetan Wikipedia's list of Tibetan scholars; BDRC states `bdud 'joms 'jigs bral ye shes rdo rje`, **not** the proposed form |
 
+Tibetan Wikipedia's list of Tibetan scholars was read at revision 130662 (9 January 2016, the latest revision on 2026-11-11), so the Karmapa's and Dudjom's list witnesses are not at risk of a recent edit.
+A Wikipedia title and a list item count as **one** witness group, being one site and one editing community.
+
 Two witnesses are weak and are recorded as such: *guru-rinpoche*'s second witness is a Wikipedia redirect title, and *dudjom-rinpoche*'s two are web pages, a heading and a list.
 For `tsongkhapa` and `dudjom-rinpoche` BDRC is the identity anchor and **not** a witness to the spelling, which is what keeping the honorific costs.
 
@@ -229,8 +255,10 @@ The other twelve phonetics are THL's output unchanged and equal the tables above
 
 ### Proved by mutation
 
-A scratch copy of the verifier, with its own `test/fixtures/`, was run against **recorded** responses (38 recorded during the real run that wrote the fixture); each mutant alters one served response or one converter output, and every mutant is asserted on its failure **message**, with no fixture written.
+A scratch copy of the verifier, with its own `test/fixtures/`, was run against **recorded** responses (38 recorded during the real run that wrote the fixture); each mutant alters one served response or one converter output (two mutants alter two or three responses of one name), and every mutant is asserted on its failure **message**, with no fixture written.
 The control is unmutated, exits 0 and writes the fixture, and was run first and last.
+There are **12 mutants** beside the control.
+The harness, the replay preload, the recorded responses and the run outputs are kept in `~/.claude/projects/d--dev-tibetan-calendar-temporal/plans/evidence/observance-names-verifier/`, with a README that says how to run them.
 
 | Mutant | Check | Message asserted |
 |---|---|---|
@@ -241,11 +269,14 @@ The control is unmutated, exits 0 and writes the fixture, and was run first and 
 | Mahāvyutpatti pairs `sbyin sreg` with `homa` | 4 | `the Mahāvyutpatti no longer pairs "sbyin sreg" with homaḥ` |
 | Monier-Williams entry for *homa* loses "oblation with fire" | 4 | `no Monier-Williams entry headed homa prints "oblation with fire"` |
 | the *tshig mdzod chen mo* loses `dus chen` | 3, terms | `head word "dus chen" has 1 independent witness group(s) read, not 2` |
-| the Wikipedia list loses the Karmapa's item | 3, exception | `the single-witness exception for karmapa-16 expects exactly "Tibetan Wikipedia list" and no other group, but no group states the spelling` |
+| the Wikipedia list loses the Karmapa's item | 3, exception | `the single-witness exception for karmapa-16 expects exactly "Tibetan Wikipedia" and no other group, but no group states the spelling` |
 | BDRC's record gains the exact spelling | 3, exception | `a second witness exists, so the exception is no longer needed` |
-| `milarepa` loses BDRC and the dictionary, keeping only Wikipedia | 3, the exception cannot reach another name | `"mi la ras pa" has 1 independent witness(es) stating that spelling, not 2` |
+| `milarepa` loses BDRC and the dictionary, keeping only a Wikipedia title | 3, the exception cannot reach another name | `"mi la ras pa" has 1 independent witness(es) stating that spelling, not 2` |
+| `milarepa` loses BDRC and the dictionary and gains both a Wikipedia title and a list item | 3, Wikipedia is one group | `"mi la ras pa" has 1 independent witness(es) stating that spelling, not 2 (Tibetan Wikipedia)` |
+| the *tshig mdzod chen mo* loses `bdud 'joms`, which only the Jäschke index still lists | 5, a marked word needs a headword check 3 accepts | `marked word "bdud 'joms" is part of no headword that check 3 accepts` |
 | THL returns *karmapa* for the Karmapa | 5, correction | `correction for karmapa-16 is no longer justified` |
 
 The emit path is proved by the same table: every mutant leaves no fixture, and the control writes one.
-**Baseline:** the control's fixture, formatted with `npx biome check --write`, is byte-identical to the committed fixture, which came from the real run.
-Not proved by mutation: check 5's "(?)" marker and the BDRC label check for persons were proved in an earlier round on live responses, before this rewrite of check 3; the Lotsawa House heading check and the Wikipedia title check have no mutant of their own.
+**Baseline:** the control's fixture, formatted by `npx biome check --write` on a file inside the repository, is byte-identical to the committed fixture, which came from the real run.
+(Biome's `--stdin-file-path` mangles Tibetan combining marks on this machine and must not be used for the comparison.)
+Not proved by mutation: check 5's "(?)" marker and the BDRC label check for persons were proved in an earlier round on live responses, before the check-3 rewrite; the Lotsawa House heading check and the Wikipedia title check have no mutant of their own beyond those above.

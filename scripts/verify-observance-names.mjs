@@ -247,7 +247,7 @@ const CORRECTIONS = [
 const SINGLE_WITNESS_EXCEPTIONS = [
 	{
 		id: "karmapa-16",
-		group: "Tibetan Wikipedia list",
+		group: "Tibetan Wikipedia",
 		why:
 			"no source read prints rgyal ba karma pa bcu drug pa but the list of Tibetan scholars in Tibetan " +
 			"Wikipedia: BDRC prints only the numeral form, the dictionaries head karma pa alone, and Lotsawa " +
@@ -275,7 +275,6 @@ const JAESCHKE_READ = [
 		image: "n280",
 		printed: "dus-čén, under dus (Comp.)",
 		sense: "festival, byéd-pa to keep one",
-		wantsWord: "festival",
 	},
 	{
 		forms: ["cho 'phrul"],
@@ -284,7 +283,6 @@ const JAESCHKE_READ = [
 		image: "n186",
 		printed: "čo-ʼprúl",
 		sense: "magical trick, jugglery",
-		wantsWord: "magical",
 	},
 	{
 		forms: ["chos 'khor"],
@@ -293,7 +291,6 @@ const JAESCHKE_READ = [
 		image: "n188",
 		printed: "čos-ʼkór, under čos (Comp.)",
 		sense: "vulgo prayer-mill",
-		wantsWord: "prayer-mill",
 	},
 	{
 		forms: ["sa ga"],
@@ -302,7 +299,6 @@ const JAESCHKE_READ = [
 		image: "n595",
 		printed: "sá-ga",
 		sense: "n. of one of the lunar mansions, and hence also n. of a month, part of March and April",
-		wantsWord: "month",
 	},
 	{
 		forms: ["zla ba"],
@@ -311,7 +307,6 @@ const JAESCHKE_READ = [
 		image: "n515",
 		printed: "zlá-ba",
 		sense: "moon; temporal moon or month",
-		wantsWord: "month",
 	},
 	{
 		forms: ["gso sbyong", "gso sbyong ba"],
@@ -320,7 +315,6 @@ const JAESCHKE_READ = [
 		image: "n615",
 		printed: "yso-sbyoń-ba",
 		sense: "to get quit of sin by confession to a priest; a renewal of obligations",
-		wantsWord: "renewal of obligations",
 	},
 ];
 
@@ -482,6 +476,19 @@ const KEYS = Object.fromEntries(
 );
 KEYS.Mahāvyutpatti = mvy.map((e) => e.tibetan).join("\n");
 
+/**
+ * The headwords check 5 may test a marked word against: exactly what check 3 accepts as a witness —
+ * the Mahāvyutpatti, the two Tibetan–Tibetan dictionaries (gate only) and the Jäschke pages read from
+ * their images. The Jäschke and Das **indexes** are deliberately absent: they list headwords their
+ * books do not print.
+ */
+const ACCEPTED_KEYS = {
+	Mahāvyutpatti: KEYS.Mahāvyutpatti,
+	"tshig mdzod chen mo": KEYS["tshig mdzod chen mo"],
+	"dung dkar tshig mdzod chen mo": KEYS["dung dkar tshig mdzod chen mo"],
+	"Jäschke 1881 (a page read)": JAESCHKE_READ.flatMap((r) => r.forms).join("\n"),
+};
+
 /** Where the aggregate's index puts a headword, as a printed page; Jäschke's leaf is the page + 26. */
 function indexedPage(dictionary, headword) {
 	const raw = INDEX[dictionary].get(headword)?.[0];
@@ -503,11 +510,6 @@ function jaeschkeRead(wylie) {
 		return {
 			row,
 			problem: `Jäschke's index puts "${row.indexKey}" at p. ${page}, not p. ${row.page}`,
-		};
-	if (!row.sense.includes(row.wantsWord))
-		return {
-			row,
-			problem: `the Jäschke row for "${row.indexKey}" does not state "${row.wantsWord}"`,
 		};
 	return { row, problem: null };
 }
@@ -773,16 +775,19 @@ for (const name of NAMES) {
 			}
 		}
 		const wikiTitle = await wikipediaTitleFor(name.tibetan);
+		const wikipedia = [];
 		if (wikiTitle === null) states.push("no Tibetan Wikipedia title");
-		else groups.set("Tibetan Wikipedia title", wikiTitle);
+		else wikipedia.push(wikiTitle);
 		if (wikipediaList.includes(`* ${name.tibetan}།`))
-			groups.set("Tibetan Wikipedia list", {
+			wikipedia.push({
 				source: "Tibetan Wikipedia, the list in the article བོད་ཀྱི་མཁས་དབང་།",
 				entry: name.tibetan,
 				page: null,
 			});
 		else states.push("not listed in the Tibetan Wikipedia article བོད་ཀྱི་མཁས་དབང་།");
-		for (const w of groups.values()) name.provenance.witnesses.push(w);
+		// A title and a list item are one site and one editing community: one group, however many pages.
+		if (wikipedia.length > 0) groups.set("Tibetan Wikipedia", wikipedia);
+		for (const w of groups.values()) name.provenance.witnesses.push(...[w].flat());
 		const variant = JAESCHKE_VARIANTS[name.id];
 		if (variant)
 			name.provenance.notes.push(
@@ -887,9 +892,18 @@ for (const name of NAMES) {
 		name.corrected = null;
 	}
 	for (const word of wordsOf(name.marked)) {
-		const inDictionaries = Object.keys(KEYS).filter((d) => isWholeWordIn(KEYS[d], word));
+		// A rung of Tibetan morphology, as in `forms`: an ordinal or agent ending (-pa, -ba) may be absent
+		// from the headword that carries the stem (bcu drug pa, "sixteenth", against bcu drug).
+		const stem = word.replace(/ [pb]a$/, "");
+		const inDictionaries = Object.keys(ACCEPTED_KEYS).filter(
+			(d) => isWholeWordIn(ACCEPTED_KEYS[d], word) || isWholeWordIn(ACCEPTED_KEYS[d], stem),
+		);
 		if (inDictionaries.length === 0)
-			fail(name.id, 5, `marked word "${word}" is part of no headword in any dictionary read`);
+			fail(
+				name.id,
+				5,
+				`marked word "${word}" is part of no headword that check 3 accepts (the Mahāvyutpatti, the two Tibetan–Tibetan dictionaries, a Jäschke page read)`,
+			);
 		name.provenance.notes.push(
 			`marked word "${word}" is part of a headword in: ${inDictionaries.join(", ")}`,
 		);
