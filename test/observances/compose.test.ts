@@ -111,6 +111,36 @@ describe("composeObservances", () => {
 		expect(levelIds(result)).toEqual(["great", "tiny", "new"]);
 	});
 
+	it("replaces a level in place, so a rule naming it is untouched and its position is kept", () => {
+		const result = composeObservances(
+			plainBase(),
+			layer({
+				replaceLevels: [{ id: "small", englishName: "Minor", tibetanName: { ...NAME } }],
+			}),
+		);
+		expect(levelIds(result)).toEqual(["great", "small", "tiny"]);
+		expect(result.levels?.[1]).toEqual({
+			id: "small",
+			englishName: "Minor",
+			tibetanName: NAME,
+		});
+		expect(result.rules[1]?.level).toBe("small");
+	});
+
+	it("orders levels remove, replace, add, as it does rules", () => {
+		const result = composeObservances(
+			plainBase(),
+			layer({
+				remove: ["c"],
+				removeLevels: ["tiny"],
+				replaceLevels: [{ id: "great", englishName: "G2" }],
+				addLevels: [{ id: "new", englishName: "New" }],
+			}),
+		);
+		expect(levelIds(result)).toEqual(["great", "small", "new"]);
+		expect(result.levels?.[0]?.englishName).toBe("G2");
+	});
+
 	it("takes id, englishName and tibetanName from the layer only", () => {
 		const base = plainBase();
 		const bare = composeObservances(base, layer());
@@ -237,6 +267,45 @@ describe("composeObservances", () => {
 			],
 			["addLevels that is not an array", plainBase(), layer({ addLevels: "x" })],
 			["addLevels holding a non-object", plainBase(), layer({ addLevels: [1] })],
+			[
+				"replaceLevels naming an unknown level",
+				plainBase(),
+				layer({ replaceLevels: [{ id: "nope", englishName: "N" }] }),
+			],
+			[
+				"a level in both replaceLevels and removeLevels",
+				plainBase(),
+				layer({
+					remove: ["c"],
+					removeLevels: ["tiny"],
+					replaceLevels: [{ id: "tiny", englishName: "T2" }],
+				}),
+			],
+			[
+				"a level in both replaceLevels and addLevels",
+				plainBase(),
+				layer({
+					replaceLevels: [{ id: "tiny", englishName: "T2" }],
+					addLevels: [{ id: "tiny", englishName: "T3" }],
+				}),
+			],
+			[
+				"a level twice in replaceLevels",
+				plainBase(),
+				layer({
+					replaceLevels: [
+						{ id: "tiny", englishName: "T2" },
+						{ id: "tiny", englishName: "T3" },
+					],
+				}),
+			],
+			["replaceLevels that is not an array", plainBase(), layer({ replaceLevels: "x" })],
+			["replaceLevels holding a non-object", plainBase(), layer({ replaceLevels: [1] })],
+			[
+				"an invalid replacement level",
+				plainBase(),
+				layer({ replaceLevels: [{ id: "tiny", englishName: 5 }] }),
+			],
 			["a doubledDay that is not a choice", plainBase(), layer({ doubledDay: "third" })],
 			["a skippedDay that is not a choice", plainBase(), layer({ skippedDay: 1 })],
 			["a leapMonth that is not a choice", plainBase(), layer({ leapMonth: null })],

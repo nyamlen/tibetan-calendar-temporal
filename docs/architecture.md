@@ -124,8 +124,9 @@ tibetan-calendar-temporal/
 │   │   ├── calendar.ts             # True month count, leap months, day rule (§5-6)
 │   │   └── conversion.ts           # ISO ↔ Tibetan bidirectional, weekday (§8-9)
 │   ├── observances/
-│   │   ├── index.ts                # getObservances, observancesOn (Layer 4)
-│   │   ├── types.ts                # ObservanceRule, ObservanceConfig, Observance
+│   │   ├── index.ts                # getObservances, observancesOn, composeObservances (Layer 4)
+│   │   ├── types.ts                # ObservanceRule, ObservanceConfig, ObservanceLayer, Observance
+│   │   ├── compose.ts              # composeObservances: a base config plus a layer of differences
 │   │   ├── validate.ts             # the config guard, memoised per config (internal)
 │   │   ├── forms.ts                # how each form of `when` lands on a day (internal)
 │   │   └── example-observances.ts  # EXAMPLE_OBSERVANCES — FPMT's published rules, as an example
@@ -380,6 +381,21 @@ interface ObservanceConfig {
   leapMonth: 'regular' | 'leap' | 'both';
   levels?: readonly ObservanceLevel[];
   rules: readonly ObservanceRule[];
+}
+
+interface ObservanceLayer {            // the differences composeObservances applies to a base config
+  id: string;                          // id, englishName and tibetanName name the result, never read from the base
+  englishName: string;
+  tibetanName?: TibetanName;
+  remove?: readonly string[];          // ids of base rules to drop
+  replace?: readonly ObservanceRule[]; // take the position of the base rule with the same id
+  add?: readonly ObservanceRule[];     // appended after the base's, in the order given
+  removeLevels?: readonly string[];    // ids of base levels to drop; refused while a remaining rule names one
+  replaceLevels?: readonly ObservanceLevel[]; // take the position of the base level with the same id
+  addLevels?: readonly ObservanceLevel[];     // appended after the base's remaining ones
+  doubledDay?: 'first' | 'second' | 'both';   // each convention replaces the base's; absent means no change
+  skippedDay?: 'preceding' | 'omit';
+  leapMonth?: 'regular' | 'leap' | 'both';
 }
 
 interface YearAttributes {

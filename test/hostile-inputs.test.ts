@@ -466,22 +466,28 @@ const layerWith = (patch: object) => v({ id: "l", englishName: "L", ...patch });
 const RULE_OBJECT: readonly Row[] = [
 	["composeObservances(base, layer) base", (x) => composeObservances(v(x), layerWith({}))],
 	["composeObservances(base, layer) layer", (x) => composeObservances(EXAMPLE_OBSERVANCES, v(x))],
-	...["tibetanName", "remove", "replace", "add", "removeLevels", "addLevels"].flatMap(
-		(field): Row[] => [
-			[
-				`composeObservances(base, layer) layer.${field}`,
-				(x) => composeObservances(EXAMPLE_OBSERVANCES, layerWith({ [field]: x })),
-			],
-			...(field === "tibetanName"
-				? []
-				: ([
-						[
-							`composeObservances(base, layer) layer.${field} entry`,
-							(x: unknown) => composeObservances(EXAMPLE_OBSERVANCES, layerWith({ [field]: [x] })),
-						],
-					] as Row[])),
+	...[
+		"tibetanName",
+		"remove",
+		"replace",
+		"add",
+		"removeLevels",
+		"replaceLevels",
+		"addLevels",
+	].flatMap((field): Row[] => [
+		[
+			`composeObservances(base, layer) layer.${field}`,
+			(x) => composeObservances(EXAMPLE_OBSERVANCES, layerWith({ [field]: x })),
 		],
-	),
+		...(field === "tibetanName"
+			? []
+			: ([
+					[
+						`composeObservances(base, layer) layer.${field} entry`,
+						(x: unknown) => composeObservances(EXAMPLE_OBSERVANCES, layerWith({ [field]: [x] })),
+					],
+				] as Row[])),
+	]),
 	...["tibetan", "wylie", "phonetic"].map(
 		(part): Row => [
 			`composeObservances(base, layer) layer.tibetanName.${part}`,

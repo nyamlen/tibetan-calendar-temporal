@@ -60,8 +60,11 @@ A rule, a level and a configuration carry `englishName`, required and first, and
 The shipped example gives Tibetan names only where a dictionary attests them, checked by the name verifier.
 
 **A configuration differs from another by a layer, not by an edit.**
-A layer is JSON listing rules removed, replaced and added by id, levels removed and added, and any convention changed; combining it with a base yields a new, validated, frozen configuration and leaves the base untouched.
-An id the base does not have, an id added twice, or a level removed while a rule still names it is refused: a difference that silently does nothing is the failure this prevents.
+A layer is JSON listing rules and levels removed, replaced and added by id, and any convention changed; combining it with a base yields a new, validated, frozen configuration and leaves the base untouched.
+Rules and levels are changed in that order, remove then replace then add, and a replacement keeps the position of what it replaces.
+An id the base does not have, an id the base has being added, an id appearing more than once across a layer's remove, replace and add lists (and likewise across `removeLevels`, `replaceLevels` and `addLevels`), or a level removed while a rule still names it is refused: a difference that silently does nothing is the failure this prevents.
+The once-only rule is strict on purpose: removing a rule and adding it back would silently move it to the end, `replace` exists to change a rule and keep its place, and loosening a refusal later breaks nobody.
+`replaceLevels` exists for the same reason: without it a layer could not rename a level or give it a Tibetan name without changing its id.
 
 **A year field says which calendar it counts.**
 `fromYear`, `untilYear` and `ageFromYear` are Tibetan years on `annual` and Western years on `western`, and each docblock says so where the field is declared.

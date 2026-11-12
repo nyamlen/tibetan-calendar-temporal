@@ -317,6 +317,8 @@ export interface ObservanceConfig {
  * - `replace`: rules that take the place, at the same position, of the base rule with the same id.
  * - `add`: rules appended after the base's.
  * - `removeLevels`: ids of base levels to drop. A rule that still names one is refused.
+ * - `replaceLevels`: levels that take the place, at the same position, of the base level with the
+ *   same id. Rules naming that id are unaffected.
  * - `addLevels`: levels appended after the base's remaining ones, in the order given.
  * - `doubledDay`, `skippedDay`, `leapMonth`: the result's defaults in place of the base's.
  *
@@ -343,6 +345,9 @@ export interface ObservanceLayer {
 
 	/** Ids of base levels to drop. */
 	readonly removeLevels?: readonly string[];
+
+	/** Levels replacing the base levels that share their ids, in place. */
+	readonly replaceLevels?: readonly ObservanceLevel[];
 
 	/** Levels appended after the base's remaining ones, in the order given. */
 	readonly addLevels?: readonly ObservanceLevel[];

@@ -37,6 +37,7 @@ const LAYER_KEYS = [
 	"replace",
 	"add",
 	"removeLevels",
+	"replaceLevels",
 	"addLevels",
 	"doubledDay",
 	"skippedDay",
@@ -121,11 +122,12 @@ function assertNoRepeats(lists: readonly (readonly [string, readonly string[]])[
  * to the end, and `replace` is how to change a rule and keep its place. `add` refuses an id the
  * base has.
  *
- * **Levels** keep the base's order minus `removeLevels`, then `addLevels` follow in the order given.
- * There is no reordering. A level id may appear once across `removeLevels` and `addLevels`, and a
- * level a remaining rule still names cannot be removed. A layer therefore cannot rename or edit a
- * level, deliberately: there is no `replaceLevels`, so keep the level, or remove it and `replace`
- * the rules that name it.
+ * **Levels** are changed in the same order as rules: the base's order minus `removeLevels`, each
+ * `replaceLevels` entry taking the position of the base level with the same id, then `addLevels` in
+ * the order given. There is no reordering. A level id may appear **once** across `removeLevels`,
+ * `replaceLevels` and `addLevels` together, and a level a remaining rule still names cannot be
+ * removed. `replaceLevels` is how to rename a level or give it a Tibetan name: the id is unchanged,
+ * so every rule that names it stays valid and a consumer's filter by id keeps working.
  *
  * **Nothing the caller passed in is changed or frozen**, however deep: the result is built from
  * copies, so a base the caller owns stays theirs to edit, and an object in the layer is never an
@@ -137,8 +139,9 @@ function assertNoRepeats(lists: readonly (readonly [string, readonly string[]])[
  *   a `base` or `layer` that is not an object or is malformed; an unknown layer key; a `remove` or
  *   `replace` naming a rule the base does not have; an `add` naming a rule the base has; a rule
  *   id appearing twice across `remove`, `replace` and `add`, whether in one list or two; a
- *   `removeLevels` naming an undeclared level; a level id appearing twice across `removeLevels` and
- *   `addLevels`; an added level the base declares; a level removed while a remaining rule names
+ *   `removeLevels` or `replaceLevels` naming an undeclared level; a level id appearing twice across
+ *   `removeLevels`, `replaceLevels` and `addLevels`, whether in one list or two; an added level the
+ *   base declares; a level removed while a remaining rule names
  *   it; a rule naming a level that is not declared; and any rule or level the validator refuses.
  */
 export function composeObservances(
@@ -162,6 +165,7 @@ export function composeObservances(
 	const replace = idsOf(layer.replace, "replace");
 	const add = idsOf(layer.add, "add");
 	const removeLevels = idList(layer.removeLevels, "removeLevels");
+	const replaceLevels = idsOf(layer.replaceLevels, "replaceLevels");
 	const addLevels = idsOf(layer.addLevels, "addLevels");
 	assertNoRepeats(
 		[
@@ -174,6 +178,7 @@ export function composeObservances(
 	assertNoRepeats(
 		[
 			["removeLevels", removeLevels],
+			["replaceLevels", replaceLevels.map((l) => l.id)],
 			["addLevels", addLevels.map((l) => l.id)],
 		],
 		label,
@@ -211,6 +216,14 @@ export function composeObservances(
 		}
 	}
 	const removedLevels = new Set(removeLevels);
+	for (const { id } of replaceLevels) {
+		if (!baseLevelIds.has(id)) {
+			throw rangeError(
+				CODE,
+				`${label}: replaceLevels names "${id}", which the base does not declare`,
+			);
+		}
+	}
 	for (const { id } of addLevels) {
 		if (baseLevelIds.has(id)) {
 			throw rangeError(CODE, `${label}: addLevels names "${id}", which the base already declares`);
@@ -233,11 +246,16 @@ export function composeObservances(
 		}
 	}
 
+	const levelReplacements = new Map(
+		replaceLevels.map(({ id, item }) => [id, item as ObservanceLevel]),
+	);
 	const levels: ObservanceLevel[] | undefined =
 		base.levels === undefined && addLevels.length === 0
 			? undefined
 			: [
-					...baseLevels.filter((level) => !removedLevels.has(level.id)),
+					...baseLevels
+						.filter((level) => !removedLevels.has(level.id))
+						.map((level) => levelReplacements.get(level.id) ?? level),
 					...addLevels.map(({ item }) => item as ObservanceLevel),
 				];
 
