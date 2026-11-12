@@ -1,0 +1,324 @@
+[
+	{
+		"key": "03810c242ce0e5ab19641147cf3908227e9f24d4",
+		"url": "https://www.sanskrit-lexicon.uni-koeln.de/scans/MWScan/2020/web/webtc/getword.php?key=mAsa&filter=roman",
+		"body": "",
+		"status": 200,
+		"bytes": 3623,
+		"sha256": "fb0f2b7bc9ba531967686191f06a28a73bed3b7db67b91330ca79f58c1dccdff"
+	},
+	{
+		"key": "06a47f501767388b8dbbbf6d9b3618b8eed89478",
+		"url": "https://bo.wikipedia.org/w/api.php?action=query&redirects=1&format=json&titles=%E0%BD%82%E0%BD%B4%E0%BC%8B%E0%BD%A2%E0%BD%B4%E0%BC%8B%E0%BD%A2%E0%BD%B2%E0%BD%93%E0%BC%8B%E0%BD%94%E0%BD%BC%E0%BC%8B%E0%BD%86%E0%BD%BA%E0%BC%8B",
+		"body": "",
+		"status": 200,
+		"bytes": 379,
+		"sha256": "2d192b2695734610462b72ba4c75f90dda2555fd74c0b51328b84710a52a8fa4"
+	},
+	{
+		"key": "09813d0b3af1cae626b9f39b154efbd8f41e094b",
+		"url": "https://www.sanskrit-lexicon.uni-koeln.de/scans/MWScan/2020/web/webtc/getword.php?key=homa&filter=roman",
+		"body": "",
+		"status": 200,
+		"bytes": 1477,
+		"sha256": "539aef65eb24aa1619df1f496733257e5ab87aaab793cab4444636efb9207bbd"
+	},
+	{
+		"key": "16cd9f7ae67c1d6af25a2101832ac40b8e81019f",
+		"url": "https://raw.githubusercontent.com/christiansteinert/tibetan-dictionary/master/_input/dictionaries/public/25-tshig-mdzod-chen-mo-Tib",
+		"body": "",
+		"status": 200,
+		"reduced": true,
+		"bytes": 865998,
+		"sha256": "cb45e370dd57481da62c4e031ccbdd300fb9e32049ab66355e3ca8746559693a"
+	},
+	{
+		"key": "198ab0e18218164746e890092ac2c5dfd1ad9adf",
+		"url": "https://old.thlib.org/cgi-bin/thl/lbow/phonetics.pl",
+		"body": "input=sgam+po+pa&type=thl&words=sep&sep_join=-&send=Make+Phonetics",
+		"status": 200,
+		"bytes": 5153,
+		"sha256": "b8daf7b6d2873a4eef03a3152f888a4a099667dc81f0401eb8dcb08187fd6762"
+	},
+	{
+		"key": "1a368df9f218e201b4fa36ab1a6efbd53c6f13b7",
+		"url": "https://purl.bdrc.io/resource/P1844",
+		"body": "",
+		"status": 200,
+		"bytes": 14045,
+		"sha256": "be5b986be067379391162397b226204e4f55bf57bfeefa4610fd1c5235393028"
+	},
+	{
+		"key": "1f592f14fee9175fb3fd843e922b1760051eafb1",
+		"url": "https://purl.bdrc.io/resource/P1853",
+		"body": "",
+		"status": 200,
+		"bytes": 10337,
+		"sha256": "300bd627d1bfaca88fcbdf86fee3ac412938a71599510d671f8ab5a68fee3409"
+	},
+	{
+		"key": "22d3de3849b787bb5903f6dd4423a062e8aacb56",
+		"url": "https://bo.wikipedia.org/w/api.php?action=query&redirects=1&format=json&titles=%E0%BD%A2%E0%BE%97%E0%BD%BA%E0%BC%8B%E0%BD%99%E0%BD%BC%E0%BD%84%E0%BC%8B%E0%BD%81%E0%BC%8B%E0%BD%94%E0%BC%8B",
+		"body": "",
+		"status": 200,
+		"bytes": 150,
+		"sha256": "6496755ccac8a911a36d4dae4c21d7712e75cb0605b1ab31e029d66917e72644"
+	},
+	{
+		"key": "28e1abe6cf64c563226ea864c15763159b241abb",
+		"url": "https://old.thlib.org/cgi-bin/thl/lbow/phonetics.pl",
+		"body": "input=gso+sbyong&type=thl&words=sep&sep_join=-&send=Make+Phonetics",
+		"status": 200,
+		"bytes": 5152,
+		"sha256": "780e4cb2d82570cec7212e2df0804bed397b415497b8944787d541e845fd3a1e"
+	},
+	{
+		"key": "32a23573d2dccd33cf6aade781c28a4bfd75bb8d",
+		"url": "https://purl.bdrc.io/resource/P865",
+		"body": "",
+		"status": 200,
+		"bytes": 13892,
+		"sha256": "cc1e3739e86274b2d51c30a4627709be4e55f9fda13a37ad73750674af30b4e2"
+	},
+	{
+		"key": "4c7425698ce1673ed625e623338d10441b120383",
+		"url": "https://old.thlib.org/cgi-bin/thl/lbow/phonetics.pl",
+		"body": "input=bdud+%27joms-rin+po+che&type=thl&words=sep&sep_join=-&send=Make+Phonetics",
+		"status": 200,
+		"bytes": 5174,
+		"sha256": "1b65279af6e97d64288270161d39195f4d5ba79c35ae80515fa6fbba5652fda3"
+	},
+	{
+		"key": "4d93e00d5a15394d02554334e78d0c92ff2d67c9",
+		"url": "https://books.google.com/books/about/x.html?id=s61Sj5amlx0C",
+		"body": "",
+		"status": 200,
+		"bytes": 57536,
+		"sha256": "0f70d1dbc379594b2c7ecaecfa4514ce791445935d4816f01ae4687e467a5118"
+	},
+	{
+		"key": "4f7f52940be16aa507fab81e227f24fc3d52343f",
+		"url": "https://purl.bdrc.io/resource/P736",
+		"body": "",
+		"status": 200,
+		"bytes": 11471,
+		"sha256": "b7e9ae39f8cb9b117dc998b33dbf202a598d0a3215959aa64c16487fbfb25060"
+	},
+	{
+		"key": "51aeffc5469db57fb6a3f56dcac60a280e41936b",
+		"url": "https://purl.bdrc.io/resource/P1056",
+		"body": "",
+		"status": 200,
+		"bytes": 18789,
+		"sha256": "e99ff67e766c6e9a9142f555b9bec4e541ebff3964f90d78b8b1ac04d24b0137"
+	},
+	{
+		"key": "57dece5733ba5dc08d515da9991139d656213c2e",
+		"url": "https://old.thlib.org/cgi-bin/thl/lbow/phonetics.pl",
+		"body": "input=sa+ga-zla+ba-dus+chen&type=thl&words=sep&sep_join=-&send=Make+Phonetics",
+		"status": 200,
+		"bytes": 5174,
+		"sha256": "6aa4776a8140771f4316464483f8c1bfa7307a2cd089dfe0963f2fb06c616cd0"
+	},
+	{
+		"key": "6edf00eb37036270cf8a0827e7ba8e51be7d63a2",
+		"url": "https://old.thlib.org/cgi-bin/thl/lbow/phonetics.pl",
+		"body": "input=gu+ru-rin+po+che&type=thl&words=sep&sep_join=-&send=Make+Phonetics",
+		"status": 200,
+		"bytes": 5166,
+		"sha256": "c27ea87488874c8ceba5612e6f76b0651a556d73096ab39112a4b8f17e07d567"
+	},
+	{
+		"key": "6f965f4d2053f118116c2342e34ea8d9cbe4ed5b",
+		"url": "https://bo.wikipedia.org/w/api.php?action=query&prop=revisions&rvprop=content&rvslots=main&format=json&titles=%E0%BD%96%E0%BD%BC%E0%BD%91%E0%BC%8B%E0%BD%80%E0%BE%B1%E0%BD%B2%E0%BC%8B%E0%BD%98%E0%BD%81%E0%BD%A6%E0%BC%8B%E0%BD%91%E0%BD%96%E0%BD%84%E0%BC%8B%E0%BC%8D",
+		"body": "",
+		"status": 200,
+		"bytes": 12198,
+		"sha256": "16bed29667a0b478554851969afacb7f0d23e0756c8382c77682d5a0767cd6e6"
+	},
+	{
+		"key": "758d49c01b9c47ea7f7a14758ffdc5e289d6d828",
+		"url": "https://www.lotsawahouse.org/bo/tibetan-masters/dudjom-rinpoche/",
+		"body": "",
+		"status": 200,
+		"bytes": 83003,
+		"sha256": "d11f4a8b54aff224e93bd0e91cbf363a1dcef1c55a4a7f3211cd1d8973f9ff10"
+	},
+	{
+		"key": "763cc5ea1f9508934adb7fd8ec97509a850f6d96",
+		"url": "https://bo.wikipedia.org/w/api.php?action=query&redirects=1&format=json&titles=%E0%BD%A2%E0%BE%92%E0%BE%B1%E0%BD%A3%E0%BC%8B%E0%BD%91%E0%BD%96%E0%BD%84%E0%BC%8B%E0%BD%80%E0%BD%A2%E0%BE%A8%E0%BC%8B%E0%BD%94%E0%BC%8B%E0%BD%96%E0%BD%85%E0%BD%B4%E0%BC%8B%E0%BD%91%E0%BE%B2%E0%BD%B4%E0%BD%82%E0%BC%8B%E0%BD%94%E0%BC%8B",
+		"body": "",
+		"status": 200,
+		"bytes": 234,
+		"sha256": "c2dbf2815515b8f303cf8489744589f1f5b31a3c4b9620e52638fda6fc859dd5"
+	},
+	{
+		"key": "77411be80aca8fae9a5e2e46bbe414d008c03f48",
+		"url": "https://www.lotsawahouse.org/bo/tibetan-masters/tsongkhapa/",
+		"body": "",
+		"status": 200,
+		"bytes": 22621,
+		"sha256": "84b889c71aec42e17b059407b9aaf9ea606761e9117a2b109c705b49eef5825b"
+	},
+	{
+		"key": "7b88daab84c93d5fb1630bf89304741023edb029",
+		"url": "https://purl.bdrc.io/resource/P64",
+		"body": "",
+		"status": 200,
+		"bytes": 18322,
+		"sha256": "5c7efa56eb113176f744b594c1337f6a6a4c21f0c06853c1bd2dd6c1fd4f72a1"
+	},
+	{
+		"key": "7fa6a2a88fb3c6da4e3628352cf85a87bffc2c41",
+		"url": "https://old.thlib.org/cgi-bin/thl/lbow/phonetics.pl",
+		"body": "input=sa+skya-paN%2BDi+ta&type=thl&words=sep&sep_join=-&send=Make+Phonetics",
+		"status": 200,
+		"bytes": 5331,
+		"sha256": "8581fdee18467622eeea8b482988d47a83e4923113cc505b2cd73803ff498da2"
+	},
+	{
+		"key": "842adebd9a12a335e60fe74aadaf645787b68a66",
+		"url": "https://raw.githubusercontent.com/christiansteinert/tibetan-dictionary/master/_input/dictionaries/public/66-Jaeschke_Scan",
+		"body": "",
+		"status": 200,
+		"bytes": 3932933,
+		"sha256": "45028325c7aa6c9d5fb3d15ec0dddcc2f86c89b54a406067559b6b4e75a8a9b8"
+	},
+	{
+		"key": "8d776cdb53dde451d5824b262d94136f9f38b78c",
+		"url": "https://www.lotsawahouse.org/bo/tibetan-masters/dudjom-rinpoche/short-prayer-for-long-life-of-sixteenth-karmapa",
+		"body": "",
+		"status": 200,
+		"bytes": 14551,
+		"sha256": "a2b27f21b779bf2ee4991c4434db6732b34d46f9acbdd2c16db9b78c7f13fc75"
+	},
+	{
+		"key": "9385482780d363dfa5d4f2cfc7bf5ed27cf9069c",
+		"url": "https://bo.wikipedia.org/w/api.php?action=query&redirects=1&format=json&titles=%E0%BD%96%E0%BD%91%E0%BD%B4%E0%BD%91%E0%BC%8B%E0%BD%A0%E0%BD%87%E0%BD%BC%E0%BD%98%E0%BD%A6%E0%BC%8B%E0%BD%A2%E0%BD%B2%E0%BD%93%E0%BC%8B%E0%BD%94%E0%BD%BC%E0%BC%8B%E0%BD%86%E0%BD%BA%E0%BC%8B",
+		"body": "",
+		"status": 200,
+		"bytes": 204,
+		"sha256": "bc080bb7902b8c38894b794da1b4e7a2b71f9f39f7440e589b47972951f2ff7f"
+	},
+	{
+		"key": "95427d350ca9d54378c3edc86015f3abf515ef5b",
+		"url": "https://old.thlib.org/cgi-bin/thl/lbow/phonetics.pl",
+		"body": "input=rgyal+dbang-karma+pa-bcu+drug+pa&type=thl&words=sep&sep_join=-&send=Make+Phonetics",
+		"status": 200,
+		"bytes": 5357,
+		"sha256": "16a8087c2548d71fdc898bf290f9b2438622a57b3690e84dfeb4121dcc27d76f"
+	},
+	{
+		"key": "9a0a6b3a3ae7a84b39d7ff32556c1e3e0199fdba",
+		"url": "https://bo.wikipedia.org/w/api.php?action=query&redirects=1&format=json&titles=%E0%BD%A6%E0%BE%92%E0%BD%98%E0%BC%8B%E0%BD%94%E0%BD%BC%E0%BC%8B%E0%BD%94%E0%BC%8B",
+		"body": "",
+		"status": 200,
+		"bytes": 132,
+		"sha256": "1f7c3761127e50d09d673ca3ea5c81c749ba6029cff220f177afc10df4aabb55"
+	},
+	{
+		"key": "bf37ab78185c4cd0ff5fa5a8b62a63f3b4ece985",
+		"url": "https://bo.wikipedia.org/w/api.php?action=query&redirects=1&format=json&titles=%E0%BD%A6%E0%BC%8B%E0%BD%A6%E0%BE%90%E0%BE%B1%E0%BC%8B%E0%BD%94%E0%BD%8E%E0%BE%9C%E0%BD%B2%E0%BC%8B%E0%BD%8F%E0%BC%8B",
+		"body": "",
+		"status": 200,
+		"bytes": 156,
+		"sha256": "42ba1b39ad115ce370ad11051a704283db15adb56b302466cf3462e6a02c8a72"
+	},
+	{
+		"key": "c15e94df0f0abaebb93fe700f8d51dabb2886c62",
+		"url": "https://old.thlib.org/cgi-bin/thl/lbow/phonetics.pl",
+		"body": "input=chos+%27khor-dus+chen&type=thl&words=sep&sep_join=-&send=Make+Phonetics",
+		"status": 200,
+		"bytes": 5172,
+		"sha256": "f250c9011bdd85e4c006382979bea3f07bf42b032dcf736b242585772a5fcbcf"
+	},
+	{
+		"key": "c4577dba641c93a10d9a44df0e19e5588e5d7911",
+		"url": "https://bo.wikipedia.org/w/api.php?action=query&redirects=1&format=json&titles=%E0%BD%98%E0%BD%B2%E0%BC%8B%E0%BD%A3%E0%BC%8B%E0%BD%A2%E0%BD%A6%E0%BC%8B%E0%BD%94%E0%BC%8B",
+		"body": "",
+		"status": 200,
+		"bytes": 139,
+		"sha256": "e341f2a5a11301eaf6c3ebf92d5e38a8ab6e578ecbdaae908d61f1bf2b53ee1a"
+	},
+	{
+		"key": "d0e56c1cc4812e81e95652c8b880925ac8abacb8",
+		"url": "https://raw.githubusercontent.com/christiansteinert/tibetan-dictionary/master/_input/dictionaries/public/65-ChandraDas_Scan",
+		"body": "",
+		"status": 200,
+		"bytes": 335979,
+		"sha256": "ac369a9f66f48a20257cf07c336d878e44128e537ac7a51ba27c2fc80dbf45eb"
+	},
+	{
+		"key": "d3f24306a08ded75f92de425a1f4226f6f0f7e5b",
+		"url": "https://old.thlib.org/cgi-bin/thl/lbow/phonetics.pl",
+		"body": "input=mi+la+ras+pa&type=thl&words=sep&sep_join=-&send=Make+Phonetics",
+		"status": 200,
+		"bytes": 5156,
+		"sha256": "387ba31af96f22efb984bc31415f85988d5fd7b29ac7e0402f7974b72e289b3d"
+	},
+	{
+		"key": "d48852695398a99884f9edcd0a942bcc3b13ca4d",
+		"url": "https://old.thlib.org/cgi-bin/thl/lbow/phonetics.pl",
+		"body": "input=rje-tsong+kha+pa&type=thl&words=sep&sep_join=-&send=Make+Phonetics",
+		"status": 200,
+		"bytes": 5166,
+		"sha256": "a142fb980d6315d4ab548d5dd1fa0923c72f7f82692ac7254c878617a498bb21"
+	},
+	{
+		"key": "da87ce8042d5288119d82046c121a07afcdc0d48",
+		"url": "https://old.thlib.org/cgi-bin/thl/lbow/phonetics.pl",
+		"body": "input=cho+%27phrul-dus+chen&type=thl&words=sep&sep_join=-&send=Make+Phonetics",
+		"status": 200,
+		"bytes": 5172,
+		"sha256": "07f336439c376bb79ad65dffd7b0770e70de969ac4448139ee96b27a48414710"
+	},
+	{
+		"key": "ded913b9230cd39757d0d0cce7ca4a4535c020f3",
+		"url": "https://old.thlib.org/cgi-bin/thl/lbow/phonetics.pl",
+		"body": "input=lha+babs-dus+chen&type=thl&words=sep&sep_join=-&send=Make+Phonetics",
+		"status": 200,
+		"bytes": 5167,
+		"sha256": "12cd4bd7b1d5af6307aa307cbf8a8da6afba73077851cd4740f5346b247b1e56"
+	},
+	{
+		"key": "e022054666ba110913d90847e13f7e73ac3d8ad8",
+		"url": "https://purl.bdrc.io/resource/P4956",
+		"body": "",
+		"status": 200,
+		"bytes": 17615,
+		"sha256": "9a572c83bcaaaca8670ffb75a2e4fb1eb14c903da7020e129b2184c17830a4b9"
+	},
+	{
+		"key": "e3a1678bfc560985a393459da036d9657e2d82d4",
+		"url": "https://raw.githubusercontent.com/christiansteinert/tibetan-dictionary/master/_input/dictionaries/public/34-dung-dkar-tshig-mdzod-chen-mo-Tib",
+		"body": "",
+		"status": 200,
+		"reduced": true,
+		"bytes": 301773,
+		"sha256": "c48626e75f23232b85899e7c3d17204e22e039ad405ce20ffe24986029239c49"
+	},
+	{
+		"key": "e86dd4f094cf21c542709cd5aee1f58d30133689",
+		"url": "https://old.thlib.org/cgi-bin/thl/lbow/phonetics.pl",
+		"body": "input=sa+ga-zla+ba&type=thl&words=sep&sep_join=-&send=Make+Phonetics",
+		"status": 200,
+		"bytes": 5157,
+		"sha256": "cfedb5a77d21a476922f34d09b475f0bdf093072644a838af4d3a28088388f1a"
+	},
+	{
+		"key": "f909221c7739ca34ac234a845e5c343cb0f3f301",
+		"url": "https://old.thlib.org/cgi-bin/thl/lbow/phonetics.pl",
+		"body": "input=sbyin+sreg&type=thl&words=sep&sep_join=-&send=Make+Phonetics",
+		"status": 200,
+		"bytes": 5152,
+		"sha256": "b08bb493b337bd6eeac57324b5c3f95c4259cc1f8e47d064531063f779cab2e2"
+	},
+	{
+		"key": "fa3f5320d6ebbae5b8e6bd5a838d50f15d57da89",
+		"url": "https://raw.githubusercontent.com/christiansteinert/tibetan-dictionary/master/_input/dictionaries/public/21-Mahavyutpatti-Skt",
+		"body": "",
+		"status": 200,
+		"bytes": 402609,
+		"sha256": "1809fc8c4bbfd6f62c171cf36306f63f8eff6c4ef69494e63a1a0d27d674aec0"
+	}
+]

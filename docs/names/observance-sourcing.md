@@ -281,7 +281,7 @@ The other twelve phonetics are THL's output unchanged and equal the tables above
 A scratch copy of the verifier, with its own `scripts/` and `test/fixtures/`, was run against **recorded** responses (40 recorded during the real run that wrote the fixture); each mutant alters one served response, one converter output or the Rigpa data file as the verifier reads it (three mutants alter two responses), and every mutant is asserted on its failure **message**, with no fixture written.
 The control is unmutated, exits 0 and writes the fixture, and was run first and last.
 There are **14 mutants** beside the control.
-The harness, the replay preload, the recorded responses and the run outputs are kept in `~/.claude/projects/d--dev-tibetan-calendar-temporal/plans/evidence/observance-names-verifier/`, with a README that says how to run them.
+The harness, the replay preload, the recording preload, and a manifest of the 40 responses (URL and SHA-256, not the third-party pages themselves) are in [scripts/evidence/observance-names-verifier/](../../scripts/evidence/observance-names-verifier/README.md), with a README that says how to record the sources again and run them.
 
 | Mutant | Check | Message asserted |
 |---|---|---|
