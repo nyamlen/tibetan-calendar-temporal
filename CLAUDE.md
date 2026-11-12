@@ -838,6 +838,15 @@ baseline run**, with a second preload that saves every response — then the con
 what the baseline read, every run is offline and repeatable, and a diff cannot be blamed on a source
 that moved. `scripts/fetch-fpmt-observances.mjs` was proved this way.
 
+**A harness a shipped document cites lives in `scripts/evidence/<name>/`, and it keeps neither the
+pages it replays nor its own output.** A reader of a public repository cannot follow a path into
+`~/.claude`, so a document that says "proved by mutation" needs the proof beside it. Third-party pages
+are not vendored — a manifest of URL and SHA-256 plus the recorder replaces them, and the two
+copyrighted dictionaries are stored as headwords only. A run's output goes to a scratch directory
+outside the tree, because anything the harness regenerates is churn in review and a ready home for a
+local path. `scripts/evidence/observance-names-verifier/` is the model, and its README says how to
+re-record and run.
+
 **`\b` does not bound a Sanskrit word in IAST, because JavaScript's `\b` treats a diacritic letter as
 a non-word character.** `/\bmāsa\b/` matches inside *ṣaṇmāsa*: `\b` sees a boundary after *ṇ*. Use
 `(?<!\p{L})…(?!\p{L})` with the `u` flag. Prove the predicate with a case that actually separates the
