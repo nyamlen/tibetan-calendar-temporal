@@ -453,6 +453,18 @@ describe("nextObservance, a period whose span runs past the end of the range", (
 		).toBe(OUTSIDE);
 	});
 
+	it("does not swallow another error from the walk, only the range code", () => {
+		// A config mutated after first use escapes revalidation, which is the one way to reach the
+		// walk's own internal refusal: every day number is named, so some month has a skipped one.
+		const config = withRules([
+			{ id: "m", when: { type: "monthly", days: Array.from({ length: 30 }, (_, i) => i + 1) } },
+		]);
+		const from = iso("2026-01-01");
+		expect(nextObservance(from, "m", config)).not.toBeNull();
+		(config.rules[0] as { skippedDay?: string }).skippedDay = "bogus";
+		expect(thrownBy(() => nextObservance(from, "m", config))?.code).toBe("TCT_INTERNAL");
+	});
+
 	it("does not swallow another refusal: a `from` beyond the end still throws", () => {
 		expect(thrownBy(() => nextObservance(last.add({ days: 1 }), "p", wholeMonth))?.code).toBe(
 			OUTSIDE,
