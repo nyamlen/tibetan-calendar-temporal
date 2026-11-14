@@ -614,6 +614,22 @@ describe("consumer config validation", () => {
 		expect(codeOf(withWhen(when))).toBe(CONFIG_CODE);
 	});
 
+	it("rejects repeated annual dates, naming the repeat", () => {
+		const error = thrownBy(() =>
+			run(
+				withWhen({
+					type: "annual",
+					dates: [
+						{ month: 1, day: 15 },
+						{ month: 1, day: 15 },
+					],
+				}),
+			),
+		);
+		expect(error?.code).toBe(CONFIG_CODE);
+		expect(error?.message).toContain("when.dates repeats month 1 day 15");
+	});
+
 	it("rejects duplicate rule ids", () => {
 		const config = {
 			...EXAMPLE_OBSERVANCES,

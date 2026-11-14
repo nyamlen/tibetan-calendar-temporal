@@ -287,6 +287,14 @@ describe("the naming block", () => {
 		}
 	});
 
+	it("rejects a naming block that is present and not an object", () => {
+		for (const naming of [null, 5, "naming"]) {
+			const error = thrownBy(() => assertTraditionConfig(broken({ naming })));
+			expect(error?.code, `${naming}`).toBe("TCT_INVALID_TRADITION_CONFIG");
+			expect(error?.message, `${naming}`).toContain("naming must be an object when present");
+		}
+	});
+
 	it("accepts a config whose monthAnimals block is simply absent", () => {
 		const error = thrownBy(() => assertTraditionConfig(broken({ naming: { weekdayOffset: 1 } })));
 		expect(error).toBeUndefined();

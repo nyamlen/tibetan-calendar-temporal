@@ -68,6 +68,19 @@ describe("composeObservances", () => {
 		expect(kopan.leapMonth).toBe(EXAMPLE_OBSERVANCES.leapMonth);
 	});
 
+	it("takes skippedDay and leapMonth from the layer when it sets them", () => {
+		const base = plainBase();
+		const result = composeObservances(
+			base,
+			layer({ skippedDay: "following", leapMonth: "regular" }),
+		);
+		expect(base.skippedDay).toBe("preceding");
+		expect(base.leapMonth).toBe("leap");
+		expect(result.skippedDay).toBe("following");
+		expect(result.leapMonth).toBe("regular");
+		expect(result.doubledDay).toBe(base.doubledDay);
+	});
+
 	it("applies remove, then replace, then add, and keeps replaced rules in place", () => {
 		const result = composeObservances(
 			plainBase(),
