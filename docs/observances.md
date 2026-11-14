@@ -4,8 +4,8 @@ What a Tibetan Buddhist calendar marks on a day **as a practice day** — the gr
 
 Written for someone building a practice calendar: the reader who has a date already and needs to know what is kept on it, and by whom.
 
-**Status: designed, not yet built (2026-11-11).**
-The `tibetan-calendar-temporal/observances` subpath ships today with an earlier, smaller model; this document describes the redesign decided for 1.0.0, whose open points are listed at the end.
+**Status: built (2026-11-14).**
+The `tibetan-calendar-temporal/observances` subpath ships the model this document describes, on the branch that becomes 1.0.0; its open points are listed at the end.
 Like [astrology.md](astrology.md), it explains the *system* and deliberately states **no API examples**: signatures belong in the README and [guide.md](guide.md), which ship and have their values asserted.
 What FPMT's own calendar prints, practice by practice, is in [fpmt-calendar.md](fpmt-calendar.md).
 
@@ -26,6 +26,7 @@ A configuration is plain data, storable as JSON.
 A centre either writes a complete one — its practices, and the three conventions for doubled days, skipped days and leap months that apply to all of them — or writes only its **differences** from another: practices removed, replaced or added, and any convention it keeps differently.
 Kopan's difference from a configuration following FPMT is a single convention, the first half of a doubled day instead of the second.
 A difference that names a practice the other configuration does not have is refused rather than ignored.
+A difference can also rename a level or give it a Tibetan name without changing its id, so a front end's grouping by id keeps working.
 
 ## How a calendar fixes a practice day
 
@@ -111,7 +112,7 @@ Whether centres use established Tibetan headings for these groups is a question 
 | Practice | Level | Labels | Basis for the level |
 |---|---|---|---|
 | The four great occasions | For everyone | great occasion | authored |
-| Seven lineage anniversaries — Milarepa, Guru Rinpoche, Gampopa, the Sixteenth Karmapa, Lama Tsongkhapa, Sakya Paṇḍita, Dudjom Rinpoche | For everyone | | authored |
+| Seven lineage anniversaries, named as FPMT prints them — Milarepa, Guru Rinpoche, Gampopa, Sixteenth Karmapa, Lama Tsong Khapa, Sakya Pandita, Dudjom Rinpoche | For everyone | anniversary | authored (the names are FPMT's labels, verbatim; the label does not say whether a day is a birth or a passing, and FPMT does not either) |
 | Saga Dawa, the 4th month | For everyone | | authored |
 | Vow renewal, counted | No empowerment needed | | authored |
 | Medicine Buddha puja, 8th and 15th | No empowerment needed | | cited: the example means *Medicine Buddha: The Wish-Granting Sovereign*, whose FPMT listing says "Anyone with faith can perform this practice" |
@@ -123,7 +124,37 @@ Whether centres use established Tibetan headings for these groups is a question 
 
 The two texts are what the **example** means (decided 2026-11-11), not what any centre is known to perform on those days: centres' own pages name *The Wish-Fulfilling Jewel* by Panchen Losang Chökyi Gyaltsen as their Medicine Buddha puja, for which no requirement was found, and the Medicine Buddha notice quoted is from the Sinhalese edition's listing, the English one not checked.
 
-**Tibetan names** ship only for the six practices whose names are attested in dictionaries — the four great occasions, Saga Dawa and vow renewal — and are checked by the name verifier before release; every other practice in the example is named in English only.
+**Tibetan names** ship only for the fourteen rules whose names are attested — the four great occasions, Saga Dawa, vow renewal, the fire offering and the seven persons of the anniversaries — and are checked by the name verifier before release, as [observance-sourcing.md](names/observance-sourcing.md) records (a name that fails a check ships English only; the four Rigpa Wiki passages the düchens' checks rest on were read in a browser and supplied by Andreas, and are held as data, not fetched by the verifier); every other practice in the example is named in English only.
+
+### The basis of each English name in the example
+
+A shipped English name is **cited** when it is a published source's own wording, verbatim, and **authored** otherwise.
+A name composed here from a dedication a source states is authored: the source stands behind the dedication, not behind the words.
+The level's basis, above, is a separate question from the name's, and so is the name of a level or of the configuration, which is listed last.
+
+FPMT does not print every label identically from year to year, and a shipped name is **one printing exactly**, measured from `test/fixtures/fpmt-observances.ts` (2022-2026): the descent düchen prints "Lord Buddha's Descent from God Realm of 33" in 2022 to 2025 and "Lord Buddha's descent from God Realm of Thirty Three" in 2026, and the birth düchen prints "enlightenment" in 2022 to 2025 and "Enlightenment" in 2026.
+The shipped descent name is 2026's, and the shipped birth name is the lower-case printing of 2022 to 2025.
+The other nine names print identically in every year the fixture holds them.
+
+| Rule or group | English name | Basis |
+|---|---|---|
+| The descent düchen | "Lord Buddha's descent from God Realm of Thirty Three" | cited: FPMT's 2026 printing, verbatim; 2022 to 2025 print "Descent" and "of 33" |
+| The birth düchen | "Lord Buddha's birth, enlightenment and parinirvana" | cited: FPMT's printing for 2022 to 2025, verbatim; 2026 prints "Enlightenment" |
+| The other two düchens | "Day of Miracles", "Lord Buddha's first teaching" | cited: FPMT's labels, verbatim, in every year |
+| The seven anniversaries | "Milarepa", "Guru Rinpoche", "Gampopa", "Sixteenth Karmapa", "Lama Tsong Khapa", "Sakya Pandita", "Dudjom Rinpoche" | cited: FPMT's labels, verbatim, in every year the fixture holds them |
+| Heruka Day | "Heruka Day" | authored, composed from the dedication Philippe Cornu's *Tibetan Astrology*, summarising Dudjom Rinpoche, gives the 10th: "the 10th day of the month is sacred to Heruka"; the words "Heruka Day" are not his |
+| Ḍākinī Day | "Ḍākinī Day" | authored, composed from Cornu's "25th day: Day of the dakinis"; the spelling and the word order are not his |
+| Dharma Protector Day | "Dharma Protector Day" | authored, composed from Cornu's "29th day: Day of the Dharmapalas, protectors of the Dharma"; the words are not his |
+| Saga Dawa, vow renewal, the fire offering, the Medicine Buddha and Tārā pujas | "Saga Dawa, Lord Buddha's month", "Sojong (vow renewal)", "Fire puja", "Medicine Buddha puja", "Tara puja" | authored; FPMT also prints "Fire puja", "Tara puja" and "Sojong" as labels, which the example does not claim to quote |
+| The three levels | "For everyone", "Practitioners, no empowerment needed", "Practitioners, empowerment required" | authored: named by requirement, English only |
+| The configuration | "Example practice calendar" | authored |
+
+The example's docblock says the same, and `src/observances/example-observances.ts` is what the table describes.
+
+**Where the example's names differ from FPMT's.**
+FPMT's Vajrayogini page calls both the 10th and the 25th "dakini days", while the example names the 10th "Heruka Day" and the 25th "Ḍākinī Day".
+The day numbers agree and only the naming differs; the two names are kept by decision, and no FPMT page fetched uses the name "Heruka Day".
+[fpmt-calendar.md](fpmt-calendar.md#fpmts-prose-guidance-against-the-nineteen-rules) records the page and the read.
 
 Left out of the example: Lama Thubten Yeshe's anniversary, which belongs to FPMT as its founder and is kept in the test suite's FPMT configuration with the rest of FPMT's own set; Western-dated birthdays; Precepts and Naga puja, whose rules are not known; and eclipses, which are a front end's to date.
 

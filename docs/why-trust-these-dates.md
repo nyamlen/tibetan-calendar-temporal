@@ -147,9 +147,18 @@ Three qualifications, all of which matter:
 
 ### Observances
 
-FPMT's observance set, shipped as `DEFAULT_OBSERVANCES`, is checked against **FPMT's own published
+`EXAMPLE_OBSERVANCES`, the example configuration, is checked against **FPMT's own published
 monthly calendars for 2022–2026** — not merely against FPMT's guidance page, but against the
-calendars themselves, day by day.
+calendars themselves, day by day, under FPMT's labels.
+The monthly rules — the Medicine Buddha, Tara, tsog and protector days — agree with every printed
+label on all but two days of that window, both of them days where FPMT's day number is not the
+engine's.
+
+Sojong's rule is inferred and not sourced: it reproduces Rabten Choeling's published schedule
+from 19 February 2000 to 31 December 2100, 2,490 days, in both directions, and Rabten states no method.
+FPMT's own calendar departs from it for one run of 17 sojongs in 2022.
+
+The fire puja is a formula, and it agrees with FPMT's labels on 1,786 of 1,826 days, 97.8%.
 
 ## What is not established
 

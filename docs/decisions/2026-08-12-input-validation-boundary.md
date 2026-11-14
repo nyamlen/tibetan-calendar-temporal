@@ -7,7 +7,7 @@ status: accepted
 
 **Decision:** every exported function validates its own input — integrality, range, and config
 shape — and everything under `src/computation/` assumes that work is already done. `getObservances`
-additionally refuses spans wider than 200 years.
+additionally refuses spans wider than 10 years.
 
 ## Add a guard when you add a public function
 
@@ -72,32 +72,37 @@ computed, so `false` would be a confident claim about arithmetic that was refuse
 performed — the same reasoning that gives it a code separate from `TCT_SKIPPED_DAY` above. See
 [the error-code record](2026-08-12-error-codes-not-classes.md).
 
-## The 200-year span cap is deliberate, and is a one-way door
+## The 10-year span cap is deliberate, and its value is chosen small
 
-Do not remove it, and do not raise it without treating that as a breaking change.
+`getObservances` refuses a range with `to.year - from.year > 10` (`MAX_SPAN_YEARS`, internal), so
+2020-01-01 to 2030-12-31 is admitted and 2031-01-01 is not, with `TCT_SPAN_TOO_WIDE`. It is
+compared as year numbers, not elapsed days, after the dates are normalised, so the cap holds for
+every accepted date shape. There is one cap, with no per-config value.
 
-`getObservances` is linear in the requested range, and the work per month is real — mean motion, two
-correction tables, and a full `isoToTibetan` inversion per hit. `Temporal.PlainDate` spans about
-547,000 years, which is roughly ten minutes of synchronous, non-yielding CPU. Any service forwarding
-user-supplied `from`/`to` hands that to its event loop.
+**Why it exists.** `getObservances` is the one function whose work scales with an input range, and
+the work per month is real. `Temporal.PlainDate` spans about 547,000 years, so a service forwarding
+user-supplied `from`/`to` hands its event loop work thousands of times larger than the cap admits, synchronously and without yielding. No other
+function needs a cap: the engine beneath it loops only over bounds that are constants. The
+justification is the range beyond the cap, not the cap itself, and a docblock that implies
+otherwise is overselling it.
 
-What the cap is **not** is a limit reached by anything near it: the maximum admissible span runs in
-about 190 ms. The justification is the range beyond the cap, not the cap itself, and a docblock that
-implies otherwise is overselling it.
+**Why 10.** A day, month, year or planning view needs at most about two years. The approved budgets
+are 5 ms for a day, 10 ms for a month, 50 ms for a year and 100 ms for a planning chunk over about
+ten rules; `bench/RESULTS.md` records the measured figures with their harness, and a new form is
+measured against them.
 
-Two things to know about the number:
+**The direction rule.** Raising the cap later is free, because no caller can depend on a refusal
+being absent. Lowering it after 1.0.0 is a breaking change, because working calls start throwing.
+So the value is chosen small, and the way to widen it without breaking anyone is an optional input
+rather than a larger constant.
 
-- It is **measured as `to.year - from.year`**, not as elapsed days, so the invariant suite's
-  1950-01-01 → 2150-12-31 sweep — 201 calendar years — remains admissible. A day-counted cap breaks
-  a passing test.
-- 200 is a judgment, not a derivation. It is far beyond real use: the Phugpa tradition dates from
-  1447, and a caller wanting more chunks the range and concatenates, which is correct because the
-  function is pure and restarts its month walk per call.
+A caller wanting a wider range chunks it and concatenates, which is correct because the function is
+pure and restarts its month walk per call. The test suite does this through `getObservancesChunked`
+in `test/support/`.
 
-Worth recording that a numeric span cap is **not** a common library pattern. Services cap result
-count instead (`maxResults`); date libraries mostly do not cap at all, and the nearest precedent is
-`rrule.js` refusing `.all()` on an infinite rule. The justification specific to this library is the
-per-month cost above, which is orders of magnitude beyond a day-walker like `eachDayOfInterval`.
+A numeric span cap is not a common library pattern: services cap result count instead, and date
+libraries mostly do not cap at all. The justification specific to this library is the per-month
+cost, far beyond a day-walker like `eachDayOfInterval`.
 
 ## Consumer configs are validated once per object
 
@@ -106,14 +111,14 @@ keyed by the config object — the same bargain `scalingFor` already makes with 
 consumer who mutates a config in place after first use escapes revalidation; that is accepted, not
 overlooked.
 
-The bargain covers **consumer-supplied** configs only. `PHUGPA`, `PHUGPA_HENNING` and `DEFAULT_OBSERVANCES` are
+The bargain covers **consumer-supplied** configs only. `PHUGPA`, `PHUGPA_HENNING` and `EXAMPLE_OBSERVANCES` are
 deeply frozen, because they are the objects the docs point a reader at for `{ ...PHUGPA, … }` and so
 the ones a keystroke off a spread mutates. Keep them frozen: a mutation after first use produces
 neither the old constants nor the new ones but a stale mix — a fresh `moonTab` beside a
 `commonDenominator` derived from the old one — and unfreezing them later would be no easier than
 freezing them was.
 
-`ObservanceConfig` is validated by `validateObservanceConfig` in `src/observances/index.ts`;
+`ObservanceConfig` is validated by `validateObservanceConfig` in `src/observances/validate.ts`;
 `TraditionConfig` by [`assertTraditionConfig`](../../src/traditions/validate.ts), called from both
 `scalingFor` functions, which are the single choke point every public entry reaches. Because the
 scaling derivation is already memoised per object, the check costs nothing after the first call —

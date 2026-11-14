@@ -49,7 +49,7 @@
  *   would be a confident false claim.
  * - `TCT_INVALID_TRADITION_CONFIG` — a `TraditionConfig` is malformed.
  * - `TCT_INVALID_OBSERVANCE_CONFIG` — an `ObservanceConfig` or one of its rules is malformed.
- * - `TCT_SPAN_TOO_WIDE` — `getObservances` was asked for more than 200 years at once.
+ * - `TCT_SPAN_TOO_WIDE` — `getObservances` was asked for more than 10 years at once.
  * - `TCT_ATTRIBUTE_NOT_SOURCED` — an astrological attribute was asked for in a tradition no source
  *   gives it for. Thrown by the month and lunar-day attributes for the Bhutanese configs, because
  *   Janson tabulates no month-animal list for that version. **Nothing about the caller's input is
@@ -391,11 +391,21 @@ export function thrownDetail(error: unknown): string {
  * `subject` may be a thunk, so a caller whose subject echoes the whole call builds it only on the
  * throw; `suffix` is appended to the message, which is how `assertTibetanRanges`' `hint` reaches the
  * year as well as the month and the day.
+ *
+ * `code` is the code the refusal carries, `TCT_FIELD_OUT_OF_RANGE` unless the subject is a config
+ * field: the observance validator passes `TCT_INVALID_OBSERVANCE_CONFIG`, so a bad year window is a
+ * config problem like every other one there, without a second copy of this predicate. `year` is
+ * `unknown` so a validator can hand it a value it has not yet type-checked.
  */
-export function assertSafeYear(subject: string | (() => string), year: number, suffix = ""): void {
+export function assertSafeYear(
+	subject: string | (() => string),
+	year: unknown,
+	suffix = "",
+	code: TibetanCalendarErrorCode = "TCT_FIELD_OUT_OF_RANGE",
+): asserts year is number {
 	if (!Number.isSafeInteger(year)) {
 		throw rangeError(
-			"TCT_FIELD_OUT_OF_RANGE",
+			code,
 			`${typeof subject === "string" ? subject : subject()}: year must be a safe integer, ` +
 				`received ${describe(year)}${suffix}`,
 		);

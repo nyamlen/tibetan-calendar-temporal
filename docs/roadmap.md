@@ -7,7 +7,7 @@
 | 0 | Scaffold (npm init, tsc, vitest, fast-check, biome, CI) — **done** | 2h |
 | 1 | Core computation: Layers 0-3 (Janson §2-9) — **done** | 20h |
 | 2 | Validation: FPMT fixtures, cross-check against reference implementations — **done** | 12h |
-| 3 | Observances: config-driven rules, Gelug default config — **done** | 8h |
+| 3 | Observances: config-driven rules, an example config — **done**; rebuilt in November 2026, see the checklist | 8h |
 | 4 | TypeDoc + release workflow + publish v1.0.0 (docblock audit split out — see Phase 4a) | 6h |
 | 4a | Code review: 300 docblocks verified against behaviour, plus convention and derivation conformance across all of `src/` — see the [Pre-v1.0.0 checklist](#pre-v100-checklist) | 14h |
 
@@ -342,12 +342,22 @@ Setup work not yet done. None of it blocks Phase 3.
       does not resolve at all, so anyone typing it dead-ends
 - [ ] Decide whether to register `nyamlen.org` and `nyamlen.dev` (both free as of 2026-08-11)
 - [ ] Record `Melong` as the name of the practice review screen in the app spec
-- [ ] **Development-tool vulnerabilities.** `npm audit` reported 14 (3 low, 4 moderate, 7 high)
+- [x] **Development-tool vulnerabilities.** `npm audit` reported 14 (3 low, 4 moderate, 7 high)
       on 2026-10-16, every one in development tools — the `markdownlint-cli2` chain (`braces`,
       `micromatch`, `js-yaml` and others) and `vitest` with `@vitest/coverage-v8` — and none in
       the published package: `npm audit --omit=dev` found 0. Update them as a change of their own,
       run all ten CI commands, and take anything that needs `npm audit fix --force` (a
-      major-version jump) separately. Re-measure the count first; it moves as advisories appear
+      major-version jump) separately. Re-measure the count first; it moves as advisories appear.
+      **Updated 2026-11-14:** `npm audit fix` and Vitest 4.1.12 cleared Vite and source-map-js;
+      `markdownlint-cli2` 0.19.1 → 0.24.1 cleared `js-yaml` and `markdown-it`, with no new
+      `lint:md` findings. **4 low remain, all one KaTeX advisory** (GHSA-238p-pmpm-9mq7) via
+      `markdownlint` → `micromark-extension-math@3.1.0` → `katex@0.16.47`. KaTeX 0.19.1 fixes it,
+      but the math extension's latest release requires `katex ^0.16.0`, so only an `overrides`
+      entry forcing an undeclared major would clear it; `npm audit fix --force` instead proposes
+      *downgrading* to `markdownlint-cli2@0.16.0`. **Residual accepted by Andreas, 2026-11-14:**
+      low severity, development-only (`npm audit --omit=dev` finds 0), and reachable only if KaTeX
+      renders hostile input, where markdownlint parses this repository's own docs. Revisit when
+      `micromark-extension-math` widens its `katex` range
 
 ## Pre-v1.0.0 checklist
 
@@ -356,13 +366,11 @@ through this before publishing v1.0.0 — several are one-way doors once publish
 
 The list is grouped by subject, not by sequence, and one run of items does have a required order.
 
-**The order, as it stands on 2026-09-20:**
+**The order, as it stands on 2026-11-14:**
 
-1. **`./observances`** — the rule vocabulary, sojong, and whichever content ships. **This blocks the
-   review passes**, and the reason is recorded on that item: *"a code review that reads a ruleset
-   which may still change content, membership or name is reviewing a moving target."* Its design
-   has been under way since 2026-09-27; which rules ship, and their parameters, wait on
-   Ven. Thubten Chöying's reply.
+1. **`./observances`** — the rule vocabulary, sojong, and the content that ships. **Built** on the
+   `observances-1.0` branch: it blocked the review passes while its content, membership and names
+   could still change, and they have settled. It merges to `main` after that branch's final review.
 2. The four **Review passes** below, in the order given there.
 3. The **`docs/` folder restructure**, last of all — every review before it produces documentation
    edits, and moving files once after they have landed is one link-fixing commit instead of four.
@@ -450,8 +458,8 @@ that its first step is still open.
   Hyphens were considered and rejected: they are house style rather than a published standard, and
   a hyphen per syllable ("sa-ga-da-ba") does not mark a word.
   **A one-way door at 1.0.0, and surface-wide**: changing only some names would leave the package
-  inconsistent. Until it lands, new names (the `./observances` example's six) ship spaced like the rest.
-- [ ] **Composable/additive `ObservanceConfig`s — decide before 1.0.0, not after.** Today, a
+  inconsistent. The `./observances` example's fourteen names (the four düchens, Saga Dawa, sojong, the fire puja and the seven persons') are the first to use it, by Andreas' decision of 2026-11-11, so until the rest follow the package is inconsistent on purpose.
+- [x] **Composable/additive `ObservanceConfig`s — decide before 1.0.0, not after.** Today, a
       consumer combining several institutions' rule sets (e.g. `DEFAULT_OBSERVANCES` plus a `TEACHERS` and a
       `TANTRA` config) hand-rolls
       `{ ...DEFAULT_OBSERVANCES, rules: [...DEFAULT_OBSERVANCES.rules, ...TEACHERS.rules, ...TANTRA.rules] }` and silently
@@ -505,6 +513,17 @@ that its first step is still open.
       **Deferred, explicitly, not left ambiguous:** which config's `doubledDay`/`skippedDay`/
       `leapMonth` wins when two configs in `from` disagree. Decide this when the helper is actually
       designed, not before
+
+      **Done 2026-11-14, on the `observances-1.0` branch.** `composeObservances(base, layer)` ships on
+      `./observances`: a layer removes, replaces and adds rules and levels by id, an unknown or repeated
+      id is refused, and a layer's conventions replace the base's — which settles the deferred question,
+      since a layer has one base and there is no two-config disagreement left to reconcile. The names
+      are keyed by language (`englishName`, optional `tibetanName`), `ObservanceKind` went with `kind`,
+      and `ObservanceRule.name` became `englishName`; fourteen Tibetan names are checked by
+      `verify:observance-names`. The shape is recorded in
+      [decisions/2026-11-11-observance-model.md](decisions/2026-11-11-observance-model.md). Where this entry says
+      `DEFAULT_OBSERVANCES`, `ObservanceKind` or `composeObservances({ from, omit, extra })`, those are the
+      names as they stood: the export is now `EXAMPLE_OBSERVANCES` and the helper takes a base and a layer.
 - [x] **New subpath `./astrology`, computing Janson's Appendix E's calculations — placement, scope and
       naming decided 2026-09-03; built 2026-09-12.**
 
@@ -1085,7 +1104,7 @@ nothing and reports success.
       which already rules it, and `TibetanWeekdayElement` — which the spike could not place from the
       export list — is kept under the first test: typing it as `TibetanElement` would make `wind`
       unrepresentable, and `wind` is not a year element at all
-- [ ] **Decide what belongs in this package's general observance layer versus what stays
+- [x] **Decide what belongs in this package's general observance layer versus what stays
       FPMT-specific, and validate/document the result — before the code review reaches it.** This
       absorbs two questions that were tracked as separate, cross-referenced items and are now one
       decision, because the second changes the shape of the first.
@@ -1133,7 +1152,7 @@ nothing and reports success.
       notes' last line says so: "there are 14 or 15 days between the Sojongs". Read that way, FPMT's
       99 sojongs of 2022–2025 follow it: every waxing fortnight is 15 days, a waning one is 14 at the
       end of an odd month and 15 at the end of an even one, and the 2024 leap month 6 counts as even —
-      a 354-day schematic year. A count from 2022-01-02 reproduces **96 of the 98 intervals**. The
+      a 354-day schematic year. A count from 2022-01-02 reproduces **95 of the 98 intervals**. The
       residue is a one-day excursion (2022-03-18, undone at 2022-04-30) and one permanent extra day
       from 2023-01-07, which a 354-day scheme needs every few years to stay with the moon. **Where
       that extra day goes is the one unsourced piece**, and it was put to Ven. Thubten Chöying for
@@ -1150,7 +1169,8 @@ nothing and reports success.
       Two claims this falsifies. FPMT's sojong on the first of the doubled 30 of 2025-11-19 is
       **not** FPMT contradicting its own doubled-day guidance — the count simply lands there. That
       claim is in `src/observances/types.ts`, `src/observances/default-observances.ts`,
-      [decisions/2026-08-12-observance-policy.md](decisions/2026-08-12-observance-policy.md), the
+      `decisions/2026-08-12-observance-policy.md` (since deleted, and superseded by
+      [decisions/2026-11-11-observance-model.md](decisions/2026-11-11-observance-model.md)), the
       Sojong item below, and [almanac-sources.md](almanac-sources.md); all five corrected
       2026-09-19. And almanac-sources.md's "falsified, do not re-test without new material" was the wrong
       instruction: the material was already in hand.
@@ -1194,15 +1214,15 @@ nothing and reports success.
         be institution-specific**: an example that is one institution's practice set teaches the
         shape while overclaiming the content. The seven cross-lineage anniversaries above — Gelug,
         Kagyu, Sakya and Nyingma — are the pattern.
-      - **Consequence, undecided: `DEFAULT_OBSERVANCES` still identifies itself as FPMT's.** Its
+      - **Consequence (settled, see the Closed note below): `DEFAULT_OBSERVANCES` still identified itself as FPMT's.** Its
         `id` is `"gelug"` and its `name` is `"Gelug (FPMT)"`, kept deliberately on 2026-09-04 as the
         machine-readable provenance of an FPMT-sourced rule set, and pinned by
         `test/public-api.test.ts` so a later "consistency fix" fails loudly. If the shipped set is a
         non-institutional example, both fields misdescribe it — but `id` is documented as a *stable
         identifier*, so changing it is a migration, and the 2026-09-04 reasoning against
-        `id: "default"` still holds. Settle before 1.0.0; it touches
+        `id: "default"` still holds. It touched
         [decisions/2026-09-03-no-institution-names-in-exports.md](decisions/2026-09-03-no-institution-names-in-exports.md).
-      - **Consequence, undecided: conventions are institution-specific even when content is not.**
+      - **Consequence (settled, see the Closed note below): conventions are institution-specific even when content is not.**
         `doubledDay: "second"`, `skippedDay: "preceding"` and `leapMonth: "leap"` are FPMT's choices,
         and Kopan — also Gelug — prints the opposite `doubledDay` for one 2024 düchen. An example
         config has to set some value for each. Whether it presents them as "one common convention,
@@ -1233,22 +1253,23 @@ nothing and reports success.
       - **No rule refers to another — provisionally.** Gaye may need it: if it falls on the sojong
         ending the rains retreat, its date comes from the sojong count. Ven. Chöying's answer on
         which sojong gaye replaces decides it. Allowing references later is additive; allowing them
-        now and forbidding them later would not be.
+        now and forbidding them later would not be. Tracked under "Awaiting a Tibetan teacher" below.
       - **A rule may list several days or dates**, so Precepts' monthly days or Naga puja's table is
-        one rule with one name. To be reviewed when Ven. Chöying replies.
+        one rule with one name. Tracked under "Awaiting a Tibetan teacher" below.
       - **A next-occurrence query ships**, on the pattern of `nextFullMoon`. Additive, so it does not
         block 1.0.0.
-      - **[decisions/2026-08-12-observance-policy.md](decisions/2026-08-12-observance-policy.md) is
-        superseded by a new record once (A) to (C) are settled**, not amended piecemeal: four of its
+      - **`decisions/2026-08-12-observance-policy.md` is
+        superseded by a new record once (A) to (C) are settled** — [decisions/2026-11-11-observance-model.md](decisions/2026-11-11-observance-model.md), and the old
+        record was then deleted — not amended piecemeal: four of its
         five "What this makes true" bullets are overtaken, and its subpath section says nothing in
         the layer is falsifiable, which a counted schedule tiled against Rabten's century is.
-      - **Still to express, easy to lose:** the line above says the model must also express "an
-        age" for a consumer's own anniversaries (FPMT prints "90th birthday"). Nothing in (A) does
-        yet; it is a count of years from a stated year, so it is either an optional field on a date
-        rule or result metadata in (B).
+      - **Done: an age.** The model had to express "an age" for a consumer's own anniversaries (FPMT
+        prints "90th birthday"). It is `ageFromYear` on the `western` form (and on `annual`), reported as
+        `Observance.age`, and it is tested externally by FPMT's printed ordinals for the Dalai Lama's and
+        Sakya Trichen's birthdays ([fpmt-calendar.md](fpmt-calendar.md)).
 
-      Once both are settled: confirm each surviving rule's day, tier and source against FPMT's
-      current guidance rather than trusting the 2022-2025 fixture check alone to still hold.
+      Confirming each surviving rule against FPMT's current guidance is the open item "Confirm each
+      example rule against FPMT's current guidance" below.
 
       **Done 2026-09-05: renamed `GELUG` to `DEFAULT_OBSERVANCES`** (`id` stays `"gelug"` — a data
       field, not an exported identifier, so the naming rule doesn't reach it — file renamed to
@@ -1260,70 +1281,131 @@ nothing and reports success.
       named after an institution or organisation, required alongside this rename, is recorded
       below, dated 2026-09-05.
 
-      **Still open:** add the settled rule list to `docs/guide.md` or `docs/architecture.md`, so a
-      reader is not required to open `default-observances.ts` to know what ships. **Blocks the item
-      below**: a code review that reads a ruleset which may still change content, membership or
-      name is reviewing a moving target.
+      **The documentation gate, amended and met.** The gate was "add the settled rule list to
+      `docs/guide.md` or `docs/architecture.md`", and its purpose was that a reader need not open
+      the source file to know what ships. That purpose is met by two documents instead: the README
+      names every rule, and it ships to npm, so a consumer sees the list without the repository; and
+      [observances.md](observances.md) gives each rule's level and the basis of its level and its English
+      name. The guide and the architecture document do not list the rules, and no longer need to. The
+      gate also said this blocked the code review; the ruleset has settled, so it no longer does.
 
       **Still separate:** the composable-config helper and the day-quality-code placement question,
       both recorded in the same nyamlen note, are distinct subsystems needing their own brainstorm
       and spec — not folded into this task. **Superseded 2026-09-19:** the day-quality codes join the
       convention layer (above), so the placement question is answered and the two are one brainstorm.
-- [ ] **Sojong — moved from Beyond v1 to pre-1.0.0 on 2026-09-19 (Andreas).** The rule is a
-      counted schedule (see the reversal in the boundary item above); what remains is sourcing what
-      keeps the count with the moon — since 2026-09-27 an inferred annual anchor on the month-1 full
-      moon, from Rabten Choeling's calendar, see
+
+      **Closed 2026-11-14, on the `observances-1.0` branch**, because the decision this item asked for
+      is made and shipped. What ships is `EXAMPLE_OBSERVANCES`: nineteen rules under three levels the
+      config declares, `id: "example"`, `englishName: "Example practice calendar"`. The `"gelug"` id and
+      `"Gelug (FPMT)"` name are gone, and the doubled-day, skipped-day and leap-month conventions are
+      stated in its docblock as FPMT's. FPMT's complete set is a configuration in the test suite, held to
+      FPMT's own calendars for 2022-2026 ([fpmt-calendar.md](fpmt-calendar.md)). The rule list is in the
+      README, which ships, and the level and name basis of every rule is in
+      [observances.md](observances.md). In this entry `DEFAULT_OBSERVANCES` and `default-observances.ts`
+      are now `EXAMPLE_OBSERVANCES` and `example-observances.ts`, and the 2026-08-12 policy record was
+      superseded by [decisions/2026-11-11-observance-model.md](decisions/2026-11-11-observance-model.md)
+      and then deleted; git history holds it. What this decision left to ask, and what it left to
+      check, is in the two open items below, which are separate work and not caveats on this one.
+- [x] **Sojong, built and validated — moved from Beyond v1 to pre-1.0.0 on 2026-09-19 (Andreas); done
+      2026-11-14, on the `observances-1.0` branch.** What this item asked for was a counted-schedule
+      rule shape and the data that tests it, and both exist: the `counted` form, used by `sojong` in
+      `EXAMPLE_OBSERVANCES`; the generator `scripts/fetch-rabten-sojong.mjs` and its fixture
+      `test/fixtures/rabten-sojong.ts`, every sojong Rabten Choeling's calendar prints from 2000 to
+      2100; `test/validation/rabten-sojong.test.ts`, which imports the fixture and holds the form to it;
+      the window of that agreement in [testing.md](testing.md#rabten-choelings-sojong-schedule); and
+      the entry in [validation-sources.md](validation-sources.md) stating that Rabten's lineage is
+      unknown, so its agreement with FPMT may be one witness rather than two. The rule is **inferred,
+      not sourced**, and the example's docblock, the README and [observances.md](observances.md)
+      say so; what is not sourced is the next item. Phase 3 had established that sojong is not a fixed
+      day number: against FPMT's calendars for 2022–2025 a 15th-and-30th rule misses 38 occurrences and
+      invents 36 ([almanac-sources.md](almanac-sources.md#sojong-a-counted-schedule-once-falsified-by-a-misreading)
+      holds the history, including the reading that was falsified and then reversed).
+- [ ] **Sojong, what is not sourced — still open.** Four statements are what the repository records,
+      and each is checked against
       [almanac-sources.md](almanac-sources.md#sojong-a-counted-schedule-once-falsified-by-a-misreading)
-      — and a counted-schedule rule shape. **Rabten's data arrives with the rule, not before it**
-      (decided 2026-09-27): a generator in `scripts/`, a fixture in `test/fixtures/` of every sojong
-      and its 14/15 tag for 2000–2100, and a suite in `test/validation/` that imports it, in the same
-      commit series as the rule in `src/`. Landed earlier it would be a fixture nothing reads. Its
-      entry in [validation-sources.md](validation-sources.md) must state that Rabten's lineage is
-      unknown, so its agreement with FPMT may be one witness rather than two. Additive — `ObservanceConfig.rules` is an array, so a
-      row can be added without a breaking change. Phase 3 established that it is **not** a fixed day
-      number: against FPMT's calendars for 2022–2025, a 15th-and-30th rule misses 38 occurrences and
-      invents 36, and the misses are not random. It lands a day early in some months and not others:
-
-      | Date | Tibetan day | Sojong printed? |
-      |------|-------------|-----------------|
-      | 2022-01-31 | 29 | yes |
-      | 2022-02-01 | 30 | no |
-      | 2024-08-04 | 30 | yes |
-      | 2025-11-19 | 30, first of a doubled pair | yes |
-      | 2025-11-20 | 30, second of the pair | no |
-      | 2026-06-14 | 29 | yes |
-      | 2026-06-15 | 30 | no |
-
-      Note the 2025 row: sojong goes on the **first** of a doubled 30, where FPMT's own guidance and
-      its placement of the great days both say the second. So it does not follow the config's
-      `doubledDay` axis either. **Explained 2026-09-19:** sojong is a count of days, not a date, so no
-      doubled-day convention applies — see the reversal in the boundary item above, which also supersedes the falsification recorded
-      below.
-
-      **The question this item used to put to FPMT** — what decides the 29th against the 30th, and
-      why the first of a doubled day — is answered by the count. What remains is narrower: where the
-      extra day goes, asked of Ven. Thubten Chöying, and sent 2026-09-19. Since 2026-09-27 the
-      candidate answer is an annual anchor rather than an extra day, inferred from Rabten Choeling's
-      calendar and still unsourced.
-
-      **A candidate answer surfaced 2026-08-28, outside this repo, and was falsified 2026-09-04.**
-      [almanac-sources.md](almanac-sources.md) records an oral-teaching source (Geshe Gyaltsen, translated by
-      Geshe Graham, notes by Thubten Chöying) giving an actual rule rather than a fixed day: sojong at
-      the end of an **odd** Tibetan month falls on the 14th, at the end of an **even** month on the
-      15th. Run against the table above (`isoToTibetan` on all seven dates, checked under three
-      readings of "which month" — nominal month number, true sequential lunation, and position since
-      Losar): the best of the three, nominal month number, matches only 4 of 7, with the 2026-06-14/15
-      pair a clean inversion rather than an edge case. **This candidate does not reproduce the table and
-      should not ship.** Sojong stays open pending a different or corrected source — the notes' own
-      disclaimer that transcription errors are the transcriber's is the likeliest explanation, not a
-      flaw in this table.
-
-      That note also opens two follow-on design questions, and **neither is beyond-v1 any more**: the
-      composable/additive `ObservanceConfig` helper (e.g. `DEFAULT_OBSERVANCES + TEACHERS + TANTRA`) and the
-      day-quality-code placement question are both now tracked under the Pre-v1.0.0 checklist's API
-      shape section above, since both bear on this package's stated scope and surface before that
-      freezes. Both still need their own brainstorm and spec, in that order; see
-      [almanac-sources.md](almanac-sources.md).
+      and [fpmt-calendar.md](fpmt-calendar.md):
+      - **Sourced: the count of days between sojongs.** An oral teaching, recorded in unpublished
+        personal notes held outside the repository and supplied on 2026-08-28, states that waxing
+        sojongs are 15 and that waning ones are 14 at the end of an odd month and 15 at the end of an
+        even one, with "14 or 15 days between the Sojongs"; read as a count since the previous
+        sojong, it reproduces 95 of the 98 intervals between FPMT's 99 sojongs of 2022–2025; the three it
+        does not are 2022-03-02 to 2022-03-18 (16 days), 2022-04-16 to 2022-04-30 (14, in an even
+        month) and 2022-12-22 to 2023-01-07 (16).
+      - **Inferred, not sourced: the annual re-anchor on the month-1 full moon.** It is the fit that
+        reproduces all 2,490 of Rabten Choeling's sojongs for 2000–2100, with none missed and none
+        extra; Rabten states no method, so no source states the rule. Against FPMT's 99 sojongs of
+        2022–2025 it agrees on 82.
+      - **Unanswered: what keeps the count with the moon.** The question put to Ven. Thubten Chöying
+        on 2026-09-19 asked where the occasional extra day goes, and the anchor has superseded it. The
+        closer question was put to her on 2026-09-27: whether FPMT re-anchors on Chötrul Düchen at all,
+        whether it drops a sojong falling on Losar, and whether FPMT's run from 2022-04-30 to
+        2022-12-22 is a slip or a rule this package lacks. No document in this repository records an
+        answer to either of those; the reply of 2026-09-30 concerned gaye, below.
+      - **Untested: FPMT's convention for a skipped or doubled day 15 in month 1**, because none
+        occurs in its 2022–2025 window.
+- [ ] **Awaiting a Tibetan teacher.** Questions the example's design left open because they are a
+      teacher's to answer; none blocks a release, and each says what is known.
+      - **Where gaye falls, and whether it replaces a sojong.** As the question stood when the rule
+        model was scoped: if gaye falls on a sojong, its date comes from the sojong count, and whether
+        a rule may refer to another decides on the answer. Three accounts disagree.
+        - **The oral teaching** in [almanac-sources.md](almanac-sources.md) says 24 sojongs occur in a
+          normal year and one is replaced by gaye, the end-of-rains-retreat observance.
+        - **Ven. Thubten Chöying**, asked on 2026-09-19 (question 1c, recorded as sent in the project's
+          correspondence), replied on 2026-09-30: "For the Gaye question, I searched online and found
+          that traditionally it is on the full moon of the 6th month, which concurs with how we've done
+          it at ILTK recently. I think best to leave Sojong, since most Western centers don't do rains
+          retreat, but maybe add Gaye as a possibility for those that want to know." Her reading is that
+          gaye does not replace a sojong, and that it could be offered as an optional extra. Her source is
+          an online search and her centre's recent practice, so hers is a reply and not an authoritative
+          calendar rule.
+        - **Monastery pages and a translation, not an almanac, read 2026-11-14:**
+          the Mindrolling Monastery site (<https://www.khenchenrinpoche.org/?p=2303>) gives Yarne, the rains
+          retreat, "from the 15th day of the 6th lunar month to the 30th day of the 7th lunar month" and
+          "one and a half months"; the Amitabha Foundation (<https://amitabhafoundation.us/?p=5984>), in a
+          post dated 24 July 2021, has Yarne start on 24 July, "full moon of the sixth month of the lunar
+          calendar", held for 45 days, concluding on 6 September, "new moon of the seventh month of lunar
+          calendar"; Monlam (<https://monlam.org/activity/monastic-rainy-season-retreat-yarney/>) has it start
+          "on the full moon day of the 6th month" and conclude "on the new moon day of the 7th month"; and
+          84000's *The Chapter on Lifting Restrictions* (Mūlasarvāstivāda, Toh 1-3, translated by Robert
+          Miller; <https://84000.co/translation/toh1-3/UT22084-001-003-introduction>) says the rite is
+          "held at the end of the rains retreat as an adjunct to the Rite of Restoration (poṣadha)", and in
+          a note dates the Indian rite to the fifteenth of Āśvina or of Kārttika; it does not say that it
+          replaces the poṣadha or falls on the same day.
+        These do not agree. On the monastery pages the full moon of the 6th month is where Yarne
+        **starts**, and the end of the retreat is at the end of month 7, which is where the oral teaching
+        and the Vinaya place gaye; Ven. Chöying's full moon of the 6th month is the start. The Vinaya's
+        "adjunct" differs from the teaching's "replaced", and from her "does not replace".
+        **The question stays open for a teacher or scholar: does gaye fall at the start or the end of
+        Yarne, and does it replace a sojong or accompany one?**
+      - **Whether a rule may refer to another.** Provisionally none may; allowing references later is
+        additive, and forbidding them after allowing them would not be. It decides on the gaye answer, which is not yet settled.
+      - **The several-days form for Precepts and Naga puja.** One rule listing several days or dates,
+        so Precepts' monthly days or Naga puja's table is one rule with one name. Their rules are not
+        known, so both are excluded from the example ([observances.md](observances.md)). What FPMT
+        prints is measured under the observance-layer item above: Precepts is days 8, 15, 30 plus the
+        Buddha days, 213 of 213 in 2022–2025, and Naga puja is a fixed month-and-day table with three
+        irregular cells.
+      - **How the fire-puja count treats a doubled or skipped day.** Lama Zopa Rinpoche's advice tells
+        the reader to check, and does not explain ([observances.md](observances.md)); a question for a
+        Tibetan teacher or scholar. The example's `lunarDayPlusWeekdayMod4` formula agrees with FPMT's
+        labels on most days and misses a few dozen, listed in
+        `test/validation/fpmt-observances.test.ts`.
+      - **Established Tibetan headings for the three levels**, if centres use any
+        ([observances.md](observances.md)).
+- [x] **Confirm each example rule against FPMT's current guidance — read 2026-11-14.** The example is
+      held to FPMT's calendars through 2026, with every residual listed by date in
+      `test/validation/fpmt-observances.test.ts`; this item asked for a read of FPMT's current prose
+      guidance as well, and that read is done and recorded rule by rule in
+      [fpmt-calendar.md](fpmt-calendar.md#fpmts-prose-guidance-against-the-nineteen-rules). Result:
+      11 rules agree (`saga-dawa-month` on its first day only, `sojong` as far as "middle and end"),
+      1 differs in naming only (`dakini-day`, kept by decision), and **7 have no prose to confirm
+      them: `milarepa`, `guru-rinpoche`, `gampopa`, `karmapa-16`, `sakya-pandita`, `dudjom-rinpoche`
+      and `fire-puja`. Those seven are not confirmed by this read**; the six anniversaries are held
+      by the calendars alone, and the fire puja by its listed residuals. The limits are in that
+      section: prose only, pages read through a summarising fetch tool, one PDF blocked, and no
+      per-teacher pages found, which is not proof that none exists. The gate was a read of the prose,
+      and it was made; that nothing was found for seven rules is a result, tracked for the fire puja
+      under "Awaiting a Tibetan teacher" above.
 - [x] **Record FPMT's second line of codes and its moon icons in the fixture.** Done 2026-09-19.
       The fixture carries `codes` (verbatim, with FPMT's two misprints `NPG` and `ED-EW` kept as
       printed) and `moon`, an icon rather than a moon. The generator refuses any code its page's own
@@ -1421,8 +1503,9 @@ nothing and reports success.
       and `actions/setup-node` given `registry-url: 'https://registry.npmjs.org'` — that line
       generates the `.npmrc` that reads `NODE_AUTH_TOKEN`; without it the token is ignored and
       the publish goes out anonymous
-- [ ] Add `"provenance": true` to `publishConfig` rather than passing `--provenance` at the
-      call site
+- [x] Add `"provenance": true` to `publishConfig` rather than passing `--provenance` at the
+      call site. Done 2026-11-14. It also makes a local `npm publish` refuse, since provenance
+      needs a supported CI, which enforces publishing from CI
 - [ ] Confirm `repository.url` still matches the building repo. Provenance attestation fails if
       they disagree — currently correct, but it would have broken had the repo not been
       transferred to the org before v1
@@ -1939,7 +2022,7 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
      numbering — months only, lineage unknown, and three of its Hurals fit neither version. See
      [almanac-sources.md](almanac-sources.md)'s Zurkhai lineage question.
   4. **Observances are a separate question.** Buryat Hurals are their own calendar of holy days,
-     not `DEFAULT_OBSERVANCES`, which is FPMT's; that belongs to the `./observances` work, not to the
+     not `EXAMPLE_OBSERVANCES`, whose conventions are FPMT's; that belongs to the `./observances` work, not to the
      config.
 
   **Measured 2026-09-24:** between 2020 and 2033 the two versions give a day a different month label
@@ -1965,18 +2048,17 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
     it. For two dates this package produced, `a.isoDate.until(b.isoDate)` is better. It is recorded
     as **the first export to cut** if the surface ever needs trimming.
 
-- **A signal when observances go to the leap twin.** `DEFAULT_OBSERVANCES` sets `leapMonth: "leap"`, so in a leap
-  year every observance of the doubled month falls in the leap half and the regular twin renders
-  with **no tier-1 observances at all** — 2151's regular M06 is empty while M06L holds Chökhor
+- **A signal when observances go to the leap twin.** `EXAMPLE_OBSERVANCES` sets `leapMonth: "leap"`, so in a leap
+  year every annual observance of the doubled month falls in the leap half and the regular twin renders
+  with **none of those observances** — 2151's regular M06 is empty while M06L holds Chökhor
   Düchen. That is correct and matches FPMT's published date, but a consumer laying out the regular
   month sees a blank month with nothing to explain it, and `Observance` carries no field naming the
   twin. Behaviour must not change —
-  [decisions/2026-08-12-observance-policy.md](decisions/2026-08-12-observance-policy.md) keeps this
+  [decisions/2026-11-11-observance-model.md](decisions/2026-11-11-observance-model.md) keeps this
   in injected config — so any fix is additive shape, not logic.
 
-- **`Observance.rule.kind` reads worse than `o.kind`** for what is arguably the observance's own
-  primary attribute. Cosmetic, on a subpath surface, and breaking to change, so it is a note rather
-  than a task.
+- **`Observance.rule.kind` reads worse than `o.kind`** — **moot since 2026-11-11**: the rebuild dropped
+  `kind` altogether, and a result's grouping is `rule.level`.
 
 - **Tibetan-language output — weekday and year naming shipped 2026-08-16.** `TibetanDate` carries
   `weekdayName`; `yearName` carries `elementName`, `genderName` and `animalName`; and

@@ -8,7 +8,7 @@ status: accepted
 **Decision:** An export name states what a thing *is* — its shape, its role in the API — never who
 published the convention it encodes.
 Provenance goes in a `source` field and the docblock.
-`GELUG` becomes `DEFAULT_OBSERVANCES`.
+`GELUG` became `DEFAULT_OBSERVANCES`, and then `EXAMPLE_OBSERVANCES` ([2026-11-11-observance-model.md](2026-11-11-observance-model.md)).
 
 This is a breaking change to the `./observances` surface, taken because the package is
 pre-v1.0.0 and the published `0.0.1` exports nothing.
@@ -21,14 +21,17 @@ which this repository had already documented before the name was questioned.
 So the identifier asserted a universality the project's own data contradicts, and a reader takes a
 name at face value in a way they do not take prose.
 
-The rule governs **exported identifiers**, not data.
-`config.id` stays `"gelug"` and `config.name` stays `"Gelug (FPMT)"`, deliberately: a reader takes
-an identifier in their import scope at face value in a way they do not take a field value, and
-those two fields are the only machine-readable statement of whose convention this is.
-Naming a role in an export is safe because an export can be repointed; `id` is documented as a
-*stable identifier*, so a role-name there would have to migrate or lie the moment a second config
-ships.
-The export name and the id therefore disagree on purpose — that is not drift to tidy.
+The rule governs **exported identifiers**, and the shipped config's data now follows it too.
+The config's `id` is `"example"` and its `englishName` is `"Example practice calendar"`: the shipped
+configuration is an example and claims no lineage, so neither field names an institution.
+Whose conventions it follows — FPMT's for doubled days, skipped days and leap months — is stated in
+its docblock and in [docs/observances.md](../observances.md), where a citation fits and an
+identifier cannot carry one.
+FPMT's own complete set is a configuration in the test suite, and that is where an FPMT id belongs.
+`id` is documented as a *stable identifier*, so a role-name such as `"default"` would have to
+migrate or lie the moment a second config ships; `"example"` names what the object is for and stays
+true.
+`test/public-api.test.ts` asserts the id, so a later change fails loudly instead of quietly.
 
 An `ObservanceConfig` is a **convention**, where published sources legitimately disagree.
 A `TraditionConfig` is a **falsifiable claim** about a calendrical system Janson describes.

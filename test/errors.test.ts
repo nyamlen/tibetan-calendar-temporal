@@ -64,16 +64,26 @@ describe("the options guards' messages", () => {
 	it.each([
 		["addMonthsToDate's bag", () => addMonthsToDate(LOSAR, 1, 10n as never)],
 		["addMonthsToDate's overflow", () => addMonthsToDate(LOSAR, 1, { overflow: 10n as never })],
-		["getObservances' bag", () => getObservances(ISO, ISO, 10n as never)],
 	])("refuses a bigint in %s with a code", (_, call) => {
 		expect(thrownBy(call)?.code).toBe("TCT_INVALID_ARGUMENT");
+	});
+});
+
+describe("the observance config guard's message", () => {
+	// A bigint in the config position was a bag-guard case until 2026-11-11, when the config became
+	// a required positional parameter; it is now the config validator's, which renders through
+	// `describe` and so must not throw on a bigint either.
+	it("refuses a bigint in getObservances' config position with its own code", () => {
+		expect(thrownBy(() => getObservances(ISO, ISO, 10n as never))?.code).toBe(
+			"TCT_INVALID_OBSERVANCE_CONFIG",
+		);
 	});
 });
 
 describe("assertQueryOptions refuses keys it does not recognise", () => {
 	// Decided 2026-09-24 with the tradition-parameter pattern: every bag accepted unknown keys, so
 	// `addMonthsToDate(f, 0, { tradition: BHUTAN })` — then a key the bag did not have — answered
-	// Phugpa's date silently. Bags only: a TraditionConfig or ObservanceConfig may carry extra keys.
+	// Phugpa's date silently. Bags only: a TraditionConfig may carry extra keys. An ObservanceConfig no longer may.
 	const refuse = (options: unknown) =>
 		thrownBy(() => assertQueryOptions<{ a?: unknown; b?: unknown }>("f", ["a", "b"], options));
 

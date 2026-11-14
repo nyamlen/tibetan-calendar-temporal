@@ -124,9 +124,15 @@ tibetan-calendar-temporal/
 │   │   ├── calendar.ts             # True month count, leap months, day rule (§5-6)
 │   │   └── conversion.ts           # ISO ↔ Tibetan bidirectional, weekday (§8-9)
 │   ├── observances/
-│   │   ├── index.ts                # getObservances, observancesOn (Layer 4)
-│   │   ├── types.ts                # ObservanceRule, ObservanceConfig, Observance
-│   │   └── default-observances.ts  # DEFAULT_OBSERVANCES — FPMT's published rules, each cited
+│   │   ├── index.ts                # getObservances, observancesOn, and the barrel (Layer 4)
+│   │   ├── types.ts                # the shapes below: ObservanceRule, ObservanceConfig, ObservanceLayer, Observance
+│   │   ├── compose.ts              # composeObservances: a base config plus a layer of differences
+│   │   ├── next.ts                 # nextObservance: the first occurrence of one rule after a day
+│   │   ├── validate.ts             # the config guard, memoised per config (internal)
+│   │   ├── forms.ts                # how each form of `when` lands on a day (internal)
+│   │   ├── formulas.ts             # the registry of named formulas (internal)
+│   │   ├── occurrences.ts          # one rule over a range of days; the 10-year span cap (internal)
+│   │   └── example-observances.ts  # EXAMPLE_OBSERVANCES — nineteen rules under FPMT's conventions, as an example
 │   ├── astrology/                  # Janson's Appendix E (Layer 4) — one concern per file
 │   │   ├── index.ts                # the six *For entry points and the composition
 │   │   ├── types.ts                # DayAttributes, LunarMansion — the surface's own
@@ -190,7 +196,7 @@ when its directory came to exist — an export pointing at a file the build cann
 `npm run test:pack` imports all three as a consumer would.
 
 The split is not packaging convenience. `./observances` holds conventions that published sources
-disagree about, and the root does not. See [decisions/2026-08-12-observance-policy.md](decisions/2026-08-12-observance-policy.md).
+disagree about, and the root does not. See [decisions/2026-11-11-observance-model.md](decisions/2026-11-11-observance-model.md).
 
 What separates the root from `./astrology` is **what a thing is for**, not how it is sourced. The
 root says *which* year, month or day something is — its date and its names — and `./astrology` what
@@ -345,26 +351,86 @@ interface TibetanYearName {
   animalName: TibetanName;  // རྟ *rta* for horse, སྟག *stag* for tiger
 }
 
+interface TibetanMonthDay {
+  month: number;   // 1-12; a leap month is chosen by the leapMonth convention
+  day: number;     // 1-30
+}
+
+interface ObservanceLevel {
+  id: string;            // named by a rule's `level`; unique within a config
+  englishName: string;
+  tibetanName?: TibetanName;
+}
+
+type DoubledDayChoice = 'first' | 'second' | 'both';
+type SkippedDayChoice = 'preceding' | 'following' | 'omit';
+type LeapMonthChoice = 'regular' | 'leap' | 'both';
+type FormulaName = 'lunarDayPlusWeekdayMod4';   // open to additions in a minor release
+
+type ObservanceWhen =                    // open to additions: a consumer handles an unknown `type` with a default branch
+  | { type: 'monthly'; days: readonly number[] }                       // every month
+  | { type: 'annual'; dates: readonly TibetanMonthDay[];              // once a year
+      fromYear?: number; untilYear?: number;                           // Tibetan years, as TibetanDate.year
+      ageFromYear?: number }                                           // the Tibetan year counted as age 0
+  | { type: 'period'; first: TibetanMonthDay; last: TibetanMonthDay } // every day from first to last, within one Tibetan year
+  | { type: 'western'; month: number; day: number;                     // a Gregorian date, once a year
+      fromYear?: number; untilYear?: number;                           // Western years
+      ageFromYear?: number }                                           // the Western year counted as age 0
+  | { type: 'formula'; formula: FormulaName }                          // every calendar day for which the formula holds
+  | { type: 'counted'; anchor: TibetanMonthDay;                        // a schedule counted from an annual anchor
+      waxingDays: number;                                              // 13-16
+      waningDays: { oddMonth: number; evenMonth: number };             // each 13-16
+      exclude?: readonly TibetanMonthDay[] };                          // counted occurrences on these resolved days are dropped
+
 interface ObservanceRule {
-  id: string;
-  name: string;
-  kind: 'duchen' | 'sojong' | 'tsok' | 'puja' | 'anniversary';
-  tier: 1 | 2 | 3;                        // Universal, General Practice, Empowerment-Required
-  when: { month: number; day: number }    // annual
-      | { day: number };                  // every month
-  doubledDay?: 'first' | 'second' | 'both';   // overrides the config default
-  skippedDay?: 'preceding' | 'omit';
-  leapMonth?: 'regular' | 'leap' | 'both';
-  source: string;                         // required, including for caller-supplied rules
+  id: string;                             // unique within a config
+  englishName: string;
+  tibetanName?: TibetanName;
+  level?: string;                         // the id of one of the config's levels
+  tags?: readonly string[];               // distinct, non-empty; the engine never acts on one
+  when: ObservanceWhen;
+  doubledDay?: DoubledDayChoice;          // each of the three overrides the config default for this rule alone
+  skippedDay?: SkippedDayChoice;
+  leapMonth?: LeapMonthChoice;
 }
 
 interface ObservanceConfig {
   id: string;
-  name: string;
-  rules: readonly ObservanceRule[];
-  doubledDay: 'first' | 'second' | 'both';
-  skippedDay: 'preceding' | 'omit';
-  leapMonth: 'regular' | 'leap' | 'both';
+  englishName: string;
+  tibetanName?: TibetanName;
+  doubledDay: DoubledDayChoice;           // required: no config is the default
+  skippedDay: SkippedDayChoice;
+  leapMonth: LeapMonthChoice;
+  levels?: readonly ObservanceLevel[];
+  rules: readonly ObservanceRule[];       // their order is the order of same-day results
+}
+
+interface ObservanceLayer {            // the differences composeObservances applies to a base config
+  id: string;                          // id, englishName and tibetanName name the result, never read from the base
+  englishName: string;
+  tibetanName?: TibetanName;
+  remove?: readonly string[];          // ids of base rules to drop
+  replace?: readonly ObservanceRule[]; // take the position of the base rule with the same id
+  add?: readonly ObservanceRule[];     // appended after the base's, in the order given
+  removeLevels?: readonly string[];    // ids of base levels to drop; refused while a remaining rule names one
+  replaceLevels?: readonly ObservanceLevel[]; // take the position of the base level with the same id
+  addLevels?: readonly ObservanceLevel[];     // appended after the base's remaining ones
+  doubledDay?: DoubledDayChoice;       // each convention replaces the base's; absent means no change
+  skippedDay?: SkippedDayChoice;
+  leapMonth?: LeapMonthChoice;
+}
+
+type ObservanceResolution =              // open to additions in a minor release: a consumer keeps a fallback
+  | 'exact' | 'dayBeforeSkipped' | 'dayAfterSkipped' | 'firstOfDoubled' | 'secondOfDoubled'
+  | 'inPeriod'                         // a day of a `period` rule's span
+  | 'counted';                         // a landing of a `counted` rule; its anchor keeps its own resolution
+
+interface Observance {                 // one occurrence of one rule on one calendar day
+  date: TibetanDate;                   // always a real calendar day
+  rule: ObservanceRule;                // the same object the config holds, not a copy
+  resolution: ObservanceResolution;
+  age?: number;                        // years since the rule's ageFromYear, in the form's own calendar (an annual date's Tibetan year is the one it stands for); absent without one
+  period?: { first: TibetanDate; last: TibetanDate };  // a `period` rule's whole span; absent on every other form
 }
 
 interface YearAttributes {
@@ -603,7 +669,7 @@ Seven rules follow from that:
   add; an allowlist names only the three things that are answers about the input.
 - **Both consumer configs are validated once per object**, memoised on a `WeakSet` keyed by the
   config — the same bargain `scalingFor` already makes with its `WeakMap`. `ObservanceConfig` is
-  checked by `validateObservanceConfig`, `TraditionConfig` by
+  checked by `validateObservanceConfig` (`src/observances/validate.ts`), `TraditionConfig` by
   [`assertTraditionConfig`](../src/traditions/validate.ts), called from the two `scalingFor`
   functions that every entry point passes through. Both check **shape, not astronomy**.
 - **A wrong-kind argument is not a field out of range.** `TCT_FIELD_OUT_OF_RANGE` means a number is

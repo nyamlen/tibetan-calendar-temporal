@@ -19,13 +19,13 @@ dependencies, built on Temporal.
 - **FPMT's calendar, specifically**: [docs/fpmt-calendar.md](docs/fpmt-calendar.md) — **not shipped**.
   What FPMT prints that the package does not claim: eclipses dated by UTC against FPMT's own "date in
   India" guidance, and its anniversaries by Tibetan and Western date. FPMT-specific validation —
-  the FPMT config the test suite will hold — reports its window **there**, not in
+  the FPMT config the test suite holds — reports its window **there**, not in
   `why-trust-these-dates.md`, which states only what the package itself claims
 - **The observances system, and who a practice is for**: [docs/observances.md](docs/observances.md)
-  — **not shipped**, and written ahead of the 1.0.0 redesign it describes. Levels are declared by
-  the config, never fixed in the engine, and there is no `kind`; it also records why FPMT's "Tsog"
-  and "Protector puja" labels mark a date rather than a practice. Its practice knowledge is marked
-  as Andreas' and unsourced; keep it marked
+  — **not shipped**, and describing the model as built. Levels are declared by the config, never
+  fixed in the engine, and there is no `kind`; it also records why FPMT's "Tsog" and "Protector
+  puja" labels mark a date rather than a practice, and the basis of each English name the example
+  ships. Its practice knowledge is marked as Andreas' and unsourced; keep it marked
 - What else computes Tibetan dates, and when to use it instead:
   [docs/other-implementations.md](docs/other-implementations.md) — every claim from public metadata
   with an access date, and **no competitor source is ever read**
@@ -44,11 +44,15 @@ dependencies, built on Temporal.
   tried, the dead ends with their evidence, and the two findings that changed the method. Read the
   last one before treating any new source as corroboration for a name.
   **[month-and-yoga-sourcing.md](docs/names/month-and-yoga-sourcing.md)** is the same record for the
-  lunar-mansion and seasonal month names and the ten elemental yogas — written **ahead of the code**,
-  so it holds decisions (variants, season keys, two yoga corrections) that nothing enforces yet
+  lunar-mansion and seasonal month names and the ten elemental yogas — written before its verifier,
+  `verify:month-and-yoga-names`, and marked in its own status header **partly ahead of the code**:
+  read that header for which decisions the code now enforces and which it does not
   **[mansion-and-trigram-sourcing.md](docs/names/mansion-and-trigram-sourcing.md)** is the same for the
   eight trigrams and the 27 lunar mansions, and it holds the table of
   every English candidate for a mansion behind the decision that none ships
+  **[observance-sourcing.md](docs/names/observance-sourcing.md)** is the same for the fourteen
+  Tibetan names of the example's observances, with the witness types that were approved for a
+  person's name and a term, and the mutation proof of its verifier
 - Implementation phases and the **pre-v1.0.0 checklist**: [docs/roadmap.md](docs/roadmap.md) —
   check it before any release; it holds deliberately deferred decisions
 - Contributor rules, dev setup: [CONTRIBUTING.md](CONTRIBUTING.md)
@@ -73,7 +77,7 @@ Implement solely from Svante Janson, "Tibetan Calendar Mathematics" (arXiv:1401.
 *algorithm* — epochs, mean motions, correction tables, leap-month and skipped-day rules — where a
 second source means reconciling two formulas for one number, which is how the `a₂` fork and the
 mixed-radix traps happened. It has never governed the **data** this package ships alongside the
-arithmetic, and the repository already proves that: `DEFAULT_OBSERVANCES`'s observance rules cite **FPMT**, and the
+arithmetic, and the repository already proves that: `EXAMPLE_OBSERVANCES`'s observance rules cite **FPMT**, and the
 Tibetan and rabjung names cite Wiktionary, THL, CLDR, Csoma, Monier-Williams and wisdomlib — five
 independent checks, because for a name a single Janson table is explicitly *not* sufficient.
 
@@ -224,7 +228,7 @@ icons are recorded in `docs/testing.md`, deliberately not on the shipped page.
 The sojong teaching said sojong "at the end of the odd months" is "the 14th". Tested as Tibetan date
 29 against 30, it failed and was recorded as falsified; it means the **14th day counted since the
 previous sojong** — the notes' own last line says "14 or 15 days between the Sojongs" — and read that
-way it reproduces 96 of FPMT's 98 intervals. A number in a rule can be a **label or a count**, and a
+way it reproduces 95 of FPMT's 98 intervals. A number in a rule can be a **label or a count**, and a
 test of one says nothing about the other. And a source that seems to **contradict itself** — FPMT
 putting sojong on the first of a doubled day while keeping düchens on the second — is first evidence
 that the model of the item is wrong: sojong was never a date, so no doubled-day convention applied to it.
@@ -389,8 +393,14 @@ derivation; in `docs/` they are just noise.
   `ScaledTradition.searchHalfWidth`, computed per tradition. If a bound is proved from a config's
   numbers, derive it from that config; assertions specific to Phugpa's values belong in the test
   suite, where they also catch a mistyped transcription.
+
+  **A rule form that walks outward from a date needs a stated bound under every convention value,
+  and a refusal is a legitimate bound.** A counted observance under `skippedDay: "omit"` had no
+  day to anchor on, so its lookback was unbounded; the fix was to refuse that setting on counted
+  rules, not to cap the loop. Ask what stops the walk under each value, and pin the refusal or the
+  bound with a test that names the setting.
 - **The shipped configs are deeply frozen.** All five — `PHUGPA`, `PHUGPA_HENNING`, `BHUTAN`,
-  `BHUTAN_HENNING` and `DEFAULT_OBSERVANCES` — go through `deepFreeze` in `src/freeze.ts`. They are the objects the docs point at for `{ ...PHUGPA, … }`,
+  `BHUTAN_HENNING` and `EXAMPLE_OBSERVANCES` — go through `deepFreeze` in `src/freeze.ts`. They are the objects the docs point at for `{ ...PHUGPA, … }`,
   so they are the ones a keystroke off a spread mutates — and because scaling and validation are
   both memoised on the config object, a mutation after first use yields neither the old constants
   nor the new ones but a stale mix. Do not unfreeze one to make a test easier.
@@ -429,7 +439,7 @@ derivation; in `docs/` they are just noise.
   "the Tibetan and Sanskrit name" for hours after the Sanskrit came off, and a grep for the removed
   type names sailed past it. Removing or renaming a type therefore still needs the hand sweep for
   everything except the list — `docs/architecture.md`'s shapes (exported types defined as interface
-  blocks — 25 on 2026-10-03 — plus `SanskritName`, `TibetanAnimal`, `TibetanElement`, `TibetanGender`,
+  blocks — 29 on 2026-11-14 — plus `SanskritName`, `TibetanAnimal`, `TibetanElement`, `TibetanGender`,
   `TibetanName`, `TibetanWeekday`, `TibetanWeekdayName` and `TibetanYearName` named in field
   positions), `docs/guide.md` (4), and any docblock naming it. The interface count moves whenever a
   shape is added, so **re-count it rather than trusting the number written here**:
@@ -549,7 +559,9 @@ derivation; in `docs/` they are just noise.
   asked to know which entry point a function is on**, which is why the rule is keyed on the number
   of choices and not on the subpath:
   [docs/decisions/2026-09-24-how-a-tradition-is-passed.md](docs/decisions/2026-09-24-how-a-tradition-is-passed.md).
-  `./observances`' own `config` key is left to the observances rethink.
+  `./observances` has no `config` key: the `ObservanceConfig` is a required positional parameter
+  and the tradition comes last, so `config` never has to mean a `TraditionConfig` and no bag
+  carries both.
 
   A bag exists so a caller never writes `getObservances(from, to, undefined, tradition)`.
   **Two things a bag gets wrong.** It is a **new argument boundary and needs its own guard** — without one `observancesOn(date, null)` reads
@@ -665,7 +677,7 @@ decision-record format, fixture provenance, whether
 validation suite is named for the fixture it validates, that an exported **tradition** config is
 imported by one — rule 10 matches only `export … from "./traditions/…"` in `src/index.ts`, so it
 does **not** see `ObservanceConfig` or anything on the `./observances` or `./astrology` barrels, and
-rule 13 is type-only, so neither guards a runtime value export on either — `DEFAULT_OBSERVANCES`,
+rule 13 is type-only, so neither guards a runtime value export on either — `EXAMPLE_OBSERVANCES`,
 `ELEMENTAL_YOGAS` and `LUNAR_MANSIONS` are held by `test/public-api.test.ts` and by rule 16,
 which requires every runtime export to have a row in the README's API table
 for its entry point — a rule about **documentation**, not about validation —
@@ -832,6 +844,15 @@ baseline run**, with a second preload that saves every response — then the con
 what the baseline read, every run is offline and repeatable, and a diff cannot be blamed on a source
 that moved. `scripts/fetch-fpmt-observances.mjs` was proved this way.
 
+**A harness a shipped document cites lives in `scripts/evidence/<name>/`, and it keeps neither the
+pages it replays nor its own output.** A reader of a public repository cannot follow a path into
+`~/.claude`, so a document that says "proved by mutation" needs the proof beside it. Third-party pages
+are not vendored — a manifest of URL and SHA-256 plus the recorder replaces them, and the two
+copyrighted dictionaries are stored as headwords only. A run's output goes to a scratch directory
+outside the tree, because anything the harness regenerates is churn in review and a ready home for a
+local path. `scripts/evidence/observance-names-verifier/` is the model, and its README says how to
+re-record and run.
+
 **`\b` does not bound a Sanskrit word in IAST, because JavaScript's `\b` treats a diacritic letter as
 a non-word character.** `/\bmāsa\b/` matches inside *ṣaṇmāsa*: `\b` sees a boundary after *ṇ*. Use
 `(?<!\p{L})…(?!\p{L})` with the `u` flag. Prove the predicate with a case that actually separates the
@@ -927,7 +948,7 @@ just a module that loaded.
 design, not defects: there is no `main` field and no CJS build. Do not add `main` to make a row
 green.
 
-**Six commands are deliberately outside CI, and all are release-time checks.** `npm run coverage`
+**Seven commands are deliberately outside CI, and all are release-time checks.** `npm run coverage`
 (below), `npm run bench` (below), `npm run verify:names`, which re-derives the whole Tibetan name vocabulary from Janson and
 re-checks it against Wiktionary, THL and CLDR, and `npm run verify:rabjung-names`, which does the
 same for the sixty rabjung year names against Janson, the Indic saṃvatsara list, Sewell & Fleet,
@@ -941,11 +962,16 @@ Tibetan–Tibetan dictionaries and Monier-Williams, built from
 [docs/names/month-and-yoga-sourcing.md](docs/names/month-and-yoga-sourcing.md) — and
 `npm run verify:mansion-and-trigram-names`, which does the same for the 27 lunar-mansion names and the
 eight trigram names, built from
-[docs/names/mansion-and-trigram-sourcing.md](docs/names/mansion-and-trigram-sourcing.md). The four verifiers need the
+[docs/names/mansion-and-trigram-sourcing.md](docs/names/mansion-and-trigram-sourcing.md) — and
+`npm run verify:observance-names`, which checks the fourteen Tibetan names of the example's observances
+against the Mahāvyutpatti, Jäschke, the two Tibetan–Tibetan dictionaries, BDRC, Lotsawa House, Tibetan
+Wikipedia, a Google Books catalogue record and THL's converter, built from
+[docs/names/observance-sourcing.md](docs/names/observance-sourcing.md). The five verifiers need the
 network and two converters installed outside the repo, so none can gate a push — what gates a push is
 their committed output, `test/fixtures/names.ts`, `test/fixtures/rabjung-names.ts`,
-`test/fixtures/month-names.ts`, `test/fixtures/yoga-names.ts`, `test/fixtures/mansion-names.ts` and
-`test/fixtures/trigram-names.ts`, which the suite reads. **Run Biome on the last four after every run**, for the same reason as below.
+`test/fixtures/month-names.ts`, `test/fixtures/yoga-names.ts`, `test/fixtures/mansion-names.ts`,
+`test/fixtures/trigram-names.ts` and `test/fixtures/observance-names.ts`, which the suite reads.
+**Run Biome on the last five after every run**, for the same reason as below.
 
 **`verify:rabjung-names` emits one row per line and Biome reflows it, so run
 `npx biome check --write test/fixtures/rabjung-names.ts` after every run.** Skipping it surfaces
@@ -975,6 +1001,36 @@ The second was live through the whole ngönjö survey and cost nothing there, be
 chen mo*'s prefix is a bare tag; Ives Waldo puts the entire gloss there, so the same code discarded
 the text being checked. A rule that is harmless on the source it was written against is the failure
 mode to expect here.
+
+**A copyrighted dictionary's headword may count as a witness, and it still only gates.**
+`verify:observance-names` accepts a headword of the *tshig mdzod chen mo* or the *dung dkar tshig
+mdzod chen mo* as one witness for a term or a person: the fact taken is that a headword exists, and
+nothing from either is quoted or stored. **The two together are one group, never two witnesses**,
+because both are modern Tibetan–Tibetan compilations. Without the allowance a name meets a
+two-independent-witnesses rule only by a loosening of the rule, which is the wrong end to give way.
+A witness must state the proposed spelling itself, equal to it or opening with it as whole words —
+BDRC's *sgam po pa bsod nams rin chen* states *sgam po pa* — and a near spelling, another honorific or
+a different word division, is not a witness.
+
+**A witness the verifier cannot fetch is held as a data file marked human-supplied, and is never
+described as fetched.** Rigpa Wiki answers the verifier with a Cloudflare challenge (403), so its four
+düchen passages were read in a browser and pasted by a person, and are held in
+`scripts/observance-name-rigpa-passages.data.json`. The verifier checks the committed strings against
+the name and refuses if they differ or the file is missing; it makes no fetch, so **its baseline
+cannot detect the page changing**. Wherever the verifier's evidence is described — a record, a docblock,
+a report — say that these passages are human-supplied. Do not work around the 403.
+
+**The approved witness types are a short list, and each counts once as a group.** For a person: BDRC's
+person record (identity anchor, and a spelling witness only where it states the proposed spelling), a
+gate-only headword, a Lotsawa House page heading or a work's own title page (one group), Tibetan
+Wikipedia's title or list (one group), and a Google Books catalogue record whose published title
+opens with the exact spelling. For a term: a dictionary head word read from a page image or entry, the
+Mahāvyutpatti's pairing, and Rigpa Wiki as a whole-term witness, human-supplied. Check 5's word-boundary
+check has one rung of Tibetan morphology, an ordinal or agent ending (`-pa`, `-ba`) that may be absent
+from the headword carrying the stem: *bcu drug pa* is found under *bcu drug*. Check 3 has the opposite
+ladder beside it, `forms()` in `scripts/verify-observance-names.mjs`, which adds the endings *ba* and *pa* as separate
+syllables on the dictionary side. Both are rules of Tibetan spelling true of every word they touch, so each changes
+what is looked up and nothing the table prints.
 
 **Both verifiers carry corrections to their sources as data, and a correction must self-invalidate.**
 It states the value it expects to find and refuses to run if the source no longer says it, so a
@@ -1048,8 +1104,9 @@ checker. `package.json#files` already excludes `bench/`, and `tsconfig.json` and
 deliberately so it is not an unchecked corner.
 
 It exists because two numbers were load-bearing and unmeasured, and it corrected one on its first
-run: the `getObservances` span cap — which justifies a shipped `TCT_SPAN_TOO_WIDE` — costs about
-**270 ms**, not the 190 ms its docblock claimed. **A performance number may be quoted only with its
+run: the `getObservances` span cap — which justifies a shipped `TCT_SPAN_TOO_WIDE` — cost about
+**270 ms** at its former 200 years, not the 190 ms its docblock claimed; the cap is now 10 years and its
+figures are in `bench/RESULTS.md`. **A performance number may be quoted only with its
 harness**, recorded in `bench/RESULTS.md`: machine, OS, Node version, date. The project refuses
 unsourced numbers from its calendar sources and the same rule applies to its own. Deliberately no
 regression threshold and not in CI — shared runners would fire on the runner rather than on the
@@ -1114,6 +1171,12 @@ test compares. "1 January 2022 to 25 February 2028" is as safe, being true, and 
 only the plan and the repository, after two self-reviews and a simulated panel, has found errors
 no earlier pass could see. For a plan whose output is a claim to readers, run one before building.
 
+**The same holds for code, task by task.** Building the observance rebuild with a fresh reviewer
+after every task found a real defect in most of them: duplicate results across month boundaries,
+a guard silently dropped when a function was extracted, a stale "200 years" in a README row. The
+implementer's own self-review had passed each one. Do not let a task's green suite stand in for the
+review.
+
 **A year in this repository is a Tibetan year unless it says otherwise, and a prose window must say
 which era it is.** `monthsFor(1900)` is Tibetan 1900, which runs from **1773-02-22 to 1974-02-21 CE**.
 A sweep written as "1900–2100" and described in a shipped document as "the two centuries 1900–2100"
@@ -1163,18 +1226,18 @@ Gelug, prints the *opposite* `doubledDay` for the 2024 Chokhor Duchen. Naming th
 institution therefore didn't just look institution-specific, it overclaimed a universality the
 data itself contradicted. See
 [docs/decisions/2026-09-03-no-institution-names-in-exports.md](docs/decisions/2026-09-03-no-institution-names-in-exports.md).
-Provenance belongs in a `source` field and the docblock, which can carry a URL and a citation;
+Provenance belongs in the docblock and the docs, which can carry a URL and a citation — a config
+has no `source` field to carry it;
 an identifier cannot, and readers take a name at face value in a way they do not take prose.
 
-**The rule governs exported identifiers, not data fields, and the two deliberately disagree.**
-`config.id` stays `"gelug"` and `config.name` stays `"Gelug (FPMT)"` on the export
-`DEFAULT_OBSERVANCES`. Those fields are values inside a config object, read as data,
-and they are the only machine-readable statement of whose convention it is — deleting that buys
-nothing and loses the provenance the rule says to keep. The asymmetry is also load-bearing in one
-direction only: an **export name** may name a role, because it can be repointed at whatever plays
-that role, but `id` is documented as a *stable identifier*, so `id: "default"` would have to migrate
-to another object — breaking that stability — or sit on an object that is no longer the default the
-moment a second config ships. `test/public-api.test.ts` asserts the id explicitly so a later
+**The rule governs exported identifiers, and the shipped config's data fields follow it too.**
+`EXAMPLE_OBSERVANCES` has `id: "example"` and `englishName: "Example practice calendar"`: it is an
+example and claims no lineage, so neither field names an institution. Whose conventions it follows is
+stated in its docblock and in `docs/observances.md`, where a citation fits and an identifier cannot
+carry one. `id` is documented as a *stable identifier*, so a role such as `"default"` would have to
+migrate to another object, or sit on one that is no longer the default once a second config ships;
+`"example"` says what the object is for and stays true. An FPMT id belongs on FPMT's own
+configuration, which lives in the test suite. `test/public-api.test.ts` asserts the id so a later
 "consistency fix" fails loudly rather than quietly.
 The rule is Andreas' request that nothing in the package be named after an institution. It is
 distinct from
@@ -1189,18 +1252,24 @@ already drawn elsewhere in this file.
 precedes the name objects it identifies, because an English word printed after two name blocks reads
 as describing the second. Both rules are surface-wide and one-way doors at 1.0.0:
 [docs/decisions/2026-09-13-names-keyed-by-language.md](docs/decisions/2026-09-13-names-keyed-by-language.md).
-The surface does not yet hold to them everywhere — `ObservanceKind` uses ASCII Tibetan as keys and
-`ObservanceRule.name` is a bare string — which the pre-1.0.0 checklist in [docs/roadmap.md](docs/roadmap.md)
-tracks; `./astrology` holds to them. **Three shapes are in use, and the record's amendment says
+`./observances` and `./astrology` both hold to them: a rule, a level and a config carry `englishName`
+and an optional `tibetanName`. **Three shapes are in use, and the record's amendment says
 which applies where**: sibling `*Name` fields for an object that is a name
 (`TibetanYearName`), a nested `{ englishName, tibetanName }` for a value inside an object with its own
 name (`yoga.auspiciousness`), and a trailing `tibetanNames` block for a block of labels (the four
 attribute results). The third has nothing structural tying a label to its name, so
 `test/astrology/index.test.ts` derives each block's labels from its own string fields — **add a label
 to one of those blocks and the test fails until its Tibetan name is added too**. **A shipped English name must be printed word for word by a
-public-domain dictionary, or be marked as authored**; `ELEMENTAL_YOGAS` meets that through
-`verify:month-and-yoga-names`, two of Henning's words having been replaced where no dictionary prints
-them.
+public-domain dictionary, or be a cited published source's own wording, verbatim, or be marked as
+authored**; `ELEMENTAL_YOGAS` meets the first through `verify:month-and-yoga-names`, two of Henning's
+words having been replaced where no dictionary prints them. The middle arm exists because an
+observance's name is not a dictionary headword, so the first arm cannot apply to it: the example's
+four great days and seven anniversaries carry FPMT's own labels, which
+`test/fixtures/fpmt-observances.ts` prints, and `docs/observances.md` gives the basis of every name in
+the example. A cited name is one printing quoted exactly, and the year of that printing is stated where
+FPMT's varies — "Lord Buddha's descent from God Realm of Thirty Three" is 2026's, the four earlier
+years print "of 33" — and a name that is neither cited verbatim nor in a dictionary says it is
+authored, a name composed from a dedication a source states included.
 
 Technical identifiers are lowercase (`nyamlen`, `@nyamlen`); the brand is capitalised
 (`Nyamlen`). npm rejects uppercase package names, so this is a constraint, not a preference.
@@ -1247,3 +1316,8 @@ Their format is fixed: filename `YYYY-MM-DD-slug.md`, YAML front matter carrying
 `status` (`accepted` / `superseded` / `deprecated`), a single H1 title, then a bold `**Decision:**`
 line stating the outcome before any reasoning. Do not put `title` in the front matter — it
 duplicates the H1 and makes markdownlint read the file as having two titles.
+
+**When a record's decision changes, rewrite the whole section that states it, never one line.** A
+one-line edit left the input-validation record saying a cap was 10 years in its decision and 200 in
+the paragraph beneath. After any amendment, grep the record for every figure and name the change
+touched, and read the section top to bottom.

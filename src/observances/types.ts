@@ -16,14 +16,13 @@
  * there, on 10 July. Kopan Monastery observed the same Chokhor Duchen on the 9th.
  *
  * That is not a defect in the sources. It is what a convention looks like. So this layer holds
- * conventions as **injected data carrying a citation**, never as logic, and ships behind its own
- * subpath so that a consumer wanting only date conversion never inherits anyone's.
+ * conventions as **injected data, cited in its docblocks and docs**, never as logic, and ships
+ * behind its own subpath so that a consumer wanting only date conversion never inherits anyone's.
  *
  * @packageDocumentation
  */
 
-import type { TraditionOptions } from "../traditions/types.js";
-import type { TibetanDate } from "../types.js";
+import type { TibetanDate, TibetanName } from "../types.js";
 
 /**
  * Which calendar day carries an observance whose date is doubled.
@@ -53,10 +52,14 @@ export type DoubledDayChoice = "first" | "second" | "both";
  * - `"preceding"` — the day before the missing number. Principled as well as sourced: the skipped
  *   number's lunar day begins and ends inside the calendar day numbered one lower, so that day
  *   does carry it astronomically even though it is not named for it.
+ * - `"following"` — the day after the one carrying the number below the missing one, so a skipped 30
+ *   rolls into the next month's first day, and a skipped day followed by a doubled one lands on the
+ *   first half of the doubled day. Not sourced by either publication above: it is the choice for a
+ *   tradition that moves a skipped observance later.
  * - `"omit"` — no {@link Observance} at all. Correct for a caller who wants only exact matches,
  *   but it makes an annual observance vanish from a year, which no almanac does.
  */
-export type SkippedDayChoice = "preceding" | "omit";
+export type SkippedDayChoice = "preceding" | "following" | "omit";
 
 /**
  * Which of two months sharing a number carries an observance, in a year that has a leap month.
@@ -69,62 +72,208 @@ export type SkippedDayChoice = "preceding" | "omit";
  *
  * Hence a setting rather than a rule. `"regular"` follows Janson, `"leap"` follows FPMT, and
  * `"both"` observes in each.
+ *
+ * **For a `period` the setting chooses which twin each endpoint's month means, and the span runs
+ * between them.** It is not "in each twin" as it is for an `annual` date: under `"both"` the span
+ * starts on the earlier twin and ends on the later, so it covers every day between, and under
+ * `"leap"` or `"regular"` the two endpoints can name different months. Measured for Phugpa in
+ * Tibetan 2143, which has leap month 4: a period from 4/1 to 4/30 covers 29 days under
+ * `"regular"` (the regular month 4 only), 30 under `"leap"` (the leap month 4 only) and 59 under
+ * `"both"`; a period from 4/28 to 5/5 covers 8 days under `"regular"` and 37 under both `"leap"`
+ * and `"both"`, because under `"leap"` it starts on leap 4/28 (2016-06-03) and must cross all of
+ * regular month 4 to reach 5/5. So a part-month span in a year with a twin is a question to answer
+ * deliberately; a whole-month span, such as Saga Dawa, is what the three values say they are.
  */
 export type LeapMonthChoice = "regular" | "leap" | "both";
 
 /**
- * What kind of occasion an observance is.
+ * The named rule a `formula` form tests every calendar day against.
  *
  * @remarks
- * The tradition's own categories, kept rather than flattened into one undifferentiated list,
- * because a consumer filtering for "the four great days" should not have to match on names.
+ * - `"lunarDayPlusWeekdayMod4"` — holds when the Tibetan day number plus the weekday's number
+ *   (Sunday 0) leaves 1 or 2 when divided by four.
  *
- * - `"duchen"` — a great occasion (*düchen* དུས་ཆེན་), commemorating an event in the Buddha's
- *   life. Merit is traditionally held to be multiplied on these.
- * - `"sojong"` — vow renewal (*sojong* གསོ་སྦྱོང་; Sanskrit *poṣadha* पोषध), on the full and new
- *   moon.
- * - `"tsok"` — a *tsok* ཚོགས་ offering (Sanskrit *gaṇacakra* गणचक्र), on the 10th and 25th.
- * - `"puja"` — a recurring dedicated practice, such as the Medicine Buddha and Tārā pujas on the
- *   8th or the protector puja on the 29th.
- * - `"anniversary"` — a teacher or lineage anniversary. **No data of this kind ships**; the kind
- *   exists so a caller can supply their own. See {@link ObservanceConfig}.
+ * **This union is open to additions.** Further formulas may be added in a minor release, so a
+ * consumer switching on one handles an unknown value with a `default` branch.
  */
-export type ObservanceKind = "duchen" | "sojong" | "tsok" | "puja" | "anniversary";
+export type FormulaName = "lunarDayPlusWeekdayMod4";
 
 /**
- * When an observance falls: a fixed date each year, or a day number every month.
+ * A Tibetan month and day, the date an annual observance is fixed to.
  *
  * @remarks
- * These are the only two shapes the sources use. A Gregorian-fixed anniversary — FPMT prints the
- * Dalai Lama's birthday on 6 July — is deliberately not expressible: it is not a Tibetan calendar
- * fact, and a consumer already has `Temporal.PlainDate` for it.
+ * `month` is the month's number, 1-12; whether a leap month of that number carries the observance
+ * is the {@link ObservanceConfig.leapMonth} convention's question, never a field here. A date
+ * entry with any other key — `isLeapMonth` above all — is refused rather than read as the month
+ * alone.
+ */
+export type TibetanMonthDay = { readonly month: number; readonly day: number };
+
+/**
+ * When an observance falls, as one of a small set of forms discriminated by `type`.
+ *
+ * @remarks
+ * - `"monthly"` — on each of the listed day numbers, every month. A leap month's pair both carry
+ *   it, because the leap-month convention is about observances that have one occurrence a year.
+ * - `"annual"` — on each of the listed Tibetan month-and-day dates, once a year.
+ * - `"western"` — on a Gregorian month and day, once a year: FPMT prints the Dalai Lama's birthday
+ *   on 6 July, which is not a Tibetan calendar fact. A 29 February occurs in leap years only and is
+ *   not moved in the others. It reads no per-rule setting, and its results are always `"exact"`.
+ *
+ * - `"period"` — on every calendar day whose Tibetan date lies from `first` to `last` inclusive, in
+ *   month order within one Tibetan year: a stretch such as the whole of Saga Dawa. It is a
+ *   **membership test** and not two resolved endpoints, so a doubled number inside the span
+ *   contributes both its days and a skipped number contributes none, and neither `doubledDay` nor
+ *   `skippedDay` is read. A skipped number named as an endpoint still bounds the span. The only
+ *   per-rule setting is `leapMonth`, which chooses which twin each endpoint's month means in a year
+ *   with two months of that number; under `"both"` `first` takes the earlier twin and `last` the
+ *   later, so the span covers both. **The span runs between its endpoints**, so with a twin it can
+ *   cover days whose numbers lie outside `first` to `last`: in Tibetan 2143 (leap month 4) a period
+ *   from 4/1 to 4/30 is 29 days under `"regular"`, 30 under `"leap"` and 59 under `"both"`, and one
+ *   from 4/28 to 5/5 is 8, 37 and 37 days. See {@link LeapMonthChoice}. A span may not cross the new
+ *   year. Its results are
+ *   `"inPeriod"`, one per calendar day, each carrying {@link Observance.period}.
+ *
+ * - `"formula"` — on every calendar day for which the named {@link FormulaName} holds. Each calendar
+ *   day is tested, not each day number: the two halves of a doubled date differ in weekday and may
+ *   differ in result, and a skipped number is never seen. It reads no per-rule setting, and its
+ *   results are always `"exact"`.
+ *
+ * - `"counted"` — on a schedule counted from an annual anchor, the shape of the sojong (vow renewal)
+ *   calendar. Each Tibetan year `anchor` resolves as an `annual` date does, under the rule's
+ *   `doubledDay`, `skippedDay` and `leapMonth`, and that calendar day is an occurrence. From each
+ *   anchor the count alternates a **waning** step and a **waxing** step: a waning step is
+ *   `waningDays.oddMonth` or `.evenMonth` days by the parity of the Tibetan month containing the
+ *   occurrence it starts from, a leap month taking its own number's parity; a waxing step is always
+ *   `waxingDays`. Each landing is an occurrence. The count stops at the last landing eight or more
+ *   days before the next year's anchor, which replaces whatever the count would have put near it.
+ *   Each `exclude` entry resolves to a calendar day under the same three settings as the anchor, and
+ *   a **counted** occurrence on that day is dropped, the count going on from it; an anchor is never
+ *   dropped. Every step is 13-16 days, a fortnight's, and is checked. Results are `"counted"`,
+ *   except an anchor, which keeps its own resolution (`"exact"`, `"firstOfDoubled"`, ...). A result
+ *   carries no interval: a consumer recovers a 14-day fortnight from the previous occurrence.
+ *   **The rule is inferred, not sourced.** It is the fit that reproduces Rabten Choeling's published
+ *   sojong schedule exactly — anchor 1/15, 15 days waxing, 14 waning in an odd month and 15 in an even
+ *   one, `exclude` 1/1, with `leapMonth: "leap"`, `doubledDay: "first"` and `skippedDay: "following"` —
+ *   and Rabten states no method. FPMT's calendar departs from it for one run in 2022-2023, which this
+ *   form does not express. The window of the agreement is in `docs/testing.md`. **`skippedDay: "omit"`
+ *   is refused**, set on the rule or inherited from the config: an omitted anchor leaves that year
+ *   with no anchor and the schedule undefined, so a query's answer would depend on where its range
+ *   starts.
+ *
+ * `annual` and `western` take a year window, `fromYear` and `untilYear` (both inclusive; absent
+ * means unbounded), and `ageFromYear`. **Each counts its own form's calendar**: on `annual` a
+ * Tibetan year, numbered as {@link TibetanDate.year} is (2153 is the year that begins on
+ * 2026-02-18 CE); on `western` a Western year. On `annual` the year tested is that of the date the
+ * occurrence **stands for**, the Tibetan year whose 1/1 or 12/30 (or any other date) it is, and not
+ * that of the day it lands on, so a `skippedDay` shift over the new year does not move it between
+ * years. A Tibetan month-12 date can fall in January: 2026-01-31 is Tibetan 2152, so
+ * `untilYear: 2152` keeps it and `untilYear: 2151` does not, whatever its Western year. A 1/1 whose
+ * day is skipped under `"preceding"` lands on the last day of the year before and still counts as
+ * the new year's, in the window and in `age`; a 12/30 skipped under `"following"` lands on the next
+ * year's first day and still counts as the old year's.
+ *
+ * **This union is open to additions.** Further forms may be added in a minor release, so a
+ * consumer switching on `type` handles an unknown value with a `default` branch.
  */
 export type ObservanceWhen =
-	| { readonly month: number; readonly day: number }
-	| { readonly day: number };
+	| {
+			readonly type: "monthly";
+			readonly days: readonly number[];
+	  }
+	| {
+			readonly type: "annual";
+			readonly dates: readonly TibetanMonthDay[];
+			/** First Tibetan year (inclusive) the observance is kept, numbered as `TibetanDate.year`. */
+			readonly fromYear?: number;
+			/** Last Tibetan year (inclusive) the observance is kept, numbered as `TibetanDate.year`. */
+			readonly untilYear?: number;
+			/** The Tibetan year counted as age 0; see {@link Observance.age}. */
+			readonly ageFromYear?: number;
+	  }
+	| {
+			readonly type: "period";
+			/** The span's first Tibetan month and day. */
+			readonly first: TibetanMonthDay;
+			/** The span's last Tibetan month and day: not before `first`, in the same Tibetan year. */
+			readonly last: TibetanMonthDay;
+	  }
+	| {
+			readonly type: "western";
+			/** Gregorian month, 1-12. */
+			readonly month: number;
+			/** Day of that month; 29 February is accepted and occurs in leap years only. */
+			readonly day: number;
+			/** First Western year (inclusive) the observance is kept. */
+			readonly fromYear?: number;
+			/** Last Western year (inclusive) the observance is kept. */
+			readonly untilYear?: number;
+			/** The Western year counted as age 0; see {@link Observance.age}. */
+			readonly ageFromYear?: number;
+	  }
+	| {
+			readonly type: "formula";
+			/** The formula tested against each calendar day. */
+			readonly formula: FormulaName;
+	  }
+	| {
+			readonly type: "counted";
+			/** The Tibetan date each year's count starts from, resolved as an `annual` date is. */
+			readonly anchor: TibetanMonthDay;
+			/** Days of every waxing step, 13-16. */
+			readonly waxingDays: number;
+			/** Days of a waning step by the parity of the month it starts in, each 13-16. */
+			readonly waningDays: { readonly oddMonth: number; readonly evenMonth: number };
+			/**
+			 * Dates whose resolved calendar day drops a counted occurrence. The anchor is never dropped.
+			 */
+			readonly exclude?: readonly TibetanMonthDay[];
+	  };
+
+/**
+ * A named grouping of rules, declared once on the config and named by each rule's
+ * {@link ObservanceRule.level}.
+ *
+ * @remarks
+ * The engine never acts on a level. It is a label a consumer filters or groups by, declared so that
+ * a rule naming one that does not exist is an error rather than a silent typo.
+ */
+export interface ObservanceLevel {
+	/** Identifier a rule names in {@link ObservanceRule.level}. Unique within a config. */
+	readonly id: string;
+
+	/** English name. */
+	readonly englishName: string;
+
+	/** The Tibetan name, where there is one. */
+	readonly tibetanName?: TibetanName;
+}
 
 /** One observance rule. */
 export interface ObservanceRule {
 	/** Stable identifier, e.g. `"chokhor-duchen"`. Unique within a config. */
 	readonly id: string;
 
-	/** English name, as the source gives it. */
-	readonly name: string;
+	/** English name. */
+	readonly englishName: string;
 
-	/** What kind of occasion this is. */
-	readonly kind: ObservanceKind;
+	/** The Tibetan name, where there is one. */
+	readonly tibetanName?: TibetanName;
+
+	/** The id of one of the config's {@link ObservanceConfig.levels}. */
+	readonly level?: string;
 
 	/**
-	 * Who may keep it: 1 universal, 2 general practice, 3 requires empowerment.
+	 * Free labels for a consumer to filter on, distinct and non-empty. The engine never acts on one.
 	 *
 	 * @remarks
-	 * Advisory metadata for a consumer to filter on. The calendar cannot know what a given
-	 * practitioner holds, which is why this is a property of the observance rather than a
-	 * judgement about the reader.
+	 * An array of strings, never one delimited string: there is no delimiter, so a tag may contain a
+	 * comma, and a single string such as `"tsok"` in place of `["tsok"]` is refused, because a JSON
+	 * config written with one would otherwise be read as a list of its characters.
 	 */
-	readonly tier: 1 | 2 | 3;
+	readonly tags?: readonly string[];
 
-	/** A fixed month and day each year, or a day number recurring every month. */
+	/** When the observance falls. */
 	readonly when: ObservanceWhen;
 
 	/** Overrides the config's {@link ObservanceConfig.doubledDay} for this rule alone. */
@@ -135,16 +284,6 @@ export interface ObservanceRule {
 
 	/** Overrides the config's {@link ObservanceConfig.leapMonth} for this rule alone. */
 	readonly leapMonth?: LeapMonthChoice;
-
-	/**
-	 * Where this rule comes from.
-	 *
-	 * @remarks
-	 * Required, and required for consumer-supplied rules too. `CONTRIBUTING.md` asks for a
-	 * citation per fixture row; putting it in the published type carries that discipline outward,
-	 * so a rule invented from memory is at least conspicuously uncited.
-	 */
-	readonly source: string;
 }
 
 /**
@@ -154,23 +293,24 @@ export interface ObservanceRule {
  * Plain data, like `PHUGPA`, so an institution that differs spreads one rather than subclassing:
  *
  * ```ts
- * const kopan = { ...DEFAULT_OBSERVANCES, id: "kopan", doubledDay: "first" as const };
+ * const kopan = { ...EXAMPLE_OBSERVANCES, id: "kopan", doubledDay: "first" as const };
  * ```
  *
- * **Teacher anniversaries are not shipped.** {@link ObservanceKind} includes `"anniversary"` so a
- * caller can add them, but the data is institution-specific and changes within a decade — a new
- * spiritual director adds a row — and a zero-dependency computation engine should not need a
- * release when it does.
+ * It is a required argument of every query: no config is the default, because which days a
+ * practice keeps is a convention and the package does not choose one for a caller.
+ *
+ * **An object carrying a key this type does not have is refused**, naming the key, so a config
+ * written for an earlier shape fails rather than being half-read.
  */
 export interface ObservanceConfig {
-	/** Stable identifier, e.g. `"gelug"`. */
+	/** Stable identifier, e.g. `"example"`. */
 	readonly id: string;
 
-	/** Human-readable name. */
-	readonly name: string;
+	/** English name. */
+	readonly englishName: string;
 
-	/** The rules. Order does not matter; results are returned in date order. */
-	readonly rules: readonly ObservanceRule[];
+	/** The Tibetan name, where there is one. */
+	readonly tibetanName?: TibetanName;
 
 	/** Default for rules that do not set {@link ObservanceRule.doubledDay}. */
 	readonly doubledDay: DoubledDayChoice;
@@ -180,6 +320,73 @@ export interface ObservanceConfig {
 
 	/** Default for rules that do not set {@link ObservanceRule.leapMonth}. */
 	readonly leapMonth: LeapMonthChoice;
+
+	/** The levels rules may name. A rule naming a level not declared here is refused. */
+	readonly levels?: readonly ObservanceLevel[];
+
+	/**
+	 * The rules. Their order is the order of results within one day: the first rule listed comes
+	 * first. Across days, results are in date order.
+	 */
+	readonly rules: readonly ObservanceRule[];
+}
+
+/**
+ * The differences between one {@link ObservanceConfig} and another, to be combined with
+ * {@link composeObservances}.
+ *
+ * @remarks
+ * Plain JSON-able data: a centre that differs from a base configuration writes only what differs.
+ * `id`, `englishName` and `tibetanName` name the **result**, and are never read from the base. Every
+ * other field is optional, and absent means no change.
+ *
+ * - `remove`: ids of base rules to drop.
+ * - `replace`: rules that take the place, at the same position, of the base rule with the same id.
+ * - `add`: rules appended after the base's.
+ * - `removeLevels`: ids of base levels to drop. A rule that still names one is refused.
+ * - `replaceLevels`: levels that take the place, at the same position, of the base level with the
+ *   same id. Rules naming that id are unaffected.
+ * - `addLevels`: levels appended after the base's remaining ones, in the order given.
+ * - `doubledDay`, `skippedDay`, `leapMonth`: the result's defaults in place of the base's.
+ *
+ * **The keys are exactly these**, and any other is refused, naming it.
+ */
+export interface ObservanceLayer {
+	/** Stable identifier of the composed config. */
+	readonly id: string;
+
+	/** English name of the composed config. */
+	readonly englishName: string;
+
+	/** The Tibetan name of the composed config, where there is one. */
+	readonly tibetanName?: TibetanName;
+
+	/** Ids of base rules to drop. */
+	readonly remove?: readonly string[];
+
+	/** Rules replacing the base rules that share their ids, in place. */
+	readonly replace?: readonly ObservanceRule[];
+
+	/** Rules appended after the base's, in the order given. */
+	readonly add?: readonly ObservanceRule[];
+
+	/** Ids of base levels to drop. */
+	readonly removeLevels?: readonly string[];
+
+	/** Levels replacing the base levels that share their ids, in place. */
+	readonly replaceLevels?: readonly ObservanceLevel[];
+
+	/** Levels appended after the base's remaining ones, in the order given. */
+	readonly addLevels?: readonly ObservanceLevel[];
+
+	/** Replaces the base's {@link ObservanceConfig.doubledDay}. */
+	readonly doubledDay?: DoubledDayChoice;
+
+	/** Replaces the base's {@link ObservanceConfig.skippedDay}. */
+	readonly skippedDay?: SkippedDayChoice;
+
+	/** Replaces the base's {@link ObservanceConfig.leapMonth}. */
+	readonly leapMonth?: LeapMonthChoice;
 }
 
 /**
@@ -187,14 +394,21 @@ export interface ObservanceConfig {
  *
  * @remarks
  * Reported so a consumer can show the almanac-style footnote rather than presenting a moved date
- * as if it were exact. `"shiftedFromSkipped"` in particular is worth surfacing: the observance is
- * a day earlier than its nominal date, and a practitioner will want to know why.
+ * as if it were exact. `"dayBeforeSkipped"` and `"dayAfterSkipped"` in particular are worth surfacing: the
+ * observance is a day away from its nominal date, and a practitioner will want to know why.
+ *
+ * **This union is open to additions.** Further values may be added in a minor release, so a consumer
+ * switching on a resolution, or keying a table of labels on one, handles an unknown value with a
+ * `default` branch or a fallback entry.
  */
 export type ObservanceResolution =
 	| "exact"
-	| "shiftedFromSkipped"
+	| "dayBeforeSkipped"
+	| "dayAfterSkipped"
 	| "firstOfDoubled"
-	| "secondOfDoubled";
+	| "secondOfDoubled"
+	| "inPeriod"
+	| "counted";
 
 /** One occurrence of one rule on one calendar day. */
 export interface Observance {
@@ -207,33 +421,29 @@ export interface Observance {
 	 * @remarks
 	 * The **same object** the config holds, not a copy — so for a consumer-supplied config,
 	 * mutating this mutates their own rule table. `readonly` says so at compile time; the shipped
-	 * `DEFAULT_OBSERVANCES` is deeply frozen, so this aliases a frozen object there.
+	 * `EXAMPLE_OBSERVANCES` is deeply frozen, so this aliases a frozen object there.
 	 */
 	readonly rule: ObservanceRule;
 
 	/** How it landed here. */
 	readonly resolution: ObservanceResolution;
-}
 
-/**
- * Options for {@link getObservances} and {@link observancesOn}.
- *
- * @remarks
- * A bag rather than two sequential optional parameters, which is what these took until
- * 2026-08-26. That shape made a caller wanting a custom tradition with the default observances
- * write `getObservances(from, to, undefined, myTradition)` — passing `undefined` positionally to
- * reach past a parameter they had no opinion about. It was the only two-sequential-optionals
- * defect on the surface, and free to fix before 1.0.0.
- *
- * {@link addMonthsToDate} takes the same shape, which makes the bag this surface's stated pattern
- * for a function with two or more choices rather than a one-off exception to uniformity. Both
- * extend the same base, so the tradition's key is `tradition` in each. `config` here is the
- * `ObservanceConfig`, and its name belongs to the `./observances` rethink.
- */
-export interface ObservanceQueryOptions extends TraditionOptions {
 	/**
-	 * Which observances, and the conventions for resolving them.
-	 * Defaults to {@link DEFAULT_OBSERVANCES}.
+	 * Years since the rule's `ageFromYear`: the occurrence's year minus it, in the form's own
+	 * calendar — Tibetan years on `annual`, Western on `western`. On `annual` that is the year the
+	 * occurrence stands for, not the year of the day it landed on if `skippedDay` moved it over the
+	 * new year. Absent when the rule names no `ageFromYear`, and absent rather than negative before
+	 * it.
 	 */
-	config?: ObservanceConfig;
+	readonly age?: number;
+
+	/**
+	 * For a `"period"` rule, the first and last calendar days of the whole span this day belongs to.
+	 *
+	 * @remarks
+	 * Calendar days, so they can differ from the rule's `first` and `last` numbers when those are
+	 * skipped or doubled. They describe the span as a whole, not the part inside the query's range, so
+	 * a query that cuts into a span still reports where it begins and ends. Absent on every other form.
+	 */
+	readonly period?: { readonly first: TibetanDate; readonly last: TibetanDate };
 }

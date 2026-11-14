@@ -21,7 +21,7 @@ Three tiers, and they should not be collapsed:
 
 | Tier | Content | Status |
 |---|---|---|
-| **Shipped** | The four duchens and the six monthly-cycle rules in `src/observances/default-observances.ts` | Validated against `test/fixtures/fpmt-observances.ts` for 2022–2025 |
+| **Shipped** | The four duchens and the monthly-cycle rules in `src/observances/example-observances.ts` | Validated against `test/fixtures/fpmt-observances.ts` for 2022–2025 |
 | **Candidate** | Sojong; the elemental yoga (FPMT's FD-\*/UD-\* codes); Janson's year/month/lunar-day/calendar-day attribute sets | Sourced below. **Partly computed since 2026-09-12** — year and calendar-day attributes, the mansion and its element — and nothing exported. The attribute sets are the scope of the `./astrology` subpath |
 | **Recorded only** | The hair-cutting table; NB/NCE/NF/NG/NH/NCH/NMP/NM/NPF/NWR; the Eight Mahayana Precepts; the omen window | Provenance captured so it is not re-researched. **Shipping any of it would mean this package asserts religious and astrological prescription, which is a scope decision nobody has taken** |
 
@@ -260,7 +260,7 @@ Recorded only.
 celebrated on the first day if it is more convenient. Special days which fall on missing days are
 usually celebrated on the preceding day."
 
-This is the convention `DEFAULT_OBSERVANCES` encodes as `doubledDay: "second"` / `skippedDay: "preceding"` — and
+This is the convention `EXAMPLE_OBSERVANCES` encodes as `doubledDay: "second"` / `skippedDay: "preceding"` — and
 the Phase 3 finding stands: the *monthly cycle* rules (Tara, Medicine Buddha, Tsog, Protector) do
 not follow this guidance in FPMT's own printed calendars, which instead track the printed day number
 literally, so a doubled 8th is observed twice and a skipped 25th is simply not observed that month.
@@ -326,7 +326,7 @@ Sojong remains wanted; it needs a different or corrected source.
 **Reversed 2026-09-19: the verdict above tested the wrong reading.**
 "The 14th" and "the 15th" count the days since the previous sojong, not the Tibetan dates 29 and 30.
 The notes' last line says so: "there is math that can be learned as to why there are 14 or 15 days between the Sojongs".
-Read that way, the rule reproduces 96 of the 98 intervals between FPMT's 99 sojongs of 2022–2025: every waxing fortnight is 15 days, a waning one is 14 at the end of an odd month and 15 at the end of an even one, and the 2024 leap month 6 counts as even.
+Read that way, the rule reproduces 95 of the 98 intervals between FPMT's 99 sojongs of 2022–2025 (the other three are 2022-03-02 to 2022-03-18, 2022-04-16 to 2022-04-30 and 2022-12-22 to 2023-01-07): every waxing fortnight is 15 days, a waning one is 14 at the end of an odd month and 15 at the end of an even one, and the 2024 leap month 6 counts as even.
 The one unsourced piece is where the occasional extra day goes, which a 354-day scheme needs to stay with the moon; it was put to Ven. Thubten Chöying on 2026-09-19.
 The full account is under the boundary item in [roadmap.md](roadmap.md).
 The instruction this section used to end with — not to re-test without new material — was wrong: the material was already in hand.

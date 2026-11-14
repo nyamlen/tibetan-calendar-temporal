@@ -118,12 +118,17 @@ export function julianDayFromIso(date: Temporal.PlainDate): number {
  * Temporal cannot read throw a `RangeError` with `TCT_INVALID_ARGUMENT`, naming this package rather
  * than Temporal's internals. The code is the wrong-kind-of-argument one rather than the range one
  * because none of these has a field to be out of a range — they are not Western dates at all.
+ *
+ * `subject` names the export and argument the caller passed, such as `getObservances(from)`, and
+ * opens the message when given: this is the one guard every entry point shares, so each states its
+ * own name through it rather than keeping a copy that names it.
  */
-export function asPlainDate(date: Temporal.PlainDate): Temporal.PlainDate {
+export function asPlainDate(date: Temporal.PlainDate, subject?: string): Temporal.PlainDate {
 	// Declared as `unknown` from here: the parameter's own type says `Temporal.PlainDate`, which is
 	// the guarantee a TypeScript caller gets, but this function's job past this line is to accept
 	// runtime input that does not honour it and either normalise or reject it.
 	const raw: unknown = date;
+	const prefix = subject === undefined ? "" : `${subject}: `;
 	// Kind, not identity: a `PlainDate` from a second Temporal implementation is a Western date and
 	// is normalised into this realm, rather than refused for having been built elsewhere. See
 	// `temporal-kind.ts`, which is the only file in `src/` that asks `instanceof Temporal`.
@@ -136,15 +141,18 @@ export function asPlainDate(date: Temporal.PlainDate): Temporal.PlainDate {
 		const temporalType = temporalTypeNameOf(raw);
 		throw rangeError(
 			"TCT_INVALID_ARGUMENT",
-			"expected a Temporal.PlainDate, an ISO string, a PlainDateTime or a ZonedDateTime, " +
+			`${prefix}expected a Temporal.PlainDate, an ISO string, a PlainDateTime or a ZonedDateTime, ` +
 				`received ${temporalType === null ? describe(raw) : `a Temporal.${temporalType}`}` +
 				(temporalType !== null
 					? ", which names no calendar day"
-					: isPlainObject(raw)
-						? ". A bare { year, month, day } object is ambiguous with this package's own " +
-							"Tibetan-date shape, so it is rejected rather than guessed at — pass a Temporal " +
-							"instance or an ISO string instead"
-						: ""),
+					: carriesPlainDate(raw)
+						? ". It is a resolved TibetanDate, which names a Tibetan day: its Western day is " +
+							"its isoDate field — pass that, or any Temporal instance or ISO string"
+						: isPlainObject(raw)
+							? ". A bare { year, month, day } object is ambiguous with this package's own " +
+								"Tibetan-date shape, so it is rejected rather than guessed at — pass a Temporal " +
+								"instance or an ISO string instead"
+							: ""),
 		);
 	}
 	try {
@@ -153,9 +161,24 @@ export function asPlainDate(date: Temporal.PlainDate): Temporal.PlainDate {
 		if (error instanceof Error && "code" in error) throw error;
 		throw rangeError(
 			"TCT_INVALID_ARGUMENT",
-			`expected a Temporal.PlainDate, received ${describe(raw)}` +
+			`${prefix}expected a Temporal.PlainDate, received ${describe(raw)}` +
 				`${error instanceof Error ? `: ${error.message}` : ""}`,
 		);
+	}
+}
+
+/**
+ * Whether a value is an object carrying a Temporal `PlainDate` as `isoDate`, as a resolved
+ * `TibetanDate` does — read only to word a refusal, so a throwing trap answers `false`.
+ */
+function carriesPlainDate(raw: unknown): boolean {
+	if (raw === null || typeof raw !== "object") return false;
+	try {
+		return (
+			"isoDate" in raw && temporalKindOf((raw as { isoDate: unknown }).isoDate) === "PlainDate"
+		);
+	} catch {
+		return false;
 	}
 }
 

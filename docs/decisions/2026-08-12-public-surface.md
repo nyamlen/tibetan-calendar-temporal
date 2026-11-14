@@ -367,7 +367,7 @@ removes `AstrologyQueryOptions` from the `./astrology` surface.
   tracker.
 - Equally, do not cite the second test to expose something whose semantics are contested. Two
   defensible answers means the question belongs in injected config or in the caller's code, exactly
-  as `docs/decisions/2026-08-12-observance-policy.md` requires.
+  as `docs/decisions/2026-11-11-observance-model.md` requires.
 - A failure in `test/public-api.test.ts` is not fixed by editing the expected list. It means the
   surface changed — decide whether that was intended, then update the list *and* the README's API
   table together.

@@ -364,8 +364,8 @@ export interface TraditionNineNumbers {
  * The tradition, as a key of an options bag.
  *
  * @remarks
- * The base of every bag that carries a tradition — `AddMonthsToDateOptions` and
- * `ObservanceQueryOptions` — so the key's name and type are declared once and a new bag cannot
+ * The base of every bag that carries a tradition — `AddMonthsToDateOptions`, and the bag
+ * `getObservances` took until 2026-11-11 — so the key's name and type are declared once and a new bag cannot
  * drift from them. Until 2026-09-24 they had drifted: `addMonthsToDate`'s key was `config`, the
  * word `./observances` uses for an `ObservanceConfig`.
  *

@@ -59,7 +59,7 @@ meridian's, and whichever it defaults to it takes a side. Practice is not unifor
 overwhelmingly read the printed almanac against their local civil date.
 
 That is the shape of question
-[2026-08-12-observance-policy.md](2026-08-12-observance-policy.md) exists to keep out of the engine
+[2026-11-11-observance-model.md](2026-11-11-observance-model.md) exists to keep out of the engine
 — a contested convention belongs in caller-supplied config or in the caller's own code, not in
 logic that looks authoritative.
 

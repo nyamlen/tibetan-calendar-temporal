@@ -23,6 +23,13 @@ import {
 	tibetanDateExists,
 	tibetanToIso,
 } from "../src/index.js";
+import {
+	composeObservances,
+	EXAMPLE_OBSERVANCES,
+	getObservances,
+	nextObservance,
+	observancesOn,
+} from "../src/observances/index.js";
 import { thrownBy } from "./support/thrown.js";
 
 // The property under test: **an error names the function the caller called**, and for a two-argument
@@ -563,5 +570,205 @@ describe("lunarDayAttributesFor, where the month and the day are both wrong", ()
 		expect(
 			thrownBy(() => lunarDayAttributesFor(date({ year: 11500, day: 31 }), PHUGPA_HENNING))?.code,
 		).toBe("TCT_FIELD_OUT_OF_RANGE");
+	});
+});
+
+describe("composeObservances names itself, not the validator", () => {
+	const layerRows = [
+		["a layer that is not an object", null, "the layer must be an object"],
+		["an unknown layer key", { id: "l", englishName: "L", rules: [] }, "has no key"],
+		["a layer id that is not a string", { id: 5, englishName: "L" }, "id"],
+		["a remove naming no rule", { id: "l", englishName: "L", remove: ["nope"] }, "remove"],
+		["an add naming a kept rule", { id: "l", englishName: "L", add: [{ id: "tara" }] }, "add"],
+	] as const;
+	it.each(layerRows)("%s", (_label, layer) => {
+		const error = thrownBy(() => composeObservances(EXAMPLE_OBSERVANCES, layer as never));
+		expect(error?.code).toBe("TCT_INVALID_OBSERVANCE_CONFIG");
+		expect(error?.message).toMatch(opening("composeObservances(layer"));
+	});
+});
+
+describe("nextObservance names itself, not getObservances", () => {
+	const from = Temporal.PlainDate.from("2026-01-01");
+	const rows = [
+		["an unknown rule id", "nope"],
+		["a rule id that is not a string", 15],
+	] as const;
+	it.each(rows)("%s", (_label, ruleId) => {
+		const error = thrownBy(() => nextObservance(from, ruleId as never, EXAMPLE_OBSERVANCES));
+		expect(error?.code).toBe("TCT_INVALID_ARGUMENT");
+		expect(error?.message).toMatch(opening("nextObservance(ruleId): "));
+		expect(error?.message).not.toMatch(/getObservances/);
+	});
+});
+
+// The observance entry points share one date guard and one config validator, and each states its own
+// name through them. A shared message that named another function's signature sent a caller to read
+// the wrong docblock: a TraditionConfig given to `composeObservances`, which takes no tradition, was
+// told to use `getObservances(from, to, config, tradition)`.
+describe("the observance guards name the function that was called", () => {
+	const from = Temporal.PlainDate.from("2026-01-01");
+	const CONFIG = "TCT_INVALID_OBSERVANCE_CONFIG";
+	const ARGUMENT = "TCT_INVALID_ARGUMENT";
+	const layer = { id: "l", englishName: "L" };
+
+	type ObservanceRow = readonly [label: string, call: () => unknown, code: string, prefix: string];
+	const dateRows: ObservanceRow[] = [
+		[
+			"getObservances from",
+			() => getObservances(null as never, from, EXAMPLE_OBSERVANCES),
+			ARGUMENT,
+			"getObservances(from): ",
+		],
+		[
+			"getObservances to",
+			() => getObservances(from, 5 as never, EXAMPLE_OBSERVANCES),
+			ARGUMENT,
+			"getObservances(to): ",
+		],
+		[
+			"observancesOn",
+			() => observancesOn(null as never, EXAMPLE_OBSERVANCES),
+			ARGUMENT,
+			"observancesOn(date): ",
+		],
+		[
+			"nextObservance",
+			() => nextObservance(null as never, "tara", EXAMPLE_OBSERVANCES),
+			ARGUMENT,
+			"nextObservance(from): ",
+		],
+		[
+			"getObservances from, a string Temporal rejects",
+			() => getObservances("nope" as never, from, EXAMPLE_OBSERVANCES),
+			ARGUMENT,
+			"getObservances(from): ",
+		],
+	];
+	it.each(dateRows)("%s", (_label, call, code, prefix) => {
+		const error = thrownBy(call);
+		expect(error?.code).toBe(code);
+		expect(error?.message).toMatch(opening(prefix));
+	});
+
+	const configRows: ObservanceRow[] = [
+		[
+			"getObservances, null",
+			() => getObservances(from, from, null as never),
+			CONFIG,
+			"getObservances(config): ",
+		],
+		[
+			"observancesOn, null",
+			() => observancesOn(from, null as never),
+			CONFIG,
+			"observancesOn(config): ",
+		],
+		[
+			"nextObservance, null",
+			() => nextObservance(from, "tara", null as never),
+			CONFIG,
+			"nextObservance(config): ",
+		],
+		[
+			"composeObservances, null",
+			() => composeObservances(null as never, layer),
+			CONFIG,
+			"composeObservances(base): ",
+		],
+		[
+			"observancesOn, a Date",
+			() => observancesOn(from, new Date() as never),
+			CONFIG,
+			"observancesOn(config): ",
+		],
+		[
+			"nextObservance, a TraditionConfig",
+			() => nextObservance(from, "tara", PHUGPA as never),
+			CONFIG,
+			"nextObservance(config): ",
+		],
+		[
+			"nextObservance, a { tradition } bag",
+			() => nextObservance(from, "tara", { tradition: PHUGPA } as never),
+			CONFIG,
+			"nextObservance(config): ",
+		],
+		[
+			"nextObservance, a { config } bag",
+			() => nextObservance(from, "tara", { config: EXAMPLE_OBSERVANCES } as never),
+			CONFIG,
+			"nextObservance(config): ",
+		],
+		[
+			"composeObservances, a TraditionConfig",
+			() => composeObservances(PHUGPA as never, layer),
+			CONFIG,
+			"composeObservances(base): ",
+		],
+		[
+			"composeObservances, a { tradition } bag",
+			() => composeObservances({ tradition: PHUGPA } as never, layer),
+			CONFIG,
+			"composeObservances(base): ",
+		],
+		[
+			"composeObservances, a { config } bag",
+			() => composeObservances({ config: EXAMPLE_OBSERVANCES } as never, layer),
+			CONFIG,
+			"composeObservances(base): ",
+		],
+		[
+			"getObservances, a TraditionConfig",
+			() => getObservances(from, from, PHUGPA as never),
+			CONFIG,
+			"getObservances(config): ",
+		],
+	];
+	it.each(configRows)("%s", (_label, call, code, prefix) => {
+		const error = thrownBy(call);
+		expect(error?.code).toBe(code);
+		expect(error?.message).toMatch(opening(prefix));
+	});
+
+	it("tells nobody to pass a tradition to composeObservances, which takes none", () => {
+		for (const wrong of [PHUGPA, { tradition: PHUGPA }, { config: EXAMPLE_OBSERVANCES }]) {
+			const error = thrownBy(() => composeObservances(wrong as never, layer));
+			expect(error?.message).not.toMatch(/getObservances/);
+			expect(error?.message).toMatch(/composeObservances\(base, layer\)/);
+		}
+	});
+
+	it("names the function's own signature, not another's, for nextObservance", () => {
+		for (const wrong of [PHUGPA, { tradition: PHUGPA }, { config: EXAMPLE_OBSERVANCES }]) {
+			const error = thrownBy(() => nextObservance(from, "tara", wrong as never));
+			expect(error?.message).not.toMatch(/getObservances/);
+			expect(error?.message).toMatch(/nextObservance\(from, ruleId, config, tradition\)/);
+		}
+	});
+
+	it("says what a tradition given as the layer is, and what a layer is", () => {
+		const error = thrownBy(() => composeObservances(EXAMPLE_OBSERVANCES, PHUGPA as never));
+		expect(error?.code).toBe(CONFIG);
+		expect(error?.message).toMatch(opening("composeObservances(layer): "));
+		expect(error?.message).toMatch(/TraditionConfig/);
+		expect(error?.message).not.toMatch(/has no key "name"/);
+	});
+
+	it("says what a Date given as the config is", () => {
+		const error = thrownBy(() => observancesOn(from, new Date() as never));
+		expect(error?.message).toMatch(/Date/);
+		expect(error?.message).not.toMatch(/received undefined/);
+	});
+
+	it("points a config-shaped refusal at composeObservances, not at spreading", () => {
+		const error = thrownBy(() => observancesOn(from, null as never));
+		expect(error?.message).toMatch(/composeObservances/);
+		expect(error?.message).not.toMatch(/spread/);
+		const rules = thrownBy(() =>
+			observancesOn(from, { ...EXAMPLE_OBSERVANCES, rules: "x" } as never),
+		);
+		expect(rules?.message).toMatch(/composeObservances/);
+		expect(rules?.message).not.toMatch(/spread/);
 	});
 });

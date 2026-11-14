@@ -1,12 +1,14 @@
 # tibetan-calendar-temporal
 
-> ## ⚠️ Placeholder release
+> ## ⚠️ Not yet released
 >
-> **The published package does not work yet.** v0.0.1 exports nothing but a status string. It
-> exists to reserve the name while the engine is built.
+> **The version on npm does not work.** `0.0.1`, the only one published, exports nothing but a status
+> string; it exists to reserve the name while the engine is built.
 >
-> The API below is implemented and tested — every example in this file is asserted by the test
-> suite — but it is **not yet published**. Do not depend on this package until v1.0.0.
+> **This repository does.** The API below is implemented and tested — every example in this file is
+> asserted by the test suite — and a tarball packed from this source (`npm pack`) contains it, though
+> its `package.json` still says `0.0.1`. It is **not yet published**. Do not depend on the npm package
+> until v1.0.0.
 
 Compute Tibetan calendar dates in JavaScript — leap months, doubled and skipped days, moon phases,
 year names and observances — for almanac applications, practice calendars, and anything that has to
@@ -64,7 +66,7 @@ see [why you can trust these dates](docs/why-trust-these-dates.md).
 | **Month grids** | A year's months in calendar order with their boundaries, and one entry per calendar day of a month, so a grid needs no arithmetic of its own |
 | **A full almanac row** | Fifteen fields per date: royal-era year, month code, day, true full and new moon, ISO and Tibetan weekday with its planet and element. The element–animal year name and the rabjung cycle position are properties of the *year*, so they are closed-form lookups rather than one value repeated on all 354 days |
 | **Names in three renderings** | Tibetan script, Wylie, and THL Simplified phonetics for every weekday, element, gender, animal and rabjung year — each verified against five independent sources before it shipped |
-| **Observances** | The great holy days and the monthly cycle, as configurable rules that carry their citation. Each result says *how* it landed on its day, so a display can show the almanac's footnote instead of presenting a moved date as an exact one |
+| **Observances** | The great holy days and the monthly cycle, as configurable rules. Each result says *how* it landed on its day, so a display can show the almanac's footnote instead of presenting a moved date as an exact one |
 | **Astrological attributes** | What kind of day it is, not just which day: the year's five elements, the month's and lunar day's labels, the calendar day's own, and the elemental yoga — which needs the moon's real position, not a cycle. A separate subpath, sourced piece by piece |
 | **Four traditions** | Phugpa and Bhutanese, each in two parameterisations. Constants and rules are injected as data, so a further tradition is a config object rather than a code change |
 | **Date arithmetic** | Add days or months, count between two dates, find the next true full or new moon, and reduce a month to one sortable integer for a database key |
@@ -109,7 +111,7 @@ differs from a published almanac and why, and which questions no available sourc
 | Date type | legacy `Date` | `Date` + Julian day | writes text files | `Temporal.PlainDate` |
 | Traditions | Phugpa | 3, as fixed classes | Phugpa, Tsurphu, Zhonnu Pal | 4 configs, more addable as data |
 | What a date carries | ~9 properties | a 6-element tuple | text columns | 15 fields, names in three scripts |
-| Observances | — | — | hardcoded columns | configurable, cited, with resolutions |
+| Observances | — | — | hardcoded columns | configurable, with resolutions |
 | Astrological data | — | — | **planets, lunar mansions, eclipses** | attributes and the yoga; no planets or eclipses |
 | Stated validated range | — | — | — | every claim carries its window |
 
@@ -177,9 +179,9 @@ npm i -D typescript@^7
 
 No `"lib"` setting is needed **if your `target` is `ESNext`** — that is what carries
 `lib.esnext.temporal.d.ts`. Under `nodenext` with no `target` set, TypeScript 7.0.2 still reports
-twelve `TS2503`s against this package, measured 2026-09-22. Set `"target": "ESNext"`, as
-[the guide's tsconfig](docs/guide.md#running-it-anywhere) does, or add
-`"lib": ["ES2024", "ESNext.Temporal"]`. And do **not** install
+`TS2503` against this package. Set `"target": "ESNext"`, as
+[the guide's tsconfig](docs/guide.md#type-checking-needs-typescript-7-which-the-runtime-requirement-does-not-imply)
+does, or add `"lib": ["ES2024", "ESNext.Temporal"]`. And do **not** install
 `temporal-polyfill`, `temporal-spec` or any other typings package to fix it: they are unnecessary
 here, and the published `.d.ts` references the global deliberately. `engines` constrains only
 `node`; npm has no field for the TypeScript version a package's *types* require, which is why this
@@ -450,40 +452,46 @@ Which days an institution marks — the great holy days and the monthly cycle �
 separate subpath:
 
 ```js
-import { getObservances, observancesOn, DEFAULT_OBSERVANCES } from 'tibetan-calendar-temporal/observances';
+import { getObservances, observancesOn, EXAMPLE_OBSERVANCES } from 'tibetan-calendar-temporal/observances';
 
 const duchen = getObservances(
   Temporal.PlainDate.from('2026-01-01'),
   Temporal.PlainDate.from('2026-12-31'),
-).filter((o) => o.rule.kind === 'duchen');
+  EXAMPLE_OBSERVANCES,
+).filter((o) => o.rule.tags?.includes('duchen'));
 
-duchen.map((o) => `${o.rule.name}: ${o.date.isoDate}`);
-// [ "Chotrul Duchen: 2026-03-03", "Saka Dawa Duchen: 2026-05-31",
-//   "Chokhor Duchen: 2026-07-18", "Lhabab Duchen: 2026-11-01" ]
+duchen.map((o) => `${o.rule.englishName}: ${o.date.isoDate}`);
+// [ "Day of Miracles: 2026-03-03",
+//   "Lord Buddha's birth, enlightenment and parinirvana: 2026-05-31",
+//   "Lord Buddha's first teaching: 2026-07-18",
+//   "Lord Buddha's descent from God Realm of Thirty Three: 2026-11-01" ]
 ```
 
-Each `Observance` is three fields — `date`, the `TibetanDate` it falls on and always a real calendar
-day; `rule`, the rule that produced it, carrying `id`, `name`, `kind` and `tier`; and `resolution`,
-how it landed there. The `rule` is the **same object** the config holds rather than a copy, so for a
-config you supplied, mutating it mutates your own rule table; the shipped `DEFAULT_OBSERVANCES` is deeply frozen.
+Each `Observance` has three fields that are always there — `date`, the `TibetanDate` it falls on and
+always a real calendar day; `rule`, the rule that produced it, carrying `id`, `englishName`, and the
+`level` and `tags` the config gave it; and `resolution`, how it landed there — and two that appear only
+where they apply: `age`, the years since a rule's `ageFromYear`, and `period`, the first and last
+calendar days of the whole span a `period` rule's day belongs to. The `rule` is the **same object** the config holds rather than a copy, so for a
+config you supplied, mutating it mutates your own rule table; the shipped `EXAMPLE_OBSERVANCES` is deeply frozen.
 
-**`DEFAULT_OBSERVANCES` ships ten rules, and none of them is *sojong*.** Its kinds are `duchen`, `puja` and
-`tsok`. The `"sojong"` kind exists so you can supply your own rule, but no shipped rule produces
-one: a fixed 15th-and-30th convention misses 38 of FPMT's published occurrences over 2022–2025 and
-invents 36, so whatever governs it is not a day number. It is a **counted schedule** — the fortnight
-ending at a sojong is 15 days, or 14 at the end of an odd month — which reproduces 96 of the 98
-intervals between FPMT's sojongs over those years. It stays unshipped for two reasons that are not
-"nobody knows": what keeps the count in step with the moon is not yet sourced, and a count is a rule shape
-`ObservanceRule` cannot express. If you query for sojong and get nothing, that is why — not a mistake
-in your query. `DEFAULT_OBSERVANCES`' own docblock carries the full reasoning and the worked dates.
+**`EXAMPLE_OBSERVANCES` ships nineteen rules**, as an example of how to populate a config and not as any
+institution's calendar: the four great days (tagged `duchen`), seven persons' days (tagged `anniversary`),
+the whole of Saga Dawa, sojong, the fire puja, and the monthly Medicine Buddha, Tara, Heruka, Ḍākinī and
+Dharma Protector days. Each rule names a `level` the config declares, so a front end can group what is for
+everyone apart from what needs an empowerment, and fourteen carry a verified Tibetan name.
+Sojong is a **counted schedule** — each Tibetan year's count starts on the full moon of month 1, and a fortnight
+is 14 or 15 days — inferred from one published calendar that states no method; the fire puja is a formula
+over the day number and the weekday. Neither is the tradition's own statement of a rule, and
+[what each is checked against](docs/why-trust-these-dates.md)
+is stated there, with its window.
 
 It is a separate import for a reason. Everything on the root export makes a **falsifiable** claim:
 a constant checks against Janson, a date against an almanac, and a disagreement is a bug. Nothing
 here does. Which half of a doubled day an observance falls on, and whether it is kept in a leap
 month at all, are **conventions**, and the published sources disagree — Janson, following Berzin,
-says the first of a doubled pair; FPMT says the second. So the conventions are injected data
-carrying a citation, never logic, and a consumer who only wants date conversion never inherits
-anyone's.
+says the first of a doubled pair; FPMT says the second. So the conventions are injected data,
+cited in its docblocks and docs, never logic, and a consumer who only wants date conversion never
+inherits anyone's.
 
 ### Astrological attributes
 
@@ -678,12 +686,12 @@ a `code`, which is what to branch on rather than the type:
 |---|---|---|
 | `TCT_SKIPPED_DAY` | `tibetanToIso` | The date is well-formed but no calendar day carries its number. Not a bug in your code — see [Errors and validation](#errors-and-validation) |
 | `TCT_FIELD_OUT_OF_RANGE` | every function taking a date, a year or a Julian day | A year, month, day or Julian day is not an integer, or is outside 1–12 / 1–30. The argument was the right kind of thing and one of its numbers was wrong — so this is the one to surface to a user |
-| `TCT_INVALID_ARGUMENT` | the same functions, plus `parseTibetanDate` | The argument is the wrong *kind* of thing, so nothing in it is a field out of a range: a `Temporal.PlainDate` where a Tibetan date is expected, a bare `{ year, month, day }` where a Western date is expected, a non-boolean `isLeapMonth`/`isLeapDay`, `null`/`undefined`, a string outside `parseTibetanDate`'s grammar, an options bag that is not an object, cannot be read, or carries a key it does not have, or an element passed to `elementalYoga` that is not one of the four. A bug in the calling code rather than bad data |
+| `TCT_INVALID_ARGUMENT` | the same functions, plus `parseTibetanDate`, and `nextObservance` for a `ruleId` that is not a string or names no rule | The argument is the wrong *kind* of thing, so nothing in it is a field out of a range: a `Temporal.PlainDate` where a Tibetan date is expected, a bare `{ year, month, day }` where a Western date is expected, a non-boolean `isLeapMonth`/`isLeapDay`, `null`/`undefined`, a string outside `parseTibetanDate`'s grammar, an options bag that is not an object, cannot be read, or carries a key it does not have, or an element passed to `elementalYoga` that is not one of the four. A bug in the calling code rather than bad data |
 | `TCT_NO_SUCH_LEAP_MONTH` | every function taking a Tibetan month's or date's **fields**, except `tibetanDateExists`, which answers `false`, and the two formatters | `isLeapMonth: true` for a month with no leap twin that year |
-| `TCT_OUTSIDE_EXACT_RANGE` | any conversion, and the closed-form year functions `hasLeapMonth`, `leapMonthNumberFor`, `monthsInYear` | Beyond where this tradition's integer arithmetic stays exact. For a conversion, `PHUGPA` and `BHUTAN` are exact from about ISO year −245,737 to 236,312; `PHUGPA_HENNING` and `BHUTAN_HENNING` from about −20,781 to 11,356. Both ranges end inside Temporal's own. The three year functions are closed forms with a bound of their own, far wider: `hasLeapMonth(300000)` answers |
+| `TCT_OUTSIDE_EXACT_RANGE` | any conversion, `getObservances` and `observancesOn` for a range reaching past the end **or a day inside a `period` whose span ends past it**, `nextObservance` for a `from` past the end, and the closed-form year functions `hasLeapMonth`, `leapMonthNumberFor`, `monthsInYear` | Beyond where this tradition's integer arithmetic stays exact. For a conversion, `PHUGPA` and `BHUTAN` are exact from about ISO year −245,737 to 236,312; `PHUGPA_HENNING` and `BHUTAN_HENNING` from about −20,781 to 11,356. Both ranges end inside Temporal's own. A `period` result carries the bounds of its whole span, so a day of a span that ends past the end of the range cannot be answered even though the day is inside it; only the last weeks before the end are reached, and `nextObservance` answers `null` there instead. The three year functions are closed forms with a bound of their own, far wider: `hasLeapMonth(300000)` answers |
 | `TCT_INVALID_TRADITION_CONFIG` | any function taking a tradition | The `TraditionConfig` is malformed, or is not one at all — `null`, or a `{ tradition }` bag passed where the config itself belongs. The message names the field |
-| `TCT_INVALID_OBSERVANCE_CONFIG` | `getObservances`, `observancesOn` | The `ObservanceConfig` or one of its rules is malformed |
-| `TCT_SPAN_TOO_WIDE` | `getObservances` | More than 200 years requested at once. Chunk it; the function is pure, so concatenating is correct |
+| `TCT_INVALID_OBSERVANCE_CONFIG` | `getObservances`, `observancesOn`, `nextObservance`, `composeObservances` | The `ObservanceConfig`, one of its rules, levels or `when` forms, or a `composeObservances` layer is malformed — an unknown key, a setting the rule's form does not use, a rule naming a level the config does not declare, or a layer naming an id the base does not have. The message names the field or id |
+| `TCT_SPAN_TOO_WIDE` | `getObservances` | `to.year - from.year` is more than 10: the rule is on calendar years, so 2020-01-01 to 2030-12-31 is admitted and 2020-12-31 to 2031-01-01 is not. Chunk it; the function is pure, so concatenating is correct |
 | `TCT_ATTRIBUTE_NOT_SOURCED` | `monthAttributesFor`, `lunarDayAttributesFor` | Your input is fine; no source gives this attribute for this tradition. Thrown under `BHUTAN` and `BHUTAN_HENNING`, whose month animals Janson does not tabulate. `attributesFor` reports the same gap as `null` instead |
 | `TCT_MISSING_TEMPORAL` | the `import` itself, and any date entry point if the global `Temporal` is deleted afterwards | No `Temporal` in this runtime — see [Requirements](#requirements) |
 | `TCT_INTERNAL` | `isoToTibetan`, and the arithmetic primitives beneath it | An invariant the engine proves for itself did not hold. A bug here rather than in your input; please [report it](https://github.com/nyamlen/tibetan-calendar-temporal/issues) |
@@ -707,20 +715,21 @@ Type-only exports, erased at runtime: `TibetanDate`, `TibetanDateFields`, `Tibet
 
 ### `tibetan-calendar-temporal/observances`
 
-A separate subpath, so a consumer who only converts dates never loads it. `config` here is an
-`ObservanceConfig` defaulting to `DEFAULT_OBSERVANCES`, and `tradition` is the `TraditionConfig`; both travel
-in one options bag rather than as two positional optionals — see
-[Two kinds of config](docs/guide.md#two-kinds-of-config).
+A separate subpath, so a consumer who only converts dates never loads it. `config` here is a required
+`ObservanceConfig`, and `tradition` is the `TraditionConfig`, defaulting to `PHUGPA`; both are
+positional, config first — see [Two kinds of config](docs/guide.md#two-kinds-of-config).
 
 | Export | Signature | Notes |
 |---|---|---|
-| `getObservances` | `(from: Temporal.PlainDate, to: Temporal.PlainDate, options?) => Observance[]` | `options` is `{ config?, tradition? }`, and any other key is refused. Date order. Returns `[]` if `to` precedes `from`; throws above a 200-year span |
-| `observancesOn` | `(date: Temporal.PlainDate, options?) => Observance[]` | The single-day case, same options |
-| `DEFAULT_OBSERVANCES` | | The default config, sourced from FPMT with a URL on every rule |
+| `getObservances` | `(from: Temporal.PlainDate, to: Temporal.PlainDate, config: ObservanceConfig, tradition?: TraditionConfig) => Observance[]` | Date order, and within a day the order of the rules in the config. Returns `[]` if `to` precedes `from`; throws when `to.year - from.year` is above 10 |
+| `observancesOn` | `(date: Temporal.PlainDate, config: ObservanceConfig, tradition?: TraditionConfig) => Observance[]` | The single-day case; results in the order of the config's rules |
+| `nextObservance` | `(from: Temporal.PlainDate, ruleId: string, config: ObservanceConfig, tradition?: TraditionConfig) => Observance \| null` | The first occurrence of one rule strictly after `from`. `null` means none within 10 years, or before the end of the computable range, not never |
+| `composeObservances` | `(base: ObservanceConfig, layer: ObservanceLayer) => ObservanceConfig` | A base and a layer of differences give a new validated, frozen configuration; the inputs are never changed |
+| `EXAMPLE_OBSERVANCES` | | An example config. Its practice days follow FPMT's published calendars, which [what is validated](docs/why-trust-these-dates.md) says how far; its sojong is inferred from Rabten Choeling's schedule, and its Heruka, Ḍākinī and Dharma Protector day names are authored from Cornu's dedications. It claims no lineage |
 
-Type-only exports: `Observance`, `ObservanceConfig`, `ObservanceRule`, `ObservanceKind`,
-`ObservanceWhen`, `ObservanceResolution`, `DoubledDayChoice`, `SkippedDayChoice`,
-`LeapMonthChoice`, `ObservanceQueryOptions`.
+Type-only exports: `Observance`, `ObservanceConfig`, `ObservanceRule`, `ObservanceWhen`,
+`ObservanceLayer`, `ObservanceLevel`, `TibetanMonthDay`, `FormulaName`, `ObservanceResolution`, `DoubledDayChoice`,
+`SkippedDayChoice`, `LeapMonthChoice`.
 
 Note that `SkippedDayError` is exported from the **root** only. Nothing in this layer throws it —
 a skipped day is handled by the `skippedDay` convention instead.

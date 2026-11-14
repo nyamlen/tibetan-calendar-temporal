@@ -55,8 +55,12 @@ what happens if one arrives.
   an inherited key — but **stops at `Object.prototype`**. A bare `for…in` went past it for a few
   hours, so any dependency that made a key enumerable there made every bag function throw, even one
   called with no options, because the default `{}` inherits the key. Found by the final review.
-- **`./observances`' `config` key is not settled by this record.** Its name belongs to the
-  `./observances` rethink, which is still open.
+- **`./observances` takes its configuration positionally, and there is no `config` key.**
+  `getObservances(from, to, config, tradition?)`, `observancesOn(date, config, tradition?)` and
+  `nextObservance(from, ruleId, config, tradition?)` pass the `ObservanceConfig` as a required
+  parameter and the tradition last, as point 2 says, so no bag carries both and the word `config`
+  never has to mean a `TraditionConfig`. [2026-11-11-observance-model.md](2026-11-11-observance-model.md)
+  records it.
 - **Point 1 holds inside `src/` too, not only on the surface.** Internal helpers kept a `config`
   parameter for the first few hours, on the reading that the rule governs the surface; Andreas asked
   the same day for one name throughout, so a reader of any function sees one word for one type. The

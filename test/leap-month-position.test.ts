@@ -339,17 +339,14 @@ describe("the observance layer selects the right one of a twinned pair", () => {
 	// fail for "after" by returning two hits instead of one.
 	const ruleIn = (month: number, leapMonth: "leap" | "regular") => ({
 		id: "probe",
-		name: "Probe",
-		kind: "duchen" as const,
-		tier: 1 as const,
-		when: { month, day: 15 },
+		englishName: "Probe",
+		when: { type: "annual" as const, dates: [{ month, day: 15 }] },
 		leapMonth,
-		source: "https://example.invalid/test-only",
 	});
 
 	const configWith = (leapMonth: "leap" | "regular"): ObservanceConfig => ({
 		id: "probe",
-		name: "Probe",
+		englishName: "Probe",
 		doubledDay: "second",
 		skippedDay: "preceding",
 		leapMonth,
@@ -369,20 +366,14 @@ describe("the observance layer selects the right one of a twinned pair", () => {
 		["after", MIRRORED],
 	] as const)("fires once, not in both months, under %s", (_position, tradition) => {
 		for (const choice of ["leap", "regular"] as const) {
-			const hits = getObservances(window.from, window.to, {
-				config: configWith(choice),
-				tradition,
-			});
+			const hits = getObservances(window.from, window.to, configWith(choice), tradition);
 			expect(hits.filter((hit) => hit.rule.id === "probe")).toHaveLength(1);
 		}
 	});
 
 	it("picks the earlier month for regular under after, and the later under before", () => {
 		const dayOf = (tradition: TraditionConfig, choice: "leap" | "regular") => {
-			const [hit] = getObservances(window.from, window.to, {
-				config: configWith(choice),
-				tradition,
-			});
+			const [hit] = getObservances(window.from, window.to, configWith(choice), tradition);
 			return hit?.date.isoDate.toString();
 		};
 		// Same physical pair of lunations either way, so the two configs must disagree about which

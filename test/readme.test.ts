@@ -19,7 +19,7 @@ import {
 	monthsFor,
 } from "../src/months.js";
 import { addMonths, monthsBetween, nextFullMoon } from "../src/navigation.js";
-import { getObservances } from "../src/observances/index.js";
+import { EXAMPLE_OBSERVANCES, getObservances } from "../src/observances/index.js";
 import { BHUTAN, BHUTAN_HENNING } from "../src/traditions/bhutan.js";
 import { PHUGPA, PHUGPA_HENNING } from "../src/traditions/phugpa.js";
 
@@ -170,16 +170,21 @@ describe("README usage examples", () => {
 // worked example that drifts is worse than none -- see docs/testing.md on the contract suites.
 describe("README observance examples", () => {
 	it("lists the four great days of 2026 as documented", () => {
-		const duchen = getObservances(iso("2026-01-01"), iso("2026-12-31")).filter(
-			(o) => o.rule.kind === "duchen",
+		const duchen = getObservances(iso("2026-01-01"), iso("2026-12-31"), EXAMPLE_OBSERVANCES).filter(
+			(o) => o.rule.tags?.includes("duchen"),
 		);
 
-		expect(duchen.map((o) => `${o.rule.name}: ${o.date.isoDate}`)).toEqual([
-			"Chotrul Duchen: 2026-03-03",
-			"Saka Dawa Duchen: 2026-05-31",
-			"Chokhor Duchen: 2026-07-18",
-			"Lhabab Duchen: 2026-11-01",
+		expect(duchen.map((o) => `${o.rule.englishName}: ${o.date.isoDate}`)).toEqual([
+			"Day of Miracles: 2026-03-03",
+			"Lord Buddha's birth, enlightenment and parinirvana: 2026-05-31",
+			"Lord Buddha's first teaching: 2026-07-18",
+			"Lord Buddha's descent from God Realm of Thirty Three: 2026-11-01",
 		]);
+	});
+
+	it("says the example ships nineteen rules, fourteen of them with a Tibetan name", () => {
+		expect(EXAMPLE_OBSERVANCES.rules).toHaveLength(19);
+		expect(EXAMPLE_OBSERVANCES.rules.filter((r) => r.tibetanName !== undefined)).toHaveLength(14);
 	});
 
 	it("computes Losar without the day-1 trap the section warns about", () => {
@@ -344,4 +349,23 @@ describe("the README's exact-range row", () => {
 			});
 		}
 	}
+});
+
+describe("the README's type-checking requirement", () => {
+	const readme = readFileSync(new URL("../README.md", import.meta.url), "utf8");
+	const guide = readFileSync(new URL("../docs/guide.md", import.meta.url), "utf8");
+
+	// The two documents once disagreed: the guide said no `lib` change is ever needed, and the README
+	// gave the condition. Both state the condition now, and the guide's printed tsconfig meets it.
+	it("states the same condition on `lib` as the guide, and neither states it unconditionally", () => {
+		for (const text of [readme, guide]) {
+			expect(text).toContain('No `"lib"` setting is needed **if your `target` is `ESNext`**');
+			expect(text).not.toContain('No `"lib"` change is needed');
+			expect(text).toContain('"lib": ["ES2024", "ESNext.Temporal"]');
+		}
+	});
+
+	it("is not a count that depends on what a project imports", () => {
+		expect(readme).not.toMatch(/twelve\s+`TS2503`/);
+	});
 });

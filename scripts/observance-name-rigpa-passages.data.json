@@ -1,0 +1,25 @@
+{
+	"provenance": "Read in a browser and pasted by Andreas on 2026-11-11. NOT fetched by scripts/verify-observance-names.mjs: rigpawiki.org answers it with a Cloudflare challenge (403). Only the printed Tibetan and Wylie are held; nothing else of each page is recorded. The verifier cannot re-fetch these, so it cannot detect a page changing. Rigpa Wiki is wiki text whose lineage is not independent of THL-style transcriptions, so the verifier counts it as one group.",
+	"passages": {
+		"chotrul-duchen": {
+			"url": "https://rigpawiki.org/index.php?title=Chotrul_D%C3%BCchen",
+			"tibetan": "ཆོ་འཕྲུལ་དུས་ཆེན་",
+			"wylie": "cho 'phrul dus chen"
+		},
+		"saga-dawa-duchen": {
+			"url": "https://rigpawiki.org/index.php?title=Saga_Dawa_D%C3%BCchen",
+			"tibetan": "ས་ག་ཟླ་བ་དུས་ཆེན་",
+			"wylie": "sa ga zla ba dus chen"
+		},
+		"chokhor-duchen": {
+			"url": "https://rigpawiki.org/index.php?title=Ch%C3%B6khor_D%C3%BCchen",
+			"tibetan": "ཆོས་འཁོར་དུས་ཆེན་",
+			"wylie": "chos 'khor dus chen"
+		},
+		"lhabab-duchen": {
+			"url": "https://rigpawiki.org/index.php?title=Lha_Bab_D%C3%BCchen",
+			"tibetan": "ལྷ་བབས་དུས་ཆེན་",
+			"wylie": "lha babs dus chen"
+		}
+	}
+}
