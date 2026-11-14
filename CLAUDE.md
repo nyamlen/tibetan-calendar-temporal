@@ -597,6 +597,12 @@ derivation; in `docs/` they are just noise.
 Node 26 required for development — Temporal ships enabled by default from 26.0.0. Verified
 working on v26.7.0.
 
+**On Windows, run Vitest and `npm` from PowerShell, not from Git Bash's `/d/…` path.**
+From the Git Bash path every test file fails at collection with `Cannot read properties of
+undefined (reading 'config')` — 54 of 54 under Vitest 4.1.12 — while the same suite passes from
+PowerShell. It is the environment and not the code, and a total failure that names no assertion is
+the tell: re-run from PowerShell before debugging.
+
 The *published* package declares `engines: ">=26"` and **checks at import time**. `conversion.ts`
 touches `Temporal` at module evaluation to build its Unix-epoch anchor, so a runtime without
 Temporal fails on `import`, before any call. The guard above that line turns what was a bare
@@ -1175,7 +1181,10 @@ no earlier pass could see. For a plan whose output is a claim to readers, run on
 after every task found a real defect in most of them: duplicate results across month boundaries,
 a guard silently dropped when a function was extracted, a stale "200 years" in a README row. The
 implementer's own self-review had passed each one. Do not let a task's green suite stand in for the
-review.
+review. **A last pass over the whole branch that runs hostile and edge inputs finds what every task
+review passed**: five Important findings, among them a `period` whose span runs past the tradition's
+exact range, which made queries on in-range days throw. Give it the plan, the specs and the branch
+and nothing else, and have it reproduce each finding with a command.
 
 **A year in this repository is a Tibetan year unless it says otherwise, and a prose window must say
 which era it is.** `monthsFor(1900)` is Tibetan 1900, which runs from **1773-02-22 to 1974-02-21 CE**.
