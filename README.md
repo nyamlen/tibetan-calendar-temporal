@@ -465,9 +465,11 @@ duchen.map((o) => `${o.rule.englishName}: ${o.date.isoDate}`);
 //   "Lord Buddha's descent from God Realm of Thirty Three: 2026-11-01" ]
 ```
 
-Each `Observance` is three fields — `date`, the `TibetanDate` it falls on and always a real calendar
-day; `rule`, the rule that produced it, carrying `id` and `englishName`; and `resolution`,
-how it landed there. The `rule` is the **same object** the config holds rather than a copy, so for a
+Each `Observance` has three fields that are always there — `date`, the `TibetanDate` it falls on and
+always a real calendar day; `rule`, the rule that produced it, carrying `id`, `englishName`, and the
+`level` and `tags` the config gave it; and `resolution`, how it landed there — and two that appear only
+where they apply: `age`, the years since a rule's `ageFromYear`, and `period`, the first and last
+calendar days of the whole span a `period` rule's day belongs to. The `rule` is the **same object** the config holds rather than a copy, so for a
 config you supplied, mutating it mutates your own rule table; the shipped `EXAMPLE_OBSERVANCES` is deeply frozen.
 
 **`EXAMPLE_OBSERVANCES` ships nineteen rules**, as an example of how to populate a config and not as any
@@ -684,9 +686,9 @@ a `code`, which is what to branch on rather than the type:
 | `TCT_FIELD_OUT_OF_RANGE` | every function taking a date, a year or a Julian day | A year, month, day or Julian day is not an integer, or is outside 1–12 / 1–30. The argument was the right kind of thing and one of its numbers was wrong — so this is the one to surface to a user |
 | `TCT_INVALID_ARGUMENT` | the same functions, plus `parseTibetanDate`, and `nextObservance` for a `ruleId` that is not a string or names no rule | The argument is the wrong *kind* of thing, so nothing in it is a field out of a range: a `Temporal.PlainDate` where a Tibetan date is expected, a bare `{ year, month, day }` where a Western date is expected, a non-boolean `isLeapMonth`/`isLeapDay`, `null`/`undefined`, a string outside `parseTibetanDate`'s grammar, an options bag that is not an object, cannot be read, or carries a key it does not have, or an element passed to `elementalYoga` that is not one of the four. A bug in the calling code rather than bad data |
 | `TCT_NO_SUCH_LEAP_MONTH` | every function taking a Tibetan month's or date's **fields**, except `tibetanDateExists`, which answers `false`, and the two formatters | `isLeapMonth: true` for a month with no leap twin that year |
-| `TCT_OUTSIDE_EXACT_RANGE` | any conversion, `nextObservance` for a `from` past the end, and the closed-form year functions `hasLeapMonth`, `leapMonthNumberFor`, `monthsInYear` | Beyond where this tradition's integer arithmetic stays exact. For a conversion, `PHUGPA` and `BHUTAN` are exact from about ISO year −245,737 to 236,312; `PHUGPA_HENNING` and `BHUTAN_HENNING` from about −20,781 to 11,356. Both ranges end inside Temporal's own. The three year functions are closed forms with a bound of their own, far wider: `hasLeapMonth(300000)` answers |
+| `TCT_OUTSIDE_EXACT_RANGE` | any conversion, `getObservances` and `observancesOn` for a range reaching past the end, `nextObservance` for a `from` past the end, and the closed-form year functions `hasLeapMonth`, `leapMonthNumberFor`, `monthsInYear` | Beyond where this tradition's integer arithmetic stays exact. For a conversion, `PHUGPA` and `BHUTAN` are exact from about ISO year −245,737 to 236,312; `PHUGPA_HENNING` and `BHUTAN_HENNING` from about −20,781 to 11,356. Both ranges end inside Temporal's own. The three year functions are closed forms with a bound of their own, far wider: `hasLeapMonth(300000)` answers |
 | `TCT_INVALID_TRADITION_CONFIG` | any function taking a tradition | The `TraditionConfig` is malformed, or is not one at all — `null`, or a `{ tradition }` bag passed where the config itself belongs. The message names the field |
-| `TCT_INVALID_OBSERVANCE_CONFIG` | `getObservances`, `observancesOn`, `nextObservance`, `composeObservances` | The `ObservanceConfig` or one of its rules is malformed |
+| `TCT_INVALID_OBSERVANCE_CONFIG` | `getObservances`, `observancesOn`, `nextObservance`, `composeObservances` | The `ObservanceConfig`, one of its rules, levels or `when` forms, or a `composeObservances` layer is malformed — an unknown key, a setting the rule's form does not use, a rule naming a level the config does not declare, or a layer naming an id the base does not have. The message names the field or id |
 | `TCT_SPAN_TOO_WIDE` | `getObservances` | More than 10 years requested at once. Chunk it; the function is pure, so concatenating is correct |
 | `TCT_ATTRIBUTE_NOT_SOURCED` | `monthAttributesFor`, `lunarDayAttributesFor` | Your input is fine; no source gives this attribute for this tradition. Thrown under `BHUTAN` and `BHUTAN_HENNING`, whose month animals Janson does not tabulate. `attributesFor` reports the same gap as `null` instead |
 | `TCT_MISSING_TEMPORAL` | the `import` itself, and any date entry point if the global `Temporal` is deleted afterwards | No `Temporal` in this runtime — see [Requirements](#requirements) |

@@ -219,7 +219,7 @@ to `PHUGPA`. Until 2026-11-11 both travelled in one options bag; passing that ba
 | | `TraditionConfig` | `ObservanceConfig` |
 |---|---|---|
 | **Answers** | When is Tibetan day *n*? | Which days does an institution mark? |
-| **Contains** | Astronomical constants — mean motions, correction tables, epoch | Rules, plus three convention defaults |
+| **Contains** | Astronomical constants — mean motions, correction tables, epoch | Rules, the levels that group them, and three convention defaults |
 | **Import from** | `tibetan-calendar-temporal` | `tibetan-calendar-temporal/observances` |
 | **Shipped** | `PHUGPA` (default), `PHUGPA_HENNING`, `BHUTAN`, `BHUTAN_HENNING` | `EXAMPLE_OBSERVANCES` (an example, never a default) |
 | **Kind of claim** | **Falsifiable** — checkable against Janson and against an almanac. A disagreement is a bug | **Convention** — published sources legitimately disagree. A difference is a difference, not a bug |
@@ -227,8 +227,9 @@ to `PHUGPA`. Until 2026-11-11 both travelled in one options bag; passing that ba
 | **Named** | `tradition` — the parameter's name everywhere, and the key in every bag | `config`, the second positional parameter here |
 
 The root export never takes an `ObservanceConfig`, which is the point of the split: a consumer who
-only converts dates never inherits anyone's conventions. Both are extended the same way — spread a
-shipped default and replace whole fields — and both are validated on first use, so a mistyped value
+only converts dates never inherits anyone's conventions. A `TraditionConfig` is extended by spreading a
+shipped one and replacing whole fields; an `ObservanceConfig` by
+[a layer](#a-layer-differences-from-a-base). Both are validated on first use, so a mistyped value
 like `doubledDay: '1st'` is rejected rather than silently falling through to a branch you did not
 mean.
 
@@ -337,45 +338,157 @@ as a table rather than as configuration, because no source disagrees with FPMT a
 
 ### Customising observances
 
-Institutions differ by spreading the config, the same way `PHUGPA_HENNING` is built from `PHUGPA`:
+An `ObservanceConfig` is plain data, so it can live in a JSON file: rules, the three convention
+defaults below, and optionally the **levels** the rules are grouped under.
+Every call names one — there is no default — so write the config argument in every call:
 
 ```js
-const kopan = { ...EXAMPLE_OBSERVANCES, id: 'kopan', doubledDay: 'first' };
-observancesOn(Temporal.PlainDate.from('2024-07-09'), kopan);
-// Chokhor Duchen — where the shipped example puts it on 10 July
+import { getObservances, observancesOn, composeObservances, nextObservance, EXAMPLE_OBSERVANCES }
+  from 'tibetan-calendar-temporal/observances';
+
+const day = observancesOn(Temporal.PlainDate.from('2026-03-03'), EXAMPLE_OBSERVANCES);
+day.map((o) => o.rule.id);   // [ 'chotrul-duchen', 'fire-puja', 'medicine-buddha', 'sojong' ]
+const duchen = day.find((o) => o.rule.tags?.includes('duchen'));
+duchen.rule.id;              // 'chotrul-duchen'
+duchen.rule.level;           // 'everyone'
 ```
 
-Three convention fields decide what happens when a rule's day is not an ordinary one. Each can be
-set on the config as a default and overridden per rule:
+`tags` is an array of strings, each its own entry, and the engine never acts on one — it is yours to
+filter by. Write `rule.tags?.includes('duchen')` rather than splitting a string: a string given where
+the array belongs is refused. A rule's `level` names one of the config's `levels`, which the config
+declares in display order, so a front end can group a month and give each practice its own switch:
+
+```js
+const month = getObservances(
+  Temporal.PlainDate.from('2026-03-01'),
+  Temporal.PlainDate.from('2026-03-31'),
+  EXAMPLE_OBSERVANCES,
+);
+const hidden = new Set(['dharma-protector-day']);       // a person's per-practice switches
+const shown = month.filter((o) => !hidden.has(o.rule.id));
+for (const level of EXAMPLE_OBSERVANCES.levels ?? []) {
+  const inLevel = shown.filter((o) => o.rule.level === level.id);   // one heading per level
+}
+```
+
+#### A layer: differences from a base
+
+A centre that differs from another writes only what differs, as a **layer**, and combines it with the
+base using `composeObservances`.
+Kopan keeps the example's rules and moves a doubled day to its first half:
+
+```js
+const kopan = composeObservances(EXAMPLE_OBSERVANCES, {
+  id: 'kopan',
+  englishName: 'Kopan',
+  doubledDay: 'first',
+});
+observancesOn(Temporal.PlainDate.from('2024-07-09'), kopan);
+// Chokhor Duchen, 'firstOfDoubled' — where the shipped example puts it on 10 July
+```
+
+A layer can also remove, replace and add rules and levels, each by `id`, and they are changed in that
+order: removed, then replaced (a replacement keeps the position of what it replaces), then added at
+the end.
+An `id` may appear **once** in a layer's rule lists, and once in its level lists, so a rule is never
+removed and added back to land at the end — `replace` is how to change a rule and keep its place.
+A name the base does not have in `remove` or `replace`, or one it does have in `add`, is refused,
+as is a key the layer does not have: a misspelt `doubleDay` throws `TCT_INVALID_OBSERVANCE_CONFIG`
+naming it rather than doing nothing.
+
+```js
+const myCentre = composeObservances(EXAMPLE_OBSERVANCES, {
+  id: 'my-centre',
+  englishName: 'My centre',
+  replaceLevels: [{ id: 'everyone', englishName: 'Open to all' }],   // renamed, same id
+  addLevels: [{ id: 'centre', englishName: 'Our centre' }],
+  remove: ['fire-puja'],
+  add: [
+    {
+      id: 'founder-birthday',
+      englishName: 'Founder’s birthday',
+      level: 'centre',
+      when: { type: 'western', month: 7, day: 6, ageFromYear: 1950 },
+    },
+    {
+      id: 'founding-day',
+      englishName: 'Founding day',
+      level: 'centre',
+      when: { type: 'annual', dates: [{ month: 4, day: 15 }], ageFromYear: 2113 },
+      skippedDay: 'following',   // optional; falls back to the config default
+    },
+  ],
+});
+```
+
+The result is a new, validated, deeply frozen config; the base and the layer are left as they were.
+
+#### Which calendar a year counts
+
+`fromYear`, `untilYear` and `ageFromYear` count the **calendar of their own form**: Western years on
+`western`, Tibetan years on `annual`. Tibetan years are numbered as `TibetanDate.year` is — 2153 is the
+year that begins on 2026-02-18 — so they run about 127 ahead of the Western ones.
+The founder's birthday above is a Western date, born in 1950, so on 6 July 2026 it reports `age: 76`.
+The founding day is on a Tibetan date, so its `ageFromYear` is a Tibetan year: `2113` gives `age: 40`
+for 2026's, which falls in Tibetan year 2153. Give it `1950`, a Western year, and the age comes out as
+203, with no error — a number plausible only to someone who knows which calendar it counts.
+
+```js
+const birthday = observancesOn(Temporal.PlainDate.from('2026-07-06'), myCentre)
+  .find((o) => o.rule.id === 'founder-birthday');
+birthday.age;   // 76
+```
+
+#### The three conventions
+
+Three convention fields decide what happens when a rule's day is not an ordinary one.
+Each can be set on the config as a default and overridden per rule, and each is used only by the
+forms it makes sense for — a value a rule's form does not use is refused, so a setting never looks
+effective while doing nothing:
 
 | Field | Values | Value in `EXAMPLE_OBSERVANCES` | Decides |
 |---|---|---|---|
 | `doubledDay` | `'first'` `'second'` `'both'` | `'second'` | Which half of a doubled day carries the observance, or both |
-| `skippedDay` | `'preceding'` `'omit'` | `'preceding'` | Whether a skipped day moves to the day before, or vanishes that month |
+| `skippedDay` | `'preceding'` `'following'` `'omit'` | `'preceding'` | Whether a skipped day moves to the day before, the day after, or vanishes that month. `'omit'` is refused on a `counted` rule |
 | `leapMonth` | `'leap'` `'regular'` `'both'` | `'leap'` | Which of two months sharing a number an annual rule falls in |
-
-To add your own days, extend `rules` rather than replacing it:
-
-```js
-const myCentre = {
-  ...EXAMPLE_OBSERVANCES,
-  id: 'my-centre',
-  rules: [
-    ...EXAMPLE_OBSERVANCES.rules,
-    {
-      id: 'founder-anniversary',
-      englishName: 'Founder’s anniversary',
-      when: { type: 'annual', dates: [{ month: 4, day: 15 }] },
-      skippedDay: 'preceding',   // optional; falls back to the config default
-    },
-  ],
-};
-```
 
 Every result carries a `resolution` saying how it got there — one of `"exact"`,
 `"firstOfDoubled"`, `"secondOfDoubled"`, `"dayBeforeSkipped"`, `"dayAfterSkipped"`, `"inPeriod"` or
 `"counted"` — so a display can show the almanac's footnote rather than presenting a moved date as an
 exact one.
+
+#### Reading a config that is not yours
+
+A rule's `when` has a `type`, and the set of types is **open**: a later release may add one, so a
+consumer that switches on it handles an unknown value with a `default` branch.
+The same holds for `formula` names.
+
+```js
+function describeWhen(when) {
+  switch (when.type) {
+    case 'monthly': return `days ${when.days.join(', ')} of every month`;
+    case 'annual': return 'once a year, on a Tibetan date';
+    default: return `a ${when.type} rule`;   // period, western, formula, counted, and any later form
+  }
+}
+describeWhen(EXAMPLE_OBSERVANCES.rules.find((r) => r.id === 'tara').when);   // 'days 8 of every month'
+```
+
+`nextObservance(from, ruleId, config)` finds the first occurrence of one rule strictly after a day, and
+chaining it walks a rule through a year, such as sojong:
+
+```js
+const found = [];
+let next = nextObservance(Temporal.PlainDate.from('2025-12-31'), 'sojong', EXAMPLE_OBSERVANCES);
+while (next !== null && next.date.isoDate.year === 2026) {
+  found.push(next);
+  next = nextObservance(next.date.isoDate, 'sojong', EXAMPLE_OBSERVANCES);
+}
+found.length;   // 25
+```
+
+It answers `null` when nothing lies within ten years after `from`, which is also the widest range
+`getObservances` accepts in one call; a wider table is requested in chunks and concatenated.
 
 Losar is deliberately *not* here: it is a calendar fact rather than a convention, so it is
 `losarFor` on the root export. The shipped anniversaries are seven persons' days on Tibetan dates;
@@ -740,8 +853,8 @@ mechanical to declare it with.
 Every Tibetan name the engine returns is a `TibetanName` with three renderings — Tibetan script,
 Wylie transliteration and THL phonetics — so a consumer chooses which to display rather than
 transliterating themselves.
-The one exception today is an observance's `name`, a plain phonetic string, which is due to change
-before 1.0.0.
+An observance's rule, level and config carry an `englishName` first and an optional `tibetanName`
+of the same shape; fourteen of `EXAMPLE_OBSERVANCES`' rules have one, and the rest are English only.
 
 In `./astrology` an English label and its Tibetan name sit side by side: every attribute block has a
 `tibetanNames` object keyed by the field it names, so `day.calendarDay.tibetanNames.trigram` is the
@@ -761,8 +874,8 @@ carries the shifted name on its `weekdayName` field — you do not need to look 
 
 **What deliberately does not ship:** translations into any other language. The names are the
 calendar's own vocabulary, not user-interface strings, and an application supplying French or
-German labels for `kind: 'duchen'` is doing something the package should not guess at. The stable
-keys — `element`, `animal`, `kind`, `resolution` — are what a translation table keys on.
+German labels for `level: 'everyone'` is doing something the package should not guess at. The stable
+keys — `element`, `animal`, a rule's `id` and `level`, `resolution` — are what a translation table keys on.
 
 ---
 

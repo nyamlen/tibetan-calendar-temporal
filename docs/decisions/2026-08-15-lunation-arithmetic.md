@@ -87,9 +87,9 @@ A future request will ask for one of these by name. Each was considered and each
 - **Date in, date out.** One line instead of two, but it must decide what "the 8th of next month"
   means when the 8th is skipped in the destination — a few percent of calls — and that decision
   becomes permanent contract.
-- **A `skippedDay: 'preceding' | 'omit'` parameter.** That choice is a **convention**: Janson and
-  FPMT disagree about it, and [2026-08-12-observance-policy.md](2026-08-12-observance-policy.md)
-  exists to keep contested conventions in injected config rather than in the engine.
+- **A `skippedDay: 'preceding' | 'omit'` parameter.** That choice is a **convention**, and
+  [2026-11-11-observance-model.md](2026-11-11-observance-model.md) exists to keep conventions in
+  injected config rather than in the engine.
 - **Anything returning a date from a month step.** Same problem as the first, arrived at from a
   different direction.
 

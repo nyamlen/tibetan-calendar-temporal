@@ -7,7 +7,7 @@
 | 0 | Scaffold (npm init, tsc, vitest, fast-check, biome, CI) — **done** | 2h |
 | 1 | Core computation: Layers 0-3 (Janson §2-9) — **done** | 20h |
 | 2 | Validation: FPMT fixtures, cross-check against reference implementations — **done** | 12h |
-| 3 | Observances: config-driven rules, Gelug default config — **done** | 8h |
+| 3 | Observances: config-driven rules, an example config — **done**; rebuilt in November 2026, see the checklist | 8h |
 | 4 | TypeDoc + release workflow + publish v1.0.0 (docblock audit split out — see Phase 4a) | 6h |
 | 4a | Code review: 300 docblocks verified against behaviour, plus convention and derivation conformance across all of `src/` — see the [Pre-v1.0.0 checklist](#pre-v100-checklist) | 14h |
 
@@ -366,13 +366,11 @@ through this before publishing v1.0.0 — several are one-way doors once publish
 
 The list is grouped by subject, not by sequence, and one run of items does have a required order.
 
-**The order, as it stands on 2026-09-20:**
+**The order, as it stands on 2026-11-14:**
 
-1. **`./observances`** — the rule vocabulary, sojong, and whichever content ships. **This blocks the
-   review passes**, and the reason is recorded on that item: *"a code review that reads a ruleset
-   which may still change content, membership or name is reviewing a moving target."* Its design
-   has been under way since 2026-09-27; which rules ship, and their parameters, wait on
-   Ven. Thubten Chöying's reply.
+1. **`./observances`** — the rule vocabulary, sojong, and the content that ships. **Built** on the
+   `observances-1.0` branch: it blocked the review passes while its content, membership and names
+   could still change, and they have settled. It merges to `main` after that branch's final review.
 2. The four **Review passes** below, in the order given there.
 3. The **`docs/` folder restructure**, last of all — every review before it produces documentation
    edits, and moving files once after they have landed is one link-fixing commit instead of four.
@@ -460,8 +458,8 @@ that its first step is still open.
   Hyphens were considered and rejected: they are house style rather than a published standard, and
   a hyphen per syllable ("sa-ga-da-ba") does not mark a word.
   **A one-way door at 1.0.0, and surface-wide**: changing only some names would leave the package
-  inconsistent. The `./observances` example's seven names (the four düchens, Saga Dawa, sojong and the fire puja) are the first to use it, by Andreas' decision of 2026-11-11, so until the rest follow the package is inconsistent on purpose.
-- [ ] **Composable/additive `ObservanceConfig`s — decide before 1.0.0, not after.** Today, a
+  inconsistent. The `./observances` example's fourteen names (the four düchens, Saga Dawa, sojong, the fire puja and the seven persons') are the first to use it, by Andreas' decision of 2026-11-11, so until the rest follow the package is inconsistent on purpose.
+- [x] **Composable/additive `ObservanceConfig`s — decide before 1.0.0, not after.** Today, a
       consumer combining several institutions' rule sets (e.g. `DEFAULT_OBSERVANCES` plus a `TEACHERS` and a
       `TANTRA` config) hand-rolls
       `{ ...DEFAULT_OBSERVANCES, rules: [...DEFAULT_OBSERVANCES.rules, ...TEACHERS.rules, ...TANTRA.rules] }` and silently
@@ -515,6 +513,17 @@ that its first step is still open.
       **Deferred, explicitly, not left ambiguous:** which config's `doubledDay`/`skippedDay`/
       `leapMonth` wins when two configs in `from` disagree. Decide this when the helper is actually
       designed, not before
+
+      **Done 2026-11-14, on the `observances-1.0` branch.** `composeObservances(base, layer)` ships on
+      `./observances`: a layer removes, replaces and adds rules and levels by id, an unknown or repeated
+      id is refused, and a layer's conventions replace the base's — which settles the deferred question,
+      since a layer has one base and there is no two-config disagreement left to reconcile. The names
+      are keyed by language (`englishName`, optional `tibetanName`), `ObservanceKind` went with `kind`,
+      and `ObservanceRule.name` became `englishName`; fourteen Tibetan names are checked by
+      `verify:observance-names`. The shape is recorded in
+      [decisions/2026-11-11-observance-model.md](decisions/2026-11-11-observance-model.md). Where this entry says
+      `DEFAULT_OBSERVANCES`, `ObservanceKind` or `composeObservances({ from, omit, extra })`, those are the
+      names as they stood: the export is now `EXAMPLE_OBSERVANCES` and the helper takes a base and a layer.
 - [x] **New subpath `./astrology`, computing Janson's Appendix E's calculations — placement, scope and
       naming decided 2026-09-03; built 2026-09-12.**
 
@@ -1095,7 +1104,7 @@ nothing and reports success.
       which already rules it, and `TibetanWeekdayElement` — which the spike could not place from the
       export list — is kept under the first test: typing it as `TibetanElement` would make `wind`
       unrepresentable, and `wind` is not a year element at all
-- [ ] **Decide what belongs in this package's general observance layer versus what stays
+- [x] **Decide what belongs in this package's general observance layer versus what stays
       FPMT-specific, and validate/document the result — before the code review reaches it.** This
       absorbs two questions that were tracked as separate, cross-referenced items and are now one
       decision, because the second changes the shape of the first.
@@ -1160,7 +1169,8 @@ nothing and reports success.
       Two claims this falsifies. FPMT's sojong on the first of the doubled 30 of 2025-11-19 is
       **not** FPMT contradicting its own doubled-day guidance — the count simply lands there. That
       claim is in `src/observances/types.ts`, `src/observances/default-observances.ts`,
-      [decisions/2026-08-12-observance-policy.md](decisions/2026-08-12-observance-policy.md), the
+      `decisions/2026-08-12-observance-policy.md` (since deleted, and superseded by
+      [decisions/2026-11-11-observance-model.md](decisions/2026-11-11-observance-model.md)), the
       Sojong item below, and [almanac-sources.md](almanac-sources.md); all five corrected
       2026-09-19. And almanac-sources.md's "falsified, do not re-test without new material" was the wrong
       instruction: the material was already in hand.
@@ -1248,8 +1258,9 @@ nothing and reports success.
         one rule with one name. To be reviewed when Ven. Chöying replies.
       - **A next-occurrence query ships**, on the pattern of `nextFullMoon`. Additive, so it does not
         block 1.0.0.
-      - **[decisions/2026-08-12-observance-policy.md](decisions/2026-08-12-observance-policy.md) is
-        superseded by a new record once (A) to (C) are settled**, not amended piecemeal: four of its
+      - **`decisions/2026-08-12-observance-policy.md` is
+        superseded by a new record once (A) to (C) are settled** — [decisions/2026-11-11-observance-model.md](decisions/2026-11-11-observance-model.md), and the old
+        record was then deleted — not amended piecemeal: four of its
         five "What this makes true" bullets are overtaken, and its subpath section says nothing in
         the layer is falsifiable, which a counted schedule tiled against Rabten's century is.
       - **Still to express, easy to lose:** the line above says the model must also express "an
@@ -1279,7 +1290,19 @@ nothing and reports success.
       both recorded in the same nyamlen note, are distinct subsystems needing their own brainstorm
       and spec — not folded into this task. **Superseded 2026-09-19:** the day-quality codes join the
       convention layer (above), so the placement question is answered and the two are one brainstorm.
-- [ ] **Sojong — moved from Beyond v1 to pre-1.0.0 on 2026-09-19 (Andreas).** The rule is a
+
+      **Closed 2026-11-14, on the `observances-1.0` branch.** What ships is `EXAMPLE_OBSERVANCES`:
+      nineteen rules under three levels the config declares, `id: "example"`, `englishName:
+      "Example practice calendar"`. The `"gelug"` id and `"Gelug (FPMT)"` name are gone, which settles
+      the first undecided consequence above, and the doubled-day, skipped-day and leap-month
+      conventions are stated in its docblock as FPMT's, which settles the second. FPMT's complete set is
+      a configuration in the test suite, held to FPMT's own calendars for 2022-2026
+      ([fpmt-calendar.md](fpmt-calendar.md)). The rule list and the basis of every level and English
+      name are in [observances.md](observances.md), and the README names the rules, so a reader need not
+      open `example-observances.ts`. In this entry `DEFAULT_OBSERVANCES` and `default-observances.ts`
+      are now `EXAMPLE_OBSERVANCES` and `example-observances.ts`, and the 2026-08-12 policy record was
+      superseded by [decisions/2026-11-11-observance-model.md](decisions/2026-11-11-observance-model.md) and then deleted; git history holds it.
+- [x] **Sojong — moved from Beyond v1 to pre-1.0.0 on 2026-09-19 (Andreas).** The rule is a
       counted schedule (see the reversal in the boundary item above); what remains is sourcing what
       keeps the count with the moon — since 2026-09-27 an inferred annual anchor on the month-1 full
       moon, from Rabten Choeling's calendar, see
@@ -1334,6 +1357,16 @@ nothing and reports success.
       shape section above, since both bear on this package's stated scope and surface before that
       freezes. Both still need their own brainstorm and spec, in that order; see
       [almanac-sources.md](almanac-sources.md).
+
+      **Done 2026-11-14, on the `observances-1.0` branch**, to the gate this item set: the `counted`
+      form ships and `sojong` in `EXAMPLE_OBSERVANCES` uses it; the data came with the rule, as
+      `test/fixtures/rabten-sojong.ts` from `scripts/fetch-rabten-sojong.mjs` with
+      `test/validation/rabten-sojong.test.ts` importing it, the window is in
+      [testing.md](testing.md#rabten-choelings-sojong-schedule), and
+      [validation-sources.md](validation-sources.md) states that Rabten's lineage is unknown. **The rule
+      stays inferred, not sourced** — it is the fit to Rabten's schedule, which states no method — and the
+      example's docblock, the README and [observances.md](observances.md) say so. The question to FPMT
+      about where the extra day goes was sent 2026-09-19 and is unanswered; it is not a gate on this item.
 - [x] **Record FPMT's second line of codes and its moon icons in the fixture.** Done 2026-09-19.
       The fixture carries `codes` (verbatim, with FPMT's two misprints `NPG` and `ED-EW` kept as
       printed) and `moon`, an icon rather than a moon. The generator refuses any code its page's own
@@ -1950,7 +1983,7 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
      numbering — months only, lineage unknown, and three of its Hurals fit neither version. See
      [almanac-sources.md](almanac-sources.md)'s Zurkhai lineage question.
   4. **Observances are a separate question.** Buryat Hurals are their own calendar of holy days,
-     not `DEFAULT_OBSERVANCES`, which is FPMT's; that belongs to the `./observances` work, not to the
+     not `EXAMPLE_OBSERVANCES`, whose conventions are FPMT's; that belongs to the `./observances` work, not to the
      config.
 
   **Measured 2026-09-24:** between 2020 and 2033 the two versions give a day a different month label
@@ -1976,18 +2009,17 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
     it. For two dates this package produced, `a.isoDate.until(b.isoDate)` is better. It is recorded
     as **the first export to cut** if the surface ever needs trimming.
 
-- **A signal when observances go to the leap twin.** `DEFAULT_OBSERVANCES` sets `leapMonth: "leap"`, so in a leap
-  year every observance of the doubled month falls in the leap half and the regular twin renders
-  with **no tier-1 observances at all** — 2151's regular M06 is empty while M06L holds Chökhor
+- **A signal when observances go to the leap twin.** `EXAMPLE_OBSERVANCES` sets `leapMonth: "leap"`, so in a leap
+  year every annual observance of the doubled month falls in the leap half and the regular twin renders
+  with **none of those observances** — 2151's regular M06 is empty while M06L holds Chökhor
   Düchen. That is correct and matches FPMT's published date, but a consumer laying out the regular
   month sees a blank month with nothing to explain it, and `Observance` carries no field naming the
   twin. Behaviour must not change —
-  [decisions/2026-08-12-observance-policy.md](decisions/2026-08-12-observance-policy.md) keeps this
+  [decisions/2026-11-11-observance-model.md](decisions/2026-11-11-observance-model.md) keeps this
   in injected config — so any fix is additive shape, not logic.
 
-- **`Observance.rule.kind` reads worse than `o.kind`** for what is arguably the observance's own
-  primary attribute. Cosmetic, on a subpath surface, and breaking to change, so it is a note rather
-  than a task.
+- **`Observance.rule.kind` reads worse than `o.kind`** — **moot since 2026-11-11**: the rebuild dropped
+  `kind` altogether, and a result's grouping is `rule.level`.
 
 - **Tibetan-language output — weekday and year naming shipped 2026-08-16.** `TibetanDate` carries
   `weekdayName`; `yearName` carries `elementName`, `genderName` and `animalName`; and

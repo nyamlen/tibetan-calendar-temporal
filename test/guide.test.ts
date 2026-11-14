@@ -13,7 +13,14 @@ import { formatTibetanDate } from "../src/format.js";
 import { monthNamesFor } from "../src/month-names.js";
 import { monthsFor } from "../src/months.js";
 import { nextFullMoon } from "../src/navigation.js";
-import { EXAMPLE_OBSERVANCES, getObservances, observancesOn } from "../src/observances/index.js";
+import {
+	composeObservances,
+	EXAMPLE_OBSERVANCES,
+	getObservances,
+	nextObservance,
+	type ObservanceWhen,
+	observancesOn,
+} from "../src/observances/index.js";
 import { parseTibetanDate } from "../src/parse.js";
 import { BHUTAN } from "../src/traditions/bhutan.js";
 import { SkippedDayError } from "../src/types.js";
@@ -154,11 +161,59 @@ describe("guide examples", () => {
 		expect(tibetanToIso(fields).toString()).toBe("2024-07-11");
 	});
 
-	it("moves the 2024 Chokhor Duchen to 9 July under a spread config", () => {
-		const kopan = { ...EXAMPLE_OBSERVANCES, id: "kopan", doubledDay: "first" as const };
-		expect(observancesOn(iso("2024-07-09"), kopan).map((o) => o.rule.id)).toContain(
-			"chokhor-duchen",
+	it("reads a day by id, level and tags, as the guide's first example does", () => {
+		const day = observancesOn(iso("2026-03-03"), EXAMPLE_OBSERVANCES);
+		expect(day.map((o) => o.rule.id)).toEqual([
+			"chotrul-duchen",
+			"fire-puja",
+			"medicine-buddha",
+			"sojong",
+		]);
+		const duchen = day.find((o) => o.rule.tags?.includes("duchen"));
+		expect(duchen?.rule.id).toBe("chotrul-duchen");
+		expect(duchen?.rule.level).toBe("everyone");
+	});
+
+	it("groups a month by the config's levels, one heading per level, with per-practice switches", () => {
+		const month = getObservances(iso("2026-03-01"), iso("2026-03-31"), EXAMPLE_OBSERVANCES);
+		const hidden = new Set(["dharma-protector-day"]);
+		const shown = month.filter((o) => !hidden.has(o.rule.id));
+		const levels = EXAMPLE_OBSERVANCES.levels ?? [];
+		expect(levels.map((l) => l.id)).toEqual(["everyone", "no-empowerment", "empowerment"]);
+		const grouped = levels.flatMap((level) => shown.filter((o) => o.rule.level === level.id));
+		expect(grouped).toHaveLength(shown.length);
+		expect(month.length).toBeGreaterThan(shown.length);
+	});
+
+	it("moves the 2024 Chokhor Duchen to 9 July under the guide's Kopan layer", () => {
+		const kopan = composeObservances(EXAMPLE_OBSERVANCES, {
+			id: "kopan",
+			englishName: "Kopan",
+			doubledDay: "first",
+		});
+		const onNinth = observancesOn(iso("2024-07-09"), kopan).filter(
+			(o) => o.rule.id === "chokhor-duchen",
 		);
+		expect(onNinth.map((o) => o.resolution)).toEqual(["firstOfDoubled"]);
+		const shipped = observancesOn(iso("2024-07-10"), EXAMPLE_OBSERVANCES).filter(
+			(o) => o.rule.id === "chokhor-duchen",
+		);
+		expect(shipped.map((o) => o.resolution)).toEqual(["secondOfDoubled"]);
+	});
+
+	it("refuses a misspelt layer key by name, with the documented code", () => {
+		let thrown: { code?: string; message?: string } | undefined;
+		try {
+			composeObservances(EXAMPLE_OBSERVANCES, {
+				id: "x",
+				englishName: "X",
+				doubleDay: "first",
+			} as never);
+		} catch (error) {
+			thrown = error as { code?: string; message?: string };
+		}
+		expect(thrown?.code).toBe("TCT_INVALID_OBSERVANCE_CONFIG");
+		expect(thrown?.message).toContain("doubleDay");
 	});
 
 	// The README prints the three convention fields, their allowed values and EXAMPLE_OBSERVANCES's defaults as a
@@ -194,25 +249,96 @@ describe("guide examples", () => {
 		expect([...seen].sort()).toEqual(documented);
 	});
 
-	// The `myCentre` example: extend `rules` by spreading, never replace it.
-	it("accepts the documented custom-rule config", () => {
-		const myCentre = {
-			...EXAMPLE_OBSERVANCES,
-			id: "my-centre",
-			rules: [
-				...EXAMPLE_OBSERVANCES.rules,
+	// The guide's `myCentre` layer, written as it is there.
+	const myCentre = composeObservances(EXAMPLE_OBSERVANCES, {
+		id: "my-centre",
+		englishName: "My centre",
+		replaceLevels: [{ id: "everyone", englishName: "Open to all" }],
+		addLevels: [{ id: "centre", englishName: "Our centre" }],
+		remove: ["fire-puja"],
+		add: [
+			{
+				id: "founder-birthday",
+				englishName: "Founder’s birthday",
+				level: "centre",
+				when: { type: "western", month: 7, day: 6, ageFromYear: 1950 },
+			},
+			{
+				id: "founding-day",
+				englishName: "Founding day",
+				level: "centre",
+				when: { type: "annual", dates: [{ month: 4, day: 15 }], ageFromYear: 2113 },
+				skippedDay: "following",
+			},
+		],
+	});
+
+	it("applies the documented layer: renamed level, removed rule, added rules, base untouched", () => {
+		expect(myCentre.levels?.map((l) => [l.id, l.englishName])).toEqual([
+			["everyone", "Open to all"],
+			["no-empowerment", "Practitioners, no empowerment needed"],
+			["empowerment", "Practitioners, empowerment required"],
+			["centre", "Our centre"],
+		]);
+		expect(myCentre.rules.some((r) => r.id === "fire-puja")).toBe(false);
+		expect(EXAMPLE_OBSERVANCES.rules.some((r) => r.id === "fire-puja")).toBe(true);
+		expect(Object.isFrozen(myCentre)).toBe(true);
+	});
+
+	it("reports the founder's Western birthday age as the guide states", () => {
+		const birthday = observancesOn(iso("2026-07-06"), myCentre).find(
+			(o) => o.rule.id === "founder-birthday",
+		);
+		expect(birthday?.age).toBe(76);
+	});
+
+	it("counts an annual rule's ageFromYear in Tibetan years, and a Western year there gives 203", () => {
+		const founding = (config: typeof myCentre) =>
+			getObservances(iso("2026-01-01"), iso("2026-12-31"), config).filter(
+				(o) => o.rule.id === "founding-day",
+			);
+		const [occurrence] = founding(myCentre);
+		expect(occurrence?.date.year).toBe(2153);
+		expect(occurrence?.age).toBe(40);
+		const wrong = composeObservances(myCentre, {
+			id: "wrong",
+			englishName: "Wrong",
+			replace: [
 				{
-					id: "founder-anniversary",
-					englishName: "Founder's anniversary",
-					when: { type: "annual" as const, dates: [{ month: 4, day: 15 }] },
-					skippedDay: "preceding" as const,
+					id: "founding-day",
+					englishName: "Founding day",
+					level: "centre",
+					when: { type: "annual", dates: [{ month: 4, day: 15 }], ageFromYear: 1950 },
+					skippedDay: "following",
 				},
 			],
+		});
+		expect(founding(wrong)[0]?.age).toBe(203);
+	});
+
+	it("describes a rule's form with a default branch, as the guide's switch does", () => {
+		const describeWhen = (when: ObservanceWhen): string => {
+			switch (when.type) {
+				case "monthly":
+					return `days ${when.days.join(", ")} of every month`;
+				case "annual":
+					return "once a year, on a Tibetan date";
+				default:
+					return `a ${when.type} rule`;
+			}
 		};
-		const found = getObservances(iso("2026-01-01"), iso("2026-12-31"), myCentre).filter(
-			(o) => o.rule.id === "founder-anniversary",
-		);
-		expect(found).toHaveLength(1);
+		const tara = EXAMPLE_OBSERVANCES.rules.find((r) => r.id === "tara");
+		expect(tara && describeWhen(tara.when)).toBe("days 8 of every month");
+	});
+
+	it("chains nextObservance through 2026's sojong days, as the guide does", () => {
+		const found = [];
+		let next = nextObservance(iso("2025-12-31"), "sojong", EXAMPLE_OBSERVANCES);
+		while (next !== null && next.date.isoDate.year === 2026) {
+			found.push(next);
+			next = nextObservance(next.date.isoDate, "sojong", EXAMPLE_OBSERVANCES);
+		}
+		expect(found).toHaveLength(25);
 	});
 
 	it("reports the documented skipped date with the documented code", () => {

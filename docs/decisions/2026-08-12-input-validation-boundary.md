@@ -111,14 +111,14 @@ keyed by the config object — the same bargain `scalingFor` already makes with 
 consumer who mutates a config in place after first use escapes revalidation; that is accepted, not
 overlooked.
 
-The bargain covers **consumer-supplied** configs only. `PHUGPA`, `PHUGPA_HENNING` and `DEFAULT_OBSERVANCES` are
+The bargain covers **consumer-supplied** configs only. `PHUGPA`, `PHUGPA_HENNING` and `EXAMPLE_OBSERVANCES` are
 deeply frozen, because they are the objects the docs point a reader at for `{ ...PHUGPA, … }` and so
 the ones a keystroke off a spread mutates. Keep them frozen: a mutation after first use produces
 neither the old constants nor the new ones but a stale mix — a fresh `moonTab` beside a
 `commonDenominator` derived from the old one — and unfreezing them later would be no easier than
 freezing them was.
 
-`ObservanceConfig` is validated by `validateObservanceConfig` in `src/observances/index.ts`;
+`ObservanceConfig` is validated by `validateObservanceConfig` in `src/observances/validate.ts`;
 `TraditionConfig` by [`assertTraditionConfig`](../../src/traditions/validate.ts), called from both
 `scalingFor` functions, which are the single choke point every public entry reaches. Because the
 scaling derivation is already memoised per object, the check costs nothing after the first call —
