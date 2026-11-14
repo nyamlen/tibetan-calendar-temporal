@@ -4,6 +4,7 @@ import { attributesFor, ELEMENTAL_YOGAS, monthAttributesFor } from "../src/astro
 import {
 	isoToTibetan,
 	julianDayFromIso,
+	losarFor,
 	tibetanDateExists,
 	tibetanToIso,
 	tibetanWeekday,
@@ -299,6 +300,9 @@ describe("guide examples", () => {
 			);
 		const [occurrence] = founding(myCentre);
 		expect(occurrence?.date.year).toBe(2153);
+		// The guide's "2153 is the year that begins on 2026-02-18", and its "about 127 ahead".
+		expect(losarFor(2153).isoDate.toString()).toBe("2026-02-18");
+		expect(2153 - iso("2026-02-18").year).toBe(127);
 		expect(occurrence?.age).toBe(40);
 		const wrong = composeObservances(myCentre, {
 			id: "wrong",

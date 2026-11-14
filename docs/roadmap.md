@@ -1302,71 +1302,37 @@ nothing and reports success.
       open `example-observances.ts`. In this entry `DEFAULT_OBSERVANCES` and `default-observances.ts`
       are now `EXAMPLE_OBSERVANCES` and `example-observances.ts`, and the 2026-08-12 policy record was
       superseded by [decisions/2026-11-11-observance-model.md](decisions/2026-11-11-observance-model.md) and then deleted; git history holds it.
-- [x] **Sojong — moved from Beyond v1 to pre-1.0.0 on 2026-09-19 (Andreas).** The rule is a
-      counted schedule (see the reversal in the boundary item above); what remains is sourcing what
-      keeps the count with the moon — since 2026-09-27 an inferred annual anchor on the month-1 full
-      moon, from Rabten Choeling's calendar, see
-      [almanac-sources.md](almanac-sources.md#sojong-a-counted-schedule-once-falsified-by-a-misreading)
-      — and a counted-schedule rule shape. **Rabten's data arrives with the rule, not before it**
-      (decided 2026-09-27): a generator in `scripts/`, a fixture in `test/fixtures/` of every sojong
-      and its 14/15 tag for 2000–2100, and a suite in `test/validation/` that imports it, in the same
-      commit series as the rule in `src/`. Landed earlier it would be a fixture nothing reads. Its
-      entry in [validation-sources.md](validation-sources.md) must state that Rabten's lineage is
-      unknown, so its agreement with FPMT may be one witness rather than two. Additive — `ObservanceConfig.rules` is an array, so a
-      row can be added without a breaking change. Phase 3 established that it is **not** a fixed day
-      number: against FPMT's calendars for 2022–2025, a 15th-and-30th rule misses 38 occurrences and
-      invents 36, and the misses are not random. It lands a day early in some months and not others:
-
-      | Date | Tibetan day | Sojong printed? |
-      |------|-------------|-----------------|
-      | 2022-01-31 | 29 | yes |
-      | 2022-02-01 | 30 | no |
-      | 2024-08-04 | 30 | yes |
-      | 2025-11-19 | 30, first of a doubled pair | yes |
-      | 2025-11-20 | 30, second of the pair | no |
-      | 2026-06-14 | 29 | yes |
-      | 2026-06-15 | 30 | no |
-
-      Note the 2025 row: sojong goes on the **first** of a doubled 30, where FPMT's own guidance and
-      its placement of the great days both say the second. So it does not follow the config's
-      `doubledDay` axis either. **Explained 2026-09-19:** sojong is a count of days, not a date, so no
-      doubled-day convention applies — see the reversal in the boundary item above, which also supersedes the falsification recorded
-      below.
-
-      **The question this item used to put to FPMT** — what decides the 29th against the 30th, and
-      why the first of a doubled day — is answered by the count. What remains is narrower: where the
-      extra day goes, asked of Ven. Thubten Chöying, and sent 2026-09-19. Since 2026-09-27 the
-      candidate answer is an annual anchor rather than an extra day, inferred from Rabten Choeling's
-      calendar and still unsourced.
-
-      **A candidate answer surfaced 2026-08-28, outside this repo, and was falsified 2026-09-04.**
-      [almanac-sources.md](almanac-sources.md) records an oral-teaching source (Geshe Gyaltsen, translated by
-      Geshe Graham, notes by Thubten Chöying) giving an actual rule rather than a fixed day: sojong at
-      the end of an **odd** Tibetan month falls on the 14th, at the end of an **even** month on the
-      15th. Run against the table above (`isoToTibetan` on all seven dates, checked under three
-      readings of "which month" — nominal month number, true sequential lunation, and position since
-      Losar): the best of the three, nominal month number, matches only 4 of 7, with the 2026-06-14/15
-      pair a clean inversion rather than an edge case. **This candidate does not reproduce the table and
-      should not ship.** Sojong stays open pending a different or corrected source — the notes' own
-      disclaimer that transcription errors are the transcriber's is the likeliest explanation, not a
-      flaw in this table.
-
-      That note also opens two follow-on design questions, and **neither is beyond-v1 any more**: the
-      composable/additive `ObservanceConfig` helper (e.g. `DEFAULT_OBSERVANCES + TEACHERS + TANTRA`) and the
-      day-quality-code placement question are both now tracked under the Pre-v1.0.0 checklist's API
-      shape section above, since both bear on this package's stated scope and surface before that
-      freezes. Both still need their own brainstorm and spec, in that order; see
-      [almanac-sources.md](almanac-sources.md).
-
-      **Done 2026-11-14, on the `observances-1.0` branch**, to the gate this item set: the `counted`
-      form ships and `sojong` in `EXAMPLE_OBSERVANCES` uses it; the data came with the rule, as
-      `test/fixtures/rabten-sojong.ts` from `scripts/fetch-rabten-sojong.mjs` with
-      `test/validation/rabten-sojong.test.ts` importing it, the window is in
-      [testing.md](testing.md#rabten-choelings-sojong-schedule), and
-      [validation-sources.md](validation-sources.md) states that Rabten's lineage is unknown. **The rule
-      stays inferred, not sourced** — it is the fit to Rabten's schedule, which states no method — and the
-      example's docblock, the README and [observances.md](observances.md) say so. The question to FPMT
-      about where the extra day goes was sent 2026-09-19 and is unanswered; it is not a gate on this item.
+- [x] **Sojong, built and validated — moved from Beyond v1 to pre-1.0.0 on 2026-09-19 (Andreas); done
+      2026-11-14, on the `observances-1.0` branch.** What this item asked for was a counted-schedule
+      rule shape and the data that tests it, and both exist: the `counted` form, used by `sojong` in
+      `EXAMPLE_OBSERVANCES`; the generator `scripts/fetch-rabten-sojong.mjs` and its fixture
+      `test/fixtures/rabten-sojong.ts`, every sojong Rabten Choeling's calendar prints from 2000 to
+      2100; `test/validation/rabten-sojong.test.ts`, which imports the fixture and holds the form to it;
+      the window of that agreement in [testing.md](testing.md#rabten-choelings-sojong-schedule); and
+      the entry in [validation-sources.md](validation-sources.md) stating that Rabten's lineage is
+      unknown, so its agreement with FPMT may be one witness rather than two. The rule is **inferred,
+      not sourced**, and the example's docblock, the README and [observances.md](observances.md)
+      say so; what is not sourced is the next item. Phase 3 had established that sojong is not a fixed
+      day number: against FPMT's calendars for 2022–2025 a 15th-and-30th rule misses 38 occurrences and
+      invents 36 ([almanac-sources.md](almanac-sources.md#sojong-a-counted-schedule-once-falsified-by-a-misreading)
+      holds the history, including the reading that was falsified and then reversed).
+- [ ] **Sojong, what is not sourced — still open.** Three statements, and no more, are what the
+      repository records, and each is checked against
+      [almanac-sources.md](almanac-sources.md#sojong-a-counted-schedule-once-falsified-by-a-misreading):
+      - **Sourced: the count of days between sojongs.** An oral teaching, recorded in unpublished
+        personal notes held outside the repository and supplied on 2026-08-28, states that waxing
+        sojongs are 15 and that waning ones are 14 at the end of an odd month and 15 at the end of an
+        even one, with "14 or 15 days between the Sojongs"; read as a count since the previous
+        sojong, it reproduces 96 of the 98 intervals between FPMT's 99 sojongs of 2022–2025.
+      - **Inferred, not sourced: the annual re-anchor on the month-1 full moon.** It is the fit that
+        reproduces all 2,490 of Rabten Choeling's sojongs for 2000–2100, with none missed and none
+        extra; Rabten states no method, so no source states the rule. Against FPMT's 99 sojongs of
+        2022–2025 it agrees on 82.
+      - **Unanswered: what keeps the count with the moon.** The question went to Ven. Thubten Chöying
+        on 2026-09-19; she passed it to Liberation Prison Project on 2026-09-30, and the questions
+        went to its astrologer on 2026-10-02. No reply is recorded.
+      - **Untested: FPMT's convention for a skipped or doubled day 15 in month 1**, because none
+        occurs in its 2022–2025 window.
 - [x] **Record FPMT's second line of codes and its moon icons in the fixture.** Done 2026-09-19.
       The fixture carries `codes` (verbatim, with FPMT's two misprints `NPG` and `ED-EW` kept as
       printed) and `moon`, an icon rather than a moon. The generator refuses any code its page's own

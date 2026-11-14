@@ -128,15 +128,26 @@ The two texts are what the **example** means (decided 2026-11-11), not what any 
 
 ### The basis of each English name in the example
 
-A shipped English name is **cited** when it is a published source's own wording, verbatim; **composed from a cited source** when a source states what the day is dedicated to and the name is built from that; and **authored** when no source is behind it.
-The level's basis, above, is a separate question from the name's.
+A shipped English name is **cited** when it is a published source's own wording, verbatim, and **authored** otherwise.
+A name composed here from a dedication a source states is authored: the source stands behind the dedication, not behind the words.
+The level's basis, above, is a separate question from the name's, and so is the name of a level or of the configuration, which is listed last.
+
+FPMT does not print every label identically from year to year, and a shipped name is **one printing exactly**, measured from `test/fixtures/fpmt-observances.ts` (2022-2026): the descent düchen prints "Lord Buddha's Descent from God Realm of 33" in 2022 to 2025 and "Lord Buddha's descent from God Realm of Thirty Three" in 2026, and the birth düchen prints "enlightenment" in 2022 to 2025 and "Enlightenment" in 2026.
+The shipped descent name is 2026's, and the shipped birth name is the lower-case printing of 2022 to 2025.
+The other nine names print identically in every year the fixture holds them.
 
 | Rule or group | English name | Basis |
 |---|---|---|
-| The four great occasions | "Day of Miracles", "Lord Buddha's birth, enlightenment and parinirvana", "Lord Buddha's first teaching", "Lord Buddha's descent from God Realm of Thirty Three" | cited: FPMT's own labels, as `test/fixtures/fpmt-observances.ts` prints them, including "Thirty Three" where a tidier "Thirty-Three" would not be FPMT's |
-| The seven anniversaries | "Milarepa", "Guru Rinpoche", "Gampopa", "Sixteenth Karmapa", "Lama Tsong Khapa", "Sakya Pandita", "Dudjom Rinpoche" | cited: FPMT's labels, as the same fixture prints them |
-| Heruka Day, Ḍākinī Day, Dharma Protector Day | as written | composed from a cited source, **not verbatim**: each names the day by the dedication Philippe Cornu's *Tibetan Astrology*, summarising Dudjom Rinpoche, gives it, below; the words "Heruka Day" and "Dharma Protector Day" are composed here from his |
-| Saga Dawa, vow renewal, the fire offering, the Medicine Buddha and Tārā pujas | "Saga Dawa, Lord Buddha's month", "Sojong (vow renewal)", "Fire puja", "Medicine Buddha puja", "Tara puja" | authored |
+| The descent düchen | "Lord Buddha's descent from God Realm of Thirty Three" | cited: FPMT's 2026 printing, verbatim; 2022 to 2025 print "Descent" and "of 33" |
+| The birth düchen | "Lord Buddha's birth, enlightenment and parinirvana" | cited: FPMT's printing for 2022 to 2025, verbatim; 2026 prints "Enlightenment" |
+| The other two düchens | "Day of Miracles", "Lord Buddha's first teaching" | cited: FPMT's labels, verbatim, in every year |
+| The seven anniversaries | "Milarepa", "Guru Rinpoche", "Gampopa", "Sixteenth Karmapa", "Lama Tsong Khapa", "Sakya Pandita", "Dudjom Rinpoche" | cited: FPMT's labels, verbatim, in every year the fixture holds them |
+| Heruka Day | "Heruka Day" | authored, composed from the dedication Philippe Cornu's *Tibetan Astrology*, summarising Dudjom Rinpoche, gives the 10th: "the 10th day of the month is sacred to Heruka"; the words "Heruka Day" are not his |
+| Ḍākinī Day | "Ḍākinī Day" | authored, composed from Cornu's "25th day: Day of the dakinis"; the spelling and the word order are not his |
+| Dharma Protector Day | "Dharma Protector Day" | authored, composed from Cornu's "29th day: Day of the Dharmapalas, protectors of the Dharma"; the words are not his |
+| Saga Dawa, vow renewal, the fire offering, the Medicine Buddha and Tārā pujas | "Saga Dawa, Lord Buddha's month", "Sojong (vow renewal)", "Fire puja", "Medicine Buddha puja", "Tara puja" | authored; FPMT also prints "Fire puja", "Tara puja" and "Sojong" as labels, which the example does not claim to quote |
+| The three levels | "For everyone", "Practitioners, no empowerment needed", "Practitioners, empowerment required" | authored: named by requirement, English only |
+| The configuration | "Example practice calendar" | authored |
 
 The example's docblock says the same, and `src/observances/example-observances.ts` is what the table describes.
 

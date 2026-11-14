@@ -44,8 +44,9 @@ dependencies, built on Temporal.
   tried, the dead ends with their evidence, and the two findings that changed the method. Read the
   last one before treating any new source as corroboration for a name.
   **[month-and-yoga-sourcing.md](docs/names/month-and-yoga-sourcing.md)** is the same record for the
-  lunar-mansion and seasonal month names and the ten elemental yogas — written **ahead of the code**,
-  so it holds decisions (variants, season keys, two yoga corrections) that nothing enforces yet
+  lunar-mansion and seasonal month names and the ten elemental yogas — written before its verifier,
+  `verify:month-and-yoga-names`, and marked in its own status header **partly ahead of the code**:
+  read that header for which decisions the code now enforces and which it does not
   **[mansion-and-trigram-sourcing.md](docs/names/mansion-and-trigram-sourcing.md)** is the same for the
   eight trigrams and the 27 lunar mansions, and it holds the table of
   every English candidate for a mansion behind the decision that none ships
@@ -1026,8 +1027,10 @@ Wikipedia's title or list (one group), and a Google Books catalogue record whose
 opens with the exact spelling. For a term: a dictionary head word read from a page image or entry, the
 Mahāvyutpatti's pairing, and Rigpa Wiki as a whole-term witness, human-supplied. Check 5's word-boundary
 check has one rung of Tibetan morphology, an ordinal or agent ending (`-pa`, `-ba`) that may be absent
-from the headword carrying the stem: *bcu drug pa* is found under *bcu drug*. It is a rule of Tibetan
-spelling true of every word it touches, so it changes what is looked up and nothing the table prints.
+from the headword carrying the stem: *bcu drug pa* is found under *bcu drug*. Check 3 has the opposite
+ladder beside it, `forms()` in `scripts/verify-observance-names.mjs`, which adds the endings *ba* and *pa* as separate
+syllables on the dictionary side. Both are rules of Tibetan spelling true of every word they touch, so each changes
+what is looked up and nothing the table prints.
 
 **Both verifiers carry corrections to their sources as data, and a correction must self-invalidate.**
 It states the value it expects to find and refuses to run if the source no longer says it, so a
@@ -1262,9 +1265,10 @@ words having been replaced where no dictionary prints them. The middle arm exist
 observance's name is not a dictionary headword, so the first arm cannot apply to it: the example's
 four great days and seven anniversaries carry FPMT's own labels, which
 `test/fixtures/fpmt-observances.ts` prints, and `docs/observances.md` gives the basis of every name in
-the example. A cited name is quoted exactly — "Lord Buddha's descent from God Realm of Thirty Three",
-not a tidier "of the Thirty-Three" — and a name that is neither cited verbatim nor in a dictionary says
-it is authored.
+the example. A cited name is one printing quoted exactly, and the year of that printing is stated where
+FPMT's varies — "Lord Buddha's descent from God Realm of Thirty Three" is 2026's, the four earlier
+years print "of 33" — and a name that is neither cited verbatim nor in a dictionary says it is
+authored, a name composed from a dedication a source states included.
 
 Technical identifiers are lowercase (`nyamlen`, `@nyamlen`); the brand is capitalised
 (`Nyamlen`). npm rejects uppercase package names, so this is a constraint, not a preference.
