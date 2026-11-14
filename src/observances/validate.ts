@@ -15,10 +15,28 @@
  * key, an undeclared level.
  */
 
-import { assertSafeYear, describe, rangeError } from "../errors.js";
+import { assertSafeYear, describe, isPlainObject, rangeError } from "../errors.js";
 import type { FormulaName, ObservanceConfig, ObservanceRule, ObservanceWhen } from "./types.js";
 
-const CODE = "TCT_INVALID_OBSERVANCE_CONFIG";
+export const CODE = "TCT_INVALID_OBSERVANCE_CONFIG";
+
+/**
+ * The exports that take an `ObservanceConfig`, each with its own signature, so a refusal names the
+ * function the caller called and never another's.
+ */
+const SIGNATURES = {
+	getObservances: "getObservances(from, to, config, tradition)",
+	observancesOn: "observancesOn(date, config, tradition)",
+	nextObservance: "nextObservance(from, ruleId, config, tradition)",
+	composeObservances: "composeObservances(base, layer)",
+} as const;
+
+/** An export that takes an `ObservanceConfig`. */
+export type ObservanceCaller = keyof typeof SIGNATURES;
+
+/** The argument a caller wrote the config as: `composeObservances` calls it `base`. */
+const configArgument = (caller: ObservanceCaller): string =>
+	`${caller}(${caller === "composeObservances" ? "base" : "config"})`;
 
 export const DOUBLED_DAY_CHOICES = ["first", "second", "both"];
 export const SKIPPED_DAY_CHOICES = ["preceding", "following", "omit"];
@@ -429,32 +447,55 @@ function assertFormValues(
 }
 
 /**
+ * Whether an object looks like a `TraditionConfig`, or a `{ tradition }` bag, rather than anything
+ * an observance export takes.
+ *
+ * @remarks
+ * Shared by the config position here and the layer position in `composeObservances`: a caller
+ * confusing the two kinds of config can put it in either.
+ */
+export function looksLikeTradition(value: Record<string, unknown>): boolean {
+	return (
+		"epochYear" in value || "moonTab" in value || ("tradition" in value && value.id === undefined)
+	);
+}
+
+/**
  * The likeliest wrong objects in the config position, named for what they are.
  *
  * @remarks
  * A `TraditionConfig` and the `{ config }` bag the signature took until 2026-11-11 are what a
- * caller migrating from the old shape or confusing the two kinds of config passes. Without this a
- * caller is told `epochYear` is an unknown key — a field they never meant to write.
+ * caller migrating from the old shape or confusing the two kinds of config passes, and a `Date` is
+ * the likeliest wrong object in a package whose first rule is Temporal. Without this a caller is
+ * told `epochYear` is an unknown key, or that `id` is undefined — a field they never meant to
+ * write. Each message names the export that was called and its own signature, because the guard
+ * is shared and a message naming another function's signature sends the caller to the wrong place.
  */
-function assertNotAnotherShape(config: Record<string, unknown>): void {
+function assertNotAnotherShape(config: Record<string, unknown>, caller: ObservanceCaller): void {
+	const subject = configArgument(caller);
+	const signature = SIGNATURES[caller];
 	if (config.id === undefined && "config" in config) {
 		throw rangeError(
 			CODE,
-			"ObservanceConfig expected, received an object like { config }. The config is a required " +
-				"positional parameter, as in getObservances(from, to, config, tradition): pass the " +
-				"ObservanceConfig itself",
+			`${subject}: expected an ObservanceConfig, received an object like { config }. The config ` +
+				`is a positional argument, as in ${signature}: pass the ObservanceConfig itself`,
 		);
 	}
-	if (
-		"epochYear" in config ||
-		"moonTab" in config ||
-		("tradition" in config && config.id === undefined)
-	) {
+	if (looksLikeTradition(config)) {
 		throw rangeError(
 			CODE,
-			"ObservanceConfig expected, received what looks like a TraditionConfig or a { tradition } " +
-				"bag. The tradition is the last parameter, after the config: " +
-				"getObservances(from, to, config, tradition)",
+			`${subject}: expected an ObservanceConfig, received what looks like a TraditionConfig or a ` +
+				"{ tradition } bag. " +
+				(caller === "composeObservances"
+					? `${signature} takes no tradition: pass an ObservanceConfig as the base`
+					: `A tradition is a separate parameter, not the config, as in ${signature}`),
+		);
+	}
+	if (config.id === undefined && !isPlainObject(config)) {
+		throw rangeError(
+			CODE,
+			`${subject}: expected an ObservanceConfig, received ${describe(config)}. Pass ` +
+				"EXAMPLE_OBSERVANCES, or a config made with composeObservances or written out in full",
 		);
 	}
 }
@@ -464,17 +505,17 @@ function assertNotAnotherShape(config: Record<string, unknown>): void {
  *
  * @throws RangeError with code `TCT_INVALID_OBSERVANCE_CONFIG`, naming the offending rule.
  */
-function validateObservanceConfig(config: ObservanceConfig): void {
+function validateObservanceConfig(config: ObservanceConfig, caller: ObservanceCaller): void {
 	// The config object itself, before anything dereferences it: `observancesOn(date, null)` once
 	// produced a raw uncoded TypeError.
 	if (!isRecord(config)) {
 		throw rangeError(
 			CODE,
-			`ObservanceConfig must be an object, received ${describe(config)}. Pass EXAMPLE_OBSERVANCES, ` +
-				"or a config spread from it, as the config argument",
+			`${configArgument(caller)}: expected an ObservanceConfig, received ${describe(config)}. ` +
+				"Pass EXAMPLE_OBSERVANCES, or a config made with composeObservances or written out in full",
 		);
 	}
-	assertNotAnotherShape(config);
+	assertNotAnotherShape(config, caller);
 	assertKnownKeys(config, CONFIG_KEYS, "ObservanceConfig");
 
 	// `config.id` is interpolated into the messages below, so it is checked before they can quote it.
@@ -516,9 +557,9 @@ function validateObservanceConfig(config: ObservanceConfig): void {
 	if (!Array.isArray(config.rules)) {
 		throw rangeError(
 			CODE,
-			`${subject}: rules must be an array. An institution is built by spreading a shipped ` +
-				"config — `{ ...EXAMPLE_OBSERVANCES, rules: [...EXAMPLE_OBSERVANCES.rules, mine] }` — " +
-				"never by supplying a partial one",
+			`${subject}: rules must be an array, received ${describe(config.rules)}. A config is ` +
+				"written out in full, or built from another with composeObservances(base, layer), " +
+				"never supplied in part",
 		);
 	}
 
@@ -577,9 +618,13 @@ function validateObservanceConfig(config: ObservanceConfig): void {
  */
 const validatedConfigs = new WeakSet<ObservanceConfig>();
 
-/** Validates `config` once per object. */
-export function ensureValidated(config: ObservanceConfig): void {
+/**
+ * Validates `config` once per object.
+ *
+ * @param caller - The export that was called, so a refusal of the config names it.
+ */
+export function ensureValidated(config: ObservanceConfig, caller: ObservanceCaller): void {
 	if (isRecord(config) && validatedConfigs.has(config)) return;
-	validateObservanceConfig(config);
+	validateObservanceConfig(config, caller);
 	validatedConfigs.add(config);
 }

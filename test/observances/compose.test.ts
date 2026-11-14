@@ -576,7 +576,7 @@ describe("composeObservances: a Proxy standing for a whole rule or level", () =>
 			"a base rule",
 			() => {
 				const base = plainBase();
-				base.rules[0] = proxied(base.rules[0] as never);
+				(base.rules as unknown as object[])[0] = proxied(base.rules[0] as object);
 				return [base, layer()];
 			},
 		],

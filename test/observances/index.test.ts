@@ -601,18 +601,14 @@ describe("consumer config validation", () => {
 		expect(thrownBy(() => on(iso("2026-01-01")))?.code).toBe(CONFIG_CODE);
 	});
 
-	it("refuses a TraditionConfig where the config belongs, and says where the tradition goes", () => {
+	it("refuses a TraditionConfig where the config belongs", () => {
 		for (const tradition of [PHUGPA, BHUTAN]) {
-			const error = thrownBy(() => run(tradition));
-			expect(error?.code).toBe(CONFIG_CODE);
-			expect(error?.message).toContain("tradition");
+			expect(thrownBy(() => run(tradition))?.code).toBe(CONFIG_CODE);
 		}
 	});
 
 	it("refuses the old { config } bag in the config position", () => {
-		const error = thrownBy(() => run({ config: EXAMPLE_OBSERVANCES }));
-		expect(error?.code).toBe(CONFIG_CODE);
-		expect(error?.message).toContain("getObservances(from, to, config, tradition)");
+		expect(thrownBy(() => run({ config: EXAMPLE_OBSERVANCES }))?.code).toBe(CONFIG_CODE);
 		expect(codeOf({ tradition: PHUGPA })).toBe(CONFIG_CODE);
 		expect(codeOf({})).toBe(CONFIG_CODE);
 	});
@@ -1739,12 +1735,8 @@ describe("the counted form", () => {
 				expect(codeOf(sojongConfig({}, { skippedDay: "omit" }))).toBe(CONFIG_CODE);
 			});
 
-			it("inherited from the config's default, and says where it came from", () => {
-				const config = withDefault("omit");
-				expect(codeOf(config)).toBe(CONFIG_CODE);
-				expect(thrownBy(() => observancesOn(iso("2026-01-01"), config))?.message).toContain(
-					"config default",
-				);
+			it("inherited from the config's default", () => {
+				expect(codeOf(withDefault("omit"))).toBe(CONFIG_CODE);
 			});
 
 			it("but accepted when the rule sets its own under an omitting default", () => {

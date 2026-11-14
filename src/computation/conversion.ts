@@ -118,12 +118,17 @@ export function julianDayFromIso(date: Temporal.PlainDate): number {
  * Temporal cannot read throw a `RangeError` with `TCT_INVALID_ARGUMENT`, naming this package rather
  * than Temporal's internals. The code is the wrong-kind-of-argument one rather than the range one
  * because none of these has a field to be out of a range — they are not Western dates at all.
+ *
+ * `subject` names the export and argument the caller passed, such as `getObservances(from)`, and
+ * opens the message when given: this is the one guard every entry point shares, so each states its
+ * own name through it rather than keeping a copy that names it.
  */
-export function asPlainDate(date: Temporal.PlainDate): Temporal.PlainDate {
+export function asPlainDate(date: Temporal.PlainDate, subject?: string): Temporal.PlainDate {
 	// Declared as `unknown` from here: the parameter's own type says `Temporal.PlainDate`, which is
 	// the guarantee a TypeScript caller gets, but this function's job past this line is to accept
 	// runtime input that does not honour it and either normalise or reject it.
 	const raw: unknown = date;
+	const prefix = subject === undefined ? "" : `${subject}: `;
 	// Kind, not identity: a `PlainDate` from a second Temporal implementation is a Western date and
 	// is normalised into this realm, rather than refused for having been built elsewhere. See
 	// `temporal-kind.ts`, which is the only file in `src/` that asks `instanceof Temporal`.
@@ -136,7 +141,7 @@ export function asPlainDate(date: Temporal.PlainDate): Temporal.PlainDate {
 		const temporalType = temporalTypeNameOf(raw);
 		throw rangeError(
 			"TCT_INVALID_ARGUMENT",
-			"expected a Temporal.PlainDate, an ISO string, a PlainDateTime or a ZonedDateTime, " +
+			`${prefix}expected a Temporal.PlainDate, an ISO string, a PlainDateTime or a ZonedDateTime, ` +
 				`received ${temporalType === null ? describe(raw) : `a Temporal.${temporalType}`}` +
 				(temporalType !== null
 					? ", which names no calendar day"
@@ -156,7 +161,7 @@ export function asPlainDate(date: Temporal.PlainDate): Temporal.PlainDate {
 		if (error instanceof Error && "code" in error) throw error;
 		throw rangeError(
 			"TCT_INVALID_ARGUMENT",
-			`expected a Temporal.PlainDate, received ${describe(raw)}` +
+			`${prefix}expected a Temporal.PlainDate, received ${describe(raw)}` +
 				`${error instanceof Error ? `: ${error.message}` : ""}`,
 		);
 	}

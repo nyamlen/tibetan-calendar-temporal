@@ -109,10 +109,10 @@ export function getObservances(
 	// comparison below both accept a raw string without complaint, which let a string range slip
 	// past the cap (NaN > 10 is false) and let null/number arguments reach Temporal as uncoded
 	// TypeErrors instead of this package's coded RangeError.
-	from = asPlainDate(from);
-	to = asPlainDate(to);
+	from = asPlainDate(from, "getObservances(from)");
+	to = asPlainDate(to, "getObservances(to)");
 
-	ensureValidated(config);
+	ensureValidated(config, "getObservances");
 	// Not `?? PHUGPA`: nullish-coalescing treats an explicit `null` as absent, so a caller passing
 	// `null` would silently get the default instead of the coded rejection. Only `undefined` means
 	// "omitted".
@@ -182,5 +182,9 @@ export function observancesOn(
 	config: ObservanceConfig,
 	tradition?: TraditionConfig,
 ): Observance[] {
-	return getObservances(date, date, config, tradition);
+	// Checked here as well, in `getObservances`' order, so a refusal of the date or the config names
+	// `observancesOn`; both are then answered from the memo when `getObservances` repeats them.
+	const day = asPlainDate(date, "observancesOn(date)");
+	ensureValidated(config, "observancesOn");
+	return getObservances(day, day, config, tradition);
 }

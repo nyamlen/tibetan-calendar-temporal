@@ -19,14 +19,15 @@ import {
 	assertNonEmptyString,
 	assertOptionalChoice,
 	assertOptionalTibetanName,
+	CODE,
 	DOUBLED_DAY_CHOICES,
 	ensureValidated,
 	isRecord,
 	LEAP_MONTH_CHOICES,
+	looksLikeTradition,
 	SKIPPED_DAY_CHOICES,
 } from "./validate.js";
 
-const CODE = "TCT_INVALID_OBSERVANCE_CONFIG";
 const SUBJECT = "composeObservances(layer)";
 
 const LAYER_KEYS = [
@@ -174,9 +175,17 @@ export function composeObservances(
 	base: ObservanceConfig,
 	layer: ObservanceLayer,
 ): ObservanceConfig {
-	ensureValidated(base);
+	ensureValidated(base, "composeObservances");
 	if (!isRecord(layer)) {
 		throw rangeError(CODE, `${SUBJECT}: the layer must be an object, received ${describe(layer)}`);
+	}
+	if (looksLikeTradition(layer)) {
+		throw rangeError(
+			CODE,
+			`${SUBJECT}: expected an ObservanceLayer, received what looks like a TraditionConfig or a ` +
+				"{ tradition } bag. composeObservances(base, layer) takes no tradition: a layer is " +
+				"{ id, englishName } with the differences to make, such as add, remove or replace",
+		);
 	}
 	assertKnownKeys(layer, LAYER_KEYS, SUBJECT);
 	assertNonEmptyString(layer.id, `${SUBJECT}: id`);
@@ -231,7 +240,7 @@ export function composeObservances(
 		}
 	}
 
-	const baseLevels = base.levels ?? [];
+	const baseLevels = base.levels === undefined ? [] : base.levels;
 	const baseLevelIds = new Set(baseLevels.map((level) => level.id));
 	for (const id of removeLevels) {
 		if (!baseLevelIds.has(id)) {
@@ -297,11 +306,12 @@ export function composeObservances(
 		...(levels === undefined ? {} : { levels }),
 		rules,
 	};
-	ensureValidated(candidate);
+	ensureValidated(candidate, "composeObservances");
 
 	// `deepFreeze` recurses, so freezing anything that still shares an object with a caller's input
 	// would freeze the caller's own object.
 	const result = deepFreeze(copyOf(candidate, label));
-	ensureValidated(result);
+	// Memoises the frozen copy, so composing from this result as a base skips re-validating it.
+	ensureValidated(result, "composeObservances");
 	return result;
 }

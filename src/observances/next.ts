@@ -82,9 +82,9 @@ export function nextObservance(
 	config: ObservanceConfig,
 	tradition?: TraditionConfig,
 ): Observance | null {
-	from = asPlainDate(from);
+	from = asPlainDate(from, "nextObservance(from)");
 
-	ensureValidated(config);
+	ensureValidated(config, "nextObservance");
 	// Not `?? PHUGPA`: an explicit `null` is a rejection, and only `undefined` means omitted.
 	const resolvedTradition = tradition === undefined ? PHUGPA : tradition;
 	assertTraditionConfig(resolvedTradition);
