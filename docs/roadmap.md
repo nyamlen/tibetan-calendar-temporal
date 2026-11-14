@@ -342,7 +342,7 @@ Setup work not yet done. None of it blocks Phase 3.
       does not resolve at all, so anyone typing it dead-ends
 - [ ] Decide whether to register `nyamlen.org` and `nyamlen.dev` (both free as of 2026-08-11)
 - [ ] Record `Melong` as the name of the practice review screen in the app spec
-- [ ] **Development-tool vulnerabilities.** `npm audit` reported 14 (3 low, 4 moderate, 7 high)
+- [x] **Development-tool vulnerabilities.** `npm audit` reported 14 (3 low, 4 moderate, 7 high)
       on 2026-10-16, every one in development tools — the `markdownlint-cli2` chain (`braces`,
       `micromatch`, `js-yaml` and others) and `vitest` with `@vitest/coverage-v8` — and none in
       the published package: `npm audit --omit=dev` found 0. Update them as a change of their own,
@@ -354,8 +354,10 @@ Setup work not yet done. None of it blocks Phase 3.
       `markdownlint` → `micromark-extension-math@3.1.0` → `katex@0.16.47`. KaTeX 0.19.1 fixes it,
       but the math extension's latest release requires `katex ^0.16.0`, so only an `overrides`
       entry forcing an undeclared major would clear it; `npm audit fix --force` instead proposes
-      *downgrading* to `markdownlint-cli2@0.16.0`. Open until the extension widens its range, or
-      until the residual is accepted
+      *downgrading* to `markdownlint-cli2@0.16.0`. **Residual accepted by Andreas, 2026-11-14:**
+      low severity, development-only (`npm audit --omit=dev` finds 0), and reachable only if KaTeX
+      renders hostile input, where markdownlint parses this repository's own docs. Revisit when
+      `micromark-extension-math` widens its `katex` range
 
 ## Pre-v1.0.0 checklist
 
