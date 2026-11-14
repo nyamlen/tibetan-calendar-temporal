@@ -201,13 +201,14 @@ the second half of a doubled pair and the other has it as an ordinary day. Compa
 
 ### Two kinds of config
 
-Both `getObservances` and `observancesOn` take **two** configs, and they are unrelated
+`getObservances`, `observancesOn` and `nextObservance` take **two** configs, and they are unrelated
 things that happen to share a word. Getting them the wrong way round is the easiest mistake to
 make against this API, so they are contrasted here rather than left to be inferred:
 
 ```js
 getObservances(from, to, observanceConfig, traditionConfig);
 observancesOn(date, observanceConfig, traditionConfig);
+nextObservance(from, ruleId, observanceConfig, traditionConfig);
 ```
 
 Both are positional. The observance config is **required**: no config is the default, because which
@@ -224,14 +225,15 @@ to `PHUGPA`. Until 2026-11-11 both travelled in one options bag; passing that ba
 | **Shipped** | `PHUGPA` (default), `PHUGPA_HENNING`, `BHUTAN`, `BHUTAN_HENNING` | `EXAMPLE_OBSERVANCES` (an example, never a default) |
 | **Kind of claim** | **Falsifiable** — checkable against Janson and against an almanac. A disagreement is a bug | **Convention** — published sources legitimately disagree. A difference is a difference, not a bug |
 | **Wrong value gives** | A wrong calendar | A different institution's calendar |
-| **Named** | `tradition` — the parameter's name everywhere, and the key in every bag | `config`, the second positional parameter here |
+| **Named** | `tradition` — the parameter's name everywhere, and the key in every bag | `config` — the second positional parameter of `observancesOn`, the third of `getObservances` and `nextObservance` |
 
 The root export never takes an `ObservanceConfig`, which is the point of the split: a consumer who
 only converts dates never inherits anyone's conventions. A `TraditionConfig` is extended by spreading a
 shipped one and replacing whole fields; an `ObservanceConfig` by
 [a layer](#a-layer-differences-from-a-base). Both are validated on first use, so a mistyped value
 like `doubledDay: '1st'` is rejected rather than silently falling through to a branch you did not
-mean.
+mean. An `ObservanceConfig` is validated **whole**, every rule and every level, and not only the
+rules a queried day happens to hit: [loading one from JSON](#a-config-from-a-json-file) uses that.
 
 ### What kind of day it is
 
@@ -366,16 +368,113 @@ const month = getObservances(
 );
 const hidden = new Set(['dharma-protector-day']);       // a person's per-practice switches
 const shown = month.filter((o) => !hidden.has(o.rule.id));
-for (const level of EXAMPLE_OBSERVANCES.levels ?? []) {
-  const inLevel = shown.filter((o) => o.rule.level === level.id);   // one heading per level
+const groups = [
+  ...(EXAMPLE_OBSERVANCES.levels ?? []).map((level) => ({
+    title: level.englishName,                               // one heading per level
+    items: shown.filter((o) => o.rule.level === level.id),
+  })),
+  { title: 'Other', items: shown.filter((o) => o.rule.level === undefined) },
+];
+```
+
+A rule's `level` is optional, and so is `levels` on the config.
+**A rule with no level belongs to no group**: the engine never acts on a level, so it is only what you
+show a rule under, and a loop over the levels alone drops every such rule without a word.
+Every rule of `EXAMPLE_OBSERVANCES` has a level, so `Other` is empty above, but a config of your own
+may leave some without one, and the last group is what keeps them on the screen.
+
+#### The shape of a config
+
+An `ObservanceConfig` is this much data, and it is a complete one — it can be saved as a JSON file as
+it stands:
+
+```json
+{
+  "id": "my-centre",
+  "englishName": "My centre",
+  "doubledDay": "second",
+  "skippedDay": "preceding",
+  "leapMonth": "leap",
+  "levels": [{ "id": "everyone", "englishName": "Open to all" }],
+  "rules": [
+    {
+      "id": "tara",
+      "englishName": "Tara puja",
+      "level": "everyone",
+      "tags": ["puja"],
+      "when": { "type": "monthly", "days": [8] }
+    },
+    {
+      "id": "open-day",
+      "englishName": "Open day",
+      "when": { "type": "western", "month": 3, "day": 21 }
+    }
+  ]
 }
 ```
+
+| Field of the config | Required | |
+|---|---|---|
+| `id`, `englishName` | yes | A stable identifier and an English name |
+| `doubledDay`, `skippedDay`, `leapMonth` | yes | [The three conventions](#the-three-conventions), the defaults for every rule |
+| `rules` | yes | The rules, in any order: results come back in date order |
+| `levels` | no | The groups rules may name; a rule naming one that is not declared is refused |
+| `tibetanName` | no | A `TibetanName`, as everywhere else |
+
+| Field of a rule | Required | |
+|---|---|---|
+| `id`, `englishName`, `when` | yes | `id` is unique within the config; `when` is one of six forms, below |
+| `level` | no | The `id` of one of the config's `levels`; a rule without one belongs to no group |
+| `tags` | no | An array of distinct, non-empty strings the engine never acts on |
+| `doubledDay`, `skippedDay`, `leapMonth` | no | This rule's own value in place of the config's default |
+| `tibetanName` | no | A `TibetanName` |
+
+A key that is not in these tables is refused by name rather than ignored.
+A rule's `when` is `monthly` (`days`), `annual` (`dates`, with optional `fromYear`, `untilYear` and
+`ageFromYear`), `western` (`month`, `day` and the same three optional fields), `period` (`first`,
+`last`), `formula` (`formula`) or `counted` (`anchor`, `waxingDays`, `waningDays`, optional `exclude`);
+the examples in this section use the first three.
+
+#### A config from a JSON file
+
+A config read from a file is `unknown` to TypeScript, and the package exports no function that checks
+one — the check is the first query.
+It is not a lazy one: **the whole config is validated, every rule and every level, on the first call
+that receives it**, so a misspelt `level` on a rule that does not occur on the day you asked about is
+refused all the same, with `TCT_INVALID_OBSERVANCE_CONFIG`.
+Ask one question of a config you did not write, inside a `try`, and you have loaded it:
+
+```ts
+import { readFileSync } from 'node:fs';
+import { observancesOn, type ObservanceConfig } from 'tibetan-calendar-temporal/observances';
+
+function loadConfig(path: string): ObservanceConfig {
+  const config = JSON.parse(readFileSync(path, 'utf8')) as ObservanceConfig;   // nothing has checked it yet
+  try {
+    observancesOn(Temporal.PlainDate.from('2026-01-01'), config);               // validates all of it
+  } catch (error) {
+    if ((error as { code?: string }).code === 'TCT_INVALID_OBSERVANCE_CONFIG') {
+      throw new Error(`${path} is not a usable observance config: ${(error as Error).message}`);
+    }
+    throw error;
+  }
+  return config;
+}
+```
+
+A config is checked **once per object**, so a later edit in place is not checked again: build a new
+object rather than changing a loaded one.
+The package does not freeze the object it was handed, and the config that
+[`composeObservances`](#a-layer-differences-from-a-base) returns is a new, frozen one.
 
 #### A layer: differences from a base
 
 A centre that differs from another writes only what differs, as a **layer**, and combines it with the
 base using `composeObservances`.
-Kopan keeps the example's rules and moves a doubled day to its first half:
+**A layer always states its own `id` and `englishName`**, which name the result and are never read
+from the base: without them `composeObservances` throws `TCT_INVALID_OBSERVANCE_CONFIG`.
+Kopan keeps the example's rules and moves the doubled day of every rule that does not set its own to
+its first half:
 
 ```js
 const kopan = composeObservances(EXAMPLE_OBSERVANCES, {
@@ -387,7 +486,29 @@ observancesOn(Temporal.PlainDate.from('2024-07-09'), kopan);
 // Chokhor Duchen, 'firstOfDoubled' — where the shipped example puts it on 10 July
 ```
 
-A layer can also remove, replace and add rules and levels, each by `id`, and they are changed in that
+**A default reaches only the rules that do not set their own value.**
+In `EXAMPLE_OBSERVANCES` six rules do: `sojong` carries `doubledDay: 'first'` and
+`skippedDay: 'following'`, and `medicine-buddha`, `tara`, `heruka-day`, `dakini-day` and
+`dharma-protector-day` carry `doubledDay: 'both'` and `skippedDay: 'omit'`.
+Kopan's layer above therefore moves the annual days, Chokhor Duchen among them, and leaves those six
+as they were: on 15 and 16 May 2024, a doubled eighth, `tara` still falls on both days.
+
+To change a rule that carries its own value, **replace the whole rule**.
+`replace` takes complete rules, not a set of changed fields, so spread the base rule and override what
+differs:
+
+```js
+const tara = EXAMPLE_OBSERVANCES.rules.find((r) => r.id === 'tara');
+const kopanTara = composeObservances(kopan, {
+  id: 'kopan-tara',
+  englishName: 'Kopan, Tara on the first half',
+  replace: [{ ...tara, doubledDay: 'first' }],
+});
+// 15 May 2024: 'firstOfDoubled'. 16 May 2024: no tara.
+```
+
+A layer can also remove, replace and add rules and levels, each by `id` (`remove`, `replace` and `add`
+for rules, `removeLevels`, `replaceLevels` and `addLevels` for levels), and they are changed in that
 order: removed, then replaced (a replacement keeps the position of what it replaces), then added at
 the end.
 An `id` may appear **once** in a layer's rule lists, and once in its level lists, so a rule is never
@@ -460,22 +581,49 @@ exact one.
 #### Reading a config that is not yours
 
 A rule's `when` has a `type`, and the set of types is **open**: a later release may add one, so a
-consumer that switches on it handles an unknown value with a `default` branch.
+consumer that *reads* a config and switches on `type` handles an unknown value with a `default`
+branch.
 The same holds for `formula` names.
 
-```js
-function describeWhen(when) {
+```ts
+import { EXAMPLE_OBSERVANCES, type ObservanceWhen } from 'tibetan-calendar-temporal/observances';
+
+function describeWhen(when: ObservanceWhen): string {
   switch (when.type) {
     case 'monthly': return `days ${when.days.join(', ')} of every month`;
     case 'annual': return 'once a year, on a Tibetan date';
-    default: return `a ${when.type} rule`;   // period, western, formula, counted, and any later form
+    case 'period': return 'every day of a stretch';
+    case 'western': return 'once a year, on a Western date';
+    case 'formula': return 'on the days a formula selects';
+    case 'counted': return 'on a count from an anchor';
+    default: return `a form this release does not know: ${String((when as { type?: unknown }).type)}`;
   }
 }
-describeWhen(EXAMPLE_OBSERVANCES.rules.find((r) => r.id === 'tara').when);   // 'days 8 of every month'
+describeWhen(EXAMPLE_OBSERVANCES.rules.find((r) => r.id === 'tara')!.when);   // 'days 8 of every month'
 ```
 
+Once all six forms have a `case`, TypeScript narrows `when` to `never` in the `default` branch, and
+`when.type` there is the error `Property 'type' does not exist on type 'never'`: read it through a
+cast, as above, which is also what a form from a later release looks like at run time.
+
+**Handling an unknown form is only half of it, because the library will not query one.**
+A config with a rule whose `when.type` this release does not know is refused **as a whole**, its valid
+rules included, with `TCT_INVALID_OBSERVANCE_CONFIG`; the message says so.
+A consumer that must read configs written for a newer release removes the rules it does not
+understand before it queries:
+
+```js
+const known = ['monthly', 'annual', 'period', 'western', 'formula', 'counted'];
+const usable = { ...config, rules: config.rules.filter((r) => known.includes(r.when?.type)) };
+```
+
+`usable` is a new object, so it is validated afresh; a rule with an unknown `formula` name is
+refused the same way and wants the same treatment.
+
 `nextObservance(from, ruleId, config)` finds the first occurrence of one rule strictly after a day, and
-chaining it walks a rule through a year, such as sojong:
+chaining it walks a rule through a year, such as sojong.
+**Which year** is a choice the loop makes in its stopping test, and the two give different counts.
+A Western year stops on `isoDate.year`:
 
 ```js
 const found = [];
@@ -484,8 +632,24 @@ while (next !== null && next.date.isoDate.year === 2026) {
   found.push(next);
   next = nextObservance(next.date.isoDate, 'sojong', EXAMPLE_OBSERVANCES);
 }
-found.length;   // 25
+found.length;   // 25 — 3 January to 23 December 2026
 ```
+
+A Tibetan year stops on `date.year`, and starts from the day before its Losar:
+
+```js
+const tibetan = [];
+const start = losarFor(2153).isoDate.subtract({ days: 1 });   // `losarFor` is on the root export
+let following = nextObservance(start, 'sojong', EXAMPLE_OBSERVANCES);
+while (following !== null && following.date.year === 2153) {
+  tibetan.push(following);
+  following = nextObservance(following.date.isoDate, 'sojong', EXAMPLE_OBSERVANCES);
+}
+tibetan.length;   // 24 — 3 March 2026 to 5 February 2027
+```
+
+Either way the loop makes one call more than it keeps, because it stops on the first result outside
+the year; `null` is never the end of a year, only of ten.
 
 It answers `null` when nothing lies within ten years after `from`, which is also the widest range
 `getObservances` accepts in one call; a wider table is requested in chunks and concatenated.
@@ -821,22 +985,37 @@ Node 26 with `Temporal` working perfectly at runtime and still not compile a sin
 The whole fix is the TypeScript version:
 
 ```sh
-npm i -D typescript@^7
+npm i -D typescript@^7 @types/node
 ```
 
-No `"lib"` change is needed — TypeScript 7's default already carries it. A `tsconfig.json` as plain
-as this type-checks against the package:
+No `"lib"` setting is needed **if your `target` is `ESNext`**, which is what carries
+`lib.esnext.temporal.d.ts`.
+With `module` set to `NodeNext` and no `target`, TypeScript 7.0.2 reports `TS2503: Cannot find
+namespace 'Temporal'` against this package's declarations, so set the `target` as below, or leave it
+out and add `"lib": ["ES2024", "ESNext.Temporal"]`.
 
-```jsonc
+A `tsconfig.json` for a Node project that only type-checks, and that reads a file with `node:fs`,
+type-checks against the package as this does:
+
+```json
 {
   "compilerOptions": {
     "target": "ESNext",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "strict": true
+    "strict": true,
+    "noEmit": true,
+    "types": ["node"]
   }
 }
 ```
+
+`noEmit` keeps `tsc` from writing a `.js` file beside every source file, which it does by default;
+drop it, and set `outDir`, if you compile with `tsc`.
+`types` is needed only for code that uses a Node built-in such as `node:fs`, and it needs `@types/node`
+installed: TypeScript 7 does not pick up `@types` packages on its own, so without the entry `node:fs`
+is `TS2591: Cannot find name 'node:fs'` even with `@types/node` present.
+Leave both out of a browser project.
 
 **Do not install `temporal-polyfill`, `temporal-spec` or any other Temporal typings package to make
 the error go away.** They are unnecessary once TypeScript is current, and the published `.d.ts`

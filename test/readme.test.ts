@@ -350,3 +350,22 @@ describe("the README's exact-range row", () => {
 		}
 	}
 });
+
+describe("the README's type-checking requirement", () => {
+	const readme = readFileSync(new URL("../README.md", import.meta.url), "utf8");
+	const guide = readFileSync(new URL("../docs/guide.md", import.meta.url), "utf8");
+
+	// The two documents once disagreed: the guide said no `lib` change is ever needed, and the README
+	// gave the condition. Both state the condition now, and the guide's printed tsconfig meets it.
+	it("states the same condition on `lib` as the guide, and neither states it unconditionally", () => {
+		for (const text of [readme, guide]) {
+			expect(text).toContain('No `"lib"` setting is needed **if your `target` is `ESNext`**');
+			expect(text).not.toContain('No `"lib"` change is needed');
+			expect(text).toContain('"lib": ["ES2024", "ESNext.Temporal"]');
+		}
+	});
+
+	it("is not a count that depends on what a project imports", () => {
+		expect(readme).not.toMatch(/twelve\s+`TS2503`/);
+	});
+});

@@ -1,4 +1,9 @@
-import { readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { stripTypeScriptTypes } from "node:module";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { attributesFor, ELEMENTAL_YOGAS, monthAttributesFor } from "../src/astrology/index.js";
 import {
@@ -19,15 +24,69 @@ import {
 	EXAMPLE_OBSERVANCES,
 	getObservances,
 	nextObservance,
-	type ObservanceWhen,
 	observancesOn,
 } from "../src/observances/index.js";
 import { parseTibetanDate } from "../src/parse.js";
 import { BHUTAN } from "../src/traditions/bhutan.js";
 import { SkippedDayError } from "../src/types.js";
 import { getObservancesChunked } from "./support/observances-chunked.js";
+import { thrownBy } from "./support/thrown.js";
 
 const iso = (s: string) => Temporal.PlainDate.from(s);
+
+const GUIDE_URL = new URL("../docs/guide.md", import.meta.url);
+const guideText = readFileSync(GUIDE_URL, "utf8");
+const INVALID_CONFIG = "TCT_INVALID_OBSERVANCE_CONFIG";
+
+/** The fenced blocks of one language in the guide, in document order. */
+const fences = (language: string): string[] =>
+	[...guideText.matchAll(new RegExp(`\`\`\`${language}\\n([\\s\\S]*?)\`\`\``, "g"))].map(
+		(match) => match[1] ?? "",
+	);
+
+/** The one block of a language that opens with `start`: the guide is parsed, never restated. */
+const fenceStarting = (language: string, start: string): string => {
+	const found = fences(language).filter((block) => block.startsWith(start));
+	expect(found, `${language} blocks starting ${JSON.stringify(start)}`).toHaveLength(1);
+	return found[0] ?? "";
+};
+
+/** Runs a block of the guide, with the names it uses supplied, and returns what `result` names. */
+const runBlock = (
+	code: string,
+	scope: Record<string, unknown>,
+	result: string,
+	language: "js" | "ts" = "js",
+): unknown => {
+	const plain = language === "ts" ? stripTypeScriptTypes(code) : code;
+	// The imports are the scope: the guide's own import lines are not run.
+	const body = plain
+		.split("\n")
+		.filter((line) => !line.startsWith("import ") && !/^\s+from '/.test(line))
+		.join("\n");
+	return new Function(...Object.keys(scope), `${body}\nreturn ${result};`)(...Object.values(scope));
+};
+
+/** The rows of the markdown table whose header line is `header`, as trimmed cells. */
+const tableRows = (header: string): string[][] => {
+	const lines = guideText.split("\n");
+	const start = lines.indexOf(header);
+	expect(start, header).toBeGreaterThan(-1);
+	const rows: string[][] = [];
+	for (const line of lines.slice(start + 2)) {
+		if (!line.startsWith("|")) break;
+		rows.push(
+			line
+				.split("|")
+				.slice(1, -1)
+				.map((cell) => cell.trim()),
+		);
+	}
+	return rows;
+};
+
+const backticked = (cell: string | undefined): string[] =>
+	[...(cell ?? "").matchAll(/`([\w-]+)`/g)].map((match) => match[1] ?? "");
 
 /**
  * Every claim `docs/guide.md` makes that states a value, asserted exactly as written there.
@@ -176,14 +235,49 @@ describe("guide examples", () => {
 	});
 
 	it("groups a month by the config's levels, one heading per level, with per-practice switches", () => {
+		const block = fenceStarting("js", "const month = getObservances(");
+		type Group = { title: string; items: { rule: { id: string } }[] };
+		const groupsOf = (config: unknown): Group[] =>
+			runBlock(
+				block
+					.replace(/EXAMPLE_OBSERVANCES/g, "config")
+					.replace(/Temporal\.PlainDate\.from/g, "plain"),
+				{ getObservances, config, plain: iso },
+				"groups",
+			) as Group[];
 		const month = getObservances(iso("2026-03-01"), iso("2026-03-31"), EXAMPLE_OBSERVANCES);
-		const hidden = new Set(["dharma-protector-day"]);
-		const shown = month.filter((o) => !hidden.has(o.rule.id));
-		const levels = EXAMPLE_OBSERVANCES.levels ?? [];
-		expect(levels.map((l) => l.id)).toEqual(["everyone", "no-empowerment", "empowerment"]);
-		const grouped = levels.flatMap((level) => shown.filter((o) => o.rule.level === level.id));
-		expect(grouped).toHaveLength(shown.length);
-		expect(month.length).toBeGreaterThan(shown.length);
+		const groups = groupsOf(EXAMPLE_OBSERVANCES);
+		expect((EXAMPLE_OBSERVANCES.levels ?? []).map((l) => l.id)).toEqual([
+			"everyone",
+			"no-empowerment",
+			"empowerment",
+		]);
+		const shownIds = month.map((o) => o.rule.id).filter((id) => id !== "dharma-protector-day");
+		expect(groups.flatMap((g) => g.items.map((o) => o.rule.id))).toEqual(
+			expect.arrayContaining(shownIds),
+		);
+		expect(groups.flatMap((g) => g.items)).toHaveLength(shownIds.length);
+		expect(month.length).toBeGreaterThan(shownIds.length);
+		expect(groups.at(-1)).toMatchObject({ title: "Other", items: [] });
+
+		// A rule with no level lands in the last group, where a loop over the levels alone drops it.
+		const withOpenDay = composeObservances(EXAMPLE_OBSERVANCES, {
+			id: "with-open-day",
+			englishName: "With an open day",
+			add: [
+				{
+					id: "open-day",
+					englishName: "Open day",
+					when: { type: "western", month: 3, day: 21 },
+				},
+			],
+		});
+		const other = groupsOf(withOpenDay).at(-1);
+		expect(other?.items.map((o) => o.rule.id)).toEqual(["open-day"]);
+		const droppedByLevelsAlone = (withOpenDay.levels ?? []).flatMap((level) =>
+			month.filter((o) => o.rule.level === level.id),
+		);
+		expect(droppedByLevelsAlone.some((o) => o.rule.id === "open-day")).toBe(false);
 	});
 
 	it("moves the 2024 Chokhor Duchen to 9 July under the guide's Kopan layer", () => {
@@ -321,28 +415,354 @@ describe("guide examples", () => {
 	});
 
 	it("describes a rule's form with a default branch, as the guide's switch does", () => {
-		const describeWhen = (when: ObservanceWhen): string => {
-			switch (when.type) {
-				case "monthly":
-					return `days ${when.days.join(", ")} of every month`;
-				case "annual":
-					return "once a year, on a Tibetan date";
-				default:
-					return `a ${when.type} rule`;
-			}
-		};
+		const block = fenceStarting("ts", "import { EXAMPLE_OBSERVANCES, type ObservanceWhen }");
+		const describeWhen = runBlock(
+			block.replace(/describeWhen\(EXAMPLE_OBSERVANCES[^\n]*\n/, ""),
+			{ EXAMPLE_OBSERVANCES },
+			"describeWhen",
+			"ts",
+		) as (when: unknown) => string;
 		const tara = EXAMPLE_OBSERVANCES.rules.find((r) => r.id === "tara");
-		expect(tara && describeWhen(tara.when)).toBe("days 8 of every month");
+		expect(describeWhen(tara?.when)).toBe("days 8 of every month");
+		expect(block).toContain("// 'days 8 of every month'");
+		const forms = ["monthly", "annual", "period", "western", "formula", "counted"];
+		const described = new Set(
+			EXAMPLE_OBSERVANCES.rules.map((r) => describeWhen(r.when)).filter((d) => !d.includes("days")),
+		);
+		expect(forms.every((form) => block.includes(`case '${form}'`))).toBe(true);
+		for (const description of described) expect(description).not.toContain("does not know");
+		expect(describeWhen({ type: "eclipse" })).toBe("a form this release does not know: eclipse");
 	});
 
-	it("chains nextObservance through 2026's sojong days, as the guide does", () => {
-		const found = [];
-		let next = nextObservance(iso("2025-12-31"), "sojong", EXAMPLE_OBSERVANCES);
-		while (next !== null && next.date.isoDate.year === 2026) {
-			found.push(next);
-			next = nextObservance(next.date.isoDate, "sojong", EXAMPLE_OBSERVANCES);
-		}
-		expect(found).toHaveLength(25);
+	it("chains nextObservance through a Western year's sojong days and a Tibetan year's, as the guide does", () => {
+		const scope = { Temporal, nextObservance, EXAMPLE_OBSERVANCES, losarFor };
+		const western = runBlock(
+			fenceStarting("js", "const found = [];"),
+			scope,
+			"found",
+		) as ReturnType<typeof nextObservance>[];
+		const tibetan = runBlock(
+			fenceStarting("js", "const tibetan = [];"),
+			scope,
+			"tibetan",
+		) as ReturnType<typeof nextObservance>[];
+		const ends = (list: typeof western) => [
+			list.at(0)?.date.isoDate.toString(),
+			list.at(-1)?.date.isoDate.toString(),
+		];
+		expect(western).toHaveLength(25);
+		expect(ends(western)).toEqual(["2026-01-03", "2026-12-23"]);
+		expect(tibetan).toHaveLength(24);
+		expect(ends(tibetan)).toEqual(["2026-03-03", "2027-02-05"]);
+		// The numbers and dates printed beside each loop are the ones the loop gives.
+		expect(guideText).toContain("found.length;   // 25 — 3 January to 23 December 2026");
+		expect(guideText).toContain("tibetan.length;   // 24 — 3 March 2026 to 5 February 2027");
+		expect(losarFor(2153).isoDate.subtract({ days: 1 }).toString()).toBe("2026-02-17");
+	});
+
+	describe("the shape of a config", () => {
+		type Loose = Record<string, unknown> & { rules: Record<string, unknown>[] };
+		const printed = (): Loose =>
+			JSON.parse(fenceStarting("json", '{\n  "id": "my-centre"')) as Loose;
+		const codeOf = (config: unknown) =>
+			thrownBy(() => observancesOn(iso("2026-01-01"), config as never))?.code;
+		const fieldTable = (header: string) =>
+			tableRows(header).flatMap((row) =>
+				backticked(row[0]).map((name) => ({ name, required: row[1] === "yes" })),
+			);
+		const configFields = fieldTable("| Field of the config | Required | |");
+		const ruleFields = fieldTable("| Field of a rule | Required | |");
+
+		it("is a complete config as printed, and does what the guide's rules do", () => {
+			const config = printed();
+			const found = getObservances(iso("2026-03-01"), iso("2026-03-31"), config as never);
+			expect(found.some((o) => o.rule.id === "tara")).toBe(true);
+			const open = found.filter((o) => o.rule.id === "open-day");
+			expect(open.map((o) => o.date.isoDate.toString())).toEqual(["2026-03-21"]);
+			expect(open[0]?.rule.level).toBeUndefined();
+		});
+
+		it("lists every field it requires, and refuses a config or a rule that lacks one", () => {
+			expect(configFields.map((f) => f.name)).toEqual([
+				"id",
+				"englishName",
+				"doubledDay",
+				"skippedDay",
+				"leapMonth",
+				"rules",
+				"levels",
+				"tibetanName",
+			]);
+			for (const field of configFields.filter((f) => f.required)) {
+				const config = printed();
+				delete config[field.name];
+				expect(codeOf(config), `config without ${field.name}`).toBe(INVALID_CONFIG);
+			}
+			expect(ruleFields.map((f) => f.name)).toEqual([
+				"id",
+				"englishName",
+				"when",
+				"level",
+				"tags",
+				"doubledDay",
+				"skippedDay",
+				"leapMonth",
+				"tibetanName",
+			]);
+			for (const field of ruleFields.filter((f) => f.required)) {
+				const config = printed();
+				delete config.rules[0]?.[field.name];
+				expect(codeOf(config), `rule without ${field.name}`).toBe(INVALID_CONFIG);
+			}
+		});
+
+		it("accepts a config or a rule without a field it calls optional, and refuses a key it does not list", () => {
+			for (const field of configFields.filter((f) => !f.required)) {
+				const config = printed();
+				delete config[field.name];
+				if (field.name === "levels") for (const rule of config.rules) delete rule.level;
+				expect(codeOf(config), `config without ${field.name}`).toBeUndefined();
+			}
+			for (const field of ruleFields.filter((f) => !f.required)) {
+				const config = printed();
+				delete config.rules[0]?.[field.name];
+				expect(codeOf(config), `rule without ${field.name}`).toBeUndefined();
+			}
+			expect(codeOf({ ...printed(), extra: 1 })).toBe(INVALID_CONFIG);
+			const config = printed();
+			(config.rules[0] as Record<string, unknown>).extra = 1;
+			expect(codeOf(config)).toBe(INVALID_CONFIG);
+		});
+
+		it("names the when forms the guide lists, and no other", () => {
+			const sentence = guideText
+				.split("\n\n")
+				.find((p) => p.startsWith("A key that is not in these tables"));
+			const named = [...(sentence ?? "").matchAll(/(?<![\w`])`(\w+)` \(/g)].map((m) => m[1]);
+			expect(named).toEqual(["monthly", "annual", "western", "period", "formula", "counted"]);
+			for (const rule of EXAMPLE_OBSERVANCES.rules) expect(named).toContain(rule.when.type);
+		});
+
+		it("validates the whole config on first use, once per object, and does not freeze it", () => {
+			// A rule that cannot occur on the day asked about, with a level the config never declares.
+			const bad = printed();
+			bad.rules.push({
+				id: "far-off",
+				englishName: "Far off",
+				level: "pubic",
+				when: { type: "annual", dates: [{ month: 6, day: 1 }] },
+			});
+			expect(codeOf(bad)).toBe(INVALID_CONFIG);
+
+			const good = printed();
+			expect(codeOf(good)).toBeUndefined();
+			expect(Object.isFrozen(good)).toBe(false);
+			(good.rules[0] as Record<string, unknown>).level = "pubic";
+			expect(codeOf(good), "an edit in place is not checked again").toBeUndefined();
+			expect(codeOf(structuredClone(good))).toBe(INVALID_CONFIG);
+		});
+
+		it("loads a file with the guide's idiom, and names the file when it is refused", () => {
+			const loadConfig = runBlock(
+				fenceStarting("ts", "import { readFileSync } from 'node:fs';"),
+				{ readFileSync, observancesOn, Temporal },
+				"loadConfig",
+				"ts",
+			) as (path: string) => unknown;
+			const dir = mkdtempSync(join(tmpdir(), "guide-config-"));
+			try {
+				const path = join(dir, "my-centre.json");
+				writeFileSync(path, JSON.stringify(printed()));
+				expect((loadConfig(path) as { id: string }).id).toBe("my-centre");
+
+				const bad = printed();
+				bad.rules.push({
+					id: "far-off",
+					englishName: "Far off",
+					level: "pubic",
+					when: { type: "annual", dates: [{ month: 6, day: 1 }] },
+				});
+				writeFileSync(path, JSON.stringify(bad));
+				const refusal = thrownBy(() => loadConfig(path));
+				expect(refusal?.message).toContain(path);
+				expect(refusal?.code).toBeUndefined();
+			} finally {
+				rmSync(dir, { recursive: true, force: true });
+			}
+		});
+	});
+
+	describe("a layer", () => {
+		const kopan = composeObservances(EXAMPLE_OBSERVANCES, {
+			id: "kopan",
+			englishName: "Kopan",
+			doubledDay: "first",
+		});
+		const tarasOn = (config: typeof kopan, from: string, to: string) =>
+			getObservances(iso(from), iso(to), config)
+				.filter((o) => o.rule.id === "tara")
+				.map((o) => `${o.date.isoDate.toString()} ${o.resolution}`);
+
+		it("states its own id and englishName, which compose refuses to read from the base", () => {
+			for (const layer of [{ doubledDay: "first" }, { id: "x" }, { englishName: "X" }]) {
+				const thrown = thrownBy(() => composeObservances(EXAMPLE_OBSERVANCES, layer as never));
+				expect(thrown?.code).toBe(INVALID_CONFIG);
+			}
+		});
+
+		it("reaches only the rules that set no value of their own, and the guide names the six that do", () => {
+			const paragraph = guideText
+				.split("\n\n")
+				.find((p) => p.startsWith("**A default reaches only the rules that do not set"));
+			expect(paragraph).toBeDefined();
+			const ids = new Set(EXAMPLE_OBSERVANCES.rules.map((r) => r.id));
+			const sentence = (paragraph ?? "").split("Kopan's layer")[0] ?? "";
+			const named = backticked(sentence).filter((token) => ids.has(token));
+			const carrying = EXAMPLE_OBSERVANCES.rules
+				.filter(
+					(r) =>
+						r.doubledDay !== undefined || r.skippedDay !== undefined || r.leapMonth !== undefined,
+				)
+				.map((r) => r.id);
+			expect(named).toHaveLength(6);
+			expect([...named].sort()).toEqual([...carrying].sort());
+			// The doubled eighth of 15 and 16 May 2024: tara has its own `both`, so Kopan's default does
+			// not move it, while the shipped example and Kopan agree on it.
+			expect(tarasOn(EXAMPLE_OBSERVANCES, "2024-05-14", "2024-05-17")).toEqual([
+				"2024-05-15 firstOfDoubled",
+				"2024-05-16 secondOfDoubled",
+			]);
+			expect(tarasOn(kopan, "2024-05-14", "2024-05-17")).toEqual([
+				"2024-05-15 firstOfDoubled",
+				"2024-05-16 secondOfDoubled",
+			]);
+		});
+
+		it("replaces a whole rule, as the guide's example does", () => {
+			const kopanTara = runBlock(
+				fenceStarting("js", "const tara = EXAMPLE_OBSERVANCES.rules.find"),
+				{ EXAMPLE_OBSERVANCES, composeObservances, kopan },
+				"kopanTara",
+			) as typeof kopan;
+			expect(tarasOn(kopanTara, "2024-05-14", "2024-05-17")).toEqual(["2024-05-15 firstOfDoubled"]);
+			expect(guideText).toContain("// 15 May 2024: 'firstOfDoubled'. 16 May 2024: no tara.");
+			// Only the whole rule is replaced: a partial one is refused, which is why the guide spreads.
+			const partial = thrownBy(() =>
+				composeObservances(kopan, {
+					id: "partial",
+					englishName: "Partial",
+					replace: [{ id: "tara", doubledDay: "first" } as never],
+				}),
+			);
+			expect(partial?.code).toBe(INVALID_CONFIG);
+		});
+	});
+
+	describe("a config written for a newer release", () => {
+		const tara = EXAMPLE_OBSERVANCES.rules.find((r) => r.id === "tara");
+		const written = {
+			...EXAMPLE_OBSERVANCES,
+			id: "newer",
+			rules: [
+				tara,
+				{ id: "eclipse-practice", englishName: "Eclipse practice", when: { type: "eclipse" } },
+			],
+		};
+
+		it("is refused as a whole, and the guide's filter makes it queryable", () => {
+			const refusal = thrownBy(() => observancesOn(iso("2026-01-08"), written as never));
+			expect(refusal?.code).toBe(INVALID_CONFIG);
+			const usable = runBlock(
+				fenceStarting("js", "const known = ["),
+				{ config: written },
+				"usable",
+			) as typeof EXAMPLE_OBSERVANCES;
+			expect(usable.rules.map((r) => r.id)).toEqual(["tara"]);
+			expect(getObservances(iso("2026-01-01"), iso("2026-01-31"), usable).length).toBeGreaterThan(
+				0,
+			);
+		});
+
+		it("names the six forms the filter keeps, which are the six the validator knows", () => {
+			const known = fenceStarting("js", "const known = [");
+			const forms = [...(known.split("\n")[0]?.matchAll(/'(\w+)'/g) ?? [])].map((m) => m[1]);
+			expect(forms).toEqual(["monthly", "annual", "period", "western", "formula", "counted"]);
+			for (const rule of EXAMPLE_OBSERVANCES.rules) expect(forms).toContain(rule.when.type);
+		});
+	});
+
+	describe("the printed tsconfig", () => {
+		const root = fileURLToPath(new URL("..", import.meta.url));
+		const printed = JSON.parse(fenceStarting("json", '{\n  "compilerOptions"')) as {
+			compilerOptions: Record<string, unknown>;
+		};
+
+		/**
+		 * Type-checks `sources` under the guide's printed options. Two things beyond them are harness
+		 * plumbing and not part of what is printed: `paths`, which sends the package's two names at
+		 * `src/` so no build is needed, and `typeRoots`, which finds `@types/node` from outside the
+		 * repository. The verbatim tsconfig against the packed tarball is proved by hand in a clean
+		 * consumer, because this repository's own tsconfig would mask the defect class.
+		 */
+		const compile = (sources: Record<string, string>) => {
+			const dir = mkdtempSync(join(tmpdir(), "guide-tsc-"));
+			try {
+				for (const [name, text] of Object.entries(sources)) writeFileSync(join(dir, name), text);
+				writeFileSync(
+					join(dir, "tsconfig.json"),
+					JSON.stringify({
+						compilerOptions: {
+							...printed.compilerOptions,
+							typeRoots: [join(root, "node_modules", "@types")],
+							paths: {
+								"tibetan-calendar-temporal": [join(root, "src", "index.ts")],
+								"tibetan-calendar-temporal/observances": [
+									join(root, "src", "observances", "index.ts"),
+								],
+							},
+						},
+						files: Object.keys(sources),
+					}),
+				);
+				const tsc = join(root, "node_modules", "typescript", "bin", "tsc");
+				const run = spawnSync(process.execPath, [tsc, "-p", join(dir, "tsconfig.json")], {
+					encoding: "utf8",
+					cwd: dir,
+				});
+				return { status: run.status, output: `${run.stdout}${run.stderr}` };
+			} finally {
+				rmSync(dir, { recursive: true, force: true });
+			}
+		};
+
+		it("sets the target the README's condition names, and the two options a Node consumer needs", () => {
+			expect(printed.compilerOptions).toMatchObject({
+				target: "ESNext",
+				noEmit: true,
+				types: ["node"],
+			});
+		});
+
+		it("type-checks every TypeScript block of the guide, with the default branch of the switch", () => {
+			const blocks = fences("ts");
+			expect(blocks).toHaveLength(2);
+			const result = compile(
+				Object.fromEntries(blocks.map((block, index) => [`block${index}.ts`, block])),
+			);
+			expect(result).toEqual({ status: 0, output: "" });
+		}, 120_000);
+
+		it("fails on the guide's old default branch, so the check above is measuring", () => {
+			const block = fenceStarting("ts", "import { EXAMPLE_OBSERVANCES, type ObservanceWhen }");
+			const old = block.replace(
+				/default: return `[^\n]*\n/,
+				["default: return `a $", "{when.type} rule`;\n"].join(""),
+			);
+			expect(old).not.toBe(block);
+			const result = compile({ "old.ts": old });
+			expect(result.status).not.toBe(0);
+			expect(result.output).toContain("TS2339");
+		}, 120_000);
 	});
 
 	it("reports the documented skipped date with the documented code", () => {

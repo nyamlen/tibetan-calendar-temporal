@@ -1,12 +1,14 @@
 # tibetan-calendar-temporal
 
-> ## ⚠️ Placeholder release
+> ## ⚠️ Not yet released
 >
-> **The published package does not work yet.** v0.0.1 exports nothing but a status string. It
-> exists to reserve the name while the engine is built.
+> **The version on npm does not work.** `0.0.1`, the only one published, exports nothing but a status
+> string; it exists to reserve the name while the engine is built.
 >
-> The API below is implemented and tested — every example in this file is asserted by the test
-> suite — but it is **not yet published**. Do not depend on this package until v1.0.0.
+> **This repository does.** The API below is implemented and tested — every example in this file is
+> asserted by the test suite — and a tarball packed from this source (`npm pack`) contains it, though
+> its `package.json` still says `0.0.1`. It is **not yet published**. Do not depend on the npm package
+> until v1.0.0.
 
 Compute Tibetan calendar dates in JavaScript — leap months, doubled and skipped days, moon phases,
 year names and observances — for almanac applications, practice calendars, and anything that has to
@@ -177,9 +179,9 @@ npm i -D typescript@^7
 
 No `"lib"` setting is needed **if your `target` is `ESNext`** — that is what carries
 `lib.esnext.temporal.d.ts`. Under `nodenext` with no `target` set, TypeScript 7.0.2 still reports
-twelve `TS2503`s against this package, measured 2026-09-22. Set `"target": "ESNext"`, as
-[the guide's tsconfig](docs/guide.md#running-it-anywhere) does, or add
-`"lib": ["ES2024", "ESNext.Temporal"]`. And do **not** install
+`TS2503` against this package. Set `"target": "ESNext"`, as
+[the guide's tsconfig](docs/guide.md#type-checking-needs-typescript-7-which-the-runtime-requirement-does-not-imply)
+does, or add `"lib": ["ES2024", "ESNext.Temporal"]`. And do **not** install
 `temporal-polyfill`, `temporal-spec` or any other typings package to fix it: they are unnecessary
 here, and the published `.d.ts` references the global deliberately. `engines` constrains only
 `node`; npm has no field for the TypeScript version a package's *types* require, which is why this
