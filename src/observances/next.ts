@@ -1,6 +1,6 @@
 import { asPlainDate, isoToTibetan, julianDayFromIso } from "../computation/conversion.js";
 import { scalingFor } from "../computation/scaling.js";
-import { describe, rangeError } from "../errors.js";
+import { describe, hasCode, rangeError } from "../errors.js";
 import { PHUGPA } from "../traditions/phugpa.js";
 import type { TraditionConfig } from "../traditions/types.js";
 import { assertTraditionConfig } from "../traditions/validate.js";
@@ -57,7 +57,10 @@ const FIRST_CHUNK_DAYS: Record<ObservanceWhen["type"], number> = {
  * **`null` means none within the horizon, not never.** The search covers the 10 years after `from`
  * (the same 10 as {@link getObservances}'s span cap) and stops at the end of the tradition's
  * computable range. A rule whose window has ended, a `western` rule beginning more than 10 years
- * away, and a search that meets the end of the range all answer `null`.
+ * away, and a search that meets the end of the range all answer `null`. That includes a `period`
+ * whose span ends past the end of the range, because the result would have to carry a bound that
+ * cannot be computed; {@link getObservances} and {@link observancesOn} refuse that case with
+ * `TCT_OUTSIDE_EXACT_RANGE`, since they cannot answer a day without its span.
  *
  * Arguments are checked in a fixed order, as in {@link getObservances}: `from`, then the config,
  * then the tradition, then `ruleId`.
@@ -115,7 +118,17 @@ export function nextObservance(
 	let size = FIRST_CHUNK_DAYS[rule.when.type];
 	while (start <= lastJd) {
 		const end = Math.min(start + size - 1, lastJd);
-		const [first] = occurrencesOfRule(rule, start, end, config, scaled, tibetanDateOf);
+		let found: Observance[];
+		try {
+			found = occurrencesOfRule(rule, start, end, config, scaled, tibetanDateOf);
+		} catch (error) {
+			// A period's result carries its whole span's bounds, so a span ending past the exact range
+			// cannot be built for any of its days: the search has met the end. Only this code, and only
+			// here, which is the one site a span's last day is converted from inside the range.
+			if (hasCode(error, "TCT_OUTSIDE_EXACT_RANGE")) return null;
+			throw error;
+		}
+		const [first] = found;
 		if (first !== undefined) return first;
 		start = end + 1;
 		size *= 2;

@@ -419,6 +419,47 @@ describe("nextObservance, month walks that cross the end of the range", () => {
 	);
 });
 
+// A period's result carries the bounds of its whole span, so a span whose last day lies past the
+// exact range cannot be built for any of its days. `nextObservance` answers null there, as for any
+// search that meets the end; the range queries refuse with the range code, documented, because
+// they cannot truncate a span they were asked about.
+describe("nextObservance, a period whose span runs past the end of the range", () => {
+	const { last } = convertibleEnds;
+	const OUTSIDE = "TCT_OUTSIDE_EXACT_RANGE";
+	// The whole of the Tibetan month the last convertible day falls in, which is never over by then.
+	const month = isoToTibetan(last, PHUGPA).month;
+	const wholeMonth = withRules([
+		{
+			id: "p",
+			when: { type: "period", first: { month, day: 1 }, last: { month, day: 30 } },
+		},
+	]);
+
+	it("starts from a last day whose month is not yet over", () => {
+		expect([isoToTibetan(last, PHUGPA).month, isoToTibetan(last, PHUGPA).day]).toEqual([10, 26]);
+	});
+
+	it.each([60, 20, 0])(
+		"is null from %i days before the end, where the next span straddles it",
+		(back) => {
+			expect(nextObservance(last.subtract({ days: back }), "p", wholeMonth)).toBeNull();
+		},
+	);
+
+	it("still answers the range queries' refusal for a day inside such a span", () => {
+		expect(thrownBy(() => getObservances(last, last, wholeMonth))?.code).toBe(OUTSIDE);
+		expect(
+			thrownBy(() => getObservances(last.subtract({ days: 10 }), last, wholeMonth))?.code,
+		).toBe(OUTSIDE);
+	});
+
+	it("does not swallow another refusal: a `from` beyond the end still throws", () => {
+		expect(thrownBy(() => nextObservance(last.add({ days: 1 }), "p", wholeMonth))?.code).toBe(
+			OUTSIDE,
+		);
+	});
+});
+
 describe("nextObservance, a hit on the first day of a later search chunk", () => {
 	// The search starts the day after `from`, spans FIRST_CHUNK_DAYS[form] days, then doubles, so the
 	// second chunk's first day is `from` + size + 1 and the third's is `from` + 3 * size + 1. A hit on
