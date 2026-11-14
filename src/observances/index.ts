@@ -77,8 +77,8 @@ export type {
  * `from`/`to` straight through would hand its event loop four orders of magnitude more than the
  * cap admits, synchronously and without yielding. A day, month, year or planning view needs at most
  * about two years. Measured on the machine recorded in `bench/RESULTS.md`, the 10-year worst case
- * over a config holding one rule of each form but `counted` takes about 22 ms, and two years about
- * 4 ms.
+ * over a config holding one rule of each form but `counted` takes about 29 ms, and two years about
+ * 5 ms.
  *
  * A caller who genuinely wants a wider table — the whole rabjung era, 1027–2027, is the realistic
  * example — requests it in chunks and concatenates. That is correct because this function is pure

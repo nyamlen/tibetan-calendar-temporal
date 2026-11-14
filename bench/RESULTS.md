@@ -146,6 +146,52 @@ cap section: 10 years, every form, 28.9 ms (min 23.0, max 40.9; 18 samples); 2 y
 10 and 5 ms), though the 10-year figure is above the 21.6 ms the cap section recorded, so the
 per-rule walk costs something on a config with many rules.
 
+## Re-recorded, 2026-11-14
+
+The full `npm run bench` run after the observance rebuild, so its `EXAMPLE_OBSERVANCES` rows are the
+19-rule example, which holds a `counted` rule and a `formula` rule. It supersedes the figures above
+that describe the same cases. Quote these.
+
+| | |
+|---|---|
+| Date | 2026-11-14 |
+| CPU | Intel Core Ultra 7 365, 8 logical cores |
+| Memory | 32 GB |
+| OS | Windows 11 Pro (10.0.26300), x64 |
+| Node | v26.11.1 |
+| Vitest | 4.1.12, `vitest bench --run` |
+
+Run with nothing else running. The whole file was run once, and each mean is that run's.
+
+| Case | Mean | Budget | Note |
+|---|---|---|---|
+| `isoToTibetan`, one date | 0.0068 ms | | 73,806 samples |
+| `isoToTibetan`, one year of days | 2.98 ms | | 168 samples |
+| `monthsFor`, cold | 0.0456 ms | | |
+| `monthsFor`, warm | 0.0001 ms | | **567x faster than cold** |
+| `getObservances`, 10 years (the cap), every form | 28.5 ms | | min 22.7, max 40.2; 18 samples |
+| `getObservances`, 10 years (the cap), `EXAMPLE_OBSERVANCES` | 33.6 ms | | min 25.6, max 47.2; 15 samples |
+| `getObservances`, 2 years, every form (planning chunk) | 5.03 ms | 100 ms | min 3.80, max 16.2 |
+| `getObservances`, 1 year, every form (year view) | 2.54 ms | 50 ms | min 2.00, max 12.3 |
+| `getObservances`, 1 month, every form (month view) | 0.533 ms | 10 ms | min 0.431, max 5.45 |
+| `observancesOn`, 1 day, every form (day view) | 0.347 ms | 5 ms | min 0.312, max 1.69 |
+| `getObservances`, 1 year, `EXAMPLE_OBSERVANCES` | 3.12 ms | 50 ms | min 2.53, max 12.4 |
+| `getObservances`, 10 years, counted and the five other forms | 26.9 ms | | 19 samples |
+| `getObservances`, 2 years, counted and the five other forms | 5.11 ms | 100 ms | |
+| `getObservances`, 1 year, counted and the five other forms | 2.78 ms | 50 ms | |
+| `getObservances`, 1 month, counted and the five other forms | 0.542 ms | 10 ms | |
+| `observancesOn`, 1 day, counted and the five other forms | 0.374 ms | 5 ms | |
+| `getObservances`, 10 years, counted alone | 2.83 ms | | |
+| `getObservances`, 1 year, counted alone | 0.307 ms | | |
+| `nextObservance`, the next occurrence is near | 0.049 to 0.409 ms | 100 ms | `formula` the slowest at 0.409 ms, `annual` the fastest at 0.049 ms |
+| `nextObservance`, `null` after the full 10-year horizon | 0.132 to 0.165 ms | 100 ms | `annual` 0.165 ms, `western` 0.132 ms |
+
+Every view is inside its budget. The 19-rule example costs more than the one-rule-per-form config
+over ten years (33.6 ms against 28.5 ms) because it holds a `counted` rule and a `formula` rule
+beside eleven annual, five monthly and one period rule. The earlier 6.5 ms and 0.65 ms rows for
+`EXAMPLE_OBSERVANCES` measured it before it held the `counted` and `formula` rules, and are
+superseded.
+
 ## What is deliberately not here
 
 No regression thresholds, and `bench` is **not** in CI. Shared runners vary enough that a threshold
