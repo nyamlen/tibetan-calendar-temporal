@@ -86,6 +86,15 @@ The once-only rule is strict on purpose: removing a rule and adding it back woul
 `EXAMPLE_OBSERVANCES`, `id: "example"`, `englishName: "Example practice calendar"`; its docblock states that its doubled-day and leap-month conventions are FPMT's and that Kopan answers the doubled day the other way.
 FPMT's complete set, Lama Thubten Yeshe's anniversary among it, is a configuration in the test suite, where its agreement with FPMT's calendars is measured.
 
+**The three observance functions take the same dates, and `nextObservance` does not take a resolved `TibetanDate`.**
+`getObservances`, `observancesOn` and `nextObservance` normalise their dates through `asPlainDate`, which accepts a `Temporal` instance or an ISO string and never a `TibetanDate`.
+`nextFullMoon` and `nextNewMoon` accept one because chaining their own result was the reason to widen them ([public-surface.md](2026-08-12-public-surface.md)); each observance result carries `isoDate`, so a chain passes `result.date.isoDate`.
+Widening `nextObservance` alone would make the subpath inconsistent and need a second guard beside the shared one, and widening all three would change every entry point's contract; widening later breaks nothing, narrowing never can.
+
+**A config loaded from JSON is checked by using it, and no validator is exported.**
+Every entry point validates the whole config on first use, and `composeObservances(config, { id, englishName })` validates it without a date and returns a frozen clone, so both routes give a consumer a coded `TCT_INVALID_OBSERVANCE_CONFIG`.
+An exported guard would freeze a choice between throwing and answering a boolean, and would invite the same for `TraditionConfig`; add one when a consumer's need shows which.
+
 ## Why a subpath rather than the root
 
 Everything on the root makes a claim that is falsifiable against Janson or an almanac.
