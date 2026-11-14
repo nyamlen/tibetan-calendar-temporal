@@ -16,8 +16,8 @@
  * there, on 10 July. Kopan Monastery observed the same Chokhor Duchen on the 9th.
  *
  * That is not a defect in the sources. It is what a convention looks like. So this layer holds
- * conventions as **injected data carrying a citation**, never as logic, and ships behind its own
- * subpath so that a consumer wanting only date conversion never inherits anyone's.
+ * conventions as **injected data, cited in its docblocks and docs**, never as logic, and ships
+ * behind its own subpath so that a consumer wanting only date conversion never inherits anyone's.
  *
  * @packageDocumentation
  */
@@ -72,6 +72,17 @@ export type SkippedDayChoice = "preceding" | "following" | "omit";
  *
  * Hence a setting rather than a rule. `"regular"` follows Janson, `"leap"` follows FPMT, and
  * `"both"` observes in each.
+ *
+ * **For a `period` the setting chooses which twin each endpoint's month means, and the span runs
+ * between them.** It is not "in each twin" as it is for an `annual` date: under `"both"` the span
+ * starts on the earlier twin and ends on the later, so it covers every day between, and under
+ * `"leap"` or `"regular"` the two endpoints can name different months. Measured for Phugpa in
+ * Tibetan 2143, which has leap month 4: a period from 4/1 to 4/30 covers 29 days under
+ * `"regular"` (the regular month 4 only), 30 under `"leap"` (the leap month 4 only) and 59 under
+ * `"both"`; a period from 4/28 to 5/5 covers 8 days under `"regular"` and 37 under both `"leap"`
+ * and `"both"`, because under `"leap"` it starts on leap 4/28 (2016-06-03) and must cross all of
+ * regular month 4 to reach 5/5. So a part-month span in a year with a twin is a question to answer
+ * deliberately; a whole-month span, such as Saga Dawa, is what the three values say they are.
  */
 export type LeapMonthChoice = "regular" | "leap" | "both";
 
@@ -116,7 +127,11 @@ export type TibetanMonthDay = { readonly month: number; readonly day: number };
  *   `skippedDay` is read. A skipped number named as an endpoint still bounds the span. The only
  *   per-rule setting is `leapMonth`, which chooses which twin each endpoint's month means in a year
  *   with two months of that number; under `"both"` `first` takes the earlier twin and `last` the
- *   later, so the span covers both. A span may not cross the new year. Its results are
+ *   later, so the span covers both. **The span runs between its endpoints**, so with a twin it can
+ *   cover days whose numbers lie outside `first` to `last`: in Tibetan 2143 (leap month 4) a period
+ *   from 4/1 to 4/30 is 29 days under `"regular"`, 30 under `"leap"` and 59 under `"both"`, and one
+ *   from 4/28 to 5/5 is 8, 37 and 37 days. See {@link LeapMonthChoice}. A span may not cross the new
+ *   year. Its results are
  *   `"inPeriod"`, one per calendar day, each carrying {@link Observance.period}.
  *
  * - `"formula"` — on every calendar day for which the named {@link FormulaName} holds. Each calendar
@@ -250,6 +265,11 @@ export interface ObservanceRule {
 
 	/**
 	 * Free labels for a consumer to filter on, distinct and non-empty. The engine never acts on one.
+	 *
+	 * @remarks
+	 * An array of strings, never one delimited string: there is no delimiter, so a tag may contain a
+	 * comma, and a single string such as `"tsok"` in place of `["tsok"]` is refused, because a JSON
+	 * config written with one would otherwise be read as a list of its characters.
 	 */
 	readonly tags?: readonly string[];
 
@@ -373,6 +393,10 @@ export interface ObservanceLayer {
  * Reported so a consumer can show the almanac-style footnote rather than presenting a moved date
  * as if it were exact. `"dayBeforeSkipped"` and `"dayAfterSkipped"` in particular are worth surfacing: the
  * observance is a day away from its nominal date, and a practitioner will want to know why.
+ *
+ * **This union is open to additions.** Further values may be added in a minor release, so a consumer
+ * switching on a resolution, or keying a table of labels on one, handles an unknown value with a
+ * `default` branch or a fallback entry.
  */
 export type ObservanceResolution =
 	| "exact"

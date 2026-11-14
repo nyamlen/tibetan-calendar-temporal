@@ -236,6 +236,29 @@ describe("observance resolution", () => {
 		expect(thrownBy(span("0001-01-01", "9999-12-31"))?.code).toBe("TCT_SPAN_TOO_WIDE");
 	});
 
+	// The rule applied is on calendar years, `to.year - from.year <= 10`, and not on elapsed time:
+	// a range may touch eleven calendar years and run almost eleven years, and a range of a few days
+	// is refused if it starts in one year and ends eleven later.
+	it("applies the cap to the difference of the two calendar years", () => {
+		const span = (a: string, b: string) => () =>
+			getObservances(iso(a), iso(b), EXAMPLE_OBSERVANCES);
+		for (const [a, b] of [
+			["2020-01-01", "2030-12-31"],
+			["2020-12-31", "2030-12-31"],
+			["2020-06-01", "2030-06-02"],
+			["2020-12-31", "2030-01-01"],
+		] as const) {
+			expect(thrownBy(span(a, b)), `${a} to ${b}`).toBeUndefined();
+		}
+		for (const [a, b] of [
+			["2020-12-31", "2031-01-01"],
+			["2020-01-01", "2031-01-01"],
+			["2019-12-31", "2030-12-31"],
+		] as const) {
+			expect(thrownBy(span(a, b))?.code, `${a} to ${b}`).toBe("TCT_SPAN_TOO_WIDE");
+		}
+	});
+
 	// The chunking helper takes its chunk size from a copy of the cap, so the copy is held to the
 	// real thing here: a chunk of that size is admitted and one year more is refused.
 	it("matches the chunking helper's copy of the cap", () => {
@@ -1480,6 +1503,57 @@ describe("the period form", () => {
 		expect(codeOf(period({ month: 4, day: 1 }, { month: 4, day: 2 }, { [setting]: value }))).toBe(
 			CODE,
 		);
+	});
+});
+
+// The figures the `period` and `LeapMonthChoice` docblocks print. A period's endpoints name a month
+// number, and in a year with two months of that number the choice decides which of them each endpoint
+// means, so a span can run from one twin through the whole of the other.
+describe("a period across a leap month's twin, Tibetan 2143 (leap month 4: 2016-05-07, then regular 4 on 2016-06-06)", () => {
+	const count = (
+		first: { month: number; day: number },
+		last: { month: number; day: number },
+		leapMonth: "regular" | "leap" | "both",
+	) => {
+		const config = {
+			...EXAMPLE_OBSERVANCES,
+			id: "twin",
+			rules: [{ id: "p", englishName: "P", leapMonth, when: { type: "period", first, last } }],
+		} as unknown as ObservanceConfig;
+		const found = getObservances(iso("2016-01-01"), iso("2016-12-31"), config);
+		return {
+			days: found.length,
+			from: found[0]?.date.isoDate.toString(),
+			to: found.at(-1)?.date.isoDate.toString(),
+		};
+	};
+
+	it("is the year the docblocks name: 2016-05-07 is leap month 4, day 1", () => {
+		const start = isoToTibetan(iso("2016-05-07"));
+		expect([start.year, start.month, start.isLeapMonth, start.day]).toEqual([2143, 4, true, 1]);
+		const regular = isoToTibetan(iso("2016-06-06"));
+		expect([regular.month, regular.isLeapMonth, regular.day]).toEqual([4, false, 1]);
+	});
+
+	it("gives a whole month 29 days under regular, 30 under leap and 59 under both", () => {
+		const whole = [
+			{ month: 4, day: 1 },
+			{ month: 4, day: 30 },
+		] as const;
+		expect(count(...whole, "regular")).toEqual({ days: 29, from: "2016-06-06", to: "2016-07-04" });
+		expect(count(...whole, "leap")).toEqual({ days: 30, from: "2016-05-07", to: "2016-06-05" });
+		expect(count(...whole, "both")).toEqual({ days: 59, from: "2016-05-07", to: "2016-07-04" });
+	});
+
+	it("gives 4/28 to 5/5 8 days under regular and 37 under leap and under both", () => {
+		const part = [
+			{ month: 4, day: 28 },
+			{ month: 5, day: 5 },
+		] as const;
+		expect(count(...part, "regular")).toEqual({ days: 8, from: "2016-07-02", to: "2016-07-09" });
+		// Under leap it starts on leap 4/28, and must cross all of regular month 4 to reach 5/5.
+		expect(count(...part, "leap")).toEqual({ days: 37, from: "2016-06-03", to: "2016-07-09" });
+		expect(count(...part, "both")).toEqual({ days: 37, from: "2016-06-03", to: "2016-07-09" });
 	});
 });
 

@@ -68,8 +68,10 @@ export type {
  * naming days 29 and 30 in a month whose 30th is skipped — the exact landing is kept, then a
  * doubled half, then a shifted day.
  *
- * **The span is capped at 10 years** (`MAX_SPAN_YEARS`, an internal constant), compared as
- * `to.year - from.year`, so 2020-01-01 to 2030-12-31 is admitted and 2031-01-01 is not. Cost is
+ * **The span is capped at 10 years** (`MAX_SPAN_YEARS`, an internal constant), and the rule applied
+ * is on calendar years, `to.year - from.year <= 10`, not on elapsed time: 2020-01-01 to 2030-12-31
+ * is admitted, though it touches 11 calendar years and runs almost 11, and 2020-12-31 to 2031-01-01
+ * is refused, though it is 10 years and 2 days. Cost is
  * linear in the range, and what the cap guards against is the range beyond it: `Temporal.PlainDate`
  * reaches from -271821 to +275760, about 547,000 years, so a service forwarding user-supplied
  * `from`/`to` straight through would hand its event loop four orders of magnitude more than the
@@ -82,6 +84,12 @@ export type {
  * example — requests it in chunks and concatenates. That is correct because this function is pure
  * and restarts its month walk per call, and consecutive chunks that cut on a day boundary lose and
  * repeat nothing.
+ *
+ * **A `period` whose span ends past the end of the tradition's exact range** makes a day inside it
+ * throw `TCT_OUTSIDE_EXACT_RANGE`, though the day itself is inside the range: each result carries
+ * the bounds of its whole span, and the last of them cannot be computed. It reaches only the last
+ * days before the end, as far back as the span is long, and no day is dropped quietly instead.
+ * {@link nextObservance} answers `null` there.
  *
  * Arguments are checked in a fixed order: the dates, then the config, then the tradition, and only
  * then the empty-range shortcut — so a reversed range with no config still throws.
@@ -96,8 +104,9 @@ export type {
  *
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `from` or `to` is not a value
  * `asPlainDate` accepts; `TCT_INVALID_OBSERVANCE_CONFIG` if `config` is missing or invalid;
- * `TCT_INVALID_TRADITION_CONFIG` if `tradition` is invalid; or `TCT_SPAN_TOO_WIDE` if the span
- * exceeds 10 years.
+ * `TCT_INVALID_TRADITION_CONFIG` if `tradition` is invalid; `TCT_SPAN_TOO_WIDE` if `to.year -
+ * from.year` exceeds 10; or `TCT_OUTSIDE_EXACT_RANGE` if either end, or the span of a `period`
+ * result, lies beyond where the tradition's arithmetic stays exact.
  */
 export function getObservances(
 	from: Temporal.PlainDate,
@@ -176,6 +185,9 @@ export function getObservances(
  * @param date - The calendar day.
  * @param config - Which observances, and the conventions for resolving them. Required.
  * @param tradition - Astronomical constants. Defaults to `PHUGPA`.
+ *
+ * @throws The same codes as {@link getObservances}, including `TCT_OUTSIDE_EXACT_RANGE` for a day in
+ * a `period` whose span ends past the end of the exact range.
  */
 export function observancesOn(
 	date: Temporal.PlainDate,
