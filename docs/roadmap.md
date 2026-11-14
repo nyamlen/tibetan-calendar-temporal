@@ -1340,34 +1340,45 @@ nothing and reports success.
         closer question was put to her on 2026-09-27: whether FPMT re-anchors on Chötrul Düchen at all,
         whether it drops a sojong falling on Losar, and whether FPMT's run from 2022-04-30 to
         2022-12-22 is a slip or a rule this package lacks. No document in this repository records an
-        answer to either.
+        answer to either of those; the reply of 2026-09-30 concerned gaye, below.
       - **Untested: FPMT's convention for a skipped or doubled day 15 in month 1**, because none
         occurs in its 2022–2025 window.
 - [ ] **Awaiting a Tibetan teacher.** Questions the example's design left open because they are a
       teacher's to answer; none blocks a release, and each says what is known.
-      - **Which sojong gaye replaces, or whether it replaces one.** As the question stood when the
-        rule model was scoped: if gaye falls on the sojong that ends the rains retreat, its date comes
-        from the sojong count, and whether a rule may refer to another decides on the answer. What is
-        known: the oral teaching in [almanac-sources.md](almanac-sources.md) says 24 sojongs occur in a
-        normal year and one is replaced by gaye, the end-of-rains-retreat observance. **Evidence from
-        monastery pages and a translation, not from an almanac, read 2026-11-14:**
-        the Mindrolling Monastery site (<https://www.khenchenrinpoche.org/?p=2303>) gives Yarne, the rains
-        retreat, "from the 15th day of the 6th lunar month to the 30th day of the 7th lunar month" and
-        "one and a half months"; the Amitabha Foundation (<https://amitabhafoundation.us/?p=5984>), in a
-        post dated 24 July 2021, has Yarne start on 24 July, "full moon of the sixth month of the lunar
-        calendar", held for 45 days, concluding on 6 September, "new moon of the seventh month of lunar
-        calendar"; Monlam (<https://monlam.org/activity/monastic-rainy-season-retreat-yarney/>) has it start
-        "on the full moon day of the 6th month" and conclude "on the new moon day of the 7th month"; and
-        84000's *The Chapter on Lifting Restrictions* (Mūlasarvāstivāda, Toh 1-3, translated by Robert
-        Miller; <https://84000.co/translation/toh1-3/UT22084-001-003-introduction>) says the rite is
-        "held at the end of the rains retreat as an adjunct to the Rite of Restoration (poṣadha)", and in
-        a note dates the Indian rite to the fifteenth of Āśvina or of Kārttika; it does not say that it
-        replaces the poṣadha or falls on the same day. So the sources place the end of the retreat at the
-        end of month 7, and none says which sojong gaye replaces; the Vinaya's "adjunct" differs from the
-        teaching's "replaced". **The sharpened question: does gaye replace the sojong at the end of
-        month 7, or accompany it?**
+      - **Where gaye falls, and whether it replaces a sojong.** As the question stood when the rule
+        model was scoped: if gaye falls on a sojong, its date comes from the sojong count, and whether
+        a rule may refer to another decides on the answer. Three accounts disagree.
+        - **The oral teaching** in [almanac-sources.md](almanac-sources.md) says 24 sojongs occur in a
+          normal year and one is replaced by gaye, the end-of-rains-retreat observance.
+        - **Ven. Thubten Chöying**, asked on 2026-09-19 (question 1c, recorded as sent in the project's
+          correspondence), replied on 2026-09-30: "For the Gaye question, I searched online and found
+          that traditionally it is on the full moon of the 6th month, which concurs with how we've done
+          it at ILTK recently. I think best to leave Sojong, since most Western centers don't do rains
+          retreat, but maybe add Gaye as a possibility for those that want to know." Her reading is that
+          gaye does not replace a sojong, and that it could be offered as an optional extra. Her source is
+          an online search and her centre's recent practice, so hers is a reply and not an authoritative
+          calendar rule.
+        - **Monastery pages and a translation, not an almanac, read 2026-11-14:**
+          the Mindrolling Monastery site (<https://www.khenchenrinpoche.org/?p=2303>) gives Yarne, the rains
+          retreat, "from the 15th day of the 6th lunar month to the 30th day of the 7th lunar month" and
+          "one and a half months"; the Amitabha Foundation (<https://amitabhafoundation.us/?p=5984>), in a
+          post dated 24 July 2021, has Yarne start on 24 July, "full moon of the sixth month of the lunar
+          calendar", held for 45 days, concluding on 6 September, "new moon of the seventh month of lunar
+          calendar"; Monlam (<https://monlam.org/activity/monastic-rainy-season-retreat-yarney/>) has it start
+          "on the full moon day of the 6th month" and conclude "on the new moon day of the 7th month"; and
+          84000's *The Chapter on Lifting Restrictions* (Mūlasarvāstivāda, Toh 1-3, translated by Robert
+          Miller; <https://84000.co/translation/toh1-3/UT22084-001-003-introduction>) says the rite is
+          "held at the end of the rains retreat as an adjunct to the Rite of Restoration (poṣadha)", and in
+          a note dates the Indian rite to the fifteenth of Āśvina or of Kārttika; it does not say that it
+          replaces the poṣadha or falls on the same day.
+        These do not agree. On the monastery pages the full moon of the 6th month is where Yarne
+        **starts**, and the end of the retreat is at the end of month 7, which is where the oral teaching
+        and the Vinaya place gaye; Ven. Chöying's full moon of the 6th month is the start. The Vinaya's
+        "adjunct" differs from the teaching's "replaced", and from her "does not replace".
+        **The question stays open for a teacher or scholar: does gaye fall at the start or the end of
+        Yarne, and does it replace a sojong or accompany one?**
       - **Whether a rule may refer to another.** Provisionally none may; allowing references later is
-        additive, and forbidding them after allowing them would not be. It decides on the gaye answer.
+        additive, and forbidding them after allowing them would not be. It decides on the gaye answer, which is not yet settled.
       - **The several-days form for Precepts and Naga puja.** One rule listing several days or dates,
         so Precepts' monthly days or Naga puja's table is one rule with one name. Their rules are not
         known, so both are excluded from the example ([observances.md](observances.md)). What FPMT
