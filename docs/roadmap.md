@@ -348,9 +348,14 @@ Setup work not yet done. None of it blocks Phase 3.
       the published package: `npm audit --omit=dev` found 0. Update them as a change of their own,
       run all ten CI commands, and take anything that needs `npm audit fix --force` (a
       major-version jump) separately. Re-measure the count first; it moves as advisories appear.
-      **Half done 2026-11-14:** `npm audit fix` and Vitest 4.1.12 cleared Vite and source-map-js,
-      leaving 6 (3 low, 1 moderate, 2 high), all in the `markdownlint-cli2` chain — `js-yaml`,
-      `markdown-it`, `katex` — whose fix is 0.19.1 → 0.24.1, a breaking jump that may add rules
+      **Updated 2026-11-14:** `npm audit fix` and Vitest 4.1.12 cleared Vite and source-map-js;
+      `markdownlint-cli2` 0.19.1 → 0.24.1 cleared `js-yaml` and `markdown-it`, with no new
+      `lint:md` findings. **4 low remain, all one KaTeX advisory** (GHSA-238p-pmpm-9mq7) via
+      `markdownlint` → `micromark-extension-math@3.1.0` → `katex@0.16.47`. KaTeX 0.19.1 fixes it,
+      but the math extension's latest release requires `katex ^0.16.0`, so only an `overrides`
+      entry forcing an undeclared major would clear it; `npm audit fix --force` instead proposes
+      *downgrading* to `markdownlint-cli2@0.16.0`. Open until the extension widens its range, or
+      until the residual is accepted
 
 ## Pre-v1.0.0 checklist
 
