@@ -228,7 +228,7 @@ icons are recorded in `docs/testing.md`, deliberately not on the shipped page.
 The sojong teaching said sojong "at the end of the odd months" is "the 14th". Tested as Tibetan date
 29 against 30, it failed and was recorded as falsified; it means the **14th day counted since the
 previous sojong** — the notes' own last line says "14 or 15 days between the Sojongs" — and read that
-way it reproduces 96 of FPMT's 98 intervals. A number in a rule can be a **label or a count**, and a
+way it reproduces 95 of FPMT's 98 intervals. A number in a rule can be a **label or a count**, and a
 test of one says nothing about the other. And a source that seems to **contradict itself** — FPMT
 putting sojong on the first of a doubled day while keeping düchens on the second — is first evidence
 that the model of the item is wrong: sojong was never a date, so no doubled-day convention applied to it.

@@ -326,7 +326,7 @@ Sojong remains wanted; it needs a different or corrected source.
 **Reversed 2026-09-19: the verdict above tested the wrong reading.**
 "The 14th" and "the 15th" count the days since the previous sojong, not the Tibetan dates 29 and 30.
 The notes' last line says so: "there is math that can be learned as to why there are 14 or 15 days between the Sojongs".
-Read that way, the rule reproduces 96 of the 98 intervals between FPMT's 99 sojongs of 2022–2025: every waxing fortnight is 15 days, a waning one is 14 at the end of an odd month and 15 at the end of an even one, and the 2024 leap month 6 counts as even.
+Read that way, the rule reproduces 95 of the 98 intervals between FPMT's 99 sojongs of 2022–2025 (the other three are 2022-03-02 to 2022-03-18, 2022-04-16 to 2022-04-30 and 2022-12-22 to 2023-01-07): every waxing fortnight is 15 days, a waning one is 14 at the end of an odd month and 15 at the end of an even one, and the 2024 leap month 6 counts as even.
 The one unsourced piece is where the occasional extra day goes, which a 354-day scheme needs to stay with the moon; it was put to Ven. Thubten Chöying on 2026-09-19.
 The full account is under the boundary item in [roadmap.md](roadmap.md).
 The instruction this section used to end with — not to re-test without new material — was wrong: the material was already in hand.

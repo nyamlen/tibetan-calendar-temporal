@@ -1152,7 +1152,7 @@ nothing and reports success.
       notes' last line says so: "there are 14 or 15 days between the Sojongs". Read that way, FPMT's
       99 sojongs of 2022–2025 follow it: every waxing fortnight is 15 days, a waning one is 14 at the
       end of an odd month and 15 at the end of an even one, and the 2024 leap month 6 counts as even —
-      a 354-day schematic year. A count from 2022-01-02 reproduces **96 of the 98 intervals**. The
+      a 354-day schematic year. A count from 2022-01-02 reproduces **95 of the 98 intervals**. The
       residue is a one-day excursion (2022-03-18, undone at 2022-04-30) and one permanent extra day
       from 2023-01-07, which a 354-day scheme needs every few years to stay with the moon. **Where
       that extra day goes is the one unsourced piece**, and it was put to Ven. Thubten Chöying for
@@ -1214,15 +1214,15 @@ nothing and reports success.
         be institution-specific**: an example that is one institution's practice set teaches the
         shape while overclaiming the content. The seven cross-lineage anniversaries above — Gelug,
         Kagyu, Sakya and Nyingma — are the pattern.
-      - **Consequence, undecided: `DEFAULT_OBSERVANCES` still identifies itself as FPMT's.** Its
+      - **Consequence (settled, see the Closed note below): `DEFAULT_OBSERVANCES` still identified itself as FPMT's.** Its
         `id` is `"gelug"` and its `name` is `"Gelug (FPMT)"`, kept deliberately on 2026-09-04 as the
         machine-readable provenance of an FPMT-sourced rule set, and pinned by
         `test/public-api.test.ts` so a later "consistency fix" fails loudly. If the shipped set is a
         non-institutional example, both fields misdescribe it — but `id` is documented as a *stable
         identifier*, so changing it is a migration, and the 2026-09-04 reasoning against
-        `id: "default"` still holds. Settle before 1.0.0; it touches
+        `id: "default"` still holds. It touched
         [decisions/2026-09-03-no-institution-names-in-exports.md](decisions/2026-09-03-no-institution-names-in-exports.md).
-      - **Consequence, undecided: conventions are institution-specific even when content is not.**
+      - **Consequence (settled, see the Closed note below): conventions are institution-specific even when content is not.**
         `doubledDay: "second"`, `skippedDay: "preceding"` and `leapMonth: "leap"` are FPMT's choices,
         and Kopan — also Gelug — prints the opposite `doubledDay` for one 2024 düchen. An example
         config has to set some value for each. Whether it presents them as "one common convention,
@@ -1253,9 +1253,9 @@ nothing and reports success.
       - **No rule refers to another — provisionally.** Gaye may need it: if it falls on the sojong
         ending the rains retreat, its date comes from the sojong count. Ven. Chöying's answer on
         which sojong gaye replaces decides it. Allowing references later is additive; allowing them
-        now and forbidding them later would not be.
+        now and forbidding them later would not be. Tracked under "Awaiting a Tibetan teacher" below.
       - **A rule may list several days or dates**, so Precepts' monthly days or Naga puja's table is
-        one rule with one name. To be reviewed when Ven. Chöying replies.
+        one rule with one name. Tracked under "Awaiting a Tibetan teacher" below.
       - **A next-occurrence query ships**, on the pattern of `nextFullMoon`. Additive, so it does not
         block 1.0.0.
       - **`decisions/2026-08-12-observance-policy.md` is
@@ -1263,13 +1263,13 @@ nothing and reports success.
         record was then deleted — not amended piecemeal: four of its
         five "What this makes true" bullets are overtaken, and its subpath section says nothing in
         the layer is falsifiable, which a counted schedule tiled against Rabten's century is.
-      - **Still to express, easy to lose:** the line above says the model must also express "an
-        age" for a consumer's own anniversaries (FPMT prints "90th birthday"). Nothing in (A) does
-        yet; it is a count of years from a stated year, so it is either an optional field on a date
-        rule or result metadata in (B).
+      - **Done: an age.** The model had to express "an age" for a consumer's own anniversaries (FPMT
+        prints "90th birthday"). It is `ageFromYear` on the `western` form (and on `annual`), reported as
+        `Observance.age`, and it is tested externally by FPMT's printed ordinals for the Dalai Lama's and
+        Sakya Trichen's birthdays ([fpmt-calendar.md](fpmt-calendar.md)).
 
-      Once both are settled: confirm each surviving rule's day, tier and source against FPMT's
-      current guidance rather than trusting the 2022-2025 fixture check alone to still hold.
+      Confirming each surviving rule against FPMT's current guidance is the open item "Confirm each
+      example rule against FPMT's current guidance" below.
 
       **Done 2026-09-05: renamed `GELUG` to `DEFAULT_OBSERVANCES`** (`id` stays `"gelug"` — a data
       field, not an exported identifier, so the naming rule doesn't reach it — file renamed to
@@ -1281,27 +1281,31 @@ nothing and reports success.
       named after an institution or organisation, required alongside this rename, is recorded
       below, dated 2026-09-05.
 
-      **Still open:** add the settled rule list to `docs/guide.md` or `docs/architecture.md`, so a
-      reader is not required to open `default-observances.ts` to know what ships. **Blocks the item
-      below**: a code review that reads a ruleset which may still change content, membership or
-      name is reviewing a moving target.
+      **The documentation gate, amended and met.** The gate was "add the settled rule list to
+      `docs/guide.md` or `docs/architecture.md`", and its purpose was that a reader need not open
+      the source file to know what ships. That purpose is met by two documents instead: the README
+      names every rule, and it ships to npm, so a consumer sees the list without the repository; and
+      [observances.md](observances.md) gives each rule's level and the basis of its level and its English
+      name. The guide and the architecture document do not list the rules, and no longer need to. The
+      gate also said this blocked the code review; the ruleset has settled, so it no longer does.
 
       **Still separate:** the composable-config helper and the day-quality-code placement question,
       both recorded in the same nyamlen note, are distinct subsystems needing their own brainstorm
       and spec — not folded into this task. **Superseded 2026-09-19:** the day-quality codes join the
       convention layer (above), so the placement question is answered and the two are one brainstorm.
 
-      **Closed 2026-11-14, on the `observances-1.0` branch.** What ships is `EXAMPLE_OBSERVANCES`:
-      nineteen rules under three levels the config declares, `id: "example"`, `englishName:
-      "Example practice calendar"`. The `"gelug"` id and `"Gelug (FPMT)"` name are gone, which settles
-      the first undecided consequence above, and the doubled-day, skipped-day and leap-month
-      conventions are stated in its docblock as FPMT's, which settles the second. FPMT's complete set is
-      a configuration in the test suite, held to FPMT's own calendars for 2022-2026
-      ([fpmt-calendar.md](fpmt-calendar.md)). The rule list and the basis of every level and English
-      name are in [observances.md](observances.md), and the README names the rules, so a reader need not
-      open `example-observances.ts`. In this entry `DEFAULT_OBSERVANCES` and `default-observances.ts`
+      **Closed 2026-11-14, on the `observances-1.0` branch**, because the decision this item asked for
+      is made and shipped. What ships is `EXAMPLE_OBSERVANCES`: nineteen rules under three levels the
+      config declares, `id: "example"`, `englishName: "Example practice calendar"`. The `"gelug"` id and
+      `"Gelug (FPMT)"` name are gone, and the doubled-day, skipped-day and leap-month conventions are
+      stated in its docblock as FPMT's. FPMT's complete set is a configuration in the test suite, held to
+      FPMT's own calendars for 2022-2026 ([fpmt-calendar.md](fpmt-calendar.md)). The rule list is in the
+      README, which ships, and the level and name basis of every rule is in
+      [observances.md](observances.md). In this entry `DEFAULT_OBSERVANCES` and `default-observances.ts`
       are now `EXAMPLE_OBSERVANCES` and `example-observances.ts`, and the 2026-08-12 policy record was
-      superseded by [decisions/2026-11-11-observance-model.md](decisions/2026-11-11-observance-model.md) and then deleted; git history holds it.
+      superseded by [decisions/2026-11-11-observance-model.md](decisions/2026-11-11-observance-model.md)
+      and then deleted; git history holds it. What this decision left to ask, and what it left to
+      check, is in the two open items below, which are separate work and not caveats on this one.
 - [x] **Sojong, built and validated — moved from Beyond v1 to pre-1.0.0 on 2026-09-19 (Andreas); done
       2026-11-14, on the `observances-1.0` branch.** What this item asked for was a counted-schedule
       rule shape and the data that tests it, and both exist: the `counted` form, used by `sojong` in
@@ -1316,23 +1320,73 @@ nothing and reports success.
       day number: against FPMT's calendars for 2022–2025 a 15th-and-30th rule misses 38 occurrences and
       invents 36 ([almanac-sources.md](almanac-sources.md#sojong-a-counted-schedule-once-falsified-by-a-misreading)
       holds the history, including the reading that was falsified and then reversed).
-- [ ] **Sojong, what is not sourced — still open.** Three statements, and no more, are what the
-      repository records, and each is checked against
-      [almanac-sources.md](almanac-sources.md#sojong-a-counted-schedule-once-falsified-by-a-misreading):
+- [ ] **Sojong, what is not sourced — still open.** Four statements are what the repository records,
+      and each is checked against
+      [almanac-sources.md](almanac-sources.md#sojong-a-counted-schedule-once-falsified-by-a-misreading)
+      and [fpmt-calendar.md](fpmt-calendar.md):
       - **Sourced: the count of days between sojongs.** An oral teaching, recorded in unpublished
         personal notes held outside the repository and supplied on 2026-08-28, states that waxing
         sojongs are 15 and that waning ones are 14 at the end of an odd month and 15 at the end of an
         even one, with "14 or 15 days between the Sojongs"; read as a count since the previous
-        sojong, it reproduces 96 of the 98 intervals between FPMT's 99 sojongs of 2022–2025.
+        sojong, it reproduces 95 of the 98 intervals between FPMT's 99 sojongs of 2022–2025; the three it
+        does not are 2022-03-02 to 2022-03-18 (16 days), 2022-04-16 to 2022-04-30 (14, in an even
+        month) and 2022-12-22 to 2023-01-07 (16).
       - **Inferred, not sourced: the annual re-anchor on the month-1 full moon.** It is the fit that
         reproduces all 2,490 of Rabten Choeling's sojongs for 2000–2100, with none missed and none
         extra; Rabten states no method, so no source states the rule. Against FPMT's 99 sojongs of
         2022–2025 it agrees on 82.
-      - **Unanswered: what keeps the count with the moon.** The question went to Ven. Thubten Chöying
-        on 2026-09-19; she passed it to Liberation Prison Project on 2026-09-30, and the questions
-        went to its astrologer on 2026-10-02. No reply is recorded.
+      - **Unanswered: what keeps the count with the moon.** The question put to Ven. Thubten Chöying
+        on 2026-09-19 asked where the occasional extra day goes, and the anchor has superseded it. The
+        closer question was put to her on 2026-09-27: whether FPMT re-anchors on Chötrul Düchen at all,
+        whether it drops a sojong falling on Losar, and whether FPMT's run from 2022-04-30 to
+        2022-12-22 is a slip or a rule this package lacks. No document in this repository records an
+        answer to either.
       - **Untested: FPMT's convention for a skipped or doubled day 15 in month 1**, because none
         occurs in its 2022–2025 window.
+- [ ] **Awaiting a Tibetan teacher.** Questions the example's design left open because they are a
+      teacher's to answer; none blocks a release, and each says what is known.
+      - **Which sojong gaye replaces, or whether it replaces one.** As the question stood when the
+        rule model was scoped: if gaye falls on the sojong that ends the rains retreat, its date comes
+        from the sojong count, and whether a rule may refer to another decides on the answer. What is
+        known: the oral teaching in [almanac-sources.md](almanac-sources.md) says 24 sojongs occur in a
+        normal year and one is replaced by gaye, the end-of-rains-retreat observance. **Evidence from
+        monastery pages and a translation, not from an almanac, read 2026-11-14:**
+        the Mindrolling Monastery site (<https://www.khenchenrinpoche.org/?p=2303>) gives Yarne, the rains
+        retreat, "from the 15th day of the 6th lunar month to the 30th day of the 7th lunar month" and
+        "one and a half months"; the Amitabha Foundation (<https://amitabhafoundation.us/?p=5984>), in a
+        post dated 24 July 2021, has Yarne start on 24 July, "full moon of the sixth month of the lunar
+        calendar", held for 45 days, concluding on 6 September, "new moon of the seventh month of lunar
+        calendar"; Monlam (<https://monlam.org/activity/monastic-rainy-season-retreat-yarney/>) has it start
+        "on the full moon day of the 6th month" and conclude "on the new moon day of the 7th month"; and
+        84000's *The Chapter on Lifting Restrictions* (Mūlasarvāstivāda, Toh 1-3, translated by Robert
+        Miller; <https://84000.co/translation/toh1-3/UT22084-001-003-introduction>) says the rite is
+        "held at the end of the rains retreat as an adjunct to the Rite of Restoration (poṣadha)", and in
+        a note dates the Indian rite to the fifteenth of Āśvina or of Kārttika; it does not say that it
+        replaces the poṣadha or falls on the same day. So the sources place the end of the retreat at the
+        end of month 7, and none says which sojong gaye replaces; the Vinaya's "adjunct" differs from the
+        teaching's "replaced". **The sharpened question: does gaye replace the sojong at the end of
+        month 7, or accompany it?**
+      - **Whether a rule may refer to another.** Provisionally none may; allowing references later is
+        additive, and forbidding them after allowing them would not be. It decides on the gaye answer.
+      - **The several-days form for Precepts and Naga puja.** One rule listing several days or dates,
+        so Precepts' monthly days or Naga puja's table is one rule with one name. Their rules are not
+        known, so both are excluded from the example ([observances.md](observances.md)). What FPMT
+        prints is measured under the observance-layer item above: Precepts is days 8, 15, 30 plus the
+        Buddha days, 213 of 213 in 2022–2025, and Naga puja is a fixed month-and-day table with three
+        irregular cells.
+      - **How the fire-puja count treats a doubled or skipped day.** Lama Zopa Rinpoche's advice tells
+        the reader to check, and does not explain ([observances.md](observances.md)); a question for a
+        Tibetan teacher or scholar. The example's `lunarDayPlusWeekdayMod4` formula agrees with FPMT's
+        labels on most days and misses a few dozen, listed in
+        `test/validation/fpmt-observances.test.ts`.
+      - **Established Tibetan headings for the three levels**, if centres use any
+        ([observances.md](observances.md)).
+- [ ] **Confirm each example rule against FPMT's current guidance.** The example is held to FPMT's
+      calendars through 2026, with every residual listed by date in
+      `test/validation/fpmt-observances.test.ts` and set out in [fpmt-calendar.md](fpmt-calendar.md).
+      What has not been done is a read of FPMT's current prose guidance for the nineteen rules, to
+      confirm each rule's day and sourcing against what FPMT says now and not only against what its
+      calendars printed for 2022–2026.
 - [x] **Record FPMT's second line of codes and its moon icons in the fixture.** Done 2026-09-19.
       The fixture carries `codes` (verbatim, with FPMT's two misprints `NPG` and `ED-EW` kept as
       printed) and `moon`, an icon rather than a moon. The generator refuses any code its page's own
