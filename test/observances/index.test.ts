@@ -1205,6 +1205,14 @@ describe("the period form", () => {
 		expect(spanOf(found)).toEqual(["2026-03-28", "2026-04-07"]);
 	});
 
+	it("finds nothing for a one-day period whose only number is skipped", () => {
+		// 2153 month 2's 12 is skipped. Its neighbour 11 is the control: the same shape finds one day.
+		const one = (day: number) =>
+			isoList(isoDays("2026-03-01", "2026-04-30", period({ month: 2, day }, { month: 2, day })));
+		expect(one(11)).toEqual(["2026-03-29"]);
+		expect(one(12)).toEqual([]);
+	});
+
 	it("lets a skipped endpoint number bound the span, and takes both halves of a doubled one", () => {
 		const skipped = isoDays(
 			"2026-03-01",

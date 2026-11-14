@@ -30,6 +30,7 @@ import {
 } from "../src/index.js";
 import { EXAMPLE_OBSERVANCES, getObservances, observancesOn } from "../src/observances/index.js";
 import { temporalKindOf, temporalTypeNameOf } from "../src/temporal-kind.js";
+import { thrownBy } from "./support/thrown.js";
 
 /**
  * The boundary tests **kind, not identity**, so a `PlainDate` from a second Temporal
@@ -252,6 +253,23 @@ describe("non-ISO calendars", () => {
 		}
 		expect(message).toContain('withCalendar("iso8601")');
 		expect(julianDayFromIso(hebrew.withCalendar("iso8601"))).toBe(julianDayFromIso(NATIVE));
+	});
+
+	it("keeps the calendar advice for an ISO string carrying a non-ISO calendar annotation", () => {
+		// The string parses, so the refusal comes from the calendar check inside the parse's `try`;
+		// it must pass through rather than be rewrapped as an unparseable string. The rewrap appends
+		// the original message, so only the message's start tells the two paths apart.
+		const call = () => isoToTibetan(`${ISO}[u-ca=hebrew]` as never);
+		expect(codeOf(call)).toBe("TCT_INVALID_ARGUMENT");
+		expect(thrownBy(call)?.message).toMatch(
+			/^received a Temporal\.PlainDate in the hebrew calendar/,
+		);
+	});
+
+	it("names a Temporal type that carries no calendar day rather than calling it an object", () => {
+		const call = () => isoToTibetan(Temporal.PlainTime.from("12:00") as never);
+		expect(codeOf(call)).toBe("TCT_INVALID_ARGUMENT");
+		expect(thrownBy(call)?.message).toContain("a Temporal.PlainTime, which names no calendar day");
 	});
 
 	it("does not read a non-ISO date through its own fields, which is 3,760 years wrong", () => {
