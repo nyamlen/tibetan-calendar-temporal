@@ -1421,8 +1421,9 @@ nothing and reports success.
       and `actions/setup-node` given `registry-url: 'https://registry.npmjs.org'` — that line
       generates the `.npmrc` that reads `NODE_AUTH_TOKEN`; without it the token is ignored and
       the publish goes out anonymous
-- [ ] Add `"provenance": true` to `publishConfig` rather than passing `--provenance` at the
-      call site
+- [x] Add `"provenance": true` to `publishConfig` rather than passing `--provenance` at the
+      call site. Done 2026-11-14. It also makes a local `npm publish` refuse, since provenance
+      needs a supported CI, which enforces publishing from CI
 - [ ] Confirm `repository.url` still matches the building repo. Provenance attestation fails if
       they disagree — currently correct, but it would have broken had the repo not been
       transferred to the org before v1
