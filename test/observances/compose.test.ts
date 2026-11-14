@@ -555,6 +555,9 @@ describe("composeObservances: hostile values nested in rules and levels", () => 
 		const error = thrownBy(() => composeObservances(base, l as ObservanceLayer));
 		expect(error?.constructor?.name).not.toBe("DOMException");
 		expect(error?.code).toBe(INVALID);
+		// The validator refuses it, naming what is wrong. The copy's own refusal, which a Proxy gets,
+		// would also carry the code, so without this a copy made before validation would pass.
+		expect(error?.message).not.toMatch(/could not be copied/);
 	});
 });
 
