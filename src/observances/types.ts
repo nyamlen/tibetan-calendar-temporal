@@ -324,7 +324,10 @@ export interface ObservanceConfig {
 	/** The levels rules may name. A rule naming a level not declared here is refused. */
 	readonly levels?: readonly ObservanceLevel[];
 
-	/** The rules. Order does not matter; results are returned in date order. */
+	/**
+	 * The rules. Their order is the order of results within one day: the first rule listed comes
+	 * first. Across days, results are in date order.
+	 */
 	readonly rules: readonly ObservanceRule[];
 }
 
