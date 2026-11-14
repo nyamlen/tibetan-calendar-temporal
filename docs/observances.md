@@ -151,6 +151,11 @@ The other nine names print identically in every year the fixture holds them.
 
 The example's docblock says the same, and `src/observances/example-observances.ts` is what the table describes.
 
+**Where the example's names differ from FPMT's.**
+FPMT's Vajrayogini page calls both the 10th and the 25th "dakini days", while the example names the 10th "Heruka Day" and the 25th "Ḍākinī Day".
+The day numbers agree and only the naming differs; the two names are kept by decision, and no FPMT page fetched uses the name "Heruka Day".
+[fpmt-calendar.md](fpmt-calendar.md#fpmts-prose-guidance-against-the-nineteen-rules) records the page and the read.
+
 Left out of the example: Lama Thubten Yeshe's anniversary, which belongs to FPMT as its founder and is kept in the test suite's FPMT configuration with the rest of FPMT's own set; Western-dated birthdays; Precepts and Naga puja, whose rules are not known; and eclipses, which are a front end's to date.
 
 A configuration carries **no source field** (decided 2026-11-10): a centre is the authority on its own practice days, and none of this provenance is for the person reading the calendar.

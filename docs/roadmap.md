@@ -1392,12 +1392,20 @@ nothing and reports success.
         `test/validation/fpmt-observances.test.ts`.
       - **Established Tibetan headings for the three levels**, if centres use any
         ([observances.md](observances.md)).
-- [ ] **Confirm each example rule against FPMT's current guidance.** The example is held to FPMT's
-      calendars through 2026, with every residual listed by date in
-      `test/validation/fpmt-observances.test.ts` and set out in [fpmt-calendar.md](fpmt-calendar.md).
-      What has not been done is a read of FPMT's current prose guidance for the nineteen rules, to
-      confirm each rule's day and sourcing against what FPMT says now and not only against what its
-      calendars printed for 2022–2026.
+- [x] **Confirm each example rule against FPMT's current guidance — read 2026-11-14.** The example is
+      held to FPMT's calendars through 2026, with every residual listed by date in
+      `test/validation/fpmt-observances.test.ts`; this item asked for a read of FPMT's current prose
+      guidance as well, and that read is done and recorded rule by rule in
+      [fpmt-calendar.md](fpmt-calendar.md#fpmts-prose-guidance-against-the-nineteen-rules). Result:
+      11 rules agree (`saga-dawa-month` on its first day only, `sojong` as far as "middle and end"),
+      1 differs in naming only (`dakini-day`, kept by decision), and **7 have no prose to confirm
+      them: `milarepa`, `guru-rinpoche`, `gampopa`, `karmapa-16`, `sakya-pandita`, `dudjom-rinpoche`
+      and `fire-puja`. Those seven are not confirmed by this read**; the six anniversaries are held
+      by the calendars alone, and the fire puja by its listed residuals. The limits are in that
+      section: prose only, pages read through a summarising fetch tool, one PDF blocked, and no
+      per-teacher pages found, which is not proof that none exists. The gate was a read of the prose,
+      and it was made; that nothing was found for seven rules is a result, tracked for the fire puja
+      under "Awaiting a Tibetan teacher" above.
 - [x] **Record FPMT's second line of codes and its moon icons in the fixture.** Done 2026-09-19.
       The fixture carries `codes` (verbatim, with FPMT's two misprints `NPG` and `ED-EW` kept as
       printed) and `moon`, an icon rather than a moon. The generator refuses any code its page's own

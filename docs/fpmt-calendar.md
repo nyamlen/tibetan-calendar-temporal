@@ -148,3 +148,63 @@ A tsok is always offered within a sādhana, and the Yamāntaka practice — a pr
 An open calendar printing "Tsog" tells an initiate the day and tells someone uninitiated nothing about what to do.
 **So neither label identifies a practice, and neither says who the day is for.**
 What this means for a configuration, and the levels that replaced the tiers, is in [observances.md](observances.md#who-a-practice-is-for).
+
+## FPMT's prose guidance against the nineteen rules
+
+Read on 2026-11-14.
+The question is whether each rule of `EXAMPLE_OBSERVANCES` says what FPMT's own written guidance says, as distinct from what its calendars print, which the section "The FPMT configuration the test suite holds" and `test/validation/fpmt-observances.test.ts` cover.
+Only short phrases are quoted, and only ones read on the page.
+
+**Limits.**
+This is a read of prose and not of the calendar fixture.
+The pages were read through a fetch tool that summarises them, not as raw markup, so a phrase is as that tool returned it.
+FPMT's 2023 Liberation calendar PDF could not be fetched (HTTP 403) and nothing from it is relied on.
+Whether FPMT has per-teacher pages for the six anniversaries without prose was searched for on fpmt.org and not found, which is not proof that none exists.
+Three more FPMT pages, the Saka Dawa notices for 2024, 2025 and 2026, were read for the Saga Dawa row only.
+FPMT's levels, who may do what, were checked only where a page states one: tsog needs a Highest Yoga Tantra initiation.
+
+Pages: A = <https://fpmt.org/media/resources/dharma-dates/dates-explained/>; B = <https://fpmt.org/teachers/zopa/advice/practice-on-the-four-great-holy-days/>; D = <https://fpmt.org/teachers/zopa/advice/lamatsongkhapa/>; E = <https://fpmt.org/edu-news/vajrayogini-and-guru-yoga-materials/>; F = <https://fpmt.org/edu-news/saka-dawa-duchen-2026-sunday-may-31/> (2026).
+
+| Rule id | What the example says | What FPMT's prose says | Verdict |
+|---|---|---|---|
+| `chotrul-duchen` | annual, month 1 day 15 | B: "Day 15 is called Chotrul Duchen", of month 1 | AGREES |
+| `saga-dawa-duchen` | annual, month 4 day 15 | B: day 15 of month 4, "birth, enlightenment, and parinirvana" | AGREES |
+| `chokhor-duchen` | annual, month 6 day 4 | B: day 4 of month 6, "first teaching" | AGREES |
+| `lhabab-duchen` | annual, month 9 day 22 | B: day 22 of month 9, the return "from the God Realm of the Thirty-Three" | AGREES |
+| `tsongkhapa` | annual, month 10 day 25 | D: "on the twenty-fifth day of the tenth month of the Tibetan calendar" | AGREES |
+| `milarepa` | annual, month 1 day 14 | A has a "BIRTHDAYS AND ANNIVERSARIES OF HOLY BEINGS" heading whose entries are Lord Buddha's only | NO GUIDANCE FOUND |
+| `guru-rinpoche` | annual, month 5 day 10 | none on the pages read | NO GUIDANCE FOUND |
+| `gampopa` | annual, month 6 day 15 | none on the pages read | NO GUIDANCE FOUND |
+| `karmapa-16` | annual, month 9 day 9 | none on the pages read | NO GUIDANCE FOUND |
+| `sakya-pandita` | annual, month 11 day 14 | none on the pages read | NO GUIDANCE FOUND |
+| `dudjom-rinpoche` | annual, month 11 day 18 | none on the pages read | NO GUIDANCE FOUND |
+| `saga-dawa-month` | period, month 4 day 1 to month 4 day 30 | F calls May 17, 2026 "the first day of holy Saka Dawa month" and gives no end; A does not name Saka Dawa; B and the 2024 and 2025 Saka Dawa pages treat it as a single day | AGREES on the first day only; no span stated |
+| `sojong` | counted from month 1 day 15, with its own conventions | A: the confession ceremony "usually falls at middle and end of every Tibetan month"; no day counts, no doubled-day rule, no level | AGREES as far as "middle and end", nothing on the count or conventions |
+| `fire-puja` | formula over day number and weekday | A: "Many days every month are good for fire pujas"; no formula and no fixed days | NO GUIDANCE FOUND |
+| `medicine-buddha` | monthly, days 8 and 15 | A: "8th or 15th of every Tibetan month" | AGREES |
+| `tara` | monthly, day 8 | A: "8th of every Tibetan month" | AGREES |
+| `heruka-day` | monthly, day 10, named "Heruka Day" | A: tsog "10th and 25th of every Tibetan month"; E: tsog "on dakini days on the Tibetan calendar 10th and 25th"; neither page uses the name "Heruka Day" | AGREES on the day; the name is the example's own |
+| `dakini-day` | monthly, day 25, named "Ḍākinī Day" | E: "dakini days on the Tibetan calendar 10th and 25th", so FPMT calls both days dakini days | DIFFERS in naming only: the day numbers agree |
+| `dharma-protector-day` | monthly, day 29, level empowerment | A: Protector puja "29th of every Tibetan month"; nothing on a level | AGREES on the day; level not addressed |
+
+**Counts, re-checked against the example's source:** 11 AGREE (two of them partly: `saga-dawa-month` on its first day only and `sojong` as far as "middle and end"), 1 DIFFERS, 7 have NO GUIDANCE FOUND.
+The seven are `milarepa`, `guru-rinpoche`, `gampopa`, `karmapa-16`, `sakya-pandita`, `dudjom-rinpoche` and `fire-puja`: FPMT's holy-beings section lists only the Buddha's days for the six anniversaries, and for the fire puja it gives no formula.
+An earlier read of the first pages alone counted `saga-dawa-month` as an eighth rule without guidance; the 2026 Saka Dawa notice's phrase moved it.
+Where the calendars, not the prose, state these six anniversaries, the section "Anniversaries" above records their dates.
+
+### The dakini days: the day numbers agree and the naming differs
+
+FPMT calls both the 10th and the 25th dakini days.
+The example names the 25th "Ḍākinī Day" and the 10th "Heruka Day", both authored names composed from dedications Cornu gives ([observances.md](observances.md#the-basis-of-each-english-name-in-the-example)).
+The names are kept by decision, and no FPMT page fetched uses "Heruka Day".
+
+### Doubled and skipped days
+
+A says special days on doubled days are "usually celebrated on the second day", and on missing days "usually celebrated on the preceding day".
+The example's config follows that for the great days and the anniversaries, which take the config's `doubledDay: "second"` and `skippedDay: "preceding"`.
+The five monthly rules override both to `"both"` and `"omit"`.
+A does not say whether a monthly puja is a "special day" and, under its tsog, Medicine Buddha, Tara and Protector headings, gives only the day numbers, so its prose neither confirms nor contradicts those overrides.
+They rest on the calendar fixture.
+
+Two leads came from search-result summaries of the blocked 2023 PDF and were **not** read on any page: that on a doubled date tsog is "always on the first day", and that Naga, Medicine Buddha, Tara and Protector pujas may be done on both days.
+They are **unverified leads**, not findings; when A was asked directly it did not address tsog on doubled days.
