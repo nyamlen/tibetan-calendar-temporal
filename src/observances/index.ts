@@ -57,6 +57,11 @@ export type {
  * this day", and the categories overlap. Filter {@link Observance.rule} by `level` or `tags` for a
  * subset.
  *
+ * **Order.** Results are in date order, and results on the same day follow the order of the rules in
+ * `config.rules`: the first rule listed comes first. That is a contract, so a config's author
+ * chooses what a day's list opens with, and {@link composeObservances} states how a layer changes
+ * the order.
+ *
  * Both bounds are inclusive. Results for one day may be several, and on a doubled date under
  * `"both"` the same rule appears twice with different {@link Observance.resolution} values. A rule
  * gives **one result per calendar day**: where two of its entries land on the same day — a rule
@@ -153,20 +158,11 @@ export function getObservances(
 		}
 	}
 
-	// Code-unit comparison, not localeCompare: that reads the host's default locale and ICU build,
-	// so two machines could order the same input differently. "Pure stateless functions, same
-	// input same output" is a stated non-negotiable, and a consumer config -- the documented use --
-	// with accented or mixed-case ids is where it would have bitten. The shipped ASCII ids sort
-	// identically either way, so nothing here would ever have caught it.
-	found.sort(
-		(a, b) =>
-			a.julianDay - b.julianDay ||
-			(a.observance.rule.id < b.observance.rule.id
-				? -1
-				: a.observance.rule.id > b.observance.rule.id
-					? 1
-					: 0),
-	);
+	// By day alone. Results are pushed rule by rule in the order of `config.rules`, and a rule gives
+	// one result per calendar day, so the sort is stable and two results on one day come from two
+	// rules, left in the config's order, which is the documented same-day order. No tie-break:
+	// none could ever compare equal.
+	found.sort((a, b) => a.julianDay - b.julianDay);
 	return found.map((entry) => entry.observance);
 }
 
@@ -175,6 +171,7 @@ export function getObservances(
  *
  * @remarks
  * The single-day case of {@link getObservances}, which is what a "what is today" screen wants.
+ * Results follow the order of the rules in `config.rules`.
  *
  * @param date - The calendar day.
  * @param config - Which observances, and the conventions for resolving them. Required.

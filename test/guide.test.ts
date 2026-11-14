@@ -223,12 +223,15 @@ describe("guide examples", () => {
 
 	it("reads a day by id, level and tags, as the guide's first example does", () => {
 		const day = observancesOn(iso("2026-03-03"), EXAMPLE_OBSERVANCES);
-		expect(day.map((o) => o.rule.id)).toEqual([
-			"chotrul-duchen",
-			"fire-puja",
-			"medicine-buddha",
-			"sojong",
-		]);
+		// The ids the guide prints, parsed from its own comment, in the order it prints them: the
+		// order of the rules in the config.
+		const block = fenceStarting("js", "import { getObservances, observancesOn");
+		const printed = /day\.map\(\(o\) => o\.rule\.id\);\s*\/\/ (\[.*\])/.exec(block)?.[1];
+		expect(printed, "the guide's printed ids").toBeDefined();
+		const guideIds = JSON.parse((printed ?? "[]").replaceAll("'", '"')) as string[];
+		expect(guideIds).toHaveLength(4);
+		expect(day.map((o) => o.rule.id)).toEqual(guideIds);
+		expect(guideIds).toEqual(["chotrul-duchen", "sojong", "fire-puja", "medicine-buddha"]);
 		const duchen = day.find((o) => o.rule.tags?.includes("duchen"));
 		expect(duchen?.rule.id).toBe("chotrul-duchen");
 		expect(duchen?.rule.level).toBe("everyone");

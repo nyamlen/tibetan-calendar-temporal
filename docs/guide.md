@@ -349,7 +349,7 @@ import { getObservances, observancesOn, composeObservances, nextObservance, EXAM
   from 'tibetan-calendar-temporal/observances';
 
 const day = observancesOn(Temporal.PlainDate.from('2026-03-03'), EXAMPLE_OBSERVANCES);
-day.map((o) => o.rule.id);   // [ 'chotrul-duchen', 'fire-puja', 'medicine-buddha', 'sojong' ]
+day.map((o) => o.rule.id);   // [ 'chotrul-duchen', 'sojong', 'fire-puja', 'medicine-buddha' ]
 const duchen = day.find((o) => o.rule.tags?.includes('duchen'));
 duchen.rule.id;              // 'chotrul-duchen'
 duchen.rule.level;           // 'everyone'
@@ -553,6 +553,9 @@ The founder's birthday above is a Western date, born in 1950, so on 6 July 2026 
 The founding day is on a Tibetan date, so its `ageFromYear` is a Tibetan year: `2113` gives `age: 40`
 for 2026's, which falls in Tibetan year 2153. Give it `1950`, a Western year, and the age comes out as
 203, with no error — a number plausible only to someone who knows which calendar it counts.
+An annual date is counted in the Tibetan year it stands for, not the year of the day it lands on:
+where `skippedDay` shifts a skipped 1/1 back onto the last day of the year before, that day still
+counts as the new year's, in the window and in the age.
 
 ```js
 const birthday = observancesOn(Temporal.PlainDate.from('2026-07-06'), myCentre)

@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { isoToTibetan, losarFor, tibetanDateExists } from "../../src/computation/conversion.js";
 import { daysInMonth } from "../../src/months.js";
-import { EXAMPLE_OBSERVANCES, getObservances, observancesOn } from "../../src/observances/index.js";
+import {
+	composeObservances,
+	EXAMPLE_OBSERVANCES,
+	getObservances,
+	observancesOn,
+} from "../../src/observances/index.js";
 import type { Observance, ObservanceConfig, ObservanceRule } from "../../src/observances/types.js";
 import { BHUTAN } from "../../src/traditions/bhutan.js";
 import { PHUGPA } from "../../src/traditions/phugpa.js";
@@ -132,39 +137,93 @@ describe("observance resolution", () => {
 		expect([...days].sort()).toEqual(days);
 	});
 
-	// The tie-break used localeCompare, which reads the host locale and ICU build -- so the same
-	// input could order differently on two machines, against a stated non-negotiable of this
-	// project. Shipped ids are ASCII and sort identically either way, so only a consumer config
-	// like this one can pin the behaviour.
-	it("breaks same-day ties by code unit, not by host collation", () => {
-		const rule = (id: string) => ({
-			id,
-			englishName: id,
-			when: { type: "monthly" as const, days: [15] },
-		});
-		const config = {
-			...EXAMPLE_OBSERVANCES,
-			id: "tie",
-			// Deliberately supplied out of order, and mixing case and an accent -- the inputs where
-			// collations disagree with each other.
-			rules: [rule("Zebra"), rule("apple"), rule("guru-rinpoche"), rule("guru-rinpoché")],
-		};
-		// The window covers two Tibetan months, so day 15 comes round twice; the date is the primary
-		// key and the id tie-break applies within each day.
-		const byDay = new Map<string, string[]>();
-		for (const o of getObservances(iso("2026-05-01"), iso("2026-05-31"), config)) {
-			const key = o.date.isoDate.toString();
-			byDay.set(key, [...(byDay.get(key) ?? []), o.rule.id]);
-		}
-		expect(byDay.size).toBeGreaterThan(0);
+	// Within a day, results follow the order of the rules in the config: a contract, so a consumer
+	// listing a day shows what the config's author put first. It was by rule id (code unit) until
+	// 2026-11-14, which put "medicine-buddha" before "saga-dawa-duchen" on the great day.
+	describe("results on one day follow the order of the rules in the config", () => {
+		const idsOn = (day: string, config: ObservanceConfig) =>
+			observancesOn(iso(day), config).map((o) => o.rule.id);
 
-		for (const ids of byDay.values()) {
-			expect(ids).toEqual([...ids].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0)));
-			// Uppercase sorts before lowercase by code unit; most locales do the opposite.
-			expect(ids[0]).toBe("Zebra");
-			// "guru-rinpoche" before "guru-rinpoché": by code unit "e" (0x65) precedes "é" (0xE9).
-			expect(ids.indexOf("guru-rinpoche")).toBeLessThan(ids.indexOf("guru-rinpoché"));
-		}
+		it("puts the Saga Dawa Düchen, the month and Medicine Buddha in config order on 2026-05-31", () => {
+			const order = EXAMPLE_OBSERVANCES.rules.map((rule) => rule.id);
+			expect(
+				["saga-dawa-duchen", "saga-dawa-month", "medicine-buddha"].map((id) => order.indexOf(id)),
+			).toEqual([1, 11, 14]);
+			expect(idsOn("2026-05-31", EXAMPLE_OBSERVANCES)).toEqual([
+				"saga-dawa-duchen",
+				"saga-dawa-month",
+				"medicine-buddha",
+			]);
+		});
+
+		it("puts Chötrul Düchen, sojong, the fire puja and Medicine Buddha in config order on 2026-03-03", () => {
+			expect(idsOn("2026-03-03", EXAMPLE_OBSERVANCES)).toEqual([
+				"chotrul-duchen",
+				"sojong",
+				"fire-puja",
+				"medicine-buddha",
+			]);
+		});
+
+		it("follows a config whose id order is the reverse of its rule order, in a range as in a day", () => {
+			const rule = (id: string) => ({
+				id,
+				englishName: id,
+				when: { type: "monthly" as const, days: [15] },
+			});
+			// Deliberately mixed case and an accent: neither collation nor code-unit order matters now.
+			const ids = ["Zebra", "guru-rinpoché", "guru-rinpoche", "apple"];
+			const config = { ...EXAMPLE_OBSERVANCES, id: "order", rules: ids.map(rule) };
+			const byDay = new Map<string, string[]>();
+			for (const o of getObservances(iso("2026-05-01"), iso("2026-05-31"), config)) {
+				const key = o.date.isoDate.toString();
+				byDay.set(key, [...(byDay.get(key) ?? []), o.rule.id]);
+			}
+			expect(byDay.size).toBeGreaterThan(0);
+			for (const found of byDay.values()) expect(found).toEqual(ids);
+			const reversed = { ...config, id: "reversed", rules: [...config.rules].reverse() };
+			expect(idsOn([...byDay.keys()][0] as string, reversed)).toEqual([...ids].reverse());
+		});
+
+		it("keeps a composed config's order: a removed rule drops out, a replaced one stays, an added one follows", () => {
+			const composed = composeObservances(EXAMPLE_OBSERVANCES, {
+				id: "composed",
+				englishName: "Composed",
+				remove: ["sojong"],
+				replace: [
+					{
+						id: "medicine-buddha",
+						englishName: "Medicine Buddha, replaced",
+						when: { type: "monthly", days: [8, 15] },
+					},
+				],
+				add: [
+					{
+						id: "zz-added-first",
+						englishName: "Added first",
+						when: { type: "monthly", days: [8, 15] },
+					},
+					{
+						id: "aa-added-second",
+						englishName: "Added second",
+						when: { type: "monthly", days: [8, 15] },
+					},
+				],
+			});
+			expect(idsOn("2026-03-03", composed)).toEqual([
+				"chotrul-duchen",
+				"fire-puja",
+				"medicine-buddha",
+				"zz-added-first",
+				"aa-added-second",
+			]);
+			expect(idsOn("2026-03-26", composed)).toEqual([
+				"medicine-buddha",
+				"tara",
+				"zz-added-first",
+				"aa-added-second",
+			]);
+		});
 	});
 
 	// Cost is linear in the span and the per-month work is real, so an unbounded query is minutes

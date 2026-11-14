@@ -120,7 +120,9 @@ function assertNoRepeats(lists: readonly (readonly [string, readonly string[]])[
  * in the order given. An id may appear **once** in a layer, across `remove`, `replace` and `add`
  * together: removing a rule and adding it back is refused, because it would silently move the rule
  * to the end, and `replace` is how to change a rule and keep its place. `add` refuses an id the
- * base has.
+ * base has. The result's rule order is therefore the base's, minus what was removed, with replaced
+ * rules in place and added ones appended in the layer's order — and that order is the order of
+ * same-day results in {@link getObservances}.
  *
  * **Levels** are changed in the same order as rules: the base's order minus `removeLevels`, each
  * `replaceLevels` entry taking the position of the base level with the same id, then `addLevels` in
