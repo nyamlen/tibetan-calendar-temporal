@@ -61,7 +61,7 @@ const duchen = observances
 		Temporal.PlainDate.from("2026-12-31"),
 		observances.EXAMPLE_OBSERVANCES,
 	)
-	.filter((o) => o.rule.id.endsWith("-duchen"));
+	.filter((o) => o.rule.tags?.includes("duchen"));
 check(
 	duchen.length === 4,
 	`observances subpath returned ${duchen.length} duchen for 2026, wanted 4`,

@@ -42,6 +42,7 @@
  *   `docs/guide.md` shows a worked one.
  * - **Precepts and Naga puja.** FPMT prints them, and no rule for either is known.
  * - **Eclipses**, which a front end dates.
+ * - **Karma Rishi.** FPMT prints it as a seven-day period in 2026 only, and no rule for it is known.
  * - **Astrological day qualities.** The `FD-EW`, `GCH`, `NMP` codes on FPMT's calendars are the
  *   almanac's elemental and planetary attributes, not observances. The elemental ones are computed,
  *   on the `./astrology` subpath.

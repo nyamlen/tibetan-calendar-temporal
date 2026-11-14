@@ -105,7 +105,7 @@ Measured 2026-11-14, the residuals are:
 | Sojong | 34 | FPMT's 17 sojongs from 2022-04-30 to 2022-12-22, each a day before the engine's 17 (2022-05-01 to 2022-12-23); 2026 agrees fully |
 | Anniversaries FPMT omits | 4 | Sakya Pandita and Dudjom Rinpoche on 2023-12-25 and 2023-12-29, in Tibetan 2150, and on 2026-12-23 and 2026-12-26, in Tibetan 2153; each the engine's day and not FPMT's |
 | The Sixteenth Karmapa, doubled 9/9 | 2 | FPMT keeps 2026-10-19, the first half; the example's `doubledDay: "second"` gives 2026-10-20 |
-| Day number | 3 | 2022-12-03 (the Tsog) and 2024-12-08 (the Medicine Buddha and Tara pujas, two labels), where FPMT's day number is not the engine's; the third such day, 2023-11-09, carries no label of these rules |
+| Day number | 3 | 2022-12-03 (the Tsog) and 2024-12-08 (the Medicine Buddha and Tara pujas, two labels), where FPMT's day number is not the engine's; the third such day, 2023-11-09, produces no residual |
 | Fire puja | 40 | the formula's misses, 21 on FPMT's side and 19 on the engine's, listed by date in the suite |
 
 Everything else agrees, including every `age` and the window of Lama Zopa Rinpoche's passing.
@@ -114,8 +114,8 @@ When the fixture is extended to FPMT's 2027 calendars the suite fails on every n
 
 ## Sojong: one 17-day departure from the counted schedule
 
-FPMT prints 99 sojongs from 2022 to 2025.
-Rabten Choeling's calendar follows a counted schedule re-anchored every year on the month-1 full moon, the rule set out in [almanac-sources.md](almanac-sources.md#sojong-a-counted-schedule-once-falsified-by-a-misreading); FPMT agrees with it on 82 of the 99.
+FPMT prints 124 sojongs from 2022 to 2026, 99 of them in 2022-2025 and 25 in 2026 (counted over the days of its labels in the fixture).
+Rabten Choeling's calendar follows a counted schedule re-anchored every year on the month-1 full moon, the rule set out in [almanac-sources.md](almanac-sources.md#sojong-a-counted-schedule-once-falsified-by-a-misreading); FPMT agrees with it on 107 of the 124, which is 82 of the 99 in 2022-2025 and all 25 in 2026.
 The other 17 are one run, 30 April 2022 to 22 December 2022, every one a day earlier than the rule.
 It opens with a 14-day waning fortnight in the 2nd month, which is even and gives 15 under the rule, and it closes on 7 January 2023 with a 16-day waxing fortnight in the 11th month.
 FPMT therefore came back into step two months before the 2023 anchor would have forced it to.

@@ -89,7 +89,7 @@ const FIRE_PUJA_MISSES: readonly string[] = FIRE_PUJA_RESIDUALS.map((r) => r.sli
  * - **Day number.** FPMT's printed day number differs from the engine's on three days, and a label tied
  *   to a day number inherits it: 2022-12-03 is FPMT's 10th and the engine's 11th, and 2024-12-08
  *   FPMT's 7th and the engine's 8th, so the engine misses the Tsog and puts the 8th's two pujas a day
- *   early. 2023-11-09 carries no label of these rules. `docs/testing.md` records the three days.
+ *   early. 2023-11-09 produces no residual. `docs/testing.md` records the three days.
  * - **Sojong.** FPMT's 17 sojongs from 2022-04-30 to 2022-12-22 each fall one day before the engine's
  *   17, 2022-05-01 to 2022-12-23, which follow Rabten Choeling's counted schedule. FPMT agrees with the
  *   engine on every other sojong, 2026 included. Unexplained: a slip, or a rule the form lacks.

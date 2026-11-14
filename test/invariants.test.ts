@@ -294,6 +294,7 @@ describe("observancesOn is the day's slice of getObservances", () => {
 	it("agrees on doubled and skipped days, leap months, both sides of Losar and the sojong anchors", () => {
 		const mismatches: string[] = [];
 		let compared = 0;
+		let anchorsSampled = 0;
 		const kinds = new Set<string>();
 		for (let year = 1990; year <= 2049; year++) {
 			const whole = getObservances(
@@ -329,6 +330,7 @@ describe("observancesOn is the day's slice of getObservances", () => {
 			for (const offset of [-1, 0, 1]) add(losar.add({ days: offset }));
 			for (const o of whole) {
 				if (o.rule.id === "sojong" && o.resolution !== "counted") {
+					anchorsSampled++;
 					add(o.date.isoDate.subtract({ days: 2 }));
 					add(o.date.isoDate.subtract({ days: 1 }));
 				}
@@ -351,6 +353,9 @@ describe("observancesOn is the day's slice of getObservances", () => {
 		expect(mismatches).toEqual([]);
 		// Guards against agreeing over days that carry nothing.
 		expect(compared).toBeGreaterThan(2500);
+		// Every year has an anchor, and each is a result that does not resolve as counted, so none
+		// goes unsampled.
+		expect(anchorsSampled).toBeGreaterThanOrEqual(60);
 		expect([...kinds].sort()).toEqual([
 			"counted",
 			"dayAfterSkipped",

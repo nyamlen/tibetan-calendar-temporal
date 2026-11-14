@@ -15,7 +15,7 @@
  *   Temporal.PlainDate.from("2026-12-31"),
  *   EXAMPLE_OBSERVANCES,
  * );
- * days.filter((o) => o.rule.id.endsWith("-duchen")).map((o) => o.date.isoDate.toString());
+ * days.filter((o) => o.rule.tags?.includes("duchen")).map((o) => o.date.isoDate.toString());
  * ```
  *
  * @packageDocumentation

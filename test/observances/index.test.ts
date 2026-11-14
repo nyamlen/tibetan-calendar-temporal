@@ -511,6 +511,22 @@ describe("consumer config validation", () => {
 			expect(Object.isFrozen(rule.when)).toBe(true);
 			if (rule.when.type === "monthly") expect(Object.isFrozen(rule.when.days)).toBe(true);
 		}
+		const sojong = EXAMPLE_OBSERVANCES.rules.find((r) => r.id === "sojong");
+		const when = sojong?.when;
+		if (when?.type !== "counted") throw new Error("sojong is not counted");
+		const shape = {
+			levels: EXAMPLE_OBSERVANCES.levels,
+			level: EXAMPLE_OBSERVANCES.levels?.[0],
+			tags: EXAMPLE_OBSERVANCES.rules.find((r) => r.id === "chotrul-duchen")?.tags,
+			tibetanName: EXAMPLE_OBSERVANCES.rules.find((r) => r.id === "chotrul-duchen")?.tibetanName,
+			anchor: when.anchor,
+			waningDays: when.waningDays,
+			exclude: when.exclude,
+			excluded: when.exclude?.[0],
+		};
+		for (const [name, value] of Object.entries(shape)) {
+			expect([name, typeof value, Object.isFrozen(value)]).toEqual([name, "object", true]);
+		}
 		expect(() =>
 			(EXAMPLE_OBSERVANCES.rules as ObservanceRule[]).push({ id: "z" } as ObservanceRule),
 		).toThrow(TypeError);
