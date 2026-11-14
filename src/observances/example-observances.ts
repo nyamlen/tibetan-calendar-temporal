@@ -22,9 +22,11 @@
  *
  * ## English names
  *
- * The four great days and the seven anniversaries carry FPMT's own labels, word for word. The
- * Heruka, Ḍākinī and Dharma Protector days are named by their dedication, from Cornu's summary of
- * Dudjom Rinpoche. The others are authored. `docs/observances.md` gives each name's basis.
+ * The four great days and the seven anniversaries carry FPMT's own labels, word for word, each
+ * following one year's printing where FPMT's varies. The Heruka, Ḍākinī and Dharma Protector day
+ * names are authored, composed from the dedications Cornu's summary of Dudjom Rinpoche gives those
+ * days. The others, and the level names and the config's own, are authored too. `docs/observances.md`
+ * gives each name's basis.
  *
  * ## Tibetan names
  *
