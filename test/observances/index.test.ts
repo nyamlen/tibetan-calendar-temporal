@@ -1653,3 +1653,27 @@ describe("the counted form", () => {
 		});
 	});
 });
+
+describe("a config with a rule of a form this release does not know", () => {
+	const tara = EXAMPLE_OBSERVANCES.rules.find((r) => r.id === "tara");
+	const written = {
+		...EXAMPLE_OBSERVANCES,
+		id: "newer",
+		rules: [
+			tara,
+			{ id: "eclipse-practice", englishName: "Eclipse practice", when: { type: "eclipse" } },
+		],
+	} as unknown as ObservanceConfig;
+
+	it("is refused as a whole, so the valid rule beside it cannot be queried", () => {
+		expect(thrownBy(() => observancesOn(iso("2026-01-08"), written))?.code).toBe(CONFIG_CODE);
+		const withoutUnknown = {
+			...written,
+			id: "older",
+			rules: [tara],
+		} as unknown as ObservanceConfig;
+		expect(
+			getObservances(iso("2026-01-01"), iso("2026-01-31"), withoutUnknown).length,
+		).toBeGreaterThan(0);
+	});
+});

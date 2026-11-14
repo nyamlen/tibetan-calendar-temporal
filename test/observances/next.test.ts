@@ -548,6 +548,22 @@ describe("nextObservance, its arguments", () => {
 		}
 	});
 
+	it("throws TCT_INVALID_ARGUMENT for a resolved TibetanDate, and does not call it a bare fields object", () => {
+		const resolved = isoToTibetan(iso("2026-01-01"));
+		const thrown = thrownBy(() => nextObservance(resolved as never, "tara", EXAMPLE_OBSERVANCES));
+		expect(thrown?.code).toBe(INVALID_ARGUMENT);
+		// Wording is not contract. This pins only that a resolved date is not misdescribed, and that
+		// the caller is pointed at the field that works.
+		expect(thrown?.message).not.toContain("bare");
+		expect(thrown?.message).toContain("isoDate");
+		expect(nextObservance(resolved.isoDate, "tara", EXAMPLE_OBSERVANCES)).not.toBeNull();
+		const bare = thrownBy(() =>
+			nextObservance({ year: 2026, month: 1, day: 1 } as never, "tara", EXAMPLE_OBSERVANCES),
+		);
+		expect(bare?.code).toBe(INVALID_ARGUMENT);
+		expect(bare?.message).toContain("bare");
+	});
+
 	it("checks the config before the rule id", () => {
 		expect(
 			thrownBy(() => nextObservance(iso("2026-01-01"), "nope", undefined as never))?.code,

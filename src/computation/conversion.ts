@@ -140,11 +140,14 @@ export function asPlainDate(date: Temporal.PlainDate): Temporal.PlainDate {
 				`received ${temporalType === null ? describe(raw) : `a Temporal.${temporalType}`}` +
 				(temporalType !== null
 					? ", which names no calendar day"
-					: isPlainObject(raw)
-						? ". A bare { year, month, day } object is ambiguous with this package's own " +
-							"Tibetan-date shape, so it is rejected rather than guessed at — pass a Temporal " +
-							"instance or an ISO string instead"
-						: ""),
+					: carriesPlainDate(raw)
+						? ". It is a resolved TibetanDate, which names a Tibetan day: its Western day is " +
+							"its isoDate field — pass that, or any Temporal instance or ISO string"
+						: isPlainObject(raw)
+							? ". A bare { year, month, day } object is ambiguous with this package's own " +
+								"Tibetan-date shape, so it is rejected rather than guessed at — pass a Temporal " +
+								"instance or an ISO string instead"
+							: ""),
 		);
 	}
 	try {
@@ -156,6 +159,21 @@ export function asPlainDate(date: Temporal.PlainDate): Temporal.PlainDate {
 			`expected a Temporal.PlainDate, received ${describe(raw)}` +
 				`${error instanceof Error ? `: ${error.message}` : ""}`,
 		);
+	}
+}
+
+/**
+ * Whether a value is an object carrying a Temporal `PlainDate` as `isoDate`, as a resolved
+ * `TibetanDate` does — read only to word a refusal, so a throwing trap answers `false`.
+ */
+function carriesPlainDate(raw: unknown): boolean {
+	if (raw === null || typeof raw !== "object") return false;
+	try {
+		return (
+			"isoDate" in raw && temporalKindOf((raw as { isoDate: unknown }).isoDate) === "PlainDate"
+		);
+	} catch {
+		return false;
 	}
 }
 

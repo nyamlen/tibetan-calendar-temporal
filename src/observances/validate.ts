@@ -358,7 +358,9 @@ function assertWhen(when: unknown, subject: string): void {
 	}
 	throw rangeError(
 		CODE,
-		`${subject}: when.type must be "monthly", "annual", "period", "western", "formula" or "counted", received ${describe(when.type)}`,
+		`${subject}: when.type must be "monthly", "annual", "period", "western", "formula" or "counted", received ${describe(when.type)}. ` +
+			"A config written for a newer release may use a form this release does not know: " +
+			"the config is refused as a whole, so remove the rules with an unknown form before querying",
 	);
 }
 
