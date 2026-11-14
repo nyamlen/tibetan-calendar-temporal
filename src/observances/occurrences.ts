@@ -217,10 +217,12 @@ export function occurrencesOfRule(
 		if (when.type !== "annual" && when.type !== "western") {
 			throw codedError("TCT_INTERNAL", `unhandled when type ${JSON.stringify(when)}`);
 		}
-		// The occurrence's own year, of the resolved day: a Tibetan month-12 date can fall in January,
-		// where its Tibetan year and its Western year differ.
-		const year =
-			when.type === "western" ? isoFromJulianDayUnchecked(hit.julianDay).year : date.year;
+		// An annual occurrence is tested by the Tibetan year of the date it stands for, which is not
+		// `date.year` where `skippedDay` moved a 1/1 or a 12/30 across the new year. A Western rule
+		// has the Gregorian year of its day.
+		const year = when.type === "western" ? isoFromJulianDayUnchecked(hit.julianDay).year : hit.year;
+		/* c8 ignore next */
+		if (year === undefined) throw codedError("TCT_INTERNAL", "an annual day carries no year");
 		if (when.fromYear !== undefined && year < when.fromYear) continue;
 		if (when.untilYear !== undefined && year > when.untilYear) continue;
 		const age = when.ageFromYear === undefined ? -1 : year - when.ageFromYear;

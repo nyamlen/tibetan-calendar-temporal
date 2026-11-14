@@ -1156,6 +1156,75 @@ describe("the western form, year windows and ages", () => {
 	});
 });
 
+// A skipped first or last day of the year shifts the occurrence over the new year: Tibetan 2273's
+// day 1 is skipped (Losar fell on 2146-02-12, the 11th being the last day of 2272), and Tibetan
+// 2151's 12/30 is skipped, so "following" lands it on the first day of 2152. The occurrence still
+// stands for the year whose 1/1 or 12/30 it is, and that year governs the window and the age.
+describe("an annual date shifted across the Tibetan new year", () => {
+	const annual = (
+		date: { month: number; day: number },
+		skippedDay: "preceding" | "following",
+		fields: Record<string, unknown>,
+	): ObservanceConfig =>
+		({
+			...EXAMPLE_OBSERVANCES,
+			id: "shifted",
+			skippedDay,
+			rules: [{ id: "r", englishName: "R", when: { type: "annual", dates: [date], ...fields } }],
+		}) as unknown as ObservanceConfig;
+	const found = (from: string, to: string, config: ObservanceConfig) =>
+		getObservances(iso(from), iso(to), config).map(
+			(o) => `${o.date.isoDate.toString()} ${o.resolution} ${o.age}`,
+		);
+
+	it("sets the scene: 2273's day 1 is skipped and the day before it is Tibetan 2272's", () => {
+		expect(tibetanDateExists({ year: 2273, month: 1, day: 1 })).toBe(false);
+		const before = isoToTibetan(iso("2146-02-11"));
+		expect([before.year, before.month, before.day]).toEqual([2272, 12, 30]);
+		expect(isoToTibetan(iso("2146-02-12")).year).toBe(2273);
+	});
+
+	it("counts a shifted 1/1 as the year it stands for: ages 2, 3 and 4, not 2, 2 and 4", () => {
+		const config = annual({ month: 1, day: 1 }, "preceding", { ageFromYear: 2270 });
+		expect(found("2145-01-01", "2147-12-31", config)).toEqual([
+			"2145-02-22 exact 2",
+			"2146-02-11 dayBeforeSkipped 3",
+			"2147-03-03 exact 4",
+		]);
+	});
+
+	it("takes it into a fromYear window by the year it stands for", () => {
+		const emitted = (fromYear: number) =>
+			found("2146-01-01", "2146-12-31", annual({ month: 1, day: 1 }, "preceding", { fromYear }));
+		expect(emitted(2273)).toEqual(["2146-02-11 dayBeforeSkipped undefined"]);
+		expect(emitted(2274)).toEqual([]);
+	});
+
+	it("takes it out of an untilYear window by the year it stands for", () => {
+		const emitted = (untilYear: number) =>
+			found("2146-01-01", "2146-12-31", annual({ month: 1, day: 1 }, "preceding", { untilYear }));
+		expect(emitted(2272)).toEqual([]);
+		expect(emitted(2273)).toEqual(["2146-02-11 dayBeforeSkipped undefined"]);
+	});
+
+	it("keeps the last occurrence of a window ending the year it stands for, though it lands in the next", () => {
+		// Tibetan 2151's 12/30 is skipped and 'following' lands it on the first day of Tibetan 2152.
+		const config = annual({ month: 12, day: 30 }, "following", { untilYear: 2151 });
+		expect(found("2024-01-01", "2026-03-31", config)).toEqual([
+			"2024-02-09 exact undefined",
+			"2025-02-28 dayAfterSkipped undefined",
+		]);
+		const landed = isoToTibetan(iso("2025-02-28"));
+		expect([landed.year, landed.month, landed.day]).toEqual([2152, 1, 1]);
+	});
+
+	it("drops an occurrence the window ends before, though it lands inside the window", () => {
+		// 2152's 12/30 stands for 2152; with untilYear 2151 it is out, wherever it lands.
+		const config = annual({ month: 12, day: 30 }, "following", { untilYear: 2151 });
+		expect(found("2025-03-01", "2026-03-31", config)).toEqual([]);
+	});
+});
+
 describe("the period form", () => {
 	const CODE = "TCT_INVALID_OBSERVANCE_CONFIG";
 	const configWith = (rule: Record<string, unknown>): ObservanceConfig =>

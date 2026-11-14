@@ -149,10 +149,14 @@ export type TibetanMonthDay = { readonly month: number; readonly day: number };
  * `annual` and `western` take a year window, `fromYear` and `untilYear` (both inclusive; absent
  * means unbounded), and `ageFromYear`. **Each counts its own form's calendar**: on `annual` a
  * Tibetan year, numbered as {@link TibetanDate.year} is (2153 is the year that begins on
- * 2026-02-18 CE); on `western` a Western year. The year tested is that of the occurrence's
- * **resolved** date, after the leap-month, doubled-day and skipped-day conventions have chosen the
- * day. A Tibetan month-12 date can therefore fall in January: 2026-01-31 is Tibetan 2152, so
- * `untilYear: 2152` keeps it and `untilYear: 2151` does not, whatever its Western year.
+ * 2026-02-18 CE); on `western` a Western year. On `annual` the year tested is that of the date the
+ * occurrence **stands for**, the Tibetan year whose 1/1 or 12/30 (or any other date) it is, and not
+ * that of the day it lands on, so a `skippedDay` shift over the new year does not move it between
+ * years. A Tibetan month-12 date can fall in January: 2026-01-31 is Tibetan 2152, so
+ * `untilYear: 2152` keeps it and `untilYear: 2151` does not, whatever its Western year. A 1/1 whose
+ * day is skipped under `"preceding"` lands on the last day of the year before and still counts as
+ * the new year's, in the window and in `age`; a 12/30 skipped under `"following"` lands on the next
+ * year's first day and still counts as the old year's.
  *
  * **This union is open to additions.** Further forms may be added in a minor release, so a
  * consumer switching on `type` handles an unknown value with a `default` branch.
@@ -399,8 +403,10 @@ export interface Observance {
 
 	/**
 	 * Years since the rule's `ageFromYear`: the occurrence's year minus it, in the form's own
-	 * calendar — Tibetan years on `annual`, Western on `western`. Absent when the rule names no
-	 * `ageFromYear`, and absent rather than negative before it.
+	 * calendar — Tibetan years on `annual`, Western on `western`. On `annual` that is the year the
+	 * occurrence stands for, not the year of the day it landed on if `skippedDay` moved it over the
+	 * new year. Absent when the rule names no `ageFromYear`, and absent rather than negative before
+	 * it.
 	 */
 	readonly age?: number;
 

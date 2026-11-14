@@ -15,6 +15,7 @@ import {
 	trueMonthCount,
 } from "../computation/calendar.js";
 import { julianDayFromIso } from "../computation/conversion.js";
+import { royalEraFromYear } from "../computation/epoch.js";
 import type { ScaledTradition } from "../computation/scaling.js";
 import { codedError } from "../errors.js";
 import type { TraditionConfig } from "../traditions/types.js";
@@ -32,6 +33,12 @@ export interface Occurrence {
 	readonly resolution: ObservanceResolution;
 	/** For a period: the Julian days of the whole span's first and last calendar days. */
 	readonly span?: { readonly first: number; readonly last: number };
+	/**
+	 * For an annual date: the Tibetan year (royal era) whose date this occurrence is, which is not
+	 * the year of the day it lands on when `skippedDay` shifts a 1/1 back or a 12/30 forward over
+	 * the new year. It governs the window and the age.
+	 */
+	readonly year?: number;
 }
 
 /** The Julian days one day number occupies in one month, with how each was arrived at. */
@@ -263,7 +270,10 @@ export function occurrencesInMonth(
 		case "annual":
 			return when.dates.flatMap((date) =>
 				appliesToMonth(rule, config, month, date.month, yearHasLeapOfThisNumber)
-					? resolveInMonth(scaled, monthCount, date.day, rule, config)
+					? resolveInMonth(scaled, monthCount, date.day, rule, config).map((hit) => ({
+							...hit,
+							year: royalEraFromYear(month.year),
+						}))
 					: [],
 			);
 		case "period":
