@@ -347,7 +347,10 @@ Setup work not yet done. None of it blocks Phase 3.
       `micromatch`, `js-yaml` and others) and `vitest` with `@vitest/coverage-v8` — and none in
       the published package: `npm audit --omit=dev` found 0. Update them as a change of their own,
       run all ten CI commands, and take anything that needs `npm audit fix --force` (a
-      major-version jump) separately. Re-measure the count first; it moves as advisories appear
+      major-version jump) separately. Re-measure the count first; it moves as advisories appear.
+      **Half done 2026-11-14:** `npm audit fix` and Vitest 4.1.12 cleared Vite and source-map-js,
+      leaving 6 (3 low, 1 moderate, 2 high), all in the `markdownlint-cli2` chain — `js-yaml`,
+      `markdown-it`, `katex` — whose fix is 0.19.1 → 0.24.1, a breaking jump that may add rules
 
 ## Pre-v1.0.0 checklist
 
