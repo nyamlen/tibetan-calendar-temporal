@@ -171,15 +171,20 @@ describe("README usage examples", () => {
 describe("README observance examples", () => {
 	it("lists the four great days of 2026 as documented", () => {
 		const duchen = getObservances(iso("2026-01-01"), iso("2026-12-31"), EXAMPLE_OBSERVANCES).filter(
-			(o) => o.rule.id.endsWith("-duchen"),
+			(o) => o.rule.tags?.includes("duchen"),
 		);
 
 		expect(duchen.map((o) => `${o.rule.englishName}: ${o.date.isoDate}`)).toEqual([
-			"Chotrul Duchen: 2026-03-03",
-			"Saga Dawa Duchen: 2026-05-31",
-			"Chokhor Duchen: 2026-07-18",
-			"Lhabab Duchen: 2026-11-01",
+			"Day of Miracles: 2026-03-03",
+			"Lord Buddha's birth, enlightenment and parinirvana: 2026-05-31",
+			"Lord Buddha's first teaching: 2026-07-18",
+			"Lord Buddha's descent from God Realm of Thirty Three: 2026-11-01",
 		]);
+	});
+
+	it("says the example ships nineteen rules, fourteen of them with a Tibetan name", () => {
+		expect(EXAMPLE_OBSERVANCES.rules).toHaveLength(19);
+		expect(EXAMPLE_OBSERVANCES.rules.filter((r) => r.tibetanName !== undefined)).toHaveLength(14);
 	});
 
 	it("computes Losar without the day-1 trap the section warns about", () => {

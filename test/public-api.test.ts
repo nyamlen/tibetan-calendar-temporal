@@ -634,7 +634,9 @@ describe("observances API surface", () => {
 							? [rule.when.first.day, rule.when.last.day]
 							: rule.when.type === "western"
 								? [rule.when.day]
-								: [];
+								: rule.when.type === "counted"
+									? [rule.when.anchor.day]
+									: [];
 			if (rule.when.type !== "formula") expect(entries.length).toBeGreaterThan(0);
 			for (const day of entries) {
 				expect(day).toBeGreaterThanOrEqual(1);
@@ -647,13 +649,13 @@ describe("observances API surface", () => {
 				}
 			}
 		}
-		expect([...forms].sort()).toEqual(["annual", "monthly"]);
+		expect([...forms].sort()).toEqual(["annual", "counted", "formula", "monthly", "period"]);
 	});
 
-	// Shipping an anniversary would put institution-specific data on a release cycle it does not
-	// belong on -- a new spiritual director should not need a package publish. Task 10 of the
-	// observance rebuild reverses this test, asserting all seven are present.
-	it("ships none of the seven anniversary ids", () => {
+	// Reversed by the observance rebuild's Task 10: the example is neutral about whose it is, and
+	// the seven persons are named as FPMT labels them. Their Tibetan names are held to the verified
+	// fixture in test/observances/example-observances.test.ts.
+	it("ships all seven anniversary ids", () => {
 		const anniversaries = [
 			"milarepa",
 			"guru-rinpoche",
@@ -664,7 +666,7 @@ describe("observances API surface", () => {
 			"dudjom-rinpoche",
 		];
 		const ids = observances.EXAMPLE_OBSERVANCES.rules.map((r) => r.id);
-		expect(ids.filter((id) => anniversaries.includes(id))).toEqual([]);
+		expect(ids.filter((id) => anniversaries.includes(id))).toEqual(anniversaries);
 	});
 
 	/**

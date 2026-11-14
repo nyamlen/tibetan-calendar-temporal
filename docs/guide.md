@@ -373,13 +373,13 @@ const myCentre = {
 ```
 
 Every result carries a `resolution` saying how it got there — one of `"exact"`,
-`"firstOfDoubled"`, `"secondOfDoubled"` or `"dayBeforeSkipped"` — so a display can show the
-almanac's footnote rather than presenting a moved date as an exact one.
+`"firstOfDoubled"`, `"secondOfDoubled"`, `"dayBeforeSkipped"`, `"dayAfterSkipped"`, `"inPeriod"` or
+`"counted"` — so a display can show the almanac's footnote rather than presenting a moved date as an
+exact one.
 
 Losar is deliberately *not* here: it is a calendar fact rather than a convention, so it is
-`losarFor` on the root export. Teacher anniversaries are not shipped either — that data is
-institution-specific and changes within a decade — but a rule of your own, as above, can carry
-them.
+`losarFor` on the root export. The shipped anniversaries are seven persons' days on Tibetan dates;
+a Western-dated birthday, or a centre's own founder, is a rule of your own, as above.
 
 Calendar export (ICS) is deliberately out of scope: `getObservances` returns plain objects that a
 consumer maps to whatever format they need, and an `@nyamlen/icalendar` package remains open if

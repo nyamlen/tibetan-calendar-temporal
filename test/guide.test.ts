@@ -173,7 +173,14 @@ describe("guide examples", () => {
 	// "firstOfDoubled", which any config setting `doubledDay: 'first'` produces. Asserting the set
 	// rather than a sample is the point.
 	it("produces every resolution the README lists, and no other", () => {
-		const documented = ["dayBeforeSkipped", "exact", "firstOfDoubled", "secondOfDoubled"];
+		// Read from the guide, so a list that drifts from what the engine produces fails here.
+		const guide = readFileSync(new URL("../docs/guide.md", import.meta.url), "utf8");
+		const paragraph = guide
+			.split("\n\n")
+			.find((p) => p.startsWith("Every result carries a `resolution`"));
+		expect(paragraph).toBeDefined();
+		const documented = [...(paragraph ?? "").matchAll(/`"(\w+)"`/g)].map((m) => m[1]).sort();
+		expect(documented).toHaveLength(7);
 		const seen = new Set<string>();
 		for (const doubledDay of ["first", "second", "both"] as const) {
 			const config = { ...EXAMPLE_OBSERVANCES, id: `readme-${doubledDay}`, doubledDay };

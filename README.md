@@ -456,11 +456,13 @@ const duchen = getObservances(
   Temporal.PlainDate.from('2026-01-01'),
   Temporal.PlainDate.from('2026-12-31'),
   EXAMPLE_OBSERVANCES,
-).filter((o) => o.rule.id.endsWith('-duchen'));
+).filter((o) => o.rule.tags?.includes('duchen'));
 
 duchen.map((o) => `${o.rule.englishName}: ${o.date.isoDate}`);
-// [ "Chotrul Duchen: 2026-03-03", "Saga Dawa Duchen: 2026-05-31",
-//   "Chokhor Duchen: 2026-07-18", "Lhabab Duchen: 2026-11-01" ]
+// [ "Day of Miracles: 2026-03-03",
+//   "Lord Buddha's birth, enlightenment and parinirvana: 2026-05-31",
+//   "Lord Buddha's first teaching: 2026-07-18",
+//   "Lord Buddha's descent from God Realm of Thirty Three: 2026-11-01" ]
 ```
 
 Each `Observance` is three fields — `date`, the `TibetanDate` it falls on and always a real calendar
@@ -468,15 +470,16 @@ day; `rule`, the rule that produced it, carrying `id` and `englishName`; and `re
 how it landed there. The `rule` is the **same object** the config holds rather than a copy, so for a
 config you supplied, mutating it mutates your own rule table; the shipped `EXAMPLE_OBSERVANCES` is deeply frozen.
 
-**`EXAMPLE_OBSERVANCES` ships nine rules, and none of them is *sojong*.** They are the four great
-days, the Medicine Buddha, Tara, Heruka, Dakini and protector days. No shipped rule produces
-sojong: a fixed 15th-and-30th convention misses 38 of FPMT's published occurrences over 2022–2025 and
-invents 36, so whatever governs it is not a day number. It is a **counted schedule** — the fortnight
-ending at a sojong is 15 days, or 14 at the end of an odd month — which reproduces 96 of the 98
-intervals between FPMT's sojongs over those years. It stays unshipped for two reasons that are not
-"nobody knows": what keeps the count in step with the moon is not yet sourced, and a count is a rule shape
-`ObservanceWhen` cannot yet express. If you query for sojong and get nothing, that is why — not a mistake
-in your query. `EXAMPLE_OBSERVANCES`' own docblock carries the full reasoning and the worked dates.
+**`EXAMPLE_OBSERVANCES` ships nineteen rules**, as an example of how to populate a config and not as any
+institution's calendar: the four great days (tagged `duchen`), seven persons' days (tagged `anniversary`),
+the whole of Saga Dawa, sojong, the fire puja, and the monthly Medicine Buddha, Tara, Heruka, Ḍākinī and
+Dharma Protector days. Each rule names a `level` the config declares, so a front end can group what is for
+everyone apart from what needs an empowerment, and fourteen carry a verified Tibetan name.
+Sojong is a **counted schedule** — each Tibetan year's count starts on the full moon of month 1, and a fortnight
+is 14 or 15 days — inferred from one published calendar that states no method; the fire puja is a formula
+over the day number and the weekday. Neither is the tradition's own statement of a rule, and
+[what each is checked against](docs/why-trust-these-dates.md)
+is stated there, with its window.
 
 It is a separate import for a reason. Everything on the root export makes a **falsifiable** claim:
 a constant checks against Janson, a date against an almanac, and a disagreement is a bug. Nothing
