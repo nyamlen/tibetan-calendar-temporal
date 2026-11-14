@@ -12,6 +12,7 @@ import { STEINERT_DATES } from "./fixtures/crosscheck-steinert.js";
 import { FPMT_OBSERVANCES } from "./fixtures/fpmt-observances.js";
 import { A2_DIVERGENCE_COUNTS, JANSON_EPOCH } from "./fixtures/janson-epoch.js";
 import { LOSAR_DATES } from "./fixtures/losar.js";
+import { RABTEN_SOJONG } from "./fixtures/rabten-sojong.js";
 import { RGOB_DAYS } from "./fixtures/rgob.js";
 import { YOGA_NAMES } from "./fixtures/yoga-names.js";
 import {
@@ -24,12 +25,14 @@ import {
 } from "./support/bhutan.js";
 import { mismatchesIn } from "./support/crosscheck.js";
 import { fpmtMoonComparison, fpmtNumberingMismatches } from "./support/fpmt.js";
+import { fpmtLabelComparison } from "./support/fpmt-config.js";
 import {
 	favorabilityDays,
 	favorabilityDisagreements,
 	mansionDays,
 	mansionDisagreements,
 } from "./support/fpmt-yoga.js";
+import { getObservancesChunked } from "./support/observances-chunked.js";
 import { thrownBy } from "./support/thrown.js";
 import { VERSIONS } from "./support/versions.js";
 
@@ -186,6 +189,41 @@ const ROUNDED_TOTAL =
 
 const LOSAR_WINDOW = windowOf(LOSAR_DATES.map((row) => ({ iso: row.losar })));
 const FPMT_WINDOW = windowOf(FPMT_OBSERVANCES);
+const RABTEN_WINDOW = windowOf(RABTEN_SOJONG);
+
+/**
+ * The example's rules under FPMT's labels, measured by the validation suite's own predicate.
+ * The monthly groups are the five rules that follow FPMT's day-number labels.
+ */
+const LABEL_RESIDUALS = fpmtLabelComparison().residuals;
+const MONTHLY_GROUPS = ["medicine-buddha", "tara", "heruka-day+dakini-day", "dharma-protector-day"];
+const MONTHLY_RESIDUAL_DAYS = [
+	...new Set(
+		LABEL_RESIDUALS.filter((r) => MONTHLY_GROUPS.some((g) => r.includes(` ${g}: `))).map((r) =>
+			r.slice(0, 10),
+		),
+	),
+];
+const FPMT_NUMBERING_DAYS = sourceNamed("FPMT monthly calendars").differing;
+const FIRE_PUJA_MISSES = LABEL_RESIDUALS.filter((r) => r.includes(" fire-puja: ")).length;
+
+/** FPMT's sojongs that the example's rule does not put on the same day, and whether they form one run. */
+const SOJONG_DEPARTURES = (() => {
+	const dates = LABEL_RESIDUALS.filter((r) => r.endsWith(" sojong: fpmt")).map((r) =>
+		r.slice(0, 10),
+	);
+	const printed = FPMT_OBSERVANCES.filter((row) => (row.labels ?? []).includes("Sojong")).map(
+		(row) => row.iso,
+	);
+	const first = dates[0] ?? "";
+	const last = dates.at(-1) ?? "";
+	const inside = printed.filter((iso) => iso >= first && iso <= last);
+	return {
+		dates,
+		contiguous: inside.length === dates.length,
+		years: [...new Set(dates.map((iso) => plain(iso).year))],
+	};
+})();
 const RGOB_WINDOW = windowOf(RGOB_DAYS);
 const LOTSAWA_WINDOW = windowOf(LOTSAWA_DATES);
 
@@ -585,6 +623,40 @@ const CLAIMS: readonly Claim[] = [
 		pattern: /\*\*FPMT's own published monthly calendars for (\d+)–(\d+)\*\*/,
 		expected: () => [FPMT_WINDOW.first.year, FPMT_WINDOW.last.year],
 	},
+	{
+		what: "how far the example's monthly rules follow FPMT's labels",
+		pattern:
+			/label on all but (\w+) days of that window, (\w+) of them days where FPMT's day number is not the engine's\./,
+		expected: () => [
+			word(MONTHLY_RESIDUAL_DAYS.length),
+			MONTHLY_RESIDUAL_DAYS.every((iso) => FPMT_NUMBERING_DAYS.includes(iso)) &&
+			MONTHLY_RESIDUAL_DAYS.length === 2
+				? "both"
+				: `<${MONTHLY_RESIDUAL_DAYS.join(", ")}>`,
+		],
+	},
+	{
+		what: "the sojong rule's Rabten window and FPMT's one run",
+		pattern:
+			/Rabten Choeling's published schedule from (.+?) to (.+?), ([\d,]+) days, in both directions, and Rabten states no method\. FPMT's own calendar departs from it for (\w+) run of (\w+) sojongs in (\d+)\./,
+		expected: () => [
+			long(RABTEN_WINDOW.first),
+			long(RABTEN_WINDOW.last),
+			count(RABTEN_SOJONG.length),
+			SOJONG_DEPARTURES.contiguous ? "one" : "<not one run>",
+			String(SOJONG_DEPARTURES.dates.length),
+			SOJONG_DEPARTURES.years.join(", "),
+		],
+	},
+	{
+		what: "the fire puja formula's agreement with FPMT's labels",
+		pattern: /agrees with FPMT's labels on ([\d,]+) of ([\d,]+) days, ([\d.]+)%\./,
+		expected: () => [
+			count(FPMT_OBSERVANCES.length - FIRE_PUJA_MISSES),
+			count(FPMT_OBSERVANCES.length),
+			pct(FPMT_OBSERVANCES.length - FIRE_PUJA_MISSES, FPMT_OBSERVANCES.length),
+		],
+	},
 
 	// What is not established
 	{
@@ -915,6 +987,26 @@ describe("why-trust-these-dates claims", () => {
 
 	it("contains the Losar the Royal Government rows are said to include", () => {
 		expect(RGOB_FEATURES.losar).toBe(1);
+	});
+
+	it("holds the shipped sojong rule to Rabten's days, in both directions, as the page says", () => {
+		const rule = observances.EXAMPLE_OBSERVANCES.rules.find((r) => r.id === "sojong");
+		expect(rule).toBeDefined();
+		const config = {
+			...observances.EXAMPLE_OBSERVANCES,
+			id: "sojong-only",
+			rules: rule === undefined ? [] : [rule],
+		};
+		const engine = new Set(
+			getObservancesChunked(RABTEN_WINDOW.first, RABTEN_WINDOW.last, config).map((o) =>
+				o.date.isoDate.toString(),
+			),
+		);
+		const rabten = new Set(RABTEN_SOJONG.map((row) => row.iso));
+		expect({
+			missing: [...rabten].filter((iso) => !engine.has(iso)),
+			invented: [...engine].filter((iso) => !rabten.has(iso)),
+		}).toEqual({ missing: [], invented: [] });
 	});
 
 	it("does not call FPMT's observance set by a school's name", () => {

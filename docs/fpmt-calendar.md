@@ -64,15 +64,14 @@ These fall on the same Tibetan date every year, so their Western date moves.
 | Guru Rinpoche | 5th month, 10th day | 9 Jul | 28 Jun | 16 Jun | 5 Jul | 24 Jun |
 | Gampopa | 6th month, 15th day | 12 Aug | 1 Aug | 21 Jul | 9 Aug | 29 Jul |
 | Sixteenth Karmapa | 9th month, 9th day | 2 Nov | 23 Oct | 10 Nov | 30 Oct | 19 Oct |
-| Lama Tsong Khapa | 10th month, 25th day | 18 Dec | 7 Dec | 25 Dec | 14 Dec | — |
+| Lama Tsong Khapa | 10th month, 25th day | 18 Dec | 7 Dec | 25 Dec | 14 Dec | 3 Dec |
 | Sakya Pandita | 11th month, 14th day | 16 Jan | 5 Jan | — | 12 Jan | 2 Jan |
 | Dudjom Rinpoche | 11th month, 18th day | 20 Jan | 9 Jan | — | 16 Jan | 6 Jan |
 
 Two things to read from it.
 Gampopa's 2024 date is in the **leap** 6th month, the same choice FPMT makes for the düchen that year.
-And the 11th-month anniversaries are missing once: in the Tibetan year that ran from February 2023 to February 2024 they fell on 25 and 29 December 2023, and FPMT printed neither.
-The Western year 2024 contains neither date, which is why that column is empty.
-Lama Tsong Khapa Day 2026 is 3 December, which FPMT had not yet published when this was read.
+And the 11th-month anniversaries are missing twice: in the Tibetan year that ran from February 2023 to February 2024 they fell on 25 and 29 December 2023, and in the year that began in February 2026 on 23 and 26 December 2026, and FPMT printed neither either time.
+The Western year 2024 contains neither of the first pair, which is why that column is empty.
 Lama Thubten Yeshe's day is the 1st of the 1st month because he passed away on 3 March 1984, which was Losar that year; the engine gives that date as the 1st month, 1st day.
 
 ### On a fixed Western date
@@ -88,6 +87,30 @@ These fall on the same Western date every year.
 | Karma Rishi | 9–15 September | 2026 only, a seven-day period |
 
 This list is the part that changes: in five years an anniversary began beside a birthday that continued, and a period appeared.
+
+## The FPMT configuration the test suite holds
+
+`test/support/fpmt-config.ts` is the example's rules under FPMT's labels, plus what FPMT prints that the neutral example does not ship: Lama Thubten Yeshe on the 1st day of the 1st month, and four dates on the Western calendar.
+Lama Zopa Rinpoche's birthday, 3 December, carries no window, because FPMT prints it in every year of the fixture, after his passing too.
+His passing, 13 April, carries `fromYear: 2024`, which is where FPMT begins to print it, so it is the external test of a window.
+The Dalai Lama's birthday, 6 July, and Sakya Trichen's, 7 September, carry `ageFromYear` 1935 and 1945, and FPMT prints the ordinal of each, 87th to 91st and 77th to 81st, so the suite matches the printed ordinal against the result's `age`: the external test of `age`.
+The `saga-dawa-month` rule has no FPMT label, so FPMT validates nothing about it.
+
+**The window** is the fixture's own: 1 January 2022 to 31 December 2026, 1,826 days.
+`test/validation/fpmt-observances.test.ts` compares every label in both directions and fails on any residual not listed there by date.
+Measured 2026-11-14, the residuals are:
+
+| Residual | Days | Reading |
+|---|---|---|
+| Sojong | 34 | FPMT's 17 sojongs from 2022-04-30 to 2022-12-22, each a day before the engine's 17 (2022-05-01 to 2022-12-23); 2026 agrees fully |
+| Anniversaries FPMT omits | 4 | Sakya Pandita and Dudjom Rinpoche on 2023-12-25 and 2023-12-29, in Tibetan 2150, and on 2026-12-23 and 2026-12-26, in Tibetan 2153; each the engine's day and not FPMT's |
+| The Sixteenth Karmapa, doubled 9/9 | 2 | FPMT keeps 2026-10-19, the first half; the example's `doubledDay: "second"` gives 2026-10-20 |
+| Day number | 3 | 2022-12-03 (the Tsog) and 2024-12-08 (the Medicine Buddha and Tara pujas, two labels), where FPMT's day number is not the engine's; the third such day, 2023-11-09, carries no label of these rules |
+| Fire puja | 40 | the formula's misses, 21 on FPMT's side and 19 on the engine's, listed by date in the suite |
+
+Everything else agrees, including every `age` and the window of Lama Zopa Rinpoche's passing.
+Whether the omissions are a rule or a slip is not known.
+When the fixture is extended to FPMT's 2027 calendars the suite fails on every new residual, by design: re-measure, add each one to the list by date in the same commit as the fixture, and say here whether it is explained.
 
 ## Sojong: one 17-day departure from the counted schedule
 
