@@ -279,15 +279,19 @@ export function occurrencesInMonth(
 		case "period":
 			return periodOccurrences(rule, config, scaled, monthCount, month.year, when);
 		case "western":
-			// Fixed to the Gregorian calendar, so it is not found by walking Tibetan months; see
-			// `westernOccurrences`.
-			return [];
+			// Fixed to the Gregorian calendar, so it is not found by walking Tibetan months: see
+			// `westernOccurrences`, which `occurrencesOfRule` calls instead. Reaching here is a wiring
+			// error, and an empty answer would hide it.
+			/* c8 ignore next */
+			throw codedError("TCT_INTERNAL", "a western rule is not found by walking months");
 		case "formula":
 			return formulaOccurrences(when, scaled, monthCount);
 		case "counted":
 			// A schedule is a property of a run of months, not of one: see `countedMonthDays` and
-			// `countedSchedule`.
-			return [];
+			// `countedSchedule`, which `occurrencesOfRule` calls instead. Reaching here is a wiring
+			// error, and an empty answer would hide it.
+			/* c8 ignore next */
+			throw codedError("TCT_INTERNAL", "a counted rule is not found one month at a time");
 		default:
 			/* c8 ignore next */
 			throw codedError("TCT_INTERNAL", `unhandled when type ${JSON.stringify(when)}`);
