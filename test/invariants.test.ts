@@ -11,8 +11,15 @@ import {
 import { isoFromJulianDay } from "../src/computation/conversion.js";
 import { trueDate } from "../src/computation/corrections.js";
 import { deriveScaling } from "../src/computation/scaling.js";
-import { formatTibetanDate, isoToTibetan, PHUGPA, tibetanDateExists } from "../src/index.js";
-import { EXAMPLE_OBSERVANCES } from "../src/observances/index.js";
+import {
+	formatTibetanDate,
+	isoToTibetan,
+	losarFor,
+	PHUGPA,
+	tibetanDateExists,
+} from "../src/index.js";
+import type { Observance } from "../src/observances/index.js";
+import { EXAMPLE_OBSERVANCES, getObservances, observancesOn } from "../src/observances/index.js";
 import { getObservancesChunked } from "./support/observances-chunked.js";
 
 const scaled = deriveScaling(PHUGPA);
@@ -253,4 +260,105 @@ describe("skipped days are never observance days", () => {
 			}
 		}
 	});
+});
+
+// `observancesOn(d)` is documented as the one-day slice of `getObservances`, and its implementation
+// calls it with a one-day range. A form that looks backwards from a day (the counted schedule's
+// lookback, a period's span) could answer differently when the range is a single day than when it is
+// a year, so the two are held equal on the days where such a form is most exposed.
+describe("observancesOn is the day's slice of getObservances", () => {
+	const config = {
+		...EXAMPLE_OBSERVANCES,
+		id: "slice-check",
+		rules: [
+			...EXAMPLE_OBSERVANCES.rules,
+			{
+				id: "leap-day-birthday",
+				englishName: "A birthday on 29 February",
+				when: { type: "western" as const, month: 2, day: 29, ageFromYear: 1900 },
+			},
+		],
+	};
+
+	const describeResult = (o: Observance): string =>
+		[
+			o.rule.id,
+			o.resolution,
+			`${o.date.year}-${o.date.month}-${o.date.day}`,
+			String(o.date.isLeapMonth),
+			String(o.date.isLeapDay),
+			String(o.age),
+			o.period === undefined ? "-" : `${o.period.first.isoDate}..${o.period.last.isoDate}`,
+		].join(" ");
+
+	it("agrees on doubled and skipped days, leap months, both sides of Losar and the sojong anchors", () => {
+		const mismatches: string[] = [];
+		let compared = 0;
+		const kinds = new Set<string>();
+		for (let year = 1990; year <= 2049; year++) {
+			const whole = getObservances(
+				Temporal.PlainDate.from({ year, month: 1, day: 1 }),
+				Temporal.PlainDate.from({ year, month: 12, day: 31 }),
+				config,
+			);
+			const bySlice = new Map<string, string[]>();
+			for (const o of whole) {
+				const key = o.date.isoDate.toString();
+				bySlice.set(key, [...(bySlice.get(key) ?? []), describeResult(o)]);
+				kinds.add(o.resolution);
+			}
+
+			const chosen = new Set<string>();
+			const add = (d: Temporal.PlainDate) => {
+				if (d.year === year) chosen.add(d.toString());
+			};
+			let previous: ReturnType<typeof isoToTibetan> | undefined;
+			for (
+				let d = Temporal.PlainDate.from({ year, month: 1, day: 1 });
+				d.year === year;
+				d = d.add({ days: 1 })
+			) {
+				const t = isoToTibetan(d);
+				const skippedBefore =
+					previous !== undefined && previous.month === t.month && t.day - previous.day === 2;
+				if (t.isDoubledDay || t.isLeapMonth || skippedBefore) add(d);
+				previous = t;
+			}
+			// Tibetan 2153 begins on 2026-02-18, so the Losar in Western year Y is Tibetan Y + 127.
+			const losar = losarFor(year + 127).isoDate;
+			for (const offset of [-1, 0, 1]) add(losar.add({ days: offset }));
+			for (const o of whole) {
+				if (o.rule.id === "sojong" && o.resolution !== "counted") {
+					add(o.date.isoDate.subtract({ days: 2 }));
+					add(o.date.isoDate.subtract({ days: 1 }));
+				}
+			}
+			add(Temporal.PlainDate.from({ year, month: 2, day: 28 }));
+			add(Temporal.PlainDate.from({ year, month: 3, day: 1 }));
+			if (Temporal.PlainDate.from({ year, month: 1, day: 1 }).inLeapYear) {
+				add(Temporal.PlainDate.from({ year, month: 2, day: 29 }));
+			}
+
+			for (const day of chosen) {
+				const alone = observancesOn(Temporal.PlainDate.from(day), config).map(describeResult);
+				const slice = bySlice.get(day) ?? [];
+				compared++;
+				if (JSON.stringify(alone) !== JSON.stringify(slice)) {
+					mismatches.push(`${day}: alone [${alone.join("; ")}] slice [${slice.join("; ")}]`);
+				}
+			}
+		}
+		expect(mismatches).toEqual([]);
+		// Guards against agreeing over days that carry nothing.
+		expect(compared).toBeGreaterThan(2500);
+		expect([...kinds].sort()).toEqual([
+			"counted",
+			"dayAfterSkipped",
+			"dayBeforeSkipped",
+			"exact",
+			"firstOfDoubled",
+			"inPeriod",
+			"secondOfDoubled",
+		]);
+	}, 180_000);
 });
