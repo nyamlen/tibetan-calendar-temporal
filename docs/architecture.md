@@ -402,7 +402,7 @@ interface ObservanceConfig {
   skippedDay: SkippedDayChoice;
   leapMonth: LeapMonthChoice;
   levels?: readonly ObservanceLevel[];
-  rules: readonly ObservanceRule[];
+  rules: readonly ObservanceRule[];       // their order is the order of same-day results
 }
 
 interface ObservanceLayer {            // the differences composeObservances applies to a base config
@@ -420,7 +420,7 @@ interface ObservanceLayer {            // the differences composeObservances app
   leapMonth?: LeapMonthChoice;
 }
 
-type ObservanceResolution =
+type ObservanceResolution =              // open to additions in a minor release: a consumer keeps a fallback
   | 'exact' | 'dayBeforeSkipped' | 'dayAfterSkipped' | 'firstOfDoubled' | 'secondOfDoubled'
   | 'inPeriod'                         // a day of a `period` rule's span
   | 'counted';                         // a landing of a `counted` rule; its anchor keeps its own resolution
@@ -429,7 +429,7 @@ interface Observance {                 // one occurrence of one rule on one cale
   date: TibetanDate;                   // always a real calendar day
   rule: ObservanceRule;                // the same object the config holds, not a copy
   resolution: ObservanceResolution;
-  age?: number;                        // years since the rule's ageFromYear, in the form's own calendar; absent without one
+  age?: number;                        // years since the rule's ageFromYear, in the form's own calendar (an annual date's Tibetan year is the one it stands for); absent without one
   period?: { first: TibetanDate; last: TibetanDate };  // a `period` rule's whole span; absent on every other form
 }
 

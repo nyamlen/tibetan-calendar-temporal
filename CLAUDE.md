@@ -1226,7 +1226,8 @@ Gelug, prints the *opposite* `doubledDay` for the 2024 Chokhor Duchen. Naming th
 institution therefore didn't just look institution-specific, it overclaimed a universality the
 data itself contradicted. See
 [docs/decisions/2026-09-03-no-institution-names-in-exports.md](docs/decisions/2026-09-03-no-institution-names-in-exports.md).
-Provenance belongs in a `source` field and the docblock, which can carry a URL and a citation;
+Provenance belongs in the docblock and the docs, which can carry a URL and a citation — a config
+has no `source` field to carry it;
 an identifier cannot, and readers take a name at face value in a way they do not take prose.
 
 **The rule governs exported identifiers, and the shipped config's data fields follow it too.**

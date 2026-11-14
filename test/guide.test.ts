@@ -941,3 +941,59 @@ describe("guide examples", () => {
 		});
 	});
 });
+
+// Prose in the guide that states a value, held to the engine the way its examples are: each figure is
+// read out of the guide's own sentence and measured, never restated here.
+describe("guide statements about observance ranges and periods", () => {
+	const flat = guideText.replace(/\s+/g, " ");
+
+	it("states the span rule as the engine applies it, from the dates the guide prints", () => {
+		const printed =
+			/`getObservances` accepts (\d{4}-\d{2}-\d{2}) to (\d{4}-\d{2}-\d{2}) and refuses (\d{4}-\d{2}-\d{2}) to (\d{4}-\d{2}-\d{2})/.exec(
+				flat,
+			);
+		expect(printed, "the guide's span sentence").not.toBeNull();
+		const [, a, b, c, d] = printed as RegExpExecArray;
+		const call = (from: string, to: string) => () =>
+			getObservances(iso(from as string), iso(to as string), EXAMPLE_OBSERVANCES);
+		expect(thrownBy(call(a as string, b as string))).toBeUndefined();
+		expect(thrownBy(call(c as string, d as string))?.code).toBe("TCT_SPAN_TOO_WIDE");
+	});
+
+	it("gives the leap-twin period figures the engine measures, in Tibetan 2143", () => {
+		const printed =
+			/from 4\/1 to 4\/30 covers (\d+) days under `'regular'`, (\d+) under `'leap'` and (\d+) under `'both'`; a period from 4\/28 to 5\/5 covers (\d+), (\d+) and (\d+) days/.exec(
+				flat,
+			);
+		expect(printed, "the guide's twin sentence").not.toBeNull();
+		const stated = (printed as RegExpExecArray).slice(1).map(Number);
+		const days = (
+			first: { month: number; day: number },
+			last: { month: number; day: number },
+			leapMonth: "regular" | "leap" | "both",
+		) =>
+			getObservances(iso("2016-01-01"), iso("2016-12-31"), {
+				...EXAMPLE_OBSERVANCES,
+				id: "twin",
+				rules: [{ id: "p", englishName: "P", leapMonth, when: { type: "period", first, last } }],
+			} as never).length;
+		const choices = ["regular", "leap", "both"] as const;
+		const whole = [
+			{ month: 4, day: 1 },
+			{ month: 4, day: 30 },
+		] as const;
+		const part = [
+			{ month: 4, day: 28 },
+			{ month: 5, day: 5 },
+		] as const;
+		expect(stated).toEqual([
+			...choices.map((choice) => days(...whole, choice)),
+			...choices.map((choice) => days(...part, choice)),
+		]);
+		expect(isoToTibetan(iso("2016-05-07"))).toMatchObject({
+			year: 2143,
+			month: 4,
+			isLeapMonth: true,
+		});
+	});
+});

@@ -215,7 +215,8 @@ Both are positional. The observance config is **required**: no config is the def
 days a practice keeps is a convention and the package does not choose one for you, so a call
 without one throws `TCT_INVALID_OBSERVANCE_CONFIG`. The tradition is last and optional, defaulting
 to `PHUGPA`. Until 2026-11-11 both travelled in one options bag; passing that bag, or a
-`TraditionConfig`, where the config belongs throws the same code, naming the signature.
+`TraditionConfig`, where the config belongs throws the same code, and the message names the function
+you called and its own signature.
 
 | | `TraditionConfig` | `ObservanceConfig` |
 |---|---|---|
@@ -417,7 +418,7 @@ it stands:
 |---|---|---|
 | `id`, `englishName` | yes | A stable identifier and an English name |
 | `doubledDay`, `skippedDay`, `leapMonth` | yes | [The three conventions](#the-three-conventions), the defaults for every rule |
-| `rules` | yes | The rules, in any order: results come back in date order |
+| `rules` | yes | The rules, in the order a day's list should open with: results come back in date order and, within one day, in the order of the rules |
 | `levels` | no | The groups rules may name; a rule naming one that is not declared is refused |
 | `tibetanName` | no | A `TibetanName`, as everywhere else |
 
@@ -434,6 +435,14 @@ A rule's `when` is `monthly` (`days`), `annual` (`dates`, with optional `fromYea
 `ageFromYear`), `western` (`month`, `day` and the same three optional fields), `period` (`first`,
 `last`), `formula` (`formula`) or `counted` (`anchor`, `waxingDays`, `waningDays`, optional `exclude`);
 the examples in this section use the first three.
+
+A `period` in a year with a leap month runs *between* its two endpoints, and `leapMonth` chooses which
+month of that number each endpoint means.
+In Tibetan 2143, which has leap month 4, a period from 4/1 to 4/30 covers 29 days under `'regular'`, 30
+under `'leap'` and 59 under `'both'`; a period from 4/28 to 5/5 covers 8, 37 and 37 days, because under
+`'leap'` it starts on leap 4/28 and has to cross all of regular month 4 to reach 5/5.
+A whole month, such as Saga Dawa, is what the three values say; a part of a month is a choice to make
+deliberately.
 
 #### A config from a JSON file
 
@@ -510,7 +519,7 @@ const kopanTara = composeObservances(kopan, {
 A layer can also remove, replace and add rules and levels, each by `id` (`remove`, `replace` and `add`
 for rules, `removeLevels`, `replaceLevels` and `addLevels` for levels), and they are changed in that
 order: removed, then replaced (a replacement keeps the position of what it replaces), then added at
-the end.
+the end. That is also the order of same-day results.
 An `id` may appear **once** in a layer's rule lists, and once in its level lists, so a rule is never
 removed and added back to land at the end — `replace` is how to change a rule and keep its place.
 A name the base does not have in `remove` or `replace`, or one it does have in `add`, is refused,
@@ -579,7 +588,8 @@ effective while doing nothing:
 Every result carries a `resolution` saying how it got there — one of `"exact"`,
 `"firstOfDoubled"`, `"secondOfDoubled"`, `"dayBeforeSkipped"`, `"dayAfterSkipped"`, `"inPeriod"` or
 `"counted"` — so a display can show the almanac's footnote rather than presenting a moved date as an
-exact one.
+exact one. The list is **open**: a later release may add a value, so a table of labels keyed on
+`resolution` needs a fallback for one it does not know.
 
 #### Reading a config that is not yours
 
@@ -656,6 +666,13 @@ the year; `null` is never the end of a year, only of ten.
 
 It answers `null` when nothing lies within ten years after `from`, which is also the widest range
 `getObservances` accepts in one call; a wider table is requested in chunks and concatenated.
+The rule is on calendar years, `to.year - from.year` at most 10, and not on elapsed time:
+`getObservances` accepts 2020-01-01 to 2030-12-31 and refuses 2020-12-31 to 2031-01-01.
+
+A `period` result carries the bounds of its whole span.
+Where a span ends past the end of the tradition's exact range, the last weeks before the end, a day
+inside it cannot be answered: `getObservances` and `observancesOn` throw `TCT_OUTSIDE_EXACT_RANGE` for
+it, and `nextObservance` answers `null`.
 
 Losar is deliberately *not* here: it is a calendar fact rather than a convention, so it is
 `losarFor` on the root export. The shipped anniversaries are seven persons' days on Tibetan dates;
@@ -1058,6 +1075,8 @@ carries the shifted name on its `weekdayName` field — you do not need to look 
 calendar's own vocabulary, not user-interface strings, and an application supplying French or
 German labels for `level: 'everyone'` is doing something the package should not guess at. The stable
 keys — `element`, `animal`, a rule's `id` and `level`, `resolution` — are what a translation table keys on.
+Give the table a default entry for `resolution`, and for a rule's `when.type`: both are open to additions
+in a minor release, so an unknown value is a label to fall back on and not an error.
 
 ---
 
