@@ -92,9 +92,31 @@ export const unmarked = (marked) => marked.replaceAll("-", " ");
  * @typedef {{ marked: string, ruling: string | null, gateException?: GateException }} BoundaryRow
  */
 
+const isText = (v) => typeof v === "string" && v !== "";
+
+/** Refuses a malformed `gateException`, naming the row and the field. */
+function checkGateException(wylie, row) {
+	const refuse = (field, wants) => {
+		throw new Error(
+			`boundary row for "${wylie}": gateException${field && `.${field}`} must be ${wants}`,
+		);
+	};
+	const ex = row.gateException;
+	if (ex === null || typeof ex !== "object" || Array.isArray(ex)) refuse("", "an object");
+	if (!isText(ex.word)) refuse("word", "a non-empty string");
+	if (!wordsOf(row.marked).includes(ex.word)) refuse("word", "one of the words of marked");
+	if (!isText(ex.evidence)) refuse("evidence", "a non-empty string");
+	if (!Array.isArray(ex.requires) || ex.requires.length === 0)
+		refuse("requires", "a non-empty array");
+	for (const r of ex.requires)
+		if (r === null || typeof r !== "object" || !isText(r.dictionary) || !isText(r.headword))
+			refuse("requires", "an array of { dictionary, headword } strings");
+}
+
 /**
- * The authored boundary file as a map keyed by Wylie; refuses an unreadable file or a row without
- * `marked`. A missing `ruling` reads as `null`, which `markingFor` refuses.
+ * The authored boundary file as a map keyed by Wylie; refuses an unreadable file, a row without
+ * `marked` and a malformed `gateException`. A missing `ruling` reads as `null`, which `markingFor`
+ * refuses.
  *
  * @param {string} [path]
  * @returns {Map<string, BoundaryRow>}
@@ -112,6 +134,7 @@ export function loadBoundaries(path = BOUNDARIES_PATH) {
 	for (const [wylie, row] of Object.entries(data)) {
 		if (row === null || typeof row !== "object" || typeof row.marked !== "string")
 			throw new Error(`boundary row "${wylie}" in ${path} has no "marked"`);
+		if (row.gateException !== undefined) checkGateException(wylie, row);
 		rows.set(wylie, { ...row, ruling: row.ruling ?? null });
 	}
 	return rows;
@@ -135,7 +158,7 @@ export function markingFor(wylie, boundaries) {
 		return { marked: wylie, row: null };
 	}
 	if (row.ruling === null) return { problem: `boundary row for "${wylie}" has no ruling yet` };
-	if (unmarked(row.marked) !== wylie || wordsOf(row.marked).some((w) => w === ""))
+	if (unmarked(row.marked) !== wylie)
 		return {
 			problem: `boundary row for "${wylie}" marks "${row.marked}", which does not unmark to it`,
 		};
@@ -351,6 +374,12 @@ export async function provePredicates() {
 		isProblem("two-syllable name"),
 	);
 	await marking(
+		"one syllable with a row",
+		"snron",
+		new Map([["snron", { marked: "snron", ruling: "x" }]]),
+		(got) => got.problem === `single-syllable name "snron" has a boundary row; the rule needs none`,
+	);
+	await marking(
 		"a ruled row",
 		"sa ga zla ba dus chen",
 		row("sa ga zla ba-dus chen"),
@@ -386,7 +415,7 @@ export async function provePredicates() {
 		["bcu drug pa", "bcu drug", "stem removal"],
 		["mi mthun", "mi mthun pa", "the pa candidate"],
 		["lha", "lha ba", "the ba candidate"],
-		["dus chen", "dus chen", "the word itself"],
+		["bcu drug pa", "bcu drug pa", "the word itself"],
 	])
 		await attempt(`gateWord ${why}`, () => {
 			const got = gateWord(word, sets("D", headword));
@@ -544,6 +573,28 @@ export async function provePredicates() {
 			? null
 			: `answered ${JSON.stringify(messages(out))}`;
 	});
+	await attempt("phoneticsFor covers only the word its gateException names", async () => {
+		const out = await run([{ id: "a", wylie: "lha babs dus chen" }], {
+			boundaries: new Map([
+				[
+					"lha babs dus chen",
+					{
+						marked: "lha babs-dus chen",
+						ruling: "x",
+						gateException: {
+							word: "lha babs",
+							evidence: "x",
+							requires: [{ dictionary: "D", headword: "nyi ma" }],
+						},
+					},
+				],
+			]),
+			gate: new Map([["D", new Set(["nyi ma"])]]),
+		});
+		return same(messages(out), [`word "dus chen" of "lha babs-dus chen" is no headword in D`])
+			? null
+			: `answered ${JSON.stringify(messages(out))}`;
+	});
 	await attempt("phoneticsFor refuses a longer name with no row", async () => {
 		const out = await run([{ id: "a", wylie: "sgam po pa" }]);
 		return out.problems.length === 1 && out.problems[0].message.startsWith("no boundary row")
@@ -602,6 +653,47 @@ export async function provePredicates() {
 			if (!refuses(write("nomarked.json", '{"a b c":{"ruling":"x"}}')))
 				return "accepted a row without marked";
 			if (!refuses(join(dir, "absent.json"))) return "accepted a missing file";
+			const exception = (patch) => {
+				const gateException = {
+					word: "lha babs",
+					evidence: "x",
+					requires: [{ dictionary: "D", headword: "h" }],
+					...patch,
+				};
+				return JSON.stringify({
+					"lha babs dus chen": { marked: "lha babs-dus chen", ruling: "x", gateException },
+				});
+			};
+			const said = (patch) => {
+				try {
+					loadBoundaries(write("ex.json", exception(patch)));
+					return "accepted";
+				} catch (error) {
+					return error.message;
+				}
+			};
+			const head = 'boundary row for "lha babs dus chen": gateException.';
+			if (said({}) !== "accepted") return `refused a sound gateException: ${said({})}`;
+			for (const [what, patch, tail] of [
+				["a missing word", { word: undefined }, "word must be a non-empty string"],
+				["an empty evidence", { evidence: "" }, "evidence must be a non-empty string"],
+				["a word in no word of marked", { word: "dus" }, "word must be one of the words of marked"],
+				["no requires", { requires: undefined }, "requires must be a non-empty array"],
+				["an empty requires", { requires: [] }, "requires must be a non-empty array"],
+				[
+					"a requirement without a headword",
+					{ requires: [{ dictionary: "D" }] },
+					"requires must be an array of { dictionary, headword } strings",
+				],
+				[
+					"a requirement with an empty dictionary",
+					{ requires: [{ dictionary: "", headword: "h" }] },
+					"requires must be an array of { dictionary, headword } strings",
+				],
+			]) {
+				const got = said(patch);
+				if (got !== head + tail) return `${what}: answered "${got}"`;
+			}
 			return null;
 		} finally {
 			rmSync(dir, { recursive: true, force: true });
