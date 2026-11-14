@@ -97,6 +97,30 @@ function assertNoRepeats(lists: readonly (readonly [string, readonly string[]])[
 }
 
 /**
+ * A deep copy of a validated candidate, refusing what cannot be copied with a code.
+ *
+ * @remarks
+ * The validator reads a value through ordinary property reads, so a Proxy with no traps passes it
+ * as the object it wraps, and `structuredClone` then refuses it with an uncoded `DataCloneError`.
+ * That is input of the wrong kind, so it is reported as such; a Proxy whose own trap throws never
+ * reaches here, and its error is the caller's.
+ */
+function copyOf(candidate: ObservanceConfig, label: string): ObservanceConfig {
+	try {
+		return structuredClone(candidate);
+	} catch (error) {
+		if (error instanceof Error && error.name === "DataCloneError") {
+			throw rangeError(
+				CODE,
+				`${label}: the composed config could not be copied, because a rule, level or name in ` +
+					"the base or the layer is not plain data (a Proxy, for one); pass plain objects",
+			);
+		}
+		throw error;
+	}
+}
+
+/**
  * A new, validated, deeply frozen {@link ObservanceConfig}: `base` with the differences in `layer`.
  *
  * @remarks
@@ -277,7 +301,7 @@ export function composeObservances(
 
 	// `deepFreeze` recurses, so freezing anything that still shares an object with a caller's input
 	// would freeze the caller's own object.
-	const result = deepFreeze(structuredClone(candidate));
+	const result = deepFreeze(copyOf(candidate, label));
 	ensureValidated(result);
 	return result;
 }

@@ -557,3 +557,36 @@ describe("composeObservances: hostile values nested in rules and levels", () => 
 		expect(error?.code).toBe(INVALID);
 	});
 });
+
+// A Proxy with no traps is indistinguishable from its target to every read the validator makes, so
+// it passes validation, and `structuredClone` then refuses it. That refusal is the caller's input
+// being the wrong kind of thing, and it carries a code. A Proxy whose trap throws is a different
+// case, and the README leaves it uncoded: the error is the caller's own.
+describe("composeObservances: a Proxy standing for a whole rule or level", () => {
+	const proxied = <T extends object>(target: T): T => new Proxy(target, {});
+	const rule = () => monthly("q");
+	const sites: [string, () => [ObservanceConfig, ObservanceLayer]][] = [
+		["an added rule", () => [plainBase(), layer({ add: [proxied(rule())] })]],
+		["a replaced rule", () => [plainBase(), layer({ replace: [proxied(monthly("a"))] })]],
+		[
+			"an added level",
+			() => [plainBase(), layer({ addLevels: [proxied({ id: "n", englishName: "N" })] })],
+		],
+		[
+			"a base rule",
+			() => {
+				const base = plainBase();
+				base.rules[0] = proxied(base.rules[0] as never);
+				return [base, layer()];
+			},
+		],
+		["the layer's tibetanName", () => [plainBase(), layer({ tibetanName: proxied({ ...NAME }) })]],
+	];
+
+	it.each(sites)("%s is refused with a code, not a DOMException", (_label, build) => {
+		const [base, l] = build();
+		const error = thrownBy(() => composeObservances(base, l));
+		expect(error?.constructor?.name).not.toBe("DOMException");
+		expect(error?.code).toBe(INVALID);
+	});
+});
