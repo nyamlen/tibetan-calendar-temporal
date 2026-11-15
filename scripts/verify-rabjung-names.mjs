@@ -2326,16 +2326,44 @@ const PHONETIC_CORRECTIONS = [
 		thlExpected: "khyumchok",
 		correctedTo: "khyunchok",
 		evidence:
-			"Andreas, 2026-11-15, policy P1 (an m prefix assimilates to n before a non-labial onset): khyunchok; THL's joined mode returns khyumchok",
+			"Andreas, 2026-11-15, policy P1 (an m prefix assimilates to n before a non-labial onset): khyunchok; THL's word-separated mode returns khyumchok",
+	},
+	{
+		id: "position 24",
+		thlExpected: "nangyur",
+		correctedTo: "namgyur",
+		evidence:
+			"Andreas, 2026-11-15, policy P3 (a nasal final, m or ng, is kept; THL's word-separated mode replaces it with n): namgyur; THL's word-separated mode returns nangyur",
+	},
+	{
+		id: "position 32",
+		thlExpected: "nanchang",
+		correctedTo: "namchang",
+		evidence:
+			"Andreas, 2026-11-15, policy P3 (a nasal final, m or ng, is kept; THL's word-separated mode replaces it with n): namchang; THL's word-separated mode returns nanchang",
+	},
+	{
+		id: "position 46",
+		thlExpected: "yondzin",
+		correctedTo: "yongdzin",
+		evidence:
+			"Andreas, 2026-11-15, policy P3 (a nasal final, m or ng, is kept; THL's word-separated mode replaces it with n): yongdzin; THL's word-separated mode returns yondzin",
 	},
 	{
 		id: "position 55",
 		thlExpected: "longen",
 		correctedTo: "lo-ngen",
 		evidence:
-			"Andreas, 2026-11-15, option O1: longen can be read lon-gen; lo-ngen separates the syllables; THL's joined mode returns longen",
+			"Andreas, 2026-11-15, option O1: longen can be read lon-gen; lo-ngen separates the syllables; THL's word-separated mode returns longen",
 	},
 ];
+
+const correctedPositions = (() => {
+	const numbers = PHONETIC_CORRECTIONS.map((c) => c.id.replace("position ", ""));
+	return numbers.length < 2
+		? numbers.join("")
+		: `${numbers.slice(0, -1).join(", ")} and ${numbers.at(-1)}`;
+})();
 
 for (const correction of PHONETIC_CORRECTIONS) {
 	if (!rows.some((r) => `position ${r.n}` === correction.id))
@@ -2861,7 +2889,7 @@ agreeing independently is a result.
 | wisdomlib | The Bṛhat Saṃhitā's cycle position; which **other** lexicons carry a headword | Varāhamihira names the position in words beside the Devanāgarī — a primary Indic astronomical witness, independent of Janson, Sewell and Wiktionary. Only the position is taken, never the prose | **Sourced**, where present |
 | English Wiktionary | That a Devanāgarī headword exists; the cycle position where its entry states it | A second lexicographic witness. **Not a sense source**: its Sanskrit senses *are* Monier-Williams, verbatim, so it is not a lineage independent of MW | **Sourced** |
 | \`jsewts\` + \`tibetan-ewts-converter\` | Tibetan script | Two independent implementations required to agree, then to read back as the Wylie they came from | **Derived**, doubly |
-| THL phonetics converter | THL Simplified phonetics, word by word: a two-syllable name is one word, a longer name is marked by a ruling. Two phonetics (positions 15 and 55) are Andreas' corrections of THL's output, carried beside it | The publisher of the standard | **Sourced**, two corrected |
+| THL phonetics converter | THL Simplified phonetics, word by word: a two-syllable name is one word, a longer name is marked by a ruling. ${PHONETIC_CORRECTIONS.length} phonetics (positions ${correctedPositions}) are Andreas' corrections of THL's output, carried beside it | The publisher of the standard | **Sourced**, ${PHONETIC_CORRECTIONS.length} corrected |
 
 **Janson's ASCII Sanskrit is not shipped, and is extracted for exactly one purpose.** It collides
 three names onto \`pramadi\`, carries no Devanāgarī, and he flags its spellings as varying between

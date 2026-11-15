@@ -43,7 +43,7 @@ function scanShipped(): {
 		for (const m of text.matchAll(/wylie: "([^"]+)"/g)) fromField.add(m[1] as string);
 		for (const m of text.matchAll(/wylie: "([^"]+)",\s*phonetic: "([^"]+)"/g))
 			remember(m[1] as string, m[2] as string);
-		for (const m of text.matchAll(/tibetan\("[^"]+", "([^"]+)", "([^"]+)"\)/g)) {
+		for (const m of text.matchAll(/tibetan\(\s*"[^"]+",\s*"([^"]+)",\s*"([^"]+)",?\s*\)/g)) {
 			fromCall.add(m[1] as string);
 			remember(m[1] as string, m[2] as string);
 		}
@@ -75,7 +75,16 @@ function junctionsOf(wylie: string): number[] {
 	return found;
 }
 
-const CORRECTED_KEYS = ["lha mtshams", "mi mthun", "'phel 'gyur", "stobs ldan", "khyu mchog"];
+const CORRECTED_KEYS = [
+	"lha mtshams",
+	"mi mthun",
+	"'phel 'gyur",
+	"stobs ldan",
+	"khyu mchog",
+	"rnam 'gyur",
+	"rnam 'phyang",
+	"yongs 'dzin",
+];
 const EARLIER_KEYS = ["cho 'phrul dus chen", "chos 'khor dus chen", "bdud 'joms rin po che"];
 
 describe("nasal rulings", () => {
@@ -134,7 +143,7 @@ describe("nasal rulings", () => {
 		expect(bad).toEqual([]);
 	});
 
-	it("the corrected rows are exactly the five", () => {
+	it("the corrected rows are exactly the eight", () => {
 		const corrected = Object.entries(rulings)
 			.filter(([, row]) => row.disposition === "corrected")
 			.map(([key]) => key);

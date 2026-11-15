@@ -19,8 +19,8 @@
 	},
 	"rnam 'gyur": {
 		"rule": 1,
-		"shipped": "nangyur",
-		"disposition": "thl",
+		"shipped": "namgyur",
+		"disposition": "corrected",
 		"ruling": "Andreas, 2026-11-15"
 	},
 	"gser 'phyang": {
@@ -31,8 +31,8 @@
 	},
 	"rnam 'phyang": {
 		"rule": 1,
-		"shipped": "nanchang",
-		"disposition": "thl",
+		"shipped": "namchang",
+		"disposition": "corrected",
 		"ruling": "Andreas, 2026-11-15"
 	},
 	"kun ldan": {
@@ -43,8 +43,8 @@
 	},
 	"yongs 'dzin": {
 		"rule": 1,
-		"shipped": "yondzin",
-		"disposition": "thl",
+		"shipped": "yongdzin",
+		"disposition": "corrected",
 		"ruling": "Andreas, 2026-11-15"
 	},
 	"dpyid zla ra ba": {

@@ -152,7 +152,7 @@ export const RABJUNG_NAMES: readonly TibetanName[] = deepFreeze([
 	{
 		tibetan: "རྣམ་འགྱུར",
 		wylie: "rnam 'gyur",
-		phonetic: "nangyur",
+		phonetic: "namgyur",
 	}, // 24
 	{
 		tibetan: "བོང་བུ",
@@ -192,7 +192,7 @@ export const RABJUNG_NAMES: readonly TibetanName[] = deepFreeze([
 	{
 		tibetan: "རྣམ་འཕྱང",
 		wylie: "rnam 'phyang",
-		phonetic: "nanchang",
+		phonetic: "namchang",
 	}, // 32
 	{
 		tibetan: "སྒྱུར་བྱེད",
@@ -262,7 +262,7 @@ export const RABJUNG_NAMES: readonly TibetanName[] = deepFreeze([
 	{
 		tibetan: "ཡོངས་འཛིན",
 		wylie: "yongs 'dzin",
-		phonetic: "yondzin",
+		phonetic: "yongdzin",
 	}, // 46
 	{
 		tibetan: "བག་མེད",
