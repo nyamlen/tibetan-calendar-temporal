@@ -27,7 +27,8 @@ For these terms that check fails in both directions:
 So existence is attested by dictionaries instead, read for sense, with the public-domain ones quoted and the copyrighted ones used only as gates.
 
 The **script** checks carry over unchanged and every chosen form passes them: two EWTS converters (`jsewts` and `tibetan-ewts-converter`) produce identical script, the script converts back to the Wylie it came from, and it contains no discouraged vowel sign.
-**Phonetics** come from THL's own converter, as for the shipped vocabulary.
+**Phonetics** come from THL's own converter in its "Words separated by" mode, as for the shipped vocabulary: a two-syllable name is one word, a longer name is split by the ruled markings in `scripts/word-boundaries.data.json`, and the words are gated against the dictionaries.
+Two corrections of THL's output, ruled by Andreas on 2026-11-15, apply here: `'phel 'gyur` is *peln-gyur* (the hyphen separates the *n* from the *g* because the sound is not *ng*) and `stobs ldan` is *topden*; each is carried as self-invalidating data in the verifier, and the fixture keeps THL's own value beside it.
 
 ## Sources, and what each is trusted for
 
@@ -90,7 +91,8 @@ Jäschke p. 255, s.v. *dus*, sense 4: "Here Tibetans, of course, distinguish the
 | autumn | སྟོན | ston | *tön* |
 | winter | དགུན | dgun | *gün* |
 
-A season's three months are its early month ར་བ (Wylie `ra ba`; *ra ba*), its middle month འབྲིང་པོ (`'bring po`; *dring po*) and its late month ཐ་ཆུང (`tha chung`; *ta chung*), joined by ཟླ (`zla`, "month"): `dgun zla ra ba`, the early winter month.
+A season's three months are its early month ར་བ (Wylie `ra ba`), its middle month འབྲིང་པོ (`'bring po`) and its late month ཐ་ཆུང (`tha chung`), joined by ཟླ (`zla`, "month"): `dgun zla ra ba`, the early winter month.
+The part words ship only inside the months, where THL's word-separated output renders each as one word: *rawa*, *dringpo* and *tachung*, as in *chinda rawa* and *chinda dringpo*.
 
 **Chosen: `tha chung`**, not `tha chungs`.
 Das writes *tha-chuṅ* throughout, and the Mahāvyutpatti uses both spellings.

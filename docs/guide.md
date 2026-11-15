@@ -702,7 +702,7 @@ date.tibetanWeekday;   // 4 — Wednesday, in the Tibetan numbering
 ```
 
 Each day corresponds to one of the seven planets, and the Tibetan name of the day is essentially the
-planet's: `0` Saturn (*spen ma*), `1` Sun (*nyi ma*), `2` Moon (*zla ba*), `3` Mars (*mig dmar*),
+planet's: `0` Saturn (*spen pa*), `1` Sun (*nyi ma*), `2` Moon (*zla ba*), `3` Mars (*mig dmar*),
 `4` Mercury (*lhag pa*), `5` Jupiter (*phur bu*), `6` Venus (*pa sangs*). That correspondence
 reached Tibet from India and goes back to Roman astrology, which is why it lines up with the Latin
 and English names.
