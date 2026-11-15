@@ -1,0 +1,170 @@
+{
+	"myos ldan": {
+		"rule": 3,
+		"shipped": "nyönden",
+		"disposition": "thl",
+		"ruling": "Andreas, 2026-11-15"
+	},
+	"khyu mchog": {
+		"rule": 2,
+		"shipped": "khyunchok",
+		"disposition": "corrected",
+		"ruling": "Andreas, 2026-11-15"
+	},
+	"kun 'dzin": {
+		"rule": 1,
+		"shipped": "kündzin",
+		"disposition": "thl",
+		"ruling": "Andreas, 2026-11-15"
+	},
+	"rnam 'gyur": {
+		"rule": 1,
+		"shipped": "nangyur",
+		"disposition": "thl",
+		"ruling": "Andreas, 2026-11-15"
+	},
+	"gser 'phyang": {
+		"rule": 1,
+		"shipped": "senchang",
+		"disposition": "thl",
+		"ruling": "Andreas, 2026-11-15"
+	},
+	"rnam 'phyang": {
+		"rule": 1,
+		"shipped": "nanchang",
+		"disposition": "thl",
+		"ruling": "Andreas, 2026-11-15"
+	},
+	"kun ldan": {
+		"rule": 3,
+		"shipped": "künden",
+		"disposition": "thl",
+		"ruling": "Andreas, 2026-11-15"
+	},
+	"yongs 'dzin": {
+		"rule": 1,
+		"shipped": "yondzin",
+		"disposition": "thl",
+		"ruling": "Andreas, 2026-11-15"
+	},
+	"dpyid zla ra ba": {
+		"rule": 3,
+		"shipped": "chinda rawa",
+		"disposition": "thl",
+		"ruling": "Andreas, 2026-11-15"
+	},
+	"dpyid zla 'bring po": {
+		"rule": 3,
+		"shipped": "chinda dringpo",
+		"disposition": "thl",
+		"ruling": "Andreas, 2026-11-15"
+	},
+	"dpyid zla tha chung": {
+		"rule": 3,
+		"shipped": "chinda tachung",
+		"disposition": "thl",
+		"ruling": "Andreas, 2026-11-15"
+	},
+	"dbyar zla ra ba": {
+		"rule": 3,
+		"shipped": "yanda rawa",
+		"disposition": "thl",
+		"ruling": "Andreas, 2026-11-15"
+	},
+	"dbyar zla 'bring po": {
+		"rule": 3,
+		"shipped": "yanda dringpo",
+		"disposition": "thl",
+		"ruling": "Andreas, 2026-11-15"
+	},
+	"dbyar zla tha chung": {
+		"rule": 3,
+		"shipped": "yanda tachung",
+		"disposition": "thl",
+		"ruling": "Andreas, 2026-11-15"
+	},
+	"ston zla ra ba": {
+		"rule": 3,
+		"shipped": "tönda rawa",
+		"disposition": "thl",
+		"ruling": "Andreas, 2026-11-15"
+	},
+	"ston zla 'bring po": {
+		"rule": 3,
+		"shipped": "tönda dringpo",
+		"disposition": "thl",
+		"ruling": "Andreas, 2026-11-15"
+	},
+	"ston zla tha chung": {
+		"rule": 3,
+		"shipped": "tönda tachung",
+		"disposition": "thl",
+		"ruling": "Andreas, 2026-11-15"
+	},
+	"dgun zla ra ba": {
+		"rule": 3,
+		"shipped": "günda rawa",
+		"disposition": "thl",
+		"ruling": "Andreas, 2026-11-15"
+	},
+	"dgun zla 'bring po": {
+		"rule": 3,
+		"shipped": "günda dringpo",
+		"disposition": "thl",
+		"ruling": "Andreas, 2026-11-15"
+	},
+	"dgun zla tha chung": {
+		"rule": 3,
+		"shipped": "günda tachung",
+		"disposition": "thl",
+		"ruling": "Andreas, 2026-11-15"
+	},
+	"lha mtshams": {
+		"rule": 2,
+		"shipped": "lhantsam",
+		"disposition": "corrected",
+		"ruling": "Andreas, 2026-11-15"
+	},
+	"'phel 'gyur": {
+		"rule": 1,
+		"shipped": "peln-gyur",
+		"disposition": "corrected",
+		"ruling": "Andreas, 2026-11-15"
+	},
+	"stobs ldan": {
+		"rule": 3,
+		"shipped": "topden",
+		"disposition": "corrected",
+		"ruling": "Andreas, 2026-11-15"
+	},
+	"mi 'phrod": {
+		"rule": 1,
+		"shipped": "mintrö",
+		"disposition": "thl",
+		"ruling": "Andreas, 2026-11-15"
+	},
+	"mi mthun": {
+		"rule": 2,
+		"shipped": "mintün",
+		"disposition": "corrected",
+		"ruling": "Andreas, 2026-11-15"
+	},
+	"cho 'phrul dus chen": {
+		"rule": 1,
+		"shipped": "chontrül düchen",
+		"disposition": "thl",
+		"ruling": "Andreas, 2026-11-11"
+	},
+	"chos 'khor dus chen": {
+		"rule": 1,
+		"shipped": "chönkhor düchen",
+		"disposition": "thl",
+		"ruling": "Andreas, 2026-11-11"
+	},
+	"bdud 'joms rin po che": {
+		"rule": 1,
+		"shipped": "dünjom rinpoché",
+		"disposition": "thl",
+		"ruling": "Andreas, 2026-11-11"
+	}
+}
