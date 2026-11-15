@@ -95,8 +95,10 @@ at all.
 
 ### Months — animal, gender, element, and sometimes a number
 
-Each of the twelve months takes an animal, and with it a gender: odd months male, even months
-female, following the general principle that odd numbers are *yang* and even are *yin*.
+Each of the twelve months takes an animal, and with it the gender of that animal: odd animal numbers
+male, even female, following the general principle that odd numbers are *yang* and even are *yin*.
+In both attested versions the Tiger month is odd, so this comes to odd months male and even months
+female.
 
 **Which animal starts the year is tradition-dependent, and this is the sharpest fork in the whole
 layer.**

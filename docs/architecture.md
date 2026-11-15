@@ -671,7 +671,9 @@ Seven rules follow from that:
   config — the same bargain `scalingFor` already makes with its `WeakMap`. `ObservanceConfig` is
   checked by `validateObservanceConfig` (`src/observances/validate.ts`), `TraditionConfig` by
   [`assertTraditionConfig`](../src/traditions/validate.ts), called from the two `scalingFor`
-  functions that every entry point passes through. Both check **shape, not astronomy**.
+  functions that every entry point passes through. Both check **shape, not astronomy**, and both refuse
+  a key they do not have; `TraditionConfig` also refuses the values its arithmetic cannot take
+  (`m₁ ≠ 30·m₂`, a table whose first entry is not zero, an intercalation index outside 0…64).
 - **A wrong-kind argument is not a field out of range.** `TCT_FIELD_OUT_OF_RANGE` means a number is
   wrong; `TCT_INVALID_ARGUMENT` means the argument is the wrong sort of thing — a `Temporal`
   instance where a Tibetan date belongs, a non-boolean leap flag, `null`. They are handled

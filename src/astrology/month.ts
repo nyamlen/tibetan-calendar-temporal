@@ -52,7 +52,10 @@ const at = <T>(table: readonly T[], oneBased: number, what: string): T =>
 export interface MonthAttributes {
 	/** The month's animal. Phugpa's month 1 is Dragon; Tsurphu's is Tiger. */
 	animal: TibetanAnimal;
-	/** Male for odd-numbered months, female for even. The same in every tradition. */
+	/**
+	 * The gender of the month's animal: male for odd-numbered months, female for even, in every
+	 * attested tradition.
+	 */
 	gender: TibetanGender;
 	/** The month's element, two months to each in Janson's standard order. */
 	element: TibetanElement;
@@ -166,10 +169,10 @@ export function monthElementNumber(
  * `year` is Janson's `Y` — the Gregorian year the Tibetan year begins in, not the royal era. The
  * public surface converts first, as `yearNameFor` does.
  *
- * The gender needs no tradition: both versions assign each month the gender of its animal, and
- * because the two animal lists are an even number of steps apart this always comes to "odd months
- * male, even months female" — which is also the general Chinese principle that odd numbers are
- * *yang*.
+ * The gender is the gender of the month's animal, as Janson states it, and an odd animal number is
+ * male. For both attested Tiger months, 11 and 1, that comes to "odd months male, even months
+ * female" — the general Chinese principle that odd numbers are *yang* — but it is computed from the
+ * animal, so a config with an even Tiger month still gives each month its own animal's gender.
  *
  * @example
  * ```ts
@@ -188,8 +191,11 @@ export function monthAttributes(
 	month: number,
 ): MonthAttributes {
 	const numbered = tradition.naming?.nineNumbers?.months === "descending";
-	const animal = at(ANIMALS, monthAnimalNumber(tradition, month), "month animal");
-	const gender: TibetanGender = month % 2 === 1 ? "male" : "female";
+	const animalNumber = monthAnimalNumber(tradition, month);
+	const animal = at(ANIMALS, animalNumber, "month animal");
+	// Janson: each month takes the gender of its animal, and odd animal numbers are male. "Odd months
+	// are male" is his shortcut for the attested Tiger months, 11 and 1, both odd.
+	const gender: TibetanGender = animalNumber % 2 === 1 ? "male" : "female";
 	const element = at(ELEMENTS, monthElementNumber(tradition, year, month), "month element");
 
 	return {

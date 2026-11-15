@@ -281,8 +281,8 @@ export function isPlainObject(value: unknown): boolean {
  *   `Object.prototype`, whose keys belong to whatever library polluted it, not to the caller.
  * - **Symbol keys are ignored.** Nobody writes one by mistake, and `Object.keys` does not list them.
  *
- * This applies to **bags only**, never to a `TraditionConfig` or an `ObservanceConfig`: a consumer's
- * `{ ...PHUGPA, extra }` is a supported way to build a config and must keep working.
+ * This applies to **bags only**. A `TraditionConfig` and an `ObservanceConfig` refuse unknown keys
+ * through their own validators, with their own codes, for the same reason.
  *
  * `allowed` is the bag's key list, and the shape shown to the caller is **built from it** — until
  * 2026-09-24 each call site passed a hand-written shape string, which could name a key the bag no

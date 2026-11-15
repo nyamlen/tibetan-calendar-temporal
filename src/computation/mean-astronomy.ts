@@ -77,9 +77,8 @@ export function meanSun(scaled: ScaledTradition, day: number, monthCount: number
  * moon's apogee, where Western astronomy measures from perigee; the two therefore differ by half
  * a circle.
  *
- * This numerator is also, without rescaling, the `moon_tab` argument over
- * {@link ScaledTradition.moonTabArgDen} — multiplying by 28 exactly cancels the factor of 28 in
- * the anomaly denominator.
+ * This numerator times {@link ScaledTradition.moonTabArgFactor} is the `moon_tab` argument over
+ * {@link ScaledTradition.moonTabArgDen}; the factor is 1 when 28 divides the anomaly denominator.
  */
 export function lunarAnomaly(scaled: ScaledTradition, day: number, monthCount: number): number {
 	return evaluate(scaled.lunarAnomaly, day, monthCount);

@@ -102,9 +102,9 @@ function interpolate(readTable: (index: number) => number, numerator: number, de
  * Bounded by ±25, the table's maximum, so its contribution to the date is at most 25/60 days.
  */
 export function moonEquation(scaled: ScaledTradition, day: number, monthCount: number): number {
-	// The anomaly numerator over its own denominator IS the argument numerator over
-	// moonTabArgDen, because multiplying by 28 exactly cancels the factor of 28 below.
-	const argument = lunarAnomaly(scaled, day, monthCount);
+	// 28 · x/den = (28/g · x)/(den/g): the anomaly numerator times the factor is the argument
+	// numerator over moonTabArgDen, for any denominator (the factor is 1 when 28 divides it).
+	const argument = lunarAnomaly(scaled, day, monthCount) * scaled.moonTabArgFactor;
 	return interpolate(
 		(index) => moonTabAt(scaled.tradition.moonTab, index),
 		argument,
@@ -120,7 +120,7 @@ export function moonEquation(scaled: ScaledTradition, day: number, monthCount: n
  * Bounded by ±11, so its contribution to the date is at most 11/60 days.
  */
 export function sunEquation(scaled: ScaledTradition, day: number, monthCount: number): number {
-	const argument = solarAnomaly(scaled, day, monthCount);
+	const argument = solarAnomaly(scaled, day, monthCount) * scaled.sunTabArgFactor;
 	return interpolate(
 		(index) => sunTabAt(scaled.tradition.sunTab, index),
 		argument,

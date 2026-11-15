@@ -15,7 +15,13 @@
  * key, an undeclared level.
  */
 
-import { assertSafeYear, describe, isPlainObject, rangeError } from "../errors.js";
+import {
+	assertSafeYear,
+	describe,
+	isPlainObject,
+	rangeError,
+	type TibetanCalendarErrorCode,
+} from "../errors.js";
 import type { FormulaName, ObservanceConfig, ObservanceRule, ObservanceWhen } from "./types.js";
 
 export const CODE = "TCT_INVALID_OBSERVANCE_CONFIG";
@@ -116,13 +122,19 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
  * @remarks
  * A second unknown-key checker beside `assertQueryOptions` in `src/errors.ts`, deliberately: that
  * one guards a function's options bag and throws `TCT_INVALID_ARGUMENT`, while this guards objects
- * inside a config and throws `TCT_INVALID_OBSERVANCE_CONFIG`, so the two differ in code and subject.
+ * inside a config and throws `TCT_INVALID_OBSERVANCE_CONFIG` — or the config code its caller passes,
+ * which is how `TraditionConfig`'s validator reuses it — so the two differ in code and subject.
  */
-export function assertKnownKeys(value: object, allowed: readonly string[], subject: string): void {
+export function assertKnownKeys(
+	value: object,
+	allowed: readonly string[],
+	subject: string,
+	code: TibetanCalendarErrorCode = CODE,
+): void {
 	for (const key of Object.keys(value)) {
 		if (!allowed.includes(key)) {
 			throw rangeError(
-				CODE,
+				code,
 				`${subject} has no key ${JSON.stringify(key)}; its keys are ${allowed.join(", ")}`,
 			);
 		}
