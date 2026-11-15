@@ -89,6 +89,11 @@ const edits = {
 		(u) => u.includes("34-dung"),
 		(t) => t.replace(/^lha babs dus chen\|.*$/gm, "lha babs dus chenX|gone"),
 	],
+	// check 5: lha babs becomes a headword of the dung dkar, so its gateException is no longer needed
+	"gate-exception-needless": [
+		(u) => u.includes("34-dung"),
+		(t) => t.replace(/^lha babs dus chen\|.*$/m, (line) => `${line}\nlha babs|added`),
+	],
 	// check 5, the self-invalidation of a correction
 	"thl-correction": [
 		(u) => u.includes("phonetics.pl"),

@@ -1419,20 +1419,20 @@ const CORRECTIONS = [
 		id: "yoga water+wind",
 		thlExpected: "mimtün",
 		correctedTo: "mintün",
-		evidence: "Andreas, 2026-11-15: mintün; THL's joined mode returns mimtün",
+		evidence: "Andreas, 2026-11-15: mintün; THL's word-separated mode returns mimtün",
 	},
 	{
 		id: "yoga fire+fire",
 		thlExpected: "pengyur",
 		correctedTo: "peln-gyur",
 		evidence:
-			"Andreas, 2026-11-15: peln-gyur; THL's joined mode returns pengyur. The hyphen is deliberate: it separates the n from the g, because the sound is not the ng a reader would otherwise take them for",
+			"Andreas, 2026-11-15: peln-gyur; THL's word-separated mode returns pengyur. The hyphen is deliberate: it separates the n from the g, because the sound is not the ng a reader would otherwise take them for",
 	},
 	{
 		id: "yoga fire+wind",
 		thlExpected: "tonden",
 		correctedTo: "topden",
-		evidence: "Andreas, 2026-11-15: topden; THL's joined mode returns tonden",
+		evidence: "Andreas, 2026-11-15: topden; THL's word-separated mode returns tonden",
 	},
 ];
 

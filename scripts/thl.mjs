@@ -166,6 +166,10 @@ export function markingFor(wylie, boundaries) {
 		return {
 			problem: `two-syllable name "${wylie}" has a boundary row without a gateException; the rule makes it one word`,
 		};
+	if (n === 2 && row.marked.includes("-"))
+		return {
+			problem: `two-syllable name "${wylie}" is one word: its marking has a boundary`,
+		};
 	if (n === 1)
 		return { problem: `single-syllable name "${wylie}" has a boundary row; the rule needs none` };
 	return { marked: row.marked, row };
@@ -290,8 +294,12 @@ export async function phoneticsFor(names, options) {
 
 		if (syllablesOf(wylie).length > 1) {
 			for (const word of wordsOf(marked)) {
-				if (gateWord(word, gate, enumerated).length > 0) continue;
 				const exception = row?.gateException?.word === word ? row.gateException : null;
+				if (gateWord(word, gate, enumerated).length > 0) {
+					if (exception)
+						problem(id, `gateException for "${word}" is no longer needed: the gate admits it`);
+					continue;
+				}
 				if (!exception) {
 					problem(
 						id,
@@ -372,6 +380,21 @@ export async function provePredicates() {
 		"nyi ma",
 		new Map([["nyi ma", { marked: "nyi ma", ruling: "x" }]]),
 		isProblem("two-syllable name"),
+	);
+	await marking(
+		"two syllables with a boundary in the marking",
+		"lha babs",
+		new Map([
+			[
+				"lha babs",
+				{
+					marked: "lha-babs",
+					ruling: "x",
+					gateException: { word: "lha-babs", evidence: "x", requires: [] },
+				},
+			],
+		]),
+		(got) => got.problem === `two-syllable name "lha babs" is one word: its marking has a boundary`,
 	);
 	await marking(
 		"one syllable with a row",
@@ -569,6 +592,17 @@ export async function provePredicates() {
 		});
 		return same(messages(out), [
 			`gateException for "lha babs" is no longer justified: D has no headword "lha babs dus chen"`,
+		])
+			? null
+			: `answered ${JSON.stringify(messages(out))}`;
+	});
+	await attempt("phoneticsFor with a gateException the gate no longer needs", async () => {
+		const out = await run(lhabab, {
+			boundaries: excepted([{ dictionary: "D", headword: "dus chen" }]),
+			gate: new Map([["D", new Set(["lha babs", "dus chen"])]]),
+		});
+		return same(messages(out), [
+			`gateException for "lha babs" is no longer needed: the gate admits it`,
 		])
 			? null
 			: `answered ${JSON.stringify(messages(out))}`;

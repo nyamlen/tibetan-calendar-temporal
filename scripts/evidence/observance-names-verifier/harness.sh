@@ -12,6 +12,7 @@ REC="${REC:-$CONV/recorded}"
 TREE="$CONV/tree"
 cd "$CONV" || exit 2
 rm -rf "$TREE"; mkdir -p "$TREE/scripts" "$TREE/test/fixtures" "$CONV/out"
+if [ -n "${ONLY:-}" ] && ! echo " $ONLY " | grep -qF -- " control "; then echo "ONLY must include control: a batch without a control proves nothing"; exit 2; fi
 HAVE_THL=0; [ -f "$REPO/scripts/thl.mjs" ] && grep -q "thl.mjs" "$REPO/scripts/verify-observance-names.mjs" && HAVE_THL=1
 FILES="verify-observance-names.mjs cologne.mjs tibetan-dictionary.mjs observance-name-rigpa-passages.data.json"
 [ $HAVE_THL -eq 1 ] && FILES="$FILES thl.mjs word-boundaries.data.json"
@@ -20,10 +21,11 @@ for f in $FILES; do cp "$REPO/scripts/$f" "$TREE/scripts/$f"; done
 for f in $FILES; do cmp "$REPO/scripts/$f" "$TREE/scripts/$f" || { echo "scratch copy of $f differs"; exit 2; }; done
 FIX="$TREE/test/fixtures/observance-names.ts"
 PRELOAD="file:///$EVID/replay.mjs"
-pass=0; failn=0
+pass=0; failn=0; ran=" "
 run() { # mutant expected-message
   # ONLY="control record-column ..." runs just those (a batch under the tool's time limit); unset runs all
   if [ -n "${ONLY:-}" ] && ! echo " $ONLY " | grep -qF -- " $1 "; then return; fi
+  ran="$ran$1 "
   rm -f "$FIX"
   REC_DIR="$REC" MUT="$1" node --import "$PRELOAD" "$TREE/scripts/verify-observance-names.mjs" > "$CONV/out/out-$1.txt" 2>&1
   code=$?
@@ -51,6 +53,10 @@ run thl-correction "correction for karmapa-16 is no longer justified"
 run record-column "not the record's"
 run boundary-row-missing "no boundary row for \"gu ru rin po che\""
 run gate-exception-stale "gateException for \"lha babs\" is no longer justified"
+run gate-exception-needless "gateException for \"lha babs\" is no longer needed: the gate admits it"
 run control
+if [ -n "${ONLY:-}" ]; then
+  for name in $ONLY; do case "$ran" in *" $name "*) ;; *) echo "ONLY names \"$name\", which is no run in this harness"; exit 2;; esac; done
+fi
 echo "pass $pass fail $failn"
 echo "baseline: copy $CONV/out/control-fixture-raw.ts to a file inside the repo, run biome check --write on it, cmp with test/fixtures/observance-names.ts (never biome --stdin-file-path)"

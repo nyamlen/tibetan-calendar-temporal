@@ -6,9 +6,10 @@ It proves that each check of the verifier fails, with its own message, when its 
 ## What is here
 
 - `harness.sh` — the runner.
-  It copies the shipped verifier, its two readers, the shared THL module (`scripts/thl.mjs`), the boundary file (`scripts/word-boundaries.data.json`) and the Rigpa data file into a scratch tree with its own `test/fixtures/`, runs an unmutated **control**, seventeen **mutants**, and the control again.
+  It copies the shipped verifier, its two readers, the shared THL module (`scripts/thl.mjs`), the boundary file (`scripts/word-boundaries.data.json`) and the Rigpa data file into a scratch tree with its own `test/fixtures/`, runs an unmutated **control**, eighteen **mutants**, and the control again.
   It refuses to start if a scratch copy differs from the repository's file, and it never writes into the repository.
   `ONLY="control name name ..." bash harness.sh` runs just the named runs, to fit a batch under a tool's time limit.
+  It refuses (exit 2, with a message) a list that omits `control`, because a batch without a control proves nothing, and a list that names a run the harness does not have.
 - `replay.mjs` — a `node --import` preload that replaces `globalThis.fetch` and serves recorded responses, applying one edit per mutant (some mutants edit two or three responses of one name).
   It wraps the `jsewts` converter for the two converter mutants and `fs.readFileSync` for the two mutants of the Rigpa data file and the one of the boundary file, which the verifier reads from disk.
   A mutant whose edit changes nothing aborts the run, so a mutant cannot pass by doing nothing.
@@ -30,8 +31,8 @@ It proves that each check of the verifier fails, with its own message, when its 
    If it names a changed response, a source has moved since that run, and a mutant that edits that response may abort with "changes nothing" instead of failing for its reason.
 4. `CONV=$CONV bash harness.sh` (Git Bash on Windows).
    About ten minutes: each run loads about 17 MB of dictionary text and runs the verifier's own predicate proofs first.
-   If a tool limits a call to ten minutes, run it in two batches with `ONLY`; each batch then reports its own control.
-5. Expect `pass 19 fail 0` (two controls and seventeen mutants).
+   If a tool limits a call to ten minutes, run it in two batches with `ONLY`, each naming `control`; each batch then reports its own two controls.
+5. Expect `pass 20 fail 0` (two controls and eighteen mutants); each `ONLY` batch prints its own count, two controls and its mutants.
 
 ## The baseline
 
@@ -62,6 +63,7 @@ The verifier's move onto `scripts/thl.mjs` on 2026-11-15 was held to that: every
 | `record-column` | 5, THL's answer for an unaltered name differs from the record's column | `not the record's` |
 | `boundary-row-missing` | 5, a longer name needs a boundary row (the `"gu ru rin po che"` row is deleted from the scratch copy of the file) | `no boundary row for "gu ru rin po che"` |
 | `gate-exception-stale` | 5, a `gateException` self-invalidates (the *dung dkar* headword *lha babs dus chen* is removed) | `gateException for "lha babs" is no longer justified` |
+| `gate-exception-needless` | 5, a `gateException` the gate no longer needs fails (*lha babs* is added to the *dung dkar* headwords) | `gateException for "lha babs" is no longer needed: the gate admits it` |
 
 Every mutant exits non-zero and leaves no fixture; the control exits 0 and writes one, which is how the emit path is proved.
 

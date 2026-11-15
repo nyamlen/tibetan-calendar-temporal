@@ -33,7 +33,7 @@ function scanShipped(): { fromField: Set<string>; fromCall: Set<string> } {
 	for (const file of tsFiles(join(root, "src"))) {
 		const text = readFileSync(file, "utf8");
 		for (const m of text.matchAll(/wylie: "([^"]+)"/g)) fromField.add(m[1] as string);
-		for (const m of text.matchAll(/tibetan\("[^"]+", "([^"]+)", "[^"]+"\)/g))
+		for (const m of text.matchAll(/tibetan\(\s*"[^"]+",\s*"([^"]+)",\s*"[^"]+",?\s*\)/g))
 			fromCall.add(m[1] as string);
 	}
 	return { fromField, fromCall };
@@ -123,6 +123,10 @@ describe("word boundaries", () => {
 			.filter(([key, row]) => syllables(key).length < 3 && row.gateException === undefined)
 			.map(([key]) => key);
 		expect(bare).toEqual([]);
+		const hyphenated = Object.entries(rows)
+			.filter(([key, row]) => syllables(key).length === 2 && row.marked.includes("-"))
+			.map(([key]) => key);
+		expect(hyphenated).toEqual([]);
 	});
 
 	it("pins the rows that carry a gateException, and their shape", () => {

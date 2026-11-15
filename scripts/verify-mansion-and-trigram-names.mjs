@@ -682,7 +682,7 @@ const CORRECTIONS = [
 		id: "mansion 16",
 		thlExpected: "lhamtsam",
 		correctedTo: "lhantsam",
-		evidence: "Andreas, 2026-11-15: lhantsam; THL's joined mode returns lhamtsam",
+		evidence: "Andreas, 2026-11-15: lhantsam; THL's word-separated mode returns lhamtsam",
 	},
 ];
 
