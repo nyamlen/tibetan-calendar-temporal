@@ -63,7 +63,9 @@
  *
  * 5. **`jsewts` and `tibetan-ewts-converter`** convert Wylie to Tibetan script and must agree
  *    exactly, and the result must read back as the Wylie it came from. **THL's converter** supplies
- *    THL Simplified phonetics, its publisher being the standard's author.
+ *    THL Simplified phonetics, its publisher being the standard's author, in its "Words separated by"
+ *    mode through `scripts/thl.mjs`: a two-syllable name is one word, a longer name needs a ruling in
+ *    `scripts/word-boundaries.data.json`, and each word must be a headword in a gate dictionary.
  *
  * ## Why this is not on the CI path
  *
@@ -85,8 +87,15 @@ import {
 	slugVariants,
 } from "./indic.ts";
 import {
+	gateSets,
+	loadBoundaries,
+	phoneticsFor,
+	provePredicates as proveThlPredicates,
+} from "./thl.mjs";
+import {
 	DICTIONARIES,
 	senses as dictionarySenses,
+	fetchAggregate,
 	fetchDictionary,
 	indexEntries,
 	positionsStatedIn,
@@ -1483,59 +1492,8 @@ if (wisdomlibReachable && kharaWisdomlib?.brihatSamhitaPosition !== 25) {
 	);
 }
 
-// ---------------------------------------------------------------------------------------------
-// 7. Phonetics, from THL's converter -- the publisher of the standard.
-//
-// This keeps its own fetch rather than using `fetchWithRetry`: it is a POST with a form body, and
-// the shared helper is a GET. It shares `sleep`, declared with the other network helpers above.
-// ---------------------------------------------------------------------------------------------
-
-async function phoneticFor(wylie) {
-	for (let attempt = 0; attempt < 3; attempt++) {
-		try {
-			const response = await fetch("https://old.thlib.org/cgi-bin/thl/lbow/phonetics.pl", {
-				method: "POST",
-				headers: { "User-Agent": UA, "Content-Type": "application/x-www-form-urlencoded" },
-				body: new URLSearchParams({
-					input: wylie,
-					type: "thl",
-					words: "join",
-					sep_join: "",
-					send: "Make Phonetics",
-				}),
-			});
-			if (!response.ok) throw new Error(`THL returned ${response.status}`);
-			const html = await response.text();
-			const areas = [...html.matchAll(/<textarea[^>]*>([\s\S]*?)<\/textarea>/g)].map((m) =>
-				m[1].trim(),
-			);
-			return areas[1];
-		} catch (error) {
-			if (attempt === 2) throw error;
-			await sleep(1000 * (attempt + 1));
-		}
-	}
-}
-
-for (const r of rows) {
-	await sleep(150); // a courtesy to a university server; 60 rows, not 27
-	try {
-		r.phonetic = await phoneticFor(r.wylie);
-	} catch (error) {
-		fail(`position ${r.n}: THL lookup for "${r.wylie}" failed -- ${error.message}`);
-		continue;
-	}
-	if (!r.phonetic) {
-		fail(`position ${r.n}: THL returned no phonetics for "${r.wylie}"`);
-	} else if (r.phonetic.includes("(?)")) {
-		// THL marks a syllable it cannot analyse with a literal "(?)". An emptiness check passes it
-		// straight through, which is how "anggi(?) ra" would otherwise have shipped.
-		fail(
-			`position ${r.n}: THL could not analyse "${r.wylie}" -- it returned "${r.phonetic}". ` +
-				"The (?) marker is THL declining to answer, not an answer.",
-		);
-	}
-}
+// 7. Phonetics, from THL's converter, run after the dictionaries are fetched (see below), because the
+// word gate reads them.
 
 /**
  * Detector A: where Janson's Sanskrit and the Indic list carry DIFFERENT names at one position,
@@ -2332,8 +2290,47 @@ const TIBETAN_YEAR_DIVERGENCES = [
 proveDictionaryPredicates();
 
 const dictionaryTexts = new Map();
+const dictionaryRaw = new Map();
 for (const dictionary of DICTIONARIES) {
-	dictionaryTexts.set(dictionary.id, indexEntries(await fetchDictionary(dictionary)));
+	const text = await fetchDictionary(dictionary);
+	dictionaryRaw.set(dictionary.id, text);
+	dictionaryTexts.set(dictionary.id, indexEntries(text));
+}
+
+// ---------------------------------------------------------------------------------------------
+// Phonetics, from THL's converter, in its "Words separated by" mode through `scripts/thl.mjs`.
+//
+// This sits above the emit gate on purpose: its problems join `problems`, so a refusal writes nothing.
+// The word gate is the three accepted dictionaries; the *tshig mdzod chen mo* is the text already
+// fetched above, the Mahavyutpatti and the *dung dkar* are fetched here.
+// ---------------------------------------------------------------------------------------------
+
+{
+	const broken = await proveThlPredicates();
+	if (broken.length > 0) {
+		console.error(
+			`the checker itself is broken, so nothing below can be trusted:\n  - ${broken.join("\n  - ")}`,
+		);
+		process.exit(2);
+	}
+}
+
+const { results: thlResults, problems: thlProblems } = await phoneticsFor(
+	rows.map((r) => ({ id: `position ${r.n}`, wylie: r.wylie })),
+	{
+		boundaries: loadBoundaries(),
+		gate: gateSets({
+			mvy: await fetchAggregate("21-Mahavyutpatti-Skt"),
+			tshig: dictionaryRaw.get("tshigmdzod"),
+			dung: await fetchAggregate("34-dung-dkar-tshig-mdzod-chen-mo-Tib"),
+		}),
+		userAgent: UA,
+	},
+);
+for (const p of thlProblems) fail(`${p.id}: ${p.message}`);
+for (const r of rows) {
+	const result = thlResults.get(`position ${r.n}`);
+	if (result) r.phonetic = result.phonetic;
 }
 
 /**
@@ -2829,7 +2826,7 @@ agreeing independently is a result.
 | wisdomlib | The Bṛhat Saṃhitā's cycle position; which **other** lexicons carry a headword | Varāhamihira names the position in words beside the Devanāgarī — a primary Indic astronomical witness, independent of Janson, Sewell and Wiktionary. Only the position is taken, never the prose | **Sourced**, where present |
 | English Wiktionary | That a Devanāgarī headword exists; the cycle position where its entry states it | A second lexicographic witness. **Not a sense source**: its Sanskrit senses *are* Monier-Williams, verbatim, so it is not a lineage independent of MW | **Sourced** |
 | \`jsewts\` + \`tibetan-ewts-converter\` | Tibetan script | Two independent implementations required to agree, then to read back as the Wylie they came from | **Derived**, doubly |
-| THL phonetics converter | THL Simplified phonetics | The publisher of the standard | **Sourced** |
+| THL phonetics converter | THL Simplified phonetics, word by word: a two-syllable name is one word, a longer name is marked by a ruling | The publisher of the standard | **Sourced** |
 
 **Janson's ASCII Sanskrit is not shipped, and is extracted for exactly one purpose.** It collides
 three names onto \`pramadi\`, carries no Devanāgarī, and he flags its spellings as varying between

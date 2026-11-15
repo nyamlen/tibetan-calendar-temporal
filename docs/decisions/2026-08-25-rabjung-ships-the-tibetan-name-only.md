@@ -162,7 +162,7 @@ The shape is otherwise exactly the one recorded above, and every requirement on 
 {
   cycle: 17,
   year: 34,
-  tibetanName: { tibetan: "ཀུན་ལྡན", wylie: "kun ldan", phonetic: "kün den" },
+  tibetanName: { tibetan: "ཀུན་ལྡན", wylie: "kun ldan", phonetic: "künden" },
   samvatsaraNames: {
     indic:    { devanagari: "शार्वरी", iast: "Śārvarī", meaning: "belonging to night, nocturnal" },
     rendered: { tibetanScript: "སརྦཔཏི", roman: "Sarvapati" },
