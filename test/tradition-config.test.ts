@@ -306,8 +306,9 @@ describe("the naming block", () => {
 	});
 
 	it("rejects the pre-2026-09-13 months block rather than ignoring it", () => {
-		// Nothing rejects an unknown key, so without this a config spreading PHUGPA.naming and adding
-		// Tsurphu's rules under the old name would keep Phugpa's animals — a plausible wrong answer.
+		// The retired name gets a message saying where its rules went, rather than the bare unknown-key
+		// refusal every other stray key gets; a config spreading PHUGPA.naming and adding Tsurphu's rules
+		// under it would otherwise keep Phugpa's animals.
 		const months = { tigerMonth: 1, elementRule: "continuous", numbers: true };
 		const naming = { ...PHUGPA.naming, months };
 		const error = thrownBy(() => assertTraditionConfig(broken({ naming })));
@@ -502,11 +503,55 @@ describe("denominator independence", () => {
 		},
 	});
 
-	it("starts from denominators the old derivation could not cancel", () => {
-		expect(deriveScaling(lowestTerms).lunarAnomaly.den % 28).not.toBe(0);
-		expect(deriveScaling(lowestTerms).meanSun.den % 12).not.toBe(0);
-		expect(deriveScaling(multiples).lunarAnomaly.den % 28).toBe(0);
-		expect(deriveScaling(multiples).meanSun.den % 12).toBe(0);
+	// Multiplying every coefficient's numerator and denominator by k leaves the rationals, so the
+	// calendar and the range it is exact over must not change. Denominators as written once fed the
+	// common denominator, so k = 5 cut Henning's exact range from JD 5,868,816 to 117 and refused 1900.
+	it("keeps the exact range and the dates when every rational is multiplied through", () => {
+		const multiplied = (config: TraditionConfig, k: number): TraditionConfig => {
+			const scale = (r: { num: number; den: number }) => ({ num: r.num * k, den: r.den * k });
+			const motion = (m: TraditionConfig["meanDate"]) => ({
+				perMonth: scale(m.perMonth),
+				perDay: scale(m.perDay),
+				atEpoch: scale(m.atEpoch),
+			});
+			return {
+				...config,
+				meanDate: motion(config.meanDate),
+				meanSun: motion(config.meanSun),
+				lunarAnomaly: motion(config.lunarAnomaly),
+			};
+		};
+		const key = (t: ReturnType<typeof isoToTibetan>) =>
+			`${t.year}-${t.month}-${t.day}${t.isLeapMonth ? "L" : ""}${t.isLeapDay ? "d" : ""}`;
+		const problems: string[] = [];
+		for (const config of [PHUGPA, PHUGPA_HENNING, BHUTAN, BHUTAN_HENNING]) {
+			const base = deriveScaling(config);
+			for (const k of [5, 7]) {
+				const other = multiplied(config, k);
+				const scaled = deriveScaling(other);
+				if (scaled.exactToJulianDay !== base.exactToJulianDay) {
+					problems.push(
+						`${config.id} x${k}: range ${scaled.exactToJulianDay} != ${base.exactToJulianDay}`,
+					);
+				}
+				for (const day of ["1900-01-01", "2026-08-12", "+011000-01-01"]) {
+					const date = iso(day);
+					if (key(isoToTibetan(date, other)) !== key(isoToTibetan(date, config))) {
+						problems.push(`${config.id} x${k}: ${day} differs`);
+					}
+				}
+			}
+		}
+		expect(problems).toEqual([]);
+	});
+
+	it("reduces both forms to denominators the old derivation could not cancel", () => {
+		for (const config of [lowestTerms, multiples]) {
+			expect(deriveScaling(config).lunarAnomaly.den % 28).not.toBe(0);
+			expect(deriveScaling(config).meanSun.den % 12).not.toBe(0);
+			expect(deriveScaling(config).lunarAnomaly.den).toBe(14);
+			expect(deriveScaling(config).meanSun.den).toBe(8);
+		}
 	});
 
 	it("gives the same Tibetan date for every day of 2026 whichever form is used", () => {

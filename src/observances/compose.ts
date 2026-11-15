@@ -6,7 +6,7 @@
  * validator's own, exported from `validate.ts`: a second copy of any of them would drift.
  */
 
-import { describe, rangeError } from "../errors.js";
+import { assertKnownKeys, describe, rangeError } from "../errors.js";
 import { deepFreeze } from "../freeze.js";
 import type {
 	ObservanceConfig,
@@ -15,7 +15,6 @@ import type {
 	ObservanceRule,
 } from "./types.js";
 import {
-	assertKnownKeys,
 	assertNonEmptyString,
 	assertOptionalChoice,
 	assertOptionalTibetanName,
@@ -187,7 +186,7 @@ export function composeObservances(
 				"{ id, englishName } with the differences to make, such as add, remove or replace",
 		);
 	}
-	assertKnownKeys(layer, LAYER_KEYS, SUBJECT);
+	assertKnownKeys(layer, LAYER_KEYS, SUBJECT, CODE);
 	assertNonEmptyString(layer.id, `${SUBJECT}: id`);
 	const label = `composeObservances(layer "${layer.id}")`;
 	assertNonEmptyString(layer.englishName, `${label}: englishName`);

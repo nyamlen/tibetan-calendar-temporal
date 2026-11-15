@@ -115,7 +115,8 @@ describe("the observance config guard's message", () => {
 describe("assertQueryOptions refuses keys it does not recognise", () => {
 	// Decided 2026-09-24 with the tradition-parameter pattern: every bag accepted unknown keys, so
 	// `addMonthsToDate(f, 0, { tradition: BHUTAN })` — then a key the bag did not have — answered
-	// Phugpa's date silently. Bags only: a TraditionConfig may carry extra keys. An ObservanceConfig no longer may.
+	// Phugpa's date silently. This guard is for bags; a TraditionConfig and an ObservanceConfig refuse
+	// unknown keys through their own validators.
 	const refuse = (options: unknown) =>
 		thrownBy(() => assertQueryOptions<{ a?: unknown; b?: unknown }>("f", ["a", "b"], options));
 

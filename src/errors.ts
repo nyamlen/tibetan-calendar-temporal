@@ -255,6 +255,31 @@ export function isPlainObject(value: unknown): boolean {
 }
 
 /**
+ * Refuses any own key of `value` that is not in `allowed`, naming it.
+ *
+ * @remarks
+ * Beside `assertQueryOptions`, deliberately: that one guards a function's options bag and throws
+ * `TCT_INVALID_ARGUMENT`, while this guards objects inside a config and throws the config code its
+ * caller passes — `TCT_INVALID_OBSERVANCE_CONFIG` or `TCT_INVALID_TRADITION_CONFIG` — so the two
+ * differ in code and subject.
+ */
+export function assertKnownKeys(
+	value: object,
+	allowed: readonly string[],
+	subject: string,
+	code: TibetanCalendarErrorCode,
+): void {
+	for (const key of Object.keys(value)) {
+		if (!allowed.includes(key)) {
+			throw rangeError(
+				code,
+				`${subject} has no key ${JSON.stringify(key)}; its keys are ${allowed.join(", ")}`,
+			);
+		}
+	}
+}
+
+/**
  * Rejects an options bag that is not an object, or that carries a key the bag does not have.
  *
  * @remarks

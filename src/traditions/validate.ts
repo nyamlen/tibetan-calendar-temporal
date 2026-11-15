@@ -20,8 +20,7 @@
  * @packageDocumentation
  */
 
-import { describe, rangeError } from "../errors.js";
-import { assertKnownKeys } from "../observances/validate.js";
+import { assertKnownKeys, describe, rangeError } from "../errors.js";
 import type {
 	MeanMotion,
 	Rational,
@@ -422,8 +421,8 @@ const validated = new WeakSet<TraditionConfig>();
  * for `{ ...PHUGPA, … }` — cannot reach the stale-cache state at all.
  *
  * This validates **shape, not astronomy**, plus the few values the arithmetic cannot take at all:
- * `m₁ = 30·m₂`, a table whose first entry is zero, an intercalation index inside 0…64. A config with plausible types and wrong constants passes
- * here and produces a wrong calendar — nothing but a fixture can catch that, which is what
+ * `m₁ = 30·m₂`, a table whose first entry is zero, an intercalation index inside 0…64. A config
+ * with plausible types and wrong constants passes here and produces a wrong calendar — nothing but a fixture can catch that, which is what
  * `docs/testing.md` is about.
  *
  * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG`, naming the offending field path.

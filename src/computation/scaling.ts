@@ -140,16 +140,31 @@ function maxMagnitude(table: readonly number[]): number {
 	return table.reduce((largest, entry) => Math.max(largest, Math.abs(entry)), 0);
 }
 
-/** Scales one mean motion's three coefficients onto the lcm of their denominators. */
+/**
+ * Reduces a rational to lowest terms.
+ *
+ * @remarks
+ * So that a tradition's common denominator, and with it the range the arithmetic is exact over,
+ * depends on the rationals a config holds and not on how its author wrote them: `5/(5d)` and `1/d`
+ * are one coefficient.
+ */
+function lowestTerms(r: Rational): Rational {
+	const divisor = gcd(r.num, r.den);
+	// exact: a gcd divides both its arguments, so both quotients are whole numbers.
+	return { num: r.num / divisor, den: r.den / divisor };
+}
+
+/** Scales one mean motion's three coefficients onto the lcm of their reduced denominators. */
 function scaleMeanMotion(motion: MeanMotion): ScaledMeanMotion {
-	const den = [motion.perMonth, motion.perDay, motion.atEpoch]
-		.map((r: Rational) => r.den)
-		.reduce(lcm);
+	const [perMonth, perDay, atEpoch] = [motion.perMonth, motion.perDay, motion.atEpoch].map(
+		lowestTerms,
+	) as [Rational, Rational, Rational];
+	const den = lcm(lcm(perMonth.den, perDay.den), atEpoch.den);
 	return {
 		den,
-		perMonth: scaleTo(motion.perMonth.num, motion.perMonth.den, den),
-		perDay: scaleTo(motion.perDay.num, motion.perDay.den, den),
-		atEpoch: scaleTo(motion.atEpoch.num, motion.atEpoch.den, den),
+		perMonth: scaleTo(perMonth.num, perMonth.den, den),
+		perDay: scaleTo(perDay.num, perDay.den, den),
+		atEpoch: scaleTo(atEpoch.num, atEpoch.den, den),
 	};
 }
 

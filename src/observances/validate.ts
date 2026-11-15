@@ -15,13 +15,7 @@
  * key, an undeclared level.
  */
 
-import {
-	assertSafeYear,
-	describe,
-	isPlainObject,
-	rangeError,
-	type TibetanCalendarErrorCode,
-} from "../errors.js";
+import { assertKnownKeys, assertSafeYear, describe, isPlainObject, rangeError } from "../errors.js";
 import type { FormulaName, ObservanceConfig, ObservanceRule, ObservanceWhen } from "./types.js";
 
 export const CODE = "TCT_INVALID_OBSERVANCE_CONFIG";
@@ -116,31 +110,6 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
 	return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
-/**
- * Refuses any own key of `value` that is not in `allowed`, naming it.
- *
- * @remarks
- * A second unknown-key checker beside `assertQueryOptions` in `src/errors.ts`, deliberately: that
- * one guards a function's options bag and throws `TCT_INVALID_ARGUMENT`, while this guards objects
- * inside a config and throws `TCT_INVALID_OBSERVANCE_CONFIG` — or the config code its caller passes,
- * which is how `TraditionConfig`'s validator reuses it — so the two differ in code and subject.
- */
-export function assertKnownKeys(
-	value: object,
-	allowed: readonly string[],
-	subject: string,
-	code: TibetanCalendarErrorCode = CODE,
-): void {
-	for (const key of Object.keys(value)) {
-		if (!allowed.includes(key)) {
-			throw rangeError(
-				code,
-				`${subject} has no key ${JSON.stringify(key)}; its keys are ${allowed.join(", ")}`,
-			);
-		}
-	}
-}
-
 export function assertNonEmptyString(value: unknown, subject: string): void {
 	if (typeof value !== "string" || value === "") {
 		throw rangeError(CODE, `${subject} must be a non-empty string, received ${describe(value)}`);
@@ -188,7 +157,7 @@ export function assertOptionalTibetanName(value: unknown, subject: string): void
 			`${subject} must be a { tibetan, wylie, phonetic } object, received ${describe(value)}`,
 		);
 	}
-	assertKnownKeys(value, TIBETAN_NAME_KEYS, subject);
+	assertKnownKeys(value, TIBETAN_NAME_KEYS, subject, CODE);
 	for (const part of TIBETAN_NAME_KEYS) {
 		assertNonEmptyString(value[part], `${subject}.${part}`);
 	}
@@ -252,7 +221,7 @@ function assertMonthDay(
 			`${subject}: ${entry} must be a { month, day } object, received ${describe(date)}`,
 		);
 	}
-	assertKnownKeys(date, DATE_KEYS, `${subject}: ${entry}`);
+	assertKnownKeys(date, DATE_KEYS, `${subject}: ${entry}`, CODE);
 	assertIntegerInRange(date.month, 1, 12, `${subject}: month`, MONTH_WHY);
 	assertIntegerInRange(date.day, 1, 30, `${subject}: day`, DAY_WHY);
 }
@@ -265,7 +234,7 @@ function assertWhen(when: unknown, subject: string): void {
 		);
 	}
 	if (when.type === "monthly") {
-		assertKnownKeys(when, MONTHLY_KEYS, `${subject}: when`);
+		assertKnownKeys(when, MONTHLY_KEYS, `${subject}: when`, CODE);
 		const days = when.days;
 		if (!Array.isArray(days) || days.length === 0) {
 			throw rangeError(
@@ -282,7 +251,7 @@ function assertWhen(when: unknown, subject: string): void {
 		return;
 	}
 	if (when.type === "annual") {
-		assertKnownKeys(when, ANNUAL_KEYS, `${subject}: when`);
+		assertKnownKeys(when, ANNUAL_KEYS, `${subject}: when`, CODE);
 		const dates = when.dates;
 		if (!Array.isArray(dates) || dates.length === 0) {
 			throw rangeError(
@@ -307,7 +276,7 @@ function assertWhen(when: unknown, subject: string): void {
 		return;
 	}
 	if (when.type === "period") {
-		assertKnownKeys(when, PERIOD_KEYS, `${subject}: when`);
+		assertKnownKeys(when, PERIOD_KEYS, `${subject}: when`, CODE);
 		const { first, last } = when;
 		assertMonthDay(first, subject, "when.first");
 		assertMonthDay(last, subject, "when.last");
@@ -328,7 +297,7 @@ function assertWhen(when: unknown, subject: string): void {
 		return;
 	}
 	if (when.type === "western") {
-		assertKnownKeys(when, WESTERN_KEYS, `${subject}: when`);
+		assertKnownKeys(when, WESTERN_KEYS, `${subject}: when`, CODE);
 		assertIntegerInRange(
 			when.month,
 			1,
@@ -348,12 +317,12 @@ function assertWhen(when: unknown, subject: string): void {
 		return;
 	}
 	if (when.type === "formula") {
-		assertKnownKeys(when, FORMULA_KEYS, `${subject}: when`);
+		assertKnownKeys(when, FORMULA_KEYS, `${subject}: when`, CODE);
 		assertChoice(when.formula, FORMULA_NAMES, `${subject}: when.formula`);
 		return;
 	}
 	if (when.type === "counted") {
-		assertKnownKeys(when, COUNTED_KEYS, `${subject}: when`);
+		assertKnownKeys(when, COUNTED_KEYS, `${subject}: when`, CODE);
 		assertMonthDay(when.anchor, subject, "when.anchor");
 		assertIntegerInRange(when.waxingDays, 13, 16, `${subject}: when.waxingDays`, FORTNIGHT_WHY);
 		const waning = when.waningDays;
@@ -364,7 +333,7 @@ function assertWhen(when: unknown, subject: string): void {
 					describe(waning),
 			);
 		}
-		assertKnownKeys(waning, WANING_KEYS, `${subject}: when.waningDays`);
+		assertKnownKeys(waning, WANING_KEYS, `${subject}: when.waningDays`, CODE);
 		for (const key of WANING_KEYS) {
 			assertIntegerInRange(
 				waning[key],
@@ -528,7 +497,7 @@ function validateObservanceConfig(config: ObservanceConfig, caller: ObservanceCa
 		);
 	}
 	assertNotAnotherShape(config, caller);
-	assertKnownKeys(config, CONFIG_KEYS, "ObservanceConfig");
+	assertKnownKeys(config, CONFIG_KEYS, "ObservanceConfig", CODE);
 
 	// `config.id` is interpolated into the messages below, so it is checked before they can quote it.
 	assertNonEmptyString(config.id, "observance config id");
@@ -555,7 +524,7 @@ function validateObservanceConfig(config: ObservanceConfig, caller: ObservanceCa
 					`${subject}: every level must be an object, received ${describe(level)}`,
 				);
 			}
-			assertKnownKeys(level, LEVEL_KEYS, `${subject}: a level`);
+			assertKnownKeys(level, LEVEL_KEYS, `${subject}: a level`, CODE);
 			assertNonEmptyString(level.id, `${subject}: level id`);
 			if (levelIds.has(level.id as string)) {
 				throw rangeError(CODE, `${subject}: level id must be unique, "${level.id}" repeats`);
@@ -583,7 +552,7 @@ function validateObservanceConfig(config: ObservanceConfig, caller: ObservanceCa
 				`${subject}: every rule must be an object, received ${describe(rule)}`,
 			);
 		}
-		assertKnownKeys(rule, RULE_KEYS, "an observance rule");
+		assertKnownKeys(rule, RULE_KEYS, "an observance rule", CODE);
 		assertNonEmptyString(rule.id, "observance rule id");
 		// Documented as "unique within a config" and never enforced; duplicates silently produced
 		// duplicate results, ordered only by the sort's stability.
