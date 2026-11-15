@@ -393,14 +393,12 @@ function lunarMansionOf(resolved: TibetanDate, tradition: TraditionConfig): Luna
 
 /** The weekday element the yoga pairs with the mansion's. */
 function weekdayElementOf(resolved: TibetanDate): TibetanWeekdayElement {
-	// Offset **0**, deliberately, rather than `weekdayNameFor(…, tradition)` — which would apply
-	// `naming.weekdayOffset` and hand Bhutan a different yoga on most days. Janson gives the yoga's
-	// weekday element in one table, states Bhutan's name shift separately as a naming feature, and
-	// never revisits the yoga for it; so following the shifted *name* here would be an inference
-	// nobody has published, on a surface that freezes at 1.0.0 and whose only external validation is
-	// Phugpa. Taking his printed table instead is the sourced answer, and it keeps two claims true
-	// that were briefly false: `TraditionNaming.weekdayOffset`'s "applies to the name only", and
-	// `docs/astrology.md`'s "the yoga varies only through the mansion".
+	// Offset **0** is belt and braces. Since `naming.weekdayOffset` moves only the weekday's name,
+	// `weekdayNameFor(…, tradition).element` returns this same element, so the two calls cannot
+	// differ. It is kept so the yoga reads Janson's printed table directly and stays correct if the
+	// offset were ever allowed to move the element again: before that was ruled out, following the
+	// shifted name gave Bhutan a different yoga on most days, which `docs/astrology.md`'s "the yoga
+	// varies only through the mansion" forbids.
 	return weekdayNameWithOffset(resolved.tibetanWeekday, 0).element;
 }
 

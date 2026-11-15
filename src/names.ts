@@ -82,11 +82,11 @@ const ANIMALS: Readonly<Record<TibetanAnimal, TibetanName>> = freeze({
 	pig: { tibetan: "ཕག", wylie: "phag", phonetic: "pak" },
 });
 
-/** The whole vocabulary, for the test that pins it against the generated fixture. */
 // Seven frozen rows per offset value, built once, so a date under a shifting tradition still holds a
 // pointer to a shared frozen object. At most seven entries: the offset is taken modulo 7.
 const SHIFTED_ROWS = new Map<number, readonly TibetanWeekdayName[]>();
 
+/** The whole vocabulary, for the test that pins it against the generated fixture. */
 export const NAME_TABLES = freeze({ WEEKDAYS, ELEMENTS, GENDERS, ANIMALS });
 
 /**
@@ -106,8 +106,9 @@ export const NAME_TABLES = freeze({ WEEKDAYS, ELEMENTS, GENDERS, ANIMALS });
  *
  * The `planet` and `element` stay those of the unshifted weekday, and that is a ruling, not
  * something the source settles. Janson writes "A unique feature of the Bhutanese calendar is that
- * its day of week differs by one day from Tibet (and the rest of the world, see efF{fplanets})"
- * — which does not mention the element, and points at the weekday–planet figure — and then "day 0
+ * its day of week differs by one day from Tibet (and the rest of the world,
+ * see his figure of the weekday–planet correspondence)"
+ * — which does not mention the element, and points at that correspondence — and then "day 0
  * (Saturday) is *spen pa* in Tibet but *nyi ma* (really meaning sun) in Bhutan". Andreas ruled on
  * 2026-11-15 that the offset moves the name only, which ends a contradiction with the elemental
  * yoga, where Janson's table is read unshifted. So a Bhutanese Saturday is named *nyi ma*, the sun's

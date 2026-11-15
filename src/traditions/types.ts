@@ -252,9 +252,9 @@ export interface TraditionNaming {
 	 * Janson calls it "a unique feature of the Bhutanese calendar", and Unicode CLDR agrees: its
 	 * `bo` and `dz` locales give names one planet apart for the same date.
 	 *
-	 * Applies to the **name only**, not to the name's `planet` or `element`. The weekday *number* is `mod(julianDay + 2, 7)` for every
-	 * tradition and the Western weekday is correct in both, which is why the difference is invisible
-	 * when dates are written in English.
+	 * Applies to the **name only**, not to the name's `planet` or `element`. The weekday *number* is
+	 * `mod(julianDay + 2, 7)` for every tradition and the Western weekday is correct in both, which
+	 * is why the difference is invisible when dates are written in English.
 	 *
 	 * **Optional within `naming`, defaulting to 0**, so a config supplying only the other members
 	 * need not restate a shift it does not have. Absent `naming` already means offset 0, so this
