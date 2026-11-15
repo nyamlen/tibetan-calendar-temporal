@@ -6,6 +6,7 @@
  * case here and a further arm of the validator, and nothing in the query changes.
  */
 
+import { mod } from "../computation/arithmetic.js";
 import {
 	classifyDay,
 	firstDayOfMonth,
@@ -219,7 +220,8 @@ function periodOccurrences(
  * A formula is a property of a calendar day, so each day number is classified and every calendar
  * day it occupies is tested on its own: both halves of a doubled number, none of a skipped one.
  * The weekday comes from the Julian day, which is a Monday at 0 modulo 7, so Sunday counts 0 as
- * `(julianDay + 1) % 7`; no Tibetan date is built until a day is a result. Always `"exact"`.
+ * `(julianDay + 1) mod 7`, a non-negative remainder; no Tibetan date is built until a day is a
+ * result. Always `"exact"`.
  */
 function formulaOccurrences(
 	when: Extract<ObservanceWhen, { type: "formula" }>,
@@ -235,7 +237,7 @@ function formulaOccurrences(
 				? [classification.leapJulianDay as number, classification.julianDay as number]
 				: [classification.julianDay as number];
 		for (const julianDay of days) {
-			if (formulaHolds(when.formula, day, (julianDay + 1) % 7)) {
+			if (formulaHolds(when.formula, day, mod(julianDay + 1, 7))) {
 				found.push({ julianDay, resolution: "exact" });
 			}
 		}

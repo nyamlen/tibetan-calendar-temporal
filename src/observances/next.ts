@@ -1,11 +1,18 @@
+import { floorDiv } from "../computation/arithmetic.js";
 import { asPlainDate, isoToTibetan, julianDayFromIso } from "../computation/conversion.js";
+import type { ScaledTradition } from "../computation/scaling.js";
 import { scalingFor } from "../computation/scaling.js";
 import { describe, hasCode, rangeError } from "../errors.js";
 import { PHUGPA } from "../traditions/phugpa.js";
 import type { TraditionConfig } from "../traditions/types.js";
 import { assertTraditionConfig } from "../traditions/validate.js";
-import { MAX_SPAN_YEARS, occurrencesOfRule, tibetanDateMemo } from "./occurrences.js";
-import type { Observance, ObservanceConfig, ObservanceWhen } from "./types.js";
+import {
+	MAX_SPAN_YEARS,
+	occurrencesOfRule,
+	type TibetanDateOfDay,
+	tibetanDateMemo,
+} from "./occurrences.js";
+import type { Observance, ObservanceConfig, ObservanceRule, ObservanceWhen } from "./types.js";
 import { ensureValidated } from "./validate.js";
 
 /**
@@ -27,6 +34,36 @@ const FIRST_CHUNK_DAYS: Record<ObservanceWhen["type"], number> = {
 	formula: 31,
 	counted: 31,
 };
+
+/**
+ * The results of one rule over a chunk, or what lies before the first day it cannot answer.
+ *
+ * A period's result carries its whole span's bounds, so a span ending past the exact range cannot
+ * be built for any of its days: the search has met the end. That is only true of the days inside
+ * the span, so a chunk that fails is halved and its earlier half searched first, down to one day,
+ * which is `[]`. Only this code, and only here, which is the one site a span's last day is converted
+ * from inside the range.
+ */
+function firstWithin(
+	rule: ObservanceRule,
+	start: number,
+	end: number,
+	config: ObservanceConfig,
+	scaled: ScaledTradition,
+	tibetanDateOf: TibetanDateOfDay,
+): Observance[] {
+	try {
+		return occurrencesOfRule(rule, start, end, config, scaled, tibetanDateOf);
+	} catch (error) {
+		if (!hasCode(error, "TCT_OUTSIDE_EXACT_RANGE")) throw error;
+		if (start === end) return [];
+		const middle = start + floorDiv(end - start, 2);
+		const earlier = firstWithin(rule, start, middle, config, scaled, tibetanDateOf);
+		return earlier.length > 0
+			? earlier
+			: firstWithin(rule, middle + 1, end, config, scaled, tibetanDateOf);
+	}
+}
 
 /**
  * The first observance of one rule strictly after a day, or `null` if none lies within 10 years.
@@ -118,17 +155,7 @@ export function nextObservance(
 	let size = FIRST_CHUNK_DAYS[rule.when.type];
 	while (start <= lastJd) {
 		const end = Math.min(start + size - 1, lastJd);
-		let found: Observance[];
-		try {
-			found = occurrencesOfRule(rule, start, end, config, scaled, tibetanDateOf);
-		} catch (error) {
-			// A period's result carries its whole span's bounds, so a span ending past the exact range
-			// cannot be built for any of its days: the search has met the end. Only this code, and only
-			// here, which is the one site a span's last day is converted from inside the range.
-			if (hasCode(error, "TCT_OUTSIDE_EXACT_RANGE")) return null;
-			throw error;
-		}
-		const [first] = found;
+		const [first] = firstWithin(rule, start, end, config, scaled, tibetanDateOf);
 		if (first !== undefined) return first;
 		start = end + 1;
 		size *= 2;

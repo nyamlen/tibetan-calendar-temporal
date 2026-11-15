@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isoToTibetan } from "../../src/computation/conversion.js";
+import { isoToTibetan, losarFor } from "../../src/computation/conversion.js";
 import {
 	EXAMPLE_OBSERVANCES,
 	getObservances,
@@ -618,5 +618,24 @@ describe("nextObservance, its arguments", () => {
 		expect(
 			thrownBy(() => nextObservance(iso("2026-01-01"), "nope", undefined as never))?.code,
 		).toBe("TCT_INVALID_OBSERVANCE_CONFIG");
+	});
+});
+
+describe("nextObservance, a long period span with a later span past the end of the range", () => {
+	// A span of almost a year, so a search chunk can hold a day of the complete earlier span and a
+	// day of the straddling one.
+	const wholeYear = withRules([
+		{
+			id: "p",
+			when: { type: "period", first: { month: 1, day: 1 }, last: { month: 12, day: 30 } },
+			leapMonth: "regular",
+		},
+	]);
+	const losar = losarFor(isoToTibetan(convertibleEnds.last, PHUGPA).year, PHUGPA).isoDate;
+
+	it.each([2, 20, 40, 100])("answers the next day from %i days before the last Losar", (back) => {
+		const from = losar.subtract({ days: back });
+		const found = nextObservance(from, "p", wholeYear);
+		expect(found?.date.isoDate.toString()).toBe(from.add({ days: 1 }).toString());
 	});
 });

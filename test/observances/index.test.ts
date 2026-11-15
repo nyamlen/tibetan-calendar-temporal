@@ -5,6 +5,7 @@ import {
 	composeObservances,
 	EXAMPLE_OBSERVANCES,
 	getObservances,
+	nextObservance,
 	observancesOn,
 } from "../../src/observances/index.js";
 import type { Observance, ObservanceConfig, ObservanceRule } from "../../src/observances/types.js";
@@ -1869,5 +1870,65 @@ describe("a config with a rule of a form this release does not know", () => {
 		expect(
 			getObservances(iso("2026-01-01"), iso("2026-01-31"), withoutUnknown).length,
 		).toBeGreaterThan(0);
+	});
+});
+
+describe("a rule shifted onto the first day of a year that opens with a leap month", () => {
+	// Phugpa 2279-02-12 is a Losar whose year opens with leap month 1, and the 12/30 before it is
+	// skipped, so `skippedDay: "following"` puts the monthly 30th on Losar itself.
+	const thirtieth: ObservanceConfig = {
+		...EXAMPLE_OBSERVANCES,
+		id: "thirtieth",
+		skippedDay: "following",
+		rules: [{ id: "m30", englishName: "M30", when: { type: "monthly", days: [30] } }],
+	};
+	const losar = iso("2279-02-12");
+	const key = (found: Observance[]) =>
+		found.map((o) => `${o.date.isoDate.toString()} ${o.resolution}`);
+
+	it("finds it in a query that starts on that day, as in a wider one", () => {
+		expect(key(getObservances(iso("2279-02-01"), iso("2279-02-28"), thirtieth))).toContain(
+			"2279-02-12 dayAfterSkipped",
+		);
+		expect(key(getObservances(losar, losar, thirtieth))).toEqual(["2279-02-12 dayAfterSkipped"]);
+		expect(key(observancesOn(losar, thirtieth))).toEqual(["2279-02-12 dayAfterSkipped"]);
+	});
+
+	it("is found by nextObservance from the day before", () => {
+		expect(nextObservance(iso("2279-02-11"), "m30", thirtieth)?.date.isoDate.toString()).toBe(
+			"2279-02-12",
+		);
+	});
+});
+
+describe("an annual window is applied to each entry before one entry beats another", () => {
+	// Tibetan 2132's 12/30 is skipped and follows onto 2006-02-28, where the exact 1/1 of 2133 also
+	// lands. The window ends at 2132, so only the first is in it.
+	const rule = (dates: { month: number; day: number }[], extra = {}): ObservanceConfig => ({
+		...EXAMPLE_OBSERVANCES,
+		id: "windowed",
+		skippedDay: "following",
+		rules: [
+			{
+				id: "w",
+				englishName: "W",
+				when: { type: "annual", dates, untilYear: 2132, ...extra },
+			},
+		],
+	});
+	const day = iso("2006-02-28");
+	const lone = [{ month: 12, day: 30 }];
+	const both = [...lone, { month: 1, day: 1 }];
+
+	it("gives the in-window result whether or not another date is added to the rule", () => {
+		const one = getObservances(day, day, rule(lone));
+		const two = getObservances(day, day, rule(both));
+		expect(one.map((o) => o.resolution)).toEqual(["dayAfterSkipped"]);
+		expect(two.map((o) => o.resolution)).toEqual(["dayAfterSkipped"]);
+	});
+
+	it("reports the age of the in-window occurrence", () => {
+		const found = getObservances(day, day, rule(both, { ageFromYear: 2132 }));
+		expect(found.map((o) => [o.resolution, o.age])).toEqual([["dayAfterSkipped", 0]]);
 	});
 });
