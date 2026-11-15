@@ -80,8 +80,21 @@ const revokedProxy = (() => {
 	return proxy;
 })();
 
+const revokedFunctionProxy = (() => {
+	const { proxy, revoke } = Proxy.revocable(() => 1, {});
+	revoke();
+	return proxy;
+})();
+
 const HOSTILE: readonly (readonly [string, unknown])[] = [
 	["Symbol", Symbol("x")],
+	[
+		"function with a throwing name getter",
+		Object.defineProperty(() => 1, "name", { get: throwing }),
+	],
+	["function with a Symbol name", Object.defineProperty(() => 1, "name", { value: Symbol("x") })],
+	["function Proxy throwing from get", new Proxy(() => 1, { get: throwing })],
+	["revoked function Proxy", revokedFunctionProxy],
 	["bigint", 10n],
 	["numeric string", "10"],
 	[

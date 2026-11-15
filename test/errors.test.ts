@@ -53,6 +53,38 @@ describe("describe", () => {
 		expect(rendered).toBe("an object");
 	});
 
+	it.each([
+		[
+			"a function whose name getter throws",
+			() =>
+				Object.defineProperty(() => 1, "name", {
+					get() {
+						throw new Error("n");
+					},
+				}),
+		],
+		[
+			"a function whose name is a Symbol",
+			() => Object.defineProperty(() => 1, "name", { value: Symbol("x") }),
+		],
+		["a function Proxy whose get trap throws", () => new Proxy(() => 1, { get: throwing })],
+		[
+			"a revoked function Proxy",
+			() => {
+				const { proxy, revoke } = Proxy.revocable(() => 1, {});
+				revoke();
+				return proxy;
+			},
+		],
+	])("renders %s as a string without throwing", (_, make) => {
+		const value: unknown = make();
+		let rendered: unknown;
+		expect(() => {
+			rendered = describeValue(value);
+		}).not.toThrow();
+		expect(rendered).toBe("a function");
+	});
+
 	it("renders a Symbol by its description, which a template literal cannot", () => {
 		expect(describeValue(Symbol("x"))).toBe("Symbol(x)");
 	});

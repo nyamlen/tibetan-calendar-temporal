@@ -1842,6 +1842,9 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
       `monthFromLunation`, `weekdayNameFor` and the closed-form year functions take a number and no
       shape, so the shape-first order says nothing about them, and they are outside this decision:
       `monthFromLunation` checks the tradition before its number, the other two the number first.
+      `isoToTibetan` was missed by that change, which counted fourteen exports and not fifteen: it
+      checked the tradition before its Western date until a review found it, and now has its row in
+      the same table.
 - [x] **Decide whether `check:conventions` rule 4 should distinguish an exported `{@link}` target
       from a module-local one.** **Decided 2026-09-23: reject, scoped to docblocks that ship** — those
       of a barrel-exported declaration or of a member of a barrel-exported interface or class, where a

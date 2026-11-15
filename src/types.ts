@@ -26,7 +26,7 @@
 
 import { assertSafeYear, describe, rangeError, type TibetanCalendarErrorCode } from "./errors.js";
 import { formatTibetanDate } from "./format.js";
-import { temporalKindOf } from "./temporal-kind.js";
+import { temporalKindOf, temporalTypeNameOf } from "./temporal-kind.js";
 
 /**
  * The five elements of the 60-year cycle, in the order of Janson's ten-year cycle table (§4).
@@ -695,8 +695,9 @@ export interface TibetanMonth {
 }
 
 /**
- * Rejects a `Temporal.PlainDate`, `PlainDateTime` or `ZonedDateTime` passed where a Tibetan-date
- * input is expected.
+ * Rejects any Temporal instance passed where a Tibetan-date or Tibetan-month input is expected: a
+ * `PlainDate`, `PlainDateTime` or `ZonedDateTime`, which name a Western day, and a
+ * `PlainYearMonth`, `PlainMonthDay`, `PlainTime`, `Instant` or `Duration`, which name none.
  *
  * @remarks
  * `TibetanDateFields` and `Temporal.PlainDate` are structurally close enough — both are plain
@@ -727,21 +728,30 @@ export function rejectTemporalInstance(functionName: string, value: unknown): vo
 	// a `PlainDate` from a second implementation sailed past this guard and was then read
 	// structurally for year/month/day — which a PlainDate has — turning ISO 2024-07-09 into a
 	// confident royal-era answer 127 years out. See `temporal-kind.ts`.
-	const kind = temporalKindOf(value);
-	if (kind !== null) {
-		// tibetanToIso and tibetanDateExists take a Tibetan date and can be swapped directly for
-		// isoToTibetan; formatTibetanDate and daysInMonth take a Tibetan date but do not produce
-		// one, so the fix is "convert first", not "call this instead".
-		const suggestion =
-			functionName === "tibetanToIso" || functionName === "tibetanDateExists"
-				? "Did you mean isoToTibetan(date)?"
-				: "Convert it first with isoToTibetan(date).";
+	const typeName = temporalTypeNameOf(value);
+	if (typeName === null) return;
+	// A type that names no calendar day — `PlainYearMonth` above all, whose numeric `year` and
+	// `month` read as a Tibetan month — is refused by its brand all the same, but is not told it
+	// holds a Western day.
+	if (temporalKindOf(value) === null) {
 		throw rangeError(
 			"TCT_INVALID_ARGUMENT",
-			`${functionName}: received a Temporal.${kind}, which names a Western ` +
-				`calendar day, not a Tibetan one. ${suggestion}`,
+			`${functionName}: received a Temporal.${typeName}, which is not a Tibetan date or month. ` +
+				"Pass { year, month } or { year, month, day } fields, or a resolved TibetanDate.",
 		);
 	}
+	// tibetanToIso and tibetanDateExists take a Tibetan date and can be swapped directly for
+	// isoToTibetan; formatTibetanDate and daysInMonth take a Tibetan date but do not produce
+	// one, so the fix is "convert first", not "call this instead".
+	const suggestion =
+		functionName === "tibetanToIso" || functionName === "tibetanDateExists"
+			? "Did you mean isoToTibetan(date)?"
+			: "Convert it first with isoToTibetan(date).";
+	throw rangeError(
+		"TCT_INVALID_ARGUMENT",
+		`${functionName}: received a Temporal.${typeName}, which names a Western ` +
+			`calendar day, not a Tibetan one. ${suggestion}`,
+	);
 }
 
 /**

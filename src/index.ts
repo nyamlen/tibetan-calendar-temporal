@@ -28,7 +28,8 @@
  *   differ by 127 and are both exposed.
  * - **Skipped dates throw.** Some date numbers reach no calendar day at all; `tibetanToIso`
  *   raises {@link SkippedDayError} and {@link tibetanDateExists} is the predicate. Every other
- *   failure is a `RangeError` carrying a {@link TibetanCalendarErrorCode} — branch on
+ *   failure carries a {@link TibetanCalendarErrorCode} and is a `RangeError`, except
+ *   `TCT_INTERNAL` and `TCT_MISSING_TEMPORAL`, which are plain `Error`s — branch on
  *   `error.code`, never on the message text.
  * - **Dates before 1447 are back-projections.** Phugpa did not exist earlier, the royal-era
  *   numbering is a modern convention, and `Temporal.PlainDate` is proleptic Gregorian where

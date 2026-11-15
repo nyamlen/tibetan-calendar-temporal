@@ -49,7 +49,7 @@
  * @packageDocumentation
  */
 
-import { codedError, describe, rangeError } from "./errors.js";
+import { codedError, describe, rangeError, thrownDetail } from "./errors.js";
 
 /** The Temporal types that name a calendar day, and so can be normalised to one. */
 export type TemporalDayKind = "PlainDate" | "PlainDateTime" | "ZonedDateTime";
@@ -112,6 +112,32 @@ export function temporalKindOf(value: unknown): TemporalDayKind | null {
 }
 
 /**
+ * Refuses a call made after the global `Temporal` was deleted, with `TCT_MISSING_TEMPORAL`.
+ *
+ * @remarks
+ * The import-time guard in `computation/conversion.ts` has already run and will not run again, so a
+ * global deleted after import lands here. A bare `ReferenceError: Temporal is not defined` names
+ * neither the requirement nor the fix; this code does. Every path that reads `Temporal` after
+ * import calls it first, the ISO-string arm of `asPlainDate` included, which would otherwise
+ * recode the `ReferenceError` as the caller's fault.
+ *
+ * @throws A `TCT_MISSING_TEMPORAL` error if the global `Temporal` has been removed since import.
+ */
+export function assertTemporalPresent(): void {
+	if (typeof Temporal === "undefined") {
+		// `codedError`, not `rangeError`: the README states that `TCT_MISSING_TEMPORAL` is a plain
+		// `Error` deliberately, and one code riding two error types would make that false for
+		// whichever site a consumer happened to hit. The import-time guard in `conversion.ts` uses
+		// the same constructor.
+		throw codedError(
+			"TCT_MISSING_TEMPORAL",
+			"the global Temporal has been removed since this package was imported, so a date cannot " +
+				"be normalised. Restore it, or import a polyfill before this package.",
+		);
+	}
+}
+
+/**
  * Brings a Temporal value of a known kind into **this** realm, as a `Temporal.PlainDate`.
  *
  * @remarks
@@ -140,22 +166,7 @@ export function temporalKindOf(value: unknown): TemporalDayKind | null {
  * @throws A `TCT_INVALID_ARGUMENT` error if the value cannot be read as an ISO calendar day.
  */
 export function toNativePlainDate(value: unknown, kind: TemporalDayKind): Temporal.PlainDate {
-	// The import-time guard in `computation/conversion.ts` has already run and will not run again,
-	// so a global deleted after import lands here. A bare `ReferenceError: Temporal is not defined`
-	// names neither the requirement nor the fix; this code does.
-	/* c8 ignore start -- unreachable under test: the suite runs on Node 26, where Temporal exists, and deleting the global mid-suite would break every other file in the same process */
-	if (typeof Temporal === "undefined") {
-		// `codedError`, not `rangeError`: the README states that `TCT_MISSING_TEMPORAL` is a plain
-		// `Error` deliberately, and one code riding two error types would make that false for
-		// whichever site a consumer happened to hit. The import-time guard in `conversion.ts` uses
-		// the same constructor.
-		throw codedError(
-			"TCT_MISSING_TEMPORAL",
-			"the global Temporal has been removed since this package was imported, so a date cannot " +
-				"be normalised. Restore it, or import a polyfill before this package.",
-		);
-	}
-	/* c8 ignore stop */
+	assertTemporalPresent();
 	if (kind !== "PlainDate") {
 		// Guarded, because the brand is spoofable and the narrowing call is not. An object carrying
 		// `Temporal.ZonedDateTime` and nothing else threw an **uncoded** `TypeError: value.toPlainDate
@@ -177,12 +188,25 @@ export function toNativePlainDate(value: unknown, kind: TemporalDayKind): Tempor
 			throw rangeError(
 				"TCT_INVALID_ARGUMENT",
 				`received a value branded Temporal.${kind} whose toPlainDate failed: ` +
-					`${describe(value)}${error instanceof Error ? ` (${error.message})` : ""}`,
+					`${describe(value)} (${thrownDetail(error)})`,
 			);
 		}
 		return toNativePlainDate(narrowed, "PlainDate");
 	}
-	if (value instanceof Temporal.PlainDate) return assertIsoCalendar(value);
+	if (value instanceof Temporal.PlainDate) {
+		// `instanceof` is true for `Object.create(Temporal.PlainDate.prototype)`, which carries no
+		// brand: the native getter then throws, so the read is guarded and refused with a code.
+		try {
+			void value.calendarId;
+		} catch {
+			throw rangeError(
+				"TCT_INVALID_ARGUMENT",
+				`received a value that is an instance of Temporal.PlainDate's prototype but not a ` +
+					`PlainDate, so it cannot name a calendar day: ${describe(value)}`,
+			);
+		}
+		return assertIsoCalendar(value);
+	}
 	let normalised: Temporal.PlainDate;
 	try {
 		normalised = Temporal.PlainDate.from(String(value));
@@ -190,7 +214,7 @@ export function toNativePlainDate(value: unknown, kind: TemporalDayKind): Tempor
 		throw rangeError(
 			"TCT_INVALID_ARGUMENT",
 			`received a value branded Temporal.${kind} that does not serialise to a calendar day: ` +
-				`${describe(value)}${error instanceof Error ? ` (${error.message})` : ""}`,
+				`${describe(value)} (${thrownDetail(error)})`,
 		);
 	}
 	return assertIsoCalendar(normalised);

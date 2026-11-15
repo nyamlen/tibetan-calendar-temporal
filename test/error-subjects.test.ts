@@ -15,6 +15,7 @@ import {
 	daysInMonth,
 	formatTibetanDate,
 	formatTibetanMonth,
+	isoToTibetan,
 	leapMonthNumberFor,
 	lunationFromMonth,
 	monthNamesFor,
@@ -545,6 +546,7 @@ describe("which error a doubly-bad call reports", () => {
 	// the tradition is the whole order.
 	const day = Temporal.PlainDate.from("2026-09-01");
 	it.each([
+		["isoToTibetan", (v: never) => isoToTibetan(v, brokenTradition)],
 		["nextFullMoon", (v: never) => nextFullMoon(v, brokenTradition)],
 		["nextNewMoon", (v: never) => nextNewMoon(v, brokenTradition)],
 		["elementalYogaFor", (v: never) => elementalYogaFor(v, brokenTradition)],

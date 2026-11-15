@@ -23,6 +23,7 @@ import { monthCodeOf } from "../format.js";
 import { weekdayNameWithOffset } from "../names.js";
 import {
 	assertIsoCalendar,
+	assertTemporalPresent,
 	temporalKindOf,
 	temporalTypeNameOf,
 	toNativePlainDate,
@@ -155,6 +156,7 @@ export function asPlainDate(date: Temporal.PlainDate, subject?: string): Tempora
 							: ""),
 		);
 	}
+	assertTemporalPresent();
 	try {
 		return assertIsoCalendar(Temporal.PlainDate.from(raw));
 	} catch (error) {
@@ -681,10 +683,12 @@ export function isoToTibetan(
 	date: Temporal.PlainDate,
 	tradition: TraditionConfig = PHUGPA,
 ): TibetanDate {
-	const scaled = scalingFor(tradition);
+	// The shape, then the tradition, then the range: the one order every other Western-date export
+	// reports a doubly-bad call in.
 	// Normalised once here rather than relying on julianDayFromIso alone, so the error message below
 	// quotes the date the caller meant rather than whatever they passed.
 	const plain = asPlainDate(date);
+	const scaled = scalingFor(tradition);
 	const target = julianDayFromIso(plain);
 	assertExactJulianDay(scaled, target, () => plain.toString());
 

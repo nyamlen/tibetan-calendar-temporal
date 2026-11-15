@@ -219,8 +219,16 @@ export function describe(value: unknown): string {
 	// `String` renders `10n` as "10", which is the ambiguity this function exists to avoid, and a
 	// function as its whole source text.
 	if (typeof value === "bigint") return `${value}n`;
-	if (typeof value === "function")
-		return value.name === "" ? "a function" : `function ${value.name}`;
+	if (typeof value === "function") {
+		// The same hazard as the object branch: `name` can be a throwing getter, a Symbol, or a read
+		// through a Proxy trap, so it is read inside a `try` and used only if it is a string.
+		try {
+			const name: unknown = value.name;
+			return typeof name === "string" && name !== "" ? `function ${name}` : "a function";
+		} catch {
+			return "a function";
+		}
+	}
 	return String(value);
 }
 
