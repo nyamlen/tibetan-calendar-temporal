@@ -17,8 +17,14 @@ So the comment syntax already decides who reads a sentence, and the rule only ma
 It is the [Google TypeScript Style Guide](https://google.github.io/styleguide/tsguide.html)'s rule, under *JSDoc versus comments*: "Use `/** JSDoc */` comments for documentation, i.e. comments a user of the code should read", and "Use `// line comments` for implementation comments, i.e. comments that only concern the implementation of the code itself."
 [Google's code-review guide](https://google.github.io/eng-practices/review/reviewer/looking-for.html) draws the same line: documentation of a function should "express the purpose of a piece of code, how it should be used, and how it behaves when used", and a comment holds "the reasoning behind a decision".
 
-Docblocks here had drifted the other way, carrying the project's reasoning and its dates into a consumer's editor.
+This is the industry convention, and nothing in `CLAUDE.md` or `docs/coding-standards.md` ever said otherwise: both treat a docblock as contract, which is the same view from the other side.
+What departed from it was **practice**.
+Docblocks drifted into carrying the project's reasoning and its dates into a consumer's editor, because a docblock was the nearest place to write something down.
 `monthNamesFor`'s `@throws` said "since 2026-09-24, when the tradition became positional", and `boundedMonth`'s remarks recorded that its callers "used to borrow `daysInMonth`'s" guard.
+
+**Provenance a caller relies on stays in the docblock.**
+`CLAUDE.md` and the no-institution-names record put provenance "in the docblock and the docs", and that is consistent with this rule: whose conventions `EXAMPLE_OBSERVANCES` follows, or which source a name comes from, changes whether a caller can use the value for their purpose.
+The story of how the source was found does not, and moves out.
 
 ## The rule
 
@@ -40,5 +46,17 @@ Review, and the docblock audit in `docs/roadmap.md`, which applies it to every d
 Nothing mechanical yet.
 The candidate is a `check:conventions` rule refusing an ISO date in a docblock's prose, outside code spans and `@example` blocks, which use dates legitimately; it is to be written failing-case first.
 
-**Moving text to `//` takes it out of Rule 4's reach**, which checks `{@link}` targets only in docblocks.
-A `//` comment naming a symbol is a plain word, so a rename leaves it stale without failing anything; name symbols in `//` comments in backticks so a grep finds them.
+**What moving text to `//` costs is Rule 4, and only for `{@link}` references.**
+Rule 4 checks that every `{@link X}` in a docblock names a symbol that exists, and in a shipped docblock one an entry point exports.
+It checks nothing else: a symbol named in backticks was never checked, in a docblock or out of one.
+So the loss is exactly the `{@link}`s in the text that moves, and a rename of their target then leaves the `//` comment stale without failing anything.
+
+The audit therefore does three things with a `{@link}` in moved text:
+
+- **Converts it to the symbol in backticks** — `{@link scalingFor}` becomes `` `scalingFor` `` — since `{@link}` in a `//` comment renders nowhere and Rule 4 does not read it.
+- **Counts the conversions and states the number in the commit**, so the loss of checking is measured rather than assumed.
+  On 2026-09-23 there were 320 symbol links in `src/`; how many sit in text that moves was not measured.
+- **Keeps a `{@link}` in the docblock where the caller needs it** — a link to an exported type is caller information and stays checked.
+
+Extending Rule 4 to backticked names in `//` comments was considered and not taken: a backticked word in a comment is often not a symbol (a field name, a code snippet, an error code), so the rule would need an allowlist larger than the problem.
+If a stale `//` reference is ever found by hand, that is the evidence to revisit it.

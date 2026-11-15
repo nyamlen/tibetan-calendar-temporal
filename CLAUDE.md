@@ -1338,8 +1338,8 @@ file actually suffers — stated counts and rule descriptions, not dead paths.
 
 **A docblock is written for the caller; the reasoning goes in a `//` comment beside the code.**
 `tsc` copies every `/** */` into the shipped `.d.ts` and drops every `//`, so the comment syntax
-decides who reads a sentence. The proofs, bounds and traps this file asks you to record are
-**moved** to `//`, never deleted, and dates and "used to" go in the commit message:
+decides who reads a sentence. Proofs, bounds and traps written into a docblock are **moved** to
+`//`, never deleted; provenance a caller relies on stays; dates and "used to" go in the commit message:
 [docs/decisions/2026-11-15-docblocks-are-for-callers.md](docs/decisions/2026-11-15-docblocks-are-for-callers.md).
 
 **Test files must not export, and a shared helper goes in `test/support/`.** Biome enforces the
