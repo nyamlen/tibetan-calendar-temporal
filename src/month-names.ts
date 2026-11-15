@@ -147,14 +147,14 @@ const MANSIONS: readonly {
 		[
 			[tibetan("མཆུ", "mchu", "chu"), "maghā", "मघा"],
 			[tibetan("དབོ", "dbo", "wo"), "uttaraphalgunī", "उत्तरफल्गुनी"],
-			[tibetan("ནག་པ", "nag pa", "nak pa"), "citrā", "चित्रा"],
-			[tibetan("ས་ག", "sa ga", "sa ga"), "viśākhā", "विशाखा"],
+			[tibetan("ནག་པ", "nag pa", "nakpa"), "citrā", "चित्रा"],
+			[tibetan("ས་ག", "sa ga", "saga"), "viśākhā", "विशाखा"],
 			[tibetan("སྣྲོན", "snron", "nön"), "jyeṣṭhā", "ज्येष्ठा"],
-			[tibetan("ཆུ་སྟོད", "chu stod", "chu tö"), "pūrvāṣāḍhā", "पूर्वाषाढा"],
-			[tibetan("གྲོ་བཞིན", "gro bzhin", "dro zhin"), "śravaṇā", "श्रवणा"],
+			[tibetan("ཆུ་སྟོད", "chu stod", "chutö"), "pūrvāṣāḍhā", "पूर्वाषाढा"],
+			[tibetan("གྲོ་བཞིན", "gro bzhin", "drozhin"), "śravaṇā", "श्रवणा"],
 			[tibetan("ཁྲུམས", "khrums", "trum"), "bhadrapadā", "भद्रपदा"],
-			[tibetan("ཐ་སྐར", "tha skar", "ta kar"), "aśvinī", "अश्विनी"],
-			[tibetan("སྨིན་དྲུག", "smin drug", "min druk"), "kṛttikā", "कृत्तिका"],
+			[tibetan("ཐ་སྐར", "tha skar", "takar"), "aśvinī", "अश्विनी"],
+			[tibetan("སྨིན་དྲུག", "smin drug", "mindruk"), "kṛttikā", "कृत्तिका"],
 			[tibetan("མགོ", "mgo", "go"), "mṛgaśiras", "मृगशिरस्"],
 			[tibetan("རྒྱལ", "rgyal", "gyel"), "puṣya", "पुष्य"],
 		] as const
@@ -193,62 +193,62 @@ const FOUR_SEASONS: readonly FourSeasonMonthName[] = freeze([
 	{
 		season: "spring",
 		part: "early",
-		tibetanName: tibetan("དཔྱིད་ཟླ་ར་བ", "dpyid zla ra ba", "chi da ra ba"),
+		tibetanName: tibetan("དཔྱིད་ཟླ་ར་བ", "dpyid zla ra ba", "chinda rawa"),
 	},
 	{
 		season: "spring",
 		part: "middle",
-		tibetanName: tibetan("དཔྱིད་ཟླ་འབྲིང་པོ", "dpyid zla 'bring po", "chi da dring po"),
+		tibetanName: tibetan("དཔྱིད་ཟླ་འབྲིང་པོ", "dpyid zla 'bring po", "chinda dringpo"),
 	},
 	{
 		season: "spring",
 		part: "late",
-		tibetanName: tibetan("དཔྱིད་ཟླ་ཐ་ཆུང", "dpyid zla tha chung", "chi da ta chung"),
+		tibetanName: tibetan("དཔྱིད་ཟླ་ཐ་ཆུང", "dpyid zla tha chung", "chinda tachung"),
 	},
 	{
 		season: "summer",
 		part: "early",
-		tibetanName: tibetan("དབྱར་ཟླ་ར་བ", "dbyar zla ra ba", "yar da ra ba"),
+		tibetanName: tibetan("དབྱར་ཟླ་ར་བ", "dbyar zla ra ba", "yanda rawa"),
 	},
 	{
 		season: "summer",
 		part: "middle",
-		tibetanName: tibetan("དབྱར་ཟླ་འབྲིང་པོ", "dbyar zla 'bring po", "yar da dring po"),
+		tibetanName: tibetan("དབྱར་ཟླ་འབྲིང་པོ", "dbyar zla 'bring po", "yanda dringpo"),
 	},
 	{
 		season: "summer",
 		part: "late",
-		tibetanName: tibetan("དབྱར་ཟླ་ཐ་ཆུང", "dbyar zla tha chung", "yar da ta chung"),
+		tibetanName: tibetan("དབྱར་ཟླ་ཐ་ཆུང", "dbyar zla tha chung", "yanda tachung"),
 	},
 	{
 		season: "autumn",
 		part: "early",
-		tibetanName: tibetan("སྟོན་ཟླ་ར་བ", "ston zla ra ba", "tön da ra ba"),
+		tibetanName: tibetan("སྟོན་ཟླ་ར་བ", "ston zla ra ba", "tönda rawa"),
 	},
 	{
 		season: "autumn",
 		part: "middle",
-		tibetanName: tibetan("སྟོན་ཟླ་འབྲིང་པོ", "ston zla 'bring po", "tön da dring po"),
+		tibetanName: tibetan("སྟོན་ཟླ་འབྲིང་པོ", "ston zla 'bring po", "tönda dringpo"),
 	},
 	{
 		season: "autumn",
 		part: "late",
-		tibetanName: tibetan("སྟོན་ཟླ་ཐ་ཆུང", "ston zla tha chung", "tön da ta chung"),
+		tibetanName: tibetan("སྟོན་ཟླ་ཐ་ཆུང", "ston zla tha chung", "tönda tachung"),
 	},
 	{
 		season: "winter",
 		part: "early",
-		tibetanName: tibetan("དགུན་ཟླ་ར་བ", "dgun zla ra ba", "gün da ra ba"),
+		tibetanName: tibetan("དགུན་ཟླ་ར་བ", "dgun zla ra ba", "günda rawa"),
 	},
 	{
 		season: "winter",
 		part: "middle",
-		tibetanName: tibetan("དགུན་ཟླ་འབྲིང་པོ", "dgun zla 'bring po", "gün da dring po"),
+		tibetanName: tibetan("དགུན་ཟླ་འབྲིང་པོ", "dgun zla 'bring po", "günda dringpo"),
 	},
 	{
 		season: "winter",
 		part: "late",
-		tibetanName: tibetan("དགུན་ཟླ་ཐ་ཆུང", "dgun zla tha chung", "gün da ta chung"),
+		tibetanName: tibetan("དགུན་ཟླ་ཐ་ཆུང", "dgun zla tha chung", "günda tachung"),
 	},
 ]);
 
@@ -261,7 +261,7 @@ const SIX_SEASONS: readonly Omit<SixSeasonMonthName, "part">[] = freeze([
 	},
 	{
 		season: "summer",
-		tibetanName: tibetan("སོས་ཀ", "sos ka", "sö ka"),
+		tibetanName: tibetan("སོས་ཀ", "sos ka", "söka"),
 		sanskritName: { iast: "grīṣma", devanagari: "ग्रीष्म" },
 	},
 	{
@@ -276,12 +276,12 @@ const SIX_SEASONS: readonly Omit<SixSeasonMonthName, "part">[] = freeze([
 	},
 	{
 		season: "cold",
-		tibetanName: tibetan("དགུན་སྟོད", "dgun stod", "gün tö"),
+		tibetanName: tibetan("དགུན་སྟོད", "dgun stod", "güntö"),
 		sanskritName: { iast: "hemanta", devanagari: "हेमन्त" },
 	},
 	{
 		season: "dewy",
-		tibetanName: tibetan("དགུན་སྨད", "dgun smad", "gün mé"),
+		tibetanName: tibetan("དགུན་སྨད", "dgun smad", "günmé"),
 		sanskritName: { iast: "śiśira", devanagari: "शिशिर" },
 	},
 ]);

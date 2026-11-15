@@ -37,202 +37,202 @@ export const RABJUNG_NAMES: readonly TibetanName[] = deepFreeze([
 	{
 		tibetan: "རབ་བྱུང",
 		wylie: "rab byung",
-		phonetic: "rap jung",
+		phonetic: "rapjung",
 	}, // 1
 	{
 		tibetan: "རྣམ་བྱུང",
 		wylie: "rnam byung",
-		phonetic: "nam jung",
+		phonetic: "namjung",
 	}, // 2
 	{
 		tibetan: "དཀར་པོ",
 		wylie: "dkar po",
-		phonetic: "kar po",
+		phonetic: "karpo",
 	}, // 3
 	{
 		tibetan: "རབ་མྱོས",
 		wylie: "rab myos",
-		phonetic: "rap nyö",
+		phonetic: "rapnyö",
 	}, // 4
 	{
 		tibetan: "སྐྱེས་བདག",
 		wylie: "skyes bdag",
-		phonetic: "kyé dak",
+		phonetic: "kyedak",
 	}, // 5
 	{
 		tibetan: "ཨང་གི་ར",
 		wylie: "ang gi ra",
-		phonetic: "ang gi ra",
+		phonetic: "anggira",
 	}, // 6
 	{
 		tibetan: "དཔལ་གདོང",
 		wylie: "dpal gdong",
-		phonetic: "pel dong",
+		phonetic: "peldong",
 	}, // 7
 	{
 		tibetan: "དངོས་པོ",
 		wylie: "dngos po",
-		phonetic: "ngö po",
+		phonetic: "ngöpo",
 	}, // 8
 	{
 		tibetan: "ན་ཚོད་ལྡན",
 		wylie: "na tshod ldan",
-		phonetic: "na tsö den",
+		phonetic: "natsö den",
 	}, // 9
 	{
 		tibetan: "འཛིན་བྱེད",
 		wylie: "'dzin byed",
-		phonetic: "dzin jé",
+		phonetic: "dzinjé",
 	}, // 10
 	{
 		tibetan: "དབང་ཕྱུག",
 		wylie: "dbang phyug",
-		phonetic: "wang chuk",
+		phonetic: "wangchuk",
 	}, // 11
 	{
 		tibetan: "འབྲུ་མང་པོ",
 		wylie: "'bru mang po",
-		phonetic: "dru mang po",
+		phonetic: "dru mangpo",
 	}, // 12
 	{
 		tibetan: "མྱོས་ལྡན",
 		wylie: "myos ldan",
-		phonetic: "nyö den",
+		phonetic: "nyönden",
 	}, // 13
 	{
 		tibetan: "རྣམ་གནོན",
 		wylie: "rnam gnon",
-		phonetic: "nam nön",
+		phonetic: "namnön",
 	}, // 14
 	{
 		tibetan: "ཁྱུ་མཆོག",
 		wylie: "khyu mchog",
-		phonetic: "khyu chok",
+		phonetic: "khyunchok",
 	}, // 15
 	{
 		tibetan: "སྣ་ཚོགས",
 		wylie: "sna tshogs",
-		phonetic: "na tsok",
+		phonetic: "natsok",
 	}, // 16
 	{
 		tibetan: "ཉི་མ",
 		wylie: "nyi ma",
-		phonetic: "nyi ma",
+		phonetic: "nyima",
 	}, // 17
 	{
 		tibetan: "ཉི་སྒྲོལ་བྱེད",
 		wylie: "nyi sgrol byed",
-		phonetic: "nyi dröl jé",
+		phonetic: "nyi dröljé",
 	}, // 18
 	{
 		tibetan: "ས་སྐྱོང",
 		wylie: "sa skyong",
-		phonetic: "sa kyong",
+		phonetic: "sakyong",
 	}, // 19
 	{
 		tibetan: "མི་ཟད",
 		wylie: "mi zad",
-		phonetic: "mi zé",
+		phonetic: "mizé",
 	}, // 20
 	{
 		tibetan: "ཐམས་ཅད་འདུལ",
 		wylie: "thams cad 'dul",
-		phonetic: "tam ché dül",
+		phonetic: "tamché dül",
 	}, // 21
 	{
 		tibetan: "ཀུན་འཛིན",
 		wylie: "kun 'dzin",
-		phonetic: "kün dzin",
+		phonetic: "kündzin",
 	}, // 22
 	{
 		tibetan: "འགལ་བ",
 		wylie: "'gal ba",
-		phonetic: "gel ba",
+		phonetic: "gelwa",
 	}, // 23
 	{
 		tibetan: "རྣམ་འགྱུར",
 		wylie: "rnam 'gyur",
-		phonetic: "nam gyur",
+		phonetic: "namgyur",
 	}, // 24
 	{
 		tibetan: "བོང་བུ",
 		wylie: "bong bu",
-		phonetic: "bong bu",
+		phonetic: "bongbu",
 	}, // 25
 	{
 		tibetan: "དགའ་བ",
 		wylie: "dga' ba",
-		phonetic: "ga ba",
+		phonetic: "gawa",
 	}, // 26
 	{
 		tibetan: "རྣམ་རྒྱལ",
 		wylie: "rnam rgyal",
-		phonetic: "nam gyel",
+		phonetic: "namgyel",
 	}, // 27
 	{
 		tibetan: "རྒྱལ་བ",
 		wylie: "rgyal ba",
-		phonetic: "gyel ba",
+		phonetic: "gyelwa",
 	}, // 28
 	{
 		tibetan: "མྱོས་བྱེད",
 		wylie: "myos byed",
-		phonetic: "nyö jé",
+		phonetic: "nyöjé",
 	}, // 29
 	{
 		tibetan: "གདོང་ངན",
 		wylie: "gdong ngan",
-		phonetic: "dong ngen",
+		phonetic: "dongngen",
 	}, // 30
 	{
 		tibetan: "གསེར་འཕྱང",
 		wylie: "gser 'phyang",
-		phonetic: "ser chang",
+		phonetic: "senchang",
 	}, // 31
 	{
 		tibetan: "རྣམ་འཕྱང",
 		wylie: "rnam 'phyang",
-		phonetic: "nam chang",
+		phonetic: "namchang",
 	}, // 32
 	{
 		tibetan: "སྒྱུར་བྱེད",
 		wylie: "sgyur byed",
-		phonetic: "gyur jé",
+		phonetic: "gyurjé",
 	}, // 33
 	{
 		tibetan: "ཀུན་ལྡན",
 		wylie: "kun ldan",
-		phonetic: "kün den",
+		phonetic: "künden",
 	}, // 34
 	{
 		tibetan: "འཕར་བ",
 		wylie: "'phar ba",
-		phonetic: "par ba",
+		phonetic: "parwa",
 	}, // 35
 	{
 		tibetan: "དགེ་བྱེད",
 		wylie: "dge byed",
-		phonetic: "gé jé",
+		phonetic: "gejé",
 	}, // 36
 	{
 		tibetan: "མཛེས་བྱེད",
 		wylie: "mdzes byed",
-		phonetic: "dzé jé",
+		phonetic: "dzejé",
 	}, // 37
 	{
 		tibetan: "ཁྲོ་མོ",
 		wylie: "khro mo",
-		phonetic: "tro mo",
+		phonetic: "tromo",
 	}, // 38
 	{
 		tibetan: "སྣ་ཚོགས་དབྱིག",
 		wylie: "sna tshogs dbyig",
-		phonetic: "na tsok yik",
+		phonetic: "natsok yik",
 	}, // 39
 	{
 		tibetan: "ཟིལ་གནོན",
 		wylie: "zil gnon",
-		phonetic: "zil nön",
+		phonetic: "zilnön",
 	}, // 40
 	{
 		tibetan: "སྤྲེའུ",
@@ -242,42 +242,42 @@ export const RABJUNG_NAMES: readonly TibetanName[] = deepFreeze([
 	{
 		tibetan: "ཕུར་བུ",
 		wylie: "phur bu",
-		phonetic: "pur bu",
+		phonetic: "purbu",
 	}, // 42
 	{
 		tibetan: "ཞི་བ",
 		wylie: "zhi ba",
-		phonetic: "zhi ba",
+		phonetic: "zhiwa",
 	}, // 43
 	{
 		tibetan: "ཐུན་མོང",
 		wylie: "thun mong",
-		phonetic: "tün mong",
+		phonetic: "tünmong",
 	}, // 44
 	{
 		tibetan: "འགལ་བྱེད",
 		wylie: "'gal byed",
-		phonetic: "gel jé",
+		phonetic: "geljé",
 	}, // 45
 	{
 		tibetan: "ཡོངས་འཛིན",
 		wylie: "yongs 'dzin",
-		phonetic: "yong dzin",
+		phonetic: "yongdzin",
 	}, // 46
 	{
 		tibetan: "བག་མེད",
 		wylie: "bag med",
-		phonetic: "bak mé",
+		phonetic: "bakmé",
 	}, // 47
 	{
 		tibetan: "ཀུན་དགའ",
 		wylie: "kun dga'",
-		phonetic: "kün ga",
+		phonetic: "künga",
 	}, // 48
 	{
 		tibetan: "སྲིན་བུ",
 		wylie: "srin bu",
-		phonetic: "sin bu",
+		phonetic: "sinbu",
 	}, // 49
 	{
 		tibetan: "མེ",
@@ -287,52 +287,52 @@ export const RABJUNG_NAMES: readonly TibetanName[] = deepFreeze([
 	{
 		tibetan: "དམར་སེར་ཅན",
 		wylie: "dmar ser can",
-		phonetic: "mar ser chen",
+		phonetic: "marser chen",
 	}, // 51
 	{
 		tibetan: "དུས་ཀྱི་ཕོ་ཉ",
 		wylie: "dus kyi pho nya",
-		phonetic: "dü kyi po nya",
+		phonetic: "dükyi ponya",
 	}, // 52
 	{
 		tibetan: "དོན་གྲུབ",
 		wylie: "don grub",
-		phonetic: "dön drup",
+		phonetic: "döndrup",
 	}, // 53
 	{
 		tibetan: "དྲག་པོ",
 		wylie: "drag po",
-		phonetic: "drak po",
+		phonetic: "drakpo",
 	}, // 54
 	{
 		tibetan: "བློ་ངན",
 		wylie: "blo ngan",
-		phonetic: "lo ngen",
+		phonetic: "lo-ngen",
 	}, // 55
 	{
 		tibetan: "རྔ་ཆེན",
 		wylie: "rnga chen",
-		phonetic: "nga chen",
+		phonetic: "ngachen",
 	}, // 56
 	{
 		tibetan: "ཁྲག་སྐྱུག",
 		wylie: "khrag skyug",
-		phonetic: "trak kyuk",
+		phonetic: "trakkyuk",
 	}, // 57
 	{
 		tibetan: "མིག་དམར",
 		wylie: "mig dmar",
-		phonetic: "mik mar",
+		phonetic: "mikmar",
 	}, // 58
 	{
 		tibetan: "ཁྲོ་བོ",
 		wylie: "khro bo",
-		phonetic: "tro bo",
+		phonetic: "trowo",
 	}, // 59
 	{
 		tibetan: "ཟད་པ",
 		wylie: "zad pa",
-		phonetic: "zé pa",
+		phonetic: "zepa",
 	}, // 60
 ]);
 

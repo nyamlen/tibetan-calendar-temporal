@@ -45,13 +45,13 @@ const freeze = <T>(value: T): T => deepFreeze(value);
  * is ISO and does not.
  */
 const WEEKDAYS: readonly TibetanWeekdayName[] = freeze([
-	{ tibetan: "སྤེན་པ", wylie: "spen pa", phonetic: "pen pa", planet: "saturn", element: "earth" },
-	{ tibetan: "ཉི་མ", wylie: "nyi ma", phonetic: "nyi ma", planet: "sun", element: "fire" },
-	{ tibetan: "ཟླ་བ", wylie: "zla ba", phonetic: "da ba", planet: "moon", element: "water" },
-	{ tibetan: "མིག་དམར", wylie: "mig dmar", phonetic: "mik mar", planet: "mars", element: "fire" },
-	{ tibetan: "ལྷག་པ", wylie: "lhag pa", phonetic: "lhak pa", planet: "mercury", element: "water" },
-	{ tibetan: "ཕུར་བུ", wylie: "phur bu", phonetic: "pur bu", planet: "jupiter", element: "wind" },
-	{ tibetan: "པ་སངས", wylie: "pa sangs", phonetic: "pa sang", planet: "venus", element: "earth" },
+	{ tibetan: "སྤེན་པ", wylie: "spen pa", phonetic: "penpa", planet: "saturn", element: "earth" },
+	{ tibetan: "ཉི་མ", wylie: "nyi ma", phonetic: "nyima", planet: "sun", element: "fire" },
+	{ tibetan: "ཟླ་བ", wylie: "zla ba", phonetic: "dawa", planet: "moon", element: "water" },
+	{ tibetan: "མིག་དམར", wylie: "mig dmar", phonetic: "mikmar", planet: "mars", element: "fire" },
+	{ tibetan: "ལྷག་པ", wylie: "lhag pa", phonetic: "lhakpa", planet: "mercury", element: "water" },
+	{ tibetan: "ཕུར་བུ", wylie: "phur bu", phonetic: "purbu", planet: "jupiter", element: "wind" },
+	{ tibetan: "པ་སངས", wylie: "pa sangs", phonetic: "pasang", planet: "venus", element: "earth" },
 ]);
 
 const ELEMENTS: Readonly<Record<TibetanElement, TibetanName>> = freeze({
@@ -68,7 +68,7 @@ const GENDERS: Readonly<Record<TibetanGender, TibetanName>> = freeze({
 });
 
 const ANIMALS: Readonly<Record<TibetanAnimal, TibetanName>> = freeze({
-	mouse: { tibetan: "བྱི་བ", wylie: "byi ba", phonetic: "ji ba" },
+	mouse: { tibetan: "བྱི་བ", wylie: "byi ba", phonetic: "jiwa" },
 	ox: { tibetan: "གླང", wylie: "glang", phonetic: "lang" },
 	tiger: { tibetan: "སྟག", wylie: "stag", phonetic: "tak" },
 	rabbit: { tibetan: "ཡོས", wylie: "yos", phonetic: "yö" },

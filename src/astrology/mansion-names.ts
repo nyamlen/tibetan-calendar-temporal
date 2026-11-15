@@ -34,19 +34,19 @@ export interface MansionNames {
 
 export const MANSION_NAMES: readonly MansionNames[] = deepFreeze([
 	{
-		tibetanName: { tibetan: "ཐ་སྐར", wylie: "tha skar", phonetic: "ta kar" },
+		tibetanName: { tibetan: "ཐ་སྐར", wylie: "tha skar", phonetic: "takar" },
 		sanskritName: { iast: "aśvinī", devanagari: "अश्विनी" },
 	},
 	{
-		tibetanName: { tibetan: "བྲ་ཉེ", wylie: "bra nye", phonetic: "dra nyé" },
+		tibetanName: { tibetan: "བྲ་ཉེ", wylie: "bra nye", phonetic: "dranyé" },
 		sanskritName: { iast: "bharaṇī", devanagari: "भरणी" },
 	},
 	{
-		tibetanName: { tibetan: "སྨིན་དྲུག", wylie: "smin drug", phonetic: "min druk" },
+		tibetanName: { tibetan: "སྨིན་དྲུག", wylie: "smin drug", phonetic: "mindruk" },
 		sanskritName: { iast: "kṛttikā", devanagari: "कृत्तिका" },
 	},
 	{
-		tibetanName: { tibetan: "སྣར་མ", wylie: "snar ma", phonetic: "nar ma" },
+		tibetanName: { tibetan: "སྣར་མ", wylie: "snar ma", phonetic: "narma" },
 		sanskritName: { iast: "rohiṇī", devanagari: "रोहिणी" },
 	},
 	{
@@ -58,7 +58,7 @@ export const MANSION_NAMES: readonly MansionNames[] = deepFreeze([
 		sanskritName: { iast: "ārdrā", devanagari: "आर्द्रा" },
 	},
 	{
-		tibetanName: { tibetan: "ནབས་སོ", wylie: "nabs so", phonetic: "nap so" },
+		tibetanName: { tibetan: "ནབས་སོ", wylie: "nabs so", phonetic: "napso" },
 		sanskritName: { iast: "punarvasu", devanagari: "पुनर्वसु" },
 	},
 	{
@@ -82,23 +82,23 @@ export const MANSION_NAMES: readonly MansionNames[] = deepFreeze([
 		sanskritName: { iast: "uttaraphalgunī", devanagari: "उत्तरफल्गुनी" },
 	},
 	{
-		tibetanName: { tibetan: "མེ་བཞི", wylie: "me bzhi", phonetic: "mé zhi" },
+		tibetanName: { tibetan: "མེ་བཞི", wylie: "me bzhi", phonetic: "mezhi" },
 		sanskritName: { iast: "hastā", devanagari: "हस्ता" },
 	},
 	{
-		tibetanName: { tibetan: "ནག་པ", wylie: "nag pa", phonetic: "nak pa" },
+		tibetanName: { tibetan: "ནག་པ", wylie: "nag pa", phonetic: "nakpa" },
 		sanskritName: { iast: "citrā", devanagari: "चित्रा" },
 	},
 	{
-		tibetanName: { tibetan: "ས་རི", wylie: "sa ri", phonetic: "sa ri" },
+		tibetanName: { tibetan: "ས་རི", wylie: "sa ri", phonetic: "sari" },
 		sanskritName: { iast: "svātī", devanagari: "स्वाती" },
 	},
 	{
-		tibetanName: { tibetan: "ས་ག", wylie: "sa ga", phonetic: "sa ga" },
+		tibetanName: { tibetan: "ས་ག", wylie: "sa ga", phonetic: "saga" },
 		sanskritName: { iast: "viśākhā", devanagari: "विशाखा" },
 	},
 	{
-		tibetanName: { tibetan: "ལྷ་མཚམས", wylie: "lha mtshams", phonetic: "lha tsam" },
+		tibetanName: { tibetan: "ལྷ་མཚམས", wylie: "lha mtshams", phonetic: "lhantsam" },
 		sanskritName: { iast: "anurādhā", devanagari: "अनुराधा" },
 	},
 	{
@@ -110,35 +110,35 @@ export const MANSION_NAMES: readonly MansionNames[] = deepFreeze([
 		sanskritName: { iast: "mūla", devanagari: "मूल" },
 	},
 	{
-		tibetanName: { tibetan: "ཆུ་སྟོད", wylie: "chu stod", phonetic: "chu tö" },
+		tibetanName: { tibetan: "ཆུ་སྟོད", wylie: "chu stod", phonetic: "chutö" },
 		sanskritName: { iast: "pūrvāṣāḍhā", devanagari: "पूर्वाषाढा" },
 	},
 	{
-		tibetanName: { tibetan: "ཆུ་སྨད", wylie: "chu smad", phonetic: "chu mé" },
+		tibetanName: { tibetan: "ཆུ་སྨད", wylie: "chu smad", phonetic: "chumé" },
 		sanskritName: { iast: "uttarāṣāḍhā", devanagari: "उत्तराषाढा" },
 	},
 	{
-		tibetanName: { tibetan: "གྲོ་བཞིན", wylie: "gro bzhin", phonetic: "dro zhin" },
+		tibetanName: { tibetan: "གྲོ་བཞིན", wylie: "gro bzhin", phonetic: "drozhin" },
 		sanskritName: { iast: "śravaṇā", devanagari: "श्रवणा" },
 	},
 	{
-		tibetanName: { tibetan: "མོན་གྲེ", wylie: "mon gre", phonetic: "mön dré" },
+		tibetanName: { tibetan: "མོན་གྲེ", wylie: "mon gre", phonetic: "möndré" },
 		sanskritName: { iast: "dhaniṣṭhā", devanagari: "धनिष्ठा" },
 	},
 	{
-		tibetanName: { tibetan: "མོན་གྲུ", wylie: "mon gru", phonetic: "mön dru" },
+		tibetanName: { tibetan: "མོན་གྲུ", wylie: "mon gru", phonetic: "möndru" },
 		sanskritName: { iast: "śatabhiṣā", devanagari: "शतभिषा" },
 	},
 	{
-		tibetanName: { tibetan: "ཁྲུམས་སྟོད", wylie: "khrums stod", phonetic: "trum tö" },
+		tibetanName: { tibetan: "ཁྲུམས་སྟོད", wylie: "khrums stod", phonetic: "trumtö" },
 		sanskritName: { iast: "pūrvabhadrapadā", devanagari: "पूर्वभद्रपदा" },
 	},
 	{
-		tibetanName: { tibetan: "ཁྲུམས་སྨད", wylie: "khrums smad", phonetic: "trum mé" },
+		tibetanName: { tibetan: "ཁྲུམས་སྨད", wylie: "khrums smad", phonetic: "trummé" },
 		sanskritName: { iast: "uttarabhadrapadā", devanagari: "उत्तरभद्रपदा" },
 	},
 	{
-		tibetanName: { tibetan: "ནམ་གྲུ", wylie: "nam gru", phonetic: "nam dru" },
+		tibetanName: { tibetan: "ནམ་གྲུ", wylie: "nam gru", phonetic: "namdru" },
 		sanskritName: { iast: "revatī", devanagari: "रेवती" },
 	},
 ]);

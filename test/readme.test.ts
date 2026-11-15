@@ -50,7 +50,7 @@ describe("README usage examples", () => {
 		expect(yearNameFor(day.year).element).toBe("fire");
 		expect(rabjungFor(day.year).cycle).toBe(17);
 		expect(rabjungFor(day.year).year).toBe(40);
-		expect(day.weekdayName.phonetic).toBe("nyi ma");
+		expect(day.weekdayName.phonetic).toBe("nyima");
 		expect(day.isFullMoon).toBe(false);
 	});
 
@@ -78,7 +78,7 @@ describe("README usage examples", () => {
 			weekdayName: {
 				tibetan: "ལྷག་པ",
 				wylie: "lhag pa",
-				phonetic: "lhak pa",
+				phonetic: "lhakpa",
 				planet: "mercury",
 				element: "water",
 			},

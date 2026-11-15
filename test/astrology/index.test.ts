@@ -280,7 +280,7 @@ describe("the lunar mansion for a date", () => {
 		// 1 September 2026, whose yoga is "death": fire weekday against a water mansion.
 		expect(lunarMansionFor(iso("2026-09-01"))).toEqual({
 			index: 26,
-			tibetanName: { tibetan: "ནམ་གྲུ", wylie: "nam gru", phonetic: "nam dru" },
+			tibetanName: { tibetan: "ནམ་གྲུ", wylie: "nam gru", phonetic: "namdru" },
 			sanskritName: { iast: "revatī", devanagari: "रेवती" },
 			element: "water",
 		});

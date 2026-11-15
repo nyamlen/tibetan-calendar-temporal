@@ -63,7 +63,14 @@
  *    must still name the four groups with counts summing to ten; each group's English is re-checked
  *    against its dictionary index, or through Monier-Williams, or — when composed — against every
  *    dictionary coming to head the compound.
- * 6. **Phonetics** from THL's own converter.
+ * 6. **Phonetics** from THL's own converter, in its "Words separated by" mode through
+ *    `scripts/thl.mjs`: a two-syllable name is one word and is joined (`gso thub` is *sotup*), a
+ *    longer name needs a ruling in `scripts/word-boundaries.data.json` (the season months are two
+ *    words each), and each word of a multi-syllable name must be a headword in the Mahāvyutpatti or
+ *    one of the two Tibetan–Tibetan dictionaries fetched above, or a member the *tshig mdzod chen mo*'s
+ *    `'phrod sbyor` enumeration spells, or the run refuses. `gso thub` is a group label of that
+ *    entry's closing sentence and not a member, so it passes only through its recorded
+ *    `gateException`, which the module re-checks against the dictionary.
  *
  * Every choice between attested spellings, and every correction, is **data carrying its evidence and
  * re-checked on every run**, so one that stops being needed fails loudly rather than silently
@@ -82,6 +89,12 @@ import {
 	proveIndicPredicates,
 	slp1ToDevanagari,
 } from "./indic.ts";
+import {
+	gateSets,
+	loadBoundaries,
+	phoneticsFor,
+	provePredicates as proveThlPredicates,
+} from "./thl.mjs";
 import {
 	fetchAggregate,
 	indexEntries,
@@ -1386,34 +1399,67 @@ for (const term of indianMonthTerms) {
 // Phonetics, from THL's converter
 // ---------------------------------------------------------------------------------------------
 
-async function phoneticFor(wylie) {
-	const response = await fetch("https://old.thlib.org/cgi-bin/thl/lbow/phonetics.pl", {
-		method: "POST",
-		headers: { "User-Agent": UA, "Content-Type": "application/x-www-form-urlencoded" },
-		body: new URLSearchParams({
-			input: wylie,
-			type: "thl",
-			words: "join",
-			sep_join: "",
-			send: "Make Phonetics",
-		}),
-	});
-	if (!response.ok) throw new Error(`THL returned ${response.status}`);
-	const areas = [...(await response.text()).matchAll(/<textarea[^>]*>([\s\S]*?)<\/textarea>/g)].map(
-		(m) => m[1].trim(),
-	);
-	return areas[1];
+{
+	const broken = await proveThlPredicates();
+	if (broken.length > 0) {
+		console.error(
+			`the checker itself is broken, so nothing below can be trusted:\n  - ${broken.join("\n  - ")}`,
+		);
+		process.exit(2);
+	}
 }
 
-for (const term of tibetanTerms.filter((t) => t.tibetan)) {
-	try {
-		term.phonetic = await phoneticFor(term.wylie);
-		await sleep(150);
-	} catch (error) {
-		fail(`${term.kind} ${term.key}: THL lookup for "${term.wylie}" failed — ${error.message}`);
+/**
+ * Where a correction replaces THL's output. Each states the value THL is expected to return, so a
+ * correction that stops being needed fails the run instead of silently patching a converter that has
+ * since changed. The evidence is the project owner's knowledge of the pronunciation.
+ */
+const CORRECTIONS = [
+	{
+		id: "yoga water+wind",
+		thlExpected: "mimtün",
+		correctedTo: "mintün",
+		evidence: "Andreas, 2026-11-15: mintün; THL's word-separated mode returns mimtün",
+	},
+	{
+		id: "yoga fire+fire",
+		thlExpected: "pengyur",
+		correctedTo: "peln-gyur",
+		evidence:
+			"Andreas, 2026-11-15: peln-gyur; THL's word-separated mode returns pengyur. The hyphen is deliberate: it separates the n from the g, because the sound is not the ng a reader would otherwise take them for",
+	},
+	{
+		id: "yoga fire+wind",
+		thlExpected: "tonden",
+		correctedTo: "topden",
+		evidence: "Andreas, 2026-11-15: topden; THL's word-separated mode returns tonden",
+	},
+];
+
+for (const correction of CORRECTIONS) {
+	if (!tibetanTerms.some((t) => `${t.kind} ${t.key}` === correction.id))
+		fail(`${correction.id}: a correction names a term that has no row here`);
+}
+
+const withTibetan = tibetanTerms.filter((t) => t.tibetan);
+const { results: thlResults, problems: thlProblems } = await phoneticsFor(
+	withTibetan.map((t) => ({ id: `${t.kind} ${t.key}`, wylie: t.wylie })),
+	{
+		boundaries: loadBoundaries(),
+		gate: gateSets({ mvy: mvyText, tshig: tshigText, dung: dungText }),
+		enumerated: new Set(tshigNames),
+		corrections: CORRECTIONS,
+		userAgent: UA,
+	},
+);
+for (const p of thlProblems) fail(`${p.id}: ${p.message}`);
+for (const term of withTibetan) {
+	const result = thlResults.get(`${term.kind} ${term.key}`);
+	if (result) {
+		term.phonetic = result.phonetic;
+		term.thl = result.thl;
+		term.corrected = result.corrected;
 	}
-	if (!term.phonetic)
-		fail(`${term.kind} ${term.key}: THL returned no phonetics for "${term.wylie}"`);
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -1445,7 +1491,8 @@ if (problems.length > 0) {
 }
 
 const q = (s) => JSON.stringify(s);
-const name = (t) => `tibetan: ${q(t.tibetan)}, wylie: ${q(t.wylie)}, phonetic: ${q(t.phonetic)}`;
+const name = (t) =>
+	`tibetan: ${q(t.tibetan)}, wylie: ${q(t.wylie)}, phonetic: ${q(t.phonetic)}${t.corrected ? `, thlPhonetic: ${q(t.thl)}, phoneticCorrected: true` : ""}`;
 
 writeFileSync(
 	join(root, "test", "fixtures", "month-names.ts"),
@@ -1530,6 +1577,8 @@ export const YOGA_NAMES: readonly {
 	tibetan: string;
 	wylie: string;
 	phonetic: string;
+	thlPhonetic?: string;
+	phoneticCorrected?: true;
 	correctedFrom: string | null;
 	iast: string;
 	devanagari: string;

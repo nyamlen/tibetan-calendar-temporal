@@ -78,6 +78,22 @@ const edits = {
 		(u) => u.includes("25-tshig") || u.includes("34-dung") || u.includes("21-Mahavyutpatti"),
 		(t) => t.replaceAll("bdud 'joms", "bdud 'jomX"),
 	],
+	// check 5: THL's answer for one unaltered name no longer equals the record's column
+	"record-column": [
+		(u) => u.includes("phonetics.pl"),
+		(t, body) =>
+			body.startsWith("input=mi+la+ras+pa&") ? t.replace(">milarepa<", ">milarepax<") : t,
+	],
+	// check 5: the dung dkar headword that justifies the lha babs gateException is gone
+	"gate-exception-stale": [
+		(u) => u.includes("34-dung"),
+		(t) => t.replace(/^lha babs dus chen\|.*$/gm, "lha babs dus chenX|gone"),
+	],
+	// check 5: lha babs becomes a headword of the dung dkar, so its gateException is no longer needed
+	"gate-exception-needless": [
+		(u) => u.includes("34-dung"),
+		(t) => t.replace(/^lha babs dus chen\|.*$/m, (line) => `${line}\nlha babs|added`),
+	],
 	// check 5, the self-invalidation of a correction
 	"thl-correction": [
 		(u) => u.includes("phonetics.pl"),
@@ -85,7 +101,7 @@ const edits = {
 	],
 };
 // These two touch several responses, some of which a mutant legitimately leaves alone.
-const mayLeaveUnchanged = new Set(["thl-correction", "check5-index-only"]);
+const mayLeaveUnchanged = new Set(["thl-correction", "check5-index-only", "record-column"]);
 
 globalThis.fetch = async (url, options) => {
 	const key = createHash("sha1")
@@ -108,7 +124,7 @@ globalThis.fetch = async (url, options) => {
 	return new Response(text, { status: rec.status });
 };
 
-// The Rigpa passages are verifier input read from disk, not fetched, so their mutants wrap readFileSync.
+// The Rigpa passages and the boundary file are verifier input read from disk, not fetched, so their mutants wrap readFileSync.
 const realRead = fs.readFileSync;
 fs.readFileSync = (path, ...rest) => {
 	if (String(path).includes("observance-name-rigpa-passages")) {
@@ -125,6 +141,13 @@ fs.readFileSync = (path, ...rest) => {
 			return edited;
 		}
 		return text;
+	}
+	if (String(path).includes("word-boundaries.data") && mut === "boundary-row-missing") {
+		const rows = JSON.parse(realRead(path, ...rest));
+		if (!("gu ru rin po che" in rows))
+			throw new Error("replay: mutant boundary-row-missing did not change the file");
+		delete rows["gu ru rin po che"];
+		return JSON.stringify(rows);
 	}
 	return realRead(path, ...rest);
 };

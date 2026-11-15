@@ -366,11 +366,11 @@ through this before publishing v1.0.0 — several are one-way doors once publish
 
 The list is grouped by subject, not by sequence, and one run of items does have a required order.
 
-**The order, as it stands on 2026-11-14:**
+**The order, as it stands on 2026-11-15:**
 
-1. **`./observances`** — the rule vocabulary, sojong, and the content that ships. **Built** on the
-   `observances-1.0` branch: it blocked the review passes while its content, membership and names
-   could still change, and they have settled. It merges to `main` after that branch's final review.
+1. **`./observances`** — the rule vocabulary, sojong, and the content that ships. **Merged to
+   `main` on 2026-11-14** (`0f13d10`; the branch is deleted): it blocked the review passes while its
+   content, membership and names could still change, and they have settled.
 2. The four **Review passes** below, in the order given there.
 3. The **`docs/` folder restructure**, last of all — every review before it produces documentation
    edits, and moving files once after they have landed is one link-fixing commit instead of four.
@@ -442,23 +442,45 @@ that its first step is still open.
       2026-09-14** for the composable-`ObservanceConfig` item below, which is where `ObservanceKind`
       and `ObservanceRule.name` are now tracked. A draft of this line first held the item open for
       them, which would have kept a completed item unticked against work it no longer covers.
-- [ ] **Join phonetics by word, surface-wide, through THL's word-separated mode.** Decided by
-  Andreas 2026-11-11. Every shipped `phonetic` today comes from THL's converter with each syllable
-  separate — 97 multi-syllable names, all spaced ("dru mang po"), none hyphenated — so *saga dawa*
-  ships as "sa ga da ba".
+- [x] **Join phonetics by word, surface-wide, through THL's word-separated mode.** Decided by
+  Andreas 2026-11-11; **done 2026-11-15**. Every shipped multi-syllable `phonetic` is now THL's
+  "Words separated by" output: a two-syllable name is one word (*penpa*, *nyima*, *dawa*,
+  *rapjung*), and a longer name is split by the markings Andreas ruled in
+  `scripts/word-boundaries.data.json` (*chinda rawa*, *saga dawa düchen*, *guru rinpoché*).
+  Before it, the item counted 97 multi-syllable names, all spaced ("dru mang po"), so *saga dawa*
+  shipped as "sa ga da ba".
+  Re-measured 2026-11-15 over every `wylie`/`phonetic` pair in `src/` (a one-off script kept with
+  the plan's evidence, not in the repository): 123 distinct multi-syllable Wylie names, 91 of two
+  syllables and 32 of three or more, the same figures the design's headword probe gave on
+  2026-11-14.
+  The shared module `scripts/thl.mjs` holds the THL call, the boundary rule and the word gate, and
+  all five name verifiers go through it.
+  The gate admits a word that is a headword (with the `-pa`/`-ba` rung) in the Mahāvyutpatti or
+  either Tibetan–Tibetan dictionary, a member an enumerating entry spells, or a recorded
+  `gateException` (five rows, plus *gso thub*).
+  `test/word-boundaries.test.ts` holds `src/` to the boundary file offline, so a new longer name
+  without a row fails in CI.
+  **Eleven shipped phonetics are Andreas' corrections of THL's output**, each carried as
+  self-invalidating data beside THL's own value: *karmapa* and *pandita* (2026-11-11), and
+  *lhantsam*, *mintün*, *peln-gyur*, *topden*, *khyunchok*, *lo-ngen*, *namgyur*, *namchang* and
+  *yongdzin* (2026-11-15).
   The converter's four word modes, checked 2026-11-11: "Use built-in word list" (`auto`, partial:
   "sa ga dawa"), "Handle each syllable separately" (`none`), "Syllables in a word joined by"
-  (`join`, which needs a marker inside words; with none it behaves as `none`, which is what the
-  verifiers use), and "Words separated by" (`sep`), which gives "saga dawa" from `sa ga/zla ba`
-  and applies sandhi within a word (*chontrül*).
-  So each name needs its word boundaries supplied, and the output stays THL's.
-  The boundaries are a judgement, so they must be checkable: place them at dictionary headwords,
-  which the verifiers already confirm exist, and make the check mechanical. A boundary placed wrong
-  is silent — `sa ga zla ba'i dus chen` marked as one word gives "sagandawé düchen".
-  Hyphens were considered and rejected: they are house style rather than a published standard, and
-  a hyphen per syllable ("sa-ga-da-ba") does not mark a word.
-  **A one-way door at 1.0.0, and surface-wide**: changing only some names would leave the package
-  inconsistent. The `./observances` example's fourteen names (the four düchens, Saga Dawa, sojong, the fire puja and the seven persons') are the first to use it, by Andreas' decision of 2026-11-11, so until the rest follow the package is inconsistent on purpose.
+  (`join`, which needs a marker inside words), and "Words separated by" (`sep`), which gives
+  "saga dawa" from `sa ga/zla ba` and applies sandhi within a word (*chontrül*).
+  A boundary placed wrong is silent — `sa ga zla ba'i dus chen` marked as one word gives
+  "sagandawé düchen" — which is why the boundaries are ruled data and the gate checks only that a
+  word exists.
+  Hyphens as house style were rejected: a published standard governs a shipped column, and a hyphen
+  per syllable ("sa-ga-da-ba") does not mark a word.
+  It was a one-way door at 1.0.0 and surface-wide, so the fourteen observance names went first
+  (2026-11-11) and the rest followed, leaving no inconsistency to ship.
+  `scripts/nasal-rulings.data.json` is the table of record for the 28 shipped names that meet one of
+  THL's three nasal rules.
+  Of the rabjung names Andreas corrected five on 2026-11-15: *khyunchok*, *namgyur*, *namchang* and
+  *yongdzin* by the nasal policy, and *lo-ngen*, which is no nasal-rule case but a reading ruling.
+  *senchang*, *nyönden*, *kündzin*, *künden* and the season months stand as THL gives them, and
+  *dongngen* is a plain join left as THL gives it.
 - [x] **Composable/additive `ObservanceConfig`s — decide before 1.0.0, not after.** Today, a
       consumer combining several institutions' rule sets (e.g. `DEFAULT_OBSERVANCES` plus a `TEACHERS` and a
       `TANTRA` config) hand-rolls

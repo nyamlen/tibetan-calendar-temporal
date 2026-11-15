@@ -38,7 +38,11 @@
  *    Sanskrit, except where a decision is carried as data. Each shipped form must be a
  *    Monier-Williams headword **whose entry names a nakṣatra** — presence alone passed a homograph once
  *    already, at rabjung 9 — or be printed inside the entry of one that does.
- * 5. **Phonetics** from THL's own converter.
+ * 5. **Phonetics** from THL's own converter, in its "Words separated by" mode through
+ *    `scripts/thl.mjs`: a two-syllable name is one word and is joined (`smin drug` is *mindruk*),
+ *    longer names need a ruling in `scripts/word-boundaries.data.json`, and each word of a
+ *    multi-syllable name must be a headword in the Mahāvyutpatti or one of the two Tibetan–Tibetan
+ *    dictionaries fetched above, or the run refuses.
  *
  * Every decision is **data carrying its evidence and re-checked on every run**, so one
  * that stops being needed fails loudly rather than silently patching a source that has since changed.
@@ -50,6 +54,12 @@ import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { entriesHeadedBy, provePredicates as proveColognePredicates } from "./cologne.mjs";
 import { devanagariToIast, proveIndicPredicates, slp1ToDevanagari } from "./indic.ts";
+import {
+	gateSets,
+	loadBoundaries,
+	phoneticsFor,
+	provePredicates as proveThlPredicates,
+} from "./thl.mjs";
 import {
 	fetchAggregate,
 	indexEntries,
@@ -652,34 +662,53 @@ for (const stem of PAIR_STEMS) {
 // Phonetics, from THL's converter
 // ---------------------------------------------------------------------------------------------
 
-async function phoneticFor(wylie) {
-	const response = await fetch("https://old.thlib.org/cgi-bin/thl/lbow/phonetics.pl", {
-		method: "POST",
-		headers: { "User-Agent": UA, "Content-Type": "application/x-www-form-urlencoded" },
-		body: new URLSearchParams({
-			input: wylie,
-			type: "thl",
-			words: "join",
-			sep_join: "",
-			send: "Make Phonetics",
-		}),
-	});
-	if (!response.ok) throw new Error(`THL returned ${response.status}`);
-	const areas = [...(await response.text()).matchAll(/<textarea[^>]*>([\s\S]*?)<\/textarea>/g)].map(
-		(m) => m[1].trim(),
-	);
-	return areas[1];
+{
+	const broken = await proveThlPredicates();
+	if (broken.length > 0) {
+		console.error(
+			`the checker itself is broken, so nothing below can be trusted:\n  - ${broken.join("\n  - ")}`,
+		);
+		process.exit(2);
+	}
 }
 
-for (const term of tibetanTerms.filter((t) => t.tibetan)) {
-	try {
-		term.phonetic = await phoneticFor(term.wylie);
-		await sleep(150);
-	} catch (error) {
-		fail(`${term.kind} ${term.key}: THL lookup for "${term.wylie}" failed — ${error.message}`);
+/**
+ * Where a correction replaces THL's output. Each states the value THL is expected to return, so a
+ * correction that stops being needed fails the run instead of silently patching a converter that has
+ * since changed. The evidence is the project owner's knowledge of the pronunciation.
+ */
+const CORRECTIONS = [
+	{
+		id: "mansion 16",
+		thlExpected: "lhamtsam",
+		correctedTo: "lhantsam",
+		evidence: "Andreas, 2026-11-15: lhantsam; THL's word-separated mode returns lhamtsam",
+	},
+];
+
+for (const correction of CORRECTIONS) {
+	if (!tibetanTerms.some((t) => `${t.kind} ${t.key}` === correction.id))
+		fail(`${correction.id}: a correction names a term that has no row here`);
+}
+
+const withTibetan = tibetanTerms.filter((t) => t.tibetan);
+const { results: thlResults, problems: thlProblems } = await phoneticsFor(
+	withTibetan.map((t) => ({ id: `${t.kind} ${t.key}`, wylie: t.wylie })),
+	{
+		boundaries: loadBoundaries(),
+		gate: gateSets({ mvy: mvyText, tshig: tshigText, dung: dungText }),
+		corrections: CORRECTIONS,
+		userAgent: UA,
+	},
+);
+for (const p of thlProblems) fail(`${p.id}: ${p.message}`);
+for (const term of withTibetan) {
+	const result = thlResults.get(`${term.kind} ${term.key}`);
+	if (result) {
+		term.phonetic = result.phonetic;
+		term.thl = result.thl;
+		term.corrected = result.corrected;
 	}
-	if (!term.phonetic)
-		fail(`${term.kind} ${term.key}: THL returned no phonetics for "${term.wylie}"`);
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -701,7 +730,8 @@ if (problems.length > 0) {
 }
 
 const q = (s) => JSON.stringify(s);
-const name = (t) => `tibetan: ${q(t.tibetan)}, wylie: ${q(t.wylie)}, phonetic: ${q(t.phonetic)}`;
+const name = (t) =>
+	`tibetan: ${q(t.tibetan)}, wylie: ${q(t.wylie)}, phonetic: ${q(t.phonetic)}${t.corrected ? `, thlPhonetic: ${q(t.thl)}, phoneticCorrected: true` : ""}`;
 const cite = (c) => `{ dictionary: ${q(c.dictionary)}, page: ${c.page} }`;
 
 writeFileSync(
@@ -728,6 +758,8 @@ export const MANSION_NAMES: readonly {
 	tibetan: string;
 	wylie: string;
 	phonetic: string;
+	thlPhonetic?: string;
+	phoneticCorrected?: true;
 	iast: string;
 	devanagari: string;
 	monierWilliamsPage: number;

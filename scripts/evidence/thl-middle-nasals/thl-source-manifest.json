@@ -1,0 +1,9 @@
+{
+	"description": "The archive of THL's converter code that the three middle_nasals rules were read from. Not vendored: it is third-party code, and only this record of it is kept.",
+	"url": "https://old.thlib.org/static/dls/lingua-bo-wylie.zip",
+	"downloaded": "2026-11-15",
+	"bytes": 94855,
+	"sha256": "737115ed47c31d938361c269daf52f0edf1474bb9f8898745e1fbc5bd629e870",
+	"file": "lib/Lingua/BO/Phonetics.pm",
+	"option": "middle_nasals"
+}

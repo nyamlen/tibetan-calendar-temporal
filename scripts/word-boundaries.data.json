@@ -1,0 +1,194 @@
+{
+  "ang gi ra": {
+    "marked": "ang gi ra",
+    "ruling": "Andreas, 2026-11-15"
+  },
+  "na tshod ldan": {
+    "marked": "na tshod-ldan",
+    "ruling": "Andreas, 2026-11-15"
+  },
+  "'bru mang po": {
+    "marked": "'bru-mang po",
+    "ruling": "Andreas, 2026-11-15"
+  },
+  "nyi sgrol byed": {
+    "marked": "nyi-sgrol byed",
+    "ruling": "Andreas, 2026-11-15"
+  },
+  "thams cad 'dul": {
+    "marked": "thams cad-'dul",
+    "ruling": "Andreas, 2026-11-15"
+  },
+  "sna tshogs dbyig": {
+    "marked": "sna tshogs-dbyig",
+    "ruling": "Andreas, 2026-11-15"
+  },
+  "dmar ser can": {
+    "marked": "dmar ser-can",
+    "ruling": "Andreas, 2026-11-15"
+  },
+  "dus kyi pho nya": {
+    "marked": "dus kyi-pho nya",
+    "ruling": "Andreas, 2026-11-15",
+    "gateException": {
+      "word": "dus kyi",
+      "evidence": "Neither Mahavyutpatti nor the two Tibetan-Tibetan dictionaries has the two-word phrase as a headword; the tshig mdzod chen mo has the whole name as a headword (Andreas' ruling, 2026-11-15, accepting a recorded gateException; the ruling report's gate failures section lists what was found).",
+      "requires": [
+        {
+          "dictionary": "tshig mdzod chen mo",
+          "headword": "dus kyi pho nya"
+        }
+      ]
+    }
+  },
+  "dpyid zla ra ba": {
+    "marked": "dpyid zla-ra ba",
+    "ruling": "Andreas, 2026-11-15"
+  },
+  "dpyid zla 'bring po": {
+    "marked": "dpyid zla-'bring po",
+    "ruling": "Andreas, 2026-11-15"
+  },
+  "dpyid zla tha chung": {
+    "marked": "dpyid zla-tha chung",
+    "ruling": "Andreas, 2026-11-15"
+  },
+  "dbyar zla ra ba": {
+    "marked": "dbyar zla-ra ba",
+    "ruling": "Andreas, 2026-11-15"
+  },
+  "dbyar zla 'bring po": {
+    "marked": "dbyar zla-'bring po",
+    "ruling": "Andreas, 2026-11-15"
+  },
+  "dbyar zla tha chung": {
+    "marked": "dbyar zla-tha chung",
+    "ruling": "Andreas, 2026-11-15"
+  },
+  "ston zla ra ba": {
+    "marked": "ston zla-ra ba",
+    "ruling": "Andreas, 2026-11-15",
+    "gateException": {
+      "word": "ston zla",
+      "evidence": "The accepted dictionaries print the whole month name as a headword, while the other three seasons' <season> zla are headwords themselves; ston zla alone is no headword in any of them (ruling report, gate failures section; Andreas, 2026-11-15).",
+      "requires": [
+        {
+          "dictionary": "tshig mdzod chen mo",
+          "headword": "ston zla ra ba"
+        }
+      ]
+    }
+  },
+  "ston zla 'bring po": {
+    "marked": "ston zla-'bring po",
+    "ruling": "Andreas, 2026-11-15",
+    "gateException": {
+      "word": "ston zla",
+      "evidence": "The accepted dictionaries print the whole month name as a headword, while the other three seasons' <season> zla are headwords themselves; ston zla alone is no headword in any of them (ruling report, gate failures section; Andreas, 2026-11-15).",
+      "requires": [
+        {
+          "dictionary": "tshig mdzod chen mo",
+          "headword": "ston zla 'bring po"
+        }
+      ]
+    }
+  },
+  "ston zla tha chung": {
+    "marked": "ston zla-tha chung",
+    "ruling": "Andreas, 2026-11-15",
+    "gateException": {
+      "word": "ston zla",
+      "evidence": "The accepted dictionaries print the whole month name as a headword, while the other three seasons' <season> zla are headwords themselves; ston zla alone is no headword in any of them (ruling report, gate failures section; Andreas, 2026-11-15).",
+      "requires": [
+        {
+          "dictionary": "tshig mdzod chen mo",
+          "headword": "ston zla tha chung"
+        }
+      ]
+    }
+  },
+  "dgun zla ra ba": {
+    "marked": "dgun zla-ra ba",
+    "ruling": "Andreas, 2026-11-15"
+  },
+  "dgun zla 'bring po": {
+    "marked": "dgun zla-'bring po",
+    "ruling": "Andreas, 2026-11-15"
+  },
+  "dgun zla tha chung": {
+    "marked": "dgun zla-tha chung",
+    "ruling": "Andreas, 2026-11-15"
+  },
+  "cho 'phrul dus chen": {
+    "marked": "cho 'phrul-dus chen",
+    "ruling": "Andreas, 2026-11-11"
+  },
+  "sa ga zla ba dus chen": {
+    "marked": "sa ga-zla ba-dus chen",
+    "ruling": "Andreas, 2026-11-11"
+  },
+  "chos 'khor dus chen": {
+    "marked": "chos 'khor-dus chen",
+    "ruling": "Andreas, 2026-11-11"
+  },
+  "lha babs dus chen": {
+    "marked": "lha babs-dus chen",
+    "ruling": "Andreas, 2026-11-11",
+    "gateException": {
+      "word": "lha babs",
+      "evidence": "The dung dkar tshig mdzod chen mo has the whole name as a headword (existence only). The Lhabab Duchen passage (key lhabab-duchen) in scripts/observance-name-rigpa-passages.data.json prints the same spelling; that passage is human-supplied, read in a browser and pasted by Andreas on 2026-11-11, never fetched by a script. Ruled as a gateException by Andreas, 2026-11-15.",
+      "requires": [
+        {
+          "dictionary": "dung dkar tshig mdzod chen mo",
+          "headword": "lha babs dus chen"
+        }
+      ]
+    }
+  },
+  "sa ga zla ba": {
+    "marked": "sa ga-zla ba",
+    "ruling": "Andreas, 2026-11-11"
+  },
+  "mi la ras pa": {
+    "marked": "mi la ras pa",
+    "ruling": "Andreas, 2026-11-11"
+  },
+  "gu ru rin po che": {
+    "marked": "gu ru-rin po che",
+    "ruling": "Andreas, 2026-11-11"
+  },
+  "sgam po pa": {
+    "marked": "sgam po pa",
+    "ruling": "Andreas, 2026-11-11"
+  },
+  "rgyal dbang karma pa bcu drug pa": {
+    "marked": "rgyal dbang-karma pa-bcu drug pa",
+    "ruling": "Andreas, 2026-11-11"
+  },
+  "rje tsong kha pa": {
+    "marked": "rje-tsong kha pa",
+    "ruling": "Andreas, 2026-11-11"
+  },
+  "sa skya paN+Di ta": {
+    "marked": "sa skya-paN+Di ta",
+    "ruling": "Andreas, 2026-11-11"
+  },
+  "bdud 'joms rin po che": {
+    "marked": "bdud 'joms-rin po che",
+    "ruling": "Andreas, 2026-11-11"
+  },
+  "gso thub": {
+    "marked": "gso thub",
+    "ruling": "Andreas, 2026-11-15",
+    "gateException": {
+      "word": "gso thub",
+      "evidence": "gso thub is the label of one group, not a headword: the closing sentence of the tshig mdzod chen mo entry for 'phrod sbyor, which lists the ten yogas, groups them as 'bzang po gsum dang / gso thub gsum / ngan gsum / tha chad gcig' (three good, three restorative, three bad, one worst); scripts/verify-month-and-yoga-names.mjs statedGrouping re-checks that sentence on every run. Ruled as a gateException by Andreas, 2026-11-15.",
+      "requires": [
+        {
+          "dictionary": "tshig mdzod chen mo",
+          "headword": "'phrod sbyor"
+        }
+      ]
+    }
+  }
+}

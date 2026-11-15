@@ -126,10 +126,10 @@ Every one of the fourteen names must pass all of them, or it ships **English onl
    **There is no exception:** every name meets the same rule.
 4. **The sense is read, not the presence.**
    A headword's entry must state the calendar, ritual or biographical sense, not merely exist: `dus chen` and `zla ba` have other senses, and the homograph trap is the one [month-and-yoga-sourcing.md](month-and-yoga-sourcing.md) records.
-5. **THL phonetics from the converter's word-separated mode, with the word boundaries marked** (Andreas, 2026-11-11), as in the tables: "Words separated by" joins the syllables of each word and applies THL's own sandhi (*chönkhor*, *chontrül*), where the syllable-by-syllable mode the other shipped names use gives "so jong" and "dü chen".
-   **The boundaries are a judgement, so they are checked**: each marked word must be a headword (or part of one) found by check 3, and a boundary placed wrongly is silent — `sa ga zla ba'i dus chen` marked as one word gives "sagandawé düchen".
+5. **THL phonetics from the converter's word-separated mode, with the word boundaries marked** (Andreas, 2026-11-11), as in the tables: "Words separated by" joins the syllables of each word and applies THL's own sandhi (*chönkhor*, *chontrül*), where syllable-by-syllable output gives "so jong" and "dü chen".
+   **The boundaries are a judgement, so they are checked**: each marked word must be a headword exactly, or through the `-pa`/`-ba` rung on either side, in the Mahāvyutpatti or either Tibetan–Tibetan dictionary, or carry a recorded `gateException` in `scripts/word-boundaries.data.json` (the one case here is *lha babs*, whose whole-name headword and Rigpa Wiki passage are the evidence); the gate decides whether a word exists and never where a boundary falls, so a boundary placed wrongly is silent — `sa ga zla ba'i dus chen` marked as one word gives "sagandawé düchen".
    **A phonetic containing THL's "(?)" marker fails this check, unless a recorded correction (the two above) replaces it.**
-   These fourteen are the first shipped names to use this mode; the other 97 stay spaced until the surface-wide roadmap item lands, so for now the package is inconsistent on purpose.
+   These fourteen were the first shipped names to use this mode; the other multi-syllable names followed on 2026-11-15, through the shared module `scripts/thl.mjs`, so every shipped multi-syllable phonetic is now THL's word-separated output.
 
 The verifier refuses to emit if any check fails, and a check placed after the emit gate cannot fail the run, so each is placed above it and proved by mutation of its **input**, with an unmutated control.
 
@@ -137,7 +137,8 @@ The verifier refuses to emit if any check fails, and a check placed after the em
 
 - That any of the fourteen names is *correct* Tibetan: it claims only that a name which passes the checks is attested by the sources named, in the form given.
 - That the English names for the observances are translations. They are cited to FPMT's calendar labels, verbatim, or marked authored, as [observances.md](../observances.md) records; the three monthly-day names are authored, composed from dedications in Cornu's *Tibetan Astrology*.
-- That the two corrected phonetics are THL's: they are Andreas' corrections of THL's output, and the verifier says so.
+- That the two corrected phonetics of the observance names are THL's: they are Andreas' corrections of THL's output, and the verifier says so.
+  Nine further corrections of THL's output, ruled by Andreas on 2026-11-15, live in the other verifiers: four in the mansion and month-and-yoga verifiers (*lhantsam*, *mintün*, *peln-gyur*, *topden*) and five in the rabjung verifier (*khyunchok*, *namgyur*, *namchang*, *yongdzin*, *lo-ngen*), so eleven shipped phonetics in all are corrections.
 - That an anniversary is a birth or a passing. The `anniversary` label does not say, and FPMT does not either; an event type could be added later as a further label.
 - That a Tibetan teacher agrees with the choice of name for a festival. Whether centres use these spellings, and the established Tibetan headings for the three levels, are questions for a teacher.
 
@@ -280,7 +281,7 @@ The other twelve phonetics are THL's output unchanged and equal the tables above
 
 A scratch copy of the verifier, with its own `scripts/` and `test/fixtures/`, was run against **recorded** responses (40 recorded during the real run that wrote the fixture); each mutant alters one served response, one converter output or the Rigpa data file as the verifier reads it (three mutants alter two responses), and every mutant is asserted on its failure **message**, with no fixture written.
 The control is unmutated, exits 0 and writes the fixture, and was run first and last.
-There are **14 mutants** beside the control.
+There are **17 mutants** beside the control: the 14 in the table below, and three added when the phonetics step moved to the shared module (`record-column`, `boundary-row-missing`, `gate-exception-stale`), which the harness README lists with the messages they assert.
 The harness, the replay preload, the recording preload, and a manifest of the 40 responses (URL and SHA-256, not the third-party pages themselves) are in [scripts/evidence/observance-names-verifier/](../../scripts/evidence/observance-names-verifier/README.md), with a README that says how to record the sources again and run them.
 
 | Mutant | Check | Message asserted |
@@ -298,7 +299,7 @@ The harness, the replay preload, the recording preload, and a manifest of the 40
 | the Google Books title loses its first letter | 3, `karmapa-16` needs both | `"rgyal dbang karma pa bcu drug pa" has 1 independent witness(es) stating that spelling, not 2 (Lotsawa House)` |
 | the Lotsawa House work title loses its spelling | 3, `karmapa-16` needs both | `"rgyal dbang karma pa bcu drug pa" has 1 independent witness(es) stating that spelling, not 2 (Google Books record)` |
 | `milarepa` loses BDRC and the dictionary and gains both a Wikipedia title and a list item | 3, Wikipedia is one group | `"mi la ras pa" has 1 independent witness(es) stating that spelling, not 2 (Tibetan Wikipedia)` |
-| the dictionaries lose `bdud 'joms`, which only the Jäschke index still lists | 5, a marked word needs a headword check 3 accepts | `marked word "bdud 'joms" is part of no headword that check 3 accepts` |
+| the dictionaries lose `bdud 'joms`, which only the Jäschke index still lists | 5, a marked word must be an exact headword in a dictionary check 3 accepts | `word "bdud 'joms" of "bdud 'joms-rin po che" is no headword in` |
 | THL returns *karmapa* for the Karmapa | 5, correction | `correction for karmapa-16 is no longer justified` |
 
 The emit path is proved by the same table: every mutant leaves no fixture, and the control writes one.

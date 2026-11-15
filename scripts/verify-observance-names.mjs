@@ -30,9 +30,11 @@
  *    image (archive.org `tibetanenglishdi00jsuoft`, image n = printed page + 25) with the index
  *    re-checked against its page; a Mahāvyutpatti sense is its Sanskrit pairing, read mechanically,
  *    and Monier-Williams is read through `entriesHeadedBy` where it carries the Sanskrit.
- * 5. **THL phonetics** in "Words separated by" mode from the record's marked Wylie, equal to the
- *    record's column, free of THL's "(?)" marker unless a recorded correction replaces it; and every
- *    marked word is a headword, or part of one, in a dictionary read.
+ * 5. **THL phonetics** in "Words separated by" mode from the Wylie marked by `scripts/thl.mjs`
+ *    (boundaries from `scripts/word-boundaries.data.json`, ruled by Andreas), equal to the record's
+ *    column, free of THL's "(?)" marker unless a recorded correction replaces it; and every marked word
+ *    is an exact headword in a dictionary check 3 accepts (through the `-pa`/`-ba` rung on either side),
+ *    or is covered by a `gateException` in the boundary file whose required headwords are still present.
  *
  * ## Corrections
  *
@@ -48,6 +50,16 @@ import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { entriesHeadedBy, provePredicates as proveColognePredicates } from "./cologne.mjs";
+import {
+	gateSets,
+	gateWord,
+	loadBoundaries,
+	markingFor,
+	phoneticsFor,
+	provePredicates as proveThlPredicates,
+	unmarked,
+	wordsOf,
+} from "./thl.mjs";
 import {
 	fetchAggregate,
 	indexEntries,
@@ -83,16 +95,16 @@ const fail = (id, check, message) => problems.push({ id, check, message });
 // ---------------------------------------------------------------------------------------------
 
 /**
- * `marked` joins the syllables of a word with a space and parts words with `-`, which THL's
- * "Words separated by" mode reads. `recordPhonetic` is the record's last column, and is what THL
- * must return for the marked Wylie, except where a correction is recorded below.
+ * The marking (syllables of a word joined by a space, words parted by `-`, which THL's "Words
+ * separated by" mode reads) comes from `markingFor` and the boundary file, not from here.
+ * `recordPhonetic` is the record's last column, and is what THL must return for the marked Wylie,
+ * except where a correction is recorded below.
  */
 const NAMES = [
 	{
 		id: "chotrul-duchen",
 		kind: "term",
 		wylie: "cho 'phrul dus chen",
-		marked: "cho 'phrul-dus chen",
 		recordPhonetic: "chontrül düchen",
 		head: "dus chen",
 		sense: [{ jaeschke: "dus chen" }],
@@ -101,7 +113,6 @@ const NAMES = [
 		id: "saga-dawa-duchen",
 		kind: "term",
 		wylie: "sa ga zla ba dus chen",
-		marked: "sa ga-zla ba-dus chen",
 		recordPhonetic: "saga dawa düchen",
 		head: "dus chen",
 		sense: [{ jaeschke: "dus chen" }],
@@ -110,7 +121,6 @@ const NAMES = [
 		id: "chokhor-duchen",
 		kind: "term",
 		wylie: "chos 'khor dus chen",
-		marked: "chos 'khor-dus chen",
 		recordPhonetic: "chönkhor düchen",
 		head: "dus chen",
 		sense: [{ jaeschke: "dus chen" }],
@@ -119,7 +129,6 @@ const NAMES = [
 		id: "lhabab-duchen",
 		kind: "term",
 		wylie: "lha babs dus chen",
-		marked: "lha babs-dus chen",
 		recordPhonetic: "lhabap düchen",
 		head: "dus chen",
 		sense: [{ jaeschke: "dus chen" }],
@@ -128,7 +137,6 @@ const NAMES = [
 		id: "saga-dawa-month",
 		kind: "term",
 		wylie: "sa ga zla ba",
-		marked: "sa ga-zla ba",
 		recordPhonetic: "saga dawa",
 		head: "zla ba",
 		sense: [{ mvy: ["zla ba", "māsaḥ"] }, { mw: "māsa", sentence: "a month or the 12th part" }],
@@ -137,7 +145,6 @@ const NAMES = [
 		id: "sojong",
 		kind: "term",
 		wylie: "gso sbyong",
-		marked: "gso sbyong",
 		recordPhonetic: "sojong",
 		head: "gso sbyong",
 		sense: [{ mvy: ["gso sbyong", "poṣadhaḥ"] }],
@@ -146,7 +153,6 @@ const NAMES = [
 		id: "fire-puja",
 		kind: "term",
 		wylie: "sbyin sreg",
-		marked: "sbyin sreg",
 		recordPhonetic: "jinsek",
 		head: "sbyin sreg",
 		sense: [{ mvy: ["sbyin sreg", "homaḥ"] }, { mw: "homa", sentence: "oblation with fire" }],
@@ -156,7 +162,6 @@ const NAMES = [
 		kind: "person",
 		anchor: "mi la ras pa",
 		wylie: "mi la ras pa",
-		marked: "mi la ras pa",
 		recordPhonetic: "milarepa",
 		bdrc: "P1853",
 	},
@@ -165,7 +170,6 @@ const NAMES = [
 		kind: "person",
 		anchor: "gu ru rin po che",
 		wylie: "gu ru rin po che",
-		marked: "gu ru-rin po che",
 		recordPhonetic: "guru rinpoché",
 		bdrc: "P4956",
 	},
@@ -174,7 +178,6 @@ const NAMES = [
 		kind: "person",
 		anchor: "sgam po pa",
 		wylie: "sgam po pa",
-		marked: "sgam po pa",
 		recordPhonetic: "gampopa",
 		bdrc: "P1844",
 	},
@@ -183,7 +186,6 @@ const NAMES = [
 		kind: "person",
 		anchor: "karma pa",
 		wylie: "rgyal dbang karma pa bcu drug pa",
-		marked: "rgyal dbang-karma pa-bcu drug pa",
 		recordPhonetic: "gyelwang kama(?)pa chudrukpa",
 		googleBooks: "s61Sj5amlx0C",
 		lotsawaText: "dudjom-rinpoche/short-prayer-for-long-life-of-sixteenth-karmapa",
@@ -195,7 +197,6 @@ const NAMES = [
 		lotsawa: "tsongkhapa",
 		anchor: "tsong kha pa",
 		wylie: "rje tsong kha pa",
-		marked: "rje-tsong kha pa",
 		recordPhonetic: "jé tsongkhapa",
 		bdrc: "P64",
 	},
@@ -204,7 +205,6 @@ const NAMES = [
 		kind: "person",
 		anchor: "sa skya paN+Di ta",
 		wylie: "sa skya paN+Di ta",
-		marked: "sa skya-paN+Di ta",
 		recordPhonetic: "sakya pandi(?)ta",
 		bdrc: "P1056",
 	},
@@ -214,7 +214,6 @@ const NAMES = [
 		lotsawa: "dudjom-rinpoche",
 		anchor: "bdud 'joms",
 		wylie: "bdud 'joms rin po che",
-		marked: "bdud 'joms-rin po che",
 		recordPhonetic: "dünjom rinpoché",
 		bdrc: "P736",
 	},
@@ -315,24 +314,6 @@ const JAESCHKE_VARIANTS = {
 /** The forms of a Wylie term a dictionary may print it under: itself, or with a nominalising ending. */
 const forms = (wylie) => [wylie, `${wylie} ba`, `${wylie} pa`];
 
-/** The words of a marked Wylie: parts separated by `-`. */
-const wordsOf = (marked) => marked.split("-");
-
-/** The marked Wylie with its boundaries made plain spaces: it must equal the unmarked Wylie. */
-const unmarked = (marked) => marked.replaceAll("-", " ");
-
-/** Whether `word` occurs in `keys` (joined with newlines) bounded by a space or a line edge. */
-function isWholeWordIn(keys, word) {
-	let at = keys.indexOf(word);
-	while (at !== -1) {
-		const before = at === 0 ? "\n" : keys[at - 1];
-		const after = keys[at + word.length] ?? "\n";
-		if ((before === " " || before === "\n") && (after === " " || after === "\n")) return true;
-		at = keys.indexOf(word, at + 1);
-	}
-	return false;
-}
-
 /** The ewts labels of a BDRC JSON-LD record: names carry `bo-x-ewts`, with a trailing `/`. */
 function ewtsLabels(record) {
 	const out = new Set();
@@ -363,35 +344,10 @@ function decodeEntities(text) {
 		.replace(/&amp;/g, "&");
 }
 
-/** The `<textarea>` THL's page puts the phonetics in: the second one on the page. */
-function thlPhoneticsOf(html) {
-	const areas = [...html.matchAll(/<textarea[^>]*>([\s\S]*?)<\/textarea>/g)].map((m) =>
-		m[1].trim(),
-	);
-	return areas[1];
-}
-
 function proveOwnPredicates() {
 	const broken = [];
 	if (forms("gso sbyong").join("|") !== "gso sbyong|gso sbyong ba|gso sbyong pa")
 		broken.push("forms read wrongly");
-	if (wordsOf("sa ga-zla ba-dus chen").join("|") !== "sa ga|zla ba|dus chen")
-		broken.push("wordsOf split a marked Wylie wrongly");
-	if (unmarked("sa ga-zla ba") !== "sa ga zla ba") broken.push("unmarked kept a boundary mark");
-	const keys = "dus chen dge ba\nbdud 'joms\nsa ga zla ba";
-	for (const [word, want] of [
-		["dus chen", true],
-		["zla ba", true],
-		["dus", true],
-		["bdud 'joms", true],
-		["dus ch", false],
-		["ga zla", true],
-		["us chen", false],
-		["joms", false],
-	]) {
-		if (isWholeWordIn(keys, word) !== want)
-			broken.push(`isWholeWordIn("${word}") should be ${want}`);
-	}
 	const labels = ewtsLabels({
 		"@graph": [
 			{
@@ -409,11 +365,6 @@ function proveOwnPredicates() {
 	]) {
 		if (labelStates(label, wylie) !== want) broken.push(`labelStates(${label}, ${wylie})`);
 	}
-	if (
-		thlPhoneticsOf("<textarea>in</textarea><textarea class='eng'> saga dawa </textarea>") !==
-		"saga dawa"
-	)
-		broken.push("thlPhoneticsOf read the wrong textarea");
 	if (decodeEntities("&#97;&#98;&amp;&lt;") !== "ab&<")
 		broken.push("decodeEntities read an entity wrongly");
 	if (broken.length > 0) {
@@ -427,6 +378,15 @@ function proveOwnPredicates() {
 proveOwnPredicates();
 proveDictionaryPredicates();
 proveColognePredicates();
+{
+	const broken = await proveThlPredicates();
+	if (broken.length > 0) {
+		console.error(
+			`the checker itself is broken, so nothing below can be trusted:\n  - ${broken.join("\n  - ")}`,
+		);
+		process.exit(2);
+	}
+}
 
 // ---------------------------------------------------------------------------------------------
 // Sources
@@ -469,23 +429,13 @@ const INDEX = {
 	"tshig mdzod chen mo": indexEntries(tshigText),
 	"dung dkar tshig mdzod chen mo": indexEntries(dungText),
 };
-const KEYS = Object.fromEntries(
-	Object.entries(INDEX).map(([name, map]) => [name, [...map.keys()].join("\n")]),
-);
-KEYS.Mahāvyutpatti = mvy.map((e) => e.tibetan).join("\n");
-
 /**
- * The headwords check 5 may test a marked word against: exactly what check 3 accepts as a witness —
- * the Mahāvyutpatti, the two Tibetan–Tibetan dictionaries (gate only) and the Jäschke pages read from
- * their images. The Jäschke and Das **indexes** are deliberately absent: they list headwords their
- * books do not print.
+ * The headword sets check 5 may test a marked word against: the one gate every verifier shares — the
+ * Mahāvyutpatti and the two Tibetan–Tibetan dictionaries (gate only). The Jäschke pages read and the
+ * Jäschke and Das **indexes** are deliberately absent: a page read is a witness for a term, not a
+ * headword set, and the indexes list headwords their books do not print.
  */
-const ACCEPTED_KEYS = {
-	Mahāvyutpatti: KEYS.Mahāvyutpatti,
-	"tshig mdzod chen mo": KEYS["tshig mdzod chen mo"],
-	"dung dkar tshig mdzod chen mo": KEYS["dung dkar tshig mdzod chen mo"],
-	"Jäschke 1881 (a page read)": JAESCHKE_READ.flatMap((r) => r.forms).join("\n"),
-};
+const GATE = gateSets({ mvy: mvyText, tshig: tshigText, dung: dungText });
 
 /** Where the aggregate's index puts a headword, as a printed page; Jäschke's leaf is the page + 26. */
 function indexedPage(dictionary, headword) {
@@ -543,8 +493,12 @@ const MW_SLP1 = { māsa: "mAsa", homa: "homa" };
 // ---------------------------------------------------------------------------------------------
 
 const DISCOURAGED = ["ཱི", "ཷ", "ཹ", "ཱྀ"];
+const BOUNDARIES = loadBoundaries();
 for (const name of NAMES) {
-	if (unmarked(name.marked) !== name.wylie) {
+	// A marking problem is reported once, by check 5, through phoneticsFor.
+	const marking = markingFor(name.wylie, BOUNDARIES);
+	name.marked = "problem" in marking ? undefined : marking.marked;
+	if (name.marked !== undefined && unmarked(name.marked) !== name.wylie) {
 		fail(name.id, 2, `the marked Wylie "${name.marked}" does not unmark to "${name.wylie}"`);
 		continue;
 	}
@@ -880,85 +834,43 @@ for (const name of NAMES) {
 // Check 5: THL phonetics with the boundaries marked, and each marked word a headword
 // ---------------------------------------------------------------------------------------------
 
-async function thlFor(marked) {
-	const html = await fetchWithRetry(
-		"https://old.thlib.org/cgi-bin/thl/lbow/phonetics.pl",
-		{
-			method: "POST",
-			headers: { "Content-Type": "application/x-www-form-urlencoded" },
-			body: new URLSearchParams({
-				input: marked,
-				type: "thl",
-				words: "sep",
-				sep_join: "-",
-				send: "Make Phonetics",
-			}),
-		},
-		"THL",
-	);
-	return thlPhoneticsOf(html);
-}
-
 for (const correction of CORRECTIONS) {
 	if (!NAMES.some((n) => n.id === correction.id))
 		fail(correction.id, 5, "a correction names a rule that has no name here");
 }
 
+const { results, problems: thlProblems } = await phoneticsFor(NAMES, {
+	boundaries: BOUNDARIES,
+	gate: GATE,
+	corrections: CORRECTIONS,
+	userAgent: UA,
+});
+for (const p of thlProblems) fail(p.id, 5, p.message);
+
 for (const name of NAMES) {
-	let thl;
-	try {
-		thl = await thlFor(name.marked);
-		await sleep(150);
-	} catch (error) {
-		fail(name.id, 5, `THL lookup for "${name.marked}" failed: ${error.message}`);
-		continue;
-	}
-	if (!thl) {
-		fail(name.id, 5, `THL returned no phonetics for "${name.marked}"`);
-		continue;
-	}
-	name.thl = thl;
-	const correction = CORRECTIONS.find((c) => c.id === name.id);
-	if (correction) {
-		if (thl !== correction.thlExpected)
-			fail(
-				name.id,
-				5,
-				`correction for ${name.id} is no longer justified: it expects THL to return "${correction.thlExpected}", but THL returned "${thl}"`,
-			);
-		if (name.recordPhonetic !== correction.thlExpected)
+	const result = results.get(name.id);
+	if (!result) continue;
+	name.marked = result.marked;
+	name.thl = result.thl;
+	name.phonetic = result.phonetic;
+	name.corrected = result.corrected;
+	if (result.corrected) {
+		if (name.recordPhonetic !== result.corrected.thlExpected)
 			fail(
 				name.id,
 				5,
 				`the record's column for ${name.id} is not the value the correction expects`,
 			);
-		name.phonetic = correction.correctedTo;
-		name.corrected = correction;
-	} else {
-		if (thl.includes("(?)"))
-			fail(name.id, 5, `THL returned "${thl}", which carries its own uncertainty marker "(?)"`);
-		else if (thl !== name.recordPhonetic)
-			fail(name.id, 5, `THL returned "${thl}", not the record's "${name.recordPhonetic}"`);
-		name.phonetic = thl;
-		name.corrected = null;
+	} else if (!result.thl.includes("(?)") && result.thl !== name.recordPhonetic) {
+		fail(name.id, 5, `THL returned "${result.thl}", not the record's "${name.recordPhonetic}"`);
 	}
-	for (const word of wordsOf(name.marked)) {
-		// A rung of Tibetan morphology, as in `forms`: an ordinal or agent ending (-pa, -ba) may be absent
-		// from the headword that carries the stem (bcu drug pa, "sixteenth", against bcu drug).
-		const stem = word.replace(/ [pb]a$/, "");
-		const inDictionaries = Object.keys(ACCEPTED_KEYS).filter(
-			(d) => isWholeWordIn(ACCEPTED_KEYS[d], word) || isWholeWordIn(ACCEPTED_KEYS[d], stem),
-		);
-		if (inDictionaries.length === 0)
-			fail(
-				name.id,
-				5,
-				`marked word "${word}" is part of no headword that check 3 accepts (the Mahāvyutpatti, the two Tibetan–Tibetan dictionaries, a Jäschke page read)`,
+	if (name.wylie.split(" ").length > 1)
+		for (const word of wordsOf(result.marked)) {
+			const admitted = gateWord(word, GATE);
+			name.provenance.notes.push(
+				`marked word "${word}" is a headword in: ${admitted.join(", ") || "none (a gateException covers it)"}`,
 			);
-		name.provenance.notes.push(
-			`marked word "${word}" is part of a headword in: ${inDictionaries.join(", ")}`,
-		);
-	}
+		}
 }
 
 // ---------------------------------------------------------------------------------------------
