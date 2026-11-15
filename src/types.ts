@@ -292,7 +292,7 @@ export interface TibetanName {
 	 * @remarks
 	 * A published standard rather than a house style, which is what makes the column verifiable.
 	 * Multi-syllable names are THL's word-separated output: a two-syllable name is one word (*penpa*), a
-	 * longer one is split into words (*saga dawa düchen*). Six shipped values are recorded corrections of
+	 * longer one is split into words (*saga dawa düchen*). Eight shipped values are recorded corrections of
 	 * THL's output, and the sourcing records name them.
 	 * Not an identifier: see {@link TibetanName.wylie}.
 	 */

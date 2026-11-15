@@ -2315,6 +2315,33 @@ for (const dictionary of DICTIONARIES) {
 	}
 }
 
+/**
+ * Where a correction replaces THL's output. Each states the value THL is expected to return, so a
+ * correction that stops being needed fails the run instead of silently patching a converter that has
+ * since changed. The evidence is the project owner's knowledge of the pronunciation.
+ */
+const PHONETIC_CORRECTIONS = [
+	{
+		id: "position 15",
+		thlExpected: "khyumchok",
+		correctedTo: "khyunchok",
+		evidence:
+			"Andreas, 2026-11-15, policy P1 (an m prefix assimilates to n before a non-labial onset): khyunchok; THL's joined mode returns khyumchok",
+	},
+	{
+		id: "position 55",
+		thlExpected: "longen",
+		correctedTo: "lo-ngen",
+		evidence:
+			"Andreas, 2026-11-15, option O1: longen can be read lon-gen; lo-ngen separates the syllables; THL's joined mode returns longen",
+	},
+];
+
+for (const correction of PHONETIC_CORRECTIONS) {
+	if (!rows.some((r) => `position ${r.n}` === correction.id))
+		fail(`${correction.id}: a correction names a row that does not exist`);
+}
+
 const { results: thlResults, problems: thlProblems } = await phoneticsFor(
 	rows.map((r) => ({ id: `position ${r.n}`, wylie: r.wylie })),
 	{
@@ -2324,13 +2351,18 @@ const { results: thlResults, problems: thlProblems } = await phoneticsFor(
 			tshig: dictionaryRaw.get("tshigmdzod"),
 			dung: await fetchAggregate("34-dung-dkar-tshig-mdzod-chen-mo-Tib"),
 		}),
+		corrections: PHONETIC_CORRECTIONS,
 		userAgent: UA,
 	},
 );
 for (const p of thlProblems) fail(`${p.id}: ${p.message}`);
 for (const r of rows) {
 	const result = thlResults.get(`position ${r.n}`);
-	if (result) r.phonetic = result.phonetic;
+	if (result) {
+		r.phonetic = result.phonetic;
+		r.thl = result.thl;
+		r.phoneticCorrected = result.corrected;
+	}
 }
 
 /**
@@ -2523,6 +2555,9 @@ export interface RabjungNameFixtureRow {
 	wylie: string;
 	/** THL Simplified Phonetic Transcription. */
 	phonetic: string;
+	/** THL's own output, present only where \`phonetic\` is a correction of it. */
+	thlPhonetic?: string;
+	phoneticCorrected?: true;
 	devanagari: string;
 	/** Derived from \`devanagari\`, not taken from the samvatsara table. */
 	iast: string;
@@ -2597,7 +2632,7 @@ ${rows
 		const optional = (value) => (value ? quote(value) : "null");
 		return (
 			`\t{ position: ${r.n}, tibetan: ${quote(r.tibetan)}, wylie: ${quote(r.wylie)}, ` +
-			`phonetic: ${quote(r.phonetic)}, devanagari: ${quote(r.devanagari)}, iast: ${quote(r.iast)}, ` +
+			`phonetic: ${quote(r.phonetic)}, ${r.phoneticCorrected ? `thlPhonetic: ${quote(r.thl)}, phoneticCorrected: true, ` : ""}devanagari: ${quote(r.devanagari)}, iast: ${quote(r.iast)}, ` +
 			`years: [${r.years[0]}, ${r.years[1]}], attested: ${r.attested}, senses: [${senses}], ` +
 			`selected: ${optional(r.selected)}, selectedSenseId: ${optional(r.selectedSenseId)}, ` +
 			`composed: ${optional(r.composed)}, composedFrom: [${(r.composedFrom ?? [])
@@ -2826,7 +2861,7 @@ agreeing independently is a result.
 | wisdomlib | The Bṛhat Saṃhitā's cycle position; which **other** lexicons carry a headword | Varāhamihira names the position in words beside the Devanāgarī — a primary Indic astronomical witness, independent of Janson, Sewell and Wiktionary. Only the position is taken, never the prose | **Sourced**, where present |
 | English Wiktionary | That a Devanāgarī headword exists; the cycle position where its entry states it | A second lexicographic witness. **Not a sense source**: its Sanskrit senses *are* Monier-Williams, verbatim, so it is not a lineage independent of MW | **Sourced** |
 | \`jsewts\` + \`tibetan-ewts-converter\` | Tibetan script | Two independent implementations required to agree, then to read back as the Wylie they came from | **Derived**, doubly |
-| THL phonetics converter | THL Simplified phonetics, word by word: a two-syllable name is one word, a longer name is marked by a ruling | The publisher of the standard | **Sourced** |
+| THL phonetics converter | THL Simplified phonetics, word by word: a two-syllable name is one word, a longer name is marked by a ruling. Two phonetics (positions 15 and 55) are Andreas' corrections of THL's output, carried beside it | The publisher of the standard | **Sourced**, two corrected |
 
 **Janson's ASCII Sanskrit is not shipped, and is extracted for exactly one purpose.** It collides
 three names onto \`pramadi\`, carries no Devanāgarī, and he flags its spellings as varying between

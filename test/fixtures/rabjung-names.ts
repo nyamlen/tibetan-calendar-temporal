@@ -31,6 +31,9 @@ export interface RabjungNameFixtureRow {
 	wylie: string;
 	/** THL Simplified Phonetic Transcription. */
 	phonetic: string;
+	/** THL's own output, present only where `phonetic` is a correction of it. */
+	thlPhonetic?: string;
+	phoneticCorrected?: true;
 	devanagari: string;
 	/** Derived from `devanagari`, not taken from the samvatsara table. */
 	iast: string;
@@ -865,7 +868,9 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		position: 15,
 		tibetan: "ཁྱུ་མཆོག",
 		wylie: "khyu mchog",
-		phonetic: "khyumchok",
+		phonetic: "khyunchok",
+		thlPhonetic: "khyumchok",
+		phoneticCorrected: true,
 		devanagari: "वृषभ",
 		iast: "Vṛṣabha",
 		years: [1941, 2001],
@@ -3003,7 +3008,9 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		position: 55,
 		tibetan: "བློ་ངན",
 		wylie: "blo ngan",
-		phonetic: "longen",
+		phonetic: "lo-ngen",
+		thlPhonetic: "longen",
+		phoneticCorrected: true,
 		devanagari: "दुर्मति",
 		iast: "Durmati",
 		years: [1981, 2041],

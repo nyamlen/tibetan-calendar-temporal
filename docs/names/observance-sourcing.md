@@ -137,8 +137,8 @@ The verifier refuses to emit if any check fails, and a check placed after the em
 
 - That any of the fourteen names is *correct* Tibetan: it claims only that a name which passes the checks is attested by the sources named, in the form given.
 - That the English names for the observances are translations. They are cited to FPMT's calendar labels, verbatim, or marked authored, as [observances.md](../observances.md) records; the three monthly-day names are authored, composed from dedications in Cornu's *Tibetan Astrology*.
-- That the two corrected phonetics are THL's: they are Andreas' corrections of THL's output, and the verifier says so.
-  Four further corrections of THL's output, ruled by Andreas on 2026-11-15, live in the mansion and month-and-yoga verifiers (*lhantsam*, *mintün*, *peln-gyur*, *topden*), so six shipped phonetics in all are corrections.
+- That the two corrected phonetics of the observance names are THL's: they are Andreas' corrections of THL's output, and the verifier says so.
+  Six further corrections of THL's output, ruled by Andreas on 2026-11-15, live in the other verifiers: four in the mansion and month-and-yoga verifiers (*lhantsam*, *mintün*, *peln-gyur*, *topden*) and two in the rabjung verifier (*khyunchok*, *lo-ngen*), so eight shipped phonetics in all are corrections.
 - That an anniversary is a birth or a passing. The `anniversary` label does not say, and FPMT does not either; an event type could be added later as a further label.
 - That a Tibetan teacher agrees with the choice of name for a festival. Whether centres use these spellings, and the established Tibetan headings for the three levels, are questions for a teacher.
 
