@@ -24,6 +24,8 @@ export const YOGA_NAMES: readonly {
 	tibetan: string;
 	wylie: string;
 	phonetic: string;
+	thlPhonetic?: string;
+	phoneticCorrected?: true;
 	correctedFrom: string | null;
 	iast: string;
 	devanagari: string;
@@ -87,7 +89,9 @@ export const YOGA_NAMES: readonly {
 		elements: ["fire", "fire"],
 		tibetan: "འཕེལ་འགྱུར",
 		wylie: "'phel 'gyur",
-		phonetic: "pengyur",
+		phonetic: "peln-gyur",
+		thlPhonetic: "pengyur",
+		phoneticCorrected: true,
 		correctedFrom: null,
 		iast: "pragati",
 		devanagari: "प्रगति",
@@ -119,7 +123,9 @@ export const YOGA_NAMES: readonly {
 		elements: ["fire", "wind"],
 		tibetan: "སྟོབས་ལྡན",
 		wylie: "stobs ldan",
-		phonetic: "tonden",
+		phonetic: "topden",
+		thlPhonetic: "tonden",
+		phoneticCorrected: true,
 		correctedFrom: null,
 		iast: "balayukta",
 		devanagari: "बलयुक्त",
@@ -151,7 +157,9 @@ export const YOGA_NAMES: readonly {
 		elements: ["water", "wind"],
 		tibetan: "མི་མཐུན",
 		wylie: "mi mthun",
-		phonetic: "mimtün",
+		phonetic: "mintün",
+		thlPhonetic: "mimtün",
+		phoneticCorrected: true,
 		correctedFrom: null,
 		iast: "pratikūla",
 		devanagari: "प्रतिकूल",

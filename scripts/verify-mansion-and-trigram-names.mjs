@@ -672,19 +672,43 @@ for (const stem of PAIR_STEMS) {
 	}
 }
 
+/**
+ * Where a correction replaces THL's output. Each states the value THL is expected to return, so a
+ * correction that stops being needed fails the run instead of silently patching a converter that has
+ * since changed. The evidence is the project owner's knowledge of the pronunciation.
+ */
+const CORRECTIONS = [
+	{
+		id: "mansion 16",
+		thlExpected: "lhamtsam",
+		correctedTo: "lhantsam",
+		evidence: "Andreas, 2026-11-15: lhantsam; THL's joined mode returns lhamtsam",
+	},
+];
+
+for (const correction of CORRECTIONS) {
+	if (!tibetanTerms.some((t) => `${t.kind} ${t.key}` === correction.id))
+		fail(`${correction.id}: a correction names a term that has no row here`);
+}
+
 const withTibetan = tibetanTerms.filter((t) => t.tibetan);
 const { results: thlResults, problems: thlProblems } = await phoneticsFor(
 	withTibetan.map((t) => ({ id: `${t.kind} ${t.key}`, wylie: t.wylie })),
 	{
 		boundaries: loadBoundaries(),
 		gate: gateSets({ mvy: mvyText, tshig: tshigText, dung: dungText }),
+		corrections: CORRECTIONS,
 		userAgent: UA,
 	},
 );
 for (const p of thlProblems) fail(`${p.id}: ${p.message}`);
 for (const term of withTibetan) {
 	const result = thlResults.get(`${term.kind} ${term.key}`);
-	if (result) term.phonetic = result.phonetic;
+	if (result) {
+		term.phonetic = result.phonetic;
+		term.thl = result.thl;
+		term.corrected = result.corrected;
+	}
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -706,7 +730,8 @@ if (problems.length > 0) {
 }
 
 const q = (s) => JSON.stringify(s);
-const name = (t) => `tibetan: ${q(t.tibetan)}, wylie: ${q(t.wylie)}, phonetic: ${q(t.phonetic)}`;
+const name = (t) =>
+	`tibetan: ${q(t.tibetan)}, wylie: ${q(t.wylie)}, phonetic: ${q(t.phonetic)}${t.corrected ? `, thlPhonetic: ${q(t.thl)}, phoneticCorrected: true` : ""}`;
 const cite = (c) => `{ dictionary: ${q(c.dictionary)}, page: ${c.page} }`;
 
 writeFileSync(
@@ -733,6 +758,8 @@ export const MANSION_NAMES: readonly {
 	tibetan: string;
 	wylie: string;
 	phonetic: string;
+	thlPhonetic?: string;
+	phoneticCorrected?: true;
 	iast: string;
 	devanagari: string;
 	monierWilliamsPage: number;

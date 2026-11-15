@@ -206,7 +206,7 @@ export const ELEMENTAL_YOGAS: readonly ElementalYoga[] = deepFreeze([
 	},
 	{
 		englishName: "increase",
-		tibetanName: { tibetan: "འཕེལ་འགྱུར", wylie: "'phel 'gyur", phonetic: "pengyur" },
+		tibetanName: { tibetan: "འཕེལ་འགྱུར", wylie: "'phel 'gyur", phonetic: "peln-gyur" },
 		sanskritName: { iast: "pragati", devanagari: "प्रगति" },
 		elements: ["fire", "fire"],
 		favorable: true,
@@ -222,7 +222,7 @@ export const ELEMENTAL_YOGAS: readonly ElementalYoga[] = deepFreeze([
 	},
 	{
 		englishName: "powerful",
-		tibetanName: { tibetan: "སྟོབས་ལྡན", wylie: "stobs ldan", phonetic: "tonden" },
+		tibetanName: { tibetan: "སྟོབས་ལྡན", wylie: "stobs ldan", phonetic: "topden" },
 		sanskritName: { iast: "balayukta", devanagari: "बलयुक्त" },
 		elements: ["fire", "wind"],
 		favorable: true,
@@ -238,7 +238,7 @@ export const ELEMENTAL_YOGAS: readonly ElementalYoga[] = deepFreeze([
 	},
 	{
 		englishName: "opposition",
-		tibetanName: { tibetan: "མི་མཐུན", wylie: "mi mthun", phonetic: "mimtün" },
+		tibetanName: { tibetan: "མི་མཐུན", wylie: "mi mthun", phonetic: "mintün" },
 		sanskritName: { iast: "pratikūla", devanagari: "प्रतिकूल" },
 		elements: ["water", "wind"],
 		favorable: false,

@@ -1409,6 +1409,38 @@ for (const term of indianMonthTerms) {
 	}
 }
 
+/**
+ * Where a correction replaces THL's output. Each states the value THL is expected to return, so a
+ * correction that stops being needed fails the run instead of silently patching a converter that has
+ * since changed. The evidence is the project owner's knowledge of the pronunciation.
+ */
+const CORRECTIONS = [
+	{
+		id: "yoga water+wind",
+		thlExpected: "mimtün",
+		correctedTo: "mintün",
+		evidence: "Andreas, 2026-11-15: mintün; THL's joined mode returns mimtün",
+	},
+	{
+		id: "yoga fire+fire",
+		thlExpected: "pengyur",
+		correctedTo: "peln-gyur",
+		evidence:
+			"Andreas, 2026-11-15: peln-gyur; THL's joined mode returns pengyur. The hyphen is deliberate: it separates the n from the g, because the sound is not the ng a reader would otherwise take them for",
+	},
+	{
+		id: "yoga fire+wind",
+		thlExpected: "tonden",
+		correctedTo: "topden",
+		evidence: "Andreas, 2026-11-15: topden; THL's joined mode returns tonden",
+	},
+];
+
+for (const correction of CORRECTIONS) {
+	if (!tibetanTerms.some((t) => `${t.kind} ${t.key}` === correction.id))
+		fail(`${correction.id}: a correction names a term that has no row here`);
+}
+
 const withTibetan = tibetanTerms.filter((t) => t.tibetan);
 const { results: thlResults, problems: thlProblems } = await phoneticsFor(
 	withTibetan.map((t) => ({ id: `${t.kind} ${t.key}`, wylie: t.wylie })),
@@ -1416,13 +1448,18 @@ const { results: thlResults, problems: thlProblems } = await phoneticsFor(
 		boundaries: loadBoundaries(),
 		gate: gateSets({ mvy: mvyText, tshig: tshigText, dung: dungText }),
 		enumerated: new Set(tshigNames),
+		corrections: CORRECTIONS,
 		userAgent: UA,
 	},
 );
 for (const p of thlProblems) fail(`${p.id}: ${p.message}`);
 for (const term of withTibetan) {
 	const result = thlResults.get(`${term.kind} ${term.key}`);
-	if (result) term.phonetic = result.phonetic;
+	if (result) {
+		term.phonetic = result.phonetic;
+		term.thl = result.thl;
+		term.corrected = result.corrected;
+	}
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -1454,7 +1491,8 @@ if (problems.length > 0) {
 }
 
 const q = (s) => JSON.stringify(s);
-const name = (t) => `tibetan: ${q(t.tibetan)}, wylie: ${q(t.wylie)}, phonetic: ${q(t.phonetic)}`;
+const name = (t) =>
+	`tibetan: ${q(t.tibetan)}, wylie: ${q(t.wylie)}, phonetic: ${q(t.phonetic)}${t.corrected ? `, thlPhonetic: ${q(t.thl)}, phoneticCorrected: true` : ""}`;
 
 writeFileSync(
 	join(root, "test", "fixtures", "month-names.ts"),
@@ -1539,6 +1577,8 @@ export const YOGA_NAMES: readonly {
 	tibetan: string;
 	wylie: string;
 	phonetic: string;
+	thlPhonetic?: string;
+	phoneticCorrected?: true;
 	correctedFrom: string | null;
 	iast: string;
 	devanagari: string;

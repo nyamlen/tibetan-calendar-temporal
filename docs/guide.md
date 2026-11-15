@@ -274,11 +274,11 @@ The ten, in the order the package ships them — a pair in either order is the s
 | earth + earth | accomplishment | དངོས་གྲུབ | dngos grub | ngödrup | siddhi | सिद्धि | yes | good (བཟང་པོ) |
 | water + water | nectar | བདུད་རྩི | bdud rtsi | dütsi | amṛta | अमृत | yes | good (བཟང་པོ) |
 | earth + water | youth | ལང་ཚོ | lang tsho | langtso | yauvana | यौवन | yes | restorative (གསོ་ཐུབ) |
-| fire + fire | increase | འཕེལ་འགྱུར | 'phel 'gyur | pengyur | pragati | प्रगति | yes | good (བཟང་པོ) |
+| fire + fire | increase | འཕེལ་འགྱུར | 'phel 'gyur | peln-gyur | pragati | प्रगति | yes | good (བཟང་པོ) |
 | wind + wind | excellence | ཕུན་ཚོགས | phun tshogs | püntsok | saṃpanna | संपन्न | yes | restorative (གསོ་ཐུབ) |
-| fire + wind | powerful | སྟོབས་ལྡན | stobs ldan | tonden | balayukta | बलयुक्त | yes | restorative (གསོ་ཐུབ) |
+| fire + wind | powerful | སྟོབས་ལྡན | stobs ldan | topden | balayukta | बलयुक्त | yes | restorative (གསོ་ཐུབ) |
 | earth + wind | deficiency | མི་འཕྲོད | mi 'phrod | mintrö | alābha | अलाभ | no | bad (ངན) |
-| water + wind | opposition | མི་མཐུན | mi mthun | mimtün | pratikūla | प्रतिकूल | no | bad (ངན) |
+| water + wind | opposition | མི་མཐུན | mi mthun | mintün | pratikūla | प्रतिकूल | no | bad (ངན) |
 | earth + fire | burning | བསྲེག་པ | bsreg pa | sekpa | dahana | दहन | no | bad (ངན) |
 | fire + water | death | འཆི་བ | 'chi ba | chiwa | maraṇa | मरण | no | worst (ཐ་ཆད) |
 

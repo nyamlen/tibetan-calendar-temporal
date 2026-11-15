@@ -20,6 +20,8 @@ export const MANSION_NAMES: readonly {
 	tibetan: string;
 	wylie: string;
 	phonetic: string;
+	thlPhonetic?: string;
+	phoneticCorrected?: true;
 	iast: string;
 	devanagari: string;
 	monierWilliamsPage: number;
@@ -267,7 +269,9 @@ export const MANSION_NAMES: readonly {
 		index: 16,
 		tibetan: "ལྷ་མཚམས",
 		wylie: "lha mtshams",
-		phonetic: "lhamtsam",
+		phonetic: "lhantsam",
+		thlPhonetic: "lhamtsam",
+		phoneticCorrected: true,
 		iast: "anurādhā",
 		devanagari: "अनुराधा",
 		monierWilliamsPage: 37,

@@ -98,7 +98,7 @@ export const MANSION_NAMES: readonly MansionNames[] = deepFreeze([
 		sanskritName: { iast: "viśākhā", devanagari: "विशाखा" },
 	},
 	{
-		tibetanName: { tibetan: "ལྷ་མཚམས", wylie: "lha mtshams", phonetic: "lhamtsam" },
+		tibetanName: { tibetan: "ལྷ་མཚམས", wylie: "lha mtshams", phonetic: "lhantsam" },
 		sanskritName: { iast: "anurādhā", devanagari: "अनुराधा" },
 	},
 	{
