@@ -281,7 +281,7 @@ The other twelve phonetics are THL's output unchanged and equal the tables above
 
 A scratch copy of the verifier, with its own `scripts/` and `test/fixtures/`, was run against **recorded** responses (40 recorded during the real run that wrote the fixture); each mutant alters one served response, one converter output or the Rigpa data file as the verifier reads it (three mutants alter two responses), and every mutant is asserted on its failure **message**, with no fixture written.
 The control is unmutated, exits 0 and writes the fixture, and was run first and last.
-There are **14 mutants** beside the control.
+There are **17 mutants** beside the control: the 14 in the table below, and three added when the phonetics step moved to the shared module (`record-column`, `boundary-row-missing`, `gate-exception-stale`), which the harness README lists with the messages they assert.
 The harness, the replay preload, the recording preload, and a manifest of the 40 responses (URL and SHA-256, not the third-party pages themselves) are in [scripts/evidence/observance-names-verifier/](../../scripts/evidence/observance-names-verifier/README.md), with a README that says how to record the sources again and run them.
 
 | Mutant | Check | Message asserted |
@@ -299,7 +299,7 @@ The harness, the replay preload, the recording preload, and a manifest of the 40
 | the Google Books title loses its first letter | 3, `karmapa-16` needs both | `"rgyal dbang karma pa bcu drug pa" has 1 independent witness(es) stating that spelling, not 2 (Lotsawa House)` |
 | the Lotsawa House work title loses its spelling | 3, `karmapa-16` needs both | `"rgyal dbang karma pa bcu drug pa" has 1 independent witness(es) stating that spelling, not 2 (Google Books record)` |
 | `milarepa` loses BDRC and the dictionary and gains both a Wikipedia title and a list item | 3, Wikipedia is one group | `"mi la ras pa" has 1 independent witness(es) stating that spelling, not 2 (Tibetan Wikipedia)` |
-| the dictionaries lose `bdud 'joms`, which only the Jäschke index still lists | 5, a marked word needs a headword check 3 accepts | `marked word "bdud 'joms" is part of no headword that check 3 accepts` |
+| the dictionaries lose `bdud 'joms`, which only the Jäschke index still lists | 5, a marked word must be an exact headword in a dictionary check 3 accepts | `word "bdud 'joms" of "bdud 'joms-rin po che" is no headword in` |
 | THL returns *karmapa* for the Karmapa | 5, correction | `correction for karmapa-16 is no longer justified` |
 
 The emit path is proved by the same table: every mutant leaves no fixture, and the control writes one.
