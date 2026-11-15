@@ -78,8 +78,8 @@ function closedFormYear(subject: string, year: number, tradition: TraditionConfi
  * used to borrow `daysInMonth`'s and so reported every error under its name. Not exported from the
  * package barrel.
  *
- * The order is the shape, the tradition, the ranges, the leap twin, the exact range. A caller that
- * wants the tradition reported before the shape validates it first itself.
+ * The order is the shape, the tradition, the ranges, the leap twin, the exact range — the order every
+ * export taking a Tibetan month or date follows.
  *
  * **Both ends are bounded.** `daysInMonth` bounded only the last day, and the first comes from the
  * previous month's last, which nothing checked; since the bound is symmetric in the Julian day, a

@@ -168,8 +168,6 @@ export function monthAttributesFor(
 	month: TibetanMonthFields,
 	tradition: TraditionConfig = PHUGPA,
 ): MonthAttributes {
-	// Validated first, so a bad tradition is reported before a bad date, as it was when this took a bag.
-	scalingFor(tradition);
 	// The month tier's own guard: the shape, the year, the month number, the leap flag against the
 	// year's actual leap month, and the exact range at both ends of the month.
 	boundedMonth("monthAttributesFor", month, "month", tradition);
@@ -212,7 +210,6 @@ export function lunarDayAttributesFor(
 	date: TibetanDateFields,
 	tradition: TraditionConfig = PHUGPA,
 ): LunarDayAttributes {
-	scalingFor(tradition);
 	// The month tier's guard with the day range-checked alongside the other fields, and never a
 	// conversion: a skipped day is a legitimate argument here, and `tibetanToIso` would refuse it.
 	// So the month is bounded, not the day.
@@ -278,7 +275,6 @@ export function elementalYogaFor(
 	date: Temporal.PlainDate | TibetanDate,
 	tradition: TraditionConfig = PHUGPA,
 ): ElementalYoga {
-	scalingFor(tradition);
 	const resolved = isoToTibetan(isoOf("elementalYogaFor", date), tradition);
 	return yogaOf(resolved, tradition);
 }
@@ -317,7 +313,6 @@ export function lunarMansionFor(
 	date: Temporal.PlainDate | TibetanDate,
 	tradition: TraditionConfig = PHUGPA,
 ): LunarMansion {
-	scalingFor(tradition);
 	return lunarMansionOf(isoToTibetan(isoOf("lunarMansionFor", date), tradition), tradition);
 }
 
@@ -351,7 +346,6 @@ export function attributesFor(
 	date: Temporal.PlainDate | TibetanDate,
 	tradition: TraditionConfig = PHUGPA,
 ): DayAttributes {
-	scalingFor(tradition);
 	const resolved = isoToTibetan(isoOf("attributesFor", date), tradition);
 	const y = yearFromRoyalEra(resolved.year);
 

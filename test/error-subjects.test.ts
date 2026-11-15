@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { lunarDayAttributesFor, monthAttributesFor } from "../src/astrology/index.js";
+import {
+	attributesFor,
+	elementalYogaFor,
+	lunarDayAttributesFor,
+	lunarMansionFor,
+	monthAttributesFor,
+} from "../src/astrology/index.js";
 import {
 	addDays,
 	addMonths,
@@ -13,6 +19,8 @@ import {
 	lunationFromMonth,
 	monthNamesFor,
 	monthsBetween,
+	nextFullMoon,
+	nextNewMoon,
 	PHUGPA,
 	PHUGPA_HENNING,
 	resolveDate,
@@ -507,25 +515,44 @@ describe("which error a doubly-bad call reports", () => {
 	const date13 = date({ month: 13 });
 	const codeOf = (call: () => unknown) => thrownBy(call)?.code;
 
-	// Order A: the tradition first.
-	it("addDays reports the tradition before the shape", () => {
-		expect(codeOf(() => addDays(null as never, 1, brokenTradition))).toBe(
-			"TCT_INVALID_TRADITION_CONFIG",
-		);
-	});
-	it("monthAttributesFor reports the tradition before the shape", () => {
-		expect(codeOf(() => monthAttributesFor(null as never, brokenTradition))).toBe(
-			"TCT_INVALID_TRADITION_CONFIG",
-		);
-	});
-
-	// Order B: the shape, then the tradition, then the range.
+	// One order everywhere: the shape, then the tradition, then the range. Until 2026-11-15 the
+	// navigators and five astrology exports checked the tradition first ("order A"); Andreas ruled for
+	// this order, and the roadmap item on the attribute bound records why.
 	it.each([
 		["tibetanToIso", (v: never) => tibetanToIso(v, brokenTradition), date13],
 		["daysInMonth", (v: never) => daysInMonth(v, brokenTradition), month13],
+		["lunationFromMonth", (v: never) => lunationFromMonth(v, brokenTradition), month13],
+		["addMonths", (v: never) => addMonths(v, 1, brokenTradition), month13],
+		["addDays", (v: never) => addDays(v, 1, brokenTradition), date13],
+		["resolveDate", (v: never) => resolveDate(v, brokenTradition), date13],
+		[
+			"addMonthsToDate",
+			(v: never) => addMonthsToDate(v, 1, { tradition: brokenTradition }),
+			date13,
+		],
+		["monthsBetween(from)", (v: never) => monthsBetween(v, month13, brokenTradition), month13],
+		["monthsBetween(to)", (v: never) => monthsBetween(month13, v, brokenTradition), month13],
+		["daysBetween(from)", (v: never) => daysBetween(v, date13, brokenTradition), date13],
+		["daysBetween(to)", (v: never) => daysBetween(date13, v, brokenTradition), date13],
+		["monthAttributesFor", (v: never) => monthAttributesFor(v, brokenTradition), month13],
+		["lunarDayAttributesFor", (v: never) => lunarDayAttributesFor(v, brokenTradition), date13],
 	] as const)("%s reports the shape, then the tradition, then the range", (_label, call, value) => {
 		expect(codeOf(() => call(null as never))).toBe("TCT_INVALID_ARGUMENT");
 		expect(codeOf(() => call(value as never))).toBe("TCT_INVALID_TRADITION_CONFIG");
+	});
+
+	// Western-date exports have no range a caller can reach with a valid date, so the shape against
+	// the tradition is the whole order.
+	const day = Temporal.PlainDate.from("2026-09-01");
+	it.each([
+		["nextFullMoon", (v: never) => nextFullMoon(v, brokenTradition)],
+		["nextNewMoon", (v: never) => nextNewMoon(v, brokenTradition)],
+		["elementalYogaFor", (v: never) => elementalYogaFor(v, brokenTradition)],
+		["lunarMansionFor", (v: never) => lunarMansionFor(v, brokenTradition)],
+		["attributesFor", (v: never) => attributesFor(v, brokenTradition)],
+	] as const)("%s reports the shape before the tradition", (_label, call) => {
+		expect(codeOf(() => call(null as never))).toBe("TCT_INVALID_ARGUMENT");
+		expect(codeOf(() => call(day as never))).toBe("TCT_INVALID_TRADITION_CONFIG");
 	});
 
 	// Order C — the range before the tradition — until 2026-09-24, when both moved onto the month

@@ -1759,7 +1759,7 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
         leap month with no twin or past the exact range, where the month's error used to win. `beb24e1`'s
         message says "day 31"; an independent review measured the whole class.
       - The README row now names the month and date tiers.
-- [ ] **Should the attribute functions be bounded by the exact range at all, and should the three
+- [x] **Should the attribute functions be bounded by the exact range at all, and should the three
       refusal orders be unified?** Left open by the field-guard merge on 2026-09-24.
       `monthNamesFor`, `monthAttributesFor` and `lunarDayAttributesFor` never evaluate `true_date` for
       their answer — the names and attributes are closed forms on the month — yet `boundedMonth` refuses
@@ -1771,6 +1771,27 @@ operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
       ahead of the tradition would let `tibetanDateExists(badFields, {})` answer `false` for a broken
       config — so any unification converges on B. `test/error-subjects.test.ts` pins one doubly-bad
       call per order today.
+
+      **Decided 2026-11-15 by Andreas, and implemented the same day.**
+      **The bound stays.** Widening it after 1.0.0 is non-breaking, and narrowing it would not be, so
+      the narrow form ships, and every function taking a month refuses the same months.
+      **The orders unify on B**, which checks the shape, then the tradition, then the range — the
+      argument before the tradition, in parameter order. That is what the shared guards already do,
+      so the change deletes each export's leading tradition check.
+      The load-bearing claim above was re-read in reaching this. What `tibetanDateExists` needs is the
+      tradition checked **before the range**, and order A does that too; the order that was dangerous
+      was the earlier "range before tradition" order, retired on 2026-09-24. B was chosen because it is
+      the cheaper of two safe orders, not because A was unsafe.
+      The change reaches further than the item above lists: fourteen exports checked the tradition first
+      — the seven navigators, the moon pair through their shared helper, and five `./astrology`
+      exports (`monthAttributesFor`, `lunarDayAttributesFor`, `elementalYogaFor`, `lunarMansionFor`,
+      `attributesFor`). In the navigators the check **moved** rather than went: their range check runs
+      before anything else validates the tradition, so deleting it would have produced the retired
+      order. `test/error-subjects.test.ts` pins every one of them, and failed on all 16 rows before the
+      change for the reason it names.
+      `monthFromLunation`, `weekdayNameFor` and the closed-form year functions take a number and no
+      shape, so the shape-first order says nothing about them, and they are outside this decision:
+      `monthFromLunation` checks the tradition before its number, the other two the number first.
 - [x] **Decide whether `check:conventions` rule 4 should distinguish an exported `{@link}` target
       from a module-local one.** **Decided 2026-09-23: reject, scoped to docblocks that ship** — those
       of a barrel-exported declaration or of a member of a barrel-exported interface or class, where a
