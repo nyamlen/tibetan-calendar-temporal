@@ -3,6 +3,7 @@ import { TRIGRAM_NAMES } from "../../src/astrology/calendar-day.js";
 import {
 	attributesFor,
 	calendarDayAttributesFor,
+	elementalYoga,
 	elementalYogaFor,
 	lunarDayAttributesFor,
 	lunarMansionFor,
@@ -169,34 +170,35 @@ describe("the year entry point", () => {
 });
 describe("the yoga's weekday element is tradition-free", () => {
 	/**
-	 * Janson gives the yoga's weekday element in one table, states Bhutan's name shift separately as a
-	 * naming feature, and never revisits the yoga for it. So the engine takes his printed table and
-	 * does not let `naming.weekdayOffset` propagate — following the shifted *name* would be an
-	 * inference nobody has published, and external validation here is Phugpa only.
+	 * Janson gives the yoga's weekday element in one table and states Bhutan's name shift separately
+	 * as a naming feature. The offset moves the weekday *name* only, so `weekdayName.element` and
+	 * the yoga both read the unshifted table and cannot differ.
 	 *
 	 * Until 2026-09-12 the offset did propagate, which gave Bhutan a different yoga on 12 of 14
 	 * consecutive days and made two shipped claims false: `TraditionNaming.weekdayOffset`'s "applies to
 	 * the name only", and `docs/astrology.md`'s "the yoga varies only through the mansion".
 	 */
-	it("pairs the unshifted weekday element even under a tradition that shifts the name", () => {
+	it("pairs the Tibetan table's weekday element with Bhutan's own mansion, by value", () => {
 		const bad: string[] = [];
+		let compared = 0;
 		let day = iso("2026-09-01");
 		for (let i = 0; i < 28; i++) {
 			const resolved = isoToTibetan(day, BHUTAN);
-			// Bhutan's own naming says one planet on; the yoga must still use the element Janson's
-			// weekday table gives for that weekday number.
-			const shifted = weekdayNameFor(resolved.tibetanWeekday, BHUTAN).element;
-			const unshifted = weekdayNameFor(resolved.tibetanWeekday, PHUGPA).element;
+			const weekdayElement = weekdayNameFor(resolved.tibetanWeekday, PHUGPA).element;
+			const mansionElement = lunarMansionFor(day, BHUTAN).element;
+			const expected = elementalYoga(weekdayElement, mansionElement);
 			const yoga = elementalYogaFor(day, BHUTAN);
-			if (!yoga.elements.includes(unshifted)) {
-				bad.push(`${day}: ${yoga.elements.join("+")} omits ${unshifted}`);
+			if (weekdayElement !== mansionElement) compared++;
+			if (yoga.englishName !== expected.englishName) {
+				bad.push(`${day}: ${yoga.englishName}, table gives ${expected.englishName}`);
 			}
-			if (shifted !== unshifted && yoga.elements.every((e) => e === shifted)) {
-				bad.push(`${day}: both halves are Bhutan's shifted ${shifted}`);
+			if (resolved.weekdayName.element !== weekdayElement) {
+				bad.push(`${day}: weekdayName.element ${resolved.weekdayName.element}`);
 			}
 			day = day.add({ days: 1 });
 		}
 		expect(bad).toEqual([]);
+		expect(compared).toBeGreaterThan(14);
 	});
 
 	it("still lets the mansion differ between traditions, which is the one thing that should", () => {

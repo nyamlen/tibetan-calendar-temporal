@@ -83,6 +83,10 @@ const ANIMALS: Readonly<Record<TibetanAnimal, TibetanName>> = freeze({
 });
 
 /** The whole vocabulary, for the test that pins it against the generated fixture. */
+// Seven frozen rows per offset value, built once, so a date under a shifting tradition still holds a
+// pointer to a shared frozen object. At most seven entries: the offset is taken modulo 7.
+const SHIFTED_ROWS = new Map<number, readonly TibetanWeekdayName[]>();
+
 export const NAME_TABLES = freeze({ WEEKDAYS, ELEMENTS, GENDERS, ANIMALS });
 
 /**
@@ -98,10 +102,16 @@ export const NAME_TABLES = freeze({ WEEKDAYS, ELEMENTS, GENDERS, ANIMALS });
  *
  * The offset applies to the **name only**. `tibetanWeekday` is `mod(julianDay + 2, 7)` for every
  * tradition, and the Western weekday is correct in both — which is why the difference is invisible
- * when dates are written in English, as Janson notes. The `planet` and `element` stay those of the
- * unshifted weekday: Janson says only that day 0 is *spen pa* in Tibet "but *nyi ma* (really
- * meaning sun) in Bhutan", never that the planet or element moves. So under Bhutan Saturday is
- * named *nyi ma* and still reports Saturn and earth — the same element the elemental yoga reads.
+ * when dates are written in English, as Janson notes.
+ *
+ * The `planet` and `element` stay those of the unshifted weekday, and that is a ruling, not
+ * something the source settles. Janson writes "A unique feature of the Bhutanese calendar is that
+ * its day of week differs by one day from Tibet (and the rest of the world, see efF{fplanets})"
+ * — which does not mention the element, and points at the weekday–planet figure — and then "day 0
+ * (Saturday) is *spen pa* in Tibet but *nyi ma* (really meaning sun) in Bhutan". Andreas ruled on
+ * 2026-11-15 that the offset moves the name only, which ends a contradiction with the elemental
+ * yoga, where Janson's table is read unshifted. So a Bhutanese Saturday is named *nyi ma*, the sun's
+ * word, and reports Saturn and earth.
  *
  * @param weekday - Tibetan weekday, 0 = Saturday through 6 = Friday.
  * @param offset - Planets to shift the name by: 0 for every Tibetan version, 1 for Bhutan.
@@ -118,19 +128,25 @@ export const NAME_TABLES = freeze({ WEEKDAYS, ELEMENTS, GENDERS, ANIMALS });
  * recurses infinitely rather than failing to typecheck. Renaming removed the last instance of it.
  */
 export function weekdayNameWithOffset(weekday: number, offset: number): TibetanWeekdayName {
-	const row = (index: number): TibetanWeekdayName => {
-		const wrapped = ((index % 7) + 7) % 7;
-		return assertInternal(
-			WEEKDAYS[wrapped],
-			`weekday index ${wrapped} is forced into 0..6 and WEEKDAYS has seven entries`,
+	const shift = ((offset % 7) + 7) % 7;
+	let rows = SHIFTED_ROWS.get(shift);
+	if (rows === undefined) {
+		rows = freeze(
+			WEEKDAYS.map((day, index) => {
+				const named = assertInternal(
+					WEEKDAYS[(index + shift) % 7],
+					"the shifted index is forced into 0..6 and WEEKDAYS has seven entries",
+				);
+				return shift === 0 ? day : { ...named, planet: day.planet, element: day.element };
+			}),
 		);
-	};
-	const named = row(weekday + offset);
-	const day = row(weekday);
-	if (named === day) return named;
-	// A fresh object per call, unlike the shared frozen rows: the shifted name with the unshifted
-	// planet and element, which is the only reading Janson's Bhutan appendix supports.
-	return Object.freeze({ ...named, planet: day.planet, element: day.element });
+		SHIFTED_ROWS.set(shift, rows);
+	}
+	const index = ((weekday % 7) + 7) % 7;
+	return assertInternal(
+		rows[index],
+		`weekday index ${index} is forced into 0..6 and WEEKDAYS has seven entries`,
+	);
 }
 
 export const elementNameOf = (element: TibetanElement): TibetanName => ELEMENTS[element];

@@ -114,6 +114,13 @@ describe("guide examples", () => {
 		expect(month?.yearName).toEqual(yearNameFor(date.year));
 	});
 
+	it("says a Bhutanese Saturday is named nyi ma and still reports Saturn and earth", () => {
+		const saturday = isoToTibetan(iso("2026-02-14"), BHUTAN);
+		expect(saturday.weekdayName.wylie).toBe("nyi ma");
+		expect(saturday.weekdayName.planet).toBe("saturn");
+		expect(saturday.weekdayName.element).toBe("earth");
+	});
+
 	it("numbers the weekday as ISO 8601 and names it through Temporal", () => {
 		expect(date.dayOfWeek).toBe(3);
 		expect(date.isoDate.dayOfWeek).toBe(3);
