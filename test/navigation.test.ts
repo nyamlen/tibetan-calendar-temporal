@@ -665,6 +665,33 @@ describe("addMonthsToDate", () => {
 		expect(thrown).toBeInstanceOf(SkippedDayError);
 	});
 
+	it("lands on day 2 when the target month's day 1 is skipped (2154 M08)", () => {
+		expect(datesFor({ year: 2154, month: 8 })[0]?.day).toBe(2);
+		const stepped = addMonthsToDate({ year: 2154, month: 7, day: 1 }, 1);
+		expect([stepped.year, stepped.month, stepped.day]).toEqual([2154, 8, 2]);
+	});
+
+	it("still refuses a skipped day 1 under overflow: reject", () => {
+		const thrown = thrownBy(() =>
+			addMonthsToDate({ year: 2154, month: 7, day: 1 }, 1, { overflow: "reject" }),
+		);
+		expect(thrown).toBeInstanceOf(SkippedDayError);
+		expect(thrown?.code).toBe("TCT_SKIPPED_DAY");
+	});
+
+	it("refuses a skipped STARTING date under both overflow settings", () => {
+		for (const overflow of ["constrain", "reject"] as const) {
+			const thrown = thrownBy(() =>
+				addMonthsToDate({ year: 2153, month: 3, day: 5 }, 1, { overflow }),
+			);
+			expect(thrown, overflow).toBeInstanceOf(SkippedDayError);
+			expect(thrown?.code, overflow).toBe("TCT_SKIPPED_DAY");
+		}
+		expect(thrownBy(() => addMonthsToDate({ year: 2153, month: 3, day: 5 }, 0))?.code).toBe(
+			"TCT_SKIPPED_DAY",
+		);
+	});
+
 	it("refuses an overflow value it does not know rather than defaulting", () => {
 		expect(
 			codeOf(() =>

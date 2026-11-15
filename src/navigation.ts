@@ -41,7 +41,7 @@ import {
 import { julianDayOfLunarDay } from "./computation/corrections.js";
 import { royalEraFromYear } from "./computation/epoch.js";
 import { scalingFor } from "./computation/scaling.js";
-import { assertQueryOptions, describe, rangeError } from "./errors.js";
+import { assertQueryOptions, codedError, describe, rangeError } from "./errors.js";
 import { describeMonth } from "./months.js";
 import { PHUGPA } from "./traditions/phugpa.js";
 import type { TraditionConfig, TraditionOptions } from "./traditions/types.js";
@@ -403,8 +403,9 @@ export interface AddMonthsToDateOptions extends TraditionOptions {
  *
  * Tibetan day numbers always run 1–30 while the month spans 29 or 30 *calendar days*, so some
  * numbers are skipped: 2153 M03 carries no 5 and no 29. Stepping onto one of those under
- * `"constrain"` lands on 4 and 28 respectively. It never lands on a *later* day, so a sequence
- * stepped month by month never runs forwards past a month boundary.
+ * `"constrain"` lands on 4 and 28 respectively. It falls to the nearest lower day, or to day 2 when
+ * day 1 itself is skipped (2154 M08), so a sequence stepped month by month never runs forwards past
+ * the second day of a month.
  *
  * **Stepping is not associative under `"constrain"`, and that is inherent rather than a defect.**
  * Constraining loses the original day number, so `addMonthsToDate(d, 1)` twice can differ from
@@ -459,6 +460,8 @@ export function addMonthsToDate(
 		monthCountFor(subject, tradition, date) + months,
 		tradition,
 	);
+	// After the target, so a start beyond the exact range keeps reporting the lunation it reaches.
+	julianDayOfFields(subject, tradition, date);
 
 	// Walk down from the requested number rather than reading the month's day list: the list costs
 	// a conversion per calendar day, and the overwhelming case is that the first try succeeds.
@@ -477,11 +480,19 @@ export function addMonthsToDate(
 		}
 	}
 
-	// Unreachable in practice — a month carries at least 29 of its 30 numbers, so day 1 always
-	// exists — and asserted rather than cast, so a tradition that broke the assumption would say so.
-	throw rangeError(
+	// Day 1 itself can be the one skipped number (2154 M08), so there is no lower day to fall to.
+	// Day 2 is then the nearest, and a month cannot skip both: it carries at least 29 of its 30.
+	try {
+		return resolveDate(
+			{ year: target.year, month: target.month, day: 2, isLeapMonth: target.isLeapMonth },
+			tradition,
+		);
+	} catch (error) {
+		if (!(error instanceof SkippedDayError)) throw error;
+	}
+	throw codedError(
 		"TCT_INTERNAL",
-		`addMonthsToDate: ${target.year}-${target.monthCode} carries no day at or below ${date.day}. ` +
+		`addMonthsToDate: ${target.year}-${target.monthCode} carries neither day 1 nor day 2. ` +
 			"A month carries at least 29 of its 30 numbers, so this cannot happen for a sound tradition",
 	);
 }
