@@ -5,7 +5,7 @@ import { scalingFor } from "../computation/scaling.js";
 import { describe, hasCode, rangeError } from "../errors.js";
 import { PHUGPA } from "../traditions/phugpa.js";
 import type { TraditionConfig } from "../traditions/types.js";
-import { assertTraditionConfig } from "../traditions/validate.js";
+import { validatedTradition } from "../traditions/validate.js";
 import {
 	MAX_SPAN_YEARS,
 	occurrencesOfRule,
@@ -121,10 +121,10 @@ export function nextObservance(
 ): Observance | null {
 	from = asPlainDate(from, "nextObservance(from)");
 
-	ensureValidated(config, "nextObservance");
+	config = ensureValidated(config, "nextObservance");
 	// Not `?? PHUGPA`: an explicit `null` is a rejection, and only `undefined` means omitted.
-	const resolvedTradition = tradition === undefined ? PHUGPA : tradition;
-	assertTraditionConfig(resolvedTradition);
+	let resolvedTradition = tradition === undefined ? PHUGPA : tradition;
+	resolvedTradition = validatedTradition(resolvedTradition);
 
 	if (typeof ruleId !== "string") {
 		throw rangeError(

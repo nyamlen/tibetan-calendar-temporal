@@ -488,7 +488,7 @@ export function tibetanToIso(
 ): Temporal.PlainDate {
 	assertTibetanShape("tibetanToIso", input, "date");
 	// The tradition between the shape and the range, the order tibetanDateExists depends on.
-	scalingFor(tradition);
+	tradition = scalingFor(tradition).tradition;
 	const subject = assertTibetanRanges("tibetanToIso", input, "date");
 	return isoFromJulianDayUnchecked(julianDayOfFields(subject, tradition, input));
 }
@@ -628,7 +628,7 @@ export function tibetanDateExists(
 	// answering `false`; the range is checked inside it, and only after the tradition — checked
 	// first, a range error would be swallowed and a broken config reported as a missing date.
 	assertTibetanShape("tibetanDateExists", input, "date");
-	scalingFor(tradition);
+	tradition = scalingFor(tradition).tradition;
 	try {
 		julianDayOfFields(assertTibetanRanges("tibetanDateExists", input, "date"), tradition, input);
 		return true;
@@ -689,6 +689,7 @@ export function isoToTibetan(
 	// quotes the date the caller meant rather than whatever they passed.
 	const plain = asPlainDate(date);
 	const scaled = scalingFor(tradition);
+	tradition = scaled.tradition;
 	const target = julianDayFromIso(plain);
 	assertExactJulianDay(scaled, target, () => plain.toString());
 
@@ -783,6 +784,7 @@ export function isoToTibetan(
  */
 export function losarFor(year: number, tradition: TraditionConfig = PHUGPA): TibetanDate {
 	const scaled = scalingFor(tradition);
+	tradition = scaled.tradition;
 	assertSafeYear(`losarFor(${describe(year)})`, year);
 	const julianDay = losarJulianDay(scaled, tradition, yearFromRoyalEra(year));
 	assertExactJulianDay(scaled, julianDay, () => `losarFor(${year})`);

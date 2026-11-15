@@ -20,7 +20,7 @@
 
 import { rangeError } from "../errors.js";
 import type { MeanMotion, Rational, TraditionConfig } from "../traditions/types.js";
-import { assertDerivable, assertTraditionConfig } from "../traditions/validate.js";
+import { assertDerivable, validatedTradition } from "../traditions/validate.js";
 import { ceilDiv, gcd, lcm, scaleTo } from "./arithmetic.js";
 
 /** A {@link MeanMotion} with each coefficient expressed as an integer over a shared denominator. */
@@ -306,8 +306,9 @@ const scalingCache = new WeakMap<TraditionConfig, ScaledTradition>();
 export function scalingFor(tradition: TraditionConfig): ScaledTradition {
 	const cached = scalingCache.get(tradition);
 	if (cached !== undefined) return cached;
-	assertTraditionConfig(tradition);
-	const derived = deriveScaling(tradition);
+	const copy = validatedTradition(tradition);
+	const derived = deriveScaling(copy);
+	scalingCache.set(copy, derived);
 	scalingCache.set(tradition, derived);
 	return derived;
 }

@@ -12,15 +12,17 @@
  * function validates "integrality, range, **and config shape**". This closes that gap rather than
  * deciding anything new.
  *
- * Where it runs is the same bargain `validateObservanceConfig` strikes — once per config **object**,
- * memoised on a `WeakSet`, at the boundary and never on the hot path. `scalingFor` is the single
- * choke point: every public function derives its scaling through it, and the derivation is already
- * memoised per object, so the validation rides along at no additional lookup.
+ * Where it runs: once per config **object**, at the boundary and never on the hot path.
+ * {@link validatedTradition} checks the config, takes a private deeply frozen copy and memoises it
+ * on a `WeakMap`; every entry point then reads that copy, so a config mutated after first use
+ * neither escapes revalidation nor reaches the arithmetic. `scalingFor` is the single choke point
+ * for the scaling, and it hands back the copy it derived from.
  *
  * @packageDocumentation
  */
 
 import { assertKnownKeys, describe, rangeError } from "../errors.js";
+import { deepFreeze } from "../freeze.js";
 import type {
 	MeanMotion,
 	Rational,
@@ -405,20 +407,21 @@ function assertNonEmptyString(tradition: TraditionConfig, path: string, value: s
 	}
 }
 
-/** Configs already checked, keyed by object — the pattern `validatedConfigs` uses for observances. */
-const validated = new WeakSet<TraditionConfig>();
+/**
+ * The private frozen copy of each config already checked, keyed by the object the caller passed.
+ * A copy maps to itself, so passing one back is a hit.
+ */
+const privateCopies = new WeakMap<TraditionConfig, TraditionConfig>();
 
 /**
- * Rejects a `TraditionConfig` whose shape the arithmetic cannot work with.
+ * The validated, deeply frozen, private copy of a `TraditionConfig` the engine reads.
  *
  * @remarks
- * Idempotent and memoised per object. A consumer who mutates a config in place after first use
- * escapes revalidation; that is the same accepted bargain the scaling cache and the observance
- * validator already make, and it is what keeps the check off the hot path.
- *
- * The bargain covers **consumer-supplied** configs only. `PHUGPA` and `PHUGPA_HENNING` are deeply
- * frozen, so the objects a reader is most likely to mutate — they are the ones the docs point at
- * for `{ ...PHUGPA, … }` — cannot reach the stale-cache state at all.
+ * Checked and copied once per config **object**, then a `WeakMap` hit. The engine reads the copy
+ * and never the caller's object, so mutating a config after first use changes nothing the engine
+ * sees: the answers stay those of the config as it was validated, where reading the object live
+ * gave an uncoded error, `TCT_INTERNAL`, or a value the validator would have refused. A new
+ * object, such as a fresh spread, is checked again.
  *
  * This validates **shape, not astronomy**, plus the few values the arithmetic cannot take at all:
  * `m₁ = 30·m₂`, a table whose first entry is zero, an intercalation index inside 0…64. A config
@@ -427,9 +430,38 @@ const validated = new WeakSet<TraditionConfig>();
  *
  * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG`, naming the offending field path.
  */
-export function assertTraditionConfig(tradition: TraditionConfig): void {
-	if (validated.has(tradition)) return;
+export function validatedTradition(tradition: TraditionConfig): TraditionConfig {
+	// A non-object is refused by the shape check below; `WeakMap.get` would only return undefined.
+	if (tradition !== null && typeof tradition === "object") {
+		const copy = privateCopies.get(tradition);
+		if (copy !== undefined) return copy;
+	}
+	assertShape(tradition);
+	const copy = deepFreeze(cloneOf(tradition));
+	// The copy is checked as a new object: a getter, an inherited field or a non-enumerable one
+	// answers differently once cloned, and the copy is what the engine will read.
+	assertShape(copy);
+	privateCopies.set(tradition, copy);
+	privateCopies.set(copy, copy);
+	return copy;
+}
 
+function cloneOf(tradition: TraditionConfig): TraditionConfig {
+	try {
+		return structuredClone(tradition);
+	} catch (error) {
+		if (error instanceof Error && error.name === "DataCloneError") {
+			throw rangeError(
+				CODE,
+				`TraditionConfig ${typeof tradition.id === "string" ? `"${tradition.id}"` : "<unnamed>"} ` +
+					"could not be copied, because a field is not plain data; pass plain objects and arrays",
+			);
+		}
+		throw error;
+	}
+}
+
+function assertShape(tradition: TraditionConfig): void {
 	if (tradition === null || typeof tradition !== "object") {
 		throw rangeError(
 			"TCT_INVALID_TRADITION_CONFIG",
@@ -467,15 +499,13 @@ export function assertTraditionConfig(tradition: TraditionConfig): void {
 
 	assertTable(tradition, "moonTab", tradition.moonTab, MOON_TAB_LENGTH);
 	assertTable(tradition, "sunTab", tradition.sunTab, SUN_TAB_LENGTH);
-
-	validated.add(tradition);
 }
 
 /**
  * The checks that need derived quantities rather than the raw config.
  *
  * @remarks
- * Split from {@link assertTraditionConfig} because these values do not exist until `deriveScaling`
+ * Split from {@link validatedTradition} because these values do not exist until `deriveScaling`
  * has computed them, not because they are any less part of validating a config — both throw the
  * same code, and both are reached through the same `scalingFor` choke point.
  *

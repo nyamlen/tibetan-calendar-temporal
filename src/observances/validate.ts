@@ -16,6 +16,7 @@
  */
 
 import { assertKnownKeys, assertSafeYear, describe, isPlainObject, rangeError } from "../errors.js";
+import { deepFreeze } from "../freeze.js";
 import type { FormulaName, ObservanceConfig, ObservanceRule, ObservanceWhen } from "./types.js";
 
 export const CODE = "TCT_INVALID_OBSERVANCE_CONFIG";
@@ -590,22 +591,52 @@ function validateObservanceConfig(config: ObservanceConfig, caller: ObservanceCa
 }
 
 /**
- * Configs already validated, so a config passed on every frame of a UI is checked once.
- *
- * @remarks
- * Keyed on the object, matching `scalingFor`. A consumer who mutates a config in place after first
- * use escapes revalidation, which is the same bargain the scaling cache already makes. The bargain
- * covers **consumer-supplied** configs only: `EXAMPLE_OBSERVANCES` is deeply frozen.
+ * The private frozen copy of each config already validated, keyed by the object the caller passed.
+ * A copy maps to itself, so passing one back is a hit.
  */
-const validatedConfigs = new WeakSet<ObservanceConfig>();
+const privateCopies = new WeakMap<ObservanceConfig, ObservanceConfig>();
 
 /**
- * Validates `config` once per object.
+ * Validates `config` once per object and returns the private, deeply frozen copy the engine reads.
+ *
+ * @remarks
+ * The engine never reads the caller's object after this, so a config mutated after first use
+ * changes nothing it sees: a monthly `days: [31]` set afterwards cannot bring back the day-31
+ * extrapolation the validator exists to stop, and a `rules` set to `null` cannot escape as an
+ * uncoded `TypeError`. A new object, such as a fresh spread, is validated again. Validation runs
+ * before the copy because `structuredClone` throws an uncoded error on a function or a Symbol,
+ * and the copy is validated as a new object because a getter, an inherited field or a
+ * non-enumerable one answers differently once cloned.
  *
  * @param caller - The export that was called, so a refusal of the config names it.
  */
-export function ensureValidated(config: ObservanceConfig, caller: ObservanceCaller): void {
-	if (isRecord(config) && validatedConfigs.has(config)) return;
+export function ensureValidated(
+	config: ObservanceConfig,
+	caller: ObservanceCaller,
+): ObservanceConfig {
+	if (isRecord(config)) {
+		const hit = privateCopies.get(config);
+		if (hit !== undefined) return hit;
+	}
 	validateObservanceConfig(config, caller);
-	validatedConfigs.add(config);
+	const copy = deepFreeze(cloneOf(config, caller));
+	validateObservanceConfig(copy, caller);
+	privateCopies.set(config, copy);
+	privateCopies.set(copy, copy);
+	return copy;
+}
+
+function cloneOf(config: ObservanceConfig, caller: ObservanceCaller): ObservanceConfig {
+	try {
+		return structuredClone(config);
+	} catch (error) {
+		if (error instanceof Error && error.name === "DataCloneError") {
+			throw rangeError(
+				CODE,
+				`${configArgument(caller)}: the config could not be copied, because a rule, level or ` +
+					"name in it is not plain data (a Proxy, for one); pass plain objects",
+			);
+		}
+		throw error;
+	}
 }

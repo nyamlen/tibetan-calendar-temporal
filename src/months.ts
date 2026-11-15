@@ -46,7 +46,7 @@ import { monthCodeOf } from "./format.js";
 import { deepFreeze } from "./freeze.js";
 import { PHUGPA } from "./traditions/phugpa.js";
 import type { TraditionConfig } from "./traditions/types.js";
-import { assertTraditionConfig } from "./traditions/validate.js";
+import { validatedTradition } from "./traditions/validate.js";
 import type { TibetanDate, TibetanDateFields, TibetanMonth, TibetanMonthFields } from "./types.js";
 import { assertTibetanRanges, assertTibetanShape } from "./types.js";
 
@@ -64,7 +64,7 @@ import { assertTibetanRanges, assertTibetanShape } from "./types.js";
  */
 function closedFormYear(subject: string, year: number, tradition: TraditionConfig): number {
 	assertSafeYear(subject, year);
-	assertTraditionConfig(tradition);
+	tradition = validatedTradition(tradition);
 	const y = yearFromRoyalEra(year);
 	assertClosedFormYear(() => subject, y, tradition);
 	return y;
@@ -100,7 +100,7 @@ export function boundedMonth(
 	assertTibetanShape(functionName, month, shape);
 	const scaled = scalingFor(tradition);
 	const subject = assertTibetanRanges(functionName, month, shape);
-	const monthCount = monthCountFor(subject, tradition, month);
+	const monthCount = monthCountFor(subject, scaled.tradition, month);
 	const first = firstDayOfMonth(scaled, monthCount);
 	const last = lastDayOfMonth(scaled, monthCount);
 	assertExactJulianDay(scaled, first, subject);
@@ -119,7 +119,7 @@ export function boundedMonth(
  * is exactly what makes it worth stating.
  *
  * A `WeakMap` on the outside so a caller's throwaway config does not pin its months forever — the
- * same bargain {@link scalingFor} already makes. That alone does not bound the shipped configs, which
+ * way {@link scalingFor} keys its cache. That alone does not bound the shipped configs, which
  * live as long as the module, so each inner `Map` is also capped at 64 years
  * and evicts the least recently used. Insertion order is the recency order: a hit deletes and
  * re-inserts its year.
@@ -196,6 +196,8 @@ export function describeMonth(
  * ```
  */
 export function monthsFor(year: number, tradition: TraditionConfig = PHUGPA): TibetanMonth[] {
+	// The validated copy is both what is read and what the cache is keyed on.
+	tradition = validatedTradition(tradition);
 	const cachedYears = monthCache.get(tradition);
 	const cached = cachedYears?.get(year);
 	// A fresh array every call, deliberately: the cache holds the computed months, but handing the
@@ -349,7 +351,8 @@ export function daysInMonth(
  * `TCT_OUTSIDE_EXACT_RANGE` if it falls beyond the tradition's derivable range.
  */
 export function hasLeapMonth(year: number, tradition: TraditionConfig = PHUGPA): boolean {
-	return isLeapYear(tradition, closedFormYear(`hasLeapMonth(${describe(year)})`, year, tradition));
+	const y = closedFormYear(`hasLeapMonth(${describe(year)})`, year, tradition);
+	return isLeapYear(validatedTradition(tradition), y);
 }
 
 /**
@@ -386,10 +389,8 @@ export function leapMonthNumberFor(
 	year: number,
 	tradition: TraditionConfig = PHUGPA,
 ): number | undefined {
-	return leapMonthOfYearY(
-		tradition,
-		closedFormYear(`leapMonthNumberFor(${describe(year)})`, year, tradition),
-	);
+	const y = closedFormYear(`leapMonthNumberFor(${describe(year)})`, year, tradition);
+	return leapMonthOfYearY(validatedTradition(tradition), y);
 }
 
 /**
@@ -403,9 +404,8 @@ export function leapMonthNumberFor(
  * `TCT_OUTSIDE_EXACT_RANGE` if it falls beyond the tradition's derivable range.
  */
 export function monthsInYear(year: number, tradition: TraditionConfig = PHUGPA): number {
-	return isLeapYear(tradition, closedFormYear(`monthsInYear(${describe(year)})`, year, tradition))
-		? 13
-		: 12;
+	const y = closedFormYear(`monthsInYear(${describe(year)})`, year, tradition);
+	return isLeapYear(validatedTradition(tradition), y) ? 13 : 12;
 }
 
 /**

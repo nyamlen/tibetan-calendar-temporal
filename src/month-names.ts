@@ -360,10 +360,10 @@ export function monthNamesFor(
 	tradition: TraditionConfig = PHUGPA,
 ): MonthNames {
 	// Validates the tradition too, so it runs before the Tiger month is read off it.
-	boundedMonth("monthNamesFor", month, "month", tradition);
+	const { scaled } = boundedMonth("monthNamesFor", month, "month", tradition);
 
 	const m = month.month;
-	const tigerSteps = monthsAfterTigerMonth(tradition, m);
+	const tigerSteps = monthsAfterTigerMonth(scaled.tradition, m);
 
 	return {
 		mansion: at(MANSIONS, m - 1, "mansion"),

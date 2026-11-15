@@ -1932,3 +1932,61 @@ describe("an annual window is applied to each entry before one entry beats anoth
 		expect(found.map((o) => [o.resolution, o.age])).toEqual([["dayAfterSkipped", 0]]);
 	});
 });
+
+describe("a config mutated after its first use", () => {
+	const from = iso("2026-03-01");
+	const to = iso("2026-04-30");
+	const project = (found: Observance[]) =>
+		found.map((o) => `${o.date.isoDate} ${o.date.day}/${o.date.month} ${o.resolution}`);
+	const fresh = (): ObservanceConfig =>
+		({
+			id: "mutated",
+			englishName: "Mutated",
+			doubledDay: "second",
+			skippedDay: "preceding",
+			leapMonth: "leap",
+			levels: [{ id: "l", englishName: "L" }],
+			rules: [{ id: "r", englishName: "R", when: { type: "monthly", days: [30] } }],
+		}) as ObservanceConfig;
+
+	it("keeps answering from the config as it was validated, not from the mutation", () => {
+		const config = fresh();
+		const first = project(getObservances(from, to, config));
+		((config.rules[0] as ObservanceRule).when as unknown as { days: number[] }).days = [31];
+		expect(project(getObservances(from, to, config))).toEqual(first);
+		expect(project(getObservances(from, to, config))).toEqual(
+			project(getObservances(from, to, fresh())),
+		);
+	});
+
+	it("does not escape uncoded when rules become a non-array", () => {
+		const config = fresh();
+		const first = project(getObservances(from, to, config));
+		(config as unknown as { rules: unknown }).rules = null;
+		expect(project(getObservances(from, to, config))).toEqual(first);
+		expect(thrownBy(() => observancesOn(from, config))?.code).toBeUndefined();
+	});
+
+	it("does not name an unknown form as the engine's bug", () => {
+		const config = fresh();
+		getObservances(from, to, config);
+		(config.rules[0] as unknown as { when: unknown }).when = { type: "bogus" };
+		expect(thrownBy(() => getObservances(from, to, config))).toBeUndefined();
+	});
+
+	it("composes from the validated levels and rules, not from the mutation", () => {
+		const config = fresh();
+		const first = composeObservances(config, { id: "c", englishName: "C" });
+		(config as unknown as { levels: unknown }).levels = "oops";
+		(config as unknown as { rules: unknown }).rules = null;
+		const again = composeObservances(config, { id: "c", englishName: "C" });
+		expect(again).toEqual(first);
+	});
+
+	it("hands the engine a private copy, so a result's rule is not the caller's object", () => {
+		const config = fresh();
+		const found = getObservances(from, to, config);
+		expect(found[0]?.rule).not.toBe(config.rules[0]);
+		expect(Object.isFrozen(found[0]?.rule)).toBe(true);
+	});
+});

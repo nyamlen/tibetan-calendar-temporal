@@ -45,7 +45,7 @@ import { assertQueryOptions, codedError, describe, rangeError } from "./errors.j
 import { describeMonth } from "./months.js";
 import { PHUGPA } from "./traditions/phugpa.js";
 import type { TraditionConfig, TraditionOptions } from "./traditions/types.js";
-import { assertTraditionConfig } from "./traditions/validate.js";
+import { validatedTradition } from "./traditions/validate.js";
 import type { TibetanDate, TibetanDateFields, TibetanMonth, TibetanMonthFields } from "./types.js";
 import { assertTibetanRanges, assertTibetanShape, SkippedDayError } from "./types.js";
 
@@ -98,7 +98,7 @@ export function lunationFromMonth(
 	tradition: TraditionConfig = PHUGPA,
 ): number {
 	assertTibetanShape("lunationFromMonth", month, "month");
-	assertTraditionConfig(tradition);
+	tradition = validatedTradition(tradition);
 	return monthCountFor(assertTibetanRanges("lunationFromMonth", month, "month"), tradition, month);
 }
 
@@ -130,7 +130,7 @@ export function monthFromLunation(
 	lunation: number,
 	tradition: TraditionConfig = PHUGPA,
 ): TibetanMonth {
-	assertTraditionConfig(tradition);
+	tradition = validatedTradition(tradition);
 	assertCount("monthFromLunation", "lunation", lunation);
 	return monthAt("monthFromLunation", lunation, tradition);
 }
@@ -212,7 +212,7 @@ export function addMonths(
 	tradition: TraditionConfig = PHUGPA,
 ): TibetanMonth {
 	assertTibetanShape("addMonths", month, "month");
-	assertTraditionConfig(tradition);
+	tradition = validatedTradition(tradition);
 	const subject = assertTibetanRanges("addMonths", month, "month");
 	assertCount("addMonths", "months", months);
 	return monthAt("addMonths", monthCountFor(subject, tradition, month) + months, tradition);
@@ -248,7 +248,7 @@ export function monthsBetween(
 	// the caller got wrong — and these are the first two-month exports on this surface.
 	assertTibetanShape("monthsBetween(from)", from, "month");
 	assertTibetanShape("monthsBetween(to)", to, "month");
-	assertTraditionConfig(tradition);
+	tradition = validatedTradition(tradition);
 	const fromSubject = assertTibetanRanges("monthsBetween", from, "month", { parameter: "from" });
 	const toSubject = assertTibetanRanges("monthsBetween", to, "month", { parameter: "to" });
 	return monthCountFor(toSubject, tradition, to) - monthCountFor(fromSubject, tradition, from);
@@ -290,7 +290,7 @@ export function addDays(
 	tradition: TraditionConfig = PHUGPA,
 ): TibetanDate {
 	assertTibetanShape("addDays", date, "date");
-	assertTraditionConfig(tradition);
+	tradition = validatedTradition(tradition);
 	const subject = assertTibetanRanges("addDays", date, "date");
 	assertCount("addDays", "days", days);
 
@@ -338,7 +338,7 @@ export function resolveDate(
 	tradition: TraditionConfig = PHUGPA,
 ): TibetanDate {
 	assertTibetanShape("resolveDate", date, "date");
-	assertTraditionConfig(tradition);
+	tradition = validatedTradition(tradition);
 	const subject = assertTibetanRanges("resolveDate", date, "date");
 	return isoToTibetan(
 		isoFromJulianDayUnchecked(julianDayOfFields(subject, tradition, date)),
@@ -445,7 +445,7 @@ export function addMonthsToDate(
 		["overflow", "tradition"],
 		options,
 	);
-	const tradition = bag.tradition === undefined ? PHUGPA : bag.tradition;
+	let tradition = bag.tradition === undefined ? PHUGPA : bag.tradition;
 	const overflow = bag.overflow === undefined ? "constrain" : bag.overflow;
 	if (overflow !== "constrain" && overflow !== "reject") {
 		throw rangeError(
@@ -454,7 +454,7 @@ export function addMonthsToDate(
 		);
 	}
 	assertTibetanShape("addMonthsToDate", date, "date");
-	assertTraditionConfig(tradition);
+	tradition = validatedTradition(tradition);
 	const subject = assertTibetanRanges("addMonthsToDate", date, "date");
 	assertCount("addMonthsToDate", "months", months);
 
@@ -532,7 +532,7 @@ export function daysBetween(
 ): number {
 	assertTibetanShape("daysBetween(from)", from, "date");
 	assertTibetanShape("daysBetween(to)", to, "date");
-	assertTraditionConfig(tradition);
+	tradition = validatedTradition(tradition);
 	const fromSubject = assertTibetanRanges("daysBetween", from, "date", { parameter: "from" });
 	const toSubject = assertTibetanRanges("daysBetween", to, "date", { parameter: "to" });
 	return (
@@ -578,6 +578,7 @@ function nextPhase(
 ): TibetanDate {
 	const from = phaseStart(name, date);
 	const scaled = scalingFor(tradition);
+	tradition = scaled.tradition;
 	const target = julianDayFromIso(from);
 	assertExactJulianDay(scaled, target, () => `${name}(${from.toString()})`);
 

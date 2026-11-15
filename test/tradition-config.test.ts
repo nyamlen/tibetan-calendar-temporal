@@ -7,11 +7,13 @@ import {
 } from "../src/computation/conversion.js";
 import { moonEquation, sunEquation } from "../src/computation/corrections.js";
 import { deriveScaling } from "../src/computation/scaling.js";
+import { hasLeapMonth, leapMonthNumberFor, monthsFor } from "../src/months.js";
+import { lunationFromMonth } from "../src/navigation.js";
 import { EXAMPLE_OBSERVANCES, getObservances } from "../src/observances/index.js";
 import { BHUTAN, BHUTAN_HENNING } from "../src/traditions/bhutan.js";
 import { PHUGPA, PHUGPA_HENNING } from "../src/traditions/phugpa.js";
 import type { TraditionConfig } from "../src/traditions/types.js";
-import { assertTraditionConfig } from "../src/traditions/validate.js";
+import { validatedTradition } from "../src/traditions/validate.js";
 import { thrownBy } from "./support/thrown.js";
 
 const iso = (s: string) => Temporal.PlainDate.from(s);
@@ -31,26 +33,26 @@ const broken = (patch: Record<string, unknown>): TraditionConfig =>
  */
 describe("tradition config validation", () => {
 	it("accepts the shipped configs", () => {
-		expect(() => assertTraditionConfig(PHUGPA)).not.toThrow();
+		expect(() => validatedTradition(PHUGPA)).not.toThrow();
 	});
 
 	it("rejects a missing or non-object config", () => {
 		for (const bad of [null, undefined, 42, "phugpa"]) {
-			const error = thrownBy(() => assertTraditionConfig(bad as unknown as TraditionConfig));
+			const error = thrownBy(() => validatedTradition(bad as unknown as TraditionConfig));
 			expect(error?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
 		}
 	});
 
 	it("rejects a missing identity field", () => {
-		expect(thrownBy(() => assertTraditionConfig(broken({ id: "" })))?.message).toMatch(/id/);
-		expect(thrownBy(() => assertTraditionConfig(broken({ name: undefined })))?.message).toMatch(
+		expect(thrownBy(() => validatedTradition(broken({ id: "" })))?.message).toMatch(/id/);
+		expect(thrownBy(() => validatedTradition(broken({ name: undefined })))?.message).toMatch(
 			/name/,
 		);
 	});
 
 	it("rejects a non-integer epoch field", () => {
 		for (const field of ["epochYear", "epochMonth", "intercalationIndexAtEpoch"]) {
-			const error = thrownBy(() => assertTraditionConfig(broken({ [field]: 1.5 })));
+			const error = thrownBy(() => validatedTradition(broken({ [field]: 1.5 })));
 			expect(error?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
 			expect(error?.message).toContain(field);
 		}
@@ -61,7 +63,7 @@ describe("tradition config validation", () => {
 	// `scaleMeanMotion` and die on `undefined.den`.
 	it("names the exact path of a malformed mean motion", () => {
 		const error = thrownBy(() =>
-			assertTraditionConfig(broken({ lunarAnomaly: { perDay: { num: 1, den: 28 } } })),
+			validatedTradition(broken({ lunarAnomaly: { perDay: { num: 1, den: 28 } } })),
 		);
 		expect(error?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
 		expect(error?.message).toContain("lunarAnomaly.perMonth");
@@ -69,14 +71,14 @@ describe("tradition config validation", () => {
 
 	it("rejects a mean motion that is not an object", () => {
 		for (const bad of [null, 42, "1/28"]) {
-			const error = thrownBy(() => assertTraditionConfig(broken({ meanSun: bad })));
+			const error = thrownBy(() => validatedTradition(broken({ meanSun: bad })));
 			expect(error?.message).toContain("meanSun must be a { perMonth, perDay, atEpoch } object");
 		}
 	});
 
 	it("rejects a rational with a non-integer numerator", () => {
 		const patch = { meanSun: { ...PHUGPA.meanSun, atEpoch: { num: 1.5, den: 60 } } };
-		expect(thrownBy(() => assertTraditionConfig(broken(patch)))?.message).toContain(
+		expect(thrownBy(() => validatedTradition(broken(patch)))?.message).toContain(
 			"meanSun.atEpoch.num",
 		);
 	});
@@ -84,7 +86,7 @@ describe("tradition config validation", () => {
 	it("rejects a rational with a zero, negative or fractional denominator", () => {
 		for (const den of [0, -28, 2.5, Number.NaN]) {
 			const patch = { lunarAnomaly: { ...PHUGPA.lunarAnomaly, perDay: { num: 1, den } } };
-			const error = thrownBy(() => assertTraditionConfig(broken(patch)));
+			const error = thrownBy(() => validatedTradition(broken(patch)));
 			expect(error?.message).toContain("lunarAnomaly.perDay.den");
 		}
 	});
@@ -92,18 +94,18 @@ describe("tradition config validation", () => {
 	// Length is not cosmetic. moonTabAt extends the table by symmetries that only hold for eight
 	// entries; a shorter one interpolates against `undefined` and yields NaN, and NaN reaches a date.
 	it("rejects a correction table of the wrong length", () => {
-		expect(thrownBy(() => assertTraditionConfig(broken({ moonTab: [0, 5, 10] })))?.message).toMatch(
+		expect(thrownBy(() => validatedTradition(broken({ moonTab: [0, 5, 10] })))?.message).toMatch(
 			/moonTab must have exactly 8 entries, received 3/,
 		);
 		expect(
-			thrownBy(() => assertTraditionConfig(broken({ sunTab: [0, 6, 10, 11, 12] })))?.message,
+			thrownBy(() => validatedTradition(broken({ sunTab: [0, 6, 10, 11, 12] })))?.message,
 		).toMatch(/sunTab must have exactly 4 entries, received 5/);
 	});
 
 	it("rejects a non-finite entry inside a correction table", () => {
 		const moonTab = [...PHUGPA.moonTab];
 		moonTab[3] = Number.NaN;
-		expect(thrownBy(() => assertTraditionConfig(broken({ moonTab })))?.message).toContain(
+		expect(thrownBy(() => validatedTradition(broken({ moonTab })))?.message).toContain(
 			"moonTab[3]",
 		);
 	});
@@ -113,22 +115,22 @@ describe("tradition config validation", () => {
 		// likeliest bad argument from a migrating caller is the old bag. Without this the message was
 		// "id must be a non-empty string", which names a field the caller never meant to write.
 		const bag = { tradition: PHUGPA } as unknown as TraditionConfig;
-		const error = thrownBy(() => assertTraditionConfig(bag));
+		const error = thrownBy(() => validatedTradition(bag));
 		expect(error?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
 		expect(error?.message).toMatch(/\{ tradition \}/);
 		expect(error?.message).toMatch(/itself/);
 		// A real config that happens to carry an extra `tradition` key is judged on its fields first,
 		// and then refused for the key, like any other unknown one.
-		expect(thrownBy(() => assertTraditionConfig(broken({ tradition: PHUGPA })))?.message).toContain(
+		expect(thrownBy(() => validatedTradition(broken({ tradition: PHUGPA })))?.message).toContain(
 			'"tradition"',
 		);
-		expect(
-			thrownBy(() => assertTraditionConfig(broken({ id: "", tradition: 1 })))?.message,
-		).toMatch(/id must be/);
+		expect(thrownBy(() => validatedTradition(broken({ id: "", tradition: 1 })))?.message).toMatch(
+			/id must be/,
+		);
 	});
 
 	it("suggests the spread that fixes it", () => {
-		expect(thrownBy(() => assertTraditionConfig(broken({ moonTab: [] })))?.message).toContain(
+		expect(thrownBy(() => validatedTradition(broken({ moonTab: [] })))?.message).toContain(
 			"...PHUGPA",
 		);
 	});
@@ -147,12 +149,12 @@ describe("tradition config validation", () => {
 		}
 	});
 
-	// Memoised per object, the same bargain the scaling cache and the observance validator make.
+	// Memoised per object, and a failed validation is never memoised.
 	// A second call must still reject rather than sail through on a cache miss turned hit.
 	it("stays rejecting on a repeat call", () => {
 		const bad = broken({ sunTab: [] });
-		expect(thrownBy(() => assertTraditionConfig(bad))?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
-		expect(thrownBy(() => assertTraditionConfig(bad))?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
+		expect(thrownBy(() => validatedTradition(bad))?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
+		expect(thrownBy(() => validatedTradition(bad))?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
 	});
 
 	// Shape, not astronomy. A config with plausible types and wrong constants passes here and yields
@@ -166,7 +168,7 @@ describe("tradition config validation", () => {
 			id: "invented",
 			meanDate: { ...PHUGPA.meanDate, atEpoch: { ...atEpoch, num: atEpoch.num + atEpoch.den } },
 		});
-		expect(() => assertTraditionConfig(plausibleButWrong)).not.toThrow();
+		expect(() => validatedTradition(plausibleButWrong)).not.toThrow();
 		expect(isoToTibetan(iso("2026-08-12"), plausibleButWrong).day).not.toBe(
 			isoToTibetan(iso("2026-08-12"), PHUGPA).day,
 		);
@@ -272,20 +274,20 @@ describe("derived search window", () => {
 describe("the naming block", () => {
 	it("accepts a config with no naming at all", () => {
 		const { naming: _naming, ...bare } = PHUGPA;
-		expect(() => assertTraditionConfig(bare)).not.toThrow();
+		expect(() => validatedTradition(bare)).not.toThrow();
 	});
 
 	it("accepts a naming block that omits weekdayOffset", () => {
 		// PHUGPA itself is this case: it carries month naming and no offset, because an explicit 0
 		// would be noise in the config the docs point at for spreading.
 		expect(PHUGPA.naming?.weekdayOffset).toBeUndefined();
-		expect(() => assertTraditionConfig(PHUGPA)).not.toThrow();
+		expect(() => validatedTradition(PHUGPA)).not.toThrow();
 	});
 
 	it("rejects a weekdayOffset that is present and wrong", () => {
 		for (const offset of [-1, 7, 1.5, "1", null]) {
 			const error = thrownBy(() =>
-				assertTraditionConfig(broken({ naming: { weekdayOffset: offset } })),
+				validatedTradition(broken({ naming: { weekdayOffset: offset } })),
 			);
 			expect(error?.code, `${offset}`).toBe("TCT_INVALID_TRADITION_CONFIG");
 			expect(error?.message).toContain("naming.weekdayOffset");
@@ -294,14 +296,14 @@ describe("the naming block", () => {
 
 	it("rejects a naming block that is present and not an object", () => {
 		for (const naming of [null, 5, "naming"]) {
-			const error = thrownBy(() => assertTraditionConfig(broken({ naming })));
+			const error = thrownBy(() => validatedTradition(broken({ naming })));
 			expect(error?.code, `${naming}`).toBe("TCT_INVALID_TRADITION_CONFIG");
 			expect(error?.message, `${naming}`).toContain("naming must be an object when present");
 		}
 	});
 
 	it("accepts a config whose monthAnimals block is simply absent", () => {
-		const error = thrownBy(() => assertTraditionConfig(broken({ naming: { weekdayOffset: 1 } })));
+		const error = thrownBy(() => validatedTradition(broken({ naming: { weekdayOffset: 1 } })));
 		expect(error).toBeUndefined();
 	});
 
@@ -311,7 +313,7 @@ describe("the naming block", () => {
 		// under it would otherwise keep Phugpa's animals.
 		const months = { tigerMonth: 1, elementRule: "continuous", numbers: true };
 		const naming = { ...PHUGPA.naming, months };
-		const error = thrownBy(() => assertTraditionConfig(broken({ naming })));
+		const error = thrownBy(() => validatedTradition(broken({ naming })));
 		expect(error?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
 		expect(error?.message).toContain("naming.monthAnimals");
 		expect(error?.message).toContain("naming.nineNumbers.months");
@@ -319,7 +321,7 @@ describe("the naming block", () => {
 
 	it("rejects a monthAnimals block that is present and not an object", () => {
 		for (const monthAnimals of [null, 11, "phugpa"]) {
-			const error = thrownBy(() => assertTraditionConfig(broken({ naming: { monthAnimals } })));
+			const error = thrownBy(() => validatedTradition(broken({ naming: { monthAnimals } })));
 			expect(error?.code, `${monthAnimals}`).toBe("TCT_INVALID_TRADITION_CONFIG");
 			expect(error?.message).toContain("naming.monthAnimals");
 		}
@@ -333,7 +335,7 @@ describe("the naming block", () => {
 		for (const field of ["tigerMonth", "elementRule"] as const) {
 			const monthAnimals: Record<string, unknown> = { ...full };
 			delete monthAnimals[field];
-			const error = thrownBy(() => assertTraditionConfig(broken({ naming: { monthAnimals } })));
+			const error = thrownBy(() => validatedTradition(broken({ naming: { monthAnimals } })));
 			expect(error?.code, field).toBe("TCT_INVALID_TRADITION_CONFIG");
 			expect(error?.message, field).toContain(`naming.monthAnimals.${field}`);
 		}
@@ -342,7 +344,7 @@ describe("the naming block", () => {
 	it("rejects a tigerMonth outside 1…12 and a non-integer one", () => {
 		for (const tigerMonth of [0, 13, 11.5, "11"]) {
 			const monthAnimals = { tigerMonth, elementRule: "son-of-year" };
-			const error = thrownBy(() => assertTraditionConfig(broken({ naming: { monthAnimals } })));
+			const error = thrownBy(() => validatedTradition(broken({ naming: { monthAnimals } })));
 			expect(error?.code, `${tigerMonth}`).toBe("TCT_INVALID_TRADITION_CONFIG");
 			expect(error?.message).toContain("naming.monthAnimals.tigerMonth");
 		}
@@ -352,7 +354,7 @@ describe("the naming block", () => {
 		// Including a tradition name, which is the anti-pattern the field spelling exists to prevent.
 		for (const elementRule of ["phugpa", "tsurphu", "son of year", ""]) {
 			const monthAnimals = { tigerMonth: 11, elementRule };
-			const error = thrownBy(() => assertTraditionConfig(broken({ naming: { monthAnimals } })));
+			const error = thrownBy(() => validatedTradition(broken({ naming: { monthAnimals } })));
 			expect(error?.code, elementRule).toBe("TCT_INVALID_TRADITION_CONFIG");
 			expect(error?.message).toContain("naming.monthAnimals.elementRule");
 		}
@@ -360,20 +362,20 @@ describe("the naming block", () => {
 
 	it("accepts an absent nineNumbers block and an absent months member, which mean unnumbered", () => {
 		for (const naming of [{}, { nineNumbers: {} }, { nineNumbers: { months: "descending" } }]) {
-			expect(thrownBy(() => assertTraditionConfig(broken({ naming })))).toBeUndefined();
+			expect(thrownBy(() => validatedTradition(broken({ naming })))).toBeUndefined();
 		}
 	});
 
 	it("rejects a nineNumbers block or months rule that is present and wrong", () => {
 		for (const nineNumbers of [null, true, "descending"]) {
-			const error = thrownBy(() => assertTraditionConfig(broken({ naming: { nineNumbers } })));
+			const error = thrownBy(() => validatedTradition(broken({ naming: { nineNumbers } })));
 			expect(error?.code, `${nineNumbers}`).toBe("TCT_INVALID_TRADITION_CONFIG");
 			expect(error?.message).toContain("naming.nineNumbers");
 		}
 		// Including the old boolean, and a tradition name.
 		for (const months of [true, false, null, "tsurphu", "ascending"]) {
 			const naming = { nineNumbers: { months } };
-			const error = thrownBy(() => assertTraditionConfig(broken({ naming })));
+			const error = thrownBy(() => validatedTradition(broken({ naming })));
 			expect(error?.code, `${months}`).toBe("TCT_INVALID_TRADITION_CONFIG");
 			expect(error?.message).toContain("naming.nineNumbers.months");
 		}
@@ -390,14 +392,14 @@ describe("values the arithmetic cannot take", () => {
 	it("rejects an intercalationIndexAtEpoch outside 0…64", () => {
 		for (const value of [-4, 65, 126]) {
 			const error = thrownBy(() =>
-				assertTraditionConfig(broken({ intercalationIndexAtEpoch: value })),
+				validatedTradition(broken({ intercalationIndexAtEpoch: value })),
 			);
 			expect(error?.code, `${value}`).toBe("TCT_INVALID_TRADITION_CONFIG");
 			expect(error?.message).toContain("intercalationIndexAtEpoch");
 		}
 		for (const value of [0, 61, 64]) {
 			expect(
-				thrownBy(() => assertTraditionConfig(broken({ intercalationIndexAtEpoch: value }))),
+				thrownBy(() => validatedTradition(broken({ intercalationIndexAtEpoch: value }))),
 			).toBeUndefined();
 		}
 	});
@@ -411,7 +413,7 @@ describe("values the arithmetic cannot take", () => {
 			["moonTab", { moonTab }],
 			["sunTab", { sunTab }],
 		] as const) {
-			const error = thrownBy(() => assertTraditionConfig(broken(patch)));
+			const error = thrownBy(() => validatedTradition(broken(patch)));
 			expect(error?.code, field).toBe("TCT_INVALID_TRADITION_CONFIG");
 			expect(error?.message).toContain(`${field}[0]`);
 		}
@@ -440,7 +442,7 @@ describe("values the arithmetic cannot take", () => {
 			perMonth: { num: 167_025 * 3, den: 5656 * 3 },
 			perDay: { num: 11_135 * 5, den: 11_312 * 5 },
 		};
-		expect(thrownBy(() => assertTraditionConfig(broken({ meanDate: same })))).toBeUndefined();
+		expect(thrownBy(() => validatedTradition(broken({ meanDate: same })))).toBeUndefined();
 	});
 
 	// `{ ...BHUTAN, naming: { weekdayOfset: 1 } }` named 2026-03-01 `nyi ma` where BHUTAN gives
@@ -459,13 +461,13 @@ describe("values the arithmetic cannot take", () => {
 			["month", { naming: { nineNumbers: { month: "descending" } } }],
 		];
 		for (const [key, patch] of cases) {
-			const error = thrownBy(() => assertTraditionConfig(broken(patch)));
+			const error = thrownBy(() => validatedTradition(broken(patch)));
 			expect(error?.code, key).toBe("TCT_INVALID_TRADITION_CONFIG");
 			expect(error?.message, key).toContain(JSON.stringify(key));
 		}
 		// Every shipped config, and a config spread from one, still passes.
 		for (const config of [PHUGPA, PHUGPA_HENNING, BHUTAN, BHUTAN_HENNING]) {
-			expect(thrownBy(() => assertTraditionConfig({ ...config, id: "mine" }))).toBeUndefined();
+			expect(thrownBy(() => validatedTradition({ ...config, id: "mine" }))).toBeUndefined();
 		}
 	});
 });
@@ -604,5 +606,60 @@ describe("denominator independence", () => {
 			const scaled = deriveScaling(config);
 			expect(moonEquation(scaled, 1, 0) / scaled.moonTabArgDen).toBe(24);
 		}
+	});
+});
+
+describe("a tradition mutated after its first use", () => {
+	const spread = (): TraditionConfig => ({
+		...PHUGPA,
+		id: "mutated-after-use",
+		moonTab: [...PHUGPA.moonTab],
+		sunTab: [...PHUGPA.sunTab],
+	});
+	const day = iso("2026-08-12");
+	// Every seventh day across about eight years, so a mutated constant that moves one month shows.
+	const project = (t: TraditionConfig) => {
+		const out: string[] = [];
+		for (let i = 0; i < 400; i++) {
+			const d = isoToTibetan(day.add({ days: i * 7 }), t);
+			out.push(`${d.year}-${d.month}${d.isLeapMonth ? "L" : ""}-${d.day}`);
+		}
+		return out.join(" ");
+	};
+
+	it("keeps converting with the tables it was validated with", () => {
+		const t = spread();
+		const first = project(t);
+		(t.moonTab as number[]).length = 2;
+		expect(thrownBy(() => project(t))?.code).toBeUndefined();
+		expect(project(t)).toBe(first);
+	});
+
+	it("does not take a threshold the validator would have refused", () => {
+		const t = spread();
+		const first = project(t);
+		(t as { leapIndexThreshold: number }).leapIndexThreshold = 64;
+		expect(hasLeapMonth(2153, t)).toBe(hasLeapMonth(2153, spread()));
+		expect(leapMonthNumberFor(2153, t)).toBe(leapMonthNumberFor(2153, spread()));
+		expect(project(t)).toBe(first);
+	});
+
+	it("does not mix a stale search window with replaced tables", () => {
+		const t = spread();
+		const first = project(t);
+		(t as unknown as { moonTab: number[] }).moonTab = PHUGPA.moonTab.map((n) => n * 10);
+		expect(thrownBy(() => project(t))?.code).toBeUndefined();
+		expect(project(t)).toBe(first);
+	});
+
+	it("reads the validated copy through months, navigation and cycles as well", () => {
+		const t = spread();
+		const month = { year: 2153, month: 6 };
+		const lunation = lunationFromMonth(month, t);
+		(t as { epochYear: number }).epochYear = 1;
+		(t as { intercalationIndexAtEpoch: number }).intercalationIndexAtEpoch = 3;
+		expect(lunationFromMonth(month, t)).toBe(lunation);
+		expect(monthsFor(2153, t).length).toBe(monthsFor(2153, spread()).length);
+		expect(thrownBy(() => leapMonthNumberFor(2153, t))?.code).toBeUndefined();
 	});
 });

@@ -26,7 +26,7 @@ import { scalingFor } from "../computation/scaling.js";
 import { rangeError } from "../errors.js";
 import { PHUGPA } from "../traditions/phugpa.js";
 import type { TraditionConfig } from "../traditions/types.js";
-import { assertTraditionConfig } from "../traditions/validate.js";
+import { validatedTradition } from "../traditions/validate.js";
 import { MAX_SPAN_YEARS, occurrencesOfRule, tibetanDateMemo } from "./occurrences.js";
 import type { Observance, ObservanceConfig } from "./types.js";
 import { ensureValidated } from "./validate.js";
@@ -121,12 +121,12 @@ export function getObservances(
 	from = asPlainDate(from, "getObservances(from)");
 	to = asPlainDate(to, "getObservances(to)");
 
-	ensureValidated(config, "getObservances");
+	config = ensureValidated(config, "getObservances");
 	// Not `?? PHUGPA`: nullish-coalescing treats an explicit `null` as absent, so a caller passing
 	// `null` would silently get the default instead of the coded rejection. Only `undefined` means
 	// "omitted".
-	const resolvedTradition = tradition === undefined ? PHUGPA : tradition;
-	assertTraditionConfig(resolvedTradition);
+	let resolvedTradition = tradition === undefined ? PHUGPA : tradition;
+	resolvedTradition = validatedTradition(resolvedTradition);
 
 	if (Temporal.PlainDate.compare(from, to) > 0) return [];
 
@@ -197,6 +197,6 @@ export function observancesOn(
 	// Checked here as well, in `getObservances`' order, so a refusal of the date or the config names
 	// `observancesOn`; both are then answered from the memo when `getObservances` repeats them.
 	const day = asPlainDate(date, "observancesOn(date)");
-	ensureValidated(config, "observancesOn");
+	config = ensureValidated(config, "observancesOn");
 	return getObservances(day, day, config, tradition);
 }

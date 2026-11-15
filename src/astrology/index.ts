@@ -170,9 +170,9 @@ export function monthAttributesFor(
 ): MonthAttributes {
 	// The month tier's own guard: the shape, the year, the month number, the leap flag against the
 	// year's actual leap month, and the exact range at both ends of the month.
-	boundedMonth("monthAttributesFor", month, "month", tradition);
+	const { scaled } = boundedMonth("monthAttributesFor", month, "month", tradition);
 
-	return monthAttributes(tradition, yearFromRoyalEra(month.year), month.month);
+	return monthAttributes(scaled.tradition, yearFromRoyalEra(month.year), month.month);
 }
 
 /**
@@ -213,9 +213,9 @@ export function lunarDayAttributesFor(
 	// The month tier's guard with the day range-checked alongside the other fields, and never a
 	// conversion: a skipped day is a legitimate argument here, and `tibetanToIso` would refuse it.
 	// So the month is bounded, not the day.
-	boundedMonth("lunarDayAttributesFor", date, "date", tradition);
+	const { scaled } = boundedMonth("lunarDayAttributesFor", date, "date", tradition);
 
-	return lunarDayAttributes(tradition, yearFromRoyalEra(date.year), date.month, date.day);
+	return lunarDayAttributes(scaled.tradition, yearFromRoyalEra(date.year), date.month, date.day);
 }
 
 /**
@@ -347,6 +347,7 @@ export function attributesFor(
 	tradition: TraditionConfig = PHUGPA,
 ): DayAttributes {
 	const resolved = isoToTibetan(isoOf("attributesFor", date), tradition);
+	tradition = scalingFor(tradition).tradition;
 	const y = yearFromRoyalEra(resolved.year);
 
 	// The one place in this subpath that reports rather than refuses, so the refusal is caught here
@@ -377,7 +378,7 @@ function yogaOf(resolved: TibetanDate, tradition: TraditionConfig): ElementalYog
 function lunarMansionOf(resolved: TibetanDate, tradition: TraditionConfig): LunarMansion {
 	const scaled = scalingFor(tradition);
 	const monthCount = trueMonthCount(
-		tradition,
+		scaled.tradition,
 		yearFromRoyalEra(resolved.year),
 		resolved.month,
 		resolved.isLeapMonth,

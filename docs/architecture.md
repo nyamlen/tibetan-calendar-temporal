@@ -113,7 +113,7 @@ tibetan-calendar-temporal/
 │   ├── temporal-kind.ts            # temporalKindOf — the ONLY instanceof Temporal in src/
 │   ├── traditions/
 │   │   ├── types.ts                # TraditionConfig type
-│   │   ├── validate.ts             # assertTraditionConfig — shape check at the boundary
+│   │   ├── validate.ts             # validatedTradition — shape check and frozen copy at the boundary
 │   │   └── phugpa.ts               # Phugpa constants (epoch, tables)
 │   ├── computation/
 │   │   ├── arithmetic.ts           # floorDiv, ceilDiv, mod, amod, gcd, lcm, scaleTo (§2)
@@ -128,7 +128,7 @@ tibetan-calendar-temporal/
 │   │   ├── types.ts                # the shapes below: ObservanceRule, ObservanceConfig, ObservanceLayer, Observance
 │   │   ├── compose.ts              # composeObservances: a base config plus a layer of differences
 │   │   ├── next.ts                 # nextObservance: the first occurrence of one rule after a day
-│   │   ├── validate.ts             # the config guard, memoised per config (internal)
+│   │   ├── validate.ts             # the config guard and frozen copy, memoised per config (internal)
 │   │   ├── forms.ts                # how each form of `when` lands on a day (internal)
 │   │   ├── formulas.ts             # the registry of named formulas (internal)
 │   │   ├── occurrences.ts          # one rule over a range of days; the 10-year span cap (internal)
@@ -427,7 +427,7 @@ type ObservanceResolution =              // open to additions in a minor release
 
 interface Observance {                 // one occurrence of one rule on one calendar day
   date: TibetanDate;                   // always a real calendar day
-  rule: ObservanceRule;                // the same object the config holds, not a copy
+  rule: ObservanceRule;                // the engine's frozen copy of the config's rule, not the caller's object
   resolution: ObservanceResolution;
   age?: number;                        // years since the rule's ageFromYear, in the form's own calendar (an annual date's Tibetan year is the one it stands for); absent without one
   period?: { first: TibetanDate; last: TibetanDate };  // a `period` rule's whole span; absent on every other form
@@ -667,11 +667,14 @@ Seven rules follow from that:
   rethrown. It was a denylist and lost: an uncoded `RangeError` from the scaling derivation came
   back as "Losar 2026 does not exist". A denylist has to anticipate every failure anyone will ever
   add; an allowlist names only the three things that are answers about the input.
-- **Both consumer configs are validated once per object**, memoised on a `WeakSet` keyed by the
-  config — the same bargain `scalingFor` already makes with its `WeakMap`. `ObservanceConfig` is
-  checked by `validateObservanceConfig` (`src/observances/validate.ts`), `TraditionConfig` by
-  [`assertTraditionConfig`](../src/traditions/validate.ts), called from the two `scalingFor`
-  functions that every entry point passes through. Both check **shape, not astronomy**, and both refuse
+- **Both consumer configs are validated once per object, and the engine reads a private frozen
+  copy of what was validated.** The copy is memoised on a `WeakMap` keyed by the object the caller
+  passed, so a config mutated after first use changes nothing the engine sees. It is not the
+  bargain `scalingFor` makes, whose cache keeps serving stale but consistent constants: without the
+  copy the engine re-read the caller's object on every call, unvalidated.
+  `ObservanceConfig` is checked and copied by `ensureValidated` (`src/observances/validate.ts`),
+  `TraditionConfig` by [`validatedTradition`](../src/traditions/validate.ts), which every entry point
+  and `scalingFor` read the tradition through. Both check **shape, not astronomy**, and both refuse
   a key they do not have; `TraditionConfig` also refuses the values its arithmetic cannot take
   (`m₁ ≠ 30·m₂`, a table whose first entry is not zero, an intercalation index outside 0…64).
 - **A wrong-kind argument is not a field out of range.** `TCT_FIELD_OUT_OF_RANGE` means a number is

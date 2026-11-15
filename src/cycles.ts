@@ -25,7 +25,7 @@ import { describe, rangeError } from "./errors.js";
 import { weekdayNameWithOffset } from "./names.js";
 import { PHUGPA } from "./traditions/phugpa.js";
 import type { TraditionConfig } from "./traditions/types.js";
-import { assertTraditionConfig } from "./traditions/validate.js";
+import { validatedTradition } from "./traditions/validate.js";
 import type { Rabjung, TibetanWeekday, TibetanWeekdayName, TibetanYearName } from "./types.js";
 
 /**
@@ -162,6 +162,6 @@ export function weekdayNameFor(
 				"This is the Tibetan numbering — 0 is Saturday — not the ISO dayOfWeek",
 		);
 	}
-	assertTraditionConfig(tradition);
+	tradition = validatedTradition(tradition);
 	return weekdayNameWithOffset(weekday, tradition.naming?.weekdayOffset ?? 0);
 }

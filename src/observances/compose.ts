@@ -7,7 +7,6 @@
  */
 
 import { assertKnownKeys, describe, rangeError } from "../errors.js";
-import { deepFreeze } from "../freeze.js";
 import type {
 	ObservanceConfig,
 	ObservanceLayer,
@@ -97,30 +96,6 @@ function assertNoRepeats(lists: readonly (readonly [string, readonly string[]])[
 }
 
 /**
- * A deep copy of a validated candidate, refusing what cannot be copied with a code.
- *
- * @remarks
- * The validator reads a value through ordinary property reads, so a Proxy with no traps passes it
- * as the object it wraps, and `structuredClone` then refuses it with an uncoded `DataCloneError`.
- * That is input of the wrong kind, so it is reported as such; a Proxy whose own trap throws never
- * reaches here, and its error is the caller's.
- */
-function copyOf(candidate: ObservanceConfig, label: string): ObservanceConfig {
-	try {
-		return structuredClone(candidate);
-	} catch (error) {
-		if (error instanceof Error && error.name === "DataCloneError") {
-			throw rangeError(
-				CODE,
-				`${label}: the composed config could not be copied, because a rule, level or name in ` +
-					"the base or the layer is not plain data (a Proxy, for one); pass plain objects",
-			);
-		}
-		throw error;
-	}
-}
-
-/**
  * A new, validated, deeply frozen {@link ObservanceConfig}: `base` with the differences in `layer`.
  *
  * @remarks
@@ -174,7 +149,7 @@ export function composeObservances(
 	base: ObservanceConfig,
 	layer: ObservanceLayer,
 ): ObservanceConfig {
-	ensureValidated(base, "composeObservances");
+	base = ensureValidated(base, "composeObservances");
 	if (!isRecord(layer)) {
 		throw rangeError(CODE, `${SUBJECT}: the layer must be an object, received ${describe(layer)}`);
 	}
@@ -305,12 +280,8 @@ export function composeObservances(
 		...(levels === undefined ? {} : { levels }),
 		rules,
 	};
-	ensureValidated(candidate, "composeObservances");
-
-	// `deepFreeze` recurses, so freezing anything that still shares an object with a caller's input
-	// would freeze the caller's own object.
-	const result = deepFreeze(copyOf(candidate, label));
-	// Memoises the frozen copy, so composing from this result as a base skips re-validating it.
-	ensureValidated(result, "composeObservances");
-	return result;
+	// The validated copy is private and deeply frozen, and none of it is shared with a caller's input,
+	// which is why `candidate` need not be copied again: its rules and levels are the base's and the
+	// layer's own objects until the validator clones them.
+	return ensureValidated(candidate, "composeObservances");
 }

@@ -453,16 +453,21 @@ describe("nextObservance, a period whose span runs past the end of the range", (
 		).toBe(OUTSIDE);
 	});
 
-	it("does not swallow another error from the walk, only the range code", () => {
-		// A config mutated after first use escapes revalidation, which is the one way to reach the
-		// walk's own internal refusal: every day number is named, so some month has a skipped one.
+	it("cannot be steered into the walk's internal refusal by mutating the config", () => {
+		// Every day number is named, so some month has a skipped one and an unhandled `skippedDay`
+		// would reach the walk's own refusal. A config mutated after first use used to get there with
+		// `TCT_INTERNAL`; the engine now reads the copy it validated, so the mutation is inert.
 		const config = withRules([
 			{ id: "m", when: { type: "monthly", days: Array.from({ length: 30 }, (_, i) => i + 1) } },
 		]);
 		const from = iso("2026-01-01");
-		expect(nextObservance(from, "m", config)).not.toBeNull();
+		const first = nextObservance(from, "m", config);
+		expect(first).not.toBeNull();
 		(config.rules[0] as { skippedDay?: string }).skippedDay = "bogus";
-		expect(thrownBy(() => nextObservance(from, "m", config))?.code).toBe("TCT_INTERNAL");
+		expect(thrownBy(() => nextObservance(from, "m", config))).toBeUndefined();
+		expect(nextObservance(from, "m", config)?.date.isoDate.toString()).toBe(
+			first?.date.isoDate.toString(),
+		);
 	});
 
 	it("does not swallow another refusal: a `from` beyond the end still throws", () => {

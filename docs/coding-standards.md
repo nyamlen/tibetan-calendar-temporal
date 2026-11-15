@@ -85,7 +85,7 @@ A rule with a command beside it will stop a push. A rule marked **review** will 
 | Every consumer config gets a validator, memoised per object | `src/traditions/validate.ts`, `src/observances/types.ts` — **review** for new config types | `TraditionConfig` went unchecked for three phases because the failure looked like a language error |
 | A field the type declares **required** is rejected when absent, not merely when wrong | **review** | `undefined` is the likelier input, and it silently inherited whichever branch came last |
 | An internal caller skipping a guard gets a separate name, like `isoFromJulianDayUnchecked` | **review** | The boundary is the whole exported surface; leaving the export bare removes it |
-| The shipped configs are deeply frozen | `test/public-api.test.ts`, `test/observances/index.test.ts` | Scaling and validation are both memoised on the config object, so a post-freeze mutation yields neither the old constants nor the new ones but a stale mix |
+| The shipped configs are deeply frozen | `test/public-api.test.ts`, `test/observances/index.test.ts` | A mutation of a shared singleton is seen by every later spread of it, and the engine copies a config only when it first validates that object |
 
 ## Tests and fixtures
 

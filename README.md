@@ -471,8 +471,8 @@ Each `Observance` has three fields that are always there — `date`, the `Tibeta
 always a real calendar day; `rule`, the rule that produced it, carrying `id`, `englishName`, and the
 `level` and `tags` the config gave it; and `resolution`, how it landed there — and two that appear only
 where they apply: `age`, the years since a rule's `ageFromYear`, and `period`, the first and last
-calendar days of the whole span a `period` rule's day belongs to. The `rule` is the **same object** the config holds rather than a copy, so for a
-config you supplied, mutating it mutates your own rule table; the shipped `EXAMPLE_OBSERVANCES` is deeply frozen.
+calendar days of the whole span a `period` rule's day belongs to. The `rule` is the engine's own deeply frozen copy, made when the config was first used, and never the object you
+passed: changing your config afterwards changes neither this nor any later answer, and a fresh object is checked and copied again.
 
 **`EXAMPLE_OBSERVANCES` ships nineteen rules**, as an example of how to populate a config and not as any
 institution's calendar: the four great days (tagged `duchen`), seven persons' days (tagged `anniversary`),

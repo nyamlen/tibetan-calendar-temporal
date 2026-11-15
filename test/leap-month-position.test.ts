@@ -33,7 +33,7 @@ import { getObservances } from "../src/observances/index.js";
 import type { ObservanceConfig } from "../src/observances/types.js";
 import { PHUGPA } from "../src/traditions/phugpa.js";
 import type { TraditionConfig } from "../src/traditions/types.js";
-import { assertTraditionConfig } from "../src/traditions/validate.js";
+import { validatedTradition } from "../src/traditions/validate.js";
 
 /**
  * Phugpa with the ordering reversed and nothing else touched.
@@ -70,17 +70,17 @@ function sweep(config: TraditionConfig) {
 /** Throws and reports the message, so two rejections can be compared rather than merely counted. */
 function messageFrom(config: unknown): string {
 	try {
-		assertTraditionConfig(config as TraditionConfig);
+		validatedTradition(config as TraditionConfig);
 	} catch (error) {
 		return (error as Error).message;
 	}
-	throw new Error("expected assertTraditionConfig to throw, and it did not");
+	throw new Error("expected validatedTradition to throw, and it did not");
 }
 
 describe("validation", () => {
 	it("rejects a missing position rather than defaulting it", () => {
 		const { leapMonthPosition: _omitted, ...withoutIt } = PHUGPA;
-		expect(() => assertTraditionConfig(withoutIt as TraditionConfig)).toThrow(
+		expect(() => validatedTradition(withoutIt as TraditionConfig)).toThrow(
 			expect.objectContaining({ code: "TCT_INVALID_TRADITION_CONFIG" }),
 		);
 	});
@@ -89,7 +89,7 @@ describe("validation", () => {
 		"rejects %p",
 		(value) => {
 			expect(() =>
-				assertTraditionConfig({ ...PHUGPA, leapMonthPosition: value } as TraditionConfig),
+				validatedTradition({ ...PHUGPA, leapMonthPosition: value } as TraditionConfig),
 			).toThrow(expect.objectContaining({ code: "TCT_INVALID_TRADITION_CONFIG" }));
 		},
 	);
@@ -107,7 +107,7 @@ describe("validation", () => {
 
 	it("accepts both positions", () => {
 		for (const leapMonthPosition of ["before", "after"] as const) {
-			expect(() => assertTraditionConfig({ ...PHUGPA, leapMonthPosition })).not.toThrow();
+			expect(() => validatedTradition({ ...PHUGPA, leapMonthPosition })).not.toThrow();
 		}
 	});
 });

@@ -1753,7 +1753,7 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
       validation, so only a validator returning a frozen copy would close it, across every function
       taking a config. Converting stays open, since adding codes later breaks nobody. Found 2026-09-24 with the item above and left out
       of it on purpose. A Proxy passed as a `TraditionConfig` — revoked, or with any one trap that
-      throws — escapes from the first read in `assertTraditionConfig` (`isoToTibetan(d, proxy)`,
+      throws — escapes from the first read in `validatedTradition` (`isoToTibetan(d, proxy)`,
       `monthNamesFor(m, proxy)`), and an `ObservanceConfig` whose `rules`, `rules[0]` or
       `rules[0].when` is one does the same. The review also measured a throwing getter on a
       Tibetan-date fields object escaping at about seventeen exports. The **argument** guards already

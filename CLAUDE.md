@@ -410,9 +410,10 @@ derivation; in `docs/` they are just noise.
   bound with a test that names the setting.
 - **The shipped configs are deeply frozen.** All five — `PHUGPA`, `PHUGPA_HENNING`, `BHUTAN`,
   `BHUTAN_HENNING` and `EXAMPLE_OBSERVANCES` — go through `deepFreeze` in `src/freeze.ts`. They are the objects the docs point at for `{ ...PHUGPA, … }`,
-  so they are the ones a keystroke off a spread mutates — and because scaling and validation are
-  both memoised on the config object, a mutation after first use yields neither the old constants
-  nor the new ones but a stale mix. Do not unfreeze one to make a test easier.
+  so they are the ones a keystroke off a spread mutates, and a mutation of one is seen by every
+  later spread of it. The engine reads a private frozen copy of whatever it validates, so a
+  consumer's own config mutated after first use changes nothing the engine sees; freezing is what
+  protects the shared singleton itself. Do not unfreeze one to make a test easier.
 - **What goes on the public surface is decided by a rule, and the rule has a scope.** Only the
   barrel in `src/index.ts` makes a name API — exporting from a module under `src/` does not, which
   is how `describeMonth` and `asPlainDate` are shared without being published.
