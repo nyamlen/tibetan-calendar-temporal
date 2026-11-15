@@ -53,6 +53,8 @@ function scanShipped(): {
 
 const syllables = (wylie: string) => wylie.split(" ").filter((s) => s !== "");
 
+// The three shapes repeat THL's three `middle_nasals` rules (1 a-chung prefix, 2 `m` prefix, 3 `ld`/`lt`/`lj`/`zl`),
+// so a fourth rule added by THL would go unseen here; scripts/evidence/thl-middle-nasals/ says where to re-read them.
 function junctionRule(next: string): 1 | 2 | 3 | null {
 	if (next.length >= 2 && next.startsWith("'") && !"aeiou".includes(next.charAt(1))) return 1;
 	if (next.length >= 2 && next.startsWith("m") && !"aeiouyrl".includes(next.charAt(1))) return 2;

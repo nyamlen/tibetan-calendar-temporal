@@ -38,7 +38,7 @@ dependencies, built on Temporal.
 - What differs between traditions, and the two source traps found while working it out:
   [docs/traditions.md](docs/traditions.md)
 - Provenance of every name string, grouped in [docs/names/](docs/names/):
-  [vocabulary.md](docs/names/vocabulary.md) for the 27 shipped terms,
+  [vocabulary.md](docs/names/vocabulary.md) for the 26 shipped terms,
   [rabjung.md](docs/names/rabjung.md) for the 60-name table, and
   **[rabjung-sourcing.md](docs/names/rabjung-sourcing.md) for the hunt behind it** — every source
   tried, the dead ends with their evidence, and the two findings that changed the method. Read the
@@ -146,7 +146,8 @@ a calendar that runs and is wrong. His six-decimal column is the guard against t
 `janson-epoch.ts` and `cross-version-leap.ts` come from `scripts/extract-janson-fixtures.mjs`, which
 parses the LaTeX; the three `crosscheck-*.ts` **data** files come from their own
 `scripts/fetch-*-fixtures.mjs` — `crosscheck-row.ts` is not one of them, and is covered below;
-`names.ts` from `scripts/verify-name-sources.mjs`; `bhutan.ts` from
+`names.ts` from `scripts/verify-name-sources.mjs` — the name fixtures come from the five
+`verify:*-names` scripts, which share `scripts/thl.mjs` for phonetics; `bhutan.ts` from
 `scripts/fetch-bhutan-fixtures.mjs`. Re-run those rather than editing the output. Hand-copying 120 dates is how a silent one-day error reaches the primary
 correctness gate — and an early draft of `docs/testing.md` did exactly that, dating Losar 2026 to
 17 February instead of 18.
@@ -270,7 +271,10 @@ test reads it, and nothing in `src/` depends on it. It holds the one **authored*
 keep every other column of that document generated: the whole value of the table is that a reader
 can tell sourced columns from authored ones at a glance, and it now prints both an authored English
 gloss of the Tibetan and a sourced Sanskrit sense side by side precisely so the difference is
-visible rather than asserted.
+visible rather than asserted. Its siblings `scripts/word-boundaries.data.json` and
+`scripts/nasal-rulings.data.json` are authored too, and are read by `test/word-boundaries.test.ts` and
+`test/nasal-rulings.test.ts`, but as guards and not sources: each test holds `src/` to its file for
+completeness, and no value in either is evidence.
 
 Its phonetic column uses THL Simplified phonetics, not the house Lhasa rendering. That is the general
 rule, not a one-off: **house conventions govern prose, a published standard governs a
@@ -883,6 +887,11 @@ comparison only means anything **after** `npx biome check --write` on the emitte
 differs from the committed file by roughly +60/−3148 lines purely through reflow, which looks like a
 catastrophe and is not. Establish that the instrument reads zero before you measure with it.
 
+**A live source that has moved lands as its own commit, before the change it would contaminate.**
+These generators read live pages, so a run made for one change can carry a second: wisdomlib stopped
+listing a Wilson entry for *Rākṣasa*, and it showed up as one line in the rabjung fixture during a
+phonetics run. Committed with the phonetics, that line is attributed to a change that did not cause it.
+
 **That applies to a throwaway check just as much as to a generator, which is easy to forget because
 a one-off script feels too small to need proving.** An ad-hoc comparison of every shape block in
 `docs/architecture.md` against `src/` reported three drifted types —
@@ -892,6 +901,11 @@ extractor did not skip `readonly`, so it read those interfaces as having no fiel
 believable result mixed with noise. The tell was `src=0`, an impossible reading nobody had thought
 to assert on. Give a one-off check a case whose answer you already know before you trust the cases
 whose answers you do not.
+
+**A probe that predicts a check must use the same dictionaries as the check.** A probe that counted
+the Jäschke and Das indexes found 3 failing words where the real gate, which excludes them, found 7:
+the extra sources admitted four words the gate refuses, and the probe's reassurance was about a gate
+that does not exist.
 
 **`check:conventions` proves its own predicates on every run**, before any rule, reporting "the
 checker itself is broken" rather than a violation — a naming rule that split a suite name on its
@@ -979,12 +993,21 @@ their committed output, `test/fixtures/names.ts`, `test/fixtures/rabjung-names.t
 `test/fixtures/trigram-names.ts` and `test/fixtures/observance-names.ts`, which the suite reads.
 **Run Biome on the last five after every run**, for the same reason as below.
 
+**Run the five `verify:*-names` scripts one at a time.** They share THL's converter, and it answers
+with transient 503s when they run in parallel, which reads as a source that moved. A run that fails on
+a 503 says nothing about the names: run it again alone.
+
 **`verify:rabjung-names` emits one row per line and Biome reflows it, so run
 `npx biome check --write test/fixtures/rabjung-names.ts` after every run.** Skipping it surfaces
 as an unattributed formatting diff — `biome
 check .` reports it without naming the file, and the obvious suspects are the files you just edited
 rather than the one the generator rewrote. Provenance is checked before a release;
 integrity is checked on every push.
+
+**A generator's header carries a date stamp that changes on every run, so restore a file that differs
+only by it** with `git checkout -- <file>`, unless the file is legitimately regenerated. A stamp-only
+diff in a fixture you did not mean to change is churn in review and hides the run that did change
+something.
 
 **`verify:rabjung-names` also gates the authored English on Tibetan-dictionary facts, and the
 licence line there is narrow.** The copyrighted dictionaries — Ives Waldo, Rangjung Yeshe and the *tshig
@@ -1031,9 +1054,11 @@ person record (identity anchor, and a spelling witness only where it states the 
 gate-only headword, a Lotsawa House page heading or a work's own title page (one group), Tibetan
 Wikipedia's title or list (one group), and a Google Books catalogue record whose published title
 opens with the exact spelling. For a term: a dictionary head word read from a page image or entry, the
-Mahāvyutpatti's pairing, and Rigpa Wiki as a whole-term witness, human-supplied. Check 5's word-boundary
-check has one rung of Tibetan morphology, an ordinal or agent ending (`-pa`, `-ba`) that may be absent
-from the headword carrying the stem: *bcu drug pa* is found under *bcu drug*. Check 3 has the opposite
+Mahāvyutpatti's pairing, and Rigpa Wiki as a whole-term witness, human-supplied. Check 5 tests each word of a
+marked name whole against the headwords of the Mahāvyutpatti and the two Tibetan–Tibetan dictionaries, through
+one rung of Tibetan morphology, an ordinal or agent ending (`-pa`, `-ba`) that may be absent from the
+headword carrying the stem (*bcu drug pa* is found under *bcu drug*), or by a recorded `gateException` in
+`scripts/word-boundaries.data.json`. Check 3 has the opposite
 ladder beside it, `forms()` in `scripts/verify-observance-names.mjs`, which adds the endings *ba* and *pa* as separate
 syllables on the dictionary side. Both are rules of Tibetan spelling true of every word they touch, so each changes
 what is looked up and nothing the table prints.
@@ -1048,6 +1073,21 @@ does not reach (4 प्रमोदूत → प्रमोद), a homograph 
 presence of an entry (9 युव, the dual pronoun, → युवन्; 56 दुन्दुभी, a Gandharvī's name, → दुन्दुभि), and a
 typo the source contradicts itself about (57 रूधिर → रुधिर), and an entry that is a bare stub where a
 near neighbour is glossed (58 रक्ताक्षि → रक्ताक्ष). Do not patch a name by editing the output.
+
+The phonetics carry eight more, each Andreas' correction of THL's output, held as self-invalidating data
+with `thlPhonetic` and `phoneticCorrected: true` in the fixture: *karmapa* and *pandita* in the
+observance names, *lhantsam* in the mansion names, *mintün*, *peln-gyur* and *topden* in the
+month-and-yoga names, and *khyunchok* and *lo-ngen* in the rabjung names (the hyphen in *peln-gyur* is
+deliberate). Every multi-syllable phonetic is THL's "Words separated by" output through
+`scripts/thl.mjs`, a longer name split by `scripts/word-boundaries.data.json`. THL's nasal rules are
+held by a policy and a ruling per name: an `m` prefix assimilates (P1), a pronounced final plus an added
+`n` before `g` is hyphenated while THL's *n* stands where it is the *ng* sound (P2), and a silent final
+may be replaced by THL's `n` while a pronounced one is kept (P3), in `docs/names/phonetics.md`.
+
+**THL's output depends on a default option its web form hides, so the generation instrument is part of
+the claim.** `middle_nasals` is on in THL's scheme and off in the Padmakara and Rigpa schemes, and the
+form offers no way to change it. *khyu mchog* gives *khyumchok* with it on, and a comparison against a
+tool run with it off disagrees for a reason that is not an error in either.
 
 **A correction that rests on a dictionary *lacking* a sense is the least reliable kind, so write it as
 self-invalidating data before anyone decides it.** Mansion 21 was once decided as *śravaṇa*
