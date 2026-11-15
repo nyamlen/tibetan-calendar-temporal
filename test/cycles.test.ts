@@ -245,6 +245,12 @@ describe("the extreme safe integers", () => {
 		expect(got.year).toBe(16);
 	});
 
+	it("pins the value at the top: rabjungFor(MAX_SAFE_INTEGER) is cycle 150119987578998, year 18", () => {
+		const got = rabjungFor(Number.MAX_SAFE_INTEGER);
+		expect(got.cycle).toBe(150119987578998);
+		expect(got.year).toBe(18);
+	});
+
 	it("reduces by 60, and no smaller divisor of 60 does", () => {
 		const names = (y: number) => JSON.stringify(yearNameFor(y));
 		const positions = (y: number) => rabjungFor(y).year;

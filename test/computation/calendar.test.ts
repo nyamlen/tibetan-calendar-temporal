@@ -1,7 +1,7 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import {
-	assertClosedFormYear,
+	assertMonthCountYear,
 	intercalationIndex,
 	isLeapYear,
 	leapMonthOfYear,
@@ -225,7 +225,7 @@ describe("known leap months", () => {
 	});
 });
 
-describe("assertClosedFormYear covers trueMonthCount's 67·M*", () => {
+describe("assertMonthCountYear covers trueMonthCount's 67·M*", () => {
 	const configs = [
 		["PHUGPA", PHUGPA],
 		["PHUGPA_HENNING", PHUGPA_HENNING],
@@ -235,7 +235,7 @@ describe("assertClosedFormYear covers trueMonthCount's 67·M*", () => {
 
 	const accepts = (tradition: TraditionConfig, year: number): boolean => {
 		try {
-			assertClosedFormYear(() => "probe", year, tradition);
+			assertMonthCountYear(() => "probe", year, tradition);
 			return true;
 		} catch (error) {
 			if ((error as { code?: string }).code !== "TCT_OUTSIDE_EXACT_RANGE") throw error;

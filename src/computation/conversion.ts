@@ -39,7 +39,7 @@ import type {
 import { assertTibetanRanges, assertTibetanShape, SkippedDayError } from "../types.js";
 import { floorDiv, mod } from "./arithmetic.js";
 import {
-	assertClosedFormYear,
+	assertMonthCountYear,
 	classifyDay,
 	losarJulianDay,
 	monthFromCount,
@@ -513,7 +513,7 @@ export function monthCountFor(
 	month: TibetanMonthFields,
 ): number {
 	const year = yearFromRoyalEra(month.year);
-	assertClosedFormYear(subject, year, tradition);
+	assertMonthCountYear(subject, year, tradition);
 	const isLeapMonth = month.isLeapMonth ?? false;
 	// Without this, asking for a leap month that does not exist returns the *previous* month's count
 	// rather than refusing — a wrong answer indistinguishable from a right one.

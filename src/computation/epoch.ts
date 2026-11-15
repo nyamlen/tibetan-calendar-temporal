@@ -183,8 +183,8 @@ export function rabjungFromRoyalEra(royalEraYear: number): Rabjung {
  * @remarks
  * `yearAttributes` reads 60 (the Chinese cycle position), 10 (the power element), 12, 4 and 6
  * (the animal, fortune and body intermediate, via the position) and 9 (the three numbers). Their
- * least common multiple is 180, and `test/astrology/index.test.ts` shows no proper divisor of 180
- * is a period.
+ * least common multiple is 180. `test/astrology/index.test.ts` checks 180 is a period over
+ * 1900–2400 and that no proper divisor of 180 is one.
  */
 export function attributesYearFromRoyalEra(royalEraYear: number): number {
 	return yearFromRoyalEra(mod(royalEraYear, ATTRIBUTES_PERIOD));

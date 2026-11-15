@@ -23,8 +23,8 @@
  */
 
 import {
-	assertClosedFormYear,
 	assertLunation,
+	assertMonthCountYear,
 	firstDayOfMonth,
 	lastDayOfMonth,
 	monthFromCount,
@@ -143,7 +143,7 @@ function monthAt(name: string, lunation: number, tradition: TraditionConfig): Ti
 	assertLunation(subject, lunation, tradition);
 
 	const identity = monthFromCount(tradition, lunation);
-	assertClosedFormYear(subject, identity.year, tradition);
+	assertMonthCountYear(subject, identity.year, tradition);
 
 	const scaled = scalingFor(tradition);
 	// Bound both ends before describeMonth renders them. assertLunation above only keeps the *month

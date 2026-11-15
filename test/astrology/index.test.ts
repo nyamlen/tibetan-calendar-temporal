@@ -389,7 +389,14 @@ describe("yearAttributesFor at the extreme safe integers", () => {
 		expect(got.cyclePosition).toBe(19);
 	});
 
-	it("has period 180, and no proper divisor of 180 is one", () => {
+	it("pins the top: MAX_SAFE_INTEGER is a monkey year, cyclePosition 21, power wood", () => {
+		const got = yearAttributesFor(Number.MAX_SAFE_INTEGER);
+		expect(got.animal).toBe("monkey");
+		expect(got.cyclePosition).toBe(21);
+		expect(got.power).toBe("wood");
+	});
+
+	it("has period 180 over 1900 to 2400, and no proper divisor of 180 is one", () => {
 		const key = (y: number) => JSON.stringify(yearAttributesFor(y));
 		const failures: number[] = [];
 		for (let y = 1900; y < 2400; y++) if (key(y) !== key(y + 180)) failures.push(y);
