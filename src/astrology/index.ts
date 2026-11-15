@@ -45,7 +45,7 @@
 
 import { trueMonthCount } from "../computation/calendar.js";
 import { asWesternDay, isoToTibetan, julianDayFromIso } from "../computation/conversion.js";
-import { yearFromRoyalEra } from "../computation/epoch.js";
+import { attributesYearFromRoyalEra, yearFromRoyalEra } from "../computation/epoch.js";
 import { scalingFor } from "../computation/scaling.js";
 import { assertSafeYear } from "../errors.js";
 import { deepFreeze } from "../freeze.js";
@@ -131,7 +131,7 @@ export function yearAttributesFor(year: number): YearAttributes {
 		year,
 		". Years here are the royal era, matching TibetanDate.year — 2153, not 2026.",
 	);
-	return yearAttributes(yearFromRoyalEra(year));
+	return yearAttributes(attributesYearFromRoyalEra(year));
 }
 
 /**

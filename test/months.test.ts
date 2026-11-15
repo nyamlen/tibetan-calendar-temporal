@@ -440,7 +440,15 @@ describe("closed-form overflow guard", () => {
 		const relativeLimit = Math.floor((Number.MAX_SAFE_INTEGER - 12) / 12);
 		const absoluteLimit =
 			Math.floor((Number.MAX_SAFE_INTEGER - 65) / 24) - Math.abs(PHUGPA.epochYear);
-		const limit = Math.min(relativeLimit, absoluteLimit);
+		// The 67·M* term of trueMonthCount binds first for PHUGPA, about 1.1e13 against 3.7e14.
+		const countLimit = Math.floor(
+			(Number.MAX_SAFE_INTEGER -
+				67 * 11 -
+				Math.abs(PHUGPA.intercalationIndexAtEpoch) -
+				Math.abs(65 - PHUGPA.leapIndexThreshold)) /
+				(67 * 12),
+		);
+		const limit = Math.min(relativeLimit, absoluteLimit, countLimit);
 
 		// Sweep the last 50 years inside the bound, not just the single boundary year: the bug this
 		// guards against was wrong across the whole top half of the naive range, not only at its edge.

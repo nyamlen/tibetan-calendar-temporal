@@ -20,7 +20,7 @@
  * @packageDocumentation
  */
 
-import { rabjungFromYear, yearFromRoyalEra, yearNameFromYear } from "./computation/epoch.js";
+import { rabjungFromRoyalEra, yearNameFromRoyalEra } from "./computation/epoch.js";
 import { assertSafeYear, describe, rangeError } from "./errors.js";
 import { weekdayNameWithOffset } from "./names.js";
 import { PHUGPA } from "./traditions/phugpa.js";
@@ -28,8 +28,9 @@ import type { TraditionConfig } from "./traditions/types.js";
 import { validatedTradition } from "./traditions/validate.js";
 import type { Rabjung, TibetanWeekday, TibetanWeekdayName, TibetanYearName } from "./types.js";
 
-// A safe-integer check and nothing else, deliberately: the naming functions reach no closed form
-// on the absolute year large enough to overflow, so they need no tradition and no wider bound.
+// A safe-integer check and nothing else, deliberately: the naming functions reduce the year modulo
+// their cycle before the offset is subtracted (see `yearNameFromRoyalEra`), so every safe integer
+// has an exact answer and they need no tradition and no wider bound.
 const ROYAL_ERA_HINT =
 	". Years here are the royal era, matching TibetanDate.year — 2153, not 2026.";
 
@@ -63,7 +64,7 @@ const ROYAL_ERA_HINT =
  */
 export function yearNameFor(year: number): TibetanYearName {
 	assertSafeYear("yearNameFor", year, ROYAL_ERA_HINT);
-	return yearNameFromYear(yearFromRoyalEra(year));
+	return yearNameFromRoyalEra(year);
 }
 
 /**
@@ -96,7 +97,7 @@ export function yearNameFor(year: number): TibetanYearName {
  */
 export function rabjungFor(year: number): Rabjung {
 	assertSafeYear("rabjungFor", year, ROYAL_ERA_HINT);
-	return rabjungFromYear(yearFromRoyalEra(year));
+	return rabjungFromRoyalEra(year);
 }
 
 /**

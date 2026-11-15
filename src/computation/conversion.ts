@@ -562,10 +562,14 @@ export function julianDayOfFields(
 	const classification = classifyDay(scaled, date.day, monthCount);
 
 	if (classification.kind === "skipped") throw new SkippedDayError(date);
-	if (classification.kind === "doubled" && (date.isLeapDay ?? false)) {
-		return classification.leapJulianDay as number;
-	}
-	return classification.julianDay as number;
+	const julianDay =
+		classification.kind === "doubled" && (date.isLeapDay ?? false)
+			? (classification.leapJulianDay as number)
+			: (classification.julianDay as number);
+	// The mean date above is within 0.6 days of the true date, so the day returned can lie just past
+	// the bound the mean date passed, where `isoToTibetan` refuses it.
+	assertExactJulianDay(scaled, julianDay, subject);
+	return julianDay;
 }
 
 /**

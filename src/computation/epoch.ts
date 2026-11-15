@@ -28,7 +28,7 @@ import { assertInternal } from "../errors.js";
 import { animalNameOf, elementNameOf, genderNameOf } from "../names.js";
 import { rabjungNameOf } from "../rabjung-names.js";
 import type { Rabjung, TibetanYearName } from "../types.js";
-import { amod, ceilDiv } from "./arithmetic.js";
+import { amod, ceilDiv, floorDiv, mod } from "./arithmetic.js";
 
 /**
  * Offset between the royal-era numbering and Janson's *Y*.
@@ -155,3 +155,40 @@ export function yearNameFromYear(year: number): TibetanYearName {
 		animalName: animalNameOf(animal),
 	};
 }
+
+// The year-only closed forms below take the royal era straight from a caller who may pass any safe
+// integer. `yearFromRoyalEra` and the cycle offsets then subtract up to 1153 and, at the bottom of
+// the safe range, leave it before `mod` and `ceilDiv` run, so the answer is rounding noise. Each
+// reduces the year modulo the period of every cycle it reads first, which keeps the operand small
+// and gives the same answer wherever the unreduced computation does not underflow.
+
+/** The element–animal name of a royal-era year, exact for every safe integer. */
+export function yearNameFromRoyalEra(royalEraYear: number): TibetanYearName {
+	// Reads amod 10 and amod 12 of (Y − 3): the name repeats every lcm(10, 12) = 60 years.
+	return yearNameFromYear(yearFromRoyalEra(mod(royalEraYear, NAME_PERIOD)));
+}
+
+/** The rabjung position of a royal-era year, exact for every safe integer. */
+export function rabjungFromRoyalEra(royalEraYear: number): Rabjung {
+	// The position repeats every 60 years, but the cycle *number* counts them, so it is carried
+	// separately: shifting the year by 60·q shifts the cycle by exactly q.
+	const wholeCycles = floorDiv(royalEraYear, NAME_PERIOD);
+	const reduced = rabjungFromYear(yearFromRoyalEra(mod(royalEraYear, NAME_PERIOD)));
+	return { ...reduced, cycle: reduced.cycle + wholeCycles };
+}
+
+/**
+ * The royal-era year reduced modulo the period of every cycle `yearAttributes` reads.
+ *
+ * @remarks
+ * `yearAttributes` reads 60 (the Chinese cycle position), 10 (the power element), 12, 4 and 6
+ * (the animal, fortune and body intermediate, via the position) and 9 (the three numbers). Their
+ * least common multiple is 180, and `test/astrology/index.test.ts` shows no proper divisor of 180
+ * is a period.
+ */
+export function attributesYearFromRoyalEra(royalEraYear: number): number {
+	return yearFromRoyalEra(mod(royalEraYear, ATTRIBUTES_PERIOD));
+}
+
+const NAME_PERIOD = 60;
+const ATTRIBUTES_PERIOD = 180;

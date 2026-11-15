@@ -27,8 +27,8 @@ import type { ScaledTradition } from "./scaling.js";
  * Rejects a year for which the closed-form arithmetic would overflow `Number.MAX_SAFE_INTEGER`.
  *
  * @remarks
- * Two different closed forms route through this one guard, and they overflow at two different
- * points because they are stated in two different variables:
+ * Three different closed forms route through this one guard, and they overflow at different
+ * points because they are stated in different variables:
  *
  * - {@link solarMonthsSinceEpoch} (reached from {@link sharesNumberWithLeapMonth}, hence `tibetanToIso` and
  *   `daysInMonth`) computes `12·(year − epochYear) + …` — **relative** to the epoch.
@@ -39,7 +39,7 @@ import type { ScaledTradition } from "./scaling.js";
  *
  * Both silently lose precision past 2⁵³ rather than throwing, so an absurdly large year would come
  * back as a confident `false` or `undefined` computed from arithmetic noise instead of refusing to
- * answer. The bound taken is the **tighter** of the two, converted to the same `|year − epochYear|`
+ * answer. The bound taken is the **tightest** of the three, converted to the same `|year − epochYear|`
  * terms this guard is stated in via the triangle inequality
  * (`|year| ≤ |epochYear| + |year − epochYear|`), so a single check protects whichever formula the
  * caller goes on to evaluate — over-protecting the relative formula costs nothing, since every
@@ -75,13 +75,19 @@ export function assertClosedFormYear(
 	// exact: as above — a safe-integer quotient floored to a bound, not a calendar quantity.
 	const absoluteLimit =
 		Math.floor((Number.MAX_SAFE_INTEGER - 65) / 24) - Math.abs(tradition.epochYear);
-	// absoluteLimit is always the binding constraint here, for any config, not merely realistic
-	// ones: relativeLimit is ~7.5e14 (Number.MAX_SAFE_INTEGER / 12), and absoluteLimit is
-	// ~3.75e14 minus a non-negative `|epochYear|`, so absoluteLimit ≤ ~3.75e14 < relativeLimit
-	// unconditionally. The `Math.min` therefore never actually selects `relativeLimit` — kept as
-	// defensive code rather than removed, since it costs nothing and the proof lives only in this
-	// comment.
-	const limit = Math.min(relativeLimit, absoluteLimit);
+	// trueMonthCount: 67·M* + intercalationIndexAtEpoch + (65 − leapIndexThreshold) must stay safe,
+	// with |M*| ≤ 12·|year − epochYear| + 11. This is the binding term for any config the validator
+	// accepts, about 1.1e13 against the absolute bound's 3.7e14, and it is what `lunationFromMonth`
+	// and `monthsBetween` reach without any other bound.
+	// exact: a safe-integer quotient floored to a bound, not a calendar quantity.
+	const countLimit = Math.floor(
+		(Number.MAX_SAFE_INTEGER -
+			67 * 11 -
+			Math.abs(tradition.intercalationIndexAtEpoch) -
+			Math.abs(65 - tradition.leapIndexThreshold)) /
+			(67 * 12),
+	);
+	const limit = Math.min(relativeLimit, absoluteLimit, countLimit);
 	if (Math.abs(year - tradition.epochYear) > limit) {
 		throw rangeError(
 			"TCT_OUTSIDE_EXACT_RANGE",

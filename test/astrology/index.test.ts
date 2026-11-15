@@ -359,3 +359,45 @@ describe("the tradition is the last parameter, positional", () => {
 		expect(lunarMansionFor(iso("2026-09-08"), BHUTAN).index).toBe(7);
 	});
 });
+
+describe("yearAttributesFor at the extreme safe integers", () => {
+	const representative = (year: number) => {
+		const r = ((year % 180) + 180) % 180;
+		return 2000 + ((r - 2000 + 180 * 1000) % 180);
+	};
+
+	it("equals the answer for a small year in the same class mod 180, at both ends", () => {
+		const bad: string[] = [];
+		for (let k = 0; k < 3000; k++) {
+			for (const year of [Number.MIN_SAFE_INTEGER + k, Number.MAX_SAFE_INTEGER - k]) {
+				const rep = representative(year);
+				if (((rep % 180) + 180) % 180 !== ((year % 180) + 180) % 180) {
+					bad.push(`${year}: bad representative ${rep}`);
+					continue;
+				}
+				if (JSON.stringify(yearAttributesFor(year)) !== JSON.stringify(yearAttributesFor(rep))) {
+					bad.push(`${year} differs from ${rep}`);
+				}
+			}
+		}
+		expect(bad).toEqual([]);
+	});
+
+	it("pins a value: MIN_SAFE_INTEGER is a horse year with cyclePosition 19", () => {
+		const got = yearAttributesFor(Number.MIN_SAFE_INTEGER);
+		expect(got.animal).toBe("horse");
+		expect(got.cyclePosition).toBe(19);
+	});
+
+	it("has period 180, and no proper divisor of 180 is one", () => {
+		const key = (y: number) => JSON.stringify(yearAttributesFor(y));
+		const failures: number[] = [];
+		for (let y = 1900; y < 2400; y++) if (key(y) !== key(y + 180)) failures.push(y);
+		expect(failures).toEqual([]);
+		for (const d of [1, 2, 3, 4, 5, 6, 9, 10, 12, 15, 18, 20, 30, 36, 45, 60, 90]) {
+			let differs = false;
+			for (let y = 1900; y < 2080 && !differs; y++) differs = key(y) !== key(y + d);
+			expect(differs, `period ${d}`).toBe(true);
+		}
+	});
+});

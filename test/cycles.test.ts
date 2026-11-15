@@ -170,3 +170,93 @@ describe("TibetanWeekday brand", () => {
 		expect(JSON.parse(JSON.stringify({ w: asTibetanWeekday(3) })).w).toBe(3);
 	});
 });
+
+/**
+ * The lowest safe integers, where `yearFromRoyalEra` and the cycle offsets used to push the operand
+ * below `Number.MIN_SAFE_INTEGER` before `mod` and `ceilDiv` ran, so the answer was rounding noise.
+ *
+ * The reference is BigInt, so it shares no arithmetic with the code under test.
+ */
+describe("the extreme safe integers", () => {
+	const floorBig = (a: bigint, b: bigint) => (a - (((a % b) + b) % b)) / b;
+	const amodBig = (a: bigint, b: bigint) => ((((a - 1n) % b) + b) % b) + 1n;
+	const window = (): number[] => {
+		const out: number[] = [];
+		for (let k = 0; k < 3000; k++) {
+			out.push(Number.MIN_SAFE_INTEGER + k, Number.MAX_SAFE_INTEGER - k);
+		}
+		return out;
+	};
+
+	it("rabjungFor agrees with a BigInt reference over 3,000 safe integers at each end", () => {
+		const bad: string[] = [];
+		for (const year of window()) {
+			const elapsed = BigInt(year) - 127n - 1026n;
+			const cycle = -floorBig(-elapsed, 60n);
+			const position = amodBig(elapsed, 60n);
+			const got = rabjungFor(year);
+			if (BigInt(got.cycle) !== cycle || BigInt(got.year) !== position) {
+				bad.push(`${year}: got ${got.cycle}/${got.year}, expected ${cycle}/${position}`);
+			}
+		}
+		expect(bad).toEqual([]);
+	});
+
+	it("yearNameFor agrees with a BigInt reference over 3,000 safe integers at each end", () => {
+		const elements = ["wood", "fire", "earth", "iron", "water"];
+		const animals = [
+			"mouse",
+			"ox",
+			"tiger",
+			"rabbit",
+			"dragon",
+			"snake",
+			"horse",
+			"sheep",
+			"monkey",
+			"bird",
+			"dog",
+			"pig",
+		];
+		const bad: string[] = [];
+		for (const year of window()) {
+			const elapsed = BigInt(year) - 127n - 3n;
+			const ten = Number(amodBig(elapsed, 10n));
+			const expected = {
+				element: elements[Math.ceil(ten / 2) - 1],
+				animal: animals[Number(amodBig(elapsed, 12n)) - 1],
+				gender: ten % 2 === 1 ? "male" : "female",
+			};
+			const got = yearNameFor(year);
+			if (
+				got.element !== expected.element ||
+				got.animal !== expected.animal ||
+				got.gender !== expected.gender
+			) {
+				bad.push(`${year}: got ${got.element}/${got.animal}/${got.gender}`);
+			}
+		}
+		expect(bad).toEqual([]);
+	});
+
+	it("pins the value at the bottom: rabjungFor(MIN_SAFE_INTEGER) is cycle -150119987579035, year 16", () => {
+		const got = rabjungFor(Number.MIN_SAFE_INTEGER);
+		expect(got.cycle).toBe(-150119987579035);
+		expect(got.year).toBe(16);
+	});
+
+	it("reduces by 60, and no smaller divisor of 60 does", () => {
+		const names = (y: number) => JSON.stringify(yearNameFor(y));
+		const positions = (y: number) => rabjungFor(y).year;
+		const sixty: string[] = [];
+		for (let y = 1900; y < 2400; y++) {
+			if (names(y) !== names(y + 60) || positions(y) !== positions(y + 60)) sixty.push(String(y));
+		}
+		expect(sixty).toEqual([]);
+		for (const d of [1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30]) {
+			let differs = false;
+			for (let y = 1900; y < 1960 && !differs; y++) differs = names(y) !== names(y + d);
+			expect(differs, `period ${d}`).toBe(true);
+		}
+	});
+});
