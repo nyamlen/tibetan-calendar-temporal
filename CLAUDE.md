@@ -903,9 +903,9 @@ to assert on. Give a one-off check a case whose answer you already know before y
 whose answers you do not.
 
 **A probe that predicts a check must use the same dictionaries as the check.** A probe that counted
-the Jäschke and Das indexes found 3 failing words where the real gate, which excludes them, found 7:
-the extra sources admitted four words the gate refuses, and the probe's reassurance was about a gate
-that does not exist.
+the Jäschke and Das indexes found 3 failing words where the real gate, which excludes them, found 7,
+each counted once per name: the extra sources admitted four word-in-name cases the gate refuses, and
+the probe's reassurance was about a gate that does not exist.
 
 **`check:conventions` proves its own predicates on every run**, before any rule, reporting "the
 checker itself is broken" rather than a violation — a naming rule that split a suite name on its
