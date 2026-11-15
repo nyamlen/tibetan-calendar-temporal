@@ -271,16 +271,16 @@ The ten, in the order the package ships them — a pair in either order is the s
 
 | Pair | `englishName` | Tibetan | Wylie | Phonetic | Sanskrit | Devanāgarī | `favorable` | `auspiciousness` |
 |---|---|---|---|---|---|---|---|---|
-| earth + earth | accomplishment | དངོས་གྲུབ | dngos grub | ngö drup | siddhi | सिद्धि | yes | good (བཟང་པོ) |
-| water + water | nectar | བདུད་རྩི | bdud rtsi | dü tsi | amṛta | अमृत | yes | good (བཟང་པོ) |
-| earth + water | youth | ལང་ཚོ | lang tsho | lang tso | yauvana | यौवन | yes | restorative (གསོ་ཐུབ) |
-| fire + fire | increase | འཕེལ་འགྱུར | 'phel 'gyur | pel gyur | pragati | प्रगति | yes | good (བཟང་པོ) |
-| wind + wind | excellence | ཕུན་ཚོགས | phun tshogs | pün tsok | saṃpanna | संपन्न | yes | restorative (གསོ་ཐུབ) |
-| fire + wind | powerful | སྟོབས་ལྡན | stobs ldan | top den | balayukta | बलयुक्त | yes | restorative (གསོ་ཐུབ) |
-| earth + wind | deficiency | མི་འཕྲོད | mi 'phrod | mi trö | alābha | अलाभ | no | bad (ངན) |
-| water + wind | opposition | མི་མཐུན | mi mthun | mi tün | pratikūla | प्रतिकूल | no | bad (ངན) |
-| earth + fire | burning | བསྲེག་པ | bsreg pa | sek pa | dahana | दहन | no | bad (ངན) |
-| fire + water | death | འཆི་བ | 'chi ba | chi ba | maraṇa | मरण | no | worst (ཐ་ཆད) |
+| earth + earth | accomplishment | དངོས་གྲུབ | dngos grub | ngödrup | siddhi | सिद्धि | yes | good (བཟང་པོ) |
+| water + water | nectar | བདུད་རྩི | bdud rtsi | dütsi | amṛta | अमृत | yes | good (བཟང་པོ) |
+| earth + water | youth | ལང་ཚོ | lang tsho | langtso | yauvana | यौवन | yes | restorative (གསོ་ཐུབ) |
+| fire + fire | increase | འཕེལ་འགྱུར | 'phel 'gyur | pengyur | pragati | प्रगति | yes | good (བཟང་པོ) |
+| wind + wind | excellence | ཕུན་ཚོགས | phun tshogs | püntsok | saṃpanna | संपन्न | yes | restorative (གསོ་ཐུབ) |
+| fire + wind | powerful | སྟོབས་ལྡན | stobs ldan | tonden | balayukta | बलयुक्त | yes | restorative (གསོ་ཐུབ) |
+| earth + wind | deficiency | མི་འཕྲོད | mi 'phrod | mintrö | alābha | अलाभ | no | bad (ངན) |
+| water + wind | opposition | མི་མཐུན | mi mthun | mimtün | pratikūla | प्रतिकूल | no | bad (ངན) |
+| earth + fire | burning | བསྲེག་པ | bsreg pa | sekpa | dahana | दहन | no | bad (ངན) |
+| fire + water | death | འཆི་བ | 'chi ba | chiwa | maraṇa | मरण | no | worst (ཐ་ཆད) |
 
 The English is Henning's translation except *increase* and *opposition*, which replace his *progress*
 and *discord* because no dictionary prints those; every English name here is printed word for word
@@ -772,14 +772,14 @@ Each system is named for the rule that defines it:
 |---|---|---|---|---|---|---|---|---|---|
 | 1 | mchu | མཆུ | chu | *maghā* | *māgha* | late winter | early spring | late spring | early dewy |
 | 2 | dbo | དབོ | wo | *uttaraphalgunī* | *phālguna* | early spring | middle spring | early summer | late dewy |
-| 3 | nag pa | ནག་པ | nak pa | *citrā* | *caitra* | middle spring | late spring | middle summer | early spring |
-| 4 | sa ga | ས་ག | sa ga | *viśākhā* | *vaiśākha* | late spring | early summer | late summer | late spring |
+| 3 | nag pa | ནག་པ | nakpa | *citrā* | *caitra* | middle spring | late spring | middle summer | early spring |
+| 4 | sa ga | ས་ག | saga | *viśākhā* | *vaiśākha* | late spring | early summer | late summer | late spring |
 | 5 | snron | སྣྲོན | nön | *jyeṣṭhā* | *jyeṣṭha* | early summer | middle summer | early autumn | early summer |
-| 6 | chu stod | ཆུ་སྟོད | chu tö | *pūrvāṣāḍhā* | *āṣāḍha* | middle summer | late summer | middle autumn | late summer |
-| 7 | gro bzhin | གྲོ་བཞིན | dro zhin | *śravaṇā* | *śrāvaṇa* | late summer | early autumn | late autumn | early rains |
+| 6 | chu stod | ཆུ་སྟོད | chutö | *pūrvāṣāḍhā* | *āṣāḍha* | middle summer | late summer | middle autumn | late summer |
+| 7 | gro bzhin | གྲོ་བཞིན | drozhin | *śravaṇā* | *śrāvaṇa* | late summer | early autumn | late autumn | early rains |
 | 8 | khrums | ཁྲུམས | trum | *bhadrapadā* | *bhādrapada* | early autumn | middle autumn | early winter | late rains |
-| 9 | tha skar | ཐ་སྐར | ta kar | *aśvinī* | *āśvina* | middle autumn | late autumn | middle winter | early autumn |
-| 10 | smin drug | སྨིན་དྲུག | min druk | *kṛttikā* | *kārttika* | late autumn | early winter | late winter | late autumn |
+| 9 | tha skar | ཐ་སྐར | takar | *aśvinī* | *āśvina* | middle autumn | late autumn | middle winter | early autumn |
+| 10 | smin drug | སྨིན་དྲུག | mindruk | *kṛttikā* | *kārttika* | late autumn | early winter | late winter | late autumn |
 | 11 | mgo | མགོ | go | *mṛgaśiras* | *mārgaśīrṣa* | early winter | middle winter | early spring | early cold |
 | 12 | rgyal | རྒྱལ | gyel | *puṣya* | *pauṣa* | middle winter | late winter | middle spring | late cold |
 

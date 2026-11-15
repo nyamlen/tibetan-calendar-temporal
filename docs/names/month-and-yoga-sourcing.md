@@ -193,7 +193,7 @@ For month 1 of royal-era year 2153 (the Tibetan year that began at Losar 2026), 
 ```ts
 monthNamesFor({ year: 2153, month: 1 }).sixSeasons.month3EarlySpring;
 // { season: "dewy", part: "early",
-//   tibetanName: { tibetan: "དགུན་སྨད", wylie: "dgun smad", phonetic: "gün mé" },
+//   tibetanName: { tibetan: "དགུན་སྨད", wylie: "dgun smad", phonetic: "günmé" },
 //   sanskritName: { iast: "śiśira", devanagari: "शिशिर" } }
 // — the first month of the dewy season, under the six-season system that puts early spring at month 3
 ```
@@ -348,8 +348,8 @@ Andreas confirmed against the scan that Henning prints `mi phrod` and `sreg pa`.
   Unprefixed `sreg pa` is itself a Mahāvyutpatti headword (as havana, oblation, and as tittiri, the partridge), so its existence says nothing either way.
   Decided on 2026-09-13, after an earlier summary had wrongly reported bare `bsreg` in both enumerations.
 
-The corrected `mi 'phrod` sounds the same as the original — both are *mi trö* — so that change is visible in script only: མི་འཕྲོད, not མི་ཕྲོད.
-`bsreg pa` བསྲེག་པ is *sek pa*, the same as `sreg pa` སྲེག་པ, so it too changes only the script.
+The corrected `mi 'phrod` is *mintrö* in THL's word-separated mode, and the original `mi phrod` is *mitrö*, so that change shows in script, མི་འཕྲོད, not མི་ཕྲོད, and in the nasal.
+`bsreg pa` བསྲེག་པ is *sekpa*, the same as `sreg pa` སྲེག་པ, so it too changes only the script.
 
 `'chi ba` needs no correction: the dictionaries' `'chi sbyor` and `'chi ba'i sbyor` are the compound and genitive forms of exactly the name that ships.
 
