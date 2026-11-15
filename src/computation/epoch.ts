@@ -23,35 +23,12 @@
  * @packageDocumentation
  */
 
+import { ANIMALS, ELEMENTS } from "../cycle-tables.js";
 import { assertInternal } from "../errors.js";
 import { animalNameOf, elementNameOf, genderNameOf } from "../names.js";
 import { rabjungNameOf } from "../rabjung-names.js";
-import type { Rabjung, TibetanAnimal, TibetanElement, TibetanYearName } from "../types.js";
+import type { Rabjung, TibetanYearName } from "../types.js";
 import { amod, ceilDiv } from "./arithmetic.js";
-
-/**
- * The five elements in the order of Janson's ten-year cycle table (§4), indexed from 1.
- *
- * @remarks
- * Each occupies two consecutive years of the ten-year cycle, male then female.
- */
-const ELEMENTS: readonly TibetanElement[] = ["wood", "fire", "earth", "iron", "water"];
-
-/** The twelve animals in the order of Janson's twelve-year cycle table (§4), indexed from 1. */
-const ANIMALS: readonly TibetanAnimal[] = [
-	"mouse",
-	"ox",
-	"tiger",
-	"rabbit",
-	"dragon",
-	"snake",
-	"horse",
-	"sheep",
-	"monkey",
-	"bird",
-	"dog",
-	"pig",
-];
 
 /**
  * Offset between the royal-era numbering and Janson's *Y*.

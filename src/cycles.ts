@@ -21,31 +21,17 @@
  */
 
 import { rabjungFromYear, yearFromRoyalEra, yearNameFromYear } from "./computation/epoch.js";
-import { describe, rangeError } from "./errors.js";
+import { assertSafeYear, describe, rangeError } from "./errors.js";
 import { weekdayNameWithOffset } from "./names.js";
 import { PHUGPA } from "./traditions/phugpa.js";
 import type { TraditionConfig } from "./traditions/types.js";
 import { validatedTradition } from "./traditions/validate.js";
 import type { Rabjung, TibetanWeekday, TibetanWeekdayName, TibetanYearName } from "./types.js";
 
-/**
- * Validates a year for the naming functions.
- *
- * @remarks
- * A safe-integer check and nothing else, deliberately. These evaluate no `true_date` and reach no
- * closed form on the *absolute* year large enough to overflow, so they need neither
- * `assertClosedFormYear` nor a tradition — and adding a bound they do not require would be a
- * refusal to answer a question this arithmetic can answer perfectly well.
- */
-function assertYear(subject: string, year: number): void {
-	if (!Number.isSafeInteger(year)) {
-		throw rangeError(
-			"TCT_FIELD_OUT_OF_RANGE",
-			`${subject}: year must be a safe integer, received ${describe(year)}. ` +
-				"Years here are the royal era, matching TibetanDate.year — 2153, not 2026.",
-		);
-	}
-}
+// A safe-integer check and nothing else, deliberately: the naming functions reach no closed form
+// on the absolute year large enough to overflow, so they need no tradition and no wider bound.
+const ROYAL_ERA_HINT =
+	". Years here are the royal era, matching TibetanDate.year — 2153, not 2026.";
 
 /**
  * The element–animal name of a Tibetan year.
@@ -76,7 +62,7 @@ function assertYear(subject: string, year: number): void {
  * ```
  */
 export function yearNameFor(year: number): TibetanYearName {
-	assertYear("yearNameFor", year);
+	assertSafeYear("yearNameFor", year, ROYAL_ERA_HINT);
 	return yearNameFromYear(yearFromRoyalEra(year));
 }
 
@@ -109,7 +95,7 @@ export function yearNameFor(year: number): TibetanYearName {
  * ```
  */
 export function rabjungFor(year: number): Rabjung {
-	assertYear("rabjungFor", year);
+	assertSafeYear("rabjungFor", year, ROYAL_ERA_HINT);
 	return rabjungFromYear(yearFromRoyalEra(year));
 }
 

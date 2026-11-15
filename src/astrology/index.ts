@@ -47,7 +47,7 @@ import { trueMonthCount } from "../computation/calendar.js";
 import { asWesternDay, isoToTibetan, julianDayFromIso } from "../computation/conversion.js";
 import { yearFromRoyalEra } from "../computation/epoch.js";
 import { scalingFor } from "../computation/scaling.js";
-import { describe, rangeError } from "../errors.js";
+import { assertSafeYear } from "../errors.js";
 import { deepFreeze } from "../freeze.js";
 import { boundedMonth } from "../months.js";
 import { weekdayNameWithOffset } from "../names.js";
@@ -126,13 +126,11 @@ export const LUNAR_MANSIONS: readonly LunarMansion[] = deepFreeze(
  * ```
  */
 export function yearAttributesFor(year: number): YearAttributes {
-	if (!Number.isSafeInteger(year)) {
-		throw rangeError(
-			"TCT_FIELD_OUT_OF_RANGE",
-			`yearAttributesFor: year must be a safe integer, received ${describe(year)}. Years here are the ` +
-				"royal era, matching TibetanDate.year — 2153, not 2026.",
-		);
-	}
+	assertSafeYear(
+		"yearAttributesFor",
+		year,
+		". Years here are the royal era, matching TibetanDate.year — 2153, not 2026.",
+	);
 	return yearAttributes(yearFromRoyalEra(year));
 }
 

@@ -18,7 +18,7 @@
  */
 
 import { amod, ceilDiv } from "../computation/arithmetic.js";
-import { assertInternal } from "../errors.js";
+import { ANIMALS, ELEMENTS, oneBasedAt } from "../cycle-tables.js";
 import { deepFreeze } from "../freeze.js";
 import { animalNameOf, elementNameOf, genderNameOf } from "../names.js";
 import type { TibetanAnimal, TibetanElement, TibetanGender, TibetanName } from "../types.js";
@@ -74,26 +74,6 @@ export const TRIGRAM_NAMES: Readonly<Record<TibetanTrigram, TibetanName>> = deep
 	wind: { tibetan: "ཟོན", wylie: "zon", phonetic: "zön" },
 });
 
-const ELEMENTS: readonly TibetanElement[] = ["wood", "fire", "earth", "iron", "water"];
-
-const ANIMALS: readonly TibetanAnimal[] = [
-	"mouse",
-	"ox",
-	"tiger",
-	"rabbit",
-	"dragon",
-	"snake",
-	"horse",
-	"sheep",
-	"monkey",
-	"bird",
-	"dog",
-	"pig",
-];
-
-const at = <T>(table: readonly T[], oneBased: number, what: string): T =>
-	assertInternal(table[oneBased - 1], `${what}: index ${oneBased} is outside the cycle`);
-
 /** What a calendar day carries in the Chinese system. */
 export interface CalendarDayAttributes {
 	/** The day's power element, from the ten-day cycle. */
@@ -148,9 +128,9 @@ export interface CalendarDayAttributes {
  * odd-is-*yang* rule, but Julian day numbers were not invented as part of Chinese astrology.
  */
 export function calendarDayAttributes(julianDay: number): CalendarDayAttributes {
-	const element = at(ELEMENTS, amod(ceilDiv(julianDay, 2), 5), "day element");
-	const animal = at(ANIMALS, amod(julianDay + 2, 12), "day animal");
-	const trigram = at(TRIGRAMS, amod(julianDay + 2, 8), "day trigram");
+	const element = oneBasedAt(ELEMENTS, amod(ceilDiv(julianDay, 2), 5), "day element");
+	const animal = oneBasedAt(ANIMALS, amod(julianDay + 2, 12), "day animal");
+	const trigram = oneBasedAt(TRIGRAMS, amod(julianDay + 2, 8), "day trigram");
 
 	// The same sixty-row table the years use, entered at a different offset. `yearAttributes` takes
 	// a year, and `(Y − 3) amod 60` is its cycle position — so the year whose position matches this

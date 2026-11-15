@@ -17,36 +17,15 @@
  */
 
 import { amod, ceilDiv, floorDiv } from "../computation/arithmetic.js";
-import { assertInternal, rangeError } from "../errors.js";
+import { ANIMALS, ELEMENTS, oneBasedAt } from "../cycle-tables.js";
+import { rangeError } from "../errors.js";
 import { monthsAfterTigerMonth } from "../month-names.js";
 import { animalNameOf, elementNameOf, genderNameOf } from "../names.js";
 import type { TraditionConfig, TraditionMonthAnimals } from "../traditions/types.js";
 import type { TibetanAnimal, TibetanElement, TibetanGender, TibetanName } from "../types.js";
 
-/** Janson's standard element order, his Table 5. One-based when indexed as he indexes it. */
-const ELEMENTS: readonly TibetanElement[] = ["wood", "fire", "earth", "iron", "water"];
-
-/** Janson's standard animal order, his twelve-animal table. Tiger is number 3. */
-const ANIMALS: readonly TibetanAnimal[] = [
-	"mouse",
-	"ox",
-	"tiger",
-	"rabbit",
-	"dragon",
-	"snake",
-	"horse",
-	"sheep",
-	"monkey",
-	"bird",
-	"dog",
-	"pig",
-];
-
 /** Tiger's position in the twelve-animal cycle, which anchors both month rules. */
 const TIGER = 3;
-
-const at = <T>(table: readonly T[], oneBased: number, what: string): T =>
-	assertInternal(table[oneBased - 1], `${what}: index ${oneBased} is outside the cycle`);
 
 /** What a calendar month carries in the Chinese system. */
 export interface MonthAttributes {
@@ -192,11 +171,11 @@ export function monthAttributes(
 ): MonthAttributes {
 	const numbered = tradition.naming?.nineNumbers?.months === "descending";
 	const animalNumber = monthAnimalNumber(tradition, month);
-	const animal = at(ANIMALS, animalNumber, "month animal");
+	const animal = oneBasedAt(ANIMALS, animalNumber, "month animal");
 	// Janson: each month takes the gender of its animal, and odd animal numbers are male. "Odd months
 	// are male" is his shortcut for the attested Tiger months, 11 and 1, both odd.
 	const gender: TibetanGender = animalNumber % 2 === 1 ? "male" : "female";
-	const element = at(ELEMENTS, monthElementNumber(tradition, year, month), "month element");
+	const element = oneBasedAt(ELEMENTS, monthElementNumber(tradition, year, month), "month element");
 
 	return {
 		animal,
