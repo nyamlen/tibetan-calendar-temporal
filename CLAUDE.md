@@ -360,7 +360,7 @@ derivation; in `docs/` they are just noise.
   therefore allowed and already done three times: `scalingFor` on a `WeakMap`, the config validators
   on a `WeakSet`, and `monthsFor` on a per-`(config, year)` cache. Do not delete one for offending
   the word "stateless"; `monthsFor` earns its keep because stepping a month grid re-derives
-  neighbouring years constantly, and caching cuts a repeated year from ~180 µs to under 1 µs.
+  neighbouring years constantly, and caching cuts a repeated year from ~118 µs to under 1 µs (`bench/RESULTS.md`).
 
   Three things a cache here must get right, each of which a naive one gets wrong. **Key on the
   config, not just the year** — a config-blind cache serves one tradition's answers for another, and

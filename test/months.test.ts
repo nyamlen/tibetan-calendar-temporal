@@ -581,9 +581,11 @@ describe("every TibetanMonth is frozen", () => {
 	};
 
 	it("monthsFor's entries refuse a write, on a miss and on a hit", () => {
-		const miss = monthsFor(2153, { ...PHUGPA });
+		const config = { ...PHUGPA };
+		const miss = monthsFor(2153, config);
 		expect(writeDays(at(miss, 0))).toThrow(TypeError);
-		const hit = monthsFor(2153, { ...PHUGPA });
+		const hit = monthsFor(2153, config);
+		expect(Object.is(at(hit, 0), at(miss, 0))).toBe(true);
 		expect(writeDays(at(hit, 0))).toThrow(TypeError);
 	});
 
@@ -613,7 +615,9 @@ describe("the monthsFor cache holds at most 64 years per config", () => {
 		const first = at(monthsFor(2100, config), 0);
 		expect(at(monthsFor(2100, config), 0)).toBe(first);
 		for (let year = 2101; year <= 2164; year++) monthsFor(year, config);
-		expect(at(monthsFor(2100, config), 0)).not.toBe(first);
+		const recomputed = at(monthsFor(2100, config), 0);
+		expect(recomputed).not.toBe(first);
+		expect(recomputed).toEqual(first);
 	});
 
 	it("a year touched again is kept, and the next oldest is evicted instead", () => {

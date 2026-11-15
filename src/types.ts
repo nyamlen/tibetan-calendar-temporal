@@ -590,6 +590,8 @@ export interface TibetanDate {
  *
  * **The year is Tibetan, not Gregorian.** It opens in February or early March, so it straddles two
  * ISO years.
+ *
+ * A returned month is frozen, so assigning to one of its fields throws in strict mode.
  */
 export interface TibetanMonth {
 	/**

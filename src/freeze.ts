@@ -1,5 +1,6 @@
 /**
- * Deep-freezing for the configuration objects this package exports.
+ * Deep-freezing for the configuration objects this package exports, and for every `TibetanMonth` it
+ * returns, which `describeMonth` freezes because `monthsFor` hands the same objects to every caller.
  *
  * @remarks
  * `TraditionConfig` and `ObservanceConfig` are `readonly` throughout, which is a **compile-time**
