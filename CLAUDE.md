@@ -362,11 +362,16 @@ derivation; in `docs/` they are just noise.
   the word "stateless"; `monthsFor` earns its keep because stepping a month grid re-derives
   neighbouring years constantly, and caching cuts a repeated year from ~180 µs to under 1 µs.
 
-  Two things a cache here must get right, both of which a naive one gets wrong. **Key on the config,
-  not just the year** — a config-blind cache serves one tradition's answers for another, and would
-  pass nearly every test, since `PHUGPA` and `PHUGPA_HENNING` diverge at month level in only four
-  years between 1500 and 2500. And **never hand out shared mutable state**: return a fresh array, or
-  one consumer's `sort()` corrupts the next consumer's.
+  Three things a cache here must get right, each of which a naive one gets wrong. **Key on the
+  config, not just the year** — a config-blind cache serves one tradition's answers for another, and
+  would pass nearly every test, since `PHUGPA` and `PHUGPA_HENNING` diverge at month level in only
+  four years between 1500 and 2500. **Never hand out shared mutable state**: return a fresh array,
+  or one consumer's `sort()` corrupts the next consumer's — and a fresh array is not enough, because
+  its elements are shared, so every `TibetanMonth` this package returns is frozen by `describeMonth`
+  and typed `readonly`. And **bound it**: a `WeakMap` on the config lets go of a throwaway config
+  but not of the four shipped ones, which live as long as the module, so `monthsFor` keeps at most
+  64 years per config and evicts the least recently used. The cap is pinned by object identity in
+  `test/months.test.ts`, never by a heap measurement.
 - **Tradition constants are injected** via `TraditionConfig`, never hardcoded. v1 ships `PHUGPA`,
   `PHUGPA_HENNING`, `BHUTAN` and `BHUTAN_HENNING`; Tsurphu and the Mongolian version must remain
   addable without touching the algorithm — Bhutan was added that way, with two new config fields

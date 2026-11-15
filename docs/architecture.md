@@ -278,15 +278,15 @@ interface TibetanDate {
 }
 
 interface TibetanMonth {
-  year: number;           // Royal era, so the month identifies itself without its producer
-  lunation: number;       // Unbroken count since the epoch; +1 per month, leap months included
-  yearName: TibetanYearName;  // On the month, not the date: 13 of these a year rather than 354
-  month: number;          // 1-12; shared with its twin in a leap year
-  monthCode: string;      // "M06" or "M06L" — unique within the year, unlike `month`
-  isLeapMonth: boolean;
-  days: number;           // CALENDAR days, 29 or 30 — not the date numbering, which runs 1-30
-  firstDay: Temporal.PlainDate;
-  lastDay: Temporal.PlainDate;
+  readonly year: number;           // Royal era, so the month identifies itself without its producer
+  readonly lunation: number;       // Unbroken count since the epoch; +1 per month, leap months included
+  readonly yearName: TibetanYearName;  // On the month, not the date: 13 of these a year rather than 354
+  readonly month: number;          // 1-12; shared with its twin in a leap year
+  readonly monthCode: string;      // "M06" or "M06L" — unique within the year, unlike `month`
+  readonly isLeapMonth: boolean;
+  readonly days: number;           // CALENDAR days, 29 or 30 — not the date numbering, which runs 1-30
+  readonly firstDay: Temporal.PlainDate;
+  readonly lastDay: Temporal.PlainDate;
 }
 
 interface TibetanMonthFields {

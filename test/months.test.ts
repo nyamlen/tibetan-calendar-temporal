@@ -16,6 +16,7 @@ import {
 	monthsInYear,
 	resolveMonth,
 } from "../src/months.js";
+import { addMonths } from "../src/navigation.js";
 import { PHUGPA, PHUGPA_HENNING } from "../src/traditions/phugpa.js";
 import type { TibetanMonth } from "../src/types.js";
 
@@ -571,5 +572,58 @@ describe("resolveMonth", () => {
 	it("carries the same guards daysInMonth does", () => {
 		expect(codeOf(() => resolveMonth({ year: 2151, month: 13 }))).toBe("TCT_FIELD_OUT_OF_RANGE");
 		expect(codeOf(() => resolveMonth({ year: 1.5, month: 1 }))).toBe("TCT_FIELD_OUT_OF_RANGE");
+	});
+});
+
+describe("every TibetanMonth is frozen", () => {
+	const writeDays = (m: TibetanMonth) => () => {
+		(m as { days: number }).days = 999;
+	};
+
+	it("monthsFor's entries refuse a write, on a miss and on a hit", () => {
+		const miss = monthsFor(2153, { ...PHUGPA });
+		expect(writeDays(at(miss, 0))).toThrow(TypeError);
+		const hit = monthsFor(2153, { ...PHUGPA });
+		expect(writeDays(at(hit, 0))).toThrow(TypeError);
+	});
+
+	it("the nested yearName refuses a write too", () => {
+		const m = at(monthsFor(2153), 0);
+		expect(() => {
+			(m.yearName as { element: string }).element = "bogus";
+		}).toThrow(TypeError);
+	});
+
+	it("resolveMonth and addMonths return frozen months", () => {
+		const resolved = resolveMonth({ year: 2153, month: 1 });
+		expect(writeDays(resolved)).toThrow(TypeError);
+		expect(writeDays(addMonths(resolved, 1))).toThrow(TypeError);
+	});
+
+	it("the array is still fresh, so one caller's sort cannot reach another", () => {
+		const a = monthsFor(2153);
+		a.reverse();
+		expect(at(monthsFor(2153), 0).month).toBe(1);
+	});
+});
+
+describe("the monthsFor cache holds at most 64 years per config", () => {
+	it("the least recently used year comes back as new objects after 64 others", () => {
+		const config = { ...PHUGPA };
+		const first = at(monthsFor(2100, config), 0);
+		expect(at(monthsFor(2100, config), 0)).toBe(first);
+		for (let year = 2101; year <= 2164; year++) monthsFor(year, config);
+		expect(at(monthsFor(2100, config), 0)).not.toBe(first);
+	});
+
+	it("a year touched again is kept, and the next oldest is evicted instead", () => {
+		const config = { ...PHUGPA };
+		const first = at(monthsFor(2100, config), 0);
+		const second = at(monthsFor(2101, config), 0);
+		for (let year = 2102; year <= 2163; year++) monthsFor(year, config);
+		expect(at(monthsFor(2100, config), 0)).toBe(first);
+		monthsFor(2164, config);
+		expect(at(monthsFor(2101, config), 0)).not.toBe(second);
+		expect(at(monthsFor(2100, config), 0)).toBe(first);
 	});
 });

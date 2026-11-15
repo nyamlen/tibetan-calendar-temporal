@@ -605,7 +605,7 @@ export interface TibetanMonth {
 	 * Tibetan years straddle two ISO years, opening in February or early March, so this is not
 	 * recoverable from {@link TibetanMonth.firstDay} without redoing the conversion.
 	 */
-	year: number;
+	readonly year: number;
 
 	/**
 	 * The month's identity as a single sortable integer — its **database key, cache key or array
@@ -633,7 +633,7 @@ export interface TibetanMonth {
 	 * Zero is the epoch, so values are large and negative before it. Do not read it as a month
 	 * number.
 	 */
-	lunation: number;
+	readonly lunation: number;
 
 	/**
 	 * The element–animal name of the year this month belongs to.
@@ -650,7 +650,7 @@ export interface TibetanMonth {
 	 *
 	 * Both halves of a leap pair carry the same name — they are two months of one year.
 	 */
-	yearName: TibetanYearName;
+	readonly yearName: TibetanYearName;
 
 	/**
 	 * Month number, 1–12.
@@ -659,16 +659,16 @@ export interface TibetanMonth {
 	 * A leap month shares its number with an adjacent month, so in a leap year this appears twice.
 	 * Which of the two is the leap month depends on the tradition; do not assume an order.
 	 */
-	month: number;
+	readonly month: number;
 
 	/**
 	 * The month as a Temporal-style code: `"M01"` through `"M12"`, with an `L` suffix for a leap
 	 * month. Unique within the year, unlike {@link TibetanMonth.month}.
 	 */
-	monthCode: string;
+	readonly monthCode: string;
 
 	/** Whether this is the leap month of the two sharing this number — not necessarily the first. */
-	isLeapMonth: boolean;
+	readonly isLeapMonth: boolean;
 
 	/**
 	 * How many **calendar days** this month spans: 29 or 30.
@@ -676,7 +676,7 @@ export interface TibetanMonth {
 	 * @remarks
 	 * Not the highest date number, which is always 30. See the remarks on {@link TibetanMonth}.
 	 */
-	days: number;
+	readonly days: number;
 
 	/**
 	 * The Western calendar day this month begins on.
@@ -686,10 +686,10 @@ export interface TibetanMonth {
 	 * may be skipped or doubled. Janson §8 notes that evaluating it directly is the source of errors
 	 * in published tables.
 	 */
-	firstDay: Temporal.PlainDate;
+	readonly firstDay: Temporal.PlainDate;
 
 	/** The Western calendar day this month ends on. */
-	lastDay: Temporal.PlainDate;
+	readonly lastDay: Temporal.PlainDate;
 }
 
 /**

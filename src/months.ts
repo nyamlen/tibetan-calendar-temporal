@@ -43,6 +43,7 @@ import { yearFromRoyalEra, yearNameFromYear } from "./computation/epoch.js";
 import { type ScaledTradition, scalingFor } from "./computation/scaling.js";
 import { assertSafeYear, describe } from "./errors.js";
 import { monthCodeOf } from "./format.js";
+import { deepFreeze } from "./freeze.js";
 import { PHUGPA } from "./traditions/phugpa.js";
 import type { TraditionConfig } from "./traditions/types.js";
 import { assertTraditionConfig } from "./traditions/validate.js";
@@ -118,14 +119,18 @@ export function boundedMonth(
  * is exactly what makes it worth stating.
  *
  * A `WeakMap` on the outside so a caller's throwaway config does not pin its months forever — the
- * same bargain {@link scalingFor} already makes. The inner `Map` is bounded in practice by how many
- * years a consumer asks for, and its entries die with the config.
+ * same bargain {@link scalingFor} already makes. That alone does not bound the shipped configs, which
+ * live as long as the module, so each inner `Map` is also capped at 64 years
+ * and evicts the least recently used. Insertion order is the recency order: a hit deletes and
+ * re-inserts its year.
  *
  * This is memoisation of a **pure** function, so it changes cost and nothing else. It earns its
  * place because stepping a month grid re-derives neighbouring years constantly: advancing twelve
  * months through the obvious consumer-side route costs 24 recomputations of work already done.
  */
-const monthCache = new WeakMap<TraditionConfig, Map<number, TibetanMonth[]>>();
+const monthCache = new WeakMap<TraditionConfig, Map<number, readonly TibetanMonth[]>>();
+
+const MONTH_CACHE_YEARS = 64;
 
 /**
  * Builds the public shape for one month, given its true month count.
@@ -144,7 +149,7 @@ export function describeMonth(
 ): TibetanMonth {
 	const firstJulianDay = firstDayOfMonth(scaled, monthCount);
 	const lastJulianDay = lastDayOfMonth(scaled, monthCount);
-	return {
+	return deepFreeze({
 		year,
 		lunation: monthCount,
 		yearName: yearNameFromYear(yearFromRoyalEra(year)),
@@ -154,7 +159,7 @@ export function describeMonth(
 		days: lastJulianDay - firstJulianDay + 1,
 		firstDay: isoFromJulianDayUnchecked(firstJulianDay),
 		lastDay: isoFromJulianDayUnchecked(lastJulianDay),
-	};
+	});
 }
 
 /**
@@ -191,12 +196,16 @@ export function describeMonth(
  * ```
  */
 export function monthsFor(year: number, tradition: TraditionConfig = PHUGPA): TibetanMonth[] {
-	const cached = monthCache.get(tradition)?.get(year);
+	const cachedYears = monthCache.get(tradition);
+	const cached = cachedYears?.get(year);
 	// A fresh array every call, deliberately: the cache holds the computed months, but handing the
 	// same array to two callers lets one caller's `sort()` or `splice()` corrupt the other's. The
-	// TibetanMonth objects inside are safe to share — nothing in this package mutates them, and a
-	// consumer who does is reaching past a documented shape.
-	if (cached !== undefined) return [...cached];
+	// TibetanMonth objects inside are frozen by `describeMonth`, so sharing them is safe.
+	if (cachedYears !== undefined && cached !== undefined) {
+		cachedYears.delete(year);
+		cachedYears.set(year, cached);
+		return [...cached];
+	}
 
 	const scaled = scalingFor(tradition);
 	const subject = () => `monthsFor(${describe(year)})`;
@@ -239,6 +248,10 @@ export function monthsFor(year: number, tradition: TraditionConfig = PHUGPA): Ti
 		monthCache.set(tradition, byYear);
 	}
 	byYear.set(year, months);
+	if (byYear.size > MONTH_CACHE_YEARS) {
+		const oldest = byYear.keys().next();
+		if (oldest.done !== true) byYear.delete(oldest.value);
+	}
 	return [...months];
 }
 
