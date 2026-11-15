@@ -481,6 +481,26 @@ that its first step is still open.
   *yongdzin* by the nasal policy, and *lo-ngen*, which is no nasal-rule case but a reading ruling.
   *senchang*, *nyönden*, *kündzin*, *künden* and the season months stand as THL gives them, and
   *dongngen* is a plain join left as THL gives it.
+- [ ] **Small findings parked by the phonetics-by-word reviews (2026-11-15).**
+  None blocks 1.0.0; each is a guard or a comment that could be tighter, found by the task reviews
+  and the final review and judged acceptable when the branch merged.
+  - `scripts/evidence/observance-names-verifier/harness.sh`: `ONLY` refuses an unknown run name only
+    after the batch has run.
+  - `scripts/evidence/observance-names-verifier/replay.mjs`: the `record-column` mutant is in
+    `mayLeaveUnchanged`, so a no-op edit is caught only by the message assertion.
+  - `scripts/verify-month-and-yoga-names.mjs` passes the yoga `enumerated` set for every term,
+    months and seasons included; harmless, and scoping it to the yoga ids is tighter.
+  - A `${p.id}: ${p.message}` failure can print an id twice ("position 15: correction for
+    position 15 …"); cosmetic.
+  - The `(?)` refusal lives in `scripts/thl.mjs` and again in the observance verifier, where the
+    copy only stops a double report.
+  - The `wylie:` regex in `test/word-boundaries.test.ts` also matches inside comments; it can only
+    add names, so it fails loudly and never passes silently.
+  - The `CORRECTIONS` comment and its id-existence loop are repeated in three verifiers.
+  - `docs/names/vocabulary.md`'s template hardcodes "none here" for longer names; not a count, but
+    it goes stale if a longer term is ever added.
+  - `test/nasal-rulings.test.ts` repeats THL's three nasal rule shapes, so a fourth rule added by
+    THL would go unseen; `docs/names/phonetics.md` says where to re-read them.
 - [x] **Composable/additive `ObservanceConfig`s — decide before 1.0.0, not after.** Today, a
       consumer combining several institutions' rule sets (e.g. `DEFAULT_OBSERVANCES` plus a `TEACHERS` and a
       `TANTRA` config) hand-rolls
