@@ -503,6 +503,8 @@ derivation; in `docs/` they are just noise.
   enforced by `check:conventions`, which requires a suite in `test/validation/` to **import** the
   config. Naming it in a comment or a `describe` title does not count — that grep-shaped version of
   the rule stayed green when a suite's assertions were deleted and its prose left behind.
+  A config's docblock says what was checked **for that config**: `BHUTAN` is checked against 25
+  government-published days and has no sweep, while the day-by-day sweep validates `BHUTAN_HENNING`.
   Expressing a tradition, validating its leap months and validating
   its dates are three claims, not one: **Tsurphu and the Mongolian version are fully expressible and
   their leap months are checked against Janson, and both stay unexported**, because nothing checks a

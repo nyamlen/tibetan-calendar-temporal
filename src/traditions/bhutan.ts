@@ -30,9 +30,12 @@ import type { TraditionConfig } from "./types.js";
  * The Bhutanese configuration, epoch JD 2361807 — Monday, 22 April 1754.
  *
  * @remarks
- * Validated day by day against Bhutanese calendar data for 2000–2030: every day number, month
- * number, leap month, doubled day and skipped day. See `docs/testing.md` for the window and what it
- * does and does not cover.
+ * **Not swept day by day.** What is checked is 25 days of the Royal Government of Bhutan's own
+ * published calendar, in 2025 and 2026 — day numbers, three skipped days, two doubled days and
+ * Losar — plus Bhutan's leap months against Janson's table. The day-by-day sweep, 11,050 days
+ * against Henning's lineage, validates {@link BHUTAN_HENNING} and not this config: the two differ
+ * on three days inside it. See `docs/testing.md` for the windows and what each does and does not
+ * cover.
  *
  * **A disagreement this does not resolve.** Janson records that Bhutan's *government calendar* gives
  * New Year 2003 as 3 March, with day 1 of month 1 repeated, while his own calculations and Henning's

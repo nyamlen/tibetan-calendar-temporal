@@ -2085,8 +2085,9 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
   **Closed, and the way it closed is worth keeping.** This entry read "Still open for Bhutan: a
   runnable config — `m₀`, `s₀` and `a₀` remain unreconciled, so no day-level Bhutanese date is
   claimed and `BHUTAN` is not exported" until 2026-08-21, by which time every clause of it was
-  false. `BHUTAN` and `BHUTAN_HENNING` are both exported and deeply frozen, and the config is
-  validated day by day against Bhutanese calendar data for 2000–2030 — see
+  false. `BHUTAN` and `BHUTAN_HENNING` are both exported and deeply frozen, and `BHUTAN_HENNING` is
+  validated day by day against Bhutanese calendar data for 2000–2030, where `BHUTAN` is checked
+  against twenty-five government-published days only — see
   [../src/traditions/bhutan.ts](../src/traditions/bhutan.ts) and
   [testing.md](testing.md) for the window.
 

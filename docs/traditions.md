@@ -3,7 +3,10 @@
 **Status: reference, not shipped data.** Nothing in `src/` or `test/` reads this file.
 
 **Exported means day-by-day validated.** `PHUGPA`, `PHUGPA_HENNING`, `BHUTAN` and `BHUTAN_HENNING`
-are exported because each has been tiled against an external calendar day by day. Tsurphu and the
+are exported because each is checked against an external calendar. `PHUGPA`, `PHUGPA_HENNING` and
+`BHUTAN_HENNING` have been tiled day by day; `BHUTAN` has not, and rests on twenty-five days of the
+Royal Government's own calendar — see
+[the decision record](decisions/2026-08-16-exported-means-validated.md). Tsurphu and the
 Mongolian version are documented here and *not* exported, and the difference is evidence rather than
 effort: their leap months are validated against Janson, their dates against nothing. That is the
 rule, not an accident of what got written first — see "Why there are no drop-in configs here".

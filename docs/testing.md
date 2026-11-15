@@ -330,6 +330,9 @@ The last row is the exception, and it is why it exists. `test/fixtures/rgob.ts` 
 Government's own published calendar, so it is the only non-Henning check on Bhutanese day numbers
 here. Twenty-five rows against eleven thousand — breadth is not the contribution, independence is — and
 it deliberately includes Losar and a **skipped day**, which a wrong epoch would not survive.
+These twenty-five days, in `test/validation/rgob.test.ts`, are **all the external evidence the
+default `BHUTAN` has**: there is no day-by-day sweep of it, because the sweep validates
+`BHUTAN_HENNING` alone.
 
 It also bears on Janson's unexplained 2003 divergence between Bhutan's government calendar and the
 computed line: nothing in 2026 reproduces it. State that as "isolated on this evidence", not as

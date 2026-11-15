@@ -174,8 +174,9 @@ Bhutanese calendar for 2001, 2004 or 2020 — from an archive, a library, a mona
 kept one — resolves the question now. The Ministry's website does not go back that far and the Wayback
 Machine has nothing, so this is a paper-archive question rather than a web one.
 
-Note what this does *not* undermine: everything except `a₂` is validated for Bhutan, including against
-the government's own calendar. The open question is a choice between two values that differ on about
+Note what this does *not* undermine: everything except `a₂` is validated for Bhutan, over Henning's
+lineage by `BHUTAN_HENNING`'s day-by-day sweep and over the government's own calendar by `BHUTAN`'s
+twenty-five days. The open question is a choice between two values that differ on about
 one day in 4,100, and `BHUTAN` resolves it the same way Phugpa's evidence does — toward almanac
 practice.
 
@@ -268,8 +269,8 @@ reproduces Janson's Mongolian leap months for **all 12** of the years in
 faithful implementation and a fixture could be generated from it exactly as
 `crosscheck-eszthoff.ts` is. But it is **the same lineage as this engine** — both derive from
 Janson — so agreement would establish that the arithmetic is implemented correctly, not that the
-dates match the calendar Mongolians use. Compare Bhutan, which was exported on one implementation
-lineage **plus** twenty-five days of a government-published almanac.
+dates match the calendar Mongolians use. Compare Bhutan, whose `BHUTAN_HENNING` was exported on one
+implementation lineage and whose `BHUTAN` rests on twenty-five days of a government-published almanac.
 
 So the realistic route to exporting a Mongolian config is: tile against `@hnw/date-tibetan` day by
 day for the arithmetic, **and** find a Mongolian equivalent of `rgob.ts` — a run of officially

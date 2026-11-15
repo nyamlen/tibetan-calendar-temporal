@@ -5,9 +5,16 @@ status: accepted
 
 # A tradition config is exported only when its dates are validated day by day
 
-**Decision:** a `TraditionConfig` reaches `src/index.ts` only once the engine has been tiled against
-an **external** calendar for that tradition, day by day. Expressing a tradition, validating its leap
-months, and validating its dates are three separate claims, and only the third earns an export.
+**Decision:** a `TraditionConfig` reaches `src/index.ts` only once its **dates** have been checked
+against an **external** calendar, and its docblock states exactly what was checked. Expressing a
+tradition, validating its leap months, and validating its dates are three separate claims, and only
+the third earns an export. A day-by-day tiling is the strongest form of the third claim, and a
+config that has it may say "validated day by day". A config that has only a sample of externally
+published days is still exported, but its docblock says it is a sample, names the days, and names the
+config that holds the sweep. `BHUTAN_HENNING` has the sweep: 11,050 days against Henning's lineage in
+`test/validation/bhutan.test.ts`. `BHUTAN` has 25 government-published days in
+`test/validation/rgob.test.ts` and no sweep, and is exported on that. Windows live in
+`docs/testing.md`.
 
 ## Why this is a separate rule from the public-surface record
 
@@ -25,7 +32,8 @@ calendar that is quietly incorrect — the failure this package exists to preven
 | Tradition | Expressible | Leap months validated | Dates validated | Exported |
 |---|---|---|---|---|
 | Phugpa | yes | yes | yes — three implementations + FPMT, 2022–2027 | **yes** |
-| Bhutanese | yes | yes — Janson's table, 2000–2030 | yes — Henning's data, 2000 to early 2030 | **yes** |
+| Bhutanese, `BHUTAN_HENNING` | yes | yes — Janson's table, 2000–2030 | yes — day by day over Henning's data, 2000 to early 2030 | **yes** |
+| Bhutanese, `BHUTAN` | yes | yes — Janson's table, 2000–2030 | sample only — 25 days of the Royal Government's calendar, no sweep | **yes** |
 | Tsurphu | yes | yes — Janson's table, 2000–2030 | **no** | no |
 | Mongolian | yes | yes — Janson's table, 2000–2030 | **no** | no |
 

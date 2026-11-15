@@ -315,7 +315,7 @@ computes from each tradition's own constants.
 
 **Bhutan is an open gap.**
 Janson gives month-animal lists for Phugpa and Tsurphu and **none for Bhutan**, even though
-`BHUTAN` and `BHUTAN_HENNING` are both exported, validated configs.
+`BHUTAN` and `BHUTAN_HENNING` are both exported configs.
 A search for a published Bhutanese month attribution found nothing usable.
 The Royal Government's calendars, read page by page, print no month animal, and Henning's Bhutanese
 calendar files apply Phugpa's rules through code shared with his Tibetan program, so they are his
