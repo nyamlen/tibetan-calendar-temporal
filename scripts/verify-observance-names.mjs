@@ -430,15 +430,12 @@ const INDEX = {
 	"dung dkar tshig mdzod chen mo": indexEntries(dungText),
 };
 /**
- * The headword sets check 5 may test a marked word against: exactly what check 3 accepts as a witness —
- * the Mahāvyutpatti, the two Tibetan–Tibetan dictionaries (gate only) and the Jäschke pages read from
- * their images. The Jäschke and Das **indexes** are deliberately absent: they list headwords their
- * books do not print.
+ * The headword sets check 5 may test a marked word against: the one gate every verifier shares — the
+ * Mahāvyutpatti and the two Tibetan–Tibetan dictionaries (gate only). The Jäschke pages read and the
+ * Jäschke and Das **indexes** are deliberately absent: a page read is a witness for a term, not a
+ * headword set, and the indexes list headwords their books do not print.
  */
-const GATE = gateSets(
-	{ mvy: mvyText, tshig: tshigText, dung: dungText },
-	{ "Jäschke 1881 (a page read)": JAESCHKE_READ.flatMap((r) => r.forms) },
-);
+const GATE = gateSets({ mvy: mvyText, tshig: tshigText, dung: dungText });
 
 /** Where the aggregate's index puts a headword, as a printed page; Jäschke's leaf is the page + 26. */
 function indexedPage(dictionary, headword) {
