@@ -9,7 +9,7 @@ this file.
 |---|---|---|
 | Wylie | Janson's day-of-week table and his ten- and twelve-year cycle tables | **Sourced**, extracted mechanically |
 | Tibetan | `jsewts` and `tibetan-ewts-converter`, required to agree | **Derived**, by two independent implementations |
-| Phonetic | THL Simplified Phonetic Transcription, from THL's own converter | **Sourced** |
+| Phonetic | THL Simplified Phonetic Transcription, from THL's own converter in its "Words separated by" mode: a two-syllable name is one word and is joined, longer names per `scripts/word-boundaries.data.json` (none here) | **Sourced** |
 | Planet, element, English | Janson's day-of-week table | **Sourced** |
 
 ## What each row survived
@@ -34,13 +34,13 @@ as it previously did, into a docblock, unnoticed for three phases.
 
 | # | Tibetan | Wylie | THL phonetic |
 |---|---|---|---|
-| `0` | སྤེན་པ | `spen pa` | *pen pa* |
-| `1` | ཉི་མ | `nyi ma` | *nyi ma* |
-| `2` | ཟླ་བ | `zla ba` | *da ba* |
-| `3` | མིག་དམར | `mig dmar` | *mik mar* |
-| `4` | ལྷག་པ | `lhag pa` | *lhak pa* |
-| `5` | ཕུར་བུ | `phur bu` | *pur bu* |
-| `6` | པ་སངས | `pa sangs` | *pa sang* |
+| `0` | སྤེན་པ | `spen pa` | *penpa* |
+| `1` | ཉི་མ | `nyi ma` | *nyima* |
+| `2` | ཟླ་བ | `zla ba` | *dawa* |
+| `3` | མིག་དམར | `mig dmar` | *mikmar* |
+| `4` | ལྷག་པ | `lhag pa` | *lhakpa* |
+| `5` | ཕུར་བུ | `phur bu` | *purbu* |
+| `6` | པ་སངས | `pa sangs` | *pasang* |
 
 ## Elements
 
@@ -63,7 +63,7 @@ as it previously did, into a docblock, unnoticed for three phases.
 
 | Animal | Tibetan | Wylie | THL phonetic |
 |---|---|---|---|
-| `mouse` | བྱི་བ | `byi ba` | *ji ba* |
+| `mouse` | བྱི་བ | `byi ba` | *jiwa* |
 | `ox` | གླང | `glang` | *lang* |
 | `tiger` | སྟག | `stag` | *tak* |
 | `rabbit` | ཡོས | `yos` | *yö* |

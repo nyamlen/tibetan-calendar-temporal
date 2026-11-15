@@ -27,13 +27,13 @@ export interface NameFixtureRow {
 }
 
 export const WEEKDAY_NAMES: readonly NameFixtureRow[] = [
-	{ key: "0", tibetan: "སྤེན་པ", wylie: "spen pa", phonetic: "pen pa" },
-	{ key: "1", tibetan: "ཉི་མ", wylie: "nyi ma", phonetic: "nyi ma" },
-	{ key: "2", tibetan: "ཟླ་བ", wylie: "zla ba", phonetic: "da ba" },
-	{ key: "3", tibetan: "མིག་དམར", wylie: "mig dmar", phonetic: "mik mar" },
-	{ key: "4", tibetan: "ལྷག་པ", wylie: "lhag pa", phonetic: "lhak pa" },
-	{ key: "5", tibetan: "ཕུར་བུ", wylie: "phur bu", phonetic: "pur bu" },
-	{ key: "6", tibetan: "པ་སངས", wylie: "pa sangs", phonetic: "pa sang" },
+	{ key: "0", tibetan: "སྤེན་པ", wylie: "spen pa", phonetic: "penpa" },
+	{ key: "1", tibetan: "ཉི་མ", wylie: "nyi ma", phonetic: "nyima" },
+	{ key: "2", tibetan: "ཟླ་བ", wylie: "zla ba", phonetic: "dawa" },
+	{ key: "3", tibetan: "མིག་དམར", wylie: "mig dmar", phonetic: "mikmar" },
+	{ key: "4", tibetan: "ལྷག་པ", wylie: "lhag pa", phonetic: "lhakpa" },
+	{ key: "5", tibetan: "ཕུར་བུ", wylie: "phur bu", phonetic: "purbu" },
+	{ key: "6", tibetan: "པ་སངས", wylie: "pa sangs", phonetic: "pasang" },
 ];
 
 export const ELEMENT_NAMES: readonly NameFixtureRow[] = [
@@ -50,7 +50,7 @@ export const GENDER_NAMES: readonly NameFixtureRow[] = [
 ];
 
 export const ANIMAL_NAMES: readonly NameFixtureRow[] = [
-	{ key: "mouse", tibetan: "བྱི་བ", wylie: "byi ba", phonetic: "ji ba" },
+	{ key: "mouse", tibetan: "བྱི་བ", wylie: "byi ba", phonetic: "jiwa" },
 	{ key: "ox", tibetan: "གླང", wylie: "glang", phonetic: "lang" },
 	{ key: "tiger", tibetan: "སྟག", wylie: "stag", phonetic: "tak" },
 	{ key: "rabbit", tibetan: "ཡོས", wylie: "yos", phonetic: "yö" },

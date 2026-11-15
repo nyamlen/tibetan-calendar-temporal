@@ -35,8 +35,10 @@ repeated 354 or 384 times. Measured on `JSON.stringify`, ordinary year 2153:
 | `weekdayName` | 41,731 (14.2%) | 7 |
 
 Removing both takes a serialised year from **293,009 to 126,629 bytes, −56.8%**, and a
-thirteen-month leap year from 323,576 to 137,336, −57.6%. Both figures are asserted in
-`test/serialisation.test.ts`, which is the only place they are stated as numbers.
+thirteen-month leap year from 323,576 to 137,336, −57.6%. Those are the figures at the time; the
+phonetics moving onto word-separated output took one byte off each day, so the ordinary year is now
+126,275 and the leap year 136,952. The current ordinary-year figure is asserted in
+`test/serialisation.test.ts`, which is the only place a figure is stated as a number.
 
 The redundancy profile is the argument, not the raw percentage. `weekdayName` is 14.2% of a year
 because seven names are amortised across it; `yearName` is 30.9% because **one** name is copied 354

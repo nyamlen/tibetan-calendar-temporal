@@ -818,7 +818,7 @@ for what the cycle is and why two lists exist.
 
 ### The cost of a year
 
-**A year of dates, serialised, is about 127 KB** (354 days, ordinary year 2153) or **137 KB** for a
+**A year of dates, serialised, is about 126 KB** (354 days, ordinary year 2153) or **137 KB** for a
 thirteen-month leap year like 2151 — measured, not assumed, in `test/serialisation.test.ts`.
 
 Those figures used to be 293 KB and 324 KB. **Year-level naming is no longer a field on a date**: the

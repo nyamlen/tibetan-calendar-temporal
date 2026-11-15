@@ -42,7 +42,11 @@
  *    the `bo` locale, ignoring the `གཟའ་` planet prefix. A third lineage, entirely offline, and it
  *    independently confirms `spen pa`.
  *
- * Phonetics come from THL's own converter, which is the standard's publisher.
+ * Phonetics come from THL's own converter, which is the standard's publisher, in its "Words
+ * separated by" mode through `scripts/thl.mjs`. A two-syllable name is one word, so THL joins it
+ * (`spen pa` is *penpa*); a name of three syllables or more needs a ruling in
+ * `scripts/word-boundaries.data.json`, and none of these terms is that long. Each word of a
+ * multi-syllable term must also be a headword in an accepted dictionary, or the run refuses.
  *
  * ## Why this is not on the CI path
  *
@@ -58,6 +62,12 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import {
+	fetchGateSets,
+	loadBoundaries,
+	phoneticsFor,
+	provePredicates as proveThlPredicates,
+} from "./thl.mjs";
 
 const source = process.argv[2];
 if (!source) {
@@ -313,35 +323,24 @@ for (const term of weekdays) {
 // Phonetics, from THL's converter — the publisher of the standard
 // ---------------------------------------------------------------------------------------------
 
-async function phoneticFor(wylie) {
-	const response = await fetch("https://old.thlib.org/cgi-bin/thl/lbow/phonetics.pl", {
-		method: "POST",
-		headers: { "User-Agent": UA, "Content-Type": "application/x-www-form-urlencoded" },
-		body: new URLSearchParams({
-			input: wylie,
-			type: "thl",
-			words: "join",
-			sep_join: "",
-			send: "Make Phonetics",
-		}),
-	});
-	if (!response.ok) throw new Error(`THL returned ${response.status}`);
-	const html = await response.text();
-	// Two textareas: the first echoes the input, the second holds the result.
-	const areas = [...html.matchAll(/<textarea[^>]*>([\s\S]*?)<\/textarea>/g)].map((m) =>
-		m[1].trim(),
-	);
-	return areas[1];
+{
+	const broken = await proveThlPredicates();
+	if (broken.length > 0) {
+		console.error(
+			`the checker itself is broken, so nothing below can be trusted:\n  - ${broken.join("\n  - ")}`,
+		);
+		process.exit(2);
+	}
 }
 
+const { results, problems: thlProblems } = await phoneticsFor(
+	withScript.map((t) => ({ id: `${t.kind} ${t.key}`, wylie: t.wylie })),
+	{ boundaries: loadBoundaries(), gate: await fetchGateSets(), userAgent: UA },
+);
+for (const p of thlProblems) fail(`${p.id}: ${p.message}`);
 for (const term of withScript) {
-	try {
-		term.phonetic = await phoneticFor(term.wylie);
-	} catch (error) {
-		fail(`${term.kind} ${term.key}: THL lookup for "${term.wylie}" failed — ${error.message}`);
-	}
-	if (!term.phonetic)
-		fail(`${term.kind} ${term.key}: THL returned no phonetics for "${term.wylie}"`);
+	const result = results.get(`${term.kind} ${term.key}`);
+	if (result) term.phonetic = result.phonetic;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -438,7 +437,7 @@ this file.
 |---|---|---|
 | Wylie | Janson's day-of-week table and his ten- and twelve-year cycle tables | **Sourced**, extracted mechanically |
 | Tibetan | \`jsewts\` and \`tibetan-ewts-converter\`, required to agree | **Derived**, by two independent implementations |
-| Phonetic | THL Simplified Phonetic Transcription, from THL's own converter | **Sourced** |
+| Phonetic | THL Simplified Phonetic Transcription, from THL's own converter in its "Words separated by" mode: a two-syllable name is one word and is joined, longer names per \`scripts/word-boundaries.data.json\` (none here) | **Sourced** |
 | Planet, element, English | Janson's day-of-week table | **Sourced** |
 
 ## What each row survived

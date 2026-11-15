@@ -24,7 +24,7 @@ import { isoToTibetan, formatTibetanDate, yearNameFor, rabjungFor } from 'tibeta
 const day = isoToTibetan(Temporal.PlainDate.from('2026-08-23'));
 
 formatTibetanDate(day);          // "2153-M07-11"
-day.weekdayName.phonetic;        // "nyi ma"      — Sunday, the sun's day
+day.weekdayName.phonetic;        // "nyima"       — Sunday, the sun's day
 day.isFullMoon;                  // false
 yearNameFor(day.year).element;   // "fire"        — Fire Male Horse year
 rabjungFor(day.year);            // { cycle: 17, year: 40, … }
@@ -218,7 +218,7 @@ The full object:
   "isoDate": "2026-08-12",
   "dayOfWeek": 3,
   "tibetanWeekday": 4,
-  "weekdayName": { "tibetan": "ལྷག་པ", "wylie": "lhag pa", "phonetic": "lhak pa",
+  "weekdayName": { "tibetan": "ལྷག་པ", "wylie": "lhag pa", "phonetic": "lhakpa",
                    "planet": "mercury", "element": "water" },
   "lunation": 15094
 }

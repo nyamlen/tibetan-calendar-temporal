@@ -35,13 +35,13 @@ describe("a year of dates, serialised", () => {
 	it("matches the ordinary-year figure stated in the guide", () => {
 		const { days, bytes } = serialisedYear(2153);
 		expect(days).toBe(354);
-		expect(bytes).toBe(126_629);
+		expect(bytes).toBe(126_275);
 	});
 
 	it("stays under a generous bound even for a thirteen-month leap year", () => {
 		const { days, bytes } = serialisedYear(2151);
 		expect(days).toBe(384);
-		// Measured at 137,336 bytes (~358 bytes/day). The bound is roughly 1.5x that, so it fails
+		// Measured at 136,952 bytes (~357 bytes/day). The bound is roughly 1.5x that, so it fails
 		// only on a real regression -- a name field growing unboundedly, a lost freeze causing a
 		// per-date copy, or year-level naming returning to the date -- not on ordinary content
 		// drift from a table regeneration.
