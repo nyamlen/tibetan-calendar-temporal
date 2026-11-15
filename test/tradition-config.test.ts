@@ -5,7 +5,7 @@ import {
 	tibetanDateExists,
 	tibetanToIso,
 } from "../src/computation/conversion.js";
-import { moonEquation } from "../src/computation/corrections.js";
+import { moonEquation, sunEquation } from "../src/computation/corrections.js";
 import { deriveScaling } from "../src/computation/scaling.js";
 import { EXAMPLE_OBSERVANCES, getObservances } from "../src/observances/index.js";
 import { BHUTAN, BHUTAN_HENNING } from "../src/traditions/bhutan.js";
@@ -587,6 +587,16 @@ describe("denominator independence", () => {
 		expect(thrownBy(() => isoToTibetan(iso("2026-01-01"), broken({ meanSun })))?.message).toContain(
 			"meanSun",
 		);
+	});
+
+	// By hand, lunar day 5 of month count 3: mean sun = 3/8 + 5/8 + 1/8 = 9/8 circles, the solar anomaly
+	// is 9/8 − 1/4 = 7/8, and the sun table's argument is 12 · 7/8 = 10.5. sun_tab(10) = −sun_tab(2) =
+	// −10 and sun_tab(11) = −sun_tab(1) = −6, so halfway between them the equation is −8.
+	it("reads the sun table at 12 times the solar anomaly", () => {
+		for (const config of [lowestTerms, multiples]) {
+			const scaled = deriveScaling(config);
+			expect(sunEquation(scaled, 5, 3) / scaled.sunTabArgDen).toBe(-8);
+		}
 	});
 
 	it("reads the moon table at 28 times the anomaly", () => {
