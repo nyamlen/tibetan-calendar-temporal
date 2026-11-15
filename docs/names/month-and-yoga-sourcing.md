@@ -28,7 +28,7 @@ So existence is attested by dictionaries instead, read for sense, with the publi
 
 The **script** checks carry over unchanged and every chosen form passes them: two EWTS converters (`jsewts` and `tibetan-ewts-converter`) produce identical script, the script converts back to the Wylie it came from, and it contains no discouraged vowel sign.
 **Phonetics** come from THL's own converter in its "Words separated by" mode, as for the shipped vocabulary: a two-syllable name is one word, a longer name is split by the ruled markings in `scripts/word-boundaries.data.json`, and the words are gated against the dictionaries.
-Two corrections of THL's output, ruled by Andreas on 2026-11-15, apply here: `'phel 'gyur` is *peln-gyur* (the hyphen separates the *n* from the *g* because the sound is not *ng*) and `stobs ldan` is *topden*; each is carried as self-invalidating data in the verifier, and the fixture keeps THL's own value beside it.
+Three corrections of THL's output, ruled by Andreas on 2026-11-15, apply here: `mi mthun` is *mintün*, `'phel 'gyur` is *peln-gyur* (the hyphen separates the *n* from the *g* because the sound is not *ng*) and `stobs ldan` is *topden*; each is carried as self-invalidating data in the verifier, and the fixture keeps THL's own value beside it.
 
 ## Sources, and what each is trusted for
 

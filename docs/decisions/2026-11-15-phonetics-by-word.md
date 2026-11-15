@@ -27,6 +27,9 @@ The method is in [docs/names/phonetics.md](../names/phonetics.md).
   THL's output depends on its `middle_nasals` option, which its web form does not expose and which is on by default.
   `test/nasal-rulings.test.ts` fails for a shipped name with a junction and no row in `scripts/nasal-rulings.data.json`, for a row naming no such junction, and for a shipped value that differs from the ruling.
   The three rules and the policy applied to them are in [docs/names/phonetics.md](../names/phonetics.md).
+- **A silent final is replaced by THL's `n` as THL gives it; a pronounced or nasal final is kept.**
+  *chönkhor*, *dünjom* and *senchang* stand as THL gives them, and *peln-gyur*, *topden*, *namgyur*, *namchang* and *yongdzin* keep the final THL would replace.
+  There are eleven corrections of THL's output in all, each carried in its verifier.
 - **Run the five name verifiers one at a time.**
   They share THL's converter, which answers with transient 503s when they run in parallel.
 
@@ -41,4 +44,4 @@ Changing a ruled boundary or a correction later is a change to shipped strings, 
 `test/word-boundaries.test.ts` holds the boundary file against `src/`: a name of three or more syllables without a row, a row naming no shipped name, a marking that does not unmark to its Wylie, and the pinned exception rows and ruling dates.
 `test/nasal-rulings.test.ts` holds the rulings file as described above.
 Each verifier refuses to write its fixture when a check fails, and an outdated correction fails the same way.
-What no test sees is a fourth nasal rule added by THL: the evidence for the three is in [scripts/evidence/thl-middle-nasals/](../../scripts/evidence/thl-middle-nasals/README.md).
+What no test sees is a fourth nasal rule added by THL: [scripts/evidence/thl-middle-nasals/](../../scripts/evidence/thl-middle-nasals/README.md) says which of THL's code the three were read from.

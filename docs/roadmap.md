@@ -460,9 +460,10 @@ that its first step is still open.
   `gateException` (five rows, plus *gso thub*).
   `test/word-boundaries.test.ts` holds `src/` to the boundary file offline, so a new longer name
   without a row fails in CI.
-  **Eight shipped phonetics are Andreas' corrections of THL's output**, each carried as
+  **Eleven shipped phonetics are Andreas' corrections of THL's output**, each carried as
   self-invalidating data beside THL's own value: *karmapa* and *pandita* (2026-11-11), and
-  *lhantsam*, *mintün*, *peln-gyur*, *topden*, *khyunchok* and *lo-ngen* (2026-11-15).
+  *lhantsam*, *mintün*, *peln-gyur*, *topden*, *khyunchok*, *lo-ngen*, *namgyur*, *namchang* and
+  *yongdzin* (2026-11-15).
   The converter's four word modes, checked 2026-11-11: "Use built-in word list" (`auto`, partial:
   "sa ga dawa"), "Handle each syllable separately" (`none`), "Syllables in a word joined by"
   (`join`, which needs a marker inside words), and "Words separated by" (`sep`), which gives
@@ -474,9 +475,12 @@ that its first step is still open.
   per syllable ("sa-ga-da-ba") does not mark a word.
   It was a one-way door at 1.0.0 and surface-wide, so the fourteen observance names went first
   (2026-11-11) and the rest followed, leaving no inconsistency to ship.
-  The seven rabjung phonetics where THL's joined output shows nasal assimilation were ruled on
-  2026-11-15 (the nasal policy): *khyumchok* became *khyunchok* and *longen* became *lo-ngen*, and
-  *nangyur*, *senchang*, *nanchang*, *dongngen* and *yondzin* stand as THL gives them.
+  `scripts/nasal-rulings.data.json` is the table of record for the 28 shipped names that meet one of
+  THL's three nasal rules.
+  Of the rabjung names Andreas corrected five on 2026-11-15: *khyunchok*, *namgyur*, *namchang* and
+  *yongdzin* by the nasal policy, and *lo-ngen*, which is no nasal-rule case but a reading ruling.
+  *senchang*, *nyönden*, *kündzin*, *künden* and the season months stand as THL gives them, and
+  *dongngen* is a plain join left as THL gives it.
 - [x] **Composable/additive `ObservanceConfig`s — decide before 1.0.0, not after.** Today, a
       consumer combining several institutions' rule sets (e.g. `DEFAULT_OBSERVANCES` plus a `TEACHERS` and a
       `TANTRA` config) hand-rolls

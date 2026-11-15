@@ -147,7 +147,7 @@ a calendar that runs and is wrong. His six-decimal column is the guard against t
 parses the LaTeX; the three `crosscheck-*.ts` **data** files come from their own
 `scripts/fetch-*-fixtures.mjs` — `crosscheck-row.ts` is not one of them, and is covered below;
 `names.ts` from `scripts/verify-name-sources.mjs` — the name fixtures come from the five
-`verify:*-names` scripts, which share `scripts/thl.mjs` for phonetics; `bhutan.ts` from
+name verifiers (`verify:names` and the four `verify:*-names` scripts), which share `scripts/thl.mjs` for phonetics; `bhutan.ts` from
 `scripts/fetch-bhutan-fixtures.mjs`. Re-run those rather than editing the output. Hand-copying 120 dates is how a silent one-day error reaches the primary
 correctness gate — and an early draft of `docs/testing.md` did exactly that, dating Losar 2026 to
 17 February instead of 18.
@@ -903,7 +903,7 @@ to assert on. Give a one-off check a case whose answer you already know before y
 whose answers you do not.
 
 **A probe that predicts a check must use the same dictionaries as the check.** A probe that counted
-the Jäschke and Das indexes found 3 failing words where the real gate, which excludes them, found 7,
+the Jäschke and Das indexes found 3 failing words where the gate's dictionary arm, which excludes them, found 7,
 each counted once per name: the extra sources admitted four word-in-name cases the gate refuses, and
 the probe's reassurance was about a gate that does not exist.
 
@@ -993,7 +993,7 @@ their committed output, `test/fixtures/names.ts`, `test/fixtures/rabjung-names.t
 `test/fixtures/trigram-names.ts` and `test/fixtures/observance-names.ts`, which the suite reads.
 **Run Biome on the last five after every run**, for the same reason as below.
 
-**Run the five `verify:*-names` scripts one at a time.** They share THL's converter, and it answers
+**Run the five name verifiers (`verify:names` and the four `verify:*-names` scripts) one at a time.** They share THL's converter, and it answers
 with transient 503s when they run in parallel, which reads as a source that moved. A run that fails on
 a 503 says nothing about the names: run it again alone.
 
@@ -1074,15 +1074,15 @@ presence of an entry (9 युव, the dual pronoun, → युवन्; 56 द
 typo the source contradicts itself about (57 रूधिर → रुधिर), and an entry that is a bare stub where a
 near neighbour is glossed (58 रक्ताक्षि → रक्ताक्ष). Do not patch a name by editing the output.
 
-The phonetics carry eight more, each Andreas' correction of THL's output, held as self-invalidating data
+The phonetics carry eleven more, each Andreas' correction of THL's output, held as self-invalidating data
 with `thlPhonetic` and `phoneticCorrected: true` in the fixture: *karmapa* and *pandita* in the
 observance names, *lhantsam* in the mansion names, *mintün*, *peln-gyur* and *topden* in the
-month-and-yoga names, and *khyunchok* and *lo-ngen* in the rabjung names (the hyphen in *peln-gyur* is
-deliberate). Every multi-syllable phonetic is THL's "Words separated by" output through
+month-and-yoga names, and *khyunchok*, *namgyur*, *namchang*, *yongdzin* and *lo-ngen* in the rabjung
+names (the hyphen in *peln-gyur* is deliberate). Every multi-syllable phonetic is THL's "Words separated by" output through
 `scripts/thl.mjs`, a longer name split by `scripts/word-boundaries.data.json`. THL's nasal rules are
 held by a policy and a ruling per name: an `m` prefix assimilates (P1), a pronounced final plus an added
-`n` before `g` is hyphenated while THL's *n* stands where it is the *ng* sound (P2), and a silent final
-may be replaced by THL's `n` while a pronounced one is kept (P3), in `docs/names/phonetics.md`.
+`n` before `g` is hyphenated (P2), and a silent final is replaced by THL's `n` as THL gives it while a
+pronounced or nasal final is kept (P3), in `docs/names/phonetics.md`.
 
 **THL's output depends on a default option its web form hides, so the generation instrument is part of
 the claim.** `middle_nasals` is on in THL's scheme and off in the Padmakara and Rigpa schemes, and the
