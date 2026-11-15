@@ -6,10 +6,11 @@ It proves that each check of the verifier fails, with its own message, when its 
 ## What is here
 
 - `harness.sh` — the runner.
-  It copies the shipped verifier, its two readers and the Rigpa data file into a scratch tree with its own `test/fixtures/`, runs an unmutated **control**, fourteen **mutants**, and the control again.
-  It refuses to start if the scratch copy differs from the repository's file, and it never writes into the repository.
+  It copies the shipped verifier, its two readers, the shared THL module (`scripts/thl.mjs`), the boundary file (`scripts/word-boundaries.data.json`) and the Rigpa data file into a scratch tree with its own `test/fixtures/`, runs an unmutated **control**, seventeen **mutants**, and the control again.
+  It refuses to start if a scratch copy differs from the repository's file, and it never writes into the repository.
+  `ONLY="control name name ..." bash harness.sh` runs just the named runs, to fit a batch under a tool's time limit.
 - `replay.mjs` — a `node --import` preload that replaces `globalThis.fetch` and serves recorded responses, applying one edit per mutant (some mutants edit two or three responses of one name).
-  It wraps the `jsewts` converter for the two converter mutants and `fs.readFileSync` for the two mutants of the Rigpa data file, which the verifier reads from disk.
+  It wraps the `jsewts` converter for the two converter mutants and `fs.readFileSync` for the two mutants of the Rigpa data file and the one of the boundary file, which the verifier reads from disk.
   A mutant whose edit changes nothing aborts the run, so a mutant cannot pass by doing nothing.
 - `record.mjs` — the preload that records the responses during a real run of the verifier.
   It stores the two copyrighted dictionaries (`25-tshig-mdzod-chen-mo-Tib`, `34-dung-dkar-tshig-mdzod-chen-mo-Tib`) as headwords only, because the project may gate on those dictionaries and never store their text.
@@ -28,14 +29,17 @@ It proves that each check of the verifier fails, with its own message, when its 
 3. `node check-recording.mjs $CONV/recorded`.
    If it names a changed response, a source has moved since that run, and a mutant that edits that response may abort with "changes nothing" instead of failing for its reason.
 4. `CONV=$CONV bash harness.sh` (Git Bash on Windows).
-   About eight minutes: each run loads about 17 MB of dictionary text and runs the verifier's own predicate proofs first.
-5. Expect `pass 16 fail 0` (two controls and fourteen mutants).
+   About ten minutes: each run loads about 17 MB of dictionary text and runs the verifier's own predicate proofs first.
+   If a tool limits a call to ten minutes, run it in two batches with `ONLY`; each batch then reports its own control.
+5. Expect `pass 19 fail 0` (two controls and seventeen mutants).
 
 ## The baseline
 
 The control writes a raw fixture, `$CONV/out/control-fixture-raw.ts`.
 To compare it with the committed `test/fixtures/observance-names.ts`: copy it to a file **inside the repository**, run `npx biome check --write` on that file, `cmp` it with the committed fixture, and delete it.
 **Do not use `biome format --stdin-file-path`**: on the machine this was written on, it strips Tibetan combining marks, and the output differs from the fixture.
+The only line that differs is the header's `GENERATED … on <date>` stamp.
+The verifier's move onto `scripts/thl.mjs` on 2026-11-15 was held to that: every field of the fourteen rows was identical to the fixture it replaced, which `marked` and the fourteen phonetics confirm because the boundary file's rows for these names equal the markings the verifier carried before.
 
 ## What it proved
 
@@ -53,8 +57,11 @@ To compare it with the committed `test/fixtures/observance-names.ts`: copy it to
 | `karmapa-google-removed` | 3, `karmapa-16` needs both witnesses | `… not 2 (Lotsawa House)` |
 | `karmapa-lotsawa-removed` | 3, `karmapa-16` needs both witnesses | `… not 2 (Google Books record)` |
 | `wikipedia-one-group` | 3, a Wikipedia title and list item are one group | `… not 2 (Tibetan Wikipedia)` |
-| `check5-index-only` | 5, a marked word needs a headword check 3 accepts | `marked word "bdud 'joms" is part of no headword that check 3 accepts` |
+| `check5-index-only` | 5, a marked word must be an exact headword in a dictionary check 3 accepts | `word "bdud 'joms" of "bdud 'joms-rin po che" is no headword in` |
 | `thl-correction` | 5, a correction self-invalidates | `correction for karmapa-16 is no longer justified` |
+| `record-column` | 5, THL's answer for an unaltered name differs from the record's column | `not the record's` |
+| `boundary-row-missing` | 5, a longer name needs a boundary row (the `"gu ru rin po che"` row is deleted from the scratch copy of the file) | `no boundary row for "gu ru rin po che"` |
+| `gate-exception-stale` | 5, a `gateException` self-invalidates (the *dung dkar* headword *lha babs dus chen* is removed) | `gateException for "lha babs" is no longer justified` |
 
 Every mutant exits non-zero and leaves no fixture; the control exits 0 and writes one, which is how the emit path is proved.
 

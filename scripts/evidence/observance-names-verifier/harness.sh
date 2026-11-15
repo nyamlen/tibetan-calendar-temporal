@@ -12,13 +12,18 @@ REC="${REC:-$CONV/recorded}"
 TREE="$CONV/tree"
 cd "$CONV" || exit 2
 rm -rf "$TREE"; mkdir -p "$TREE/scripts" "$TREE/test/fixtures" "$CONV/out"
-for f in verify-observance-names.mjs cologne.mjs tibetan-dictionary.mjs observance-name-rigpa-passages.data.json; do cp "$REPO/scripts/$f" "$TREE/scripts/$f"; done
-# the scratch copy must be the shipped file: a mutant is never written into the repository
-cmp "$REPO/scripts/verify-observance-names.mjs" "$TREE/scripts/verify-observance-names.mjs" || { echo "scratch copy differs"; exit 2; }
+HAVE_THL=0; [ -f "$REPO/scripts/thl.mjs" ] && grep -q "thl.mjs" "$REPO/scripts/verify-observance-names.mjs" && HAVE_THL=1
+FILES="verify-observance-names.mjs cologne.mjs tibetan-dictionary.mjs observance-name-rigpa-passages.data.json"
+[ $HAVE_THL -eq 1 ] && FILES="$FILES thl.mjs word-boundaries.data.json"
+for f in $FILES; do cp "$REPO/scripts/$f" "$TREE/scripts/$f"; done
+# the scratch copies must be the shipped files: a mutant is never written into the repository
+for f in $FILES; do cmp "$REPO/scripts/$f" "$TREE/scripts/$f" || { echo "scratch copy of $f differs"; exit 2; }; done
 FIX="$TREE/test/fixtures/observance-names.ts"
 PRELOAD="file:///$EVID/replay.mjs"
 pass=0; failn=0
 run() { # mutant expected-message
+  # ONLY="control record-column ..." runs just those (a batch under the tool's time limit); unset runs all
+  if [ -n "${ONLY:-}" ] && ! echo " $ONLY " | grep -qF -- " $1 "; then return; fi
   rm -f "$FIX"
   REC_DIR="$REC" MUT="$1" node --import "$PRELOAD" "$TREE/scripts/verify-observance-names.mjs" > "$CONV/out/out-$1.txt" 2>&1
   code=$?
@@ -41,8 +46,11 @@ run rigpa-missing "the Rigpa Wiki witness file is missing or unreadable"
 run karmapa-google-removed "\"rgyal dbang karma pa bcu drug pa\" has 1 independent witness(es) stating that spelling, not 2 (Lotsawa House)"
 run karmapa-lotsawa-removed "\"rgyal dbang karma pa bcu drug pa\" has 1 independent witness(es) stating that spelling, not 2 (Google Books record)"
 run wikipedia-one-group "\"mi la ras pa\" has 1 independent witness(es) stating that spelling, not 2 (Tibetan Wikipedia)"
-run check5-index-only "marked word \"bdud 'joms\" is part of no headword that check 3 accepts"
+run check5-index-only "word \"bdud 'joms\" of \"bdud 'joms-rin po che\" is no headword in"
 run thl-correction "correction for karmapa-16 is no longer justified"
+run record-column "not the record's"
+run boundary-row-missing "no boundary row for \"gu ru rin po che\""
+run gate-exception-stale "gateException for \"lha babs\" is no longer justified"
 run control
 echo "pass $pass fail $failn"
 echo "baseline: copy $CONV/out/control-fixture-raw.ts to a file inside the repo, run biome check --write on it, cmp with test/fixtures/observance-names.ts (never biome --stdin-file-path)"
