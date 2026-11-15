@@ -490,6 +490,19 @@ that its first step is still open.
   *yongdzin* by the nasal policy, and *lo-ngen*, which is no nasal-rule case but a reading ruling.
   *senchang*, *nyönden*, *kündzin*, *künden* and the season months stand as THL gives them, and
   *dongngen* is a plain join left as THL gives it.
+- [ ] **Small findings parked by the pre-1.0.0 code review (2026-11-15).**
+  Each scored below 80 by an independent scorer and was not taken; the full text is in the review's
+  plans, not in this repository.
+  - The year functions `hasLeapMonth`, `leapMonthNumberFor` and `monthsInYear` check the year
+    before the tradition, where `monthsFor` checks the tradition first; no ruled order covers
+    number-only functions.
+  - The `isoToTibetan` search evaluates `trueDate` a little past the exact range's end, where
+    3 of 7 values at the `PHUGPA_HENNING` boundary exceed 2⁵³; no wrong date results.
+  - `scripts/fetch-fpmt-observances.mjs` never checks that a fetched page is the month it asked for.
+  - `scripts/fetch-steinert-fixtures.mjs` checks only the row count, not that dates are consecutive.
+  - `scripts/extract-janson-fixtures.mjs` does not check leap-column cells for shape, or that the
+    Losar years are contiguous.
+  - `scripts/fetch-eszthoff-fixtures.mjs` has no guard against being run from inside the repository.
 - [ ] **Small findings parked by the phonetics-by-word reviews (2026-11-15).**
   None blocks 1.0.0; each is a guard or a comment that could be tighter, found by the task reviews
   and the final review and judged acceptable when the branch merged.
@@ -1488,7 +1501,15 @@ nothing and reports success.
       release branch where the diff is real. `--fix` applies findings to the working tree; take the
       findings first and apply deliberately, since several rules here are intentional and will read
       as defects to a reviewer that has not read CLAUDE.md
-- [ ] **Security review.** State the honest scope first, or the pass will invent findings: zero
+
+      **Reviewed 2026-11-15 at `34b8ab4`; fixes outstanding.** Run as twelve sharded Opus and Sonnet
+      reviews rather than `/code-review`, then scored by independent agents: 57 findings, 47 kept.
+      The fixes go on one branch, reviewed by the one free ultrareview before merging; the false
+      docblocks among them go to the docblock audit. The item closes when the fixes merge.
+- [ ] **Security review.** **Run 2026-11-15 at `34b8ab4`:** no high findings. Two medium — the
+      `monthsFor` cache grows without bound on the shipped configs, and the CI-token item was stale
+      (rewritten under Publishing) — and one low, action pinning by tag. The cache cap goes on the
+      code-review fixes branch. Still open: `/security-review` on the release branch's diff. State the honest scope first, or the pass will invent findings: zero
       runtime dependencies, no I/O, no network, no filesystem access, no user-supplied strings
       reaching anything but integer arithmetic. The real attack surface is **supply chain and
       release**, most of it already itemised under Publishing — provenance, the lockfile, token
@@ -1517,10 +1538,20 @@ nothing and reports success.
       ownership transfer to an organisation. Team access is the achievable outcome and is
       sufficient — it is what lets CI publish under org-controlled permissions. `npm access
       list collaborators` will not show this; it only lists user-level collaborators
-- [ ] Create a **granular access token** for CI, scoped to this package only, read-write, with
-      an expiry. npm tokens are always issued by a *user*, never by an org — create it as an
-      account with write access. Store it as a GitHub **organisation-level** secret so sibling
-      packages can reuse it
+- [ ] **Configure npm trusted publishing** for this package on npmjs.com, naming this repository
+      and `release.yml`. It publishes over OIDC with **no stored token**, and generates provenance
+      automatically — but only for a **public** repository and package, so the repository goes
+      public before the first publish (see Repository below). It needs npm ≥ 11.5.1 and Node ≥ 22.14.
+      Decided 2026-11-15, replacing a stored granular token: the security review found that item
+      contradicted itself (a token scoped to one package cannot serve sibling packages, and an
+      org-level secret exposes a write credential to every repository), and npm now caps write
+      tokens at 90 days and has revoked classic tokens. Verified against
+      [npm's trusted-publishers page](https://docs.npmjs.com/trusted-publishers) and GitHub's
+      changelogs of [2025-11-05](https://github.blog/changelog/2025-11-05-npm-security-update-classic-token-creation-disabled-and-granular-token-changes/)
+      and [2025-12-09](https://github.blog/changelog/2025-12-09-npm-classic-tokens-revoked-session-based-auth-and-cli-token-management-now-available/)
+- [ ] **After the first trusted publish**, set the package's publishing access to "Require
+      two-factor authentication and disallow tokens", which npm's page strongly recommends; trusted
+      publishing keeps working, since it does not use a token
 - [ ] **Re-run the polyfill probe on real devices against the release tarball.** The real Safari
       runs — macOS 17.6 and iOS — were against `5c954b3`, before the Temporal boundary was rewritten;
       everything re-run since was in Node, Chrome and Playwright's WebKit, which has a native
@@ -1555,17 +1586,19 @@ nothing and reports success.
       only building inside `release.yml`: the script protects a local publish too, and the local
       publish is the case with no other guard. Note it also makes `npm pack` slower, which is
       correct — a fast pack of the wrong bytes is the failure being prevented
-- [ ] `.github/workflows/release.yml` publishing on tag, with `permissions: id-token: write`
-      and `actions/setup-node` given `registry-url: 'https://registry.npmjs.org'` — that line
-      generates the `.npmrc` that reads `NODE_AUTH_TOKEN`; without it the token is ignored and
-      the publish goes out anonymous
+- [ ] `.github/workflows/release.yml` publishing on tag through trusted publishing, with
+      `permissions: id-token: write` and no token; set up `actions/setup-node` as the workflow
+      example on npm's trusted-publishers page does. Three safeguards from the security review:
+      **pin every action by commit SHA**, with the tag in a trailing comment (CI's own two actions
+      are pinned by tag today); **no `cache: npm`** in the job that publishes; and a **protected
+      environment or protected tags**, because with trusted publishing anyone who can push a release
+      tag can publish
 - [x] Add `"provenance": true` to `publishConfig` rather than passing `--provenance` at the
       call site. Done 2026-11-14. It also makes a local `npm publish` refuse, since provenance
       needs a supported CI, which enforces publishing from CI
 - [ ] Confirm `repository.url` still matches the building repo. Provenance attestation fails if
       they disagree — currently correct, but it would have broken had the repo not been
       transferred to the org before v1
-- [ ] Diarise the token expiry. An expired token breaks releases silently, months later
 - [ ] **TypeDoc will not run under TypeScript 7.** TS 7's npm package does not expose the
       classic compiler API — its main export is a version object, the real API sits behind
       `./unstable/sync`. Every tool built on that API (TypeDoc, API Extractor, ts-morph) is
@@ -1579,11 +1612,14 @@ nothing and reports success.
 `--otp` is not usable. npm falls back to a browser flow: it prints an auth URL and waits at
 `Press ENTER to open in the browser…`. The command does nothing until you press ENTER,
 authenticate, and let it return — it is easy to assume it failed and move on, leaving the
-operation unapplied. CI is unaffected: tokens bypass 2FA entirely.
+operation unapplied. CI is unaffected because trusted publishing uses no token. A granular write
+token would **not** bypass 2FA unless created with npm's "Bypass 2FA" option, which is unchecked by
+default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
 
 **Repository**
 
-- [ ] Make the repository **public**
+- [ ] Make the repository **public** — **before the first 1.0.0 publish**, since npm generates
+      provenance automatically only for a public repository and package
 - [ ] **Resolve the citation trail into `nyamlen` before going public.** Raised 2026-09-20. This
       roadmap cited `nyamlen/spikes/calendar-smoke/` and `nyamlen/spikes/calendar-nav/` **by path**,
       `decisions/2026-08-12-public-surface.md` cites two of that repository's tarballs, and the
