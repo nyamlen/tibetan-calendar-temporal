@@ -2692,7 +2692,7 @@ export const RABJUNG_NAMES: readonly RabjungNameFixtureRow[] = [
 		mwQueriedAs: "राक्षस",
 		mwRung: "as printed",
 		brihatSamhitaPosition: 49,
-		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Edgerton", "Wilson"],
+		corroborators: ["Shabda-Sagara", "Benfey", "Yates", "Edgerton"],
 		csomaTibetan: "རཀྵས",
 		csomaRoman: "Rakshasa",
 		csomaTibetanName: "Srin-bu",
