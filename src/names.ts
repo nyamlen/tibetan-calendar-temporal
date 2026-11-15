@@ -98,7 +98,10 @@ export const NAME_TABLES = freeze({ WEEKDAYS, ELEMENTS, GENDERS, ANIMALS });
  *
  * The offset applies to the **name only**. `tibetanWeekday` is `mod(julianDay + 2, 7)` for every
  * tradition, and the Western weekday is correct in both — which is why the difference is invisible
- * when dates are written in English, as Janson notes.
+ * when dates are written in English, as Janson notes. The `planet` and `element` stay those of the
+ * unshifted weekday: Janson says only that day 0 is *spen pa* in Tibet "but *nyi ma* (really
+ * meaning sun) in Bhutan", never that the planet or element moves. So under Bhutan Saturday is
+ * named *nyi ma* and still reports Saturn and earth — the same element the elemental yoga reads.
  *
  * @param weekday - Tibetan weekday, 0 = Saturday through 6 = Friday.
  * @param offset - Planets to shift the name by: 0 for every Tibetan version, 1 for Bhutan.
@@ -115,11 +118,19 @@ export const NAME_TABLES = freeze({ WEEKDAYS, ELEMENTS, GENDERS, ANIMALS });
  * recurses infinitely rather than failing to typecheck. Renaming removed the last instance of it.
  */
 export function weekdayNameWithOffset(weekday: number, offset: number): TibetanWeekdayName {
-	const index = (((weekday + offset) % 7) + 7) % 7;
-	return assertInternal(
-		WEEKDAYS[index],
-		`weekday index ${index} is forced into 0..6 and WEEKDAYS has seven entries`,
-	);
+	const row = (index: number): TibetanWeekdayName => {
+		const wrapped = ((index % 7) + 7) % 7;
+		return assertInternal(
+			WEEKDAYS[wrapped],
+			`weekday index ${wrapped} is forced into 0..6 and WEEKDAYS has seven entries`,
+		);
+	};
+	const named = row(weekday + offset);
+	const day = row(weekday);
+	if (named === day) return named;
+	// A fresh object per call, unlike the shared frozen rows: the shifted name with the unshifted
+	// planet and element, which is the only reading Janson's Bhutan appendix supports.
+	return Object.freeze({ ...named, planet: day.planet, element: day.element });
 }
 
 export const elementNameOf = (element: TibetanElement): TibetanName => ELEMENTS[element];

@@ -6,7 +6,8 @@ import {
 	tibetanWeekday,
 } from "../src/computation/conversion.js";
 import { rabjungFor, weekdayNameFor, yearNameFor } from "../src/cycles.js";
-import { PHUGPA_HENNING } from "../src/traditions/phugpa.js";
+import { BHUTAN } from "../src/traditions/bhutan.js";
+import { PHUGPA, PHUGPA_HENNING } from "../src/traditions/phugpa.js";
 import { asTibetanWeekday, type TibetanWeekday } from "../src/types.js";
 
 const iso = (s: string) => Temporal.PlainDate.from(s);
@@ -264,5 +265,37 @@ describe("the extreme safe integers", () => {
 			for (let y = 1900; y < 1960 && !differs; y++) differs = names(y) !== names(y + d);
 			expect(differs, `period ${d}`).toBe(true);
 		}
+	});
+});
+
+describe("Bhutan's weekday offset moves the name only", () => {
+	it("keeps the planet and element of the unshifted weekday, on the public function and on a date", () => {
+		const bad: string[] = [];
+		let day = iso("2026-02-09");
+		for (let i = 0; i < 14; i++) {
+			const date = isoToTibetan(day, BHUTAN);
+			const tibetan = weekdayNameFor(date.tibetanWeekday, PHUGPA);
+			const viaFunction = weekdayNameFor(date.tibetanWeekday, BHUTAN);
+			for (const [source, name] of [
+				["weekdayNameFor", viaFunction],
+				["TibetanDate", date.weekdayName],
+			] as const) {
+				if (name.planet !== tibetan.planet || name.element !== tibetan.element) {
+					bad.push(
+						`${day} ${source}: ${name.planet}/${name.element}, Tibet ${tibetan.planet}/${tibetan.element}`,
+					);
+				}
+				if (name.wylie === tibetan.wylie) bad.push(`${day} ${source}: name did not shift`);
+			}
+			day = day.add({ days: 1 });
+		}
+		expect(bad).toEqual([]);
+	});
+
+	it("names Saturday 2026-02-14 nyi ma yet reports Saturn and earth", () => {
+		const date = isoToTibetan(iso("2026-02-14"), BHUTAN);
+		expect(date.weekdayName.wylie).toBe("nyi ma");
+		expect(date.weekdayName.planet).toBe("saturn");
+		expect(date.weekdayName.element).toBe("earth");
 	});
 });

@@ -1071,6 +1071,8 @@ date.weekdayName.phonetic;   // spoken form
 `monthNamesFor` takes one too, for the Tiger month and the leap-month check; `yearNameFor` and
 `rabjungFor` take none. A `TibetanDate` produced with a non-default config already
 carries the shifted name on its `weekdayName` field — you do not need to look it up again.
+The shift moves the name only: the `planet` and `element` stay those of the Tibetan weekday, so a
+Bhutanese Saturday is named *nyi ma* and still reports Saturn and earth.
 
 **What deliberately does not ship:** translations into any other language. The names are the
 calendar's own vocabulary, not user-interface strings, and an application supplying French or
