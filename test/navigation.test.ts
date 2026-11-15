@@ -671,7 +671,7 @@ describe("addMonthsToDate", () => {
 		expect([stepped.year, stepped.month, stepped.day]).toEqual([2154, 8, 2]);
 	});
 
-	it("lands on the first, non-leap half where day 2 is doubled (2104 M01 skips day 1)", () => {
+	it("lands on the non-leap half, the second calendar day, where day 2 is doubled (2104 M01 skips day 1)", () => {
 		for (const day of [1, 2]) {
 			const stepped = addMonthsToDate({ year: 2103, month: 12, day }, 1);
 			expect([stepped.year, stepped.month, stepped.day]).toEqual([2104, 1, 2]);
