@@ -371,9 +371,18 @@ The list is grouped by subject, not by sequence, and one run of items does have 
 1. **`./observances`** — the rule vocabulary, sojong, and the content that ships. **Merged to
    `main` on 2026-11-14** (`0f13d10`; the branch is deleted): it blocked the review passes while its
    content, membership and names could still change, and they have settled.
-2. The four **Review passes** below, in the order given there.
-3. The **`docs/` folder restructure**, last of all — every review before it produces documentation
+2. The **Full code review**, under Review passes below.
+3. The **docblock audit** ("Audit and correct all 300 docblocks"), under the rule in
+   [decisions/2026-11-15-docblocks-are-for-callers.md](decisions/2026-11-15-docblocks-are-for-callers.md).
+   It follows the code review because fixes rewrite docblocks, and auditing first would do those twice.
+   The **Security review** runs alongside the end of the code review: its subject is release
+   configuration, not `src/`.
+4. The **Full adversarial review**, last of the passes, so it sees the final state.
+5. The **`docs/` folder restructure**, last of all — every review before it produces documentation
    edits, and moving files once after they have landed is one link-fixing commit instead of four.
+
+Ordered so on 2026-11-15, when the audit was confirmed as a pass of its own: a code review reports
+a docblock only when it states something false, never for what it should not contain.
 
 This sentence began *"The rabjung name shape settles first"*, which was true when it was written and
 **stale from 2026-08-25**, when that item was ticked — so the stated order opened with a completed
@@ -1020,7 +1029,12 @@ that its first step is still open.
       discharging a `noUncheckedIndexedAccess` widening.
 
 - [ ] **Audit and correct all 300 docblocks against actual behaviour** — see
-      [Phase 4a](#implementation-phases) for the effort estimate. `src/types.ts` (56),
+      [Phase 4a](#implementation-phases) for the effort estimate.
+      **Since 2026-11-15 it also applies a content rule**: a docblock holds what a caller needs, and
+      rationale moves to `//` comments, history to commits —
+      [decisions/2026-11-15-docblocks-are-for-callers.md](decisions/2026-11-15-docblocks-are-for-callers.md).
+      Moving text can exceed the 8,000 changed lines one ultrareview takes, so the audit gets its own
+      branch, separate from the code-review fixes. `src/types.ts` (56),
       `src/computation/calendar.ts` (30), `src/observances/types.ts` (28),
       `src/computation/scaling.ts` (22) and `src/navigation.ts` (16) are the concentrations, across
       22 files in `src/` in total.

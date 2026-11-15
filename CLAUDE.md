@@ -1336,6 +1336,12 @@ over [docs/coding-standards.md](docs/coding-standards.md), fires only on `test/b
 `src/bench/`, named here precisely to say they must *not* exist, and cannot catch the drift this
 file actually suffers — stated counts and rule descriptions, not dead paths.
 
+**A docblock is written for the caller; the reasoning goes in a `//` comment beside the code.**
+`tsc` copies every `/** */` into the shipped `.d.ts` and drops every `//`, so the comment syntax
+decides who reads a sentence. The proofs, bounds and traps this file asks you to record are
+**moved** to `//`, never deleted, and dates and "used to" go in the commit message:
+[docs/decisions/2026-11-15-docblocks-are-for-callers.md](docs/decisions/2026-11-15-docblocks-are-for-callers.md).
+
 **Test files must not export, and a shared helper goes in `test/support/`.** Biome enforces the
 first; the second is what it forces. This is not cosmetic — a test file importing from another
 makes vitest **re-run the imported file's tests** as part of the importer, and a test count that
