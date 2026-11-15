@@ -67,13 +67,17 @@ match on it.
 
 ## An error the caller's own code throws is not this package's to code
 
-Added 2026-09-24. The promise is about errors **this package** throws. When the engine reads an
-argument and the caller's own code throws — a getter, a `Proxy` trap — that error is the caller's,
-and it may propagate unchanged. The README says so beside its code table. Reading a
-`TraditionConfig`, an `ObservanceConfig` or a Tibetan date's fields does not catch it, and should
-not be made to piecemeal: the engine reads a config again after validating it, so a guard around
-the validator would convert some throws and miss the rest, and closing that properly means the
-validator returning a frozen copy of the config.
+Added 2026-09-24, amended 2026-11-15. The promise is about errors **this package** throws. When
+the engine reads an argument and the caller's own code throws — a getter, a `Proxy` trap — that
+error is the caller's, and it may propagate unchanged. The README says so beside its code table.
+Reading a `TraditionConfig`, an `ObservanceConfig` or a Tibetan date's fields does not catch it.
+
+For the two configs, the only reads of the caller's object are the validator's own first read and
+the `structuredClone` that follows it: the engine then reads a private frozen copy and never the
+caller's object again. So a getter or `Proxy` trap that throws surfaces from the **first call** that
+uses the config, uncoded, and there is no later read for it to surface from. Whether the validator
+should code such a throw is open, and it is not decided here. A Tibetan date's fields are still read
+by each export that takes them, so for those the throw can come from any of about seventeen exports.
 
 Three rules follow, each of which was broken before this was written down:
 

@@ -471,8 +471,9 @@ function loadConfig(path: string): ObservanceConfig {
 }
 ```
 
-A config is checked **once per object**, so a later edit in place is not checked again: build a new
-object rather than changing a loaded one.
+A config is checked **once per object**, and the package keeps a private frozen copy of what it
+checked: a later edit in place is ignored, and every answer stays that of the config as first
+checked. Build a new object rather than changing a loaded one.
 The package does not freeze the object it was handed, and the config that
 [`composeObservances`](#a-layer-differences-from-a-base) returns is a new, frozen one.
 

@@ -663,3 +663,13 @@ describe("a tradition mutated after its first use", () => {
 		expect(thrownBy(() => leapMonthNumberFor(2153, t))?.code).toBeUndefined();
 	});
 });
+
+describe("a tradition structuredClone cannot copy", () => {
+	it("is refused with the config's code, not a DOMException", () => {
+		// A Proxy with no traps passes every read the validator makes, then the copy refuses it.
+		const proxied = new Proxy({ ...PHUGPA, id: "proxied" }, {}) as TraditionConfig;
+		const error = thrownBy(() => isoToTibetan(iso("2026-08-12"), proxied));
+		expect(error?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
+		expect(error?.message).toMatch(/could not be copied/);
+	});
+});

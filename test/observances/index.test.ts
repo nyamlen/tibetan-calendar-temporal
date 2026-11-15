@@ -1990,3 +1990,12 @@ describe("a config mutated after its first use", () => {
 		expect(Object.isFrozen(found[0]?.rule)).toBe(true);
 	});
 });
+
+describe("an observance config structuredClone cannot copy", () => {
+	it("is refused with the config's code, naming the export", () => {
+		const proxied = new Proxy({ ...EXAMPLE_OBSERVANCES, id: "proxied" }, {}) as ObservanceConfig;
+		const error = thrownBy(() => observancesOn(iso("2026-03-03"), proxied));
+		expect(error?.code).toBe(CONFIG_CODE);
+		expect(error?.message).toMatch(/observancesOn\(config\).*could not be copied/);
+	});
+});

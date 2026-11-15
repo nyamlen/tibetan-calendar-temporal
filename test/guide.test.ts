@@ -560,8 +560,15 @@ describe("guide examples", () => {
 			const good = printed();
 			expect(codeOf(good)).toBeUndefined();
 			expect(Object.isFrozen(good)).toBe(false);
+			const year = (config: unknown) =>
+				getObservances(iso("2026-01-01"), iso("2026-12-31"), config as never).map(
+					(o) => `${o.rule.id} ${o.date.isoDate}`,
+				);
+			const before = year(good);
+			expect(before.length).toBeGreaterThan(0);
 			(good.rules[0] as Record<string, unknown>).level = "pubic";
-			expect(codeOf(good), "an edit in place is not checked again").toBeUndefined();
+			(good.rules[0] as Record<string, unknown>).id = "renamed";
+			expect(year(good), "an edit in place is ignored: the answer is unchanged").toEqual(before);
 			expect(codeOf(structuredClone(good))).toBe(INVALID_CONFIG);
 		});
 

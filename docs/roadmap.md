@@ -1749,9 +1749,10 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
       README now says beside its code table that an error the caller's own code throws may reach them
       unchanged, and
       [decisions/2026-08-12-error-codes-not-classes.md](decisions/2026-08-12-error-codes-not-classes.md)
-      records the boundary and why converting was not chosen: a config is read again after
-      validation, so only a validator returning a frozen copy would close it, across every function
-      taking a config. Converting stays open, since adding codes later breaks nobody. Found 2026-09-24 with the item above and left out
+      records the boundary. Converting stays open, since adding codes later breaks nobody. **Open
+      question for Andreas (2026-11-15):** with the post-validation re-read gone — the engine now
+      reads a validated frozen copy of a config — should the validator code errors thrown by the
+      caller's own getters or Proxies at first read? Found 2026-09-24 with the item above and left out
       of it on purpose. A Proxy passed as a `TraditionConfig` — revoked, or with any one trap that
       throws — escapes from the first read in `validatedTradition` (`isoToTibetan(d, proxy)`,
       `monthNamesFor(m, proxy)`), and an `ObservanceConfig` whose `rules`, `rules[0]` or
