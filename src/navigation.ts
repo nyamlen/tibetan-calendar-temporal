@@ -391,7 +391,9 @@ export interface AddMonthsToDateOptions extends TraditionOptions {
  *
  * And the tradition *does* answer the analogous question. Falling to the nearest lower existing
  * day is `"preceding"` — already the shipped convention on `/observances` for an observance whose
- * date is skipped, and what Janson and FPMT agree on. The default here is therefore not invented.
+ * date is skipped, and what Janson and FPMT agree on. The default here is therefore not invented,
+ * except in one case: when day 1 itself is skipped there is no lower day, and the fall to day 2 is
+ * `"following"`, this function's own rule and not a convention the tradition states.
  *
  * **The overflow is explicit because the convention is contested.** A silent clamp would bake a
  * choice into the root export; naming it puts the choice in the caller's hands, which is what the
@@ -404,8 +406,9 @@ export interface AddMonthsToDateOptions extends TraditionOptions {
  * Tibetan day numbers always run 1–30 while the month spans 29 or 30 *calendar days*, so some
  * numbers are skipped: 2153 M03 carries no 5 and no 29. Stepping onto one of those under
  * `"constrain"` lands on 4 and 28 respectively. It falls to the nearest lower day, or to day 2 when
- * day 1 itself is skipped (2154 M08), so a sequence stepped month by month never runs forwards past
- * the second day of a month.
+ * day 1 itself is skipped (2154 M08), so a step never moves later than day 2.
+ * Where day 2 is doubled (2104 M01, which also skips day 1) it lands on the first, non-leap half,
+ * the date `resolveDate` and a bare `{ day: 2 }` already give.
  *
  * **Stepping is not associative under `"constrain"`, and that is inherent rather than a defect.**
  * Constraining loses the original day number, so `addMonthsToDate(d, 1)` twice can differ from
@@ -460,7 +463,9 @@ export function addMonthsToDate(
 		monthCountFor(subject, tradition, date) + months,
 		tradition,
 	);
-	// After the target, so a start beyond the exact range keeps reporting the lunation it reaches.
+	// Deliberately after the target: a start that is both skipped and beyond the exact range reports
+	// the range error here, unlike addDays, which reports the skipped start. Checking first would
+	// make this call name a different failure, and error-subjects.test.ts pins the range message.
 	julianDayOfFields(subject, tradition, date);
 
 	// Walk down from the requested number rather than reading the month's day list: the list costs

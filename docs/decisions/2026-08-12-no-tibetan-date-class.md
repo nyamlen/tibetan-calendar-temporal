@@ -97,10 +97,12 @@ a partial one is worse than none.
 
 **All three originally ill-defined operations now have stated answers.** The 2026-08-15 amendment
 recorded `overflow: "constrain"` as "surviving untouched"; `addMonthsToDate` supplies the answer
-it said did not exist — a documented clamp to the nearest existing **lower** day number, with an
-`overflow: "reject"` opt-out. The default is not invented: falling to the nearest lower existing
-day is `"preceding"`, already the shipped `/observances` convention and what Janson and FPMT
-agree on. `Temporal` faces the identical problem and clamps by default rather than refusing.
+it said did not exist — a documented clamp to the nearest existing **lower** day number, or to
+day 2 when day 1 of the target month is itself skipped, with an `overflow: "reject"` opt-out.
+The lower-day default is not invented: falling to the nearest lower existing day is `"preceding"`,
+already the shipped `/observances` convention and what Janson and FPMT agree on. The day-2 case is
+`"following"`, this function's own rule, since no lower day exists there. `Temporal` faces the
+identical problem and clamps by default rather than refusing.
 
 So the "ill-defined" heading no longer carries the ruling on its own, and this record must say so
 rather than continue to claim otherwise. **What still carries it** is that a date-shaped class
