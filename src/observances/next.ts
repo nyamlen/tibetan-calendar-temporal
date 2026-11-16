@@ -35,7 +35,7 @@ const FIRST_CHUNK_DAYS: Record<ObservanceWhen["type"], number> = {
 	counted: 31,
 };
 
-/** What a chunk search found, and whether it reached a day the tradition cannot convert. */
+/** What a chunk search found, and whether it met the upper end of the tradition's exact range. */
 interface ChunkResult {
 	readonly found: Observance[];
 	readonly metEnd: boolean;
@@ -45,11 +45,16 @@ interface ChunkResult {
  * The results of one rule over a chunk, or what lies before the first day it cannot answer.
  *
  * A form whose result needs more than its own day, a period's whole span or a counted rule's
- * anchors up to a year either side, cannot be built for a day whose span or anchors lie past the
- * exact range: the search has met the end. That is only true of the days that need the far side, so a
- * chunk that fails is halved and its earlier half searched first, down to one day, which is where
- * the end is met. Every day after such a day fails too, so the later half is skipped once the
- * earlier one has met it. Only `TCT_OUTSIDE_EXACT_RANGE` is read this way, whichever form throws it.
+ * anchors up to a year either side, cannot be built for a day whose span or anchors lie outside the
+ * exact range. That is only true of the days that need the far side, so a chunk that fails is halved
+ * and its earlier half searched first, down to one day.
+ *
+ * What a failing day means depends on which end it is near. Near the **upper** bound the search has
+ * met the end, and every day after it fails too, so the later half is skipped once the earlier one
+ * has met it. Near the **lower** bound the day's span or anchors begin out of range and the days
+ * after it may be fine: there is no occurrence there, and the search goes on. The range is symmetric
+ * about zero, so the day's half of it says which end. Only `TCT_OUTSIDE_EXACT_RANGE` is read this
+ * way, whichever form throws it.
  */
 function firstWithin(
 	rule: ObservanceRule,
@@ -66,7 +71,10 @@ function firstWithin(
 		};
 	} catch (error) {
 		if (!hasCode(error, "TCT_OUTSIDE_EXACT_RANGE")) throw error;
-		if (start === end) return { found: [], metEnd: true };
+		if (start === end) {
+			const { exactToJulianDay: upper } = scaled;
+			return { found: [], metEnd: start + upper > upper - start };
+		}
 		const middle = start + floorDiv(end - start, 2);
 		const earlier = firstWithin(rule, start, middle, config, scaled, tibetanDateOf);
 		if (earlier.found.length > 0 || earlier.metEnd) return earlier;
