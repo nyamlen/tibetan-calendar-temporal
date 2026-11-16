@@ -205,7 +205,13 @@ The source's leap months reproduce Janson's four-version table exactly for twelv
 carry a thirteenth he does not list: a leap month 2 from 2030-04-03, directly after the leap month 1 he
 does.
 That year would hold regular 1, leap 1, leap 2, regular 3 — two consecutive leap months and no
-regular month 2. The upstream leaves its leap flag set one month too long, once.
+regular month 2. The upstream leaves its leap flag set one month too long.
+That is not a single slip.
+Measured over the source's whole span, 1900-01-31 to 2101-02-27, there are seven such runs, each a
+leap 2 straight after a leap 1: 1900-03-31, 1919-04-01, 1965-04-02, 1984-04-02, 2030-04-03,
+2049-04-03 and 2095-04-05.
+Only the one in 2030 falls in a year of Janson's table, so it is the only one this fixture could have
+carried.
 
 `scripts/fetch-bhutan-fixtures.mjs` carries a fifth check requiring every leap month in the emitted
 window to be paired with a regular month of the same number immediately before it.
@@ -214,8 +220,9 @@ that end, so a regenerated fixture that reached the defect fails there.
 The check read a field the rows do not have until 2026-11-16, so its pairing half had never fired;
 `scripts/evidence/bhutan-fixtures/` proves it now does.
 
-**One consequence to know before re-running that script: it will now refuse to write this window.**
-The committed fixture predates the fifth check and does not satisfy it.
+The generator records the first unpaired leap month after the window and the count inside Janson's
+table years in the fixture itself, measured from the source on every run, and
+`test/validation/bhutan.test.ts` asserts that the window ends on the day before the first.
 
 ### The a₂ fork is one fork, not one per tradition
 

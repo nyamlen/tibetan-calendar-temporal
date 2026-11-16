@@ -24,10 +24,14 @@ import { describe, expect, it } from "vitest";
 import { monthFromCount, trueMonthCount } from "../../src/computation/calendar.js";
 import { losarFor } from "../../src/computation/conversion.js";
 import { BHUTAN_HENNING } from "../../src/traditions/bhutan.js";
-import { BHUTAN_DAYS, BHUTAN_END, BHUTAN_START } from "../fixtures/bhutan.js";
+import {
+	BHUTAN_DAYS,
+	BHUTAN_END,
+	BHUTAN_FIRST_UNPAIRED_LEAP_AFTER_END,
+	BHUTAN_START,
+} from "../fixtures/bhutan.js";
 import { CROSS_VERSION_LEAP } from "../fixtures/cross-version-leap.js";
 import {
-	ALL_BLOCKS,
 	a2ForkDivergences,
 	BLOCKS,
 	type Block,
@@ -154,28 +158,31 @@ function matchingOffsets(): number[] {
 
 describe("where the fixture ends, and the upstream defect it ends before", () => {
 	// The source carries a leap month 2 from 2030-04-03, straight after the leap month 1 Janson
-	// lists, and the fixture stops the day before (see UPSTREAM_UNLISTED_LEAP_MONTHS). These pin
+	// lists, and the fixture stops the day before (see TRUSTED_DAYS in test/support). These pin
 	// the stop, so a regenerated fixture that reached the defect, or stopped short of it, fails here.
 	it("ends on 2030-04-02, inside the leap month 1 Janson lists for 2030", () => {
 		expect(BHUTAN_END).toBe("2030-04-02");
 		expect(BHUTAN_DAYS.at(-1)).toEqual([30, 1, 1]);
-		expect(ALL_BLOCKS.at(-1)).toEqual({ month: 1, isLeap: true });
+		expect(BLOCKS.at(-1)).toEqual({ month: 1, isLeap: true });
 		expect(BHUTAN_DAYS).toHaveLength(11050);
-		expect(ALL_BLOCKS).toHaveLength(375);
+		expect(BLOCKS).toHaveLength(375);
+	});
+
+	it("ends the day before the first unpaired leap month the generator measured after it", () => {
+		expect(BHUTAN_FIRST_UNPAIRED_LEAP_AFTER_END).toEqual({ iso: "2030-04-03", month: 2 });
+		expect(trustedEnd.add({ days: 1 }).toString()).toBe(BHUTAN_FIRST_UNPAIRED_LEAP_AFTER_END?.iso);
 	});
 
 	it("holds no leap month without its regular twin, and the last leap month is 2030/1", () => {
 		expect(unpairedLeapBlocks()).toEqual([]);
-		const leaps = ALL_BLOCKS.map((block, index) => ({ block, index })).filter(
-			(b) => b.block.isLeap,
-		);
-		expect(leaps.at(-1)?.index).toBe(ALL_BLOCKS.length - 1);
+		const leaps = BLOCKS.map((block, index) => ({ block, index })).filter((b) => b.block.isLeap);
+		expect(leaps.at(-1)?.index).toBe(BLOCKS.length - 1);
 		expect(leaps.at(-1)?.block.month).toBe(1);
 	});
 });
 
 describe("the fixture reduces to a month sequence worth checking", () => {
-	it("covers 2000 to early 2030 as a few hundred consecutive months", () => {
+	it("covers 2000 to 2 April 2030 as a few hundred consecutive months", () => {
 		expect(BHUTAN_START).toBe("2000-01-01");
 		expect(BLOCKS.length).toBeGreaterThan(370);
 		expect(BLOCKS.length).toBeLessThan(400);

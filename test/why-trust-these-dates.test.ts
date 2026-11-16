@@ -5,6 +5,7 @@ import { isoToTibetan } from "../src/computation/conversion.js";
 import * as root from "../src/index.js";
 import * as observances from "../src/observances/index.js";
 import { BHUTAN, BHUTAN_HENNING } from "../src/traditions/bhutan.js";
+import { BHUTAN_UNPAIRED_LEAPS_IN_JANSON_YEARS } from "./fixtures/bhutan.js";
 import { CROSS_VERSION_LEAP } from "./fixtures/cross-version-leap.js";
 import { ESZTHOFF_DATES } from "./fixtures/crosscheck-eszthoff.js";
 import { LOTSAWA_DATES } from "./fixtures/crosscheck-lotsawa.js";
@@ -21,7 +22,6 @@ import {
 	bhutanStart,
 	TRUSTED_DAYS,
 	trustedEnd,
-	UPSTREAM_UNLISTED_LEAP_MONTHS,
 } from "./support/bhutan.js";
 import { mismatchesIn } from "./support/crosscheck.js";
 import { fpmtMoonComparison, fpmtNumberingMismatches } from "./support/fpmt.js";
@@ -599,7 +599,7 @@ const CLAIMS: readonly Claim[] = [
 		what: "where the Bhutanese window ends, and why",
 		pattern:
 			/The window ends on \*\*(.+?)\*\*, not at the end of the year, because the upstream source carries (\w+) leap month Janson does not list\./,
-		expected: () => [long(trustedEnd), word(UPSTREAM_UNLISTED_LEAP_MONTHS)],
+		expected: () => [long(trustedEnd), word(BHUTAN_UNPAIRED_LEAPS_IN_JANSON_YEARS)],
 	},
 	{
 		what: "the default and Henning variants' differences inside the window",

@@ -39,10 +39,10 @@ export function fixtureBlocks(): Block[] {
 	return blocks;
 }
 
-export const ALL_BLOCKS = fixtureBlocks();
+export const BLOCKS = fixtureBlocks();
 
 /**
- * How many leap months the upstream source carries that Janson does not list.
+ * The number of days of the fixture, all of which are trusted.
  *
  * @remarks
  * **A defect in the upstream data, found on 2026-08-16 and recorded rather than smoothed.** The
@@ -53,20 +53,12 @@ export const ALL_BLOCKS = fixtureBlocks();
  *
  * That year would hold regular 1, leap 1, leap 2, regular 3 — two consecutive leap months, and no
  * regular month 2 at all. No calendar has that. The upstream leaves its leap flag set one month too
- * long.
+ * long. The same shape, a leap 2 straight after a leap 1, occurs in the source's rows in six other
+ * years between 1900 and 2095, none in a year of his table; the generator measures all seven over
+ * the source's whole span, and the fixture records the two numbers the documents quote.
  *
- * The fixture stops on 2030-04-02, the day before, so **nothing in this repository measures this
- * number any more**: it is a recorded fact about the source, reproduced by
- * `scripts/evidence/bhutan-fixtures/` (the run whose window ends on 2030-04-03 refuses with it), and
- * stated here because the shipped page says "one" and has nothing else to be checked against.
+ * The fixture stops on 2030-04-02, the day before, so every day it holds is trusted.
  */
-export const UPSTREAM_UNLISTED_LEAP_MONTHS = 1;
-
-/** Every block of the fixture, which ends on the last trusted day. */
-export const BLOCKS = ALL_BLOCKS;
-
-export const TRUSTED_BLOCKS = BLOCKS.length;
-
 export const TRUSTED_DAYS = BHUTAN_DAYS.length;
 
 /** The last day of the trusted window, inclusive. */
@@ -74,9 +66,9 @@ export const trustedEnd = bhutanStart.add({ days: TRUSTED_DAYS - 1 });
 
 /** Every leap block that does not directly follow its regular twin — the Bhutanese convention. */
 export function unpairedLeapBlocks() {
-	return ALL_BLOCKS.map((block, index) => ({ block, index })).filter(({ block, index }) => {
+	return BLOCKS.map((block, index) => ({ block, index })).filter(({ block, index }) => {
 		if (!block.isLeap) return false;
-		const previous = ALL_BLOCKS[index - 1];
+		const previous = BLOCKS[index - 1];
 		return previous?.month !== block.month || previous.isLeap;
 	});
 }
@@ -88,7 +80,6 @@ export function unpairedLeapBlocks() {
 export function bhutanDayMismatches(config: TraditionConfig = BHUTAN_HENNING): string[] {
 	const bad: string[] = [];
 	for (const [index, [day, month, leapNumber]] of BHUTAN_DAYS.entries()) {
-		if (index >= TRUSTED_DAYS) break;
 		const iso = bhutanStart.add({ days: index });
 		const date = isoToTibetan(iso, config);
 		const expectedLeap = leapNumber !== 0;

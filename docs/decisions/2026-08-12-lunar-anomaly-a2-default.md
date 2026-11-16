@@ -129,5 +129,5 @@ tested and ruled out, and they do not bear on this decision: `1/28` is closer on
 
   Deleting it would hide the fork rather than resolve it: the three divergence dates would still be
   there, and a user whose source disagreed on one day in 4,100 would have no way to find out why.
-  `BHUTAN_HENNING` additionally carries the whole 11,323-day Bhutan tiling, since that fixture
+  `BHUTAN_HENNING` additionally carries the whole 11,050-day Bhutan tiling, since that fixture
   descends from Henning — removing the variants would delete the main Bhutanese gate.
