@@ -235,13 +235,11 @@ export function asTibetanWeekday(value: number): TibetanWeekday {
 	return value as TibetanWeekday;
 }
 
-// These objects are shared rather than copied: a `TibetanDate` holds a pointer, so building a year
+// Name objects are shared rather than copied: a `TibetanDate` holds a pointer, so building a year
 // of dates costs pointer fields rather than thousands of strings — and freezing is what keeps that
 // sharing safe.
 //
-// Where Monier-Williams heads a word with a different orthography — *saṃpanna* संपन्न against his
-// सम्पन्न — the Devanāgarī follows the IAST, and the dictionary is reached through a stated
-// normalisation rather than by changing the name.
+// The dictionary is reached through a stated normalisation rather than by changing the name.
 /**
  * A Sanskrit name: IAST with full diacritics, and the same word in Devanāgarī.
  *
@@ -263,7 +261,9 @@ export interface SanskritName {
 	 *
 	 * @remarks
 	 * Transliterated from the IAST by the verification scripts, never typed by hand, so the two
-	 * fields always spell the same word.
+	 * fields always spell the same word. Where Monier-Williams heads the word with a different
+	 * orthography — *saṃpanna* संपन्न against his सम्पन्न — this follows the IAST, so a lookup
+	 * in his dictionary needs the other spelling.
 	 */
 	devanagari: string;
 }
@@ -291,9 +291,9 @@ export interface SanskritName {
  * each family is in `docs/names/`. For the weekday, element, gender and animal vocabulary, two
  * independent EWTS implementations must agree on the script, it must read back as the same Wylie,
  * and English Wiktionary must have an entry at exactly that title — see `docs/names/vocabulary.md`.
- * The sixty rabjung names carry a different, weaker evidence tier: Monier-Williams' Sanskrit
- * dictionary, via the Cologne scan and a stated normalisation ladder, not English Wiktionary — see
- * `docs/names/rabjung.md` and `docs/names/rabjung-sourcing.md`.
+ * The sixty rabjung Tibetan names rest on Janson's Wylie, Csoma de Kőrös' grammar and the two
+ * EWTS converters, checked by `verify:rabjung-names` — see `docs/names/rabjung.md` and
+ * `docs/names/rabjung-sourcing.md`.
  *
  * Instances are **shared and frozen**.
  */
@@ -399,13 +399,18 @@ export interface TibetanDate {
 	year: number;
 
 	/**
-	 * Janson's *Y*: the Gregorian year in which this Tibetan year begins.
+	 * Janson's *Y*: the Gregorian year in which this Tibetan year begins, in the present era.
 	 *
 	 * @remarks
 	 * Exposed for cross-referencing the paper and other implementations, which are uniformly
-	 * written in terms of *Y*. A Tibetan year starts early in the Gregorian year, so this differs
-	 * from `isoDate.year` for the dates from 1 January until the next Losar — in January, February
-	 * and March, and in rare years early April.
+	 * written in terms of *Y*. It differs from `isoDate.year` for the dates from 1 January to the
+	 * day before Losar.
+	 *
+	 * For Tibetan 2077–2227 (CE 1950–2100), Phugpa Losar falls between 4 February and 7 March and
+	 * Bhutanese Losar between 2 February and 5 March. The calendar drifts against the Gregorian
+	 * year, so far from the present Losar can fall in any month. Before about CE 720 it can fall in
+	 * December of the previous Gregorian year, and `yearStartsIn` is then that year plus one: the
+	 * last Phugpa Losar in December is 31 December CE 718, in Tibetan 846.
 	 */
 	yearStartsIn: number;
 
@@ -509,8 +514,9 @@ export interface TibetanDate {
 	 * @remarks
 	 * Proleptic Gregorian, because that is what `Temporal.PlainDate` is. The civil Gregorian
 	 * calendar begins in 1582, so for earlier dates this is a back-projection alongside the
-	 * royal-era numbering: historical sources give Julian dates, which diverge from it by about
-	 * ten days in 1582 and by a different number of days at any other date.
+	 * royal-era numbering: historical sources give Julian dates, which run ten days behind it from
+	 * 1 March 1500 to 28 February 1700 (so in 1582), by fewer days earlier, by none in the third
+	 * century CE, and by more from March 1700.
 	 */
 	isoDate: Temporal.PlainDate;
 
@@ -614,8 +620,9 @@ export interface TibetanDate {
  * **{@link TibetanMonth.month} is not a unique key within the year.** In a leap year two months
  * share a number. {@link TibetanMonth.monthCode} is the unique one.
  *
- * **The year is Tibetan, not Gregorian.** It opens in the first months of the Gregorian year, so it
- * straddles two ISO years.
+ * **The year is Tibetan, not Gregorian.** In Tibetan 2077–2227 (CE 1950–2100) it opens between 2
+ * February and 7 March, so it straddles two ISO years; far from the present it can open in any
+ * month. See {@link TibetanDate.yearStartsIn}.
  *
  * A returned month is frozen, so assigning to one of its fields throws in strict mode.
  */
@@ -1163,14 +1170,14 @@ export interface TibetanDateFields {
 	 */
 	isLeapDay?: boolean;
 
+	// Do not delete this as an unused field: it has no reads because its entire job is to make an
+	// *invalid* call fail to typecheck.
 	/**
 	 * Always absent. Present only to reject `Temporal.PlainDate`, `PlainDateTime` and
 	 * `ZonedDateTime` at compile time.
 	 *
 	 * @remarks
-	 * See {@link TibetanMonthFields.calendarId} — the same field, for the same reason. Do not
-	 * delete this as an unused field: it has no reads because its entire job is to make an
-	 * *invalid* call fail to typecheck.
+	 * See {@link TibetanMonthFields.calendarId} — the same field, for the same reason.
 	 */
 	calendarId?: never;
 }
@@ -1184,7 +1191,8 @@ export interface TibetanDateFields {
  * @remarks
  * `addMonthsToDate` throws it for a skipped **starting** date under either `overflow` setting, and
  * for a skipped **target** only under `overflow: "reject"`; under `"constrain"` a skipped target
- * moves to the nearest earlier day that exists.
+ * moves to the nearest earlier day that exists. (A target past the exact range is reported first,
+ * as `TCT_OUTSIDE_EXACT_RANGE`, even for a skipped start.)
  *
  * A skipped date is a number that no calendar day carries: it happens when a lunar day begins
  * and ends inside a single calendar day, so the labelling rule of Janson §6 never assigns its
