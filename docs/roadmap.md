@@ -371,7 +371,8 @@ The list is grouped by subject, not by sequence, and one run of items does have 
 1. **`./observances`** — the rule vocabulary, sojong, and the content that ships. **Merged to
    `main` on 2026-11-14** (`0f13d10`; the branch is deleted): it blocked the review passes while its
    content, membership and names could still change, and they have settled.
-2. The **Full code review**, under Review passes below.
+2. The **Full code review**, under Review passes below. **Merged to `main` on 2026-11-16**
+   (`51c7c03`).
 3. The **docblock audit** ("Audit and correct all 300 docblocks"), under the rule in
    [decisions/2026-11-15-docblocks-are-for-callers.md](decisions/2026-11-15-docblocks-are-for-callers.md).
    It follows the code review because fixes rewrite docblocks, and auditing first would do those twice.
@@ -1504,7 +1505,7 @@ nothing and reports success.
       `PHUGPA`, `PHUGPA_HENNING`, `BHUTAN` and `BHUTAN_HENNING` were checked deliberately and are not
       violations — they name calendrical systems Janson describes, not institutions' conventions.
       `DEFAULT_OBSERVANCES` was already renamed. No other offender found.
-- [ ] **Full code review.** Subject: all of `src/`, plus `scripts/` and the fixture generators,
+- [x] **Full code review.** Subject: all of `src/`, plus `scripts/` and the fixture generators,
       which are unreviewed and produce the primary correctness gate. **Command:**
       `/code-review max src/` for a path-scoped pass — note that plain `/code-review` and
       `/code-review ultra` are **diff-shaped**: ultra bundles the current branch against `main`, so
@@ -1518,15 +1519,16 @@ nothing and reports success.
       The fixes go on one branch, reviewed by the one free ultrareview before merging; the false
       docblocks among them go to the docblock audit. The item closes when the fixes merge.
 
-      **Status 2026-11-16:** every kept finding is fixed or parked with a ruling on the branch
-      `pre-1.0-review-fixes`, each task reviewed by an independent Opus reviewer and the whole branch
-      by a final hostile-input pass, which found it ready to merge. Parked findings are in the item
-      "Small findings parked by the pre-1.0.0 code review". Awaiting the ultrareview, then merge.
+      **Closed 2026-11-16:** every kept finding is fixed or parked with a ruling, merged to `main`
+      from `pre-1.0-review-fixes` as `51c7c03`. Each task was reviewed by an independent Opus
+      reviewer, the whole branch by a final hostile-input pass, then by the cloud ultrareview, whose
+      six findings were fixed before the merge. Parked findings are in the item "Small findings
+      parked by the pre-1.0.0 code review".
 - [ ] **Security review.** **Run 2026-11-15 at `34b8ab4`:** no high findings. Two medium — the
       `monthsFor` cache grows without bound on the shipped configs, and the CI-token item was stale
       (rewritten under Publishing) — and one low, action pinning by tag. The cache cap goes on the
       code-review fixes branch.
-      **Status 2026-11-16:** on that branch, not yet merged — the cache is an LRU of 64 years per
+      **Status 2026-11-16:** both merged to `main` (`51c7c03`) — the cache is an LRU of 64 years per
       config, and both CI actions are pinned to commit SHAs.
       Still open: `/security-review` on the release branch's diff. State the honest scope first, or the pass will invent findings: zero
       runtime dependencies, no I/O, no network, no filesystem access, no user-supplied strings
