@@ -671,14 +671,138 @@ describe("addMonthsToDate", () => {
 		expect([stepped.year, stepped.month, stepped.day]).toEqual([2154, 8, 2]);
 	});
 
-	it("lands on the non-leap half, the second calendar day, where day 2 is doubled (2104 M01 skips day 1)", () => {
-		for (const day of [1, 2]) {
-			const stepped = addMonthsToDate({ year: 2103, month: 12, day }, 1);
-			expect([stepped.year, stepped.month, stepped.day]).toEqual([2104, 1, 2]);
-			expect(stepped.isLeapDay).toBe(false);
-			expect(stepped.isoDate.toString()).toBe("1977-02-20");
-		}
+	// 2104 M01 skips day 1 and doubles day 2: 1977-02-19 is its leap half, 1977-02-20 its regular half.
+	it("falls from a skipped day 1 onto the FIRST half of a doubled day 2, the month's first calendar day (2104 M01)", () => {
+		const stepped = addMonthsToDate({ year: 2103, month: 12, day: 1 }, 1);
+		expect([stepped.year, stepped.month, stepped.day]).toEqual([2104, 1, 2]);
+		expect(stepped.isLeapDay).toBe(true);
+		expect(stepped.isoDate.toString()).toBe("1977-02-19");
 	});
+
+	it("lands a day-2 start on the REGULAR half of the doubled day 2 — day 2 is carried, not a fallback (2104 M01)", () => {
+		const stepped = addMonthsToDate({ year: 2103, month: 12, day: 2 }, 1);
+		expect([stepped.year, stepped.month, stepped.day]).toEqual([2104, 1, 2]);
+		expect(stepped.isLeapDay).toBe(false);
+		expect(stepped.isoDate.toString()).toBe("1977-02-20");
+	});
+
+	describe("which half of a doubled day it lands on", () => {
+		const leapStartOf = (year: number, month: number, day: number) => ({
+			year,
+			month,
+			day,
+			isLeapDay: true,
+		});
+		const landing = (
+			from: { year: number; month: number; day: number; isLeapDay?: boolean },
+			months: number,
+			tradition = PHUGPA,
+		) => {
+			const stepped = addMonthsToDate(from, months, { tradition });
+			return `${stepped.year}-${stepped.month}${stepped.isLeapMonth ? "L" : ""}-${stepped.day} ${stepped.isLeapDay ? "leap" : "regular"} ${stepped.isoDate}`;
+		};
+
+		it("returns the start itself when adding 0 to a leap half (2104 M02 day 7)", () => {
+			expect(landing(leapStartOf(2104, 2, 7), 0)).toBe("2104-2-7 leap 1977-03-26");
+			expect(landing({ year: 2104, month: 2, day: 7 }, 0)).toBe("2104-2-7 regular 1977-03-27");
+			expect(landing(leapStartOf(2102, 11, 7), 0, BHUTAN)).toBe("2102-11-7 leap 1975-12-09");
+		});
+
+		it("lands a leap-half start on the leap half of a doubled target", () => {
+			expect(landing(leapStartOf(2100, 7, 6), 3)).toBe("2100-10-6 leap 1973-11-30");
+			expect(landing(leapStartOf(2102, 11, 7), 4, BHUTAN)).toBe("2103-2-7 leap 1976-04-06");
+		});
+
+		it("lands a regular-half start on the regular half of a doubled target", () => {
+			expect(landing({ year: 2100, month: 7, day: 6 }, 3)).toBe("2100-10-6 regular 1973-12-01");
+			expect(landing({ year: 2102, month: 11, day: 7 }, 4, BHUTAN)).toBe(
+				"2103-2-7 regular 1976-04-07",
+			);
+		});
+
+		it("lands an ordinary start on the regular half of a doubled target", () => {
+			expect(landing({ year: 2100, month: 1, day: 24 }, 1)).toBe("2100-2-24 regular 1973-04-27");
+			expect(landing({ year: 2100, month: 1, day: 19 }, 1, BHUTAN)).toBe(
+				"2100-2-19 regular 1973-03-23",
+			);
+		});
+
+		it("reads isLeapDay on an ordinary start as absent, as every TibetanDateFields does", () => {
+			expect(landing(leapStartOf(2100, 1, 24), 1)).toBe("2100-2-24 regular 1973-04-27");
+		});
+
+		it("lands a leap-half start on the single day of a target that is not doubled", () => {
+			expect(landing(leapStartOf(2100, 7, 6), 1)).toBe("2100-8-6 regular 1973-10-02");
+			expect(landing(leapStartOf(2102, 11, 7), 1, BHUTAN)).toBe("2102-11L-7 regular 1976-01-08");
+		});
+
+		it("falls down from a skipped number onto the SECOND half of a doubled lower day", () => {
+			expect(landing({ year: 2104, month: 9, day: 25 }, 1)).toBe("2104-10-24 regular 1977-12-05");
+			expect(landing({ year: 2106, month: 6, day: 8 }, 1, BHUTAN)).toBe(
+				"2106-7-7 regular 1979-08-30",
+			);
+		});
+
+		it("refuses only a missing number under overflow: reject, never a doubled one", () => {
+			expect(
+				addMonthsToDate(leapStartOf(2100, 7, 6), 3, { overflow: "reject" }).isoDate.toString(),
+			).toBe("1973-11-30");
+			expect(
+				addMonthsToDate({ year: 2100, month: 1, day: 24 }, 1, {
+					overflow: "reject",
+				}).isoDate.toString(),
+			).toBe("1973-04-27");
+			expect(
+				thrownBy(() =>
+					addMonthsToDate({ year: 2103, month: 12, day: 1 }, 1, { overflow: "reject" }),
+				),
+			).toBeInstanceOf(SkippedDayError);
+		});
+	});
+
+	// Tibetan 2027 to 2227 is 1900 to 2101 CE; the first assertion in each sweep pins that.
+	for (const [name, tradition] of [
+		["PHUGPA", PHUGPA],
+		["BHUTAN", BHUTAN],
+	] as const) {
+		it(`${name}: a +1 month step from an ordinary day elapses 29 or 30 days and keeps the number or its skip fallback, over Tibetan 2027-2227`, () => {
+			const months: ReturnType<typeof datesFor>[] = [];
+			for (let year = 2027; year <= 2227; year++) {
+				for (const month of monthsFor(year, tradition)) months.push(datesFor(month, tradition));
+			}
+			expect(months[0]?.[0]?.isoDate.year).toBe(1900);
+			expect(months.at(-1)?.at(-1)?.isoDate.year).toBe(2101);
+
+			const bad: string[] = [];
+			let steps = 0;
+			let doubledTargets = 0;
+			for (let i = 0; i < months.length - 1; i++) {
+				const here = months[i] as ReturnType<typeof datesFor>;
+				const next = months[i + 1] as ReturnType<typeof datesFor>;
+				const present = new Set(next.map((d) => d.day));
+				const doubled = new Set(next.filter((d) => d.isDoubledDay).map((d) => d.day));
+				for (const start of here) {
+					if (start.isDoubledDay) continue;
+					steps++;
+					const stepped = addMonthsToDate(start, 1, { tradition });
+					let expected = start.day;
+					while (expected > 1 && !present.has(expected)) expected--;
+					if (!present.has(expected)) expected = 2;
+					const days = start.isoDate.until(stepped.isoDate, { largestUnit: "day" }).days;
+					const where = `${start.isoDate} (${start.day}) -> ${stepped.isoDate} (${stepped.day})`;
+					if (stepped.day !== expected) bad.push(`${where}: expected day ${expected}`);
+					if (days !== 29 && days !== 30) bad.push(`${where}: elapsed ${days}`);
+					if (start.day === expected && doubled.has(expected)) {
+						doubledTargets++;
+						if (days !== 30 || stepped.isLeapDay) bad.push(`${where}: doubled target not regular`);
+					}
+				}
+			}
+			expect(bad).toEqual([]);
+			expect(steps).toBeGreaterThan(60000);
+			expect(doubledTargets).toBeGreaterThan(1000);
+		}, 120_000);
+	}
 
 	it("still refuses a skipped day 1 under overflow: reject", () => {
 		const thrown = thrownBy(() =>

@@ -317,7 +317,10 @@ export function addDays(
  * back. Reach for it to *resolve* an identity, not inside a loop over a month — {@link datesFor}
  * walks the calendar days once and is the right shape there.
  *
- * @param date - The date to resolve. `isLeapMonth` and `isLeapDay` default to `false`.
+ * @param date - The date to resolve. `isLeapMonth` and `isLeapDay` default to `false`: an unmarked
+ * identity names the regular unit and the extra one must be marked. For a day, the regular half of
+ * a doubled pair is the calendar day in which its lunar day ends, and the leap half borrows the
+ * number (Janson, "a lunar day gives its number to the calendar day in which it ends").
  * @param tradition - Astronomical constants. Defaults to `PHUGPA`.
  *
  * @throws {@link SkippedDayError} — code `TCT_SKIPPED_DAY` — if no calendar day carries `date`.
@@ -366,7 +369,8 @@ export interface AddMonthsToDateOptions extends TraditionOptions {
 	/**
 	 * What to do when the target month does not carry the starting day's number.
 	 *
-	 * @defaultValue `"constrain"` — fall to the nearest **lower** number the month does carry.
+	 * @defaultValue `"constrain"` — fall to the nearest **lower** number the month does carry, or to
+	 * day 2 when day 1 is the skipped one. A doubled number is not missing, so `"reject"` accepts it.
 	 */
 	overflow?: MonthOverflow;
 }
@@ -407,8 +411,26 @@ export interface AddMonthsToDateOptions extends TraditionOptions {
  * numbers are skipped: 2153 M03 carries no 5 and no 29. Stepping onto one of those under
  * `"constrain"` lands on 4 and 28 respectively. It falls to the nearest lower day, or to day 2 when
  * day 1 itself is skipped (2154 M08), so a step never moves later than day 2.
- * Where day 2 is doubled (2104 M01, which also skips day 1) it lands on the non-leap half, the
- * month's second calendar day, the date `resolveDate` and a bare `{ day: 2 }` already give.
+ *
+ * ## Which half of a doubled day
+ *
+ * A doubled number is carried by two calendar days: the **leap** half, the first, which almanacs
+ * mark "Extra", and the **regular** half, the second. Both are named by role and not by position,
+ * because `isLeapDay` is the field that says which.
+ *
+ * - **The requested number is doubled in the target month.** A start on a leap half lands on the
+ *   target's leap half, and a start on a regular half on its regular half, so
+ *   `addMonthsToDate(d, 0)` returns `d` itself. A start that is not doubled lands on the **regular**
+ *   half: the calendar day in which that lunar day ends, which is the day an ordinary start is
+ *   already on. The leap half is a day in which no lunar day ends and which borrows the number.
+ *   That is thirty lunar days, exactly, from the day one lunar day ends to the day the same-numbered
+ *   one ends next month.
+ * - **The requested number is skipped.** The start's half then means nothing. Falling down onto a
+ *   lower number that is doubled lands on its **regular** half, the calendar day just before where
+ *   the requested number would have been. Falling from a skipped day 1 onto a doubled day 2 (2104
+ *   M01) lands on its **leap** half, the month's real first calendar day.
+ * - **`isLeapDay` on a start that is not doubled** is ignored, as it is everywhere a
+ *   {@link TibetanDateFields} is read.
  *
  * **Stepping is not associative under `"constrain"`, and that is inherent rather than a defect.**
  * Constraining loses the original day number, so `addMonthsToDate(d, 1)` twice can differ from
@@ -466,16 +488,34 @@ export function addMonthsToDate(
 	// Deliberately after the target: a skipped start whose target lies beyond the exact range reports
 	// the range error here, unlike addDays, which reports the skipped start. Checking first would
 	// change which failure that call names.
-	julianDayOfFields(subject, tradition, date);
+	// Resolved, not read off `date`: a leap flag on a day that is not doubled is ignored there, so
+	// only the resolved start says whether it is the leap half of a doubled pair.
+	const startsOnLeapHalf = isoToTibetan(
+		isoFromJulianDayUnchecked(julianDayOfFields(subject, tradition, date)),
+		tradition,
+	).isLeapDay;
 
 	// Walk down from the requested number rather than reading the month's day list: the list costs
 	// a conversion per calendar day, and the overwhelming case is that the first try succeeds.
+	// The leap flag is passed only for the requested number itself; a number reached by falling down
+	// takes the regular half, the calendar day just before where the requested one would have been.
+	//
+	// Why a start that is not doubled lands on the regular half of a doubled target: Janson, "a
+	// lunar day gives its number to the calendar day in which it ends". The regular half is the day
+	// lunar day N ends; the leap half is a day in which no lunar day ends and which borrows N. An
+	// ordinary start is also the day its lunar day ends, so the regular half steps from "the day N
+	// ends" to "the day N ends next month", thirty lunar days. Measured on Phugpa over Tibetan
+	// 2027-2227 (1900-2101 CE): every "+1 month, same number" step from an ordinary day elapses 29
+	// or 30 calendar days, never 28 or 31; of 67,321 such steps (an ordinary start, a target that
+	// carries the number) 1,631 hit a doubled target, and the regular half gives 30 for every one. test/navigation.test.ts re-measures this for PHUGPA and
+	// BHUTAN, whose doubled days also put the leap half first.
 	for (let day = date.day; day >= 1; day--) {
 		const candidate: TibetanDateFields = {
 			year: target.year,
 			month: target.month,
 			day,
 			isLeapMonth: target.isLeapMonth,
+			isLeapDay: day === date.day && startsOnLeapHalf,
 		};
 		try {
 			return resolveDate(candidate, tradition);
@@ -487,9 +527,16 @@ export function addMonthsToDate(
 
 	// Day 1 itself can be the one skipped number (2154 M08), so there is no lower day to fall to.
 	// Day 2 is then the nearest, and a month cannot skip both: it carries at least 29 of its 30.
+	// Where day 2 is doubled (2104 M01) it is the month's first calendar day, its leap half.
 	try {
 		return resolveDate(
-			{ year: target.year, month: target.month, day: 2, isLeapMonth: target.isLeapMonth },
+			{
+				year: target.year,
+				month: target.month,
+				day: 2,
+				isLeapMonth: target.isLeapMonth,
+				isLeapDay: true,
+			},
 			tradition,
 		);
 	} catch (error) {

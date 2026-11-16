@@ -1023,8 +1023,12 @@ export interface TibetanDateFields {
 	/**
 	 * Select the first day when two calendar days share this number.
 	 *
-	 * @defaultValue `false` — the ordinary second day. Without this, a doubled date would be
-	 * ambiguous and the conversion would have to guess.
+	 * @defaultValue `false` — the regular second day. Without this, a doubled date would be
+	 * ambiguous and the conversion would have to guess. An unmarked identity names the regular unit
+	 * and the extra unit must be marked, as an omitted `isLeapMonth` names the regular month (the
+	 * second under Phugpa, the first under Bhutan) and as Temporal's and CLDR's month codes do
+	 * (`M05` regular, `M05L` leap). The regular day is the one in which its lunar day ends: Janson,
+	 * "a lunar day gives its number to the calendar day in which it ends".
 	 *
 	 * @remarks
 	 * **Ignored on a day that is not doubled**, which returns that day as though the flag were

@@ -218,7 +218,7 @@ contract.
 |---|---|
 | `resolveMonth`, `resolveDate` | second test — every comparator makes fields → date first-class, and here it had **no name**: two indirect routes existed and the spike found neither |
 | `formatTibetanMonth`, `parseTibetanMonth` | second test — symmetric with the date pair, one obvious semantics, strict grammar |
-| `addMonthsToDate` | second test — **reversed** on evidence. Originally refused as "the tradition supplies no answer"; `Temporal` clamps by default with a `reject` opt-out, and `"preceding"` is already this package's own shipped convention for the analogous question (a skipped day 1 has no lower day, so it falls to day 2) |
+| `addMonthsToDate` | second test — **reversed** on evidence. Originally refused as "the tradition supplies no answer"; `Temporal` clamps by default with a `reject` opt-out, and `"preceding"` is already this package's own shipped convention for the analogous question (a skipped day 1 has no lower day, so it falls to day 2). A doubled landing day keeps the start's half, by role, and takes the regular half when the start is not doubled |
 | `asTibetanWeekday` + the `TibetanWeekday` brand | **first** test — a plausible wrong answer reachable by the most obvious line, which is that test's own criterion |
 | `addMonths` narrowed to reject a date | first test — it discarded the day **silently** and returned a month |
 | `getObservances` / `observancesOn` to an options bag | coherence — the only two-sequential-optionals defect; free now, breaking after |
