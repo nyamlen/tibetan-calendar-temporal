@@ -8,11 +8,15 @@ EVID="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -W 2>/dev/null || pwd)"
 REPO="${REPO:-$(cd "$EVID/../../.." && pwd -W 2>/dev/null || pwd)}"
 CONV="${CONV:?set CONV to a scratch directory outside the repository}"
 REC="${REC:-$CONV/recorded}"
-COMMITTED="${COMMITTED:-$REPO/test/fixtures/bhutan.ts}"
+# The fixture committed before the change, so the control is compared with what was there and not with
+# its own output. BASE_REV is the last revision before T11c.
+BASE_REV="${BASE_REV:-94f1fae}"
 cd "$CONV" || exit 2
 rm -rf "$CONV/new" "$CONV/oldk1" "$CONV/out"
 mkdir -p "$CONV/new/scripts" "$CONV/new/test/fixtures" "$CONV/oldk1/scripts" "$CONV/oldk1/test/fixtures" "$CONV/out"
 GEN=fetch-bhutan-fixtures.mjs
+COMMITTED="$CONV/out/original-bhutan.ts"
+git -C "$REPO" show "$BASE_REV:test/fixtures/bhutan.ts" > "$COMMITTED" || exit 2
 cp "$REPO/scripts/$GEN" "$CONV/new/scripts/"
 cmp "$REPO/scripts/$GEN" "$CONV/new/scripts/$GEN" || { echo "scratch copy differs"; exit 2; }
 # The shipped generator with K1 reverted and nothing else: check 5 reads the field the rows do not have.
@@ -47,8 +51,8 @@ control() {
   N=$(wc -l < "$CONV/out/control-rows-$1.txt")
   rows "$COMMITTED" | head -n "$N" > "$CONV/out/committed-head-$1.txt"
   if cmp -s "$CONV/out/control-rows-$1.txt" "$CONV/out/committed-head-$1.txt" \
-     && grep -q 'BHUTAN_START = "2000-01-01"' "$FIX" && grep -q 'BHUTAN_END = "2030-04-02"' "$FIX"; then
-    ok "control $1: exit 0; $N rows equal the committed fixture's first $N, window 2000-01-01 to 2030-04-02 (committed has $(rows "$COMMITTED" | wc -l))"
+     && grep -q 'BHUTAN_START = "2000-01-01"' "$FIX" && grep -q 'BHUTAN_END = "2030-04-02"' "$FIX"      && grep -qF 'AFTER_END: { readonly iso: string; readonly month: number } | null = { iso: "2030-04-03", month: 2 };' "$FIX"      && grep -qF 'BHUTAN_UNPAIRED_LEAPS_IN_JANSON_YEARS = 1;' "$FIX"; then
+    ok "control $1: exit 0; $N rows equal the first $N of the fixture at $BASE_REV ($(rows "$COMMITTED" | wc -l) rows), window 2000-01-01 to 2030-04-02, first unpaired leap after it 2030-04-03 month 2, 1 in Janson's years"
   else bad "control $1: rows differ from the committed fixture" "control-$1"; fi
 }
 
@@ -67,6 +71,10 @@ run new leap-after-leap new-after
 if refused new-after "$MSG" && grep -qF '(also leap)' "$CONV/out/new-after.txt"; then ok "leap-after-leap, fixed: refused, no fixture, message says also leap"; else bad "leap-after-leap, fixed, wanted: $MSG" new-after; fi
 run oldk1 leap-after-leap old-after
 if [ $code -ne 0 ] && [ ! -f "$FIX" ]; then ok "leap-after-leap, K1 reverted: also refused (the surviving half)"; else bad "leap-after-leap, K1 reverted" old-after; fi
+
+# defect-gone-from-2030: the emitted measurements follow the source. Same rows, other values.
+run new defect-gone-from-2030 gone
+if [ $code -eq 0 ] && grep -qF '{ iso: "2049-04-03", month: 2 };' "$FIX" && grep -qF 'BHUTAN_UNPAIRED_LEAPS_IN_JANSON_YEARS = 0;' "$FIX" && grep -q 'BHUTAN_END = "2030-04-02"' "$FIX"; then ok "defect-gone-from-2030: fixture reports the next unpaired leap as 2049-04-03 and none in Janson's years"; else bad "defect-gone-from-2030" gone; fi
 
 # The source's own defect at 2030-04-03 is outside the default window and refuses only inside one.
 run new control boundary-in 2000-01-01 2030-04-03

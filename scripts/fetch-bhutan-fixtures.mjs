@@ -42,11 +42,15 @@
  * 5. **Every leap month is paired** with a regular month of the same number immediately before it,
  *    over the rows that are emitted and no others. Added after check 4 passed on data carrying a
  *    leap month Janson does *not* list — check 4 asks whether his leap months appear and cannot see
- *    an extra one. The source has that defect at 2030-04-03 and at six earlier dates outside any
- *    window used here; the default window ends on 2030-04-02, the day before, which is also where
- *    `test/support/bhutan.ts` stops trusting it. Asking for a later `to` refuses to write. The
- *    check scans the emitted rows only, because a check over the whole file would refuse the
- *    source for defects in years nobody asked for.
+ *    an extra one. Measured over the source's whole span, 1900-01-31 to 2101-02-27, it has seven
+ *    unpaired leap months, each a leap 2 straight after a leap 1: 1900-03-31, 1919-04-01,
+ *    1965-04-02, 1984-04-02, 2030-04-03, 2049-04-03 and 2095-04-05. Only the one in 2030 falls
+ *    in a year of Janson's table. The default window ends on 2030-04-02, the day before it, which is
+ *    also where `test/support/bhutan.ts` stops trusting the data. Asking for a later `to` refuses
+ *    to write. The check scans the emitted rows only, because a check over the whole file would
+ *    refuse the source for defects in years nobody asked for. The fixture records the first
+ *    unpaired leap month after its window, and the count inside Janson's table years, both
+ *    measured here, so the documents that quote them have data to be checked against.
  *
  * ## The anchor, and the trap it avoids
  *
@@ -224,27 +228,43 @@ for (const [year, expected] of JANSON_BHUTAN_LEAP) {
 //
 // Stated as pairing rather than as "one leap month per year", because the pairing is what the
 // Bhutanese convention actually claims: a leap month takes the number of the month *preceding* it.
-const months = [];
-for (const row of window) {
-	const last = months[months.length - 1];
-	if (!last || last.month !== row.month || last.leapMonth !== row.leapMonth) {
-		months.push({ month: row.month, leapMonth: row.leapMonth, iso: row.iso });
+const unpairedLeapMonths = (rows) => {
+	const months = [];
+	for (const row of rows) {
+		const last = months[months.length - 1];
+		if (!last || last.month !== row.month || last.leapMonth !== row.leapMonth) {
+			months.push({ month: row.month, leapMonth: row.leapMonth, iso: row.iso });
+		}
 	}
-}
-for (const [index, entry] of months.entries()) {
-	if (entry.leapMonth === 0) continue;
-	const previous = months[index - 1];
-	if (previous === undefined) continue;
-	if (previous.month !== entry.month || previous.leapMonth !== 0) {
-		fail(
-			`leap month ${entry.month} beginning ${entry.iso.toString()} is not preceded by a regular ` +
-				`month ${entry.month}; the month before it is ${previous.month}` +
-				`${previous.leapMonth === 0 ? "" : " (also leap)"}. In the Bhutanese convention a leap ` +
-				"month takes the number of the month preceding it, so an unpaired one means the source's " +
-				"leap flag is set on the wrong rows",
-		);
+	const found = [];
+	for (const [index, entry] of months.entries()) {
+		if (entry.leapMonth === 0) continue;
+		const previous = months[index - 1];
+		if (previous === undefined) continue;
+		if (previous.month !== entry.month || previous.leapMonth !== 0) {
+			found.push({ entry, previous });
+		}
 	}
+	return found;
+};
+for (const { entry, previous } of unpairedLeapMonths(window)) {
+	fail(
+		`leap month ${entry.month} beginning ${entry.iso.toString()} is not preceded by a regular ` +
+			`month ${entry.month}; the month before it is ${previous.month}` +
+			`${previous.leapMonth === 0 ? "" : " (also leap)"}. In the Bhutanese convention a leap ` +
+			"month takes the number of the month preceding it, so an unpaired one means the source's " +
+			"leap flag is set on the wrong rows",
+	);
 }
+
+// What the fixture records about the source beyond its window, measured from every row.
+const unpairedAll = unpairedLeapMonths(all);
+const firstDefectAfter = unpairedAll.find(
+	({ entry }) => Temporal.PlainDate.compare(entry.iso, toDate) > 0,
+);
+const unpairedInJansonYears = unpairedAll.filter(({ entry }) =>
+	JANSON_BHUTAN_LEAP.has(entry.iso.month <= 2 ? entry.iso.year - 1 : entry.iso.year),
+).length;
 
 if (problems.length > 0) {
 	console.error(`\n${problems.length} problem(s); nothing written:\n`);
@@ -313,6 +333,26 @@ export const BHUTAN_START = "${start.iso}";
 
 /** Last Gregorian day of the window. */
 export const BHUTAN_END = "${end.iso}";
+
+/**
+ * The first leap month after the window that is not paired with a regular month of its number, as
+ * measured in the source's rows beyond it, or \`null\` if there is none. It is where the window stops
+ * being trustworthy, and the day it begins is the day after \`BHUTAN_END\` when the window was cut
+ * for it.
+ */
+export const BHUTAN_FIRST_UNPAIRED_LEAP_AFTER_END: { readonly iso: string; readonly month: number } | null = ${
+		firstDefectAfter === undefined
+			? "null"
+			: `{ iso: "${firstDefectAfter.entry.iso}", month: ${firstDefectAfter.entry.month} }`
+	};
+
+/**
+ * How many unpaired leap months the source has in the Tibetan years Janson's leap-month table
+ * lists for Bhutan (2000 to 2030), counted over the whole source, which runs 1900-01-31 to
+ * 2101-02-27. Janson lists none of them; they are the leap months of the source that his table
+ * does not carry.
+ */
+export const BHUTAN_UNPAIRED_LEAPS_IN_JANSON_YEARS = ${unpairedInJansonYears};
 
 /**
  * One tuple per consecutive Gregorian day: \`[bhutaneseDay, bhutaneseMonth, leapMonthNumber]\`.

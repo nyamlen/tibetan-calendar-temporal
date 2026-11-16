@@ -24,11 +24,13 @@ Correcting the field made the generator refuse the live source for seven leap ru
 2. `node check-recording.mjs $CONV/recorded`.
    A named page means the source has changed since the manifest.
 3. `CONV=$CONV bash harness.sh` (Git Bash on Windows).
-   Expect `pass 9 fail 0`.
+   Expect `pass 10 fail 0`.
 
 ## The baseline
 
-The control's rows are compared with the committed `test/fixtures/bhutan.ts` directly: the generated fixture's tuples must equal the committed fixture's first rows, and the window must read 2000-01-01 to 2030-04-02.
+The control's rows are compared with the fixture as committed at `BASE_REV` (default `94f1fae`, the last revision before the change), which the harness reads with `git show` into `$CONV/out/`.
+Comparing with the working tree's fixture would be circular, since that file is the control's own output.
+The generated fixture's tuples must equal that fixture's first rows, the window must read 2000-01-01 to 2030-04-02, and the two measurements the fixture records must read as below.
 The tuples are one per line, so Biome does not reflow them.
 The generator's header carries no date stamp.
 
@@ -39,6 +41,7 @@ The generator's header carries no date stamp.
 | control (start and end) | shipped | exit 0, fixture written, rows equal the committed fixture's first 11,050, both controls identical |
 | `leap-wrong-number` (2000's leap month 4 renumbered 5) | shipped | exit non-zero, no fixture, `is not preceded by a regular month 5; the month before it is 4` |
 | `leap-wrong-number` | K1 reverted | exit 0, fixture written: the dead half, reproduced |
+| `defect-gone-from-2030` (the leap flag cleared on 2030-04-03 and 04-04) | shipped | exit 0, same window, and the fixture now reports the first unpaired leap month after it as 2049-04-03 and none in Janson's years: the recorded measurements follow the source |
 | `leap-after-leap` (2011's regular month 3 made leap 3 after leap 2) | shipped and K1 reverted | both refuse, `(also leap)`: the half K1 left alive |
 | window ending 2030-04-03 | shipped | refused, `leap month 2 beginning 2030-04-03` |
 | window ending 2030-04-02 (the default) | shipped | accepted, although the source holds the defect on the next day |

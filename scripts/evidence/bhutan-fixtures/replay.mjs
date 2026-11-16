@@ -35,6 +35,14 @@ const edits = {
 		),
 	// The regular month 3 of 2011 becomes a leap month 3, straight after the leap month 2 Janson
 	// lists: a leap month following a leap month, inside the window.
+	// The leap flag of 2030-04-03 and 2030-04-04 is cleared, so the leap month 2 begins on 04-05
+	// behind a regular month 2, and the source's first unpaired leap month after the window moves on.
+	"defect-gone-from-2030": (t) =>
+		rewrite(
+			t,
+			(r) => r.gy === 2030 && r.gm === 4 && (r.gd === 3 || r.gd === 4),
+			() => [2, 0],
+		),
 	"leap-after-leap": (t) =>
 		rewrite(
 			t,
