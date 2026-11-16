@@ -174,7 +174,9 @@ convert back.
 
 The window now derives from the tradition in
 [`deriveScaling`](../../src/computation/scaling.ts), and the general check in the validator bounds
-the **derived window** rather than the table magnitudes. Bounding the tables instead would mean
+the **derived window** rather than the table magnitudes. The validator runs that derivation, so a
+config whose window or common denominator cannot be derived is refused by every export on its first
+call, never by only the exports that reach the scaling. Bounding the tables instead would mean
 writing `|moonTab| ≤ 25` — hardcoding Phugpa's numbers into the injectable field all over again —
 and deciding "is this Phugpa" from a consumer-settable `id`. Phugpa-specific assertions belong in
 the test suite, where `deriveScaling(PHUGPA).searchHalfWidth === 3` also guards the tables against a

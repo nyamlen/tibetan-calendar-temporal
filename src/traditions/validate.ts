@@ -21,6 +21,7 @@
  * @packageDocumentation
  */
 
+import { deriveScaling } from "../computation/scaling.js";
 import { assertKnownKeys, describe, rangeError, validatedPrivateCopy } from "../errors.js";
 import type {
 	MeanMotion,
@@ -459,11 +460,26 @@ export function validatedTradition(tradition: TraditionConfig): TraditionConfig 
 		what: "TraditionConfig",
 		// A non-object is refused by the shape check; `WeakMap.get` would only return undefined.
 		isCandidate: (value) => value !== null && typeof value === "object",
-		validate: assertShape,
+		validate: assertValid,
 		uncopyable: (value) =>
 			`TraditionConfig ${typeof value.id === "string" ? `"${value.id}"` : "<unnamed>"} ` +
 			"could not be copied, because a field is not plain data; pass plain objects and arrays",
 	});
+}
+
+/**
+ * Shape, then the checks that need the derived scaling.
+ *
+ * @remarks
+ * A config must not pass one export and fail another, and the derived checks — `assertDerivable`
+ * and `assertCommonDenominatorExact`, called from `deriveScaling` — would otherwise run only on the
+ * exports that reach `scalingFor`. Deriving here, on the caller's object and then on the copy,
+ * refuses a config that cannot be derived on its first call to anything; `scalingFor` derives the
+ * copy once more and memoises it.
+ */
+function assertValid(tradition: TraditionConfig): void {
+	assertShape(tradition);
+	deriveScaling(tradition);
 }
 
 function assertShape(tradition: TraditionConfig): void {
@@ -545,7 +561,8 @@ export function assertCommonDenominatorExact(
  * @remarks
  * Split from {@link validatedTradition} because these values do not exist until `deriveScaling`
  * has computed them, not because they are any less part of validating a config — both throw the
- * same code, and both are reached through the same `scalingFor` choke point.
+ * same code, and `validatedTradition` runs the derivation, so every export refuses such a config on
+ * its first call.
  *
  * Called from `deriveScaling` once the search window is derived.
  *

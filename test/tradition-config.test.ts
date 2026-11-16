@@ -3,13 +3,15 @@ import { elementalYogaFor } from "../src/astrology/index.js";
 import { isoToTibetan, losarFor, tibetanToIso } from "../src/computation/conversion.js";
 import { moonEquation, sunEquation } from "../src/computation/corrections.js";
 import { deriveScaling } from "../src/computation/scaling.js";
-import { hasLeapMonth, leapMonthNumberFor, monthsFor } from "../src/months.js";
-import { lunationFromMonth } from "../src/navigation.js";
+import { weekdayNameFor } from "../src/cycles.js";
+import { hasLeapMonth, leapMonthNumberFor, monthsFor, monthsInYear } from "../src/months.js";
+import { lunationFromMonth, monthsBetween } from "../src/navigation.js";
 import { EXAMPLE_OBSERVANCES, getObservances } from "../src/observances/index.js";
 import { BHUTAN, BHUTAN_HENNING } from "../src/traditions/bhutan.js";
 import { PHUGPA, PHUGPA_HENNING } from "../src/traditions/phugpa.js";
 import type { TraditionConfig } from "../src/traditions/types.js";
 import { validatedTradition } from "../src/traditions/validate.js";
+import { asTibetanWeekday } from "../src/types.js";
 import { thrownBy } from "./support/thrown.js";
 
 const iso = (s: string) => Temporal.PlainDate.from(s);
@@ -805,11 +807,52 @@ describe("a mean motion whose denominators cannot be scaled exactly", () => {
 		expect(error?.message).toMatch(/lunarAnomaly/);
 	});
 
-	it("refuses at use a config whose motions are each scalable but whose common denominator is not", () => {
-		const t = broken({ id: "within", meanSun: motionOver(WITHIN) });
-		expect(thrownBy(() => validatedTradition(t))).toBeUndefined();
-		const error = thrownBy(() => isoToTibetan(iso("2026-08-12"), t));
-		expect(error?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
+	// A config that cannot be derived is refused by every export on its first call, not by whichever
+	// reaches the scaling first: it must not pass one export and fail another.
+	const underivable: Record<string, TraditionConfig> = {
+		"a meanSun whose motions are scalable but whose common denominator is not": broken({
+			id: "within",
+			meanSun: motionOver(WITHIN),
+		}),
+		"a meanDate whose search window is wider than a month": broken({
+			id: "wide-window",
+			meanDate: {
+				perMonth: { num: 3, den: 10 },
+				perDay: { num: 1, den: 100 },
+				atEpoch: PHUGPA.meanDate.atEpoch,
+			},
+		}),
+	};
+	const exports: Record<string, (t: TraditionConfig) => unknown> = {
+		validatedTradition: (t) => validatedTradition(t),
+		isoToTibetan: (t) => isoToTibetan(iso("2026-08-12"), t),
+		hasLeapMonth: (t) => hasLeapMonth(2153, t),
+		leapMonthNumberFor: (t) => leapMonthNumberFor(2153, t),
+		monthsInYear: (t) => monthsInYear(2153, t),
+		weekdayNameFor: (t) => weekdayNameFor(asTibetanWeekday(1), t),
+		lunationFromMonth: (t) => lunationFromMonth({ year: 2153, month: 6 }, t),
+		monthsBetween: (t) => monthsBetween({ year: 2153, month: 1 }, { year: 2153, month: 6 }, t),
+	};
+
+	it.each(Object.keys(underivable))("every export refuses %s with the config code", (label) => {
+		const config = underivable[label] as TraditionConfig;
+		const wrong: string[] = [];
+		for (const [name, call] of Object.entries(exports)) {
+			// A fresh object per export, so no earlier call has warmed a cache for this one.
+			const code = thrownBy(() => call({ ...config }))?.code;
+			if (code !== "TCT_INVALID_TRADITION_CONFIG") wrong.push(`${name}: ${code}`);
+		}
+		expect(wrong).toEqual([]);
+	});
+
+	it("names the config and the quantity at validation", () => {
+		const error = thrownBy(() =>
+			validatedTradition(
+				underivable[
+					"a meanSun whose motions are scalable but whose common denominator is not"
+				] as TraditionConfig,
+			),
+		);
 		expect(error?.message).toMatch(/"within".*common denominator/);
 	});
 
