@@ -61,7 +61,8 @@ import { assertTibetanRanges, assertTibetanShape } from "./types.js";
  * Validates a year for the closed-form functions, which need no lunar arithmetic.
  *
  * @remarks
- * Returns Janson's *Y*. The config is still validated — `γ*` is derived from `epochYear`,
+ * Returns Janson's *Y* with the validated copy of the config, which the caller reads from and never
+ * the one it was handed. The config is still validated — `γ*` is derived from `epochYear`,
  * `epochMonth` and `intercalationIndexAtEpoch`, so a malformed config gives a wrong answer rather
  * than no answer. `scalingFor` is the memoised choke point that does it, and after the first call
  * per config object it costs a `WeakMap` hit.
@@ -69,12 +70,16 @@ import { assertTibetanRanges, assertTibetanShape } from "./types.js";
  * `assertClosedFormYear` runs after `yearFromRoyalEra` converts to Janson's *Y*, since that is the
  * value the closed forms — and the bound itself — are stated in terms of.
  */
-function closedFormYear(subject: string, year: number, tradition: TraditionConfig): number {
+function closedFormYear(
+	subject: string,
+	year: number,
+	tradition: TraditionConfig,
+): { y: number; tradition: TraditionConfig } {
 	assertSafeYear(subject, year);
 	tradition = validatedTradition(tradition);
 	const y = yearFromRoyalEra(year);
 	assertClosedFormYear(() => subject, y, tradition);
-	return y;
+	return { y, tradition };
 }
 
 /**
@@ -364,8 +369,8 @@ export function daysInMonth(
  * `TCT_OUTSIDE_EXACT_RANGE` if it falls beyond the tradition's derivable range.
  */
 export function hasLeapMonth(year: number, tradition: TraditionConfig = PHUGPA): boolean {
-	const y = closedFormYear(`hasLeapMonth(${describe(year)})`, year, tradition);
-	return isLeapYear(validatedTradition(tradition), y);
+	const closed = closedFormYear(`hasLeapMonth(${describe(year)})`, year, tradition);
+	return isLeapYear(closed.tradition, closed.y);
 }
 
 /**
@@ -402,8 +407,8 @@ export function leapMonthNumberFor(
 	year: number,
 	tradition: TraditionConfig = PHUGPA,
 ): number | undefined {
-	const y = closedFormYear(`leapMonthNumberFor(${describe(year)})`, year, tradition);
-	return leapMonthOfYearY(validatedTradition(tradition), y);
+	const closed = closedFormYear(`leapMonthNumberFor(${describe(year)})`, year, tradition);
+	return leapMonthOfYearY(closed.tradition, closed.y);
 }
 
 /**
@@ -417,8 +422,8 @@ export function leapMonthNumberFor(
  * `TCT_OUTSIDE_EXACT_RANGE` if it falls beyond the tradition's derivable range.
  */
 export function monthsInYear(year: number, tradition: TraditionConfig = PHUGPA): number {
-	const y = closedFormYear(`monthsInYear(${describe(year)})`, year, tradition);
-	return isLeapYear(validatedTradition(tradition), y) ? 13 : 12;
+	const closed = closedFormYear(`monthsInYear(${describe(year)})`, year, tradition);
+	return isLeapYear(closed.tradition, closed.y) ? 13 : 12;
 }
 
 /**
