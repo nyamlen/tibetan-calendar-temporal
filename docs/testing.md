@@ -320,8 +320,8 @@ Those are all **Phugpa**. Bhutan has a window of its own, and a wider one:
 | `BHUTAN`, twenty-five days | 2025-2026 | **the Royal Government of Bhutan's own calendar**, via `test/fixtures/rgob.ts` |
 
 Three things to keep straight about that window. It ends on **2 April 2030**, not at the end of 2030,
-because the source carries one leap month Janson does not list — see the remarks in
-`test/validation/bhutan.test.ts`. It validates **`BHUTAN_HENNING`**, not `BHUTAN`: the data descends
+because the source carries one leap month Janson does not list, from 3 April 2030 — the fixture stops
+the day before, and `scripts/evidence/bhutan-fixtures/` reproduces the refusal. It validates **`BHUTAN_HENNING`**, not `BHUTAN`: the data descends
 from Henning's software and so follows his `a₂`, and the two differ on three days in the window. And
 the first four rows are **one lineage** for the *dates* — Janson's leap-month table is genuinely
 independent, but everything checking Bhutanese *day numbers* traces to Henning's software.

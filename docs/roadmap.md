@@ -2105,10 +2105,10 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
   result disagree about New Year 2003, saying "I have no explanation for this discrepancy"; the
   fixture follows the computed line, and that is recorded rather than resolved.
 
-  A third turned up when the engine was finally held to the data: the fixture carries **one leap
+  A third turned up when the engine was finally held to the data: the source carries **one leap
   month Janson does not list**, at 2030-04-03, because the upstream leaves its leap flag set a month
-  too long. The generator has a fifth check for it now, and **will refuse to rewrite the committed
-  window until the source is fixed**.
+  too long. The generator has a fifth check for it, and the fixture now ends on 2030-04-02, the day
+  before; asking the generator for a later end refuses to write.
 
 - **Mongolian tradition** (New Genden) via its own `TraditionConfig`. Added as its own entry on
   2026-09-24, at Andreas' request; its route was first scoped inside the Tsurphu entry above, which

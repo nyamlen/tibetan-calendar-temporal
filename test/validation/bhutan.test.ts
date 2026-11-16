@@ -32,7 +32,6 @@ import {
 	BLOCKS,
 	type Block,
 	bhutanDayMismatches,
-	TRUSTED_BLOCKS,
 	trustedEnd,
 	unpairedLeapBlocks,
 } from "../support/bhutan.js";
@@ -153,19 +152,25 @@ function matchingOffsets(): number[] {
 	return found;
 }
 
-describe("the upstream anomaly this file works around", () => {
-	// Pinned precisely, so it cannot drift and cannot be forgotten. If a re-fetch fixes the upstream
-	// these fail, and TRUSTED_BLOCKS should then be raised to cover the whole window.
-	it("is a single spurious leap month, and it is the last one", () => {
-		const unpairedLeap = unpairedLeapBlocks();
-		expect(unpairedLeap).toHaveLength(1);
-		expect(unpairedLeap[0]?.index).toBe(TRUSTED_BLOCKS);
-		expect(unpairedLeap[0]?.block).toEqual({ month: 2, isLeap: true });
+describe("where the fixture ends, and the upstream defect it ends before", () => {
+	// The source carries a leap month 2 from 2030-04-03, straight after the leap month 1 Janson
+	// lists, and the fixture stops the day before (see UPSTREAM_UNLISTED_LEAP_MONTHS). These pin
+	// the stop, so a regenerated fixture that reached the defect, or stopped short of it, fails here.
+	it("ends on 2030-04-02, inside the leap month 1 Janson lists for 2030", () => {
+		expect(BHUTAN_END).toBe("2030-04-02");
+		expect(BHUTAN_DAYS.at(-1)).toEqual([30, 1, 1]);
+		expect(ALL_BLOCKS.at(-1)).toEqual({ month: 1, isLeap: true });
+		expect(BHUTAN_DAYS).toHaveLength(11050);
+		expect(ALL_BLOCKS).toHaveLength(375);
 	});
 
-	it("leaves every earlier block trustworthy", () => {
-		expect(ALL_BLOCKS.length).toBeGreaterThan(TRUSTED_BLOCKS);
-		expect(BLOCKS).toHaveLength(TRUSTED_BLOCKS);
+	it("holds no leap month without its regular twin, and the last leap month is 2030/1", () => {
+		expect(unpairedLeapBlocks()).toEqual([]);
+		const leaps = ALL_BLOCKS.map((block, index) => ({ block, index })).filter(
+			(b) => b.block.isLeap,
+		);
+		expect(leaps.at(-1)?.index).toBe(ALL_BLOCKS.length - 1);
+		expect(leaps.at(-1)?.block.month).toBe(1);
 	});
 });
 

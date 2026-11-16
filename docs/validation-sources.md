@@ -127,7 +127,7 @@ icons**, not with the almanac.
 
 | Source | Lineage | Format | Coverage | Settles |
 |---|---|---|---|---|
-| `bhutan.ts` | **Henning** | SQL tuples via a WordPress plugin | 11,050 days compared, 1 Jan 2000 – 2 Apr 2030; the file holds 11,323, to 31 Dec 2030 | day numbers, months, leap months |
+| `bhutan.ts` | **Henning** | SQL tuples via a WordPress plugin | 11,050 days compared, 1 Jan 2000 – 2 Apr 2030, which is the whole file | day numbers, months, leap months |
 | `rgob.ts` | **almanac** (Ministry of Home Affairs) | scanned PDF, hand-read | 25 days, 2025–2026 | day numbers, 3 skipped + 2 doubled days, Losar |
 | `cross-version-leap.ts` | Janson | LaTeX, generated | 2000–2030 | leap-month numbers and years |
 

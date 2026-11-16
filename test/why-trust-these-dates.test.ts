@@ -21,7 +21,7 @@ import {
 	bhutanStart,
 	TRUSTED_DAYS,
 	trustedEnd,
-	unpairedLeapBlocks,
+	UPSTREAM_UNLISTED_LEAP_MONTHS,
 } from "./support/bhutan.js";
 import { mismatchesIn } from "./support/crosscheck.js";
 import { fpmtMoonComparison, fpmtNumberingMismatches } from "./support/fpmt.js";
@@ -599,7 +599,7 @@ const CLAIMS: readonly Claim[] = [
 		what: "where the Bhutanese window ends, and why",
 		pattern:
 			/The window ends on \*\*(.+?)\*\*, not at the end of the year, because the upstream source carries (\w+) leap month Janson does not list\./,
-		expected: () => [long(trustedEnd), word(unpairedLeapBlocks().length)],
+		expected: () => [long(trustedEnd), word(UPSTREAM_UNLISTED_LEAP_MONTHS)],
 	},
 	{
 		what: "the default and Henning variants' differences inside the window",

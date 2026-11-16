@@ -199,17 +199,20 @@ The check is deliberately about **months, not dates**, and that is what let it r
 depends on the epoch, the threshold and the position alone. Bhutan's `m₀`, `s₀` and `a₀` are still
 unreconciled, so no day-level Bhutanese date is claimed here.
 
-### A defect in the fixture, recorded not smoothed
+### A defect in the source, recorded not smoothed
 
-Its leap months reproduce Janson's four-version table exactly for twelve of thirteen, then carry a
-thirteenth he does not list: a leap month 2 from 2030-04-03, directly after the leap month 1 he does.
+The source's leap months reproduce Janson's four-version table exactly for twelve of thirteen, then
+carry a thirteenth he does not list: a leap month 2 from 2030-04-03, directly after the leap month 1 he
+does.
 That year would hold regular 1, leap 1, leap 2, regular 3 — two consecutive leap months and no
 regular month 2. The upstream leaves its leap flag set one month too long, once.
 
-`scripts/fetch-bhutan-fixtures.mjs` now carries a fifth check requiring every leap month to be paired
-with a regular month of the same number immediately before it. Validation runs up to the anomaly and
-the anomaly is pinned exactly, so a corrected re-fetch fails the test and reopens the window rather
-than leaving a narrower check than the data supports.
+`scripts/fetch-bhutan-fixtures.mjs` carries a fifth check requiring every leap month in the emitted
+window to be paired with a regular month of the same number immediately before it.
+The fixture ends on 2030-04-02, the day before the defect, and `test/validation/bhutan.test.ts` pins
+that end, so a regenerated fixture that reached the defect fails there.
+The check read a field the rows do not have until 2026-11-16, so its pairing half had never fired;
+`scripts/evidence/bhutan-fixtures/` proves it now does.
 
 **One consequence to know before re-running that script: it will now refuse to write this window.**
 The committed fixture predates the fifth check and does not satisfy it.

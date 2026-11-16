@@ -5,7 +5,7 @@
  * Moved here from `test/validation/bhutan.test.ts` on 2026-09-18, whole, so that the shipped page's
  * "11,050 days", "differs on three days" and "the next is in 2047" are measured by the definitions
  * the validation suites pin. Two definitions of "the trusted window" would be the next drift. The
- * tests pinning the upstream anomaly stay in `bhutan.test.ts`; they call {@link unpairedLeapBlocks}.
+ * tests pinning where the fixture ends stay in `bhutan.test.ts`; they call {@link unpairedLeapBlocks}.
  */
 
 import { isoToTibetan } from "../../src/computation/conversion.js";
@@ -42,42 +42,32 @@ export function fixtureBlocks(): Block[] {
 export const ALL_BLOCKS = fixtureBlocks();
 
 /**
- * The last block the fixture can be trusted for, exclusive.
+ * How many leap months the upstream source carries that Janson does not list.
  *
  * @remarks
  * **A defect in the upstream data, found on 2026-08-16 and recorded rather than smoothed.** The
- * fixture's leap months reproduce Janson's four-version table exactly for twelve of thirteen —
+ * source's leap months reproduce Janson's four-version table exactly for twelve of thirteen —
  * 2000/4, 2002/12, 2005/9, 2008/5, 2011/2, 2013/10, 2016/7, 2019/3, 2021/12, 2024/8, 2027/5,
  * 2030/1. It then carries a **thirteenth he does not list**: a leap month 2 running 2030-04-03 to
  * 2030-05-02, directly after the leap month 1.
  *
  * That year would hold regular 1, leap 1, leap 2, regular 3 — two consecutive leap months, and no
  * regular month 2 at all. No calendar has that. The upstream leaves its leap flag set one month too
- * long, once, near the end of the window.
+ * long.
  *
- * `scripts/fetch-bhutan-fixtures.mjs` did not catch it because its Janson cross-check asserts that
- * his leap months *appear*, not that no others do. The assertions in `bhutan.test.ts` pin the anomaly
- * exactly, so a re-fetch that fixes it fails there and prompts this window to be reopened rather than
- * quietly keeping a narrower check than the data supports.
+ * The fixture stops on 2030-04-02, the day before, so **nothing in this repository measures this
+ * number any more**: it is a recorded fact about the source, reproduced by
+ * `scripts/evidence/bhutan-fixtures/` (the run whose window ends on 2030-04-03 refuses with it), and
+ * stated here because the shipped page says "one" and has nothing else to be checked against.
  */
-export const TRUSTED_BLOCKS = 375;
+export const UPSTREAM_UNLISTED_LEAP_MONTHS = 1;
 
-export const BLOCKS = ALL_BLOCKS.slice(0, TRUSTED_BLOCKS);
+/** Every block of the fixture, which ends on the last trusted day. */
+export const BLOCKS = ALL_BLOCKS;
 
-/** The day index where the anomalous block begins, so the day check stops where the month one does. */
-export const TRUSTED_DAYS = (() => {
-	let blocks = 0;
-	let previous: Block | undefined;
-	for (const [index, [, month, leapNumber]] of BHUTAN_DAYS.entries()) {
-		const isLeap = leapNumber !== 0;
-		if (previous === undefined || previous.month !== month || previous.isLeap !== isLeap) {
-			blocks += 1;
-			if (blocks > TRUSTED_BLOCKS) return index;
-			previous = { month, isLeap };
-		}
-	}
-	return BHUTAN_DAYS.length;
-})();
+export const TRUSTED_BLOCKS = BLOCKS.length;
+
+export const TRUSTED_DAYS = BHUTAN_DAYS.length;
 
 /** The last day of the trusted window, inclusive. */
 export const trustedEnd = bhutanStart.add({ days: TRUSTED_DAYS - 1 });
