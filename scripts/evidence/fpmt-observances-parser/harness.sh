@@ -42,6 +42,12 @@ if [ $code -eq 0 ] && grep -q 'iso: "2024-12-02", month: 7, day: 1,' "$FIX" && !
 run old b-first old-b-first
 if [ $code -eq 0 ] && grep 'iso: "2024-12-02"' "$FIX" | grep -q 'month: 8,.*isLeapMonth: true'; then ok "b-first, old parser: 2024-12-02 is month 8, leap (the defect, reproduced)"; else bad "b-first, old parser did not show the defect" old-b-first; fi
 
+# b-last: 9-10B. The middle is the leap month 10 that precedes the regular 10 closing the span, so
+# 2024-12-02 is month 10, leap. Reasoned from parseMonthSpan: the first token is 9 and the last is 10 with
+# a B, so the middle is { month: 10, leap }, which follows 9 and leads to 10.
+run new b-last new-b-last
+if [ $code -eq 0 ] && grep 'iso: "2024-12-02"' "$FIX" | grep -q 'month: 10,.*isLeapMonth: true'; then ok "b-last, fixed parser: 2024-12-02 is month 10, leap"; else bad "b-last, fixed parser" new-b-last; fi
+
 # middle-does-not-lead: 5-8. The fixed parser refuses; the old one writes a fixture.
 run new middle-does-not-lead new-middle
 MSG='has three months, but the middle one inferred (6) does not run from the first to the last'

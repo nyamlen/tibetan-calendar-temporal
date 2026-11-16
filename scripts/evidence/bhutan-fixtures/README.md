@@ -24,12 +24,13 @@ Correcting the field made the generator refuse the live source for seven leap ru
 2. `node check-recording.mjs $CONV/recorded`.
    A named page means the source has changed since the manifest.
 3. `CONV=$CONV bash harness.sh` (Git Bash on Windows).
-   Expect `pass 10 fail 0`.
+   Expect `pass 14 fail 0`.
 
 ## The baseline
 
 The control's rows are compared with the fixture as committed at `BASE_REV` (default `94f1fae`, the last revision before the change), which the harness reads with `git show` into `$CONV/out/`.
 Comparing with the working tree's fixture would be circular, since that file is the control's own output.
+The control's whole fixture, after Biome, must be byte-identical to the fixture committed at `YEAR_REV` (default `cbe2245`), whose generator is also what the year-mapping mutant is run against.
 The generated fixture's tuples must equal that fixture's first rows, the window must read 2000-01-01 to 2030-04-02, and the two measurements the fixture records must read as below.
 The tuples are one per line, so Biome does not reflow them.
 The generator's header carries no date stamp.
@@ -42,6 +43,8 @@ The generator's header carries no date stamp.
 | `leap-wrong-number` (2000's leap month 4 renumbered 5) | shipped | exit non-zero, no fixture, `is not preceded by a regular month 5; the month before it is 4` |
 | `leap-wrong-number` | K1 reverted | exit 0, fixture written: the dead half, reproduced |
 | `defect-gone-from-2030` (the leap flag cleared on 2030-04-03 and 04-04) | shipped | exit 0, same window, and the fixture now reports the first unpaired leap month after it as 2049-04-03 and none in Janson's years: the recorded measurements follow the source |
+| `unpaired-leap-in-february` (month 1 of the year whose Losar is 2031-02-22 flagged leap) | shipped | exit 0, same rows as the control, 1 unpaired leap month in Janson's years: the run is Tibetan 2031's by the source's month numbering |
+| `unpaired-leap-in-february` | `YEAR_REV` (`cbe2245`, year taken from the Gregorian month) | exit 0, 2 in Janson's years: the old mapping files a February run under the year before, and control at `YEAR_REV` reads 1, so only the mutant separates them |
 | `leap-after-leap` (2011's regular month 3 made leap 3 after leap 2) | shipped and K1 reverted | both refuse, `(also leap)`: the half K1 left alive |
 | window ending 2030-04-03 | shipped | refused, `leap month 2 beginning 2030-04-03` |
 | window ending 2030-04-02 (the default) | shipped | accepted, although the source holds the defect on the next day |

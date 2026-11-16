@@ -33,8 +33,6 @@ const edits = {
 			(r) => r.leap === 4 && r.gy === 2000,
 			() => [5, 4],
 		),
-	// The regular month 3 of 2011 becomes a leap month 3, straight after the leap month 2 Janson
-	// lists: a leap month following a leap month, inside the window.
 	// The leap flag of 2030-04-03 and 2030-04-04 is cleared, so the leap month 2 begins on 04-05
 	// behind a regular month 2, and the source's first unpaired leap month after the window moves on.
 	"defect-gone-from-2030": (t) =>
@@ -43,11 +41,23 @@ const edits = {
 			(r) => r.gy === 2030 && r.gm === 4 && (r.gd === 3 || r.gd === 4),
 			() => [2, 0],
 		),
+	// The regular month 3 of 2011 becomes a leap month 3, straight after the leap month 2 Janson
+	// lists: a leap month following a leap month, inside the window.
 	"leap-after-leap": (t) =>
 		rewrite(
 			t,
 			(r) => r.leap === 0 && r.month === 3 && r.gy === 2011,
 			() => [3, 3],
+		),
+	// Month 1 of the year whose Losar is 2031-02-22 is flagged leap, so it is an unpaired leap run
+	// that begins in February, after the window. It belongs to Tibetan 2031, which Janson's table does
+	// not list; a year taken as "the Gregorian year, less one for January and February" puts it in
+	// 2030, which he does.
+	"unpaired-leap-in-february": (t) =>
+		rewrite(
+			t,
+			(r) => r.month === 1 && r.leap === 0 && r.gy === 2031,
+			() => [1, 1],
 		),
 };
 

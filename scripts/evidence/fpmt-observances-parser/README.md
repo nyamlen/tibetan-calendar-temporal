@@ -20,10 +20,10 @@ It proves the old parser mis-reads such a caption, the fixed one reads it correc
 1. Record: `REC_DIR=$CONV/recorded node --import file:///<repository>/scripts/evidence/fpmt-observances-parser/record.mjs <scratch>/scripts/fetch-fpmt-observances.mjs`, where `<scratch>` is a copy of the generator in its own tree with a `test/fixtures/` directory.
    The generator computes its output path from its own location, so never record from the repository's copy.
    It needs the network and takes about a minute.
-2. `node check-recording.mjs $CONV/recorded`.
+2. From this directory, `node check-recording.mjs $CONV/recorded`.
    A named page means FPMT has changed it since the manifest.
-3. `CONV=$CONV bash harness.sh` (Git Bash on Windows).
-   Expect `pass 7 fail 0`.
+3. From this directory, `CONV=$CONV bash harness.sh` (Git Bash on Windows).
+   Expect `pass 8 fail 0`.
 
 ## The baseline
 
@@ -39,9 +39,10 @@ The generator writes no date stamp, so the raw output differs from the committed
 | control (start and end) | fixed | exit 0, fixture written, both controls byte-identical |
 | `b-first` (`6B-8`) | fixed | 2024-12-02 is month 7, not leap |
 | `b-first` | before the fix | 2024-12-02 is month 8, leap (the defect, reproduced) |
+| `b-last` (`9-10B`) | fixed | 2024-12-02 is month 10, leap: the leap month before the regular 10 that closes the span |
 | `middle-does-not-lead` (`5-8`) | fixed | exit non-zero, no fixture, `has three months, but the middle one inferred (6) does not run from the first to the last` |
 | `middle-does-not-lead` | before the fix | exit 0, fixture written (it had no guard) |
 
 ## What it did not prove
 
-The `5-6B` shape (a leap month before the regular month sharing its number) has no mutant here and the recorded pages carry no three-month caption of it; the fix leaves its branch unchanged.
+The `b-last` mutant exercises the `5-6B`-shaped branch of the three-month inference, but with an invented caption: the recorded pages carry no three-month caption of that shape, so nothing here shows FPMT prints one.

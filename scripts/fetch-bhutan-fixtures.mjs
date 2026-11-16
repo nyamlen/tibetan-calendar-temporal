@@ -144,6 +144,21 @@ console.log(`parsed ${all.length} rows`);
 // File order is not date order. Sorting is load-bearing, not tidiness.
 all.sort((a, b) => Temporal.PlainDate.compare(a.iso, b.iso));
 
+// The Tibetan year of every row, named by the Gregorian year it begins in, read from the source's
+// own month numbering: a year begins on the day the month number returns to 1. Not from the
+// Gregorian month, which only approximates where Losar falls and places a leap month that begins in
+// a late-February or early-March Losar year in the wrong year. The source opens on a day 1 of
+// month 1, so every row has a year.
+if (all[0].month !== 1 || all[0].day !== 1) {
+	console.error("the source no longer opens on day 1 of month 1, so its first year is unknown");
+	process.exit(1);
+}
+let sourceYear = all[0].iso.year;
+for (const [index, row] of all.entries()) {
+	if (index > 0 && row.month === 1 && all[index - 1].month !== 1) sourceYear = row.iso.year;
+	row.year = sourceYear;
+}
+
 // The rows that will be emitted. Check 5 reads these and nothing else.
 const window = all.filter(
 	(r) =>
@@ -204,9 +219,8 @@ if (
 const leapByYear = new Map();
 for (const row of all) {
 	if (row.leapMonth === 0) continue;
-	// A Tibetan year is named by the Gregorian year it begins in; take the earliest row of each run.
-	const year = row.iso.month <= 2 ? row.iso.year - 1 : row.iso.year;
-	if (!leapByYear.has(year)) leapByYear.set(year, row.leapMonth);
+	// Take the earliest row of each run.
+	if (!leapByYear.has(row.year)) leapByYear.set(row.year, row.leapMonth);
 }
 for (const [year, expected] of JANSON_BHUTAN_LEAP) {
 	const found = leapByYear.get(year);
@@ -233,7 +247,7 @@ const unpairedLeapMonths = (rows) => {
 	for (const row of rows) {
 		const last = months[months.length - 1];
 		if (!last || last.month !== row.month || last.leapMonth !== row.leapMonth) {
-			months.push({ month: row.month, leapMonth: row.leapMonth, iso: row.iso });
+			months.push({ month: row.month, leapMonth: row.leapMonth, iso: row.iso, year: row.year });
 		}
 	}
 	const found = [];
@@ -263,7 +277,7 @@ const firstDefectAfter = unpairedAll.find(
 	({ entry }) => Temporal.PlainDate.compare(entry.iso, toDate) > 0,
 );
 const unpairedInJansonYears = unpairedAll.filter(({ entry }) =>
-	JANSON_BHUTAN_LEAP.has(entry.iso.month <= 2 ? entry.iso.year - 1 : entry.iso.year),
+	JANSON_BHUTAN_LEAP.has(entry.year),
 ).length;
 
 if (problems.length > 0) {
@@ -287,6 +301,12 @@ if (window.length === 0) {
 }
 const start = window[0];
 const end = window.at(-1);
+
+const jansonYears = [...JANSON_BHUTAN_LEAP.keys()];
+const jansonFirstYear = Math.min(...jansonYears);
+const jansonLastYear = Math.max(...jansonYears);
+const sourceStart = all[0].iso;
+const sourceEnd = all.at(-1).iso;
 
 const doubled = window.filter((r, i) => i > 0 && window[i - 1].day === r.day).length;
 const skipped = window.filter((r, i) => i > 0 && r.day === window[i - 1].day + 2).length;
@@ -348,8 +368,8 @@ export const BHUTAN_FIRST_UNPAIRED_LEAP_AFTER_END: { readonly iso: string; reado
 
 /**
  * How many unpaired leap months the source has in the Tibetan years Janson's leap-month table
- * lists for Bhutan (2000 to 2030), counted over the whole source, which runs 1900-01-31 to
- * 2101-02-27. Janson lists none of them; they are the leap months of the source that his table
+ * lists for Bhutan (${jansonFirstYear} to ${jansonLastYear}), counted over the whole source, which runs ${sourceStart} to
+ * ${sourceEnd}. Janson lists none of them; they are the leap months of the source that his table
  * does not carry.
  */
 export const BHUTAN_UNPAIRED_LEAPS_IN_JANSON_YEARS = ${unpairedInJansonYears};
