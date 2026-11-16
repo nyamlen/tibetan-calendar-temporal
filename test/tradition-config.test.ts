@@ -776,3 +776,37 @@ describe("validatedTradition's private copy", () => {
 		expect(second?.message).toMatch(/epochYear must be a safe integer/);
 	});
 });
+
+describe("a mean motion whose denominators cannot be scaled exactly", () => {
+	const motionOver = (den: number) => ({
+		perMonth: { num: 1, den },
+		perDay: { num: 1, den },
+		atEpoch: { num: 1, den },
+	});
+	// The bound is MAX_SAFE_INTEGER / 4, 2_251_799_813_685_247 once floored: the solar anomaly needs 4 to
+	// divide the common denominator, and an odd denominator gains that factor.
+	const OVER = 2_251_799_813_685_249;
+	const WITHIN = 2_251_799_813_685_247;
+
+	it("refuses an odd meanSun denominator the factor of 4 would carry out of the safe range", () => {
+		const error = thrownBy(() => validatedTradition(broken({ meanSun: motionOver(OVER) })));
+		expect(error?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
+		expect(error?.message).toMatch(/meanSun/);
+	});
+
+	it("refuses a mean motion whose reduced denominators have no safe common multiple", () => {
+		const over = {
+			perMonth: { num: 1, den: 100_000_000 },
+			perDay: { num: 1, den: 99_999_999 },
+			atEpoch: { num: 1, den: 1 },
+		};
+		const error = thrownBy(() => validatedTradition(broken({ lunarAnomaly: over })));
+		expect(error?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
+		expect(error?.message).toMatch(/lunarAnomaly/);
+	});
+
+	it("accepts the largest odd meanSun denominator whose multiple of 4 is safe", () => {
+		const t = broken({ meanSun: motionOver(WITHIN) });
+		expect(thrownBy(() => validatedTradition(t))).toBeUndefined();
+	});
+});

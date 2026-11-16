@@ -72,8 +72,9 @@ function firstWithin(
 	} catch (error) {
 		if (!hasCode(error, "TCT_OUTSIDE_EXACT_RANGE")) throw error;
 		if (start === end) {
-			const { exactToJulianDay: upper } = scaled;
-			return { found: [], metEnd: start + upper > upper - start };
+			// The exact range is symmetric about zero (`Math.abs(julianDay) <= exactToJulianDay` in
+			// conversion.ts), so a failing day with a positive Julian day is at the upper end.
+			return { found: [], metEnd: start > 0 };
 		}
 		const middle = start + floorDiv(end - start, 2);
 		const earlier = firstWithin(rule, start, middle, config, scaled, tibetanDateOf);
@@ -115,6 +116,11 @@ function firstWithin(
  * whose span ends past the end of the range, because the result would have to carry a bound that
  * cannot be computed; {@link getObservances} and {@link observancesOn} refuse that case with
  * `TCT_OUTSIDE_EXACT_RANGE`, since they cannot answer a day without its span.
+ *
+ * **Near the lower end the search skips instead.** A `period` whose span, or a counted rule whose
+ * anchors, begin before the start of the range has no occurrence there that can be built, and the
+ * search goes on to the days after it; {@link getObservances} and {@link observancesOn} refuse such
+ * a day with `TCT_OUTSIDE_EXACT_RANGE`.
  *
  * Arguments are checked in a fixed order, as in {@link getObservances}: `from`, then the config,
  * then the tradition, then `ruleId`.

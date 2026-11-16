@@ -101,10 +101,13 @@ function assertRational(
 	}
 }
 
+const bigGcd = (a: bigint, b: bigint): bigint => (b === 0n ? (a < 0n ? -a : a) : bigGcd(b, a % b));
+
 function assertMeanMotion(
 	tradition: TraditionConfig,
 	path: string,
 	value: MeanMotion | undefined,
+	alsoDivides = 1,
 ): void {
 	if (value === null || typeof value !== "object") {
 		throw invalid(
@@ -114,6 +117,26 @@ function assertMeanMotion(
 	}
 	for (const coefficient of COEFFICIENTS) {
 		assertRational(tradition, `${path}.${coefficient}`, value[coefficient]);
+	}
+	// The coefficients are put over the lcm of their reduced denominators and of `alsoDivides`, and
+	// `lcm` multiplies in doubles: past 2^53 it rounds, and the failure surfaces late from `scaleTo`
+	// naming neither this field nor the config. `alsoDivides` is 4 for `meanSun`, whose solar anomaly
+	// subtracts 1/4, so an odd denominator above MAX_SAFE_INTEGER / 4 is already out.
+	let common = BigInt(alsoDivides);
+	for (const coefficient of COEFFICIENTS) {
+		const { num, den } = value[coefficient];
+		// exact: BigInt, and a gcd divides both its arguments.
+		const reduced = BigInt(den) / bigGcd(BigInt(num), BigInt(den));
+		// exact: as above.
+		common = (common / bigGcd(common, reduced)) * reduced;
+	}
+	if (common > BigInt(Number.MAX_SAFE_INTEGER)) {
+		throw invalid(
+			tradition,
+			`${path}'s denominators have a least common multiple of ${common}${
+				alsoDivides > 1 ? ` with ${alsoDivides}` : ""
+			}, beyond 2^53 - 1, so its coefficients cannot be put over one denominator exactly`,
+		);
 	}
 }
 
@@ -475,7 +498,7 @@ function assertShape(tradition: TraditionConfig): void {
 	assertNaming(tradition);
 
 	for (const motion of MEAN_MOTIONS) {
-		assertMeanMotion(tradition, motion, tradition[motion]);
+		assertMeanMotion(tradition, motion, tradition[motion], motion === "meanSun" ? 4 : 1);
 	}
 	assertMeanDateRelation(tradition);
 
