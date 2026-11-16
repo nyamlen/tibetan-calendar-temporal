@@ -10,7 +10,7 @@ what else the day is held to be.
 The whole layer is on the `tibetan-calendar-temporal/astrology` subpath: the year, month, lunar-day
 and calendar-day attributes, the lunar mansion, the element each mansion carries, and the elemental
 yoga with its names, favorability and four-way grading. The month and lunar-day attributes **refuse** for the Bhutanese
-configs, as the gap below describes.
+configs, as the gap below describes, and so does the yoga, because Bhutan shifts the weekday.
 This document explains the *system*, which is stable knowledge independent of our implementation.
 It deliberately states **no API examples** — no function names, no call signatures — and that is now a
 division of labour rather than a wait: the consumer account lives in
@@ -95,8 +95,10 @@ at all.
 
 ### Months — animal, gender, element, and sometimes a number
 
-Each of the twelve months takes an animal, and with it a gender: odd months male, even months
-female, following the general principle that odd numbers are *yang* and even are *yin*.
+Each of the twelve months takes an animal, and with it the gender of that animal: odd animal numbers
+male, even female, following the general principle that odd numbers are *yang* and even are *yin*.
+In both attested versions the Tiger month is odd, so this comes to odd months male and even months
+female.
 
 **Which animal starts the year is tradition-dependent, and this is the sharpest fork in the whole
 layer.**
@@ -307,13 +309,15 @@ It does not tell anyone what to do about it.
 
 ## What varies between traditions, and one gap
 
-Only the **month** and **lunar-day** attributes are tradition-dependent; the year and calendar-day
-attributes are the same everywhere, and the yoga varies only through the mansion, which the engine
-computes from each tradition's own constants.
+The year and calendar-day attributes are the same everywhere.
+The **month** and **lunar-day** attributes depend on the tradition.
+So does the yoga, in two ways: through the mansion, which the engine computes
+from each tradition's own constants, and through the weekday element, which depends on whether the
+tradition shifts its weekday.
 
 **Bhutan is an open gap.**
 Janson gives month-animal lists for Phugpa and Tsurphu and **none for Bhutan**, even though
-`BHUTAN` and `BHUTAN_HENNING` are both exported, validated configs.
+`BHUTAN` and `BHUTAN_HENNING` are both exported configs.
 A search for a published Bhutanese month attribution found nothing usable.
 The Royal Government's calendars, read page by page, print no month animal, and Henning's Bhutanese
 calendar files apply Phugpa's rules through code shared with his Tibetan program, so they are his
@@ -321,11 +325,18 @@ default rather than Bhutanese evidence — see [validation-sources.md](validatio
 An independent Bhutanese source is required.
 
 Until it is sourced, the behaviour is to **refuse rather than guess**: Bhutan gets the year
-attributes, the calendar-day attributes and the yoga, and a coded error for the month and lunar-day
-attributes naming the gap.
+attributes, the calendar-day attributes and the lunar mansion, and a coded error for the month and
+lunar-day attributes naming the gap.
 That is implemented as of 2026-09-12 — `TCT_ATTRIBUTE_NOT_SOURCED`, thrown because a tradition whose
 month attributes nobody has sourced carries no month-naming block at all, rather than because any
 code asks "is this Bhutan"; see
 [decisions/2026-09-12-absent-naming-members-refuse.md](decisions/2026-09-12-absent-naming-members-refuse.md).
 Silently falling back to Phugpa's list would hand one tradition's answers to another, which is the
 failure this repository is most careful about.
+
+**The yoga is refused under Bhutan for a different reason.**
+Bhutan shifts the whole weekday by one day — name, planet and element — and no source says what the
+yoga pairs the mansion with after the shift; that the element moves is an inference, Andreas' ruling
+of 2026-11-16.
+The refusal is reached through the config's nonzero weekday offset, not by asking "is this Bhutan",
+and the composition reports the yoga as unsourced rather than refusing the whole day.

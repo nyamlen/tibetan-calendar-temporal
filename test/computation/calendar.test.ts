@@ -1,6 +1,7 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import {
+	assertMonthCountYear,
 	intercalationIndex,
 	isLeapYear,
 	leapMonthOfYear,
@@ -11,7 +12,10 @@ import {
 	solarMonthsSinceEpoch,
 	trueMonthCount,
 } from "../../src/computation/calendar.js";
-import { PHUGPA } from "../../src/traditions/phugpa.js";
+import { lunationFromMonth } from "../../src/navigation.js";
+import { BHUTAN, BHUTAN_HENNING } from "../../src/traditions/bhutan.js";
+import { PHUGPA, PHUGPA_HENNING } from "../../src/traditions/phugpa.js";
+import type { TraditionConfig } from "../../src/traditions/types.js";
 
 const P = PHUGPA;
 const years = fc.integer({ min: 806, max: 4000 });
@@ -218,5 +222,79 @@ describe("known leap months", () => {
 		expect(isLeapYear(P, 2000)).toBe(true);
 		expect(leapMonthOfYear(P, 2000)).toBe(1);
 		expect(sharesNumberWithLeapMonth(P, 2000, 1)).toBe(true);
+	});
+});
+
+describe("assertMonthCountYear covers trueMonthCount's 67·M*", () => {
+	const configs = [
+		["PHUGPA", PHUGPA],
+		["PHUGPA_HENNING", PHUGPA_HENNING],
+		["BHUTAN", BHUTAN],
+		["BHUTAN_HENNING", BHUTAN_HENNING],
+	] as const;
+
+	const accepts = (tradition: TraditionConfig, year: number): boolean => {
+		try {
+			assertMonthCountYear(() => "probe", year, tradition);
+			return true;
+		} catch (error) {
+			if ((error as { code?: string }).code !== "TCT_OUTSIDE_EXACT_RANGE") throw error;
+			return false;
+		}
+	};
+
+	// Largest accepted |year − epochYear|, found through the guard itself.
+	const widestAccepted = (tradition: TraditionConfig): number => {
+		let lo = 0;
+		let hi = 2 ** 52;
+		while (lo < hi) {
+			const mid = Math.floor((lo + hi + 1) / 2);
+			if (accepts(tradition, tradition.epochYear + mid)) lo = mid;
+			else hi = mid - 1;
+		}
+		return lo;
+	};
+
+	it("refuses lunationFromMonth at year 1e14 instead of returning equal counts for two months", () => {
+		expect(() => lunationFromMonth({ year: 1e14, month: 9 })).toThrow(
+			expect.objectContaining({ code: "TCT_OUTSIDE_EXACT_RANGE" }),
+		);
+	});
+
+	it("keeps every accepted year exact, at both ends, for all four shipped configs", () => {
+		const bad: string[] = [];
+		for (const [name, config] of configs) {
+			const widest = widestAccepted(config);
+			for (const sign of [1, -1]) {
+				for (let back = 0; back < 4; back++) {
+					const year = config.epochYear + sign * (widest - back);
+					let previous: number | undefined;
+					for (let month = 1; month <= 12; month++) {
+						const month_ = { year: year + 127, month };
+						const count = lunationFromMonth(month_, config);
+						if (previous !== undefined && count - previous !== 1 && count - previous !== 2) {
+							bad.push(`${name} ${year}/${month}: step ${count - previous}`);
+						}
+						previous = count;
+					}
+					const solar = BigInt(12) * BigInt(year - config.epochYear) + 0n;
+					const first = lunationFromMonth({ year: year + 127, month: 1 }, config);
+					const rounded =
+						(67n * (solar + BigInt(1 - config.epochMonth)) +
+							BigInt(config.intercalationIndexAtEpoch) +
+							BigInt(65 - config.leapIndexThreshold)) /
+						65n;
+					const exact =
+						67n * (solar + BigInt(1 - config.epochMonth)) +
+						BigInt(config.intercalationIndexAtEpoch) +
+						BigInt(65 - config.leapIndexThreshold);
+					const floor = exact >= 0n ? rounded : -((-exact + 64n) / 65n);
+					if (Math.abs(Number(BigInt(first) - floor)) > 1) {
+						bad.push(`${name} ${year}: month 1 count ${first}, reference ${floor}`);
+					}
+				}
+			}
+		}
+		expect(bad).toEqual([]);
 	});
 });

@@ -5,7 +5,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { attributesFor, ELEMENTAL_YOGAS, monthAttributesFor } from "../src/astrology/index.js";
+import {
+	attributesFor,
+	ELEMENTAL_YOGAS,
+	lunarMansionFor,
+	monthAttributesFor,
+} from "../src/astrology/index.js";
 import {
 	isoToTibetan,
 	julianDayFromIso,
@@ -112,6 +117,14 @@ describe("guide examples", () => {
 		const month = monthsFor(date.year).find((m) => m.monthCode === date.monthCode);
 		expect(date.lunation).toBe(month?.lunation);
 		expect(month?.yearName).toEqual(yearNameFor(date.year));
+	});
+
+	// Until 2026-11-16 this read "named nyi ma and still reports Saturn and earth".
+	it("says a Bhutanese Saturday is nyi ma, the Sun, fire", () => {
+		const saturday = isoToTibetan(iso("2026-02-14"), BHUTAN);
+		expect(saturday.weekdayName.wylie).toBe("nyi ma");
+		expect(saturday.weekdayName.planet).toBe("sun");
+		expect(saturday.weekdayName.element).toBe("fire");
 	});
 
 	it("numbers the weekday as ISO 8601 and names it through Temporal", () => {
@@ -560,8 +573,15 @@ describe("guide examples", () => {
 			const good = printed();
 			expect(codeOf(good)).toBeUndefined();
 			expect(Object.isFrozen(good)).toBe(false);
+			const year = (config: unknown) =>
+				getObservances(iso("2026-01-01"), iso("2026-12-31"), config as never).map(
+					(o) => `${o.rule.id} ${o.date.isoDate}`,
+				);
+			const before = year(good);
+			expect(before.length).toBeGreaterThan(0);
 			(good.rules[0] as Record<string, unknown>).level = "pubic";
-			expect(codeOf(good), "an edit in place is not checked again").toBeUndefined();
+			(good.rules[0] as Record<string, unknown>).id = "renamed";
+			expect(year(good), "an edit in place is ignored: the answer is unchanged").toEqual(before);
 			expect(codeOf(structuredClone(good))).toBe(INVALID_CONFIG);
 		});
 
@@ -803,10 +823,10 @@ describe("guide examples", () => {
 		});
 
 		it("states the yoga and its favorability correctly", () => {
-			expect(day.yoga.englishName).toBe("death");
-			expect(day.yoga.sanskritName.iast).toBe("maraṇa");
-			expect(day.yoga.favorable).toBe(false);
-			expect(day.yoga.auspiciousness.englishName).toBe("worst");
+			expect(day.yoga?.englishName).toBe("death");
+			expect(day.yoga?.sanskritName.iast).toBe("maraṇa");
+			expect(day.yoga?.favorable).toBe(false);
+			expect(day.yoga?.auspiciousness.englishName).toBe("worst");
 		});
 
 		it("is right that the yoga is Tuesday's fire paired with the water of Revatī", () => {
@@ -814,7 +834,7 @@ describe("guide examples", () => {
 			expect(day.date.weekdayName.element).toBe("fire");
 			expect(day.lunarMansion.element).toBe("water");
 			expect(day.lunarMansion.sanskritName.iast).toBe("revatī");
-			expect([...day.yoga.elements].sort()).toEqual(["fire", "water"]);
+			expect([...(day.yoga?.elements ?? [])].sort()).toEqual(["fire", "water"]);
 		});
 
 		it("prints every cell of the ten-yoga table as the package ships it", () => {
@@ -863,6 +883,10 @@ describe("guide examples", () => {
 
 		it("is right that Bhutan reports null and the primitive throws", () => {
 			expect(attributesFor(iso("2026-09-01"), BHUTAN).month).toBeNull();
+			expect(attributesFor(iso("2026-09-01"), BHUTAN).yoga).toBeNull();
+			expect(attributesFor(iso("2026-09-01"), BHUTAN).lunarMansion.index).toBe(
+				lunarMansionFor(iso("2026-09-01"), BHUTAN).index,
+			);
 			let thrown: unknown;
 			try {
 				monthAttributesFor({ year: 2153, month: 1 }, BHUTAN);

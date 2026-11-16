@@ -13,7 +13,7 @@
  * const day = attributesFor(Temporal.PlainDate.from("2026-09-01"));
  * day.year.power;        // "fire" — 2026 is a Fire Horse year
  * day.calendarDay.animal;
- * day.yoga.englishName;      // "death" — the least auspicious of the ten
+ * day.yoga?.englishName;     // "death" — the least auspicious of the ten
  * ```
  *
  * **A day carries two sets of labels that disagree**, and that is not a defect to reconcile:
@@ -30,7 +30,10 @@
  * **Two traditions answer and two refuse.** Janson tabulates no month-animal list for the Bhutanese
  * version, so {@link monthAttributesFor} and {@link lunarDayAttributesFor} throw
  * `TCT_ATTRIBUTE_NOT_SOURCED` for `BHUTAN` and `BHUTAN_HENNING` rather than handing over Phugpa's
- * answers. Everything else answers for every tradition.
+ * answers. The elemental yoga is refused too, by any tradition whose `naming.weekdayOffset` is
+ * nonzero — the two Bhutanese configs — because no source says what its weekday element is under
+ * that shift; {@link elementalYogaFor} throws and {@link attributesFor} reports `null`. Everything
+ * else answers for every tradition.
  *
  * **The mansion table ships as `LUNAR_MANSIONS`**, all 27 in index order, mirroring `ELEMENTAL_YOGAS`.
  * It didn't ship until 2026-09-18: an early attempt exported three bare mansion names with no way to
@@ -45,9 +48,9 @@
 
 import { trueMonthCount } from "../computation/calendar.js";
 import { asWesternDay, isoToTibetan, julianDayFromIso } from "../computation/conversion.js";
-import { yearFromRoyalEra } from "../computation/epoch.js";
+import { attributesYearFromRoyalEra, yearFromRoyalEra } from "../computation/epoch.js";
 import { scalingFor } from "../computation/scaling.js";
-import { describe, rangeError } from "../errors.js";
+import { assertSafeYear, rangeError } from "../errors.js";
 import { deepFreeze } from "../freeze.js";
 import { boundedMonth } from "../months.js";
 import { weekdayNameWithOffset } from "../names.js";
@@ -56,6 +59,7 @@ import type { TraditionConfig } from "../traditions/types.js";
 import type {
 	TibetanDate,
 	TibetanDateFields,
+	TibetanDateSnapshot,
 	TibetanMonthFields,
 	TibetanWeekdayElement,
 } from "../types.js";
@@ -126,14 +130,12 @@ export const LUNAR_MANSIONS: readonly LunarMansion[] = deepFreeze(
  * ```
  */
 export function yearAttributesFor(year: number): YearAttributes {
-	if (!Number.isSafeInteger(year)) {
-		throw rangeError(
-			"TCT_FIELD_OUT_OF_RANGE",
-			`yearAttributesFor: year must be a safe integer, received ${describe(year)}. Years here are the ` +
-				"royal era, matching TibetanDate.year — 2153, not 2026.",
-		);
-	}
-	return yearAttributes(yearFromRoyalEra(year));
+	assertSafeYear(
+		"yearAttributesFor",
+		year,
+		". Years here are the royal era, matching TibetanDate.year — 2153, not 2026.",
+	);
+	return yearAttributes(attributesYearFromRoyalEra(year));
 }
 
 /**
@@ -170,9 +172,9 @@ export function monthAttributesFor(
 ): MonthAttributes {
 	// The month tier's own guard: the shape, the year, the month number, the leap flag against the
 	// year's actual leap month, and the exact range at both ends of the month.
-	boundedMonth("monthAttributesFor", month, "month", tradition);
+	const { fields, scaled } = boundedMonth("monthAttributesFor", month, "month", tradition);
 
-	return monthAttributes(tradition, yearFromRoyalEra(month.year), month.month);
+	return monthAttributes(scaled.tradition, yearFromRoyalEra(fields.year), fields.month);
 }
 
 /**
@@ -213,9 +215,10 @@ export function lunarDayAttributesFor(
 	// The month tier's guard with the day range-checked alongside the other fields, and never a
 	// conversion: a skipped day is a legitimate argument here, and `tibetanToIso` would refuse it.
 	// So the month is bounded, not the day.
-	boundedMonth("lunarDayAttributesFor", date, "date", tradition);
+	const { fields, scaled } = boundedMonth("lunarDayAttributesFor", date, "date", tradition);
+	const { year, month, day } = fields as TibetanDateSnapshot;
 
-	return lunarDayAttributes(tradition, yearFromRoyalEra(date.year), date.month, date.day);
+	return lunarDayAttributes(scaled.tradition, yearFromRoyalEra(year), month, day);
 }
 
 /**
@@ -261,9 +264,14 @@ export function calendarDayAttributesFor(
  * yoga. Pass the `Temporal.PlainDate` of the half you mean, or a resolved `TibetanDate` — which
  * carries `isLeapDay`, the flag that says which half it is.
  *
+ * **Refused under a shifted weekday.** A tradition whose `naming.weekdayOffset` is nonzero — `BHUTAN`
+ * and `BHUTAN_HENNING` — moves the weekday, and no source says what the yoga pairs with then, so the
+ * yoga throws rather than answering from either table. The mansion is unaffected.
+ *
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` for an argument that names no calendar day;
  * `TCT_INVALID_TRADITION_CONFIG` for an invalid `tradition`; `TCT_OUTSIDE_EXACT_RANGE` past the
- * tradition's exact range.
+ * tradition's exact range; or **`TCT_ATTRIBUTE_NOT_SOURCED`** for a tradition with a nonzero
+ * `naming.weekdayOffset`.
  *
  * @example
  * ```ts
@@ -276,7 +284,7 @@ export function elementalYogaFor(
 	tradition: TraditionConfig = PHUGPA,
 ): ElementalYoga {
 	const resolved = isoToTibetan(isoOf("elementalYogaFor", date), tradition);
-	return yogaOf(resolved, tradition);
+	return yogaOf(resolved, scalingFor(tradition).tradition);
 }
 
 /**
@@ -338,8 +346,9 @@ export function lunarMansionFor(
  * ```ts
  * const day = attributesFor(Temporal.PlainDate.from("2026-09-01"));
  * day.year.power;   // "fire"
- * day.yoga.englishName; // "death"
+ * day.yoga?.englishName; // "death"
  * day.month;        // null under BHUTAN, where Janson gives no month-animal list
+ * attributesFor(Temporal.PlainDate.from("2026-09-01"), BHUTAN).yoga; // null: no source for the weekday element
  * ```
  */
 export function attributesFor(
@@ -347,6 +356,7 @@ export function attributesFor(
 	tradition: TraditionConfig = PHUGPA,
 ): DayAttributes {
 	const resolved = isoToTibetan(isoOf("attributesFor", date), tradition);
+	tradition = scalingFor(tradition).tradition;
 	const y = yearFromRoyalEra(resolved.year);
 
 	// The one place in this subpath that reports rather than refuses, so the refusal is caught here
@@ -364,12 +374,33 @@ export function attributesFor(
 		lunarDay: sourced ? lunarDayAttributes(tradition, y, resolved.month, resolved.day) : null,
 		calendarDay: calendarDayAttributes(julianDayFromIso(resolved.isoDate)),
 		lunarMansion,
-		yoga: yogaForMansion(weekdayElementOf(resolved), lunarMansion.index),
+		yoga: yogaIsSourced(tradition)
+			? yogaForMansion(weekdayElementOf(resolved), lunarMansion.index)
+			: null,
 	};
 }
 
-/** The yoga of an already-resolved date, shared by the composition and the primitive. */
+/**
+ * Whether the yoga's weekday element has a source under this tradition.
+ *
+ * Keyed on the config's `naming.weekdayOffset`, never on which tradition it is: a nonzero offset
+ * moves the weekday, and no source says what the yoga pairs with then.
+ */
+function yogaIsSourced(tradition: TraditionConfig): boolean {
+	return (tradition.naming?.weekdayOffset ?? 0) === 0;
+}
+
+/** The yoga of an already-resolved date, shared by the primitive; refuses where unsourced. */
 function yogaOf(resolved: TibetanDate, tradition: TraditionConfig): ElementalYoga {
+	if (!yogaIsSourced(tradition)) {
+		throw rangeError(
+			"TCT_ATTRIBUTE_NOT_SOURCED",
+			`${tradition.name} has no sourced elemental yoga: it shifts the weekday by ` +
+				`${tradition.naming?.weekdayOffset} and no source says what the yoga's weekday element is ` +
+				"then. Nothing about the date you asked about is wrong — the attribute simply has no " +
+				"source. The lunar mansion, and the year and calendar-day attributes, still answer",
+		);
+	}
 	return yogaForMansion(weekdayElementOf(resolved), lunarMansionOf(resolved, tradition).index);
 }
 
@@ -377,7 +408,7 @@ function yogaOf(resolved: TibetanDate, tradition: TraditionConfig): ElementalYog
 function lunarMansionOf(resolved: TibetanDate, tradition: TraditionConfig): LunarMansion {
 	const scaled = scalingFor(tradition);
 	const monthCount = trueMonthCount(
-		tradition,
+		scaled.tradition,
 		yearFromRoyalEra(resolved.year),
 		resolved.month,
 		resolved.isLeapMonth,
@@ -394,14 +425,9 @@ function lunarMansionOf(resolved: TibetanDate, tradition: TraditionConfig): Luna
 
 /** The weekday element the yoga pairs with the mansion's. */
 function weekdayElementOf(resolved: TibetanDate): TibetanWeekdayElement {
-	// Offset **0**, deliberately, rather than `weekdayNameFor(…, tradition)` — which would apply
-	// `naming.weekdayOffset` and hand Bhutan a different yoga on most days. Janson gives the yoga's
-	// weekday element in one table, states Bhutan's name shift separately as a naming feature, and
-	// never revisits the yoga for it; so following the shifted *name* here would be an inference
-	// nobody has published, on a surface that freezes at 1.0.0 and whose only external validation is
-	// Phugpa. Taking his printed table instead is the sourced answer, and it keeps two claims true
-	// that were briefly false: `TraditionNaming.weekdayOffset`'s "applies to the name only", and
-	// `docs/astrology.md`'s "the yoga varies only through the mansion".
+	// Reached only under offset 0, where Janson's printed table is the answer. Offset **0** is passed
+	// explicitly so that a caller who skipped `yogaIsSourced` would still read the printed table
+	// rather than a shifted row nobody sources.
 	return weekdayNameWithOffset(resolved.tibetanWeekday, 0).element;
 }
 

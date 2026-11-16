@@ -245,14 +245,18 @@ export interface TraditionConfig {
  */
 export interface TraditionNaming {
 	/**
-	 * How far this tradition's weekday **names** are shifted from Tibet's, in whole days.
+	 * How far this tradition's weekday is shifted from Tibet's, in whole days.
 	 *
 	 * @remarks
 	 * 0 for every Tibetan version. **1 for Bhutan**, where day 0 is *nyi ma* rather than *spen pa* —
 	 * Janson calls it "a unique feature of the Bhutanese calendar", and Unicode CLDR agrees: its
 	 * `bo` and `dz` locales give names one planet apart for the same date.
 	 *
-	 * Applies to the **name only**. The weekday *number* is `mod(julianDay + 2, 7)` for every
+	 * Moves the **whole weekday**: the name, its `planet` and its `element` are all the shifted
+	 * weekday's. That the element moves is an inference no source states. Because of it, a
+	 * tradition with a nonzero offset has **no sourced elemental yoga**, which pairs the weekday's
+	 * element with the mansion's: `elementalYogaFor` throws `TCT_ATTRIBUTE_NOT_SOURCED` and
+	 * `attributesFor` reports `null`. The weekday *number* is `mod(julianDay + 2, 7)` for every
 	 * tradition and the Western weekday is correct in both, which is why the difference is invisible
 	 * when dates are written in English.
 	 *

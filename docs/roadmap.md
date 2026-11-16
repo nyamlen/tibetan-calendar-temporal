@@ -503,6 +503,17 @@ that its first step is still open.
   - `scripts/extract-janson-fixtures.mjs` does not check leap-column cells for shape, or that the
     Losar years are contiguous.
   - `scripts/fetch-eszthoff-fixtures.mjs` has no guard against being run from inside the repository.
+  - `scripts/fetch-fpmt-observances.mjs`'s month-span guard accepts a caption implying two leap
+    pairs, e.g. `6A-7B`; the parser it replaced did too, and the task that rewrote it did not
+    take it up.
+  - `getObservances`' 10-year span cap reads `to.year - from.year` from the caller's object
+    (`src/observances/index.ts`), so a `Temporal.PlainDate` subclass with a lying `year` getter
+    bypasses the cap — a cost, not a wrong answer — and can produce a self-contradicting
+    `TCT_SPAN_TOO_WIDE` message; compute the span from the Julian days or ISO fields the engine
+    already holds.
+  - Range-refusal messages at the edge name a lunation as if it were the argument
+    (`addMonthsToDate(-3049305) is outside…`), and the lunation-bound message says "this
+    tradition's" without naming it; message text, not contract.
 - [ ] **Small findings parked by the phonetics-by-word reviews (2026-11-15).**
   None blocks 1.0.0; each is a guard or a comment that could be tighter, found by the task reviews
   and the final review and judged acceptable when the branch merged.
@@ -1506,10 +1517,18 @@ nothing and reports success.
       reviews rather than `/code-review`, then scored by independent agents: 57 findings, 47 kept.
       The fixes go on one branch, reviewed by the one free ultrareview before merging; the false
       docblocks among them go to the docblock audit. The item closes when the fixes merge.
+
+      **Status 2026-11-16:** every kept finding is fixed or parked with a ruling on the branch
+      `pre-1.0-review-fixes`, each task reviewed by an independent Opus reviewer and the whole branch
+      by a final hostile-input pass, which found it ready to merge. Parked findings are in the item
+      "Small findings parked by the pre-1.0.0 code review". Awaiting the ultrareview, then merge.
 - [ ] **Security review.** **Run 2026-11-15 at `34b8ab4`:** no high findings. Two medium — the
       `monthsFor` cache grows without bound on the shipped configs, and the CI-token item was stale
       (rewritten under Publishing) — and one low, action pinning by tag. The cache cap goes on the
-      code-review fixes branch. Still open: `/security-review` on the release branch's diff. State the honest scope first, or the pass will invent findings: zero
+      code-review fixes branch.
+      **Status 2026-11-16:** on that branch, not yet merged — the cache is an LRU of 64 years per
+      config, and both CI actions are pinned to commit SHAs.
+      Still open: `/security-review` on the release branch's diff. State the honest scope first, or the pass will invent findings: zero
       runtime dependencies, no I/O, no network, no filesystem access, no user-supplied strings
       reaching anything but integer arithmetic. The real attack surface is **supply chain and
       release**, most of it already itemised under Publishing — provenance, the lockfile, token
@@ -1745,24 +1764,19 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
       uncoded — `addMonthsToDate(d, 1, new Proxy({}, { ownKeys() { throw … } }))` — where before it
       passed the guard and answered.
 - [x] **A throw from the caller's own code while the engine reads a config or a fields object
-      escapes uncoded — decide whether it should.** **Decided 2026-09-24 by Andreas: it may.** The
-      README now says beside its code table that an error the caller's own code throws may reach them
-      unchanged, and
+      escapes uncoded, and it no longer does.** **Decided 2026-11-16 by Andreas (option 3): it
+      is coded.** Question put to him 2026-11-15, after the post-validation re-read of a config was
+      removed: should the validator code errors thrown by the caller's own getters or Proxies at first
+      read, and should the fields guards? It overtakes the 2026-09-24 decision that such an error may
+      propagate unchanged. A throw while a `TraditionConfig` or an `ObservanceConfig` is read is refused
+      with the config's code and the caller's error as `cause`; a throw while a Tibetan date's or
+      month's fields are read is refused with `TCT_INVALID_ARGUMENT`, each field read exactly once into
+      a frozen snapshot that every later step uses. The same work closed a defect it found: a getter
+      answering 8 and then 31 passed validation as 8 and was computed on as 31, a confident wrong
+      date from `resolveDate`, `tibetanToIso` and `addDays`. The README's sentence beside its code table
+      no longer carries an exception, since every read of a caller's object is guarded, and
       [decisions/2026-08-12-error-codes-not-classes.md](decisions/2026-08-12-error-codes-not-classes.md)
-      records the boundary and why converting was not chosen: a config is read again after
-      validation, so only a validator returning a frozen copy would close it, across every function
-      taking a config. Converting stays open, since adding codes later breaks nobody. Found 2026-09-24 with the item above and left out
-      of it on purpose. A Proxy passed as a `TraditionConfig` — revoked, or with any one trap that
-      throws — escapes from the first read in `assertTraditionConfig` (`isoToTibetan(d, proxy)`,
-      `monthNamesFor(m, proxy)`), and an `ObservanceConfig` whose `rules`, `rules[0]` or
-      `rules[0].when` is one does the same. The review also measured a throwing getter on a
-      Tibetan-date fields object escaping at about seventeen exports. The **argument** guards already
-      convert such a throw — `temporalTypeNameOf` always has, and since this item the options guard
-      and `asWesternDay` do — so the question was whether the config validators and the fields
-      guards should too, or whether the README's "every failure about your input … carries a code"
-      should say that an error your own code throws propagates unchanged.
-      `test/hostile-inputs.test.ts` leaves every Proxy out of its config rows for this reason, and
-      says so.
+      records it. `test/hostile-inputs.test.ts` no longer leaves a Proxy out of its config rows.
 - [x] **The Tibetan date-field guard is written six times.** Answering the review question the `describe`
       item above carried, 2026-09-24: `assertMonthFields` and `assertDateFields` in `navigation.ts`, the
       inline checks in `resolveMonth`, `daysInMonth` and `datesFor` in `months.ts`, and those in
@@ -1842,6 +1856,9 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
       `monthFromLunation`, `weekdayNameFor` and the closed-form year functions take a number and no
       shape, so the shape-first order says nothing about them, and they are outside this decision:
       `monthFromLunation` checks the tradition before its number, the other two the number first.
+      `isoToTibetan` was missed by that change, which counted fourteen exports and not fifteen: it
+      checked the tradition before its Western date until a review found it, and now has its row in
+      the same table.
 - [x] **Decide whether `check:conventions` rule 4 should distinguish an exported `{@link}` target
       from a module-local one.** **Decided 2026-09-23: reject, scoped to docblocks that ship** — those
       of a barrel-exported declaration or of a member of a barrel-exported interface or class, where a
@@ -2081,8 +2098,9 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
   **Closed, and the way it closed is worth keeping.** This entry read "Still open for Bhutan: a
   runnable config — `m₀`, `s₀` and `a₀` remain unreconciled, so no day-level Bhutanese date is
   claimed and `BHUTAN` is not exported" until 2026-08-21, by which time every clause of it was
-  false. `BHUTAN` and `BHUTAN_HENNING` are both exported and deeply frozen, and the config is
-  validated day by day against Bhutanese calendar data for 2000–2030 — see
+  false. `BHUTAN` and `BHUTAN_HENNING` are both exported and deeply frozen, and `BHUTAN_HENNING` is
+  validated day by day against Bhutanese calendar data, where `BHUTAN` is checked
+  against twenty-five government-published days only — see
   [../src/traditions/bhutan.ts](../src/traditions/bhutan.ts) and
   [testing.md](testing.md) for the window.
 
@@ -2100,10 +2118,10 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
   result disagree about New Year 2003, saying "I have no explanation for this discrepancy"; the
   fixture follows the computed line, and that is recorded rather than resolved.
 
-  A third turned up when the engine was finally held to the data: the fixture carries **one leap
+  A third turned up when the engine was finally held to the data: the source carries **one leap
   month Janson does not list**, at 2030-04-03, because the upstream leaves its leap flag set a month
-  too long. The generator has a fifth check for it now, and **will refuse to rewrite the committed
-  window until the source is fixed**.
+  too long. The generator has a fifth check for it, and the fixture now ends the day before (its
+  extent is in `docs/testing.md`); asking the generator for a later end refuses to write.
 
 - **Mongolian tradition** (New Genden) via its own `TraditionConfig`. Added as its own entry on
   2026-09-24, at Andreas' request; its route was first scoped inside the Tsurphu entry above, which
@@ -2127,8 +2145,9 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
      and element, as Tsurphu does, but not Tsurphu's nine month numbers. Whether the weekday names
      and the `./astrology` attributes carry over has to be sourced, not assumed — the lesson of the
      Bhutanese `weekdayOffset`.
-  3. **Day-by-day external validation from two lineages**, as Bhutan had. `@hnw/date-tibetan`'s
-     `CalendarMongolian` derives from Janson, so it can confirm the arithmetic and cannot confirm the
+  3. **External validation from two lineages**, as Bhutan has: one day by day (`BHUTAN_HENNING`) and
+     one a 25-day sample (`BHUTAN`).
+     `@hnw/date-tibetan`'s `CalendarMongolian` derives from Janson, so it can confirm the arithmetic and cannot confirm the
      calendar. The independent candidates: published Tsagaan Sar dates; the printed Buryat almanacs
      Zurkhai's App Store listing names (Yampilov-Galsanov's "Zurkhai-3" and Atsagatsky Datsan
      publications); and Zurkhai's own Hural list, whose 2027 dates follow Mongolian month

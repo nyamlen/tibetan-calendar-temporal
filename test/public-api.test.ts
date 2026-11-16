@@ -791,7 +791,7 @@ describe("astrology API surface", () => {
 	it("answers the whole row for one day", () => {
 		const attributes = astrology.attributesFor(day);
 		expect(attributes.year.power).toBe("fire");
-		expect(attributes.yoga.englishName).toBe("death");
+		expect(attributes.yoga?.englishName).toBe("death");
 		expect(attributes.month).not.toBeNull();
 		expect(attributes.lunarDay).not.toBeNull();
 		expect(attributes.date.isoDate.toString()).toBe("2026-09-01");
@@ -803,7 +803,8 @@ describe("astrology API surface", () => {
 		expect(attributes.lunarDay).toBeNull();
 		// Everything tradition-free still answers, which is the point of reporting rather than throwing.
 		expect(attributes.calendarDay.animal).toBeDefined();
-		expect(attributes.yoga.sanskritName.iast).toBeDefined();
+		expect(attributes.yoga).toBeNull();
+		expect(attributes.lunarMansion.index).toBeGreaterThanOrEqual(0);
 		expect(attributes.year.power).toBeDefined();
 	});
 
@@ -822,6 +823,9 @@ describe("astrology API surface", () => {
 		expect(
 			codeOf(() => astrology.lunarDayAttributesFor({ year: 2153, month: 1, day: 1 }, api.BHUTAN)),
 		).toBe("TCT_ATTRIBUTE_NOT_SOURCED");
+		expect(codeOf(() => astrology.elementalYogaFor(day, api.BHUTAN))).toBe(
+			"TCT_ATTRIBUTE_NOT_SOURCED",
+		);
 	});
 
 	it("rejects a bare { year, month, day } where a calendar day is meant", () => {

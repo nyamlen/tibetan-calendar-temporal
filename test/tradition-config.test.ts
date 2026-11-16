@@ -1,15 +1,17 @@
 import { describe, expect, it } from "vitest";
-import {
-	isoToTibetan,
-	losarFor,
-	tibetanDateExists,
-	tibetanToIso,
-} from "../src/computation/conversion.js";
+import { elementalYogaFor } from "../src/astrology/index.js";
+import { isoToTibetan, losarFor, tibetanToIso } from "../src/computation/conversion.js";
+import { moonEquation, sunEquation } from "../src/computation/corrections.js";
 import { deriveScaling } from "../src/computation/scaling.js";
+import { weekdayNameFor } from "../src/cycles.js";
+import { hasLeapMonth, leapMonthNumberFor, monthsFor, monthsInYear } from "../src/months.js";
+import { lunationFromMonth, monthsBetween } from "../src/navigation.js";
 import { EXAMPLE_OBSERVANCES, getObservances } from "../src/observances/index.js";
+import { BHUTAN, BHUTAN_HENNING } from "../src/traditions/bhutan.js";
 import { PHUGPA, PHUGPA_HENNING } from "../src/traditions/phugpa.js";
 import type { TraditionConfig } from "../src/traditions/types.js";
-import { assertTraditionConfig } from "../src/traditions/validate.js";
+import { validatedTradition } from "../src/traditions/validate.js";
+import { asTibetanWeekday } from "../src/types.js";
 import { thrownBy } from "./support/thrown.js";
 
 const iso = (s: string) => Temporal.PlainDate.from(s);
@@ -29,26 +31,26 @@ const broken = (patch: Record<string, unknown>): TraditionConfig =>
  */
 describe("tradition config validation", () => {
 	it("accepts the shipped configs", () => {
-		expect(() => assertTraditionConfig(PHUGPA)).not.toThrow();
+		expect(() => validatedTradition(PHUGPA)).not.toThrow();
 	});
 
 	it("rejects a missing or non-object config", () => {
 		for (const bad of [null, undefined, 42, "phugpa"]) {
-			const error = thrownBy(() => assertTraditionConfig(bad as unknown as TraditionConfig));
+			const error = thrownBy(() => validatedTradition(bad as unknown as TraditionConfig));
 			expect(error?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
 		}
 	});
 
 	it("rejects a missing identity field", () => {
-		expect(thrownBy(() => assertTraditionConfig(broken({ id: "" })))?.message).toMatch(/id/);
-		expect(thrownBy(() => assertTraditionConfig(broken({ name: undefined })))?.message).toMatch(
+		expect(thrownBy(() => validatedTradition(broken({ id: "" })))?.message).toMatch(/id/);
+		expect(thrownBy(() => validatedTradition(broken({ name: undefined })))?.message).toMatch(
 			/name/,
 		);
 	});
 
 	it("rejects a non-integer epoch field", () => {
 		for (const field of ["epochYear", "epochMonth", "intercalationIndexAtEpoch"]) {
-			const error = thrownBy(() => assertTraditionConfig(broken({ [field]: 1.5 })));
+			const error = thrownBy(() => validatedTradition(broken({ [field]: 1.5 })));
 			expect(error?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
 			expect(error?.message).toContain(field);
 		}
@@ -59,7 +61,7 @@ describe("tradition config validation", () => {
 	// `scaleMeanMotion` and die on `undefined.den`.
 	it("names the exact path of a malformed mean motion", () => {
 		const error = thrownBy(() =>
-			assertTraditionConfig(broken({ lunarAnomaly: { perDay: { num: 1, den: 28 } } })),
+			validatedTradition(broken({ lunarAnomaly: { perDay: { num: 1, den: 28 } } })),
 		);
 		expect(error?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
 		expect(error?.message).toContain("lunarAnomaly.perMonth");
@@ -67,14 +69,14 @@ describe("tradition config validation", () => {
 
 	it("rejects a mean motion that is not an object", () => {
 		for (const bad of [null, 42, "1/28"]) {
-			const error = thrownBy(() => assertTraditionConfig(broken({ meanSun: bad })));
+			const error = thrownBy(() => validatedTradition(broken({ meanSun: bad })));
 			expect(error?.message).toContain("meanSun must be a { perMonth, perDay, atEpoch } object");
 		}
 	});
 
 	it("rejects a rational with a non-integer numerator", () => {
 		const patch = { meanSun: { ...PHUGPA.meanSun, atEpoch: { num: 1.5, den: 60 } } };
-		expect(thrownBy(() => assertTraditionConfig(broken(patch)))?.message).toContain(
+		expect(thrownBy(() => validatedTradition(broken(patch)))?.message).toContain(
 			"meanSun.atEpoch.num",
 		);
 	});
@@ -82,7 +84,7 @@ describe("tradition config validation", () => {
 	it("rejects a rational with a zero, negative or fractional denominator", () => {
 		for (const den of [0, -28, 2.5, Number.NaN]) {
 			const patch = { lunarAnomaly: { ...PHUGPA.lunarAnomaly, perDay: { num: 1, den } } };
-			const error = thrownBy(() => assertTraditionConfig(broken(patch)));
+			const error = thrownBy(() => validatedTradition(broken(patch)));
 			expect(error?.message).toContain("lunarAnomaly.perDay.den");
 		}
 	});
@@ -90,18 +92,18 @@ describe("tradition config validation", () => {
 	// Length is not cosmetic. moonTabAt extends the table by symmetries that only hold for eight
 	// entries; a shorter one interpolates against `undefined` and yields NaN, and NaN reaches a date.
 	it("rejects a correction table of the wrong length", () => {
-		expect(thrownBy(() => assertTraditionConfig(broken({ moonTab: [0, 5, 10] })))?.message).toMatch(
+		expect(thrownBy(() => validatedTradition(broken({ moonTab: [0, 5, 10] })))?.message).toMatch(
 			/moonTab must have exactly 8 entries, received 3/,
 		);
 		expect(
-			thrownBy(() => assertTraditionConfig(broken({ sunTab: [0, 6, 10, 11, 12] })))?.message,
+			thrownBy(() => validatedTradition(broken({ sunTab: [0, 6, 10, 11, 12] })))?.message,
 		).toMatch(/sunTab must have exactly 4 entries, received 5/);
 	});
 
 	it("rejects a non-finite entry inside a correction table", () => {
 		const moonTab = [...PHUGPA.moonTab];
 		moonTab[3] = Number.NaN;
-		expect(thrownBy(() => assertTraditionConfig(broken({ moonTab })))?.message).toContain(
+		expect(thrownBy(() => validatedTradition(broken({ moonTab })))?.message).toContain(
 			"moonTab[3]",
 		);
 	});
@@ -111,19 +113,22 @@ describe("tradition config validation", () => {
 		// likeliest bad argument from a migrating caller is the old bag. Without this the message was
 		// "id must be a non-empty string", which names a field the caller never meant to write.
 		const bag = { tradition: PHUGPA } as unknown as TraditionConfig;
-		const error = thrownBy(() => assertTraditionConfig(bag));
+		const error = thrownBy(() => validatedTradition(bag));
 		expect(error?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
 		expect(error?.message).toMatch(/\{ tradition \}/);
 		expect(error?.message).toMatch(/itself/);
-		// A real config that happens to carry an extra `tradition` key is judged on its fields.
-		expect(() => assertTraditionConfig(broken({ tradition: PHUGPA }))).not.toThrow();
-		expect(
-			thrownBy(() => assertTraditionConfig(broken({ id: "", tradition: 1 })))?.message,
-		).toMatch(/id must be/);
+		// A real config that happens to carry an extra `tradition` key is judged on its fields first,
+		// and then refused for the key, like any other unknown one.
+		expect(thrownBy(() => validatedTradition(broken({ tradition: PHUGPA })))?.message).toContain(
+			'"tradition"',
+		);
+		expect(thrownBy(() => validatedTradition(broken({ id: "", tradition: 1 })))?.message).toMatch(
+			/id must be/,
+		);
 	});
 
 	it("suggests the spread that fixes it", () => {
-		expect(thrownBy(() => assertTraditionConfig(broken({ moonTab: [] })))?.message).toContain(
+		expect(thrownBy(() => validatedTradition(broken({ moonTab: [] })))?.message).toContain(
 			"...PHUGPA",
 		);
 	});
@@ -142,12 +147,12 @@ describe("tradition config validation", () => {
 		}
 	});
 
-	// Memoised per object, the same bargain the scaling cache and the observance validator make.
+	// Memoised per object, and a failed validation is never memoised.
 	// A second call must still reject rather than sail through on a cache miss turned hit.
 	it("stays rejecting on a repeat call", () => {
 		const bad = broken({ sunTab: [] });
-		expect(thrownBy(() => assertTraditionConfig(bad))?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
-		expect(thrownBy(() => assertTraditionConfig(bad))?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
+		expect(thrownBy(() => validatedTradition(bad))?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
+		expect(thrownBy(() => validatedTradition(bad))?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
 	});
 
 	// Shape, not astronomy. A config with plausible types and wrong constants passes here and yields
@@ -161,33 +166,58 @@ describe("tradition config validation", () => {
 			id: "invented",
 			meanDate: { ...PHUGPA.meanDate, atEpoch: { ...atEpoch, num: atEpoch.num + atEpoch.den } },
 		});
-		expect(() => assertTraditionConfig(plausibleButWrong)).not.toThrow();
+		expect(() => validatedTradition(plausibleButWrong)).not.toThrow();
 		expect(isoToTibetan(iso("2026-08-12"), plausibleButWrong).day).not.toBe(
 			isoToTibetan(iso("2026-08-12"), PHUGPA).day,
 		);
 	});
 
-	// The solar anomaly is mean_sun - 1/4, so 4 must divide the *derived* meanSun denominator -- the
-	// lcm of its three coefficient denominators, not any one of them. Unchecked, this reached
-	// `scaleTo` and threw an uncoded RangeError from three frames down, which `tibetanDateExists`
-	// read as "that date does not exist" and reported `false` for Losar.
-	it("rejects a meanSun denominator that cannot express a quarter", () => {
-		// All three coefficients, because the derived denominator is their lcm: leaving any one of
-		// Phugpa's own (804, 4824) in place reintroduces the factor of 4 and the config is fine.
-		const patch = {
+	// The solar anomaly is mean_sun - 1/4, so the quarter must be exact. The derived denominator is
+	// scaled onto lcm(den, 4) rather than refused, so a meanSun over an odd denominator is a config
+	// like any other, and the same rationals over any denominator give the same dates.
+	it("accepts a meanSun whose reduced denominator has no factor of 4, and dates it as its multiples", () => {
+		const over = (den: number, k: number) => ({
 			meanSun: {
-				perMonth: { num: 65, den: 803 },
-				perDay: { num: 13, den: 803 },
-				atEpoch: { num: 743, den: 803 },
+				perMonth: { num: 65 * k, den },
+				perDay: { num: 13 * k, den },
+				atEpoch: { num: 743 * k, den },
 			},
-		};
-		for (const call of [
-			() => isoToTibetan(iso("2026-02-18"), broken(patch)),
-			() => tibetanToIso({ year: 2153, month: 1, day: 1 }, broken(patch)),
-			() => tibetanDateExists({ year: 2153, month: 1, day: 1 }, broken(patch)),
-		]) {
-			expect(thrownBy(call)?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
+		});
+		const key = (t: ReturnType<typeof isoToTibetan>) =>
+			`${t.year}-${t.month}-${t.day}${t.isLeapMonth ? "L" : ""}${t.isLeapDay ? "d" : ""}`;
+		const problems: string[] = [];
+		for (const [id, patch, reference] of [
+			["odd803", over(803, 1), over(803 * 4, 4)],
+			[
+				"twoQuarters",
+				{
+					meanSun: {
+						perMonth: { num: 2, den: 4 },
+						perDay: { num: 2, den: 120 },
+						atEpoch: { num: 2, den: 4 },
+					},
+				},
+				{
+					meanSun: {
+						perMonth: { num: 60, den: 120 },
+						perDay: { num: 2, den: 120 },
+						atEpoch: { num: 60, den: 120 },
+					},
+				},
+			],
+		] as const) {
+			const config = broken({ id, ...patch });
+			const twin = broken({ id: `${id}-twin`, ...reference });
+			const scaled = deriveScaling(config);
+			if (scaled.meanSun.den % 4 !== 0) problems.push(`${id}: den ${scaled.meanSun.den}`);
+			if (scaled.quarterCircle * 4 !== scaled.meanSun.den) problems.push(`${id}: quarter inexact`);
+			for (let d = iso("2026-01-01"); d.year === 2026; d = d.add({ days: 1 })) {
+				if (key(isoToTibetan(d, config)) !== key(isoToTibetan(d, twin))) {
+					problems.push(`${id}: ${d.toString()} differs`);
+				}
+			}
 		}
+		expect(problems).toEqual([]);
 	});
 });
 
@@ -267,20 +297,20 @@ describe("derived search window", () => {
 describe("the naming block", () => {
 	it("accepts a config with no naming at all", () => {
 		const { naming: _naming, ...bare } = PHUGPA;
-		expect(() => assertTraditionConfig(bare)).not.toThrow();
+		expect(() => validatedTradition(bare)).not.toThrow();
 	});
 
 	it("accepts a naming block that omits weekdayOffset", () => {
 		// PHUGPA itself is this case: it carries month naming and no offset, because an explicit 0
 		// would be noise in the config the docs point at for spreading.
 		expect(PHUGPA.naming?.weekdayOffset).toBeUndefined();
-		expect(() => assertTraditionConfig(PHUGPA)).not.toThrow();
+		expect(() => validatedTradition(PHUGPA)).not.toThrow();
 	});
 
 	it("rejects a weekdayOffset that is present and wrong", () => {
 		for (const offset of [-1, 7, 1.5, "1", null]) {
 			const error = thrownBy(() =>
-				assertTraditionConfig(broken({ naming: { weekdayOffset: offset } })),
+				validatedTradition(broken({ naming: { weekdayOffset: offset } })),
 			);
 			expect(error?.code, `${offset}`).toBe("TCT_INVALID_TRADITION_CONFIG");
 			expect(error?.message).toContain("naming.weekdayOffset");
@@ -289,23 +319,24 @@ describe("the naming block", () => {
 
 	it("rejects a naming block that is present and not an object", () => {
 		for (const naming of [null, 5, "naming"]) {
-			const error = thrownBy(() => assertTraditionConfig(broken({ naming })));
+			const error = thrownBy(() => validatedTradition(broken({ naming })));
 			expect(error?.code, `${naming}`).toBe("TCT_INVALID_TRADITION_CONFIG");
 			expect(error?.message, `${naming}`).toContain("naming must be an object when present");
 		}
 	});
 
 	it("accepts a config whose monthAnimals block is simply absent", () => {
-		const error = thrownBy(() => assertTraditionConfig(broken({ naming: { weekdayOffset: 1 } })));
+		const error = thrownBy(() => validatedTradition(broken({ naming: { weekdayOffset: 1 } })));
 		expect(error).toBeUndefined();
 	});
 
 	it("rejects the pre-2026-09-13 months block rather than ignoring it", () => {
-		// Nothing rejects an unknown key, so without this a config spreading PHUGPA.naming and adding
-		// Tsurphu's rules under the old name would keep Phugpa's animals — a plausible wrong answer.
+		// The retired name gets a message saying where its rules went, rather than the bare unknown-key
+		// refusal every other stray key gets; a config spreading PHUGPA.naming and adding Tsurphu's rules
+		// under it would otherwise keep Phugpa's animals.
 		const months = { tigerMonth: 1, elementRule: "continuous", numbers: true };
 		const naming = { ...PHUGPA.naming, months };
-		const error = thrownBy(() => assertTraditionConfig(broken({ naming })));
+		const error = thrownBy(() => validatedTradition(broken({ naming })));
 		expect(error?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
 		expect(error?.message).toContain("naming.monthAnimals");
 		expect(error?.message).toContain("naming.nineNumbers.months");
@@ -313,7 +344,7 @@ describe("the naming block", () => {
 
 	it("rejects a monthAnimals block that is present and not an object", () => {
 		for (const monthAnimals of [null, 11, "phugpa"]) {
-			const error = thrownBy(() => assertTraditionConfig(broken({ naming: { monthAnimals } })));
+			const error = thrownBy(() => validatedTradition(broken({ naming: { monthAnimals } })));
 			expect(error?.code, `${monthAnimals}`).toBe("TCT_INVALID_TRADITION_CONFIG");
 			expect(error?.message).toContain("naming.monthAnimals");
 		}
@@ -327,7 +358,7 @@ describe("the naming block", () => {
 		for (const field of ["tigerMonth", "elementRule"] as const) {
 			const monthAnimals: Record<string, unknown> = { ...full };
 			delete monthAnimals[field];
-			const error = thrownBy(() => assertTraditionConfig(broken({ naming: { monthAnimals } })));
+			const error = thrownBy(() => validatedTradition(broken({ naming: { monthAnimals } })));
 			expect(error?.code, field).toBe("TCT_INVALID_TRADITION_CONFIG");
 			expect(error?.message, field).toContain(`naming.monthAnimals.${field}`);
 		}
@@ -336,7 +367,7 @@ describe("the naming block", () => {
 	it("rejects a tigerMonth outside 1…12 and a non-integer one", () => {
 		for (const tigerMonth of [0, 13, 11.5, "11"]) {
 			const monthAnimals = { tigerMonth, elementRule: "son-of-year" };
-			const error = thrownBy(() => assertTraditionConfig(broken({ naming: { monthAnimals } })));
+			const error = thrownBy(() => validatedTradition(broken({ naming: { monthAnimals } })));
 			expect(error?.code, `${tigerMonth}`).toBe("TCT_INVALID_TRADITION_CONFIG");
 			expect(error?.message).toContain("naming.monthAnimals.tigerMonth");
 		}
@@ -346,7 +377,7 @@ describe("the naming block", () => {
 		// Including a tradition name, which is the anti-pattern the field spelling exists to prevent.
 		for (const elementRule of ["phugpa", "tsurphu", "son of year", ""]) {
 			const monthAnimals = { tigerMonth: 11, elementRule };
-			const error = thrownBy(() => assertTraditionConfig(broken({ naming: { monthAnimals } })));
+			const error = thrownBy(() => validatedTradition(broken({ naming: { monthAnimals } })));
 			expect(error?.code, elementRule).toBe("TCT_INVALID_TRADITION_CONFIG");
 			expect(error?.message).toContain("naming.monthAnimals.elementRule");
 		}
@@ -354,22 +385,494 @@ describe("the naming block", () => {
 
 	it("accepts an absent nineNumbers block and an absent months member, which mean unnumbered", () => {
 		for (const naming of [{}, { nineNumbers: {} }, { nineNumbers: { months: "descending" } }]) {
-			expect(thrownBy(() => assertTraditionConfig(broken({ naming })))).toBeUndefined();
+			expect(thrownBy(() => validatedTradition(broken({ naming })))).toBeUndefined();
 		}
 	});
 
 	it("rejects a nineNumbers block or months rule that is present and wrong", () => {
 		for (const nineNumbers of [null, true, "descending"]) {
-			const error = thrownBy(() => assertTraditionConfig(broken({ naming: { nineNumbers } })));
+			const error = thrownBy(() => validatedTradition(broken({ naming: { nineNumbers } })));
 			expect(error?.code, `${nineNumbers}`).toBe("TCT_INVALID_TRADITION_CONFIG");
 			expect(error?.message).toContain("naming.nineNumbers");
 		}
 		// Including the old boolean, and a tradition name.
 		for (const months of [true, false, null, "tsurphu", "ascending"]) {
 			const naming = { nineNumbers: { months } };
-			const error = thrownBy(() => assertTraditionConfig(broken({ naming })));
+			const error = thrownBy(() => validatedTradition(broken({ naming })));
 			expect(error?.code, `${months}`).toBe("TCT_INVALID_TRADITION_CONFIG");
 			expect(error?.message).toContain("naming.nineNumbers.months");
 		}
+	});
+});
+
+/**
+ * Four values the validator used to accept that no tradition can mean: each ran, and gave a calendar
+ * that was wrong with nothing to say so.
+ */
+describe("values the arithmetic cannot take", () => {
+	// β* is an intercalation index, and the index is mod 65. A value 65 off is the same leap cycle with
+	// the month count shifted by one lunation: every date moves a month, no leap month moves.
+	it("rejects an intercalationIndexAtEpoch outside 0…64", () => {
+		for (const value of [-4, 65, 126]) {
+			const error = thrownBy(() =>
+				validatedTradition(broken({ intercalationIndexAtEpoch: value })),
+			);
+			expect(error?.code, `${value}`).toBe("TCT_INVALID_TRADITION_CONFIG");
+			expect(error?.message).toContain("intercalationIndexAtEpoch");
+		}
+		for (const value of [0, 61, 64]) {
+			expect(
+				thrownBy(() => validatedTradition(broken({ intercalationIndexAtEpoch: value }))),
+			).toBeUndefined();
+		}
+	});
+
+	// The tables extend by tab(14 − i) = tab(i) and tab(14 + i) = −tab(i); together they force
+	// tab(14) = tab(0) = −tab(0), so entry 0 is zero — and the sun table's at 6.
+	it("rejects a correction table whose entry 0 is not zero", () => {
+		const moonTab = [3, 5, 10, 15, 19, 22, 24, 25];
+		const sunTab = [3, 6, 10, 11];
+		for (const [field, patch] of [
+			["moonTab", { moonTab }],
+			["sunTab", { sunTab }],
+		] as const) {
+			const error = thrownBy(() => validatedTradition(broken(patch)));
+			expect(error?.code, field).toBe("TCT_INVALID_TRADITION_CONFIG");
+			expect(error?.message).toContain(`${field}[0]`);
+		}
+	});
+
+	it("refuses a meanDate.perDay that is zero or negative as a config fault, not an engine bug", () => {
+		for (const num of [0, -11_135]) {
+			const meanDate = { ...PHUGPA.meanDate, perDay: { num, den: 11_312 } };
+			const error = thrownBy(() => isoToTibetan(iso("2026-01-01"), broken({ meanDate })));
+			expect(error?.code, `${num}`).toBe("TCT_INVALID_TRADITION_CONFIG");
+			expect(error?.message).toContain("meanDate.perDay");
+		}
+	});
+
+	// The search window is proved from the mean date being a function of the lunar day count
+	// l = 30n + d alone, which is m₁ = 30·m₂. Break it and the mean date drifts from the seed by
+	// n·(m₁ − 30m₂), without bound.
+	it("refuses a meanDate whose perMonth is not 30 times its perDay", () => {
+		const meanDate = { ...PHUGPA.meanDate, perMonth: { num: 167_125, den: 5656 } };
+		const error = thrownBy(() => isoToTibetan(iso("2026-01-01"), broken({ meanDate })));
+		expect(error?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
+		expect(error?.message).toContain("meanDate.perMonth");
+		// The same rational over another denominator is the same relation and is accepted.
+		const same = {
+			...PHUGPA.meanDate,
+			perMonth: { num: 167_025 * 3, den: 5656 * 3 },
+			perDay: { num: 11_135 * 5, den: 11_312 * 5 },
+		};
+		expect(thrownBy(() => validatedTradition(broken({ meanDate: same })))).toBeUndefined();
+	});
+
+	// `{ ...BHUTAN, naming: { weekdayOfset: 1 } }` named 2026-03-01 `nyi ma` where BHUTAN gives
+	// `zla ba`, and a top-level `nineNumbers` lost Tsurphu's month numbers the same silent way.
+	it("refuses an unknown key in a config, its naming block and the blocks inside it", () => {
+		const cases: [string, Record<string, unknown>][] = [
+			["weekdayOfset", { naming: { weekdayOfset: 1 } }],
+			["nineNumbers", { nineNumbers: { months: "descending" } }],
+			["weekdayOffset", { weekdayOffset: 1 }],
+			[
+				"elementrule",
+				{
+					naming: { monthAnimals: { tigerMonth: 11, elementRule: "son-of-year", elementrule: 1 } },
+				},
+			],
+			["month", { naming: { nineNumbers: { month: "descending" } } }],
+		];
+		for (const [key, patch] of cases) {
+			const error = thrownBy(() => validatedTradition(broken(patch)));
+			expect(error?.code, key).toBe("TCT_INVALID_TRADITION_CONFIG");
+			expect(error?.message, key).toContain(JSON.stringify(key));
+		}
+		// Every shipped config, and a config spread from one, still passes.
+		for (const config of [PHUGPA, PHUGPA_HENNING, BHUTAN, BHUTAN_HENNING]) {
+			expect(thrownBy(() => validatedTradition({ ...config, id: "mine" }))).toBeUndefined();
+		}
+	});
+});
+
+/**
+ * Two configs holding the same rationals over different denominators are the same calendar. The
+ * table-argument denominators once assumed 28 divided the anomaly's and 12 the mean sun's, so a
+ * coefficient written in lowest terms changed the calendar with no error.
+ */
+describe("denominator independence", () => {
+	// A toy anomaly and mean sun, written in lowest terms and over a multiple of 28 and 12 — the same
+	// rationals. 28 does not divide 14, nor 12 divide 8, so the first form hit the old gcd path.
+	const lowestTerms = broken({
+		lunarAnomaly: {
+			perMonth: { num: 1, den: 14 },
+			perDay: { num: 1, den: 14 },
+			atEpoch: { num: 3, den: 14 },
+		},
+		meanSun: {
+			perMonth: { num: 1, den: 8 },
+			perDay: { num: 1, den: 8 },
+			atEpoch: { num: 1, den: 8 },
+		},
+	});
+	const multiples = broken({
+		lunarAnomaly: {
+			perMonth: { num: 2, den: 28 },
+			perDay: { num: 2, den: 28 },
+			atEpoch: { num: 6, den: 28 },
+		},
+		meanSun: {
+			perMonth: { num: 3, den: 24 },
+			perDay: { num: 3, den: 24 },
+			atEpoch: { num: 3, den: 24 },
+		},
+	});
+
+	// Multiplying every coefficient's numerator and denominator by k leaves the rationals, so the
+	// calendar and the range it is exact over must not change. Denominators as written once fed the
+	// common denominator, so k = 5 cut Henning's exact range from JD 5,868,816 to 117 and refused 1900.
+	it("keeps the exact range and the dates when every rational is multiplied through", () => {
+		const multiplied = (config: TraditionConfig, k: number): TraditionConfig => {
+			const scale = (r: { num: number; den: number }) => ({ num: r.num * k, den: r.den * k });
+			const motion = (m: TraditionConfig["meanDate"]) => ({
+				perMonth: scale(m.perMonth),
+				perDay: scale(m.perDay),
+				atEpoch: scale(m.atEpoch),
+			});
+			return {
+				...config,
+				meanDate: motion(config.meanDate),
+				meanSun: motion(config.meanSun),
+				lunarAnomaly: motion(config.lunarAnomaly),
+			};
+		};
+		const key = (t: ReturnType<typeof isoToTibetan>) =>
+			`${t.year}-${t.month}-${t.day}${t.isLeapMonth ? "L" : ""}${t.isLeapDay ? "d" : ""}`;
+		const problems: string[] = [];
+		for (const config of [PHUGPA, PHUGPA_HENNING, BHUTAN, BHUTAN_HENNING]) {
+			const base = deriveScaling(config);
+			for (const k of [5, 7]) {
+				const other = multiplied(config, k);
+				const scaled = deriveScaling(other);
+				if (scaled.exactToJulianDay !== base.exactToJulianDay) {
+					problems.push(
+						`${config.id} x${k}: range ${scaled.exactToJulianDay} != ${base.exactToJulianDay}`,
+					);
+				}
+				for (const day of ["1900-01-01", "2026-08-12", "+011000-01-01"]) {
+					const date = iso(day);
+					if (key(isoToTibetan(date, other)) !== key(isoToTibetan(date, config))) {
+						problems.push(`${config.id} x${k}: ${day} differs`);
+					}
+				}
+			}
+		}
+		expect(problems).toEqual([]);
+	});
+
+	it("reduces both forms to denominators the old derivation could not cancel", () => {
+		for (const config of [lowestTerms, multiples]) {
+			expect(deriveScaling(config).lunarAnomaly.den % 28).not.toBe(0);
+			expect(deriveScaling(config).meanSun.den % 12).not.toBe(0);
+			expect(deriveScaling(config).lunarAnomaly.den).toBe(14);
+			expect(deriveScaling(config).meanSun.den).toBe(8);
+		}
+	});
+
+	it("gives the same Tibetan date for every day of 2026 whichever form is used", () => {
+		const differing: string[] = [];
+		for (let d = iso("2026-01-01"); d.year === 2026; d = d.add({ days: 1 })) {
+			const a = isoToTibetan(d, lowestTerms);
+			const b = isoToTibetan(d, multiples);
+			const key = (t: typeof a) =>
+				`${t.year}-${t.month}-${t.day}${t.isLeapMonth ? "L" : ""}${t.isLeapDay ? "d" : ""}`;
+			if (key(a) !== key(b)) differing.push(`${d.toString()} ${key(a)} ${key(b)}`);
+		}
+		expect(differing).toEqual([]);
+	});
+
+	// By hand, lunar day 1 of month count 0: anomaly = 1/14 · 0 + 1/14 · 1 + 3/14 = 4/14, so the moon
+	// table's argument is 28 · 4/14 = 8 and moon_tab(8) = moon_tab(14 − 8 = 6) = 24.
+	// The factor multiplies a numerator, so the config is refused where that could leave the safe
+	// integers within the date range, rather than computing a wrong date.
+	it("refuses anomaly coefficients too large for their argument to stay exact", () => {
+		const lunarAnomaly = {
+			perMonth: { num: 4_000_000_000_000_000, den: 14 },
+			perDay: { num: 1, den: 14 },
+			atEpoch: { num: 3, den: 14 },
+		};
+		const error = thrownBy(() => isoToTibetan(iso("2026-01-01"), broken({ lunarAnomaly })));
+		expect(error?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
+		expect(error?.message).toContain("lunarAnomaly");
+		const meanSun = {
+			perMonth: { num: 4_000_000_000_000_000, den: 8 },
+			perDay: { num: 1, den: 8 },
+			atEpoch: { num: 1, den: 8 },
+		};
+		expect(thrownBy(() => isoToTibetan(iso("2026-01-01"), broken({ meanSun })))?.message).toContain(
+			"meanSun",
+		);
+	});
+
+	// By hand, lunar day 5 of month count 3: mean sun = 3/8 + 5/8 + 1/8 = 9/8 circles, the solar anomaly
+	// is 9/8 − 1/4 = 7/8, and the sun table's argument is 12 · 7/8 = 10.5. sun_tab(10) = −sun_tab(2) =
+	// −10 and sun_tab(11) = −sun_tab(1) = −6, so halfway between them the equation is −8.
+	it("reads the sun table at 12 times the solar anomaly", () => {
+		for (const config of [lowestTerms, multiples]) {
+			const scaled = deriveScaling(config);
+			expect(sunEquation(scaled, 5, 3) / scaled.sunTabArgDen).toBe(-8);
+		}
+	});
+
+	it("reads the moon table at 28 times the anomaly", () => {
+		for (const config of [lowestTerms, multiples]) {
+			const scaled = deriveScaling(config);
+			expect(moonEquation(scaled, 1, 0) / scaled.moonTabArgDen).toBe(24);
+		}
+	});
+});
+
+describe("a tradition mutated after its first use", () => {
+	const spread = (): TraditionConfig => ({
+		...PHUGPA,
+		id: "mutated-after-use",
+		moonTab: [...PHUGPA.moonTab],
+		sunTab: [...PHUGPA.sunTab],
+	});
+	const day = iso("2026-08-12");
+	// Every seventh day across about eight years, so a mutated constant that moves one month shows.
+	const project = (t: TraditionConfig) => {
+		const out: string[] = [];
+		for (let i = 0; i < 400; i++) {
+			const d = isoToTibetan(day.add({ days: i * 7 }), t);
+			out.push(`${d.year}-${d.month}${d.isLeapMonth ? "L" : ""}-${d.day}`);
+		}
+		return out.join(" ");
+	};
+
+	it("keeps converting with the tables it was validated with", () => {
+		const t = spread();
+		const first = project(t);
+		(t.moonTab as number[]).length = 2;
+		expect(thrownBy(() => project(t))?.code).toBeUndefined();
+		expect(project(t)).toBe(first);
+	});
+
+	it("does not take a threshold the validator would have refused", () => {
+		const t = spread();
+		const first = project(t);
+		(t as { leapIndexThreshold: number }).leapIndexThreshold = 64;
+		expect(hasLeapMonth(2153, t)).toBe(hasLeapMonth(2153, spread()));
+		expect(leapMonthNumberFor(2153, t)).toBe(leapMonthNumberFor(2153, spread()));
+		expect(project(t)).toBe(first);
+	});
+
+	it("does not mix a stale search window with replaced tables", () => {
+		const t = spread();
+		const first = project(t);
+		(t as unknown as { moonTab: number[] }).moonTab = PHUGPA.moonTab.map((n) => n * 10);
+		expect(thrownBy(() => project(t))?.code).toBeUndefined();
+		expect(project(t)).toBe(first);
+	});
+
+	it("reads the validated copy through months, navigation and cycles as well", () => {
+		const t = spread();
+		const month = { year: 2153, month: 6 };
+		const lunation = lunationFromMonth(month, t);
+		(t as { epochYear: number }).epochYear = 1;
+		(t as { intercalationIndexAtEpoch: number }).intercalationIndexAtEpoch = 3;
+		expect(lunationFromMonth(month, t)).toBe(lunation);
+		expect(monthsFor(2153, t).length).toBe(monthsFor(2153, spread()).length);
+		expect(thrownBy(() => leapMonthNumberFor(2153, t))?.code).toBeUndefined();
+	});
+});
+
+describe("elementalYogaFor reads the validated copy", () => {
+	const day = iso("2026-09-01");
+	const fresh = (): TraditionConfig => ({
+		...PHUGPA,
+		id: "yoga-mutated-after-use",
+		moonTab: [...PHUGPA.moonTab],
+		sunTab: [...PHUGPA.sunTab],
+		naming: { ...PHUGPA.naming },
+	});
+
+	it("keeps answering when weekdayOffset is changed after first use", () => {
+		const t = fresh();
+		const first = elementalYogaFor(day, t);
+		(t.naming as { weekdayOffset?: number }).weekdayOffset = 1;
+		const after = thrownBy(() => elementalYogaFor(day, t));
+		expect(after?.code).toBeUndefined();
+		expect(elementalYogaFor(day, t)).toEqual(first);
+	});
+
+	it("refuses a revoked Proxy with the config's code and the caller's error as cause", () => {
+		const { proxy, revoke } = Proxy.revocable(fresh(), {});
+		revoke();
+		const error = thrownBy(() => elementalYogaFor(day, proxy));
+		expect(error?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
+		expect(error?.cause).toBeInstanceOf(TypeError);
+	});
+});
+
+describe("a tradition structuredClone cannot copy", () => {
+	it("is refused with the config's code, not a DOMException", () => {
+		// A Proxy with no traps passes every read the validator makes, then the copy refuses it.
+		const proxied = new Proxy({ ...PHUGPA, id: "proxied" }, {}) as TraditionConfig;
+		const error = thrownBy(() => isoToTibetan(iso("2026-08-12"), proxied));
+		expect(error?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
+		expect(error?.message).toMatch(/could not be copied/);
+	});
+});
+
+describe("validatedTradition's private copy", () => {
+	const spread = (): TraditionConfig => ({
+		...PHUGPA,
+		id: "copy-protocol",
+		moonTab: [...PHUGPA.moonTab],
+		sunTab: [...PHUGPA.sunTab],
+		naming: { ...PHUGPA.naming },
+	});
+	// Valid for its first read and `undefined` for every later one: the first validation reads it once,
+	// the clone reads it again, and the copy is then plain data holding the invalid value.
+	const answersOnce = (): TraditionConfig => {
+		const config = spread();
+		let reads = 0;
+		Object.defineProperty(config, "epochYear", {
+			enumerable: true,
+			configurable: true,
+			get: () => (reads++ === 0 ? PHUGPA.epochYear : undefined),
+		});
+		return config;
+	};
+
+	it("is deeply frozen and is never the caller's object", () => {
+		const config = spread();
+		const copy = validatedTradition(config);
+		expect(copy).not.toBe(config);
+		expect(Object.isFrozen(copy)).toBe(true);
+		expect(Object.isFrozen(copy.moonTab)).toBe(true);
+		expect(Object.isFrozen(copy.naming)).toBe(true);
+		expect(Object.isFrozen(config)).toBe(false);
+	});
+
+	it("answers the same copy for the caller's object and for the copy itself", () => {
+		const config = spread();
+		const copy = validatedTradition(config);
+		expect(validatedTradition(config)).toBe(copy);
+		expect(validatedTradition(copy)).toBe(copy);
+	});
+
+	it("refuses a config that is valid when read and invalid once copied", () => {
+		const error = thrownBy(() => validatedTradition(answersOnce()));
+		expect(error?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
+		expect(error?.message).toMatch(/epochYear must be a safe integer/);
+	});
+
+	it("does not cache a refusal", () => {
+		const config = answersOnce();
+		const first = thrownBy(() => validatedTradition(config));
+		expect(first?.message).toMatch(/epochYear must be a safe integer/);
+		const second = thrownBy(() => validatedTradition(config));
+		expect(second?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
+		expect(second?.message).toMatch(/epochYear must be a safe integer/);
+	});
+});
+
+describe("a mean motion whose denominators cannot be scaled exactly", () => {
+	const motionOver = (den: number) => ({
+		perMonth: { num: 1, den },
+		perDay: { num: 1, den },
+		atEpoch: { num: 1, den },
+	});
+	// The bound is MAX_SAFE_INTEGER / 4, 2_251_799_813_685_247 once floored: the solar anomaly needs 4 to
+	// divide the common denominator, and an odd denominator gains that factor.
+	const OVER = 2_251_799_813_685_249;
+	const WITHIN = 2_251_799_813_685_247;
+
+	it("refuses an odd meanSun denominator the factor of 4 would carry out of the safe range", () => {
+		const error = thrownBy(() => validatedTradition(broken({ meanSun: motionOver(OVER) })));
+		expect(error?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
+		expect(error?.message).toMatch(/meanSun/);
+	});
+
+	it("refuses a mean motion whose reduced denominators have no safe common multiple", () => {
+		const over = {
+			perMonth: { num: 1, den: 100_000_000 },
+			perDay: { num: 1, den: 99_999_999 },
+			atEpoch: { num: 1, den: 1 },
+		};
+		const error = thrownBy(() => validatedTradition(broken({ lunarAnomaly: over })));
+		expect(error?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
+		expect(error?.message).toMatch(/lunarAnomaly/);
+	});
+
+	// A config that cannot be derived is refused by every export on its first call, not by whichever
+	// reaches the scaling first: it must not pass one export and fail another.
+	const underivable: Record<string, TraditionConfig> = {
+		"a meanSun whose motions are scalable but whose common denominator is not": broken({
+			id: "within",
+			meanSun: motionOver(WITHIN),
+		}),
+		"a meanDate whose search window is wider than a month": broken({
+			id: "wide-window",
+			meanDate: {
+				perMonth: { num: 3, den: 10 },
+				perDay: { num: 1, den: 100 },
+				atEpoch: PHUGPA.meanDate.atEpoch,
+			},
+		}),
+	};
+	const exports: Record<string, (t: TraditionConfig) => unknown> = {
+		validatedTradition: (t) => validatedTradition(t),
+		isoToTibetan: (t) => isoToTibetan(iso("2026-08-12"), t),
+		hasLeapMonth: (t) => hasLeapMonth(2153, t),
+		leapMonthNumberFor: (t) => leapMonthNumberFor(2153, t),
+		monthsInYear: (t) => monthsInYear(2153, t),
+		weekdayNameFor: (t) => weekdayNameFor(asTibetanWeekday(1), t),
+		lunationFromMonth: (t) => lunationFromMonth({ year: 2153, month: 6 }, t),
+		monthsBetween: (t) => monthsBetween({ year: 2153, month: 1 }, { year: 2153, month: 6 }, t),
+	};
+
+	it.each(Object.keys(underivable))("every export refuses %s with the config code", (label) => {
+		const config = underivable[label] as TraditionConfig;
+		const wrong: string[] = [];
+		for (const [name, call] of Object.entries(exports)) {
+			// A fresh object per export, so no earlier call has warmed a cache for this one.
+			const code = thrownBy(() => call({ ...config }))?.code;
+			if (code !== "TCT_INVALID_TRADITION_CONFIG") wrong.push(`${name}: ${code}`);
+		}
+		expect(wrong).toEqual([]);
+	});
+
+	it("names the config and the quantity at validation", () => {
+		const error = thrownBy(() =>
+			validatedTradition(
+				underivable[
+					"a meanSun whose motions are scalable but whose common denominator is not"
+				] as TraditionConfig,
+			),
+		);
+		expect(error?.message).toMatch(/"within".*common denominator/);
+	});
+
+	it("still accepts the shipped config written over denominators scaled by 10,000", () => {
+		const scale = (r: { num: number; den: number }) => ({
+			num: r.num * 10_000,
+			den: r.den * 10_000,
+		});
+		const motion = (m: typeof PHUGPA.meanDate) => ({
+			perMonth: scale(m.perMonth),
+			perDay: scale(m.perDay),
+			atEpoch: scale(m.atEpoch),
+		});
+		const t = broken({
+			id: "scaled",
+			meanDate: motion(PHUGPA.meanDate),
+			meanSun: motion(PHUGPA.meanSun),
+			lunarAnomaly: motion(PHUGPA.lunarAnomaly),
+		});
+		const day = iso("2026-08-12");
+		expect(isoToTibetan(day, t)).toEqual({ ...isoToTibetan(day, PHUGPA) });
 	});
 });

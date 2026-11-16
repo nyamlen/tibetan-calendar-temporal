@@ -12,20 +12,23 @@
  * function validates "integrality, range, **and config shape**". This closes that gap rather than
  * deciding anything new.
  *
- * Where it runs is the same bargain `validateObservanceConfig` strikes — once per config **object**,
- * memoised on a `WeakSet`, at the boundary and never on the hot path. `scalingFor` is the single
- * choke point: every public function derives its scaling through it, and the derivation is already
- * memoised per object, so the validation rides along at no additional lookup.
+ * Where it runs: once per config **object**, at the boundary and never on the hot path.
+ * {@link validatedTradition} checks the config, takes a private deeply frozen copy and memoises it
+ * on a `WeakMap`; every entry point then reads that copy, so a config mutated after first use
+ * neither escapes revalidation nor reaches the arithmetic. `scalingFor` is the single choke point
+ * for the scaling, and it hands back the copy it derived from.
  *
  * @packageDocumentation
  */
 
-import { describe, rangeError } from "../errors.js";
+import { deriveScaling } from "../computation/scaling.js";
+import { assertKnownKeys, describe, rangeError, validatedPrivateCopy } from "../errors.js";
 import type {
 	MeanMotion,
 	Rational,
 	TraditionConfig,
 	TraditionMonthAnimals,
+	TraditionNaming,
 	TraditionNineNumbers,
 } from "./types.js";
 
@@ -38,6 +41,36 @@ const MEAN_MOTIONS = ["meanDate", "meanSun", "lunarAnomaly"] as const;
 
 /** The three coefficients each mean motion carries — Janson's `x₁`, `x₂`, `x₀`. */
 const COEFFICIENTS = ["perMonth", "perDay", "atEpoch"] as const;
+
+// Each list is a `Record` over the interface's own keys, so adding a field to the type without
+// adding it here is a compile error rather than a config that refuses a legitimate key.
+const keysOf = <T extends object>(keys: Record<keyof T, true>): readonly string[] =>
+	Object.keys(keys);
+
+const CONFIG_KEYS = keysOf<TraditionConfig>({
+	id: true,
+	name: true,
+	epochYear: true,
+	epochMonth: true,
+	intercalationIndexAtEpoch: true,
+	leapIndexThreshold: true,
+	leapMonthPosition: true,
+	meanDate: true,
+	meanSun: true,
+	lunarAnomaly: true,
+	moonTab: true,
+	sunTab: true,
+	naming: true,
+});
+const NAMING_KEYS = keysOf<TraditionNaming>({
+	weekdayOffset: true,
+	monthAnimals: true,
+	nineNumbers: true,
+});
+const MONTH_ANIMALS_KEYS = keysOf<TraditionMonthAnimals>({ tigerMonth: true, elementRule: true });
+const NINE_NUMBERS_KEYS = keysOf<TraditionNineNumbers>({ months: true });
+
+const CODE = "TCT_INVALID_TRADITION_CONFIG";
 
 function invalid(tradition: TraditionConfig, detail: string): Error {
 	const id = typeof tradition?.id === "string" ? `"${tradition.id}"` : "<unnamed>";
@@ -69,10 +102,13 @@ function assertRational(
 	}
 }
 
+const bigGcd = (a: bigint, b: bigint): bigint => (b === 0n ? (a < 0n ? -a : a) : bigGcd(b, a % b));
+
 function assertMeanMotion(
 	tradition: TraditionConfig,
 	path: string,
 	value: MeanMotion | undefined,
+	alsoDivides = 1,
 ): void {
 	if (value === null || typeof value !== "object") {
 		throw invalid(
@@ -82,6 +118,26 @@ function assertMeanMotion(
 	}
 	for (const coefficient of COEFFICIENTS) {
 		assertRational(tradition, `${path}.${coefficient}`, value[coefficient]);
+	}
+	// The coefficients are put over the lcm of their reduced denominators and of `alsoDivides`, and
+	// `lcm` multiplies in doubles: past 2^53 it rounds, and the failure surfaces late from `scaleTo`
+	// naming neither this field nor the config. `alsoDivides` is 4 for `meanSun`, whose solar anomaly
+	// subtracts 1/4, so an odd denominator above MAX_SAFE_INTEGER / 4 is already out.
+	let common = BigInt(alsoDivides);
+	for (const coefficient of COEFFICIENTS) {
+		const { num, den } = value[coefficient];
+		// exact: BigInt, and a gcd divides both its arguments.
+		const reduced = BigInt(den) / bigGcd(BigInt(num), BigInt(den));
+		// exact: as above.
+		common = (common / bigGcd(common, reduced)) * reduced;
+	}
+	if (common > BigInt(Number.MAX_SAFE_INTEGER)) {
+		throw invalid(
+			tradition,
+			`${path}'s denominators have a least common multiple of ${common}${
+				alsoDivides > 1 ? ` with ${alsoDivides}` : ""
+			}, beyond 2^53 - 1, so its coefficients cannot be put over one denominator exactly`,
+		);
 	}
 }
 
@@ -126,11 +182,76 @@ function assertTable(
 			);
 		}
 	}
+	// Janson's symmetries `tab(m − i) = tab(i)` and `tab(m + i) = −tab(i)`, with m the table's half
+	// period, force `tab(m) = tab(0) = −tab(0)`. `moonTabAt` and `sunTabAt` resolve the conflict by
+	// returning `+tab(0)` at both, so a non-zero entry gives a calendar that runs and is wrong.
+	if (value[0] !== 0) {
+		throw invalid(
+			tradition,
+			`${path}[0] must be 0, received ${describe(value[0])}. The symmetries the table is extended ` +
+				"by contradict each other at the half period unless the first entry is zero",
+		);
+	}
 }
 
 function assertInteger(tradition: TraditionConfig, path: string, value: number | undefined): void {
 	if (!Number.isSafeInteger(value)) {
 		throw invalid(tradition, `${path} must be a safe integer, received ${describe(value)}`);
+	}
+}
+
+/**
+ * `β*` is an intercalation index, and the index is `mod 65`.
+ *
+ * @remarks
+ * A value 65 off is the same leap cycle with the true month count shifted by one lunation: `β` and
+ * the rounding term both move by one month while `m₀` stays, so every date moves a month and no leap
+ * month does. The values in use are 0, 2, 46 and 61, all inside 0…64.
+ */
+function assertIntercalationIndexAtEpoch(tradition: TraditionConfig): void {
+	const value = tradition.intercalationIndexAtEpoch;
+	if (!Number.isSafeInteger(value) || value < 0 || value > 64) {
+		throw invalid(
+			tradition,
+			`intercalationIndexAtEpoch must be an integer in 0…64, received ${describe(value)}. It is ` +
+				"an intercalation index, which is taken mod 65: a value outside the range is the same " +
+				"leap cycle with every date a whole number of months out",
+		);
+	}
+}
+
+/**
+ * The mean date must be a function of the lunar day count `30n + d` alone: `m₁ = 30·m₂`.
+ *
+ * @remarks
+ * `isoToTibetan` seeds its search from `meanDate.perDay`, and the width of the window is proved on
+ * the same premise. If `perMonth ≠ 30·perDay` the mean date drifts from the seed by `n·(m₁ − 30·m₂)`,
+ * which has no bound, and dates stop converting back. Every version Janson gives satisfies it. Run
+ * after the shape checks, so both rationals are known to hold safe integers, and in `BigInt` because
+ * the cross-multiplication of two safe integers need not be one.
+ *
+ * `perDay` must also be positive: it is the divisor of the search window, and a zero or negative one
+ * reached `ceilDiv` as an engine fault.
+ */
+function assertMeanDateRelation(tradition: TraditionConfig): void {
+	const { perMonth, perDay } = tradition.meanDate;
+	if (perDay.num <= 0) {
+		throw invalid(
+			tradition,
+			`meanDate.perDay must be positive, received ${perDay.num}/${perDay.den}. It is the mean ` +
+				"lunar day in calendar days, about 0.98",
+		);
+	}
+	if (
+		BigInt(perMonth.num) * BigInt(perDay.den) !==
+		30n * BigInt(perDay.num) * BigInt(perMonth.den)
+	) {
+		throw invalid(
+			tradition,
+			`meanDate.perMonth (${perMonth.num}/${perMonth.den}) must be 30 times meanDate.perDay ` +
+				`(${perDay.num}/${perDay.den}). Janson's m₂ is m₁/30 in every version, and the search ` +
+				"for a lunar day's date is bounded only while that holds",
+		);
 	}
 }
 
@@ -207,6 +328,16 @@ function assertNaming(tradition: TraditionConfig): void {
 	if (typeof naming !== "object" || naming === null) {
 		throw invalid(tradition, `naming must be an object when present, received ${describe(naming)}`);
 	}
+	// Before the known-key check, which would otherwise answer a retired name with a bare list of keys.
+	if ((naming as { months?: unknown }).months !== undefined) {
+		throw invalid(
+			tradition,
+			"naming.months is no longer read. Its rules are split by naming system: tigerMonth and " +
+				"elementRule go in naming.monthAnimals, and a month nine-number rule in " +
+				'naming.nineNumbers.months ("descending" for Tsurphu, omitted otherwise)',
+		);
+	}
+	assertKnownKeys(naming, NAMING_KEYS, "TraditionConfig naming", CODE);
 	const offset = naming.weekdayOffset;
 	if (offset !== undefined && (!Number.isSafeInteger(offset) || offset < 0 || offset > 6)) {
 		throw invalid(
@@ -231,22 +362,13 @@ function assertNaming(tradition: TraditionConfig): void {
  * attributes confidently and others wrongly. Required-when-present, therefore, and `undefined` is
  * rejected as CLAUDE.md's rule demands for a declared-required field.
  *
- * A present `naming.months` is rejected outright. It was this block's name until 2026-09-13, and
- * nothing else rejects an unknown key: without this, a config spreading `PHUGPA.naming` and adding
- * Tsurphu's rules under the old name would keep Phugpa's month animals, silently.
+ * A present `naming.months`, this block's name until 2026-09-13, is rejected by {@link assertNaming}
+ * with a message of its own rather than as one more unknown key.
  */
 function assertMonthAnimals(
 	tradition: TraditionConfig,
 	animals: TraditionMonthAnimals | undefined,
 ): void {
-	if ((tradition.naming as { months?: unknown }).months !== undefined) {
-		throw invalid(
-			tradition,
-			"naming.months is no longer read. Its rules are split by naming system: tigerMonth and " +
-				"elementRule go in naming.monthAnimals, and a month nine-number rule in " +
-				'naming.nineNumbers.months ("descending" for Tsurphu, omitted otherwise)',
-		);
-	}
 	if (animals === undefined) return;
 	if (typeof animals !== "object" || animals === null) {
 		throw invalid(
@@ -255,6 +377,7 @@ function assertMonthAnimals(
 				"it entirely to say that this tradition's month animals are not sourced",
 		);
 	}
+	assertKnownKeys(animals, MONTH_ANIMALS_KEYS, "TraditionConfig naming.monthAnimals", CODE);
 	const tiger = animals.tigerMonth;
 	if (!Number.isSafeInteger(tiger) || tiger < 1 || tiger > 12) {
 		throw invalid(
@@ -289,6 +412,7 @@ function assertNineNumbers(
 			`naming.nineNumbers must be an object when present, received ${describe(numbers)}`,
 		);
 	}
+	assertKnownKeys(numbers, NINE_NUMBERS_KEYS, "TraditionConfig naming.nineNumbers", CODE);
 	const months = numbers.months;
 	if (months !== undefined && months !== "unnumbered" && months !== "descending") {
 		throw invalid(
@@ -306,30 +430,59 @@ function assertNonEmptyString(tradition: TraditionConfig, path: string, value: s
 	}
 }
 
-/** Configs already checked, keyed by object — the pattern `validatedConfigs` uses for observances. */
-const validated = new WeakSet<TraditionConfig>();
+/**
+ * The private frozen copy of each config already checked, keyed by the object the caller passed.
+ * A copy maps to itself, so passing one back is a hit.
+ */
+const privateCopies = new WeakMap<TraditionConfig, TraditionConfig>();
 
 /**
- * Rejects a `TraditionConfig` whose shape the arithmetic cannot work with.
+ * The validated, deeply frozen, private copy of a `TraditionConfig` the engine reads.
  *
  * @remarks
- * Idempotent and memoised per object. A consumer who mutates a config in place after first use
- * escapes revalidation; that is the same accepted bargain the scaling cache and the observance
- * validator already make, and it is what keeps the check off the hot path.
+ * Checked and copied once per config **object**, then a `WeakMap` hit. The engine reads the copy
+ * and never the caller's object, so mutating a config after first use changes nothing the engine
+ * sees: the answers stay those of the config as it was validated, where reading the object live
+ * gave an uncoded error, `TCT_INTERNAL`, or a value the validator would have refused. A new
+ * object, such as a fresh spread, is checked again.
  *
- * The bargain covers **consumer-supplied** configs only. `PHUGPA` and `PHUGPA_HENNING` are deeply
- * frozen, so the objects a reader is most likely to mutate — they are the ones the docs point at
- * for `{ ...PHUGPA, … }` — cannot reach the stale-cache state at all.
- *
- * This validates **shape, not astronomy**. A config with plausible types and wrong constants passes
- * here and produces a wrong calendar — nothing but a fixture can catch that, which is what
+ * This validates **shape, not astronomy**, plus the few values the arithmetic cannot take at all:
+ * `m₁ = 30·m₂`, a table whose first entry is zero, an intercalation index inside 0…64. A config
+ * with plausible types and wrong constants passes here and produces a wrong calendar — nothing but a fixture can catch that, which is what
  * `docs/testing.md` is about.
  *
  * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG`, naming the offending field path.
  */
-export function assertTraditionConfig(tradition: TraditionConfig): void {
-	if (validated.has(tradition)) return;
+export function validatedTradition(tradition: TraditionConfig): TraditionConfig {
+	return validatedPrivateCopy(tradition, {
+		cache: privateCopies,
+		code: CODE,
+		what: "TraditionConfig",
+		// A non-object is refused by the shape check; `WeakMap.get` would only return undefined.
+		isCandidate: (value) => value !== null && typeof value === "object",
+		validate: assertValid,
+		uncopyable: (value) =>
+			`TraditionConfig ${typeof value.id === "string" ? `"${value.id}"` : "<unnamed>"} ` +
+			"could not be copied, because a field is not plain data; pass plain objects and arrays",
+	});
+}
 
+/**
+ * Shape, then the checks that need the derived scaling.
+ *
+ * @remarks
+ * A config must not pass one export and fail another, and the derived checks — `assertDerivable`
+ * and `assertCommonDenominatorExact`, called from `deriveScaling` — would otherwise run only on the
+ * exports that reach `scalingFor`. Deriving here, on the caller's object and then on the copy,
+ * refuses a config that cannot be derived on its first call to anything; `scalingFor` derives the
+ * copy once more and memoises it.
+ */
+function assertValid(tradition: TraditionConfig): void {
+	assertShape(tradition);
+	deriveScaling(tradition);
+}
+
+function assertShape(tradition: TraditionConfig): void {
 	if (tradition === null || typeof tradition !== "object") {
 		throw rangeError(
 			"TCT_INVALID_TRADITION_CONFIG",
@@ -352,43 +505,70 @@ export function assertTraditionConfig(tradition: TraditionConfig): void {
 
 	assertNonEmptyString(tradition, "id", tradition.id);
 	assertNonEmptyString(tradition, "name", tradition.name);
+	assertKnownKeys(tradition, CONFIG_KEYS, "TraditionConfig", CODE);
 	assertInteger(tradition, "epochYear", tradition.epochYear);
 	assertInteger(tradition, "epochMonth", tradition.epochMonth);
-	assertInteger(tradition, "intercalationIndexAtEpoch", tradition.intercalationIndexAtEpoch);
+	assertIntercalationIndexAtEpoch(tradition);
 	assertLeapIndexThreshold(tradition);
 	assertLeapMonthPosition(tradition);
 	assertNaming(tradition);
 
 	for (const motion of MEAN_MOTIONS) {
-		assertMeanMotion(tradition, motion, tradition[motion]);
+		assertMeanMotion(tradition, motion, tradition[motion], motion === "meanSun" ? 4 : 1);
 	}
+	assertMeanDateRelation(tradition);
 
 	assertTable(tradition, "moonTab", tradition.moonTab, MOON_TAB_LENGTH);
 	assertTable(tradition, "sunTab", tradition.sunTab, SUN_TAB_LENGTH);
+}
 
-	validated.add(tradition);
+/**
+ * The common denominator the scaled arithmetic puts every quantity over must be a safe integer, and
+ * leave at least one Julian day of exact range.
+ *
+ * @remarks
+ * Each mean motion can be scalable on its own while the lcm of all three with the table
+ * denominators is not; `lcm` multiplies in doubles, so past 2^53 the result is rounded and the
+ * failure surfaces late, from `scaleTo`, or as an exact range of no days. The lcm is taken here in
+ * `BigInt` from the same three denominators.
+ *
+ * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG`.
+ */
+export function assertCommonDenominatorExact(
+	tradition: TraditionConfig,
+	denominators: readonly number[],
+): void {
+	let common = 1n;
+	for (const den of denominators) {
+		const d = BigInt(den);
+		// exact: BigInt, and a gcd divides both its arguments.
+		common = (common / bigGcd(common, d)) * d;
+	}
+	// A range of at least one day is what `exactToJulianDay = floor(MAX_SAFE / common)` needs.
+	if (common > BigInt(Number.MAX_SAFE_INTEGER)) {
+		throw invalid(
+			tradition,
+			`the common denominator of its mean motions and correction tables is ${common}, beyond ` +
+				"2^53 - 1, so no Julian day can be computed exactly. Shrink the denominators of meanDate, " +
+				"meanSun and lunarAnomaly",
+		);
+	}
 }
 
 /**
  * The checks that need derived quantities rather than the raw config.
  *
  * @remarks
- * Split from {@link assertTraditionConfig} because these values do not exist until `deriveScaling`
+ * Split from {@link validatedTradition} because these values do not exist until `deriveScaling`
  * has computed them, not because they are any less part of validating a config — both throw the
- * same code, and both are reached through the same `scalingFor` choke point.
+ * same code, and `validatedTradition` runs the derivation, so every export refuses such a config on
+ * its first call.
  *
- * Called from the **middle** of `deriveScaling`, after the mean motions are scaled and before
- * `quarterCircle` is formed. The order is load-bearing: `scaleTo(1, 4, meanSun.den)` carries the
- * same code, so putting this after it would leave the check unreachable and hand the consumer a
- * message naming two integers instead of the field to fix.
+ * Called from `deriveScaling` once the search window is derived.
  *
  * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG`.
  */
-export function assertDerivable(
-	tradition: TraditionConfig,
-	meanSunDen: number,
-	searchHalfWidth: number,
-): void {
+export function assertDerivable(tradition: TraditionConfig, searchHalfWidth: number): void {
 	// A general bound on the search window, deliberately not a bound on the tables themselves.
 	// `|moonTab| ≤ 25` would hardcode Phugpa's magnitudes into a field the non-negotiables declare
 	// injectable, and would have to decide "is this Phugpa" from a consumer-settable `id`. What is
@@ -401,21 +581,6 @@ export function assertDerivable(
 			`the correction tables imply a search window of ±${searchHalfWidth} lunar days, ` +
 				`beyond the ±${MAX_SEARCH_HALF_WIDTH} this engine will search. moonTab and sunTab are ` +
 				"equations in sixtieths of a day; entries this large describe no lunisolar calendar",
-		);
-	}
-
-	// `deriveScaling` forms the solar anomaly as `mean_sun − 1/4`, so 4 must divide the *derived*
-	// mean-sun denominator — the lcm of the three coefficient denominators, not any one of them —
-	// or `scaleTo(1, 4, meanSun.den)` cannot represent the quarter exactly. It holds for every
-	// tradition Janson gives and went unchecked, so a config that failed it threw from three frames
-	// down with no code at all, and `tibetanDateExists` read that as "the date does not exist".
-	if (meanSunDen % 4 !== 0) {
-		throw invalid(
-			tradition,
-			`the derived meanSun denominator ${meanSunDen} is not divisible by 4. The solar ` +
-				"anomaly is mean_sun − 1/4, so a denominator that cannot express a quarter exactly " +
-				"makes the derivation inexact; it is the lcm of meanSun's three coefficient " +
-				"denominators, so it is one of those that needs the factor of 4",
 		);
 	}
 }

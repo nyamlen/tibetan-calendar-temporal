@@ -127,6 +127,9 @@ describe("the tables are frozen", () => {
 
 	it("hands out the same object every time", () => {
 		expect(weekdayNameWithOffset(0, 0)).toBe(weekdayNameWithOffset(0, 0));
+		expect(weekdayNameWithOffset(0, 1)).toBe(weekdayNameWithOffset(0, 1));
+		expect(weekdayNameWithOffset(0, 1)).toBe(weekdayNameWithOffset(7, 1));
+		expect(Object.isFrozen(weekdayNameWithOffset(0, 1))).toBe(true);
 		expect(elementNameOf("fire")).toBe(elementNameOf("fire"));
 	});
 });

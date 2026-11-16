@@ -5,7 +5,7 @@
  * Moved here from `test/validation/bhutan.test.ts` on 2026-09-18, whole, so that the shipped page's
  * "11,050 days", "differs on three days" and "the next is in 2047" are measured by the definitions
  * the validation suites pin. Two definitions of "the trusted window" would be the next drift. The
- * tests pinning the upstream anomaly stay in `bhutan.test.ts`; they call {@link unpairedLeapBlocks}.
+ * tests pinning where the fixture ends stay in `bhutan.test.ts`; they call {@link unpairedLeapBlocks}.
  */
 
 import { isoToTibetan } from "../../src/computation/conversion.js";
@@ -39,54 +39,36 @@ export function fixtureBlocks(): Block[] {
 	return blocks;
 }
 
-export const ALL_BLOCKS = fixtureBlocks();
+export const BLOCKS = fixtureBlocks();
 
 /**
- * The last block the fixture can be trusted for, exclusive.
+ * The number of days of the fixture, all of which are trusted.
  *
  * @remarks
  * **A defect in the upstream data, found on 2026-08-16 and recorded rather than smoothed.** The
- * fixture's leap months reproduce Janson's four-version table exactly for twelve of thirteen —
+ * source's leap months reproduce Janson's four-version table exactly for twelve of thirteen —
  * 2000/4, 2002/12, 2005/9, 2008/5, 2011/2, 2013/10, 2016/7, 2019/3, 2021/12, 2024/8, 2027/5,
  * 2030/1. It then carries a **thirteenth he does not list**: a leap month 2 running 2030-04-03 to
  * 2030-05-02, directly after the leap month 1.
  *
  * That year would hold regular 1, leap 1, leap 2, regular 3 — two consecutive leap months, and no
  * regular month 2 at all. No calendar has that. The upstream leaves its leap flag set one month too
- * long, once, near the end of the window.
+ * long. The same shape, a leap 2 straight after a leap 1, occurs in the source's rows in six other
+ * years between 1900 and 2095, none in a year of his table; the generator measures all seven over
+ * the source's whole span, and the fixture records the two numbers the documents quote.
  *
- * `scripts/fetch-bhutan-fixtures.mjs` did not catch it because its Janson cross-check asserts that
- * his leap months *appear*, not that no others do. The assertions in `bhutan.test.ts` pin the anomaly
- * exactly, so a re-fetch that fixes it fails there and prompts this window to be reopened rather than
- * quietly keeping a narrower check than the data supports.
+ * The fixture stops on 2030-04-02, the day before, so every day it holds is trusted.
  */
-export const TRUSTED_BLOCKS = 375;
-
-export const BLOCKS = ALL_BLOCKS.slice(0, TRUSTED_BLOCKS);
-
-/** The day index where the anomalous block begins, so the day check stops where the month one does. */
-export const TRUSTED_DAYS = (() => {
-	let blocks = 0;
-	let previous: Block | undefined;
-	for (const [index, [, month, leapNumber]] of BHUTAN_DAYS.entries()) {
-		const isLeap = leapNumber !== 0;
-		if (previous === undefined || previous.month !== month || previous.isLeap !== isLeap) {
-			blocks += 1;
-			if (blocks > TRUSTED_BLOCKS) return index;
-			previous = { month, isLeap };
-		}
-	}
-	return BHUTAN_DAYS.length;
-})();
+export const TRUSTED_DAYS = BHUTAN_DAYS.length;
 
 /** The last day of the trusted window, inclusive. */
 export const trustedEnd = bhutanStart.add({ days: TRUSTED_DAYS - 1 });
 
 /** Every leap block that does not directly follow its regular twin — the Bhutanese convention. */
 export function unpairedLeapBlocks() {
-	return ALL_BLOCKS.map((block, index) => ({ block, index })).filter(({ block, index }) => {
+	return BLOCKS.map((block, index) => ({ block, index })).filter(({ block, index }) => {
 		if (!block.isLeap) return false;
-		const previous = ALL_BLOCKS[index - 1];
+		const previous = BLOCKS[index - 1];
 		return previous?.month !== block.month || previous.isLeap;
 	});
 }
@@ -98,7 +80,6 @@ export function unpairedLeapBlocks() {
 export function bhutanDayMismatches(config: TraditionConfig = BHUTAN_HENNING): string[] {
 	const bad: string[] = [];
 	for (const [index, [day, month, leapNumber]] of BHUTAN_DAYS.entries()) {
-		if (index >= TRUSTED_DAYS) break;
 		const iso = bhutanStart.add({ days: index });
 		const date = isoToTibetan(iso, config);
 		const expectedLeap = leapNumber !== 0;

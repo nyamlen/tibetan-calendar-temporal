@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { isoToTibetan } from "../../src/computation/conversion.js";
+import { isoToTibetan, losarFor } from "../../src/computation/conversion.js";
 import {
 	EXAMPLE_OBSERVANCES,
 	getObservances,
 	nextObservance,
 } from "../../src/observances/index.js";
 import type { Observance, ObservanceConfig } from "../../src/observances/types.js";
-import { PHUGPA } from "../../src/traditions/phugpa.js";
+import { PHUGPA, PHUGPA_HENNING } from "../../src/traditions/phugpa.js";
 import { thrownBy } from "../support/thrown.js";
 
 const iso = (s: string) => Temporal.PlainDate.from(s);
@@ -453,16 +453,21 @@ describe("nextObservance, a period whose span runs past the end of the range", (
 		).toBe(OUTSIDE);
 	});
 
-	it("does not swallow another error from the walk, only the range code", () => {
-		// A config mutated after first use escapes revalidation, which is the one way to reach the
-		// walk's own internal refusal: every day number is named, so some month has a skipped one.
+	it("cannot be steered into the walk's internal refusal by mutating the config", () => {
+		// Every day number is named, so some month has a skipped one and an unhandled `skippedDay`
+		// would reach the walk's own refusal. A config mutated after first use used to get there with
+		// `TCT_INTERNAL`; the engine now reads the copy it validated, so the mutation is inert.
 		const config = withRules([
 			{ id: "m", when: { type: "monthly", days: Array.from({ length: 30 }, (_, i) => i + 1) } },
 		]);
 		const from = iso("2026-01-01");
-		expect(nextObservance(from, "m", config)).not.toBeNull();
+		const first = nextObservance(from, "m", config);
+		expect(first).not.toBeNull();
 		(config.rules[0] as { skippedDay?: string }).skippedDay = "bogus";
-		expect(thrownBy(() => nextObservance(from, "m", config))?.code).toBe("TCT_INTERNAL");
+		expect(thrownBy(() => nextObservance(from, "m", config))).toBeUndefined();
+		expect(nextObservance(from, "m", config)?.date.isoDate.toString()).toBe(
+			first?.date.isoDate.toString(),
+		);
 	});
 
 	it("does not swallow another refusal: a `from` beyond the end still throws", () => {
@@ -619,4 +624,73 @@ describe("nextObservance, its arguments", () => {
 			thrownBy(() => nextObservance(iso("2026-01-01"), "nope", undefined as never))?.code,
 		).toBe("TCT_INVALID_OBSERVANCE_CONFIG");
 	});
+});
+
+describe("nextObservance, a long period span with a later span past the end of the range", () => {
+	// A span of almost a year, so a search chunk can hold a day of the complete earlier span and a
+	// day of the straddling one.
+	const wholeYear = withRules([
+		{
+			id: "p",
+			when: { type: "period", first: { month: 1, day: 1 }, last: { month: 12, day: 30 } },
+			leapMonth: "regular",
+		},
+	]);
+	const losar = losarFor(isoToTibetan(convertibleEnds.last, PHUGPA).year, PHUGPA).isoDate;
+
+	it.each([2, 20, 40, 100])("answers the next day from %i days before the last Losar", (back) => {
+		const from = losar.subtract({ days: back });
+		const found = nextObservance(from, "p", wholeYear);
+		expect(found?.date.isoDate.toString()).toBe(from.add({ days: 1 }).toString());
+	});
+});
+
+// The search meets the end of the range only at the upper bound. Below the lower bound a day whose
+// span begins out of range has no occurrence, and the next span is in range.
+describe("nextObservance, a period whose span straddles the lower end of the range", () => {
+	const converts = (d: Temporal.PlainDate) =>
+		thrownBy(() => isoToTibetan(d, PHUGPA_HENNING)) === undefined;
+	const firstConvertible = (() => {
+		let bad = iso("-020800-01-01");
+		let ok = iso("2026-01-01");
+		const days = () => Math.abs(ok.until(bad, { largestUnit: "days" }).days);
+		while (days() > 1) {
+			const middle = ok.add({ days: Math.trunc(ok.until(bad, { largestUnit: "days" }).days / 2) });
+			if (converts(middle)) ok = middle;
+			else bad = middle;
+		}
+		return ok;
+	})();
+	const month = isoToTibetan(firstConvertible, PHUGPA_HENNING).month;
+	const wholeMonth = withRules([
+		{
+			id: "p",
+			when: { type: "period", first: { month, day: 1 }, last: { month, day: 30 } },
+			leapMonth: "regular",
+		},
+	]);
+
+	it("starts at a first convertible day whose month's span cannot be built", () => {
+		expect(converts(firstConvertible.subtract({ days: 1 }))).toBe(false);
+		const error = thrownBy(() =>
+			getObservances(firstConvertible, firstConvertible, wholeMonth, PHUGPA_HENNING),
+		);
+		expect(error?.code).toBe("TCT_OUTSIDE_EXACT_RANGE");
+	});
+
+	it.each([0, 2, 4])(
+		"returns the first in-range occurrence from %i days inside the bound",
+		(inside) => {
+			const from = firstConvertible.add({ days: inside });
+			const expected = getObservances(
+				from.add({ days: 40 }),
+				from.add({ days: 440 }),
+				wholeMonth,
+				PHUGPA_HENNING,
+			)[0];
+			expect(expected).toBeDefined();
+			const found = nextObservance(from, "p", wholeMonth, PHUGPA_HENNING);
+			expect(found?.date.isoDate.toString()).toBe(expected?.date.isoDate.toString());
+		},
+	);
 });

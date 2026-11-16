@@ -249,7 +249,7 @@ attributes are **not** covered by either figure above, and the differences are n
   (FPMT gives the *next* mansion late in a mansion), cluster in 2025 (22, against 2 in 2026), have no
   established cause, and **eight of them fit no pattern**. Janson's `/27` approximation cannot explain them: he gives it as the
   almanac's own method, so it cannot separate the two. Before explaining a residual by a formula, check whether the source uses the same formula.
-- **Yoga favorability** agrees with FPMT's printed prefixes on 99.8% of **its own 1,825 days** — every
+- **Yoga favorability**, Phugpa only, agrees with FPMT's printed prefixes on 99.8% of **its own 1,825 days** — every
   day whose code has a readable prefix and pair, four more than the mansion's, because 2024-09-12's
   `UD-EW` and three `UD-EF` codes in April 2026 name no yoga consistent with their weekday and so
   cannot force a mansion element but are still favorability claims. That
@@ -320,9 +320,17 @@ derivation; in `docs/` they are just noise.
   two ways. They drift: `./astrology`'s copies shipped error messages that misdescribe their own
   functions — `nextFullMoon` naming two accepted shapes while accepting four. Or they are borrowed,
   so an export reports errors under another export's name, which `test/error-subjects.test.ts` pins.
-  The homes: `assertSafeYear`, `assertQueryOptions` and `describe` in `src/errors.ts`;
-  `assertTibetanShape` and `assertTibetanRanges` in `src/types.ts`; `asWesternDay`, `monthCountFor`
-  and `julianDayOfFields` in `src/computation/conversion.ts`; `boundedMonth` in `src/months.ts`.
+  The homes: `assertSafeYear`, `assertQueryOptions`, `assertKnownKeys`, `readingCallersObject`,
+  `validatedPrivateCopy` and `describe` in `src/errors.ts`; `assertTibetanShape` and `assertTibetanRanges` in `src/types.ts`;
+  `asWesternDay`, `monthCountFor` and `julianDayOfFields` in `src/computation/conversion.ts`;
+  `boundedMonth` in `src/months.ts`.
+
+  **`assertTibetanShape` reads each field of the caller's date or month once and returns a frozen,
+  branded snapshot; everything after it takes the snapshot, never the caller's object.** A getter can
+  answer differently the second time — one answering 8, then 31, was validated as 8 and computed on as
+  31 — and a read that throws is refused with `TCT_INVALID_ARGUMENT`, never the range code. The brand
+  makes a call site that still passes the argument a compile error, and
+  `test/caller-reads.test.ts` counts the reads. A new export taking a date or month goes in its table.
 
   `check:conventions` rule 14 refuses two functions in `src/` that share a body. **It catches
   copy-paste, not a re-implementation** with a different body or arity, such as a private
@@ -360,13 +368,18 @@ derivation; in `docs/` they are just noise.
   therefore allowed and already done three times: `scalingFor` on a `WeakMap`, the config validators
   on a `WeakSet`, and `monthsFor` on a per-`(config, year)` cache. Do not delete one for offending
   the word "stateless"; `monthsFor` earns its keep because stepping a month grid re-derives
-  neighbouring years constantly, and caching cuts a repeated year from ~180 µs to under 1 µs.
+  neighbouring years constantly, and caching cuts a repeated year from ~118 µs to under 1 µs (`bench/RESULTS.md`).
 
-  Two things a cache here must get right, both of which a naive one gets wrong. **Key on the config,
-  not just the year** — a config-blind cache serves one tradition's answers for another, and would
-  pass nearly every test, since `PHUGPA` and `PHUGPA_HENNING` diverge at month level in only four
-  years between 1500 and 2500. And **never hand out shared mutable state**: return a fresh array, or
-  one consumer's `sort()` corrupts the next consumer's.
+  Three things a cache here must get right, each of which a naive one gets wrong. **Key on the
+  config, not just the year** — a config-blind cache serves one tradition's answers for another, and
+  would pass nearly every test, since `PHUGPA` and `PHUGPA_HENNING` diverge at month level in only
+  four years between 1500 and 2500. **Never hand out shared mutable state**: return a fresh array,
+  or one consumer's `sort()` corrupts the next consumer's — and a fresh array is not enough, because
+  its elements are shared, so every `TibetanMonth` this package returns is frozen by `describeMonth`
+  and typed `readonly`. And **bound it**: a `WeakMap` on the config lets go of a throwaway config
+  but not of the four shipped ones, which live as long as the module, so `monthsFor` keeps at most
+  64 years per config and evicts the least recently used. The cap is pinned by object identity in
+  `test/months.test.ts`, never by a heap measurement.
 - **Tradition constants are injected** via `TraditionConfig`, never hardcoded. v1 ships `PHUGPA`,
   `PHUGPA_HENNING`, `BHUTAN` and `BHUTAN_HENNING`; Tsurphu and the Mongolian version must remain
   addable without touching the algorithm — Bhutan was added that way, with two new config fields
@@ -405,9 +418,10 @@ derivation; in `docs/` they are just noise.
   bound with a test that names the setting.
 - **The shipped configs are deeply frozen.** All five — `PHUGPA`, `PHUGPA_HENNING`, `BHUTAN`,
   `BHUTAN_HENNING` and `EXAMPLE_OBSERVANCES` — go through `deepFreeze` in `src/freeze.ts`. They are the objects the docs point at for `{ ...PHUGPA, … }`,
-  so they are the ones a keystroke off a spread mutates — and because scaling and validation are
-  both memoised on the config object, a mutation after first use yields neither the old constants
-  nor the new ones but a stale mix. Do not unfreeze one to make a test easier.
+  so they are the ones a keystroke off a spread mutates, and a mutation of one is seen by every
+  later spread of it. The engine reads a private frozen copy of whatever it validates, so a
+  consumer's own config mutated after first use changes nothing the engine sees; freezing is what
+  protects the shared singleton itself. Do not unfreeze one to make a test easier.
 - **What goes on the public surface is decided by a rule, and the rule has a scope.** Only the
   barrel in `src/index.ts` makes a name API — exporting from a module under `src/` does not, which
   is how `describeMonth` and `asPlainDate` are shared without being published.
@@ -491,8 +505,11 @@ derivation; in `docs/` they are just noise.
 
   **A `TraditionConfig` is judged by a different rule, because it is a different kind of claim.**
   That record is about API design; a config asserts that dates computed with it are a real
-  tradition's real dates. So it is exported only once the engine has been tiled against an
-  **external** calendar for that tradition, day by day —
+  tradition's real dates. So it is exported only once its dates have been checked against an
+  **external** calendar, and its docblock says exactly what that check was — a day-by-day tiling
+  earns "validated day by day", a sample of published days earns only "a sample". `BHUTAN` is
+  checked against 25 government-published days and has no sweep; the sweep validates
+  `BHUTAN_HENNING` —
   [docs/decisions/2026-08-16-exported-means-validated.md](docs/decisions/2026-08-16-exported-means-validated.md),
   enforced by `check:conventions`, which requires a suite in `test/validation/` to **import** the
   config. Naming it in a comment or a `describe` title does not count — that grep-shaped version of
@@ -533,14 +550,17 @@ derivation; in `docs/` they are just noise.
 
   **A third semantics, neither of the two below:**
   `TCT_ATTRIBUTE_NOT_SOURCED` means the caller's input is **fine** and no source gives the answer —
-  the Bhutanese month and lunar-day attributes, which Janson does not tabulate. It is
+  the Bhutanese month and lunar-day attributes, which Janson does not tabulate, and the elemental
+  yoga under any config whose `naming.weekdayOffset` is nonzero. It is
   `TCT_INVALID_ARGUMENT`'s neighbour rather than `TCT_FIELD_OUT_OF_RANGE`'s, it is deliberately
   **off** `tibetanDateExists`'s allowlist (a Bhutanese date exists; only an attribute of it is
-  unsourced), and the refusal is reached by a tradition carrying no `naming.monthAnimals` block rather than
-  by any code asking "is this Bhutan". A **composition** may report it as `null` where a primitive
-  throws — `attributesFor` does — on the reasoning that a specific question with no answer is an
-  error while "what is known about this day" is not. Reach for this code, not the range one, when the
-  gap is in the sources.
+  unsourced), and the month and lunar-day refusal is reached by a tradition carrying no `naming.monthAnimals`
+  block, the yoga's by a nonzero `naming.weekdayOffset`, rather than by any code asking "is this
+  Bhutan".
+  A **composition** may report it as `null` where a primitive throws — `attributesFor` does — on the
+  reasoning that a specific question with no answer is an error while "what is known about this
+  day" is not.
+  Reach for this code, not the range one, when the gap is in the sources.
 
   Two codes, not one, for bad input: `TCT_FIELD_OUT_OF_RANGE` means a **number** is wrong;
   `TCT_INVALID_ARGUMENT` means the argument is the wrong **kind of thing** — a `Temporal` instance
@@ -821,13 +841,13 @@ item does not reach the prose that names it, here or in this file: when you tick
 its name.
 
 **A new layer that reuses an existing accessor inherits its tradition-dependence, whether or not a
-source licenses that.** The elemental yoga read `weekdayNameFor(weekday, tradition)` for its weekday
-element, which applies `naming.weekdayOffset` — so Bhutan silently got a different yoga on 12 of 14
-consecutive days, from a naming fact Janson states separately and never connects to the yoga. Two
-shipped claims said it could not happen, including `weekdayOffset`'s own "applies to the name only".
-External validation is Phugpa-only, so nothing could catch it. When a new module reaches into the
-naming or config layer, ask which tradition-dependence comes with the call, and whether any source
-establishes it; the default is the table the paper actually prints.
+source licenses that.** The elemental yoga reads its weekday's element, and `naming.weekdayOffset`
+moves the whole weekday — name, planet and element — so reusing the accessor gives Bhutan a different
+yoga on most days, from a naming fact Janson states separately and never connects to the yoga. No
+source says which element the yoga pairs after the shift, and external validation is Phugpa-only, so
+nothing could catch a guess: the yoga is refused under a nonzero offset. When a new module reaches
+into the naming or config layer, ask which tradition-dependence comes with the call, and whether any
+source establishes it; where none does, refuse.
 
 **And restore the mutant from a copy, never with `git checkout` — which silently cannot restore a file
 that is not yet tracked.** On an untracked file `git checkout <path>` fails with `pathspec did not

@@ -30,9 +30,12 @@ import type { TraditionConfig } from "./types.js";
  * The Bhutanese configuration, epoch JD 2361807 — Monday, 22 April 1754.
  *
  * @remarks
- * Validated day by day against Bhutanese calendar data for 2000–2030: every day number, month
- * number, leap month, doubled day and skipped day. See `docs/testing.md` for the window and what it
- * does and does not cover.
+ * **Not swept day by day.** What is checked is 25 government-published days of the Royal Government of
+ * Bhutan's own calendar — day numbers, three skipped days, two doubled days and Losar — plus
+ * Bhutan's leap months against Janson's table. The day-by-day sweep against Henning's lineage
+ * validates {@link BHUTAN_HENNING} and not this config: the two differ on three days inside it.
+ * See `docs/testing.md` for the years, the day counts, and what each check does and does not
+ * cover.
  *
  * **A disagreement this does not resolve.** Janson records that Bhutan's *government calendar* gives
  * New Year 2003 as 3 March, with day 1 of month 1 repeated, while his own calculations and Henning's
@@ -110,7 +113,8 @@ export const BHUTAN: TraditionConfig = deepFreeze({
 	 * Day 0 is *nyi ma* rather than *spen pa* — Janson's "unique feature of the Bhutanese calendar",
 	 * and Unicode CLDR agrees, naming the same date one planet apart in `bo` and `dz`.
 	 *
-	 * Naming only. No date moves.
+	 * No date moves. The weekday's name, planet and element do, and the elemental yoga is refused
+	 * as unsourced.
 	 */
 	naming: { weekdayOffset: 1 },
 });
@@ -127,8 +131,8 @@ export const BHUTAN: TraditionConfig = deepFreeze({
  *
  * **This is the variant the validation data supports, and that is worth stating plainly.** The only
  * day-by-day Bhutanese calendar available descends from Henning's own software, so it follows
- * Henning's `a₂` — with the rounded value, three days in 11,050 disagree. Concluding from that which
- * value *Bhutanese almanacs* print would be circular, and Janson gives no Bhutanese statement on the
+ * Henning's `a₂` — with the rounded value, three days of the swept window disagree
+ * (`docs/testing.md` has its extent). Concluding from that which value *Bhutanese almanacs* print would be circular, and Janson gives no Bhutanese statement on the
  * fork. {@link BHUTAN} therefore keeps almanac practice as the default, exactly as
  * {@link ../traditions/phugpa.PHUGPA} does.
  *

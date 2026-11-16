@@ -15,7 +15,14 @@
  * key, an undeclared level.
  */
 
-import { assertSafeYear, describe, isPlainObject, rangeError } from "../errors.js";
+import {
+	assertKnownKeys,
+	assertSafeYear,
+	describe,
+	isPlainObject,
+	rangeError,
+	validatedPrivateCopy,
+} from "../errors.js";
 import type { FormulaName, ObservanceConfig, ObservanceRule, ObservanceWhen } from "./types.js";
 
 export const CODE = "TCT_INVALID_OBSERVANCE_CONFIG";
@@ -110,25 +117,6 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
 	return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
-/**
- * Refuses any own key of `value` that is not in `allowed`, naming it.
- *
- * @remarks
- * A second unknown-key checker beside `assertQueryOptions` in `src/errors.ts`, deliberately: that
- * one guards a function's options bag and throws `TCT_INVALID_ARGUMENT`, while this guards objects
- * inside a config and throws `TCT_INVALID_OBSERVANCE_CONFIG`, so the two differ in code and subject.
- */
-export function assertKnownKeys(value: object, allowed: readonly string[], subject: string): void {
-	for (const key of Object.keys(value)) {
-		if (!allowed.includes(key)) {
-			throw rangeError(
-				CODE,
-				`${subject} has no key ${JSON.stringify(key)}; its keys are ${allowed.join(", ")}`,
-			);
-		}
-	}
-}
-
 export function assertNonEmptyString(value: unknown, subject: string): void {
 	if (typeof value !== "string" || value === "") {
 		throw rangeError(CODE, `${subject} must be a non-empty string, received ${describe(value)}`);
@@ -176,7 +164,7 @@ export function assertOptionalTibetanName(value: unknown, subject: string): void
 			`${subject} must be a { tibetan, wylie, phonetic } object, received ${describe(value)}`,
 		);
 	}
-	assertKnownKeys(value, TIBETAN_NAME_KEYS, subject);
+	assertKnownKeys(value, TIBETAN_NAME_KEYS, subject, CODE);
 	for (const part of TIBETAN_NAME_KEYS) {
 		assertNonEmptyString(value[part], `${subject}.${part}`);
 	}
@@ -240,7 +228,7 @@ function assertMonthDay(
 			`${subject}: ${entry} must be a { month, day } object, received ${describe(date)}`,
 		);
 	}
-	assertKnownKeys(date, DATE_KEYS, `${subject}: ${entry}`);
+	assertKnownKeys(date, DATE_KEYS, `${subject}: ${entry}`, CODE);
 	assertIntegerInRange(date.month, 1, 12, `${subject}: month`, MONTH_WHY);
 	assertIntegerInRange(date.day, 1, 30, `${subject}: day`, DAY_WHY);
 }
@@ -253,7 +241,7 @@ function assertWhen(when: unknown, subject: string): void {
 		);
 	}
 	if (when.type === "monthly") {
-		assertKnownKeys(when, MONTHLY_KEYS, `${subject}: when`);
+		assertKnownKeys(when, MONTHLY_KEYS, `${subject}: when`, CODE);
 		const days = when.days;
 		if (!Array.isArray(days) || days.length === 0) {
 			throw rangeError(
@@ -270,7 +258,7 @@ function assertWhen(when: unknown, subject: string): void {
 		return;
 	}
 	if (when.type === "annual") {
-		assertKnownKeys(when, ANNUAL_KEYS, `${subject}: when`);
+		assertKnownKeys(when, ANNUAL_KEYS, `${subject}: when`, CODE);
 		const dates = when.dates;
 		if (!Array.isArray(dates) || dates.length === 0) {
 			throw rangeError(
@@ -295,7 +283,7 @@ function assertWhen(when: unknown, subject: string): void {
 		return;
 	}
 	if (when.type === "period") {
-		assertKnownKeys(when, PERIOD_KEYS, `${subject}: when`);
+		assertKnownKeys(when, PERIOD_KEYS, `${subject}: when`, CODE);
 		const { first, last } = when;
 		assertMonthDay(first, subject, "when.first");
 		assertMonthDay(last, subject, "when.last");
@@ -316,7 +304,7 @@ function assertWhen(when: unknown, subject: string): void {
 		return;
 	}
 	if (when.type === "western") {
-		assertKnownKeys(when, WESTERN_KEYS, `${subject}: when`);
+		assertKnownKeys(when, WESTERN_KEYS, `${subject}: when`, CODE);
 		assertIntegerInRange(
 			when.month,
 			1,
@@ -336,12 +324,12 @@ function assertWhen(when: unknown, subject: string): void {
 		return;
 	}
 	if (when.type === "formula") {
-		assertKnownKeys(when, FORMULA_KEYS, `${subject}: when`);
+		assertKnownKeys(when, FORMULA_KEYS, `${subject}: when`, CODE);
 		assertChoice(when.formula, FORMULA_NAMES, `${subject}: when.formula`);
 		return;
 	}
 	if (when.type === "counted") {
-		assertKnownKeys(when, COUNTED_KEYS, `${subject}: when`);
+		assertKnownKeys(when, COUNTED_KEYS, `${subject}: when`, CODE);
 		assertMonthDay(when.anchor, subject, "when.anchor");
 		assertIntegerInRange(when.waxingDays, 13, 16, `${subject}: when.waxingDays`, FORTNIGHT_WHY);
 		const waning = when.waningDays;
@@ -352,7 +340,7 @@ function assertWhen(when: unknown, subject: string): void {
 					describe(waning),
 			);
 		}
-		assertKnownKeys(waning, WANING_KEYS, `${subject}: when.waningDays`);
+		assertKnownKeys(waning, WANING_KEYS, `${subject}: when.waningDays`, CODE);
 		for (const key of WANING_KEYS) {
 			assertIntegerInRange(
 				waning[key],
@@ -516,7 +504,7 @@ function validateObservanceConfig(config: ObservanceConfig, caller: ObservanceCa
 		);
 	}
 	assertNotAnotherShape(config, caller);
-	assertKnownKeys(config, CONFIG_KEYS, "ObservanceConfig");
+	assertKnownKeys(config, CONFIG_KEYS, "ObservanceConfig", CODE);
 
 	// `config.id` is interpolated into the messages below, so it is checked before they can quote it.
 	assertNonEmptyString(config.id, "observance config id");
@@ -543,7 +531,7 @@ function validateObservanceConfig(config: ObservanceConfig, caller: ObservanceCa
 					`${subject}: every level must be an object, received ${describe(level)}`,
 				);
 			}
-			assertKnownKeys(level, LEVEL_KEYS, `${subject}: a level`);
+			assertKnownKeys(level, LEVEL_KEYS, `${subject}: a level`, CODE);
 			assertNonEmptyString(level.id, `${subject}: level id`);
 			if (levelIds.has(level.id as string)) {
 				throw rangeError(CODE, `${subject}: level id must be unique, "${level.id}" repeats`);
@@ -571,7 +559,7 @@ function validateObservanceConfig(config: ObservanceConfig, caller: ObservanceCa
 				`${subject}: every rule must be an object, received ${describe(rule)}`,
 			);
 		}
-		assertKnownKeys(rule, RULE_KEYS, "an observance rule");
+		assertKnownKeys(rule, RULE_KEYS, "an observance rule", CODE);
 		assertNonEmptyString(rule.id, "observance rule id");
 		// Documented as "unique within a config" and never enforced; duplicates silently produced
 		// duplicate results, ordered only by the sort's stability.
@@ -609,22 +597,37 @@ function validateObservanceConfig(config: ObservanceConfig, caller: ObservanceCa
 }
 
 /**
- * Configs already validated, so a config passed on every frame of a UI is checked once.
- *
- * @remarks
- * Keyed on the object, matching `scalingFor`. A consumer who mutates a config in place after first
- * use escapes revalidation, which is the same bargain the scaling cache already makes. The bargain
- * covers **consumer-supplied** configs only: `EXAMPLE_OBSERVANCES` is deeply frozen.
+ * The private frozen copy of each config already validated, keyed by the object the caller passed.
+ * A copy maps to itself, so passing one back is a hit.
  */
-const validatedConfigs = new WeakSet<ObservanceConfig>();
+const privateCopies = new WeakMap<ObservanceConfig, ObservanceConfig>();
 
 /**
- * Validates `config` once per object.
+ * Validates `config` once per object and returns the private, deeply frozen copy the engine reads.
+ *
+ * @remarks
+ * The engine never reads the caller's object after this, so a config mutated after first use
+ * changes nothing it sees: a monthly `days: [31]` set afterwards cannot bring back the day-31
+ * extrapolation the validator exists to stop, and a `rules` set to `null` cannot escape as an
+ * uncoded `TypeError`. A new object, such as a fresh spread, is validated again. Validation runs
+ * before the copy because `structuredClone` throws an uncoded error on a function or a Symbol,
+ * and the copy is validated as a new object because a getter, an inherited field or a
+ * non-enumerable one answers differently once cloned.
  *
  * @param caller - The export that was called, so a refusal of the config names it.
  */
-export function ensureValidated(config: ObservanceConfig, caller: ObservanceCaller): void {
-	if (isRecord(config) && validatedConfigs.has(config)) return;
-	validateObservanceConfig(config, caller);
-	validatedConfigs.add(config);
+export function ensureValidated(
+	config: ObservanceConfig,
+	caller: ObservanceCaller,
+): ObservanceConfig {
+	return validatedPrivateCopy(config, {
+		cache: privateCopies,
+		code: CODE,
+		what: `${configArgument(caller)}: the config`,
+		isCandidate: isRecord,
+		validate: (value) => validateObservanceConfig(value, caller),
+		uncopyable: () =>
+			`${configArgument(caller)}: the config could not be copied, because a rule, level or ` +
+			"name in it is not plain data (a Proxy, for one); pass plain objects",
+	});
 }

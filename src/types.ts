@@ -24,9 +24,15 @@
  * @packageDocumentation
  */
 
-import { assertSafeYear, describe, rangeError, type TibetanCalendarErrorCode } from "./errors.js";
+import {
+	assertSafeYear,
+	describe,
+	rangeError,
+	type TibetanCalendarErrorCode,
+	thrownDetail,
+} from "./errors.js";
 import { formatTibetanDate } from "./format.js";
-import { temporalKindOf } from "./temporal-kind.js";
+import { temporalKindOf, temporalTypeNameOf } from "./temporal-kind.js";
 
 /**
  * The five elements of the 60-year cycle, in the order of Janson's ten-year cycle table (§4).
@@ -314,15 +320,19 @@ export type TibetanPlanet = "saturn" | "sun" | "moon" | "mars" | "mercury" | "ju
 export type TibetanWeekdayElement = "earth" | "fire" | "water" | "wind";
 
 /**
- * The Tibetan name of a weekday: the three renderings, plus what the name actually *means*.
+ * The Tibetan name of a weekday: the three renderings, plus the weekday's planet and element.
  *
  * @remarks
- * The planet is not decoration — the Tibetan name of the day essentially *is* the planet's name.
- * The element is the day's astrological attribute, which combines with the lunar day's own element
- * in the almanac's elemental yoga.
+ * In Tibet the name of the day essentially *is* the planet's name. Under Bhutan, where
+ * `TraditionNaming.weekdayOffset` shifts the weekday, the name, `planet` and `element` all move
+ * together: a Bhutanese Saturday is *nyi ma*, `sun`, `fire`. That the element moves is an
+ * inference no source states (Andreas' ruling of 2026-11-16), which is why the elemental yoga is
+ * not answered under such a tradition.
+ * The element is the day's astrological attribute, which combines with the lunar mansion's own
+ * element in the almanac's elemental yoga.
  */
 export interface TibetanWeekdayName extends TibetanName {
-	/** The planet the day is named for. */
+	/** The planet of the weekday, shifted with the name by `weekdayOffset`. */
 	planet: TibetanPlanet;
 
 	/** The day's astrological element. See {@link TibetanWeekdayElement} — `wind` is possible. */
@@ -590,6 +600,8 @@ export interface TibetanDate {
  *
  * **The year is Tibetan, not Gregorian.** It opens in February or early March, so it straddles two
  * ISO years.
+ *
+ * A returned month is frozen, so assigning to one of its fields throws in strict mode.
  */
 export interface TibetanMonth {
 	/**
@@ -605,7 +617,7 @@ export interface TibetanMonth {
 	 * Tibetan years straddle two ISO years, opening in February or early March, so this is not
 	 * recoverable from {@link TibetanMonth.firstDay} without redoing the conversion.
 	 */
-	year: number;
+	readonly year: number;
 
 	/**
 	 * The month's identity as a single sortable integer — its **database key, cache key or array
@@ -633,7 +645,7 @@ export interface TibetanMonth {
 	 * Zero is the epoch, so values are large and negative before it. Do not read it as a month
 	 * number.
 	 */
-	lunation: number;
+	readonly lunation: number;
 
 	/**
 	 * The element–animal name of the year this month belongs to.
@@ -650,7 +662,7 @@ export interface TibetanMonth {
 	 *
 	 * Both halves of a leap pair carry the same name — they are two months of one year.
 	 */
-	yearName: TibetanYearName;
+	readonly yearName: TibetanYearName;
 
 	/**
 	 * Month number, 1–12.
@@ -659,16 +671,16 @@ export interface TibetanMonth {
 	 * A leap month shares its number with an adjacent month, so in a leap year this appears twice.
 	 * Which of the two is the leap month depends on the tradition; do not assume an order.
 	 */
-	month: number;
+	readonly month: number;
 
 	/**
 	 * The month as a Temporal-style code: `"M01"` through `"M12"`, with an `L` suffix for a leap
 	 * month. Unique within the year, unlike {@link TibetanMonth.month}.
 	 */
-	monthCode: string;
+	readonly monthCode: string;
 
 	/** Whether this is the leap month of the two sharing this number — not necessarily the first. */
-	isLeapMonth: boolean;
+	readonly isLeapMonth: boolean;
 
 	/**
 	 * How many **calendar days** this month spans: 29 or 30.
@@ -676,7 +688,7 @@ export interface TibetanMonth {
 	 * @remarks
 	 * Not the highest date number, which is always 30. See the remarks on {@link TibetanMonth}.
 	 */
-	days: number;
+	readonly days: number;
 
 	/**
 	 * The Western calendar day this month begins on.
@@ -686,15 +698,16 @@ export interface TibetanMonth {
 	 * may be skipped or doubled. Janson §8 notes that evaluating it directly is the source of errors
 	 * in published tables.
 	 */
-	firstDay: Temporal.PlainDate;
+	readonly firstDay: Temporal.PlainDate;
 
 	/** The Western calendar day this month ends on. */
-	lastDay: Temporal.PlainDate;
+	readonly lastDay: Temporal.PlainDate;
 }
 
 /**
- * Rejects a `Temporal.PlainDate`, `PlainDateTime` or `ZonedDateTime` passed where a Tibetan-date
- * input is expected.
+ * Rejects any Temporal instance passed where a Tibetan-date or Tibetan-month input is expected: a
+ * `PlainDate`, `PlainDateTime` or `ZonedDateTime`, which name a Western day, and a
+ * `PlainYearMonth`, `PlainMonthDay`, `PlainTime`, `Instant` or `Duration`, which name none.
  *
  * @remarks
  * `TibetanDateFields` and `Temporal.PlainDate` are structurally close enough — both are plain
@@ -720,24 +733,53 @@ export interface TibetanMonth {
  * does not exist. While the two shared one code, `tibetanDateExists` had to call this itself before
  * its own `try` to get that behaviour; it no longer does.
  */
-export function rejectTemporalInstance(functionName: string, value: unknown): void {
+export function rejectTemporalInstance(
+	functionName: string,
+	value: unknown,
+	shape: "month" | "date" = "date",
+): void {
 	// Kind, not identity. `instanceof` asked whether the value came from *this* realm's Temporal, so
 	// a `PlainDate` from a second implementation sailed past this guard and was then read
 	// structurally for year/month/day — which a PlainDate has — turning ISO 2024-07-09 into a
 	// confident royal-era answer 127 years out. See `temporal-kind.ts`.
-	const kind = temporalKindOf(value);
-	if (kind !== null) {
-		// tibetanToIso and tibetanDateExists take a Tibetan date and can be swapped directly for
-		// isoToTibetan; formatTibetanDate and daysInMonth take a Tibetan date but do not produce
-		// one, so the fix is "convert first", not "call this instead".
-		const suggestion =
-			functionName === "tibetanToIso" || functionName === "tibetanDateExists"
-				? "Did you mean isoToTibetan(date)?"
-				: "Convert it first with isoToTibetan(date).";
+	const typeName = temporalTypeNameOf(value);
+	if (typeName === null) return;
+	// A type that names no calendar day — `PlainYearMonth` above all, whose numeric `year` and
+	// `month` read as a Tibetan month — is refused by its brand all the same, but is not told it
+	// holds a Western day.
+	if (temporalKindOf(value) === null) {
 		throw rangeError(
 			"TCT_INVALID_ARGUMENT",
-			`${functionName}: received a Temporal.${kind}, which names a Western ` +
-				`calendar day, not a Tibetan one. ${suggestion}`,
+			`${functionName}: received a Temporal.${typeName}, which is not a Tibetan date or month. ` +
+				(shape === "month"
+					? "Pass { year, month } fields."
+					: "Pass { year, month, day } fields, or a resolved TibetanDate."),
+		);
+	}
+	// tibetanToIso and tibetanDateExists take a Tibetan date and can be swapped directly for
+	// isoToTibetan; formatTibetanDate and daysInMonth take a Tibetan date but do not produce
+	// one, so the fix is "convert first", not "call this instead".
+	const suggestion =
+		functionName === "tibetanToIso" || functionName === "tibetanDateExists"
+			? "Did you mean isoToTibetan(date)?"
+			: "Convert it first with isoToTibetan(date).";
+	throw rangeError(
+		"TCT_INVALID_ARGUMENT",
+		`${functionName}: received a Temporal.${typeName}, which names a Western ` +
+			`calendar day, not a Tibetan one. ${suggestion}`,
+	);
+}
+
+/**
+ * Rejects a value that is not an object where a Tibetan date or month belongs, before any field of it
+ * is read. Reached through {@link assertTibetanShape} and {@link rejectInvalidLeapFlags}, so the
+ * message and the code are one policy.
+ */
+function rejectNonObject(functionName: string, value: unknown): asserts value is object {
+	if (value === null || typeof value !== "object") {
+		throw rangeError(
+			"TCT_INVALID_ARGUMENT",
+			`${functionName}: expected an object naming a Tibetan date, received ${describe(value)}`,
 		);
 	}
 }
@@ -769,12 +811,7 @@ export function rejectInvalidLeapFlags(
 	functionName: string,
 	value: { isLeapMonth?: unknown; isLeapDay?: unknown } | null | undefined,
 ): void {
-	if (value === null || typeof value !== "object") {
-		throw rangeError(
-			"TCT_INVALID_ARGUMENT",
-			`${functionName}: expected an object naming a Tibetan date, received ${describe(value)}`,
-		);
-	}
+	rejectNonObject(functionName, value);
 	for (const field of ["isLeapMonth", "isLeapDay"] as const) {
 		const flag = value[field];
 		if (flag !== undefined && typeof flag !== "boolean") {
@@ -843,27 +880,101 @@ const MONTH_FIELDS = ["year", "month"] as const;
 const DATE_FIELDS = ["year", "month", "day"] as const;
 
 /**
+ * Every field a shape reads, in the order it reads them: the required ones, then the leap flags. A
+ * month reads `isLeapDay` too, to refuse a non-boolean one as it always has, and then drops it.
+ */
+const MONTH_READS = ["year", "month", "isLeapMonth", "isLeapDay"] as const;
+const DATE_READS = ["year", "month", "day", "isLeapMonth", "isLeapDay"] as const;
+
+declare const snapshotBrand: unique symbol;
+
+/**
+ * A Tibetan date's fields as read **once** off the caller's object, frozen: what
+ * {@link assertTibetanShape} returns for a date, and the only thing the engine goes on to read.
+ *
+ * @remarks
+ * Branded so that a function taking one cannot be handed the caller's own object: a getter or a Proxy
+ * answers differently the second time it is asked, and a value validated on one read and computed on
+ * another is a confident wrong date. `monthCountFor`, `julianDayOfFields` and
+ * {@link assertTibetanRanges} take the snapshot for that reason, and a call site that still passes the
+ * argument fails to compile instead of reading it again.
+ */
+export type TibetanDateSnapshot = Readonly<TibetanDateFields> & { readonly [snapshotBrand]: true };
+
+/** The month-shaped counterpart of {@link TibetanDateSnapshot}: `year`, `month` and `isLeapMonth`. */
+export type TibetanMonthSnapshot = Readonly<TibetanMonthFields> & {
+	readonly [snapshotBrand]: true;
+};
+
+/**
+ * Reads each field a shape needs off the caller's object exactly once, refusing a read that throws.
+ *
+ * @remarks
+ * Everything in the `try` can run the caller's code — a getter, or any trap of a Proxy — so a throw
+ * there is refused with `TCT_INVALID_ARGUMENT` and the caller's own error as its `cause`, rather than
+ * escaping as the trap's own error. It is **not** `TCT_FIELD_OUT_OF_RANGE`: that code is on
+ * `tibetanDateExists`'s allowlist, and would turn a caller's throwing getter into "that date does not
+ * exist". A field that is `undefined` is left out of the snapshot, so a missing one is reported by
+ * {@link rejectMissingFields} and `error.requested` on a `SkippedDayError` has no stray keys.
+ */
+function readFieldsOnce(
+	label: string,
+	value: object,
+	fields: readonly (typeof DATE_READS)[number][],
+): Record<string, unknown> {
+	const snapshot: Record<string, unknown> = {};
+	let reading: string = fields[0] ?? "";
+	try {
+		for (const field of fields) {
+			reading = field;
+			const read = (value as Record<string, unknown>)[field];
+			if (read !== undefined) snapshot[field] = read;
+		}
+	} catch (error) {
+		throw rangeError(
+			"TCT_INVALID_ARGUMENT",
+			`${label}: reading ${reading} threw ${thrownDetail(error)}. A Tibetan date or month is plain ` +
+				"data: pass an object whose fields can be read without running code",
+			error,
+		);
+	}
+	return snapshot;
+}
+
+/**
  * The shape half of the boundary check for a Tibetan month or date argument: not a `Temporal`
- * instance, leap flags boolean or absent, the required fields present and numbers.
+ * instance, leap flags boolean or absent, the required fields present and numbers. Returns the
+ * fields it read, as a frozen snapshot.
  *
  * @remarks
  * `label` is what the caller called, and for a two-argument function which argument —
  * `"addDays"`, or `"daysBetween(to)"`. Every failure here is `TCT_INVALID_ARGUMENT`, off
  * `tibetanDateExists`'s allowlist.
  *
+ * **Every later read is of the snapshot, never of `value`.** Each field is read once, here, inside a
+ * guard that refuses a throwing read; {@link assertTibetanRanges} and everything after it take the
+ * snapshot. A getter that answers 8 and then 31 therefore gets 8 throughout, instead of passing
+ * validation as 8 and being computed on as 31.
+ *
  * **Kept apart from {@link assertTibetanRanges} on purpose.** `tibetanToIso` and
  * `tibetanDateExists` validate the tradition *between* the two: were the range checked before the
  * tradition, `tibetanDateExists({ year: 2153, month: 13, day: 1 }, {})` would swallow the range
  * error and report a broken config as a date that does not exist.
  */
-export function assertTibetanShape(label: string, value: unknown, shape: "month" | "date"): void {
-	rejectTemporalInstance(label, value);
-	rejectInvalidLeapFlags(label, value as { isLeapMonth?: unknown; isLeapDay?: unknown });
-	rejectMissingFields(
-		label,
-		value as { year?: unknown; month?: unknown; day?: unknown },
-		shape === "month" ? MONTH_FIELDS : DATE_FIELDS,
-	);
+export function assertTibetanShape<S extends "month" | "date">(
+	label: string,
+	value: unknown,
+	shape: S,
+): S extends "month" ? TibetanMonthSnapshot : TibetanDateSnapshot {
+	rejectTemporalInstance(label, value, shape);
+	rejectNonObject(label, value);
+	const snapshot = readFieldsOnce(label, value, shape === "month" ? MONTH_READS : DATE_READS);
+	rejectInvalidLeapFlags(label, snapshot);
+	rejectMissingFields(label, snapshot, shape === "month" ? MONTH_FIELDS : DATE_FIELDS);
+	// A month has no day to be the leap half of, and `error.requested`-style echoes render only what the
+	// shape carries.
+	if (shape === "month") delete snapshot.isLeapDay;
+	return Object.freeze(snapshot) as never;
 }
 
 /**
@@ -871,9 +982,10 @@ export function assertTibetanShape(label: string, value: unknown, shape: "month"
  * a date, the day an integer 1–30. Returns the call's echo, for the caller's later checks.
  *
  * @remarks
- * **Precondition: {@link assertTibetanShape} has already run** on `value` with the same shape, so
- * every field it reads is a number and every flag a boolean or absent. That is what makes rendering
- * them with a bare `${}` safe here.
+ * **Precondition: {@link assertTibetanShape} has already run** on the caller's value with the same
+ * shape, and `value` is the snapshot it returned — which is why the type is the branded snapshot,
+ * and why every field this reads is a number and every flag a boolean or absent. That is what makes
+ * rendering them with a bare `${}` safe here.
  *
  * **The subject echoes the call the caller made** — `tibetanToIso({ year: 2153, month: 13, day: 1 })`,
  * or `daysBetween(to: { … })` when `parameter` names the argument — so a caller converting a table
@@ -891,15 +1003,15 @@ export function assertTibetanShape(label: string, value: unknown, shape: "month"
  */
 export function assertTibetanRanges(
 	functionName: string,
-	value: TibetanMonthFields | TibetanDateFields,
+	value: TibetanMonthSnapshot | TibetanDateSnapshot,
 	shape: "month" | "date",
 	options: { parameter?: string; hint?: string } = {},
 ): () => string {
 	const subject = () => {
 		const fields = [`year: ${value.year}`, `month: ${value.month}`];
-		if (shape === "date") fields.push(`day: ${(value as TibetanDateFields).day}`);
+		if (shape === "date") fields.push(`day: ${(value as TibetanDateSnapshot).day}`);
 		if (value.isLeapMonth === true) fields.push("isLeapMonth: true");
-		if (shape === "date" && (value as TibetanDateFields).isLeapDay === true) {
+		if (shape === "date" && (value as TibetanDateSnapshot).isLeapDay === true) {
 			fields.push("isLeapDay: true");
 		}
 		const argument = options.parameter === undefined ? "" : `${options.parameter}: `;
@@ -914,7 +1026,7 @@ export function assertTibetanRanges(
 		);
 	}
 	if (shape === "date") {
-		const { day } = value as TibetanDateFields;
+		const { day } = value as TibetanDateSnapshot;
 		if (!Number.isInteger(day) || day < 1 || day > 30) {
 			throw rangeError(
 				"TCT_FIELD_OUT_OF_RANGE",
@@ -1009,8 +1121,12 @@ export interface TibetanDateFields {
 	/**
 	 * Select the first day when two calendar days share this number.
 	 *
-	 * @defaultValue `false` — the ordinary second day. Without this, a doubled date would be
-	 * ambiguous and the conversion would have to guess.
+	 * @defaultValue `false` — the regular second day. Without this, a doubled date would be
+	 * ambiguous and the conversion would have to guess. An unmarked identity names the regular unit
+	 * and the extra unit must be marked, as an omitted `isLeapMonth` names the regular month (the
+	 * second under Phugpa, the first under Bhutan) and as Temporal's and CLDR's month codes do
+	 * (`M05` regular, `M05L` leap). The regular day is the one in which its lunar day ends: Janson,
+	 * "a lunar day gives its name (number and month) to the calendar day where the lunar day ends".
 	 *
 	 * @remarks
 	 * **Ignored on a day that is not doubled**, which returns that day as though the flag were
@@ -1050,7 +1166,15 @@ export interface TibetanDateFields {
  * {@link SkippedDayError.code} and its siblings — see `src/errors.ts` for why.
  */
 export class SkippedDayError extends Error {
-	/** The date that was requested and does not exist. */
+	/**
+	 * The date that was requested and does not exist.
+	 *
+	 * @remarks
+	 * When this package throws it, a frozen copy of the fields that were read from the argument, equal
+	 * to it in value but not the same object: extra keys the caller's object carried are dropped, and
+	 * assigning to it throws in strict mode. An error a caller constructs with `new SkippedDayError`
+	 * holds whatever object it was given.
+	 */
 	readonly requested: TibetanDateFields;
 
 	/**

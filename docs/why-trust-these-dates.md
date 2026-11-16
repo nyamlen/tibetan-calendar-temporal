@@ -204,7 +204,8 @@ Stating this is the point of the page.
   FPMT's favorable six. That is a check on the ten rows of a table, not on any date, and which yoga
   is in which group is read from the order the dictionary lists them, because it states only how
   many are in each. Month and lunar-day attributes **refuse** for the Bhutanese traditions,
-  because no source gives them.
+  because no source gives them, and so does the yoga, because Bhutan shifts the weekday and no
+  source says what its weekday element is then.
 - **Planetary positions and eclipses are not computed**: they are Janson's Appendix D, and
   deliberately out of scope. Nor are two things his main text describes and almanacs print, the
   twenty-seven astronomical yogas and the karaṇas, or half lunar days; those are recorded as possible

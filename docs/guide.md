@@ -253,10 +253,10 @@ day.lunarMansion.index;              // 26 — where the moon is that morning
 day.lunarMansion.sanskritName.iast;  // 'revatī'
 day.lunarMansion.tibetanName.wylie;  // 'nam gru'
 day.lunarMansion.element;            // 'water'
-day.yoga.englishName;        // 'death'
-day.yoga.sanskritName.iast;  // 'maraṇa'
-day.yoga.favorable;  // false
-day.yoga.auspiciousness.englishName;  // 'worst'
+day.yoga?.englishName;       // 'death'
+day.yoga?.sanskritName.iast; // 'maraṇa'
+day.yoga?.favorable;  // false
+day.yoga?.auspiciousness.englishName;  // 'worst'
 ```
 
 **What `yoga` is.** The day's *elemental yoga*: the pairing of two elements from the Indian set of
@@ -325,7 +325,9 @@ them; the four-way `auspiciousness` grading is a Tibetan dictionary's, read by l
 
 *Two traditions answer and two refuse.* Janson tabulates no month-animal list for the Bhutanese
 version, so `month` and `lunarDay` are `null` under `BHUTAN` and `BHUTAN_HENNING` rather than quietly
-carrying Phugpa's answers. The primitives throw `TCT_ATTRIBUTE_NOT_SOURCED` where the composition
+carrying Phugpa's answers. So is `yoga`: Bhutan shifts the weekday by one day, and no source says what
+the yoga's weekday element is then. The mansion, the year and the calendar day still answer.
+The primitives throw `TCT_ATTRIBUTE_NOT_SOURCED` where the composition
 reports `null`: a specific question with no answer is an error, while "what is known about this day"
 is not.
 
@@ -471,8 +473,9 @@ function loadConfig(path: string): ObservanceConfig {
 }
 ```
 
-A config is checked **once per object**, so a later edit in place is not checked again: build a new
-object rather than changing a loaded one.
+A config is checked **once per object**, and the package keeps a private frozen copy of what it
+checked: a later edit in place is ignored, and every answer stays that of the config as first
+checked. Build a new object rather than changing a loaded one.
 The package does not freeze the object it was handed, and the config that
 [`composeObservances`](#a-layer-differences-from-a-base) returns is a new, frozen one.
 
@@ -860,7 +863,7 @@ try {
 } catch (error) {
   switch (error.code) {
     case 'TCT_SKIPPED_DAY':
-      // error instanceof SkippedDayError, and error.requested is the input you passed
+      // error instanceof SkippedDayError, and error.requested is a frozen copy of the date fields you passed
       return `${format(error.requested)} is not a day in this calendar`;
     case 'TCT_FIELD_OUT_OF_RANGE':
       // A number is wrong: month 13, day 31, a year that is not an integer.
@@ -1070,6 +1073,9 @@ date.weekdayName.phonetic;   // spoken form
 `monthNamesFor` takes one too, for the Tiger month and the leap-month check; `yearNameFor` and
 `rabjungFor` take none. A `TibetanDate` produced with a non-default config already
 carries the shifted name on its `weekdayName` field — you do not need to look it up again.
+The whole weekday moves: name, `planet` and `element` are the next weekday's, so a Bhutanese
+Saturday is *nyi ma*, the Sun, fire. Janson and Henning's Bhutanese data bear out the name and
+planet; that the element moves with them is an inference no source states.
 
 **What deliberately does not ship:** translations into any other language. The names are the
 calendar's own vocabulary, not user-interface strings, and an application supplying French or

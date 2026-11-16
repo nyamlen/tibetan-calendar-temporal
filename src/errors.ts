@@ -15,6 +15,8 @@
  * @packageDocumentation
  */
 
+import { deepFreeze } from "./freeze.js";
+
 /**
  * Every code this package attaches to a thrown error.
  *
@@ -87,6 +89,12 @@ export type TibetanCalendarErrorCode =
 export type Coded<E extends Error> = E & { code: TibetanCalendarErrorCode };
 
 /**
+ * Every error this package constructed, by identity. A `code` is a string a caller can forge on an
+ * error of their own, so {@link readingCallersObject} asks this instead.
+ */
+const ownErrors = new WeakSet<object>();
+
+/**
  * A `RangeError` carrying a code.
  *
  * @remarks
@@ -96,8 +104,17 @@ export type Coded<E extends Error> = E & { code: TibetanCalendarErrorCode };
  * `SkippedDayError` plus `TCT_FIELD_OUT_OF_RANGE` and `TCT_NO_SUCH_LEAP_MONTH`. It was such a
  * caller under the denylist era, which is where this remark's example came from.
  */
-export function rangeError(code: TibetanCalendarErrorCode, message: string): Coded<RangeError> {
-	return Object.assign(new RangeError(message), { code });
+export function rangeError(
+	code: TibetanCalendarErrorCode,
+	message: string,
+	...cause: [cause?: unknown]
+): Coded<RangeError> {
+	// Present only when given, so `"cause" in error` still tells a refusal of the caller's own throw
+	// from every other one. `cause` is the caller's error, kept so they can find their own stack.
+	const error =
+		cause.length === 0 ? new RangeError(message) : new RangeError(message, { cause: cause[0] });
+	ownErrors.add(error);
+	return Object.assign(error, { code });
 }
 
 /**
@@ -118,7 +135,9 @@ export function rangeError(code: TibetanCalendarErrorCode, message: string): Cod
  * engine's fault rather than theirs.
  */
 export function codedError(code: TibetanCalendarErrorCode, message: string): Coded<Error> {
-	return Object.assign(new Error(message), { code });
+	const error = new Error(message);
+	ownErrors.add(error);
+	return Object.assign(error, { code });
 }
 
 /**
@@ -219,8 +238,16 @@ export function describe(value: unknown): string {
 	// `String` renders `10n` as "10", which is the ambiguity this function exists to avoid, and a
 	// function as its whole source text.
 	if (typeof value === "bigint") return `${value}n`;
-	if (typeof value === "function")
-		return value.name === "" ? "a function" : `function ${value.name}`;
+	if (typeof value === "function") {
+		// The same hazard as the object branch: `name` can be a throwing getter, a Symbol, or a read
+		// through a Proxy trap, so it is read inside a `try` and used only if it is a string.
+		try {
+			const name: unknown = value.name;
+			return typeof name === "string" && name !== "" ? `function ${name}` : "a function";
+		} catch {
+			return "a function";
+		}
+	}
 	return String(value);
 }
 
@@ -243,6 +270,31 @@ export function isPlainObject(value: unknown): boolean {
 		return prototype === Object.prototype || prototype === null;
 	} catch {
 		return false;
+	}
+}
+
+/**
+ * Refuses any own key of `value` that is not in `allowed`, naming it.
+ *
+ * @remarks
+ * Beside `assertQueryOptions`, deliberately: that one guards a function's options bag and throws
+ * `TCT_INVALID_ARGUMENT`, while this guards objects inside a config and throws the config code its
+ * caller passes — `TCT_INVALID_OBSERVANCE_CONFIG` or `TCT_INVALID_TRADITION_CONFIG` — so the two
+ * differ in code and subject.
+ */
+export function assertKnownKeys(
+	value: object,
+	allowed: readonly string[],
+	subject: string,
+	code: TibetanCalendarErrorCode,
+): void {
+	for (const key of Object.keys(value)) {
+		if (!allowed.includes(key)) {
+			throw rangeError(
+				code,
+				`${subject} has no key ${JSON.stringify(key)}; its keys are ${allowed.join(", ")}`,
+			);
+		}
 	}
 }
 
@@ -273,8 +325,8 @@ export function isPlainObject(value: unknown): boolean {
  *   `Object.prototype`, whose keys belong to whatever library polluted it, not to the caller.
  * - **Symbol keys are ignored.** Nobody writes one by mistake, and `Object.keys` does not list them.
  *
- * This applies to **bags only**, never to a `TraditionConfig` or an `ObservanceConfig`: a consumer's
- * `{ ...PHUGPA, extra }` is a supported way to build a config and must keep working.
+ * This applies to **bags only**. A `TraditionConfig` and an `ObservanceConfig` refuse unknown keys
+ * through their own validators, with their own codes, for the same reason.
  *
  * `allowed` is the bag's key list, and the shape shown to the caller is **built from it** — until
  * 2026-09-24 each call site passed a hand-written shape string, which could name a key the bag no
@@ -341,6 +393,7 @@ export function assertQueryOptions<O extends object>(
 			"TCT_INVALID_ARGUMENT",
 			`${functionName}: options could not be read — reading it threw ${thrownDetail(error)}. ` +
 				`options must be an object like ${shape} or omitted`,
+			error,
 		);
 	}
 	if (isArray) throw notABag();
@@ -354,6 +407,92 @@ export function assertQueryOptions<O extends object>(
 	// A fresh plain object carrying only the allowed keys, which is what the call sites read — so
 	// they never touch the caller's object again, and a getter cannot answer differently twice.
 	return snapshot as Partial<O>;
+}
+
+/**
+ * Runs a guard's read of an object the caller built, refusing whatever the caller's own code throws
+ * during it — a getter, or any trap of a Proxy, a revoked one included — with `code` and the caller's
+ * error as `cause`.
+ *
+ * @remarks
+ * The one home for the config validators' first pass, the only one that touches the caller's object:
+ * everything after it reads a private copy. An error this package constructed passes through
+ * unchanged, so a bad field is still reported as one; that is decided by identity, because a `code`
+ * is a string a caller can forge. Anything else, a forged code included, is the caller's and is
+ * wrapped. `what` names the object in the message.
+ *
+ * @throws An error with `code` — the guard's own, or one wrapping the caller's.
+ */
+export function readingCallersObject<T>(
+	code: TibetanCalendarErrorCode,
+	what: string,
+	read: () => T,
+): T {
+	try {
+		return read();
+	} catch (error) {
+		// Identity, not the `code` property: a caller's own error can carry any string.
+		if (typeof error === "object" && error !== null && ownErrors.has(error)) throw error;
+		throw rangeError(
+			code,
+			`${what} could not be read — reading it threw ${thrownDetail(error)}. ${what} is plain ` +
+				"data: pass an object whose fields can be read without running code",
+			error,
+		);
+	}
+}
+
+/** What {@link validatedPrivateCopy} needs to know about one kind of config. */
+export interface PrivateCopySpec<T extends object> {
+	/** The private copies already made, keyed by the caller's object; a copy maps to itself. */
+	readonly cache: WeakMap<T, T>;
+	readonly code: TibetanCalendarErrorCode;
+	/** Names the caller's object in the message of a refused read. */
+	readonly what: string;
+	/** Whether a value may be looked up at all; a `WeakMap` refuses a primitive as a key. */
+	readonly isCandidate: (value: unknown) => boolean;
+	/** Throws a coded error for a value that is not a valid config; runs on the caller's object, then on the copy. */
+	readonly validate: (value: T) => void;
+	/** The message for a config `structuredClone` refuses. Runs inside the guarded read. */
+	readonly uncopyable: (value: T) => string;
+}
+
+/**
+ * Validates a config once per object and returns the private, deeply frozen copy the engine reads.
+ *
+ * @remarks
+ * The one home for the protocol both config validators follow. Every read of the caller's object —
+ * the cache lookup, the first validation, the clone — is inside {@link readingCallersObject}. The
+ * lookup itself (`WeakMap.get`) runs no code of theirs, but the caller-supplied `isCandidate` can, and
+ * that is why it sits inside the guard too. The copy is then validated as a new object, since a
+ * getter, an inherited field or a non-enumerable one answers differently once cloned, and the cache records the copy only
+ * after that: a refused config is never cached, and a copy maps to itself so passing one back is a hit.
+ * Validation runs before the clone because `structuredClone` throws an uncoded `DataCloneError` on a
+ * function or a Symbol, which is recoded to the config's code.
+ */
+export function validatedPrivateCopy<T extends object>(config: T, spec: PrivateCopySpec<T>): T {
+	const { cache, code, what, isCandidate, validate, uncopyable } = spec;
+	const hit = readingCallersObject(code, what, () =>
+		isCandidate(config) ? cache.get(config) : undefined,
+	);
+	if (hit !== undefined) return hit;
+	readingCallersObject(code, what, () => validate(config));
+	const copy = deepFreeze(
+		readingCallersObject(code, what, () => {
+			try {
+				return structuredClone(config);
+			} catch (error) {
+				if (error instanceof Error && error.name === "DataCloneError") {
+					throw rangeError(code, uncopyable(config));
+				}
+				throw error;
+			}
+		}),
+	);
+	validate(copy);
+	cache.set(config, copy);
+	cache.set(copy, copy);
+	return copy;
 }
 
 /**

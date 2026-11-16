@@ -419,9 +419,9 @@ export interface Observance {
 	 * The rule that produced it.
 	 *
 	 * @remarks
-	 * The **same object** the config holds, not a copy — so for a consumer-supplied config,
-	 * mutating this mutates their own rule table. `readonly` says so at compile time; the shipped
-	 * `EXAMPLE_OBSERVANCES` is deeply frozen, so this aliases a frozen object there.
+	 * The engine's own copy of the config's rule, made when the config was first validated: deeply
+	 * frozen, and never the object the caller passed, so mutating the config afterwards changes
+	 * neither this nor any later answer.
 	 */
 	readonly rule: ObservanceRule;
 

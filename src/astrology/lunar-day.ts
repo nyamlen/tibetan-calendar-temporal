@@ -23,32 +23,12 @@
  */
 
 import { amod } from "../computation/arithmetic.js";
-import { assertInternal } from "../errors.js";
+import { ANIMALS, ELEMENTS, oneBasedAt } from "../cycle-tables.js";
 import { animalNameOf, elementNameOf } from "../names.js";
 import type { TraditionConfig } from "../traditions/types.js";
 import type { TibetanAnimal, TibetanElement, TibetanName } from "../types.js";
 import { type TibetanTrigram, TRIGRAM_NAMES, TRIGRAMS } from "./calendar-day.js";
 import { monthAnimalNumber, monthElementNumber } from "./month.js";
-
-const ELEMENTS: readonly TibetanElement[] = ["wood", "fire", "earth", "iron", "water"];
-
-const ANIMALS: readonly TibetanAnimal[] = [
-	"mouse",
-	"ox",
-	"tiger",
-	"rabbit",
-	"dragon",
-	"snake",
-	"horse",
-	"sheep",
-	"monkey",
-	"bird",
-	"dog",
-	"pig",
-];
-
-const at = <T>(table: readonly T[], oneBased: number, what: string): T =>
-	assertInternal(table[oneBased - 1], `${what}: index ${oneBased} is outside the cycle`);
 
 /** What a lunar day carries in the Chinese system. */
 export interface LunarDayAttributes {
@@ -113,9 +93,9 @@ export function lunarDayAttributes(
 	const animalNumber = monthAnimalNumber(tradition, month);
 	const elementNumber = monthElementNumber(tradition, year, month);
 
-	const animal = at(ANIMALS, amod(day + 6 * month + 8, 12), "lunar-day animal");
-	const element = at(ELEMENTS, amod(elementNumber + day, 5), "lunar-day element");
-	const trigram: TibetanTrigram = at(
+	const animal = oneBasedAt(ANIMALS, amod(day + 6 * month + 8, 12), "lunar-day animal");
+	const element = oneBasedAt(ELEMENTS, amod(elementNumber + day, 5), "lunar-day element");
+	const trigram: TibetanTrigram = oneBasedAt(
 		TRIGRAMS,
 		amod(day + 6 * animalNumber + 6, 8),
 		"lunar-day trigram",

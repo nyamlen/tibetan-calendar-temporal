@@ -5,6 +5,7 @@ import { isoToTibetan } from "../src/computation/conversion.js";
 import * as root from "../src/index.js";
 import * as observances from "../src/observances/index.js";
 import { BHUTAN, BHUTAN_HENNING } from "../src/traditions/bhutan.js";
+import { BHUTAN_UNPAIRED_LEAPS_IN_JANSON_YEARS } from "./fixtures/bhutan.js";
 import { CROSS_VERSION_LEAP } from "./fixtures/cross-version-leap.js";
 import { ESZTHOFF_DATES } from "./fixtures/crosscheck-eszthoff.js";
 import { LOTSAWA_DATES } from "./fixtures/crosscheck-lotsawa.js";
@@ -21,7 +22,6 @@ import {
 	bhutanStart,
 	TRUSTED_DAYS,
 	trustedEnd,
-	unpairedLeapBlocks,
 } from "./support/bhutan.js";
 import { mismatchesIn } from "./support/crosscheck.js";
 import { fpmtMoonComparison, fpmtNumberingMismatches } from "./support/fpmt.js";
@@ -599,7 +599,7 @@ const CLAIMS: readonly Claim[] = [
 		what: "where the Bhutanese window ends, and why",
 		pattern:
 			/The window ends on \*\*(.+?)\*\*, not at the end of the year, because the upstream source carries (\w+) leap month Janson does not list\./,
-		expected: () => [long(trustedEnd), word(unpairedLeapBlocks().length)],
+		expected: () => [long(trustedEnd), word(BHUTAN_UNPAIRED_LEAPS_IN_JANSON_YEARS)],
 	},
 	{
 		what: "the default and Henning variants' differences inside the window",
@@ -1022,13 +1022,15 @@ describe("why-trust-these-dates claims", () => {
 		expect(names.filter((name) => /tsurphu|mongol/i.test(name))).toEqual([]);
 	});
 
-	it("refuses month and lunar-day attributes for both Bhutanese traditions", () => {
+	it("refuses month and lunar-day attributes and the yoga for both Bhutanese traditions", () => {
 		const codes = [BHUTAN, BHUTAN_HENNING].flatMap((tradition) => [
+			thrownBy(() => astrology.elementalYogaFor(Temporal.PlainDate.from("2026-09-01"), tradition))
+				?.code,
 			thrownBy(() => astrology.monthAttributesFor({ year: 2153, month: 1 }, tradition))?.code,
 			thrownBy(() => astrology.lunarDayAttributesFor({ year: 2153, month: 1, day: 1 }, tradition))
 				?.code,
 		]);
-		expect(codes).toEqual(Array(4).fill("TCT_ATTRIBUTE_NOT_SOURCED"));
+		expect(codes).toEqual(Array(6).fill("TCT_ATTRIBUTE_NOT_SOURCED"));
 	});
 
 	describe("links into the repository", () => {

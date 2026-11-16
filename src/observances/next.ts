@@ -1,11 +1,18 @@
+import { floorDiv } from "../computation/arithmetic.js";
 import { asPlainDate, isoToTibetan, julianDayFromIso } from "../computation/conversion.js";
+import type { ScaledTradition } from "../computation/scaling.js";
 import { scalingFor } from "../computation/scaling.js";
 import { describe, hasCode, rangeError } from "../errors.js";
 import { PHUGPA } from "../traditions/phugpa.js";
 import type { TraditionConfig } from "../traditions/types.js";
-import { assertTraditionConfig } from "../traditions/validate.js";
-import { MAX_SPAN_YEARS, occurrencesOfRule, tibetanDateMemo } from "./occurrences.js";
-import type { Observance, ObservanceConfig, ObservanceWhen } from "./types.js";
+import { validatedTradition } from "../traditions/validate.js";
+import {
+	MAX_SPAN_YEARS,
+	occurrencesOfRule,
+	type TibetanDateOfDay,
+	tibetanDateMemo,
+} from "./occurrences.js";
+import type { Observance, ObservanceConfig, ObservanceRule, ObservanceWhen } from "./types.js";
 import { ensureValidated } from "./validate.js";
 
 /**
@@ -27,6 +34,54 @@ const FIRST_CHUNK_DAYS: Record<ObservanceWhen["type"], number> = {
 	formula: 31,
 	counted: 31,
 };
+
+/** What a chunk search found, and whether it met the upper end of the tradition's exact range. */
+interface ChunkResult {
+	readonly found: Observance[];
+	readonly metEnd: boolean;
+}
+
+/**
+ * The results of one rule over a chunk, or what lies before the first day it cannot answer.
+ *
+ * A form whose result needs more than its own day, a period's whole span or a counted rule's
+ * anchors up to a year either side, cannot be built for a day whose span or anchors lie outside the
+ * exact range. That is only true of the days that need the far side, so a chunk that fails is halved
+ * and its earlier half searched first, down to one day.
+ *
+ * What a failing day means depends on which end it is near. Near the **upper** bound the search has
+ * met the end, and every day after it fails too, so the later half is skipped once the earlier one
+ * has met it. Near the **lower** bound the day's span or anchors begin out of range and the days
+ * after it may be fine: there is no occurrence there, and the search goes on. The range is symmetric
+ * about zero, so the day's half of it says which end. Only `TCT_OUTSIDE_EXACT_RANGE` is read this
+ * way, whichever form throws it.
+ */
+function firstWithin(
+	rule: ObservanceRule,
+	start: number,
+	end: number,
+	config: ObservanceConfig,
+	scaled: ScaledTradition,
+	tibetanDateOf: TibetanDateOfDay,
+): ChunkResult {
+	try {
+		return {
+			found: occurrencesOfRule(rule, start, end, config, scaled, tibetanDateOf),
+			metEnd: false,
+		};
+	} catch (error) {
+		if (!hasCode(error, "TCT_OUTSIDE_EXACT_RANGE")) throw error;
+		if (start === end) {
+			// The exact range is symmetric about zero (`Math.abs(julianDay) <= exactToJulianDay` in
+			// conversion.ts), so a failing day with a positive Julian day is at the upper end.
+			return { found: [], metEnd: start > 0 };
+		}
+		const middle = start + floorDiv(end - start, 2);
+		const earlier = firstWithin(rule, start, middle, config, scaled, tibetanDateOf);
+		if (earlier.found.length > 0 || earlier.metEnd) return earlier;
+		return firstWithin(rule, middle + 1, end, config, scaled, tibetanDateOf);
+	}
+}
 
 /**
  * The first observance of one rule strictly after a day, or `null` if none lies within 10 years.
@@ -62,6 +117,10 @@ const FIRST_CHUNK_DAYS: Record<ObservanceWhen["type"], number> = {
  * cannot be computed; {@link getObservances} and {@link observancesOn} refuse that case with
  * `TCT_OUTSIDE_EXACT_RANGE`, since they cannot answer a day without its span.
  *
+ * **Near the lower end the search skips instead.** A `period` whose span begins before the start of
+ * the range has no occurrence there that can be built, and the search goes on to the days after it; {@link getObservances} and {@link observancesOn} refuse such
+ * a day with `TCT_OUTSIDE_EXACT_RANGE`.
+ *
  * Arguments are checked in a fixed order, as in {@link getObservances}: `from`, then the config,
  * then the tradition, then `ruleId`.
  *
@@ -84,10 +143,10 @@ export function nextObservance(
 ): Observance | null {
 	from = asPlainDate(from, "nextObservance(from)");
 
-	ensureValidated(config, "nextObservance");
+	config = ensureValidated(config, "nextObservance");
 	// Not `?? PHUGPA`: an explicit `null` is a rejection, and only `undefined` means omitted.
-	const resolvedTradition = tradition === undefined ? PHUGPA : tradition;
-	assertTraditionConfig(resolvedTradition);
+	let resolvedTradition = tradition === undefined ? PHUGPA : tradition;
+	resolvedTradition = validatedTradition(resolvedTradition);
 
 	if (typeof ruleId !== "string") {
 		throw rangeError(
@@ -118,18 +177,9 @@ export function nextObservance(
 	let size = FIRST_CHUNK_DAYS[rule.when.type];
 	while (start <= lastJd) {
 		const end = Math.min(start + size - 1, lastJd);
-		let found: Observance[];
-		try {
-			found = occurrencesOfRule(rule, start, end, config, scaled, tibetanDateOf);
-		} catch (error) {
-			// A period's result carries its whole span's bounds, so a span ending past the exact range
-			// cannot be built for any of its days: the search has met the end. Only this code, and only
-			// here, which is the one site a span's last day is converted from inside the range.
-			if (hasCode(error, "TCT_OUTSIDE_EXACT_RANGE")) return null;
-			throw error;
-		}
-		const [first] = found;
-		if (first !== undefined) return first;
+		const { found, metEnd } = firstWithin(rule, start, end, config, scaled, tibetanDateOf);
+		if (found[0] !== undefined) return found[0];
+		if (metEnd) return null;
 		start = end + 1;
 		size *= 2;
 	}

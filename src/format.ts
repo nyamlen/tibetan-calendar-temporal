@@ -87,13 +87,13 @@ export function monthCodeOf(month: number, isLeap: boolean): string {
  * one: `"undefined-undefined-undefined"`.
  */
 export function formatTibetanDate(date: TibetanDateFields): string {
-	assertTibetanShape("formatTibetanDate", date, "date");
-	assertTibetanRanges("formatTibetanDate", date, "date", {
+	const fields = assertTibetanShape("formatTibetanDate", date, "date");
+	assertTibetanRanges("formatTibetanDate", fields, "date", {
 		hint: "Pass a value returned by isoToTibetan, losarFor or parseTibetanDate",
 	});
-	const day = String(date.day).padStart(2, "0");
-	const monthCode = monthCodeOf(date.month, date.isLeapMonth ?? false);
-	return `${date.year}-${monthCode}-${day}${date.isLeapDay ? " (leap)" : ""}`;
+	const day = String(fields.day).padStart(2, "0");
+	const monthCode = monthCodeOf(fields.month, fields.isLeapMonth ?? false);
+	return `${fields.year}-${monthCode}-${day}${fields.isLeapDay ? " (leap)" : ""}`;
 }
 
 /**
@@ -125,9 +125,9 @@ export function formatTibetanDate(date: TibetanDateFields): string {
  * ```
  */
 export function formatTibetanMonth(month: TibetanMonthFields): string {
-	assertTibetanShape("formatTibetanMonth", month, "month");
-	assertTibetanRanges("formatTibetanMonth", month, "month", {
+	const fields = assertTibetanShape("formatTibetanMonth", month, "month");
+	assertTibetanRanges("formatTibetanMonth", fields, "month", {
 		hint: "Pass a value returned by monthsFor or resolveMonth",
 	});
-	return `${month.year}-${monthCodeOf(month.month, month.isLeapMonth ?? false)}`;
+	return `${fields.year}-${monthCodeOf(fields.month, fields.isLeapMonth ?? false)}`;
 }

@@ -254,7 +254,7 @@ narrower still.
 | Month attributes: element | 1900–2100, both element rules | Janson's **prose**, there being no printed table | that the Tiger month takes the son of the year's element, that each element runs two months, and that Phugpa restarts annually where Tsurphu does not |
 | Lunar-day attributes | every day of every month | Janson's **prose** | the opening animal of odd and even months, and the opening trigram and number he names for each month animal |
 | Lunar mansion, day by day | 2022–2026, Phugpa only | FPMT's day-quality codes | the mansion arithmetic, at **98.0%** — see below |
-| Yoga favorability, day by day | 2022–2026, and tradition-free | FPMT's `FD-`/`UD-` prefixes | the favorability table, at **99.8%** — it reads FPMT's own pair letters, so the mansion residual cannot reach it, and the four disagreements are days FPMT contradicts itself on |
+| Yoga favorability, day by day | 2022–2026, Phugpa only: the yoga is refused under the Bhutanese configs | FPMT's `FD-`/`UD-` prefixes | the favorability table, at **99.8%** — it reads FPMT's own pair letters, so the mansion residual cannot reach it, and the four disagreements are days FPMT contradicts itself on |
 | Yoga element pairs and grading | the ten rows; no window | the *tshig mdzod chen mo*'s `'phrod sbyor`, through `verify:month-and-yoga-names` | that Henning's ten pairs are the dictionary's, and that `auspiciousness` is its grading — **membership read by list order**, since it states group sizes only. `test/astrology/yoga.test.ts` pins that good + restorative are exactly the favorable six |
 
 **That 98.0% is a characterised figure, not a tolerance.** 1,784 of 1,821 days agree — a **2.0%**
@@ -319,9 +319,10 @@ Those are all **Phugpa**. Bhutan has a window of its own, and a wider one:
 | Losar 2003 | 2003 | Janson's Bhutan appendix |
 | `BHUTAN`, twenty-five days | 2025-2026 | **the Royal Government of Bhutan's own calendar**, via `test/fixtures/rgob.ts` |
 
+The day-by-day row compares 11,050 days.
 Three things to keep straight about that window. It ends on **2 April 2030**, not at the end of 2030,
-because the source carries one leap month Janson does not list — see the remarks in
-`test/validation/bhutan.test.ts`. It validates **`BHUTAN_HENNING`**, not `BHUTAN`: the data descends
+because the source carries one leap month Janson does not list, from 3 April 2030 — the fixture stops
+the day before, and `scripts/evidence/bhutan-fixtures/` reproduces the refusal. It validates **`BHUTAN_HENNING`**, not `BHUTAN`: the data descends
 from Henning's software and so follows his `a₂`, and the two differ on three days in the window. And
 the first four rows are **one lineage** for the *dates* — Janson's leap-month table is genuinely
 independent, but everything checking Bhutanese *day numbers* traces to Henning's software.
@@ -330,6 +331,9 @@ The last row is the exception, and it is why it exists. `test/fixtures/rgob.ts` 
 Government's own published calendar, so it is the only non-Henning check on Bhutanese day numbers
 here. Twenty-five rows against eleven thousand — breadth is not the contribution, independence is — and
 it deliberately includes Losar and a **skipped day**, which a wrong epoch would not survive.
+These twenty-five days, in `test/validation/rgob.test.ts`, are **all the external evidence the
+default `BHUTAN` has**: there is no day-by-day sweep of it, because the sweep validates
+`BHUTAN_HENNING` alone.
 
 It also bears on Janson's unexplained 2003 divergence between Bhutan's government calendar and the
 computed line: nothing in 2026 reproduces it. State that as "isolated on this evidence", not as

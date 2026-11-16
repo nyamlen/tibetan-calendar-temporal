@@ -69,3 +69,21 @@ describe("the formula form", () => {
 		expect(codeOf(formula({}, { [setting]: value }))).toBe(CODE);
 	});
 });
+
+describe("the formula form before the Julian day count turns negative", () => {
+	// -4712-11-24 is Julian day 0. A day before it has a negative Julian day, and JS `%` keeps the
+	// sign, so the weekday must be taken as a non-negative remainder.
+	it("holds on exactly the days where day plus a Sunday-0 weekday leaves 1 or 2 mod 4, in year -5000", () => {
+		const from = iso("-005000-03-01");
+		const expected: string[] = [];
+		const found: string[] = [];
+		const to = from.add({ days: 59 });
+		for (let day = from; Temporal.PlainDate.compare(day, to) <= 0; day = day.add({ days: 1 })) {
+			const remainder = (isoToTibetan(day).day + (day.dayOfWeek % 7)) % 4;
+			if (remainder === 1 || remainder === 2) expected.push(day.toString());
+		}
+		for (const o of getObservances(from, to, formula())) found.push(o.date.isoDate.toString());
+		expect(expected.length).toBeGreaterThan(0);
+		expect(found).toEqual(expected);
+	});
+});

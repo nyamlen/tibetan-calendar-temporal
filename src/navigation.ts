@@ -23,8 +23,8 @@
  */
 
 import {
-	assertClosedFormYear,
 	assertLunation,
+	assertMonthCountYear,
 	firstDayOfMonth,
 	lastDayOfMonth,
 	monthFromCount,
@@ -41,11 +41,11 @@ import {
 import { julianDayOfLunarDay } from "./computation/corrections.js";
 import { royalEraFromYear } from "./computation/epoch.js";
 import { scalingFor } from "./computation/scaling.js";
-import { assertQueryOptions, describe, rangeError } from "./errors.js";
+import { assertQueryOptions, codedError, describe, rangeError } from "./errors.js";
 import { describeMonth } from "./months.js";
 import { PHUGPA } from "./traditions/phugpa.js";
 import type { TraditionConfig, TraditionOptions } from "./traditions/types.js";
-import { assertTraditionConfig } from "./traditions/validate.js";
+import { validatedTradition } from "./traditions/validate.js";
 import type { TibetanDate, TibetanDateFields, TibetanMonth, TibetanMonthFields } from "./types.js";
 import { assertTibetanRanges, assertTibetanShape, SkippedDayError } from "./types.js";
 
@@ -97,9 +97,13 @@ export function lunationFromMonth(
 	month: TibetanMonthFields,
 	tradition: TraditionConfig = PHUGPA,
 ): number {
-	assertTibetanShape("lunationFromMonth", month, "month");
-	assertTraditionConfig(tradition);
-	return monthCountFor(assertTibetanRanges("lunationFromMonth", month, "month"), tradition, month);
+	const fields = assertTibetanShape("lunationFromMonth", month, "month");
+	tradition = validatedTradition(tradition);
+	return monthCountFor(
+		assertTibetanRanges("lunationFromMonth", fields, "month"),
+		tradition,
+		fields,
+	);
 }
 
 /**
@@ -130,7 +134,7 @@ export function monthFromLunation(
 	lunation: number,
 	tradition: TraditionConfig = PHUGPA,
 ): TibetanMonth {
-	assertTraditionConfig(tradition);
+	tradition = validatedTradition(tradition);
 	assertCount("monthFromLunation", "lunation", lunation);
 	return monthAt("monthFromLunation", lunation, tradition);
 }
@@ -143,7 +147,7 @@ function monthAt(name: string, lunation: number, tradition: TraditionConfig): Ti
 	assertLunation(subject, lunation, tradition);
 
 	const identity = monthFromCount(tradition, lunation);
-	assertClosedFormYear(subject, identity.year, tradition);
+	assertMonthCountYear(subject, identity.year, tradition);
 
 	const scaled = scalingFor(tradition);
 	// Bound both ends before describeMonth renders them. assertLunation above only keeps the *month
@@ -211,11 +215,11 @@ export function addMonths(
 	months: number,
 	tradition: TraditionConfig = PHUGPA,
 ): TibetanMonth {
-	assertTibetanShape("addMonths", month, "month");
-	assertTraditionConfig(tradition);
-	const subject = assertTibetanRanges("addMonths", month, "month");
+	const fields = assertTibetanShape("addMonths", month, "month");
+	tradition = validatedTradition(tradition);
+	const subject = assertTibetanRanges("addMonths", fields, "month");
 	assertCount("addMonths", "months", months);
-	return monthAt("addMonths", monthCountFor(subject, tradition, month) + months, tradition);
+	return monthAt("addMonths", monthCountFor(subject, tradition, fields) + months, tradition);
 }
 
 /**
@@ -246,12 +250,17 @@ export function monthsBetween(
 ): number {
 	// Named per argument, because "monthsBetween: expected an object" would not say which of the two
 	// the caller got wrong — and these are the first two-month exports on this surface.
-	assertTibetanShape("monthsBetween(from)", from, "month");
-	assertTibetanShape("monthsBetween(to)", to, "month");
-	assertTraditionConfig(tradition);
-	const fromSubject = assertTibetanRanges("monthsBetween", from, "month", { parameter: "from" });
-	const toSubject = assertTibetanRanges("monthsBetween", to, "month", { parameter: "to" });
-	return monthCountFor(toSubject, tradition, to) - monthCountFor(fromSubject, tradition, from);
+	const fromFields = assertTibetanShape("monthsBetween(from)", from, "month");
+	const toFields = assertTibetanShape("monthsBetween(to)", to, "month");
+	tradition = validatedTradition(tradition);
+	const fromSubject = assertTibetanRanges("monthsBetween", fromFields, "month", {
+		parameter: "from",
+	});
+	const toSubject = assertTibetanRanges("monthsBetween", toFields, "month", { parameter: "to" });
+	return (
+		monthCountFor(toSubject, tradition, toFields) -
+		monthCountFor(fromSubject, tradition, fromFields)
+	);
 }
 
 /**
@@ -289,13 +298,13 @@ export function addDays(
 	days: number,
 	tradition: TraditionConfig = PHUGPA,
 ): TibetanDate {
-	assertTibetanShape("addDays", date, "date");
-	assertTraditionConfig(tradition);
-	const subject = assertTibetanRanges("addDays", date, "date");
+	const fields = assertTibetanShape("addDays", date, "date");
+	tradition = validatedTradition(tradition);
+	const subject = assertTibetanRanges("addDays", fields, "date");
 	assertCount("addDays", "days", days);
 
 	const scaled = scalingFor(tradition);
-	const target = julianDayOfFields(subject, tradition, date) + days;
+	const target = julianDayOfFields(subject, tradition, fields) + days;
 	// The starting date was inside the range or julianDayOfFields would have refused it, but the *result*
 	// need not be: Julian-day arithmetic walks straight out of it. Without this the conversion below
 	// would either throw uncoded from Temporal or answer from degraded arithmetic.
@@ -317,7 +326,10 @@ export function addDays(
  * back. Reach for it to *resolve* an identity, not inside a loop over a month — {@link datesFor}
  * walks the calendar days once and is the right shape there.
  *
- * @param date - The date to resolve. `isLeapMonth` and `isLeapDay` default to `false`.
+ * @param date - The date to resolve. `isLeapMonth` and `isLeapDay` default to `false`: an unmarked
+ * identity names the regular unit and the extra one must be marked. For a day, the regular half of
+ * a doubled pair is the calendar day in which its lunar day ends, and the leap half borrows the
+ * number (Janson: "a lunar day gives its name (number and month) to the calendar day where the lunar day ends").
  * @param tradition - Astronomical constants. Defaults to `PHUGPA`.
  *
  * @throws {@link SkippedDayError} — code `TCT_SKIPPED_DAY` — if no calendar day carries `date`.
@@ -337,11 +349,11 @@ export function resolveDate(
 	date: TibetanDateFields,
 	tradition: TraditionConfig = PHUGPA,
 ): TibetanDate {
-	assertTibetanShape("resolveDate", date, "date");
-	assertTraditionConfig(tradition);
-	const subject = assertTibetanRanges("resolveDate", date, "date");
+	const fields = assertTibetanShape("resolveDate", date, "date");
+	tradition = validatedTradition(tradition);
+	const subject = assertTibetanRanges("resolveDate", fields, "date");
 	return isoToTibetan(
-		isoFromJulianDayUnchecked(julianDayOfFields(subject, tradition, date)),
+		isoFromJulianDayUnchecked(julianDayOfFields(subject, tradition, fields)),
 		tradition,
 	);
 }
@@ -366,7 +378,8 @@ export interface AddMonthsToDateOptions extends TraditionOptions {
 	/**
 	 * What to do when the target month does not carry the starting day's number.
 	 *
-	 * @defaultValue `"constrain"` — fall to the nearest **lower** number the month does carry.
+	 * @defaultValue `"constrain"` — fall to the nearest **lower** number the month does carry, or to
+	 * day 2 when day 1 is the skipped one. A doubled number is not missing, so `"reject"` accepts it.
 	 */
 	overflow?: MonthOverflow;
 }
@@ -391,7 +404,9 @@ export interface AddMonthsToDateOptions extends TraditionOptions {
  *
  * And the tradition *does* answer the analogous question. Falling to the nearest lower existing
  * day is `"preceding"` — already the shipped convention on `/observances` for an observance whose
- * date is skipped, and what Janson and FPMT agree on. The default here is therefore not invented.
+ * date is skipped, and what Janson and FPMT agree on. The default here is therefore not invented,
+ * except in one case: when day 1 itself is skipped there is no lower day, and the fall to day 2 is
+ * `"following"`, this function's own rule and not a convention the tradition states.
  *
  * **The overflow is explicit because the convention is contested.** A silent clamp would bake a
  * choice into the root export; naming it puts the choice in the caller's hands, which is what the
@@ -403,8 +418,28 @@ export interface AddMonthsToDateOptions extends TraditionOptions {
  *
  * Tibetan day numbers always run 1–30 while the month spans 29 or 30 *calendar days*, so some
  * numbers are skipped: 2153 M03 carries no 5 and no 29. Stepping onto one of those under
- * `"constrain"` lands on 4 and 28 respectively. It never lands on a *later* day, so a sequence
- * stepped month by month never runs forwards past a month boundary.
+ * `"constrain"` lands on 4 and 28 respectively. It falls to the nearest lower day, or to day 2 when
+ * day 1 itself is skipped (2154 M08), so a step never moves later than day 2.
+ *
+ * ## Which half of a doubled day
+ *
+ * A doubled number is carried by two calendar days: the **leap** half, the first, which almanacs
+ * mark "Extra", and the **regular** half, the second. Both are named by role and not by position,
+ * because `isLeapDay` is the field that says which.
+ *
+ * - **The requested number is doubled in the target month.** A start on a leap half lands on the
+ *   target's leap half, and a start on a regular half on its regular half, so
+ *   `addMonthsToDate(d, 0)` returns `d` itself. A start that is not doubled lands on the **regular**
+ *   half: the calendar day in which that lunar day ends, which is the day an ordinary start is
+ *   already on. The leap half is a day in which no lunar day ends and which borrows the number.
+ *   That is thirty lunar days, exactly, from the day one lunar day ends to the day the same-numbered
+ *   one ends next month.
+ * - **The requested number is skipped.** The start's half then means nothing. Falling down onto a
+ *   lower number that is doubled lands on its **regular** half, the calendar day just before where
+ *   the requested number would have been. Falling from a skipped day 1 onto a doubled day 2 (2104
+ *   M01) lands on its **leap** half, the month's real first calendar day.
+ * - **`isLeapDay` on a start that is not doubled** is ignored, as it is everywhere a
+ *   {@link TibetanDateFields} is read.
  *
  * **Stepping is not associative under `"constrain"`, and that is inherent rather than a defect.**
  * Constraining loses the original day number, so `addMonthsToDate(d, 1)` twice can differ from
@@ -441,7 +476,7 @@ export function addMonthsToDate(
 		["overflow", "tradition"],
 		options,
 	);
-	const tradition = bag.tradition === undefined ? PHUGPA : bag.tradition;
+	let tradition = bag.tradition === undefined ? PHUGPA : bag.tradition;
 	const overflow = bag.overflow === undefined ? "constrain" : bag.overflow;
 	if (overflow !== "constrain" && overflow !== "reject") {
 		throw rangeError(
@@ -449,25 +484,48 @@ export function addMonthsToDate(
 			`addMonthsToDate: overflow must be "constrain" or "reject", received ${describe(overflow)}`,
 		);
 	}
-	assertTibetanShape("addMonthsToDate", date, "date");
-	assertTraditionConfig(tradition);
-	const subject = assertTibetanRanges("addMonthsToDate", date, "date");
+	const fields = assertTibetanShape("addMonthsToDate", date, "date");
+	tradition = validatedTradition(tradition);
+	const subject = assertTibetanRanges("addMonthsToDate", fields, "date");
 	assertCount("addMonthsToDate", "months", months);
 
 	const target = monthAt(
 		"addMonthsToDate",
-		monthCountFor(subject, tradition, date) + months,
+		monthCountFor(subject, tradition, fields) + months,
 		tradition,
 	);
+	// Deliberately after the target: a skipped start whose target lies beyond the exact range reports
+	// the range error here, unlike addDays, which reports the skipped start. Checking first would
+	// change which failure that call names.
+	// Resolved, not read off `date`: a leap flag on a day that is not doubled is ignored there, so
+	// only the resolved start says whether it is the leap half of a doubled pair.
+	const startsOnLeapHalf = isoToTibetan(
+		isoFromJulianDayUnchecked(julianDayOfFields(subject, tradition, fields)),
+		tradition,
+	).isLeapDay;
 
 	// Walk down from the requested number rather than reading the month's day list: the list costs
 	// a conversion per calendar day, and the overwhelming case is that the first try succeeds.
-	for (let day = date.day; day >= 1; day--) {
+	// The leap flag is passed only for the requested number itself; a number reached by falling down
+	// takes the regular half, the calendar day just before where the requested one would have been.
+	//
+	// Why a start that is not doubled lands on the regular half of a doubled target: Janson, "a
+	// lunar day gives its name (number and month) to the calendar day where the lunar day ends".
+	// The regular half is the day lunar day N ends; the leap half is a day in which no lunar day ends and which borrows N. An
+	// ordinary start is also the day its lunar day ends, so the regular half steps from "the day N
+	// ends" to "the day N ends next month", thirty lunar days. Measured on Phugpa over Tibetan
+	// 2027-2227 (1900-2101 CE): every "+1 month, same number" step from an ordinary day elapses 29
+	// or 30 calendar days, never 28 or 31; of 67,321 such steps (an ordinary start, a target that
+	// carries the number) 1,631 hit a doubled target, and the regular half gives 30 for every one.
+	// test/navigation.test.ts re-measures this for PHUGPA and BHUTAN, whose doubled days also put
+	// the leap half first.
+	for (let day = fields.day; day >= 1; day--) {
 		const candidate: TibetanDateFields = {
 			year: target.year,
 			month: target.month,
 			day,
 			isLeapMonth: target.isLeapMonth,
+			isLeapDay: day === fields.day && startsOnLeapHalf,
 		};
 		try {
 			return resolveDate(candidate, tradition);
@@ -477,11 +535,26 @@ export function addMonthsToDate(
 		}
 	}
 
-	// Unreachable in practice — a month carries at least 29 of its 30 numbers, so day 1 always
-	// exists — and asserted rather than cast, so a tradition that broke the assumption would say so.
-	throw rangeError(
+	// Day 1 itself can be the one skipped number (2154 M08), so there is no lower day to fall to.
+	// Day 2 is then the nearest, and a month cannot skip both: it carries at least 29 of its 30.
+	// Where day 2 is doubled (2104 M01) it is the month's first calendar day, its leap half.
+	try {
+		return resolveDate(
+			{
+				year: target.year,
+				month: target.month,
+				day: 2,
+				isLeapMonth: target.isLeapMonth,
+				isLeapDay: true,
+			},
+			tradition,
+		);
+	} catch (error) {
+		if (!(error instanceof SkippedDayError)) throw error;
+	}
+	throw codedError(
 		"TCT_INTERNAL",
-		`addMonthsToDate: ${target.year}-${target.monthCode} carries no day at or below ${date.day}. ` +
+		`addMonthsToDate: ${target.year}-${target.monthCode} carries neither day 1 nor day 2. ` +
 			"A month carries at least 29 of its 30 numbers, so this cannot happen for a sound tradition",
 	);
 }
@@ -514,13 +587,16 @@ export function daysBetween(
 	to: TibetanDateFields,
 	tradition: TraditionConfig = PHUGPA,
 ): number {
-	assertTibetanShape("daysBetween(from)", from, "date");
-	assertTibetanShape("daysBetween(to)", to, "date");
-	assertTraditionConfig(tradition);
-	const fromSubject = assertTibetanRanges("daysBetween", from, "date", { parameter: "from" });
-	const toSubject = assertTibetanRanges("daysBetween", to, "date", { parameter: "to" });
+	const fromFields = assertTibetanShape("daysBetween(from)", from, "date");
+	const toFields = assertTibetanShape("daysBetween(to)", to, "date");
+	tradition = validatedTradition(tradition);
+	const fromSubject = assertTibetanRanges("daysBetween", fromFields, "date", {
+		parameter: "from",
+	});
+	const toSubject = assertTibetanRanges("daysBetween", toFields, "date", { parameter: "to" });
 	return (
-		julianDayOfFields(toSubject, tradition, to) - julianDayOfFields(fromSubject, tradition, from)
+		julianDayOfFields(toSubject, tradition, toFields) -
+		julianDayOfFields(fromSubject, tradition, fromFields)
 	);
 }
 
@@ -562,6 +638,7 @@ function nextPhase(
 ): TibetanDate {
 	const from = phaseStart(name, date);
 	const scaled = scalingFor(tradition);
+	tradition = scaled.tradition;
 	const target = julianDayFromIso(from);
 	assertExactJulianDay(scaled, target, () => `${name}(${from.toString()})`);
 

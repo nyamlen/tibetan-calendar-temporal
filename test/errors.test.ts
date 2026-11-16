@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { assertQueryOptions, describe as describeValue } from "../src/errors.js";
+import {
+	assertQueryOptions,
+	describe as describeValue,
+	type PrivateCopySpec,
+	rangeError,
+	validatedPrivateCopy,
+} from "../src/errors.js";
 import { addMonthsToDate } from "../src/index.js";
 import { getObservances } from "../src/observances/index.js";
 import { thrownBy } from "./support/thrown.js";
@@ -53,6 +59,38 @@ describe("describe", () => {
 		expect(rendered).toBe("an object");
 	});
 
+	it.each([
+		[
+			"a function whose name getter throws",
+			() =>
+				Object.defineProperty(() => 1, "name", {
+					get() {
+						throw new Error("n");
+					},
+				}),
+		],
+		[
+			"a function whose name is a Symbol",
+			() => Object.defineProperty(() => 1, "name", { value: Symbol("x") }),
+		],
+		["a function Proxy whose get trap throws", () => new Proxy(() => 1, { get: throwing })],
+		[
+			"a revoked function Proxy",
+			() => {
+				const { proxy, revoke } = Proxy.revocable(() => 1, {});
+				revoke();
+				return proxy;
+			},
+		],
+	])("renders %s as a string without throwing", (_, make) => {
+		const value: unknown = make();
+		let rendered: unknown;
+		expect(() => {
+			rendered = describeValue(value);
+		}).not.toThrow();
+		expect(rendered).toBe("a function");
+	});
+
 	it("renders a Symbol by its description, which a template literal cannot", () => {
 		expect(describeValue(Symbol("x"))).toBe("Symbol(x)");
 	});
@@ -83,7 +121,8 @@ describe("the observance config guard's message", () => {
 describe("assertQueryOptions refuses keys it does not recognise", () => {
 	// Decided 2026-09-24 with the tradition-parameter pattern: every bag accepted unknown keys, so
 	// `addMonthsToDate(f, 0, { tradition: BHUTAN })` — then a key the bag did not have — answered
-	// Phugpa's date silently. Bags only: a TraditionConfig may carry extra keys. An ObservanceConfig no longer may.
+	// Phugpa's date silently. This guard is for bags; a TraditionConfig and an ObservanceConfig refuse
+	// unknown keys through their own validators.
 	const refuse = (options: unknown) =>
 		thrownBy(() => assertQueryOptions<{ a?: unknown; b?: unknown }>("f", ["a", "b"], options));
 
@@ -190,5 +229,71 @@ describe("assertQueryOptions refuses keys it does not recognise", () => {
 		expect(refuse({ a: 1, b: 2 })).toBeUndefined();
 		expect(refuse({})).toBeUndefined();
 		expect(refuse(Object.assign(Object.create(null), { a: 1 }))).toBeUndefined();
+	});
+});
+
+describe("validatedPrivateCopy", () => {
+	const CODE = "TCT_INVALID_ARGUMENT";
+	const spec = (
+		over: Partial<PrivateCopySpec<{ n: number }>> = {},
+	): PrivateCopySpec<{ n: number }> => ({
+		cache: new WeakMap(),
+		code: CODE,
+		what: "the thing",
+		isCandidate: () => true,
+		validate: (value) => {
+			if (value.n !== 1) throw rangeError(CODE, "bad n");
+		},
+		uncopyable: () => "could not be copied",
+		...over,
+	});
+
+	it("reads the cache lookup under the guard, so a throwing candidate test is coded with its cause", () => {
+		const boom = new Error("lookup");
+		const error = thrownBy(() =>
+			validatedPrivateCopy(
+				{ n: 1 },
+				spec({
+					isCandidate: () => {
+						throw boom;
+					},
+				}),
+			),
+		);
+		expect(error?.code).toBe(CODE);
+		expect(error?.message).toMatch(/^the thing could not be read/);
+		expect(error?.cause).toBe(boom);
+	});
+
+	it("recodes a DataCloneError and passes any other clone failure through under the guard", () => {
+		const error = thrownBy(() => validatedPrivateCopy({ n: 1, f: () => 1 } as never, spec()));
+		expect(error?.code).toBe(CODE);
+		expect(error?.message).toBe("could not be copied");
+	});
+
+	it("returns a frozen copy, caches it for both objects, and does not cache a refusal", () => {
+		const options = spec();
+		const config = { n: 1 };
+		const copy = validatedPrivateCopy(config, options);
+		expect(copy).not.toBe(config);
+		expect(Object.isFrozen(copy)).toBe(true);
+		expect(validatedPrivateCopy(config, options)).toBe(copy);
+		expect(validatedPrivateCopy(copy, options)).toBe(copy);
+		const bad = { n: 2 };
+		expect(thrownBy(() => validatedPrivateCopy(bad, options))?.message).toBe("bad n");
+		expect(options.cache.has(bad)).toBe(false);
+	});
+
+	it("does not cache a config whose copy is refused, and refuses it again", () => {
+		const options = spec();
+		let reads = 0;
+		const config = {
+			get n() {
+				return reads++ === 0 ? 1 : 2;
+			},
+		};
+		expect(thrownBy(() => validatedPrivateCopy(config, options))?.message).toBe("bad n");
+		expect(options.cache.has(config)).toBe(false);
+		expect(thrownBy(() => validatedPrivateCopy(config, options))?.message).toBe("bad n");
 	});
 });

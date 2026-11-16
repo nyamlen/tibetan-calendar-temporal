@@ -1,5 +1,6 @@
 /**
- * Deep-freezing for the configuration objects this package exports.
+ * Deep-freezing for the configuration objects this package exports, and for every `TibetanMonth` it
+ * returns, which `describeMonth` freezes because `monthsFor` hands the same objects to every caller.
  *
  * @remarks
  * `TraditionConfig` and `ObservanceConfig` are `readonly` throughout, which is a **compile-time**
@@ -14,13 +15,10 @@
  * `{ ...PHUGPA, lunarAnomaly: … }` appears in `CLAUDE.md`, the README, `docs/architecture.md` and
  * three doc comments, so a keystroke away from a spread is an assignment to the shared singleton.
  *
- * The second is that the memoisation hides it. `scalingFor` caches derived scaling on the config
- * **object**, and the two validators memoise on `WeakSet`s keyed the same way, so a mutation after
- * first use is neither revalidated nor rescaled. The result is not "the new constants" but a
- * partially stale mix — a new `moonTab` beside a `commonDenominator` derived from the old one —
- * which is worse than either consistently. The doc comments that call this an accepted bargain are
- * right about consumer-supplied configs and were wrong about ours; freezing is what makes the
- * bargain true as written.
+ * The second is that these are shared singletons. The engine reads a private frozen copy of any
+ * config it validates, so a consumer's own object cannot reach it; but a mutation of `PHUGPA`
+ * itself would be seen by every later spread, and by the copy of every config spread from it
+ * afterwards. Freezing is what stops the shared object being written to at all.
  *
  * Free now, breaking later: a consumer who ships `PHUGPA.moonTab.sort()` against v1.0.0 would
  * break on the release that adds this.

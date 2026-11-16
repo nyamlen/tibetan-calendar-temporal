@@ -16,6 +16,7 @@ import {
 	monthsInYear,
 	resolveMonth,
 } from "../src/months.js";
+import { addMonths, lunationFromMonth } from "../src/navigation.js";
 import { PHUGPA, PHUGPA_HENNING } from "../src/traditions/phugpa.js";
 import type { TibetanMonth } from "../src/types.js";
 
@@ -422,35 +423,71 @@ describe("closed-form overflow guard", () => {
 	 * not the float arithmetic that produced it was exact. `typeof x === "boolean"` cannot catch that;
 	 * only comparing against an exact reference can, which is what this does with `BigInt`.
 	 */
-	it("answers correctly just inside the bound, checked against a BigInt reference", () => {
-		const bigMod = (a: bigint, m: bigint): bigint => {
-			const r = a % m;
-			return r < 0n ? r + m : r;
-		};
-		// Mirrors calendar.ts's beta()/gammaStar(): small numbers, so ordinary float math is exact.
+	it("answers the leap-year closed forms exactly at 2e13, 1e14 and 3e14, past the month-count bound", () => {
+		const bigMod = (a: bigint, m: bigint): bigint => ((a % m) + m) % m;
 		const beta = 67 * PHUGPA.epochMonth - PHUGPA.intercalationIndexAtEpoch - 17;
-		const gammaStar = Number(bigMod(BigInt(-24 * PHUGPA.epochYear - beta), 65n));
-		// The exact, overflow-proof reference for isLeapYear's `(24·Y + γ*) mod 65 >= 41`.
-		const referenceIsLeapYear = (year: number): boolean =>
-			bigMod(24n * BigInt(year) + BigInt(gammaStar), 65n) >= 41n;
-
-		// Mirrors assertClosedFormYear's own derivation, rather than a value transcribed by hand —
-		// this is the arithmetic a mistyped derivation would break.
-		const relativeLimit = Math.floor((Number.MAX_SAFE_INTEGER - 12) / 12);
-		const absoluteLimit =
-			Math.floor((Number.MAX_SAFE_INTEGER - 65) / 24) - Math.abs(PHUGPA.epochYear);
-		const limit = Math.min(relativeLimit, absoluteLimit);
-
-		// Sweep the last 50 years inside the bound, not just the single boundary year: the bug this
-		// guards against was wrong across the whole top half of the naive range, not only at its edge.
-		for (let offset = 0; offset < 50; offset++) {
-			const y = PHUGPA.epochYear + limit - offset; // Janson's Y
-			const royalEraYear = y + 127;
-			expect(hasLeapMonth(royalEraYear), `Y=${y}`).toBe(referenceIsLeapYear(y));
+		const gammaStar = bigMod(BigInt(-24 * PHUGPA.epochYear - beta), 65n);
+		const bad: string[] = [];
+		for (const y of [2e13, 1e14, 3e14]) {
+			for (let k = 0; k < 130; k++) {
+				const janson = y + k;
+				const x = bigMod(24n * BigInt(janson) + gammaStar, 65n);
+				const leap = x >= 41n;
+				const month = (66n - x) / 2n - ((66n - x) % 2n < 0n ? 1n : 0n);
+				const expectedMonth = month <= 12n ? Number(month) : undefined;
+				const royal = janson + 127;
+				const got = [hasLeapMonth(royal), monthsInYear(royal), leapMonthNumberFor(royal)];
+				if (got[0] !== leap || got[1] !== (leap ? 13 : 12) || got[2] !== expectedMonth) {
+					bad.push(`${royal}: ${got.join(",")} vs ${leap},${expectedMonth}`);
+				}
+			}
 		}
+		expect(bad).toEqual([]);
+		expect(hasLeapMonth(2e13 + 127)).toBe(bigMod(24n * BigInt(2e13) + gammaStar, 65n) >= 41n);
+	});
 
-		const justInsideRoyal = PHUGPA.epochYear + limit + 127;
-		expect(codeOf(() => hasLeapMonth(justInsideRoyal + 1))).toBe("TCT_OUTSIDE_EXACT_RANGE");
+	it("answers correctly just inside the bound, and refuses just outside, checked against a BigInt reference", () => {
+		const bigMod = (a: bigint, m: bigint): bigint => ((a % m) + m) % m;
+		const beta = 67 * PHUGPA.epochMonth - PHUGPA.intercalationIndexAtEpoch - 17;
+		const gammaStar = bigMod(BigInt(-24 * PHUGPA.epochYear - beta), 65n);
+		const referenceIsLeapYear = (year: number): boolean =>
+			bigMod(24n * BigInt(year) + gammaStar, 65n) >= 41n;
+
+		// The leap-year guard's own limit, mirrored from its derivation rather than transcribed.
+		const leapYearLimit = Math.min(
+			Math.floor((Number.MAX_SAFE_INTEGER - 12) / 12),
+			Math.floor((Number.MAX_SAFE_INTEGER - 65) / 24) - Math.abs(PHUGPA.epochYear),
+		);
+		// The month-count guard's limit, which binds first for the lunation paths.
+		const countLimit = Math.floor(
+			(Number.MAX_SAFE_INTEGER -
+				67 * 11 -
+				Math.abs(PHUGPA.intercalationIndexAtEpoch) -
+				Math.abs(65 - PHUGPA.leapIndexThreshold)) /
+				(67 * 12),
+		);
+		expect(countLimit).toBeLessThan(leapYearLimit);
+
+		for (let offset = 0; offset < 50; offset++) {
+			const y = PHUGPA.epochYear + leapYearLimit - offset;
+			expect(hasLeapMonth(y + 127), `Y=${y}`).toBe(referenceIsLeapYear(y));
+		}
+		expect(codeOf(() => hasLeapMonth(PHUGPA.epochYear + leapYearLimit + 128))).toBe(
+			"TCT_OUTSIDE_EXACT_RANGE",
+		);
+
+		// The edge of the month-count guard, through a path that uses it: inside answers, one past
+		// refuses. Each lunation is checked for the 1-or-2 step to its neighbour, which is what noise broke.
+		const insideRoyal = PHUGPA.epochYear + countLimit + 127;
+		const first = lunationFromMonth({ year: insideRoyal, month: 1 });
+		const second = lunationFromMonth({ year: insideRoyal, month: 2 });
+		expect([1, 2]).toContain(second - first);
+		expect(codeOf(() => lunationFromMonth({ year: insideRoyal + 1, month: 1 }))).toBe(
+			"TCT_OUTSIDE_EXACT_RANGE",
+		);
+		expect(
+			codeOf(() => lunationFromMonth({ year: PHUGPA.epochYear - countLimit - 128, month: 1 })),
+		).toBe("TCT_OUTSIDE_EXACT_RANGE");
 	});
 });
 
@@ -571,5 +608,62 @@ describe("resolveMonth", () => {
 	it("carries the same guards daysInMonth does", () => {
 		expect(codeOf(() => resolveMonth({ year: 2151, month: 13 }))).toBe("TCT_FIELD_OUT_OF_RANGE");
 		expect(codeOf(() => resolveMonth({ year: 1.5, month: 1 }))).toBe("TCT_FIELD_OUT_OF_RANGE");
+	});
+});
+
+describe("every TibetanMonth is frozen", () => {
+	const writeDays = (m: TibetanMonth) => () => {
+		(m as { days: number }).days = 999;
+	};
+
+	it("monthsFor's entries refuse a write, on a miss and on a hit", () => {
+		const config = { ...PHUGPA };
+		const miss = monthsFor(2153, config);
+		expect(writeDays(at(miss, 0))).toThrow(TypeError);
+		const hit = monthsFor(2153, config);
+		expect(Object.is(at(hit, 0), at(miss, 0))).toBe(true);
+		expect(writeDays(at(hit, 0))).toThrow(TypeError);
+	});
+
+	it("the nested yearName refuses a write too", () => {
+		const m = at(monthsFor(2153), 0);
+		expect(() => {
+			(m.yearName as { element: string }).element = "bogus";
+		}).toThrow(TypeError);
+	});
+
+	it("resolveMonth and addMonths return frozen months", () => {
+		const resolved = resolveMonth({ year: 2153, month: 1 });
+		expect(writeDays(resolved)).toThrow(TypeError);
+		expect(writeDays(addMonths(resolved, 1))).toThrow(TypeError);
+	});
+
+	it("the array is still fresh, so one caller's sort cannot reach another", () => {
+		const a = monthsFor(2153);
+		a.reverse();
+		expect(at(monthsFor(2153), 0).month).toBe(1);
+	});
+});
+
+describe("the monthsFor cache holds at most 64 years per config", () => {
+	it("the least recently used year comes back as new objects after 64 others", () => {
+		const config = { ...PHUGPA };
+		const first = at(monthsFor(2100, config), 0);
+		expect(at(monthsFor(2100, config), 0)).toBe(first);
+		for (let year = 2101; year <= 2164; year++) monthsFor(year, config);
+		const recomputed = at(monthsFor(2100, config), 0);
+		expect(recomputed).not.toBe(first);
+		expect(recomputed).toEqual(first);
+	});
+
+	it("a year touched again is kept, and the next oldest is evicted instead", () => {
+		const config = { ...PHUGPA };
+		const first = at(monthsFor(2100, config), 0);
+		const second = at(monthsFor(2101, config), 0);
+		for (let year = 2102; year <= 2163; year++) monthsFor(year, config);
+		expect(at(monthsFor(2100, config), 0)).toBe(first);
+		monthsFor(2164, config);
+		expect(at(monthsFor(2101, config), 0)).not.toBe(second);
+		expect(at(monthsFor(2100, config), 0)).toBe(first);
 	});
 });

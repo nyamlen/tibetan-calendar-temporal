@@ -20,6 +20,7 @@ import { meanDate } from "../../src/computation/mean-astronomy.js";
 import { deriveScaling } from "../../src/computation/scaling.js";
 import { rabjungFor, yearNameFor } from "../../src/cycles.js";
 import type { TibetanCalendarErrorCode } from "../../src/errors.js";
+import { BHUTAN, BHUTAN_HENNING } from "../../src/traditions/bhutan.js";
 import { PHUGPA, PHUGPA_HENNING } from "../../src/traditions/phugpa.js";
 import { SkippedDayError } from "../../src/types.js";
 import { LOSAR_DATES } from "../fixtures/losar.js";
@@ -820,5 +821,65 @@ describe("the a2 fork", () => {
 		}
 		// Janson counts 8 divergences in 2000-2099, so a single decade should have very few.
 		expect(differences).toBeLessThan(5);
+	});
+});
+
+describe("tibetanToIso bounds the day it returns, not only the mean date", () => {
+	const codeOfCall = (call: () => unknown): string | undefined => {
+		try {
+			call();
+			return undefined;
+		} catch (error) {
+			return (error as { code?: string }).code;
+		}
+	};
+
+	it("refuses the PHUGPA date whose true date lies past the negative bound", () => {
+		const fields = { year: -245591, month: 9, day: 15 };
+		expect(codeOfCall(() => tibetanToIso(fields))).toBe("TCT_OUTSIDE_EXACT_RANGE");
+		expect(codeOfCall(() => tibetanDateExists(fields))).toBe("TCT_OUTSIDE_EXACT_RANGE");
+	});
+
+	it("never returns a day isoToTibetan then refuses, at both ends of every shipped config", () => {
+		const configs = [PHUGPA, PHUGPA_HENNING, BHUTAN, BHUTAN_HENNING];
+		const bad: string[] = [];
+		let returned = 0;
+		for (const config of configs) {
+			const bound = deriveScaling(config).exactToJulianDay;
+			for (const sign of [1, -1]) {
+				for (let back = 0; back < 70; back++) {
+					const seed = isoToTibetan(isoFromJulianDay(sign * (bound - back)), config);
+					for (const day of [seed.day - 2, seed.day - 1, seed.day, seed.day + 1]) {
+						if (day < 1 || day > 30) continue;
+						const fields = {
+							year: seed.year,
+							month: seed.month,
+							day,
+							isLeapMonth: seed.isLeapMonth,
+						};
+						let result: Temporal.PlainDate;
+						try {
+							result = tibetanToIso(fields, config);
+						} catch (error) {
+							const code = (error as { code?: string }).code;
+							if (code !== "TCT_OUTSIDE_EXACT_RANGE" && code !== "TCT_SKIPPED_DAY") {
+								bad.push(`${config.name} ${JSON.stringify(fields)}: threw ${code}`);
+							}
+							continue;
+						}
+						returned++;
+						try {
+							isoToTibetan(result, config);
+						} catch (error) {
+							bad.push(
+								`${config.name} ${JSON.stringify(fields)} -> ${result}: ${(error as { code?: string }).code}`,
+							);
+						}
+					}
+				}
+			}
+		}
+		expect(returned).toBeGreaterThan(0);
+		expect(bad).toEqual([]);
 	});
 });

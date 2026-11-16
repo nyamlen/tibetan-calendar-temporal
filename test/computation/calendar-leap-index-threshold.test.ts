@@ -21,7 +21,7 @@ import {
 } from "../../src/computation/calendar.js";
 import { PHUGPA } from "../../src/traditions/phugpa.js";
 import type { TraditionConfig } from "../../src/traditions/types.js";
-import { assertTraditionConfig } from "../../src/traditions/validate.js";
+import { validatedTradition } from "../../src/traditions/validate.js";
 
 /**
  * Epoch data as Janson gives it per version, with the β he publishes for each.
@@ -117,7 +117,7 @@ describe("the leap rule follows the threshold", () => {
 describe("validation", () => {
 	it("rejects a missing threshold rather than defaulting it", () => {
 		const { leapIndexThreshold: _omitted, ...withoutIt } = PHUGPA;
-		expect(() => assertTraditionConfig(withoutIt as TraditionConfig)).toThrow(
+		expect(() => validatedTradition(withoutIt as TraditionConfig)).toThrow(
 			expect.objectContaining({ code: "TCT_INVALID_TRADITION_CONFIG" }),
 		);
 	});
@@ -125,22 +125,20 @@ describe("validation", () => {
 	it("rejects 64, where the rule's second index would be unreachable", () => {
 		// ix is mod 65, so a threshold of 64 matches only one index and halves the leap months —
 		// a calendar that runs and is wrong, which is the failure mode this package exists to avoid.
-		expect(() => assertTraditionConfig({ ...PHUGPA, leapIndexThreshold: 64 })).toThrow(
+		expect(() => validatedTradition({ ...PHUGPA, leapIndexThreshold: 64 })).toThrow(
 			expect.objectContaining({ code: "TCT_INVALID_TRADITION_CONFIG" }),
 		);
 	});
 
 	it.each([-1, 1.5, Number.NaN, "48"])("rejects %p", (value) => {
 		expect(() =>
-			assertTraditionConfig({ ...PHUGPA, leapIndexThreshold: value } as TraditionConfig),
+			validatedTradition({ ...PHUGPA, leapIndexThreshold: value } as TraditionConfig),
 		).toThrow(expect.objectContaining({ code: "TCT_INVALID_TRADITION_CONFIG" }));
 	});
 
 	it("accepts every value Janson publishes", () => {
 		for (const threshold of [0, 46, 48, 57]) {
-			expect(() =>
-				assertTraditionConfig({ ...PHUGPA, leapIndexThreshold: threshold }),
-			).not.toThrow();
+			expect(() => validatedTradition({ ...PHUGPA, leapIndexThreshold: threshold })).not.toThrow();
 		}
 	});
 });

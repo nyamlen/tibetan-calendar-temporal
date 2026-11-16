@@ -459,3 +459,147 @@ describe("the two merged copies' accept-sets", () => {
 		expect(typeof attributesFor(resolved).calendarDay.element).toBe("string");
 	});
 });
+
+describe("a Temporal type that names no calendar day, where a Tibetan month or date belongs", () => {
+	const instances: [string, unknown][] = [
+		["PlainYearMonth", Temporal.PlainYearMonth.from("2026-03")],
+		["PlainMonthDay", Temporal.PlainMonthDay.from("03-05")],
+		["PlainTime", Temporal.PlainTime.from("10:30")],
+		["Instant", Temporal.Instant.from("2026-03-05T10:30:00Z")],
+		["Duration", Temporal.Duration.from({ days: 3 })],
+	];
+	// A hand-built stand-in for a second implementation's instance, carrying the fields a Tibetan
+	// month has: it is what a `PlainYearMonth` from another realm looks like to this package.
+	const foreignYearMonth = {
+		[Symbol.toStringTag]: "Temporal.PlainYearMonth",
+		year: 2026,
+		month: 3,
+	};
+	const monthTier: [string, (v: never) => unknown][] = [
+		["daysInMonth", (v) => daysInMonth(v)],
+		["resolveMonth", (v) => resolveMonth(v)],
+		["datesFor", (v) => datesFor(v)],
+		["formatTibetanMonth", (v) => formatTibetanMonth(v)],
+		["lunationFromMonth", (v) => lunationFromMonth(v)],
+		["monthNamesFor", (v) => monthNamesFor(v)],
+		["addMonths", (v) => addMonths(v, 0)],
+		["monthsBetween(from)", (v) => monthsBetween(v, { year: 2153, month: 1 })],
+		["monthsBetween(to)", (v) => monthsBetween({ year: 2153, month: 1 }, v)],
+		["monthAttributesFor", (v) => monthAttributesFor(v)],
+	];
+	const dateTier: [string, (v: never) => unknown][] = [
+		["tibetanToIso", (v) => tibetanToIso(v)],
+		["tibetanDateExists", (v) => tibetanDateExists(v)],
+		["formatTibetanDate", (v) => formatTibetanDate(v)],
+		["resolveDate", (v) => resolveDate(v)],
+		["addDays", (v) => addDays(v, 1)],
+		["addMonthsToDate", (v) => addMonthsToDate(v, 1)],
+	];
+
+	it.each(instances)(
+		"a real %s is refused at every month- and date-tier export",
+		(_kind, value) => {
+			const wrong = [...monthTier, ...dateTier]
+				.map(([name, run]) => [name, codeOf(() => run(value as never))] as const)
+				.filter(([, code]) => code !== "TCT_INVALID_ARGUMENT");
+			expect(wrong).toEqual([]);
+		},
+	);
+
+	it("a second implementation's PlainYearMonth is refused too, by its brand", () => {
+		const wrong = monthTier
+			.map(([name, run]) => [name, codeOf(() => run(foreignYearMonth as never))] as const)
+			.filter(([, code]) => code !== "TCT_INVALID_ARGUMENT");
+		expect(wrong).toEqual([]);
+	});
+
+	it("names the type received and does not call it a Western calendar day", () => {
+		const message = thrownBy(() => daysInMonth(instances[0]?.[1] as never))?.message ?? "";
+		expect(message).toContain("Temporal.PlainYearMonth");
+		expect(message).not.toContain("names a Western calendar day");
+	});
+
+	it("still names a PlainDate as a Western calendar day, with the advice that works", () => {
+		const message = thrownBy(() => tibetanToIso(NATIVE as never))?.message ?? "";
+		expect(message).toContain("names a Western calendar day");
+		expect(message).toContain("isoToTibetan(date)");
+	});
+
+	it("a plain { year, month } object is still a Tibetan month", () => {
+		expect(daysInMonth({ year: 2153, month: 1 })).toBeGreaterThan(0);
+	});
+});
+
+describe("a forged brand and a hostile throw, at the normalising boundary", () => {
+	const revoked = (() => {
+		const { proxy, revoke } = Proxy.revocable({}, {});
+		revoke();
+		return proxy;
+	})();
+	const throwsRevoked = () => {
+		throw revoked;
+	};
+
+	// `instanceof` is true for an object built on the prototype, and the brand check is native: the
+	// first read of `calendarId` threw an uncoded TypeError from every Western-date export.
+	it("a forged PlainDate is refused with a code at every Western-date export", () => {
+		const forged = Object.create(Temporal.PlainDate.prototype) as Temporal.PlainDate;
+		const cases: [string, () => unknown][] = [
+			["isoToTibetan", () => isoToTibetan(forged)],
+			["julianDayFromIso", () => julianDayFromIso(forged)],
+			["nextFullMoon", () => nextFullMoon(forged)],
+			["attributesFor", () => attributesFor(forged)],
+		];
+		const wrong = cases
+			.map(([name, run]) => [name, thrownBy(run)?.code] as const)
+			.filter(([, code]) => code !== "TCT_INVALID_ARGUMENT");
+		expect(wrong).toEqual([]);
+	});
+
+	it("a toPlainDate that throws a revoked Proxy is refused with a code", () => {
+		const spoof = {
+			[Symbol.toStringTag]: "Temporal.ZonedDateTime",
+			toPlainDate: throwsRevoked,
+		} as unknown as Temporal.PlainDate;
+		expect(thrownBy(() => julianDayFromIso(spoof))?.code).toBe("TCT_INVALID_ARGUMENT");
+	});
+
+	it("a PlainDate-branded object whose toString throws a revoked Proxy is refused with a code", () => {
+		const spoof = {
+			[Symbol.toStringTag]: "Temporal.PlainDate",
+			toString: throwsRevoked,
+		} as unknown as Temporal.PlainDate;
+		expect(thrownBy(() => julianDayFromIso(spoof))?.code).toBe("TCT_INVALID_ARGUMENT");
+	});
+
+	it("an Error whose message getter throws is refused with a code", () => {
+		const hostile = new Error("x");
+		Object.defineProperty(hostile, "message", { get: throwsRevoked });
+		const spoof = {
+			[Symbol.toStringTag]: "Temporal.ZonedDateTime",
+			toPlainDate() {
+				throw hostile;
+			},
+		} as unknown as Temporal.PlainDate;
+		expect(thrownBy(() => julianDayFromIso(spoof))?.code).toBe("TCT_INVALID_ARGUMENT");
+	});
+});
+
+describe("the global Temporal deleted after import", () => {
+	it("reports TCT_MISSING_TEMPORAL for an ISO string, as it does for a PlainDate", () => {
+		const plain = Temporal.PlainDate.from(ISO);
+		const original = Object.getOwnPropertyDescriptor(globalThis, "Temporal");
+		let fromString: (Error & { code?: string }) | undefined;
+		let fromPlain: (Error & { code?: string }) | undefined;
+		try {
+			Reflect.deleteProperty(globalThis, "Temporal");
+			fromString = thrownBy(() => isoToTibetan(ISO as never));
+			fromPlain = thrownBy(() => isoToTibetan(plain));
+		} finally {
+			if (original) Object.defineProperty(globalThis, "Temporal", original);
+		}
+		expect(fromPlain?.code).toBe("TCT_MISSING_TEMPORAL");
+		expect(fromString?.code).toBe("TCT_MISSING_TEMPORAL");
+		expect(fromString).not.toBeInstanceOf(RangeError);
+	});
+});

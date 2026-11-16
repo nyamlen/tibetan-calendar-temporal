@@ -471,8 +471,8 @@ Each `Observance` has three fields that are always there — `date`, the `Tibeta
 always a real calendar day; `rule`, the rule that produced it, carrying `id`, `englishName`, and the
 `level` and `tags` the config gave it; and `resolution`, how it landed there — and two that appear only
 where they apply: `age`, the years since a rule's `ageFromYear`, and `period`, the first and last
-calendar days of the whole span a `period` rule's day belongs to. The `rule` is the **same object** the config holds rather than a copy, so for a
-config you supplied, mutating it mutates your own rule table; the shipped `EXAMPLE_OBSERVANCES` is deeply frozen.
+calendar days of the whole span a `period` rule's day belongs to. The `rule` is the engine's own deeply frozen copy, made when the config was first used, and never the object you
+passed: changing your config afterwards changes neither this nor any later answer, and a fresh object is checked and copied again.
 
 **`EXAMPLE_OBSERVANCES` ships nineteen rules**, as an example of how to populate a config and not as any
 institution's calendar: the four great days (tagged `duchen`), seven persons' days (tagged `anniversary`),
@@ -507,8 +507,8 @@ day.year.power;          // "fire" — 2026 is a Fire Horse year
 day.year.life;           // "fire", and body, fortune and spirit each run on their own cycle
 day.calendarDay.animal;  // the sunrise-to-sunrise day's animal
 day.lunarDay?.animal;    // the lunar day's, which is a different label for the same date
-day.yoga.englishName;    // "death" — the least auspicious of the ten
-day.yoga.favorable;      // false
+day.yoga?.englishName;   // "death" — the least auspicious of the ten
+day.yoga?.favorable;     // false
 ```
 
 **A day carries two sets of labels that disagree, and almanacs print both.** The lunar day is the
@@ -516,9 +516,10 @@ thirtieth of a lunation; the calendar day runs sunrise to sunrise. On a doubled 
 share `year`, `month` and `lunarDay` and differ in `calendarDay`, and can differ in `yoga` and
 `lunarMansion` — that is the calendar, not a bug.
 
-**`month` and `lunarDay` are `null` for the Bhutanese traditions.** Janson tabulates no month-animal
-list for that version, so the package refuses rather than handing over Phugpa's answers; the
-primitives throw `TCT_ATTRIBUTE_NOT_SOURCED` where the composition reports `null`.
+**`month`, `lunarDay` and `yoga` are `null` for the Bhutanese traditions.** Janson tabulates no
+month-animal list for that version, and Bhutan shifts the weekday by one day, which no source carries
+through to the yoga's weekday element, so the package refuses rather than handing over Phugpa's
+answers; the primitives throw `TCT_ATTRIBUTE_NOT_SOURCED` where the composition reports `null`.
 
 Favorability is FPMT's convention and is in neither Janson nor Henning; `auspiciousness` is a Tibetan
 dictionary's four-way grading of the same ten yogas, with its groups read from the order it lists them in. What is validated, over which
@@ -579,7 +580,7 @@ from; in coordinate space a leap month is simply the next lunation.
 | `addDays` | `(date: TibetanDateFields, days: number, tradition?) => TibetanDate` | **Solar** days, the unit elapsed-time reckonings use. Total — it can never land on a skipped date, because stepping real days never reaches a label no day carries |
 | `daysBetween` | `(from: TibetanDateFields, to: TibetanDateFields, tradition?) => number` | Signed. If both dates came from this package, `a.isoDate.until(b.isoDate)` is the better route; this is for dates you built yourself |
 | `addMonths` | `(month: TibetanMonthFields & { day?: never }, months: number, tradition?) => TibetanMonth` | Month in, month out, so **total**. `+1` from a leap month is its twin. A `TibetanDate` does **not** compile — it would discard the day silently; use `addMonthsToDate` |
-| `addMonthsToDate` | `(date: TibetanDateFields, months: number, options?) => TibetanDate` | "The same day next month". `options` is `{ overflow?, tradition? }` — the key was `config` until 2026-09-24, and any other key is refused; `overflow` is `"constrain"` (default — fall to the nearest **lower** existing day) or `"reject"` |
+| `addMonthsToDate` | `(date: TibetanDateFields, months: number, options?) => TibetanDate` | "The same day next month". `options` is `{ overflow?, tradition? }` — the key was `config` until 2026-09-24, and any other key is refused; `overflow` is `"constrain"` (default — fall to the nearest **lower** existing day, or day 2 when day 1 is skipped) or `"reject"`. A doubled day keeps the start's half, leap or regular, and an ordinary start lands on the regular half |
 | `monthsBetween` | `(from: TibetanMonthFields, to: TibetanMonthFields, tradition?) => number` | Signed, counted in **lunations** — month 5 to month 7 is three in a year that doubles month 6, two otherwise |
 | `lunationFromMonth` | `(month: TibetanMonthFields, tradition?) => number` | The month as one sortable integer, for a database or cache key. No consumer-side route: it needs the intercalation index |
 | `monthFromLunation` | `(lunation: number, tradition?) => TibetanMonth` | The inverse, for a stored coordinate with no year in hand. Narrower domain than its inverse — it returns boundaries, so it evaluates the calendar |
@@ -673,8 +674,9 @@ Two traditions, Phugpa and Bhutanese, each in two parameterisations. See
 
 #### Errors
 
-`SkippedDayError` is the only exported error class, and carries the offending input as
-`.requested`. Every failure about your **input** is a `RangeError`; the two that are not about your
+`SkippedDayError` is the only exported error class, and carries the offending date as
+`.requested` — a frozen copy of the date fields it read, not the same object, so extra keys on what you passed are dropped.
+Every failure about your **input** is a `RangeError`; the two that are not about your
 input — `TCT_INTERNAL` and `TCT_MISSING_TEMPORAL` — are plain `Error`s, deliberately, as the
 at-a-glance signal that the fault is not yours. What actually keeps `tibetanDateExists` from
 reporting either as "that date does not exist" is their **absence from its allowlist**, which is one
@@ -686,20 +688,21 @@ a `code`, which is what to branch on rather than the type:
 |---|---|---|
 | `TCT_SKIPPED_DAY` | `tibetanToIso` | The date is well-formed but no calendar day carries its number. Not a bug in your code — see [Errors and validation](#errors-and-validation) |
 | `TCT_FIELD_OUT_OF_RANGE` | every function taking a date, a year or a Julian day | A year, month, day or Julian day is not an integer, or is outside 1–12 / 1–30. The argument was the right kind of thing and one of its numbers was wrong — so this is the one to surface to a user |
-| `TCT_INVALID_ARGUMENT` | the same functions, plus `parseTibetanDate`, and `nextObservance` for a `ruleId` that is not a string or names no rule | The argument is the wrong *kind* of thing, so nothing in it is a field out of a range: a `Temporal.PlainDate` where a Tibetan date is expected, a bare `{ year, month, day }` where a Western date is expected, a non-boolean `isLeapMonth`/`isLeapDay`, `null`/`undefined`, a string outside `parseTibetanDate`'s grammar, an options bag that is not an object, cannot be read, or carries a key it does not have, or an element passed to `elementalYoga` that is not one of the four. A bug in the calling code rather than bad data |
+| `TCT_INVALID_ARGUMENT` | the same functions, plus `parseTibetanDate`, and `nextObservance` for a `ruleId` that is not a string or names no rule | The argument is the wrong *kind* of thing, so nothing in it is a field out of a range: a `Temporal.PlainDate` where a Tibetan date is expected, a bare `{ year, month, day }` where a Western date is expected, a non-boolean `isLeapMonth`/`isLeapDay`, `null`/`undefined`, a string outside `parseTibetanDate`'s grammar, an options bag that is not an object, cannot be read, or carries a key it does not have, a date's or month's field that cannot be read because your getter or `Proxy` trap threw, or an element passed to `elementalYoga` that is not one of the four. A bug in the calling code rather than bad data |
 | `TCT_NO_SUCH_LEAP_MONTH` | every function taking a Tibetan month's or date's **fields**, except `tibetanDateExists`, which answers `false`, and the two formatters | `isLeapMonth: true` for a month with no leap twin that year |
 | `TCT_OUTSIDE_EXACT_RANGE` | any conversion, `getObservances` and `observancesOn` for a range reaching past the end **or a day inside a `period` whose span ends past it**, `nextObservance` for a `from` past the end, and the closed-form year functions `hasLeapMonth`, `leapMonthNumberFor`, `monthsInYear` | Beyond where this tradition's integer arithmetic stays exact. For a conversion, `PHUGPA` and `BHUTAN` are exact from about ISO year −245,737 to 236,312; `PHUGPA_HENNING` and `BHUTAN_HENNING` from about −20,781 to 11,356. Both ranges end inside Temporal's own. A `period` result carries the bounds of its whole span, so a day of a span that ends past the end of the range cannot be answered even though the day is inside it; only the last weeks before the end are reached, and `nextObservance` answers `null` there instead. The three year functions are closed forms with a bound of their own, far wider: `hasLeapMonth(300000)` answers |
-| `TCT_INVALID_TRADITION_CONFIG` | any function taking a tradition | The `TraditionConfig` is malformed, or is not one at all — `null`, or a `{ tradition }` bag passed where the config itself belongs. The message names the field |
-| `TCT_INVALID_OBSERVANCE_CONFIG` | `getObservances`, `observancesOn`, `nextObservance`, `composeObservances` | The `ObservanceConfig`, one of its rules, levels or `when` forms, or a `composeObservances` layer is malformed — an unknown key, a setting the rule's form does not use, a rule naming a level the config does not declare, or a layer naming an id the base does not have. The message names the field or id |
+| `TCT_INVALID_TRADITION_CONFIG` | any function taking a tradition | The `TraditionConfig` is malformed, or is not one at all — `null`, or a `{ tradition }` bag passed where the config itself belongs. A key the config does not have is refused, a misspelt one included, and so is a value that cannot be copied — a `Proxy`, even one with no traps — or read, because your getter or `Proxy` trap threw. The message names the field or the key |
+| `TCT_INVALID_OBSERVANCE_CONFIG` | `getObservances`, `observancesOn`, `nextObservance`, `composeObservances` | The `ObservanceConfig`, one of its rules, levels or `when` forms, or a `composeObservances` layer is malformed — an unknown key, a setting the rule's form does not use, a rule naming a level the config does not declare, or a layer naming an id the base does not have — or a value that cannot be copied or read, such as a `Proxy`, even one with no traps, or a getter that throws. The message names the field or id |
 | `TCT_SPAN_TOO_WIDE` | `getObservances` | `to.year - from.year` is more than 10: the rule is on calendar years, so 2020-01-01 to 2030-12-31 is admitted and 2020-12-31 to 2031-01-01 is not. Chunk it; the function is pure, so concatenating is correct |
-| `TCT_ATTRIBUTE_NOT_SOURCED` | `monthAttributesFor`, `lunarDayAttributesFor` | Your input is fine; no source gives this attribute for this tradition. Thrown under `BHUTAN` and `BHUTAN_HENNING`, whose month animals Janson does not tabulate. `attributesFor` reports the same gap as `null` instead |
+| `TCT_ATTRIBUTE_NOT_SOURCED` | `monthAttributesFor`, `lunarDayAttributesFor`, `elementalYogaFor` | Your input is fine; no source gives this attribute for this tradition. Thrown under `BHUTAN` and `BHUTAN_HENNING`, whose month animals Janson does not tabulate (`monthAttributesFor`, `lunarDayAttributesFor`), and by `elementalYogaFor` under any config with a nonzero `naming.weekdayOffset`, which both Bhutanese configs have, since a shifted weekday leaves the yoga's weekday element unsourced. `attributesFor` reports the same gap as `null` instead |
 | `TCT_MISSING_TEMPORAL` | the `import` itself, and any date entry point if the global `Temporal` is deleted afterwards | No `Temporal` in this runtime — see [Requirements](#requirements) |
 | `TCT_INTERNAL` | `isoToTibetan`, and the arithmetic primitives beneath it | An invariant the engine proves for itself did not hold. A bug here rather than in your input; please [report it](https://github.com/nyamlen/tibetan-calendar-temporal/issues) |
 
-The codes cover the errors this package throws. An error **your own code** throws while the engine
-reads your argument — a getter, or a `Proxy` trap — is yours, and may reach you unchanged, without a
-code: reading a `TraditionConfig`, an `ObservanceConfig` or a date's fields does not catch it. A few
-argument checks do wrap one, as `TCT_INVALID_ARGUMENT`, where they already guard the read.
+Where **your own code** throws while the engine reads your argument — a getter, a `Proxy` trap, a
+method of a value you pass — the error is refused with a code and yours is kept as its `cause`:
+`TCT_INVALID_ARGUMENT` for a date, month, options bag or Temporal-like value, and the config's own
+code for a `TraditionConfig` or an `ObservanceConfig`. Each field of a Tibetan date is read once, so a
+getter that answers differently the second time cannot change what is computed.
 
 Codes are stable and part of the API. Message text is not — match on the code.
 
@@ -743,13 +746,13 @@ passed last and positionally as on the root: `attributesFor(date, BHUTAN)`.
 
 | Export | Signature | Notes |
 |---|---|---|
-| `attributesFor` | `(date: Temporal.PlainDate \| TibetanDate, tradition?) => DayAttributes` | Everything about one day. `month` and `lunarDay` are `null` where unsourced |
+| `attributesFor` | `(date: Temporal.PlainDate \| TibetanDate, tradition?) => DayAttributes` | Everything about one day. `month`, `lunarDay` and `yoga` are `null` where unsourced |
 | `yearAttributesFor` | `(year: number) => YearAttributes` | Royal era, and no tradition: closed forms on the year alone |
 | `monthAttributesFor` | `(month: TibetanMonthFields, tradition?) => MonthAttributes` | Throws `TCT_ATTRIBUTE_NOT_SOURCED` for the Bhutanese configs |
 | `lunarDayAttributesFor` | `(date: TibetanDateFields, tradition?) => LunarDayAttributes` | Tibetan fields in, so a **skipped** lunar day can be asked about. Throws `TCT_ATTRIBUTE_NOT_SOURCED` for the Bhutanese configs |
 | `calendarDayAttributesFor` | `(date: Temporal.PlainDate \| TibetanDate) => CalendarDayAttributes` | Congruences on the Julian day; the number differs in Tsurphu calendars, which is not modelled |
 | `lunarMansionFor` | `(date: Temporal.PlainDate \| TibetanDate, tradition?) => LunarMansion` | `{ index, tibetanName, sanskritName, element }`, index 0–26 as Janson and Henning number them, and no English name, because no source prints one. Needs the moon's real position; a published almanac sometimes prints the next mansion, late in a mansion — how often is in [why-trust-these-dates.md](docs/why-trust-these-dates.md). |
-| `elementalYogaFor` | `(date: Temporal.PlainDate \| TibetanDate, tradition?) => ElementalYoga` | The weekday's element paired with the lunar mansion's |
+| `elementalYogaFor` | `(date: Temporal.PlainDate \| TibetanDate, tradition?) => ElementalYoga` | The weekday's element paired with the lunar mansion's. Throws `TCT_ATTRIBUTE_NOT_SOURCED` under a nonzero `naming.weekdayOffset`, which both shipped Bhutanese configs have |
 | `elementalYoga` | `(a: TibetanWeekdayElement, b: TibetanWeekdayElement) => ElementalYoga` | The pair alone, order-insensitive |
 | `ELEMENTAL_YOGAS` | | The ten, frozen: Henning's names, FPMT's favorability, and the *tshig mdzod chen mo*'s four-way grading as `auspiciousness` |
 | `LUNAR_MANSIONS` | | All 27, frozen, in index order — the table `lunarMansionFor` looks a day up in |

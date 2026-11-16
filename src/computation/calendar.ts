@@ -24,64 +24,57 @@ import { julianDayOfLunarDay } from "./corrections.js";
 import type { ScaledTradition } from "./scaling.js";
 
 /**
- * Rejects a year for which the closed-form arithmetic would overflow `Number.MAX_SAFE_INTEGER`.
+ * Rejects a year for which the leap-year closed forms would overflow `Number.MAX_SAFE_INTEGER`.
  *
  * @remarks
- * Two different closed forms route through this one guard, and they overflow at two different
- * points because they are stated in two different variables:
+ * The guard for {@link isLeapYear}, {@link leapMonthOfYear} and {@link solarMonthsSinceEpoch}, hence
+ * `hasLeapMonth`, `leapMonthNumberFor` and `monthsInYear`. Past the bound they would answer from
+ * arithmetic noise, so a year beyond it is refused with `TCT_OUTSIDE_EXACT_RANGE`.
  *
- * - {@link solarMonthsSinceEpoch} (reached from {@link sharesNumberWithLeapMonth}, hence `tibetanToIso` and
- *   `daysInMonth`) computes `12·(year − epochYear) + …` — **relative** to the epoch.
- * - {@link isLeapYear} and {@link leapMonthOfYear} compute `24·year + γ*` directly on the
- *   **absolute** Janson *Y* — not relative to the epoch at all, so a year far from the epoch in
- *   either direction overflows this one at roughly half the relative formula's magnitude, even
- *   while `|year − epochYear|` still looks comfortably in range.
+ * A path that goes on to {@link trueMonthCount} needs the narrower {@link assertMonthCountYear}
+ * instead.
  *
- * Both silently lose precision past 2⁵³ rather than throwing, so an absurdly large year would come
- * back as a confident `false` or `undefined` computed from arithmetic noise instead of refusing to
- * answer. The bound taken is the **tighter** of the two, converted to the same `|year − epochYear|`
- * terms this guard is stated in via the triangle inequality
- * (`|year| ≤ |epochYear| + |year − epochYear|`), so a single check protects whichever formula the
- * caller goes on to evaluate — over-protecting the relative formula costs nothing, since every
- * real year is nowhere near either limit.
- *
- * The bound is **derived from `tradition.epochYear` at each call**, never a literal: `epochYear`
- * is injected per tradition, so a bound computed once for Phugpa and hardcoded would be silently
- * wrong for a tradition with a different epoch. The arithmetic here is cheap enough that, unlike
- * {@link ScaledTradition.searchHalfWidth}, it needs no memoisation to stay off the hot path.
- *
- * `subject` is a thunk for the same reason as {@link assertExactJulianDay}'s: this guard runs on
- * every closed-form call, and building the message eagerly would cost every success to save one
- * throw.
+ * `subject` is a thunk because this guard runs on every closed-form call, and building the message
+ * eagerly would cost every success to save one throw.
  */
 export function assertClosedFormYear(
 	subject: () => string,
 	year: number,
 	tradition: TraditionConfig,
 ): void {
-	// solarMonthsSinceEpoch: 12·(year − epochYear) + month − epochMonth must stay safe. `12` is a
-	// generous margin for the trailing `+ month − epochMonth`, which is at most 11 in magnitude
-	// (month and epochMonth each range 1..12, so their difference is at most 11).
-	// exact: both operands are safe integers, so the IEEE quotient is within one ulp of the true
-	// value and Math.floor lands on the right integer. This computes a *bound*, never a calendar
-	// quantity — a bound one off would only narrow the accepted range, not shift a date.
-	const relativeLimit = Math.floor((Number.MAX_SAFE_INTEGER - 12) / 12);
-	// isLeapYear / leapMonthOfYear: 24·year + γ* must stay safe, on the *absolute* year. γ* is
-	// `mod(…, 65)`, so at most 64; `65` is a generous margin. Converted to the same
-	// |year − epochYear| terms via the triangle inequality: if |year − epochYear| ≤ this limit
-	// then |year| ≤ |epochYear| + limit ≤ floor((MAX_SAFE_INTEGER − 65) / 24), which is what
-	// 24·year needs — the right-hand side here is that raw quantity, not `absoluteLimit` itself,
-	// since `absoluteLimit` is that quantity already reduced by `|epochYear|`.
-	// exact: as above — a safe-integer quotient floored to a bound, not a calendar quantity.
-	const absoluteLimit =
-		Math.floor((Number.MAX_SAFE_INTEGER - 65) / 24) - Math.abs(tradition.epochYear);
-	// absoluteLimit is always the binding constraint here, for any config, not merely realistic
-	// ones: relativeLimit is ~7.5e14 (Number.MAX_SAFE_INTEGER / 12), and absoluteLimit is
-	// ~3.75e14 minus a non-negative `|epochYear|`, so absoluteLimit ≤ ~3.75e14 < relativeLimit
-	// unconditionally. The `Math.min` therefore never actually selects `relativeLimit` — kept as
-	// defensive code rather than removed, since it costs nothing and the proof lives only in this
-	// comment.
-	const limit = Math.min(relativeLimit, absoluteLimit);
+	assertYearWithin(subject, year, tradition, leapYearLimit(tradition));
+}
+
+/**
+ * Rejects a year for which {@link trueMonthCount}'s arithmetic would overflow
+ * `Number.MAX_SAFE_INTEGER`.
+ *
+ * @remarks
+ * The guard for every path that reaches the true month count: `lunationFromMonth`, `monthsBetween`,
+ * `addMonths`, `addMonthsToDate` and the date conversions. It is the leap-year bound of
+ * {@link assertClosedFormYear} and, as well, a bound on the `67·M*` term, which is 67 times larger
+ * than the month count the leap-year forms touch and so leaves the safe range first. Without it
+ * two months of one year came back with the same lunation.
+ */
+export function assertMonthCountYear(
+	subject: () => string,
+	year: number,
+	tradition: TraditionConfig,
+): void {
+	assertYearWithin(
+		subject,
+		year,
+		tradition,
+		Math.min(leapYearLimit(tradition), monthCountLimit(tradition)),
+	);
+}
+
+function assertYearWithin(
+	subject: () => string,
+	year: number,
+	tradition: TraditionConfig,
+	limit: number,
+): void {
 	if (Math.abs(year - tradition.epochYear) > limit) {
 		throw rangeError(
 			"TCT_OUTSIDE_EXACT_RANGE",
@@ -89,6 +82,39 @@ export function assertClosedFormYear(
 				`stays exact: |year − epochYear| must be at most ${limit}, received ${year}`,
 		);
 	}
+}
+
+// Both limits are derived from the config at each call, never a literal: a bound computed for
+// Phugpa and hardcoded would be wrong for a tradition with another epoch, index or leap rule. The
+// arithmetic is cheap enough to need no memoisation. Each is a floored safe-integer quotient, so it
+// is a *bound*, never a calendar quantity: one off would only narrow the accepted range.
+
+// solarMonthsSinceEpoch needs 12·(year − epochYear) + month − epochMonth safe, with the trailing
+// term at most 11 in magnitude; isLeapYear and leapMonthOfYear need 24·year + γ* safe on the
+// *absolute* year, γ* being `mod(…, 65)` and so at most 64. The absolute bound converts to
+// |year − epochYear| by the triangle inequality, |year| ≤ |epochYear| + |year − epochYear|. For any
+// config the absolute term binds (about 3.7e14 against the relative 7.5e14), and the relative one
+// is kept because it costs nothing.
+function leapYearLimit(tradition: TraditionConfig): number {
+	// exact: a safe-integer quotient floored to a bound, never a calendar quantity.
+	const relativeLimit = Math.floor((Number.MAX_SAFE_INTEGER - 12) / 12);
+	// exact: as above.
+	const absoluteLimit =
+		Math.floor((Number.MAX_SAFE_INTEGER - 65) / 24) - Math.abs(tradition.epochYear);
+	return Math.min(relativeLimit, absoluteLimit);
+}
+
+// trueMonthCount needs 67·M* + intercalationIndexAtEpoch + (65 − leapIndexThreshold) safe, with
+// |M*| ≤ 12·|year − epochYear| + 11. About 1.1e13 years for Phugpa.
+function monthCountLimit(tradition: TraditionConfig): number {
+	// exact: a safe-integer quotient floored to a bound, never a calendar quantity.
+	return Math.floor(
+		(Number.MAX_SAFE_INTEGER -
+			67 * 11 -
+			Math.abs(tradition.intercalationIndexAtEpoch) -
+			Math.abs(65 - tradition.leapIndexThreshold)) /
+			(67 * 12),
+	);
 }
 
 /**

@@ -14,31 +14,9 @@
  */
 
 import { amod, ceilDiv, mod } from "../computation/arithmetic.js";
-import { assertInternal } from "../errors.js";
+import { ANIMALS, ELEMENTS, oneBasedAt } from "../cycle-tables.js";
 import { animalNameOf, elementNameOf } from "../names.js";
 import type { TibetanAnimal, TibetanElement, TibetanName } from "../types.js";
-
-/**
- * The five elements in Janson's standard order — his Table 5, and the order every cycle here runs
- * in. `TibetanElement`'s declaration order is the same, deliberately.
- */
-const ELEMENTS: readonly TibetanElement[] = ["wood", "fire", "earth", "iron", "water"];
-
-/** The twelve animals in Janson's standard order, matching `TibetanAnimal`'s declaration. */
-const ANIMALS: readonly TibetanAnimal[] = [
-	"mouse",
-	"ox",
-	"tiger",
-	"rabbit",
-	"dragon",
-	"snake",
-	"horse",
-	"sheep",
-	"monkey",
-	"bird",
-	"dog",
-	"pig",
-];
 
 /**
  * Life element by position in the twelve-year cycle — Janson's Table of life elements.
@@ -120,9 +98,6 @@ export interface YearAttributes {
 	};
 }
 
-const at = <T>(table: readonly T[], oneBased: number, what: string): T =>
-	assertInternal(table[oneBased - 1], `${what}: index ${oneBased} is outside the cycle`);
-
 /**
  * Every attribute of the Gregorian year `year`.
  *
@@ -139,23 +114,23 @@ export function yearAttributes(year: number): YearAttributes {
 	const cyclePosition = amod(year - 3, 60);
 
 	// ⌈(Y − 3)/2⌉ amod 5 — the celestial stem's element, two years to each.
-	const power = at(ELEMENTS, amod(ceilDiv(year - 3, 2), 5), "power element");
-	const animal = at(ANIMALS, amod(cyclePosition, 12), "animal");
-	const life = at(LIFE_BY_POSITION, amod(cyclePosition, 12), "life element");
+	const power = oneBasedAt(ELEMENTS, amod(ceilDiv(year - 3, 2), 5), "power element");
+	const animal = oneBasedAt(ANIMALS, amod(cyclePosition, 12), "animal");
+	const life = oneBasedAt(LIFE_BY_POSITION, amod(cyclePosition, 12), "life element");
 
 	// The element *preceding* the life element in the standard order, wrapping.
-	const spirit = at(ELEMENTS, amod(ELEMENTS.indexOf(life), 5), "spirit element");
+	const spirit = oneBasedAt(ELEMENTS, amod(ELEMENTS.indexOf(life), 5), "spirit element");
 
-	const fortune = at(FORTUNE_BY_POSITION, amod(cyclePosition, 4), "fortune element");
+	const fortune = oneBasedAt(FORTUNE_BY_POSITION, amod(cyclePosition, 4), "fortune element");
 
 	// Body: count the steps from the intermediate element x to the power element y.
 	//
 	// `mod`, not `amod`. Janson indexes this final table from **zero** — `y − x mod 5` where 0 means
 	// iron — while every other cycle here is one-based. Using amod sends the zero case to the far
 	// end of the table and returns wood, which is a plausible element and the wrong one.
-	const intermediate = at(BODY_INTERMEDIATE, amod(cyclePosition, 6), "body intermediate");
+	const intermediate = oneBasedAt(BODY_INTERMEDIATE, amod(cyclePosition, 6), "body intermediate");
 	const difference = mod(ELEMENTS.indexOf(power) - ELEMENTS.indexOf(intermediate), 5);
-	const body = at(BODY_BY_DIFFERENCE, difference + 1, "body element");
+	const body = oneBasedAt(BODY_BY_DIFFERENCE, difference + 1, "body element");
 
 	return {
 		cyclePosition,

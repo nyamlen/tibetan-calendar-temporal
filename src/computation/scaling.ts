@@ -18,8 +18,13 @@
  * @packageDocumentation
  */
 
+import { rangeError } from "../errors.js";
 import type { MeanMotion, Rational, TraditionConfig } from "../traditions/types.js";
-import { assertDerivable, assertTraditionConfig } from "../traditions/validate.js";
+import {
+	assertCommonDenominatorExact,
+	assertDerivable,
+	validatedTradition,
+} from "../traditions/validate.js";
 import { ceilDiv, gcd, lcm, scaleTo } from "./arithmetic.js";
 
 /** A {@link MeanMotion} with each coefficient expressed as an integer over a shared denominator. */
@@ -52,18 +57,31 @@ export interface ScaledTradition {
 	 * Denominator of the `moon_tab` argument, `28 · anomaly_moon`.
 	 *
 	 * @remarks
-	 * 126 for Phugpa. Because 28 divides the anomaly denominator, the anomaly numerator *is* the
-	 * argument numerator over this denominator — no rescaling is needed at the call site.
+	 * 126 for Phugpa. The argument numerator over this denominator is the anomaly numerator times
+	 * {@link ScaledTradition.moonTabArgFactor}, which is 1 when 28 divides the anomaly denominator.
 	 */
 	moonTabArgDen: number;
+
+	/**
+	 * `28 / gcd(28, anomaly denominator)`, by which the anomaly numerator is multiplied to be the
+	 * `moon_tab` argument's numerator. 1 for Phugpa.
+	 */
+	moonTabArgFactor: number;
 
 	/**
 	 * Denominator of the `sun_tab` argument, `12 · (mean_sun − 1/4)`.
 	 *
 	 * @remarks
-	 * 402 for Phugpa.
+	 * 402 for Phugpa. The argument numerator over this denominator is the solar anomaly numerator
+	 * times {@link ScaledTradition.sunTabArgFactor}.
 	 */
 	sunTabArgDen: number;
+
+	/**
+	 * `12 / gcd(12, lcm(mean-sun denominator, 4))`, by which the solar anomaly numerator is
+	 * multiplied to be the `sun_tab` argument's numerator. 1 for Phugpa.
+	 */
+	sunTabArgFactor: number;
 
 	/**
 	 * Numerator of `1/4` over the mean-sun denominator, used to form the solar anomaly.
@@ -126,16 +144,34 @@ function maxMagnitude(table: readonly number[]): number {
 	return table.reduce((largest, entry) => Math.max(largest, Math.abs(entry)), 0);
 }
 
-/** Scales one mean motion's three coefficients onto the lcm of their denominators. */
-function scaleMeanMotion(motion: MeanMotion): ScaledMeanMotion {
-	const den = [motion.perMonth, motion.perDay, motion.atEpoch]
-		.map((r: Rational) => r.den)
-		.reduce(lcm);
+/**
+ * Reduces a rational to lowest terms.
+ *
+ * @remarks
+ * So that a tradition's common denominator, and with it the range the arithmetic is exact over,
+ * depends on the rationals a config holds and not on how its author wrote them: `5/(5d)` and `1/d`
+ * are one coefficient.
+ */
+function lowestTerms(r: Rational): Rational {
+	const divisor = gcd(r.num, r.den);
+	// exact: a gcd divides both its arguments, so both quotients are whole numbers.
+	return { num: r.num / divisor, den: r.den / divisor };
+}
+
+/**
+ * Scales one mean motion's three coefficients onto the lcm of their reduced denominators and of
+ * `alsoDivides`, a factor the caller needs the denominator to carry.
+ */
+function scaleMeanMotion(motion: MeanMotion, alsoDivides = 1): ScaledMeanMotion {
+	const [perMonth, perDay, atEpoch] = [motion.perMonth, motion.perDay, motion.atEpoch].map(
+		lowestTerms,
+	) as [Rational, Rational, Rational];
+	const den = lcm(lcm(lcm(perMonth.den, perDay.den), atEpoch.den), alsoDivides);
 	return {
 		den,
-		perMonth: scaleTo(motion.perMonth.num, motion.perMonth.den, den),
-		perDay: scaleTo(motion.perDay.num, motion.perDay.den, den),
-		atEpoch: scaleTo(motion.atEpoch.num, motion.atEpoch.den, den),
+		perMonth: scaleTo(perMonth.num, perMonth.den, den),
+		perDay: scaleTo(perDay.num, perDay.den, den),
+		atEpoch: scaleTo(atEpoch.num, atEpoch.den, den),
 	};
 }
 
@@ -158,21 +194,32 @@ function scaleMeanMotion(motion: MeanMotion): ScaledMeanMotion {
  */
 export function deriveScaling(tradition: TraditionConfig): ScaledTradition {
 	const meanDate = scaleMeanMotion(tradition.meanDate);
-	const meanSun = scaleMeanMotion(tradition.meanSun);
+	// The solar anomaly is mean_sun − 1/4, so the denominator carries a factor of 4 and
+	// `quarterCircle` is exact for any coefficients.
+	const meanSun = scaleMeanMotion(tradition.meanSun, 4);
 	const lunarAnomaly = scaleMeanMotion(tradition.lunarAnomaly);
 
-	// moon_tab takes 28 · anomaly_moon. Multiplying a rational over `den` by 28 reduces the
-	// denominator by gcd(28, den) — for Phugpa 28 divides 3528 exactly, giving 126.
-	// exact: a gcd divides its argument, so this quotient is a whole number with no rounding at all.
-	const moonTabArgDen = lunarAnomaly.den / gcd(28, lunarAnomaly.den);
+	// moon_tab takes 28 · anomaly_moon. Writing 28 · x/den as (28/g · x)/(den/g) with g = gcd(28, den)
+	// gives the argument over `den/g` whatever `den` is, so two configs holding the same rationals
+	// over different denominators read the table at the same point. For Phugpa 28 divides 3528, so
+	// g = 28, the factor is 1 and the denominator is 126.
+	const moonGcd = gcd(28, lunarAnomaly.den);
+	// exact: a gcd divides its arguments, so this quotient is a whole number with no rounding.
+	const moonTabArgDen = lunarAnomaly.den / moonGcd;
+	// exact: as above.
+	const moonTabArgFactor = 28 / moonGcd;
 
-	// sun_tab takes 12 · (mean_sun − 1/4). The subtraction needs 4 to divide the denominator,
-	// which it does for every tradition Janson gives; the multiplication then reduces by 12.
-	const sunAnomalyDen = lcm(meanSun.den, 4);
-	// exact: a gcd divides its argument, as above.
-	const sunTabArgDen = sunAnomalyDen / gcd(12, sunAnomalyDen);
+	// sun_tab takes 12 · (mean_sun − 1/4). The subtraction needs 4 to divide the denominator, which
+	// `scaleMeanMotion(…, 4)` guarantees; the multiplication is the same gcd split as above.
+	const sunAnomalyDen = meanSun.den;
+	const sunGcd = gcd(12, sunAnomalyDen);
+	// exact: a gcd divides its arguments, as above.
+	const sunTabArgDen = sunAnomalyDen / sunGcd;
+	// exact: as above.
+	const sunTabArgFactor = 12 / sunGcd;
 
 	// true_date = mean_date + moon_equ/60 − sun_equ/60, so D must absorb all three.
+	assertCommonDenominatorExact(tradition, [meanDate.den, moonTabArgDen * 60, sunTabArgDen * 60]);
 	const commonDenominator = [meanDate.den, moonTabArgDen * 60, sunTabArgDen * 60].reduce(lcm);
 
 	// The correction bound, in lunar days, from this tradition's own tables. See
@@ -180,10 +227,14 @@ export function deriveScaling(tradition: TraditionConfig): ScaledTradition {
 	const equationBound = maxMagnitude(tradition.moonTab) + maxMagnitude(tradition.sunTab);
 	const searchHalfWidth = ceilDiv(equationBound * meanDate.den, 60 * meanDate.perDay) + 2;
 
-	// Before `quarterCircle` below, not after. `scaleTo` guards the same divisibility and carries the
-	// same code, so checking afterwards would be dead code and would hand the consumer a message
-	// naming two integers rather than the field to fix.
-	assertDerivable(tradition, meanSun.den, searchHalfWidth);
+	assertDerivable(tradition, searchHalfWidth);
+
+	// exact: a safe-integer quotient floored to a bound, not a calendar quantity.
+	const exactToJulianDay = Math.floor(Number.MAX_SAFE_INTEGER / commonDenominator);
+	assertArgumentsFit(tradition, exactToJulianDay, meanDate, [
+		{ motion: lunarAnomaly, factor: moonTabArgFactor, name: "lunarAnomaly" },
+		{ motion: meanSun, factor: sunTabArgFactor, name: "meanSun" },
+	]);
 
 	return {
 		tradition,
@@ -191,13 +242,56 @@ export function deriveScaling(tradition: TraditionConfig): ScaledTradition {
 		meanSun,
 		lunarAnomaly,
 		moonTabArgDen,
+		moonTabArgFactor,
 		sunTabArgDen,
+		sunTabArgFactor,
 		quarterCircle: scaleTo(1, 4, meanSun.den),
 		commonDenominator,
-		// exact: a safe-integer quotient floored to a bound, not a calendar quantity.
-		exactToJulianDay: Math.floor(Number.MAX_SAFE_INTEGER / commonDenominator),
+		exactToJulianDay,
 		searchHalfWidth,
 	};
+}
+
+/**
+ * Refuses a config whose table-argument numerators could leave the safe-integer range.
+ *
+ * Why the factors of `moonTabArgFactor` and `sunTabArgFactor` need this at all: the argument
+ * numerator is the evaluated numerator of its mean motion times a factor of at most 28 (anomaly) or
+ * 12 (solar anomaly), and the multiplication is what they introduce. The bound is derived from the
+ * config and computed in `BigInt` so the check cannot overflow itself. The largest lunar day count
+ * `l` in the exact range satisfies `l · perDay/den ≤ exactToJulianDay + |m₀|`, so
+ * `l ≤ (exactToJulianDay · den + |atEpoch|)/perDay + 31`, and the month count is at most `l/30 + 2`.
+ * The mean motion's numerator `n · perMonth + d · perDay + atEpoch`, with `d ≤ 30`, is then at most
+ * `|atEpoch| + (l/30 + 2) · |perMonth| + 30 · |perDay|`, and the argument's is that times the factor.
+ * For Phugpa the bound is under 10⁹ against 9 · 10¹⁵.
+ */
+function assertArgumentsFit(
+	tradition: TraditionConfig,
+	exactToJulianDay: number,
+	meanDate: ScaledMeanMotion,
+	arguments_: readonly { motion: ScaledMeanMotion; factor: number; name: string }[],
+): void {
+	const abs = (n: bigint) => (n < 0n ? -n : n);
+	const reach = BigInt(exactToJulianDay) * BigInt(meanDate.den) + abs(BigInt(meanDate.atEpoch));
+	// exact: BigInt division truncates, which under-counts by less than one day; the `+ 31` absorbs it.
+	const days = reach / BigInt(meanDate.perDay) + 31n;
+	for (const { motion, factor, name } of arguments_) {
+		// exact: truncation under-counts the month count by less than one; the `+ 2` absorbs it.
+		const months = days / 30n + 2n;
+		const numerator =
+			abs(BigInt(motion.atEpoch)) +
+			months * abs(BigInt(motion.perMonth)) +
+			30n * abs(BigInt(motion.perDay));
+		if (numerator * BigInt(factor) > BigInt(Number.MAX_SAFE_INTEGER)) {
+			throw rangeError(
+				"TCT_INVALID_TRADITION_CONFIG",
+				`TraditionConfig "${tradition.id}" is malformed: ${name}'s coefficients are so large over ` +
+					"their common denominator that its correction-table argument could leave the exactly " +
+					"representable integers within the supported date range. Write them over a smaller " +
+					"denominator",
+			);
+		}
+	}
 }
 
 /** Memoised scaling, so repeated conversions do not redo the gcd work. */
@@ -219,8 +313,9 @@ const scalingCache = new WeakMap<TraditionConfig, ScaledTradition>();
 export function scalingFor(tradition: TraditionConfig): ScaledTradition {
 	const cached = scalingCache.get(tradition);
 	if (cached !== undefined) return cached;
-	assertTraditionConfig(tradition);
-	const derived = deriveScaling(tradition);
+	const copy = validatedTradition(tradition);
+	const derived = deriveScaling(copy);
+	scalingCache.set(copy, derived);
 	scalingCache.set(tradition, derived);
 	return derived;
 }

@@ -65,6 +65,29 @@ describe("the month animal and gender, against Janson's table", () => {
 		expect(bad).toEqual([]);
 	});
 
+	// Janson: "Each month is given the gender (male or female) associated to its animal"; "odd months
+	// are male" is his shortcut for the attested configs, where the Tiger month is odd. An even
+	// `tigerMonth` is accepted by the validator, and then the month number no longer says which
+	// animal's gender a month has: Rabbit (4) is female wherever it falls.
+	it("takes the gender from the animal, not the month number", () => {
+		const evenTiger = {
+			...PHUGPA,
+			naming: { monthAnimals: { tigerMonth: 12, elementRule: "continuous" as const } },
+		};
+		const rows = [1, 2, 3, 4].map((month) => {
+			const attributes = monthAttributes(evenTiger, 2026, month);
+			return `${month} ${attributes.animal} ${attributes.gender}`;
+		});
+		expect(rows).toEqual(["1 rabbit female", "2 dragon male", "3 snake female", "4 horse male"]);
+		const odd = new Set(["mouse", "tiger", "dragon", "horse", "monkey", "dog"]);
+		const bad: string[] = [];
+		for (let month = 1; month <= 12; month++) {
+			const { animal, gender } = monthAttributes(evenTiger, 2026, month);
+			if (gender !== (odd.has(animal) ? "male" : "female")) bad.push(`${month} ${animal}`);
+		}
+		expect(bad).toEqual([]);
+	});
+
 	it("does not vary the animal with the year", () => {
 		// The animal is a function of the month number alone. A formula that let the year in would
 		// still pass the table check above, which only ever asks about one year.

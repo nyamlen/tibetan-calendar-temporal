@@ -5,9 +5,11 @@ import {
 	composeObservances,
 	EXAMPLE_OBSERVANCES,
 	getObservances,
+	nextObservance,
 	observancesOn,
 } from "../../src/observances/index.js";
 import type { Observance, ObservanceConfig, ObservanceRule } from "../../src/observances/types.js";
+import { ensureValidated } from "../../src/observances/validate.js";
 import { BHUTAN } from "../../src/traditions/bhutan.js";
 import { PHUGPA } from "../../src/traditions/phugpa.js";
 import {
@@ -1869,5 +1871,191 @@ describe("a config with a rule of a form this release does not know", () => {
 		expect(
 			getObservances(iso("2026-01-01"), iso("2026-01-31"), withoutUnknown).length,
 		).toBeGreaterThan(0);
+	});
+});
+
+describe("a rule shifted onto the first day of a year that opens with a leap month", () => {
+	// Phugpa 2279-02-12 is a Losar whose year opens with leap month 1, and the 12/30 before it is
+	// skipped, so `skippedDay: "following"` puts the monthly 30th on Losar itself.
+	const thirtieth: ObservanceConfig = {
+		...EXAMPLE_OBSERVANCES,
+		id: "thirtieth",
+		skippedDay: "following",
+		rules: [{ id: "m30", englishName: "M30", when: { type: "monthly", days: [30] } }],
+	};
+	const losar = iso("2279-02-12");
+	const key = (found: Observance[]) =>
+		found.map((o) => `${o.date.isoDate.toString()} ${o.resolution}`);
+
+	it("finds it in a query that starts on that day, as in a wider one", () => {
+		expect(key(getObservances(iso("2279-02-01"), iso("2279-02-28"), thirtieth))).toContain(
+			"2279-02-12 dayAfterSkipped",
+		);
+		expect(key(getObservances(losar, losar, thirtieth))).toEqual(["2279-02-12 dayAfterSkipped"]);
+		expect(key(observancesOn(losar, thirtieth))).toEqual(["2279-02-12 dayAfterSkipped"]);
+	});
+
+	it("is found by nextObservance from the day before", () => {
+		expect(nextObservance(iso("2279-02-11"), "m30", thirtieth)?.date.isoDate.toString()).toBe(
+			"2279-02-12",
+		);
+	});
+});
+
+describe("an annual window is applied to each entry before one entry beats another", () => {
+	// Tibetan 2132's 12/30 is skipped and follows onto 2006-02-28, where the exact 1/1 of 2133 also
+	// lands. The window ends at 2132, so only the first is in it.
+	const rule = (dates: { month: number; day: number }[], extra = {}): ObservanceConfig => ({
+		...EXAMPLE_OBSERVANCES,
+		id: "windowed",
+		skippedDay: "following",
+		rules: [
+			{
+				id: "w",
+				englishName: "W",
+				when: { type: "annual", dates, untilYear: 2132, ...extra },
+			},
+		],
+	});
+	const day = iso("2006-02-28");
+	const lone = [{ month: 12, day: 30 }];
+	const both = [...lone, { month: 1, day: 1 }];
+
+	it("gives the in-window result whether or not another date is added to the rule", () => {
+		const one = getObservances(day, day, rule(lone));
+		const two = getObservances(day, day, rule(both));
+		expect(one.map((o) => o.resolution)).toEqual(["dayAfterSkipped"]);
+		expect(two.map((o) => o.resolution)).toEqual(["dayAfterSkipped"]);
+	});
+
+	it("reports the age of the in-window occurrence", () => {
+		const found = getObservances(day, day, rule(both, { ageFromYear: 2132 }));
+		expect(found.map((o) => [o.resolution, o.age])).toEqual([["dayAfterSkipped", 0]]);
+	});
+});
+
+describe("a config mutated after its first use", () => {
+	const from = iso("2026-03-01");
+	const to = iso("2026-04-30");
+	const project = (found: Observance[]) =>
+		found.map((o) => `${o.date.isoDate} ${o.date.day}/${o.date.month} ${o.resolution}`);
+	const fresh = (): ObservanceConfig =>
+		({
+			id: "mutated",
+			englishName: "Mutated",
+			doubledDay: "second",
+			skippedDay: "preceding",
+			leapMonth: "leap",
+			levels: [{ id: "l", englishName: "L" }],
+			rules: [{ id: "r", englishName: "R", when: { type: "monthly", days: [30] } }],
+		}) as ObservanceConfig;
+
+	it("keeps answering from the config as it was validated, not from the mutation", () => {
+		const config = fresh();
+		const first = project(getObservances(from, to, config));
+		((config.rules[0] as ObservanceRule).when as unknown as { days: number[] }).days = [31];
+		expect(project(getObservances(from, to, config))).toEqual(first);
+		expect(project(getObservances(from, to, config))).toEqual(
+			project(getObservances(from, to, fresh())),
+		);
+	});
+
+	it("does not escape uncoded when rules become a non-array", () => {
+		const config = fresh();
+		const first = project(getObservances(from, to, config));
+		(config as unknown as { rules: unknown }).rules = null;
+		expect(project(getObservances(from, to, config))).toEqual(first);
+		expect(thrownBy(() => observancesOn(from, config))?.code).toBeUndefined();
+	});
+
+	it("does not name an unknown form as the engine's bug", () => {
+		const config = fresh();
+		getObservances(from, to, config);
+		(config.rules[0] as unknown as { when: unknown }).when = { type: "bogus" };
+		expect(thrownBy(() => getObservances(from, to, config))).toBeUndefined();
+	});
+
+	it("composes from the validated levels and rules, not from the mutation", () => {
+		const config = fresh();
+		const first = composeObservances(config, { id: "c", englishName: "C" });
+		(config as unknown as { levels: unknown }).levels = "oops";
+		(config as unknown as { rules: unknown }).rules = null;
+		const again = composeObservances(config, { id: "c", englishName: "C" });
+		expect(again).toEqual(first);
+	});
+
+	it("hands the engine a private copy, so a result's rule is not the caller's object", () => {
+		const config = fresh();
+		const found = getObservances(from, to, config);
+		expect(found[0]?.rule).not.toBe(config.rules[0]);
+		expect(Object.isFrozen(found[0]?.rule)).toBe(true);
+	});
+});
+
+describe("an observance config structuredClone cannot copy", () => {
+	it("is refused with the config's code, naming the export", () => {
+		const proxied = new Proxy({ ...EXAMPLE_OBSERVANCES, id: "proxied" }, {}) as ObservanceConfig;
+		const error = thrownBy(() => observancesOn(iso("2026-03-03"), proxied));
+		expect(error?.code).toBe(CONFIG_CODE);
+		expect(error?.message).toMatch(/observancesOn\(config\).*could not be copied/);
+	});
+});
+
+describe("an observance config's private copy", () => {
+	const spread = (): ObservanceConfig => structuredClone(EXAMPLE_OBSERVANCES);
+	const day = iso("2026-03-03");
+	// Valid for its first read and empty for every later one: validation reads `englishName` once,
+	// the clone reads it again, and the copy is then plain data holding the invalid value.
+	const answersOnce = (): ObservanceConfig => {
+		const config = spread();
+		let reads = 0;
+		Object.defineProperty(config, "englishName", {
+			enumerable: true,
+			configurable: true,
+			get: () => (reads++ === 0 ? "Answers once" : ""),
+		});
+		return config;
+	};
+
+	it("is deeply frozen and is never the caller's object", () => {
+		const config = spread();
+		const rule = getObservances(day, day, config)[0]?.rule ?? config.rules[0];
+		expect(rule).not.toBe(config.rules[0]);
+		expect(Object.isFrozen(rule)).toBe(true);
+		expect(Object.isFrozen(rule?.when)).toBe(true);
+		expect(Object.isFrozen(config)).toBe(false);
+	});
+
+	it("refuses a config that is valid when read and invalid once copied", () => {
+		const error = thrownBy(() => observancesOn(day, answersOnce()));
+		expect(error?.code).toBe(CONFIG_CODE);
+		expect(error?.message).toMatch(/englishName must be a non-empty string/);
+	});
+
+	it("does not cache a refusal", () => {
+		const config = answersOnce();
+		const first = thrownBy(() => observancesOn(day, config));
+		expect(first?.message).toMatch(/englishName must be a non-empty string/);
+		const second = thrownBy(() => observancesOn(day, config));
+		expect(second?.code).toBe(CONFIG_CODE);
+		expect(second?.message).toMatch(/englishName must be a non-empty string/);
+	});
+
+	// Through the guard itself: an export revalidates the copy it is handed, which would mask a refusal that had been cached.
+	it("does not cache a refusal, seen at the guard", () => {
+		const config = answersOnce();
+		expect(thrownBy(() => ensureValidated(config, "observancesOn"))?.code).toBe(CONFIG_CODE);
+		const second = thrownBy(() => ensureValidated(config, "observancesOn"));
+		expect(second?.code).toBe(CONFIG_CODE);
+		expect(second?.message).toMatch(/englishName must be a non-empty string/);
+	});
+
+	it("refuses a revoked Proxy at the cache lookup, with the config's code and the caller's error as cause", () => {
+		const { proxy, revoke } = Proxy.revocable(spread(), {});
+		revoke();
+		const error = thrownBy(() => observancesOn(day, proxy));
+		expect(error?.code).toBe(CONFIG_CODE);
+		expect(error?.message).toMatch(/observancesOn\(config\): the config could not be read/);
+		expect(error?.cause).toBeInstanceOf(TypeError);
 	});
 });

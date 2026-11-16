@@ -23,6 +23,7 @@ import { monthCodeOf } from "../format.js";
 import { weekdayNameWithOffset } from "../names.js";
 import {
 	assertIsoCalendar,
+	assertTemporalPresent,
 	temporalKindOf,
 	temporalTypeNameOf,
 	toNativePlainDate,
@@ -32,13 +33,14 @@ import type { TraditionConfig } from "../traditions/types.js";
 import type {
 	TibetanDate,
 	TibetanDateFields,
-	TibetanMonthFields,
+	TibetanDateSnapshot,
+	TibetanMonthSnapshot,
 	TibetanWeekday,
 } from "../types.js";
 import { assertTibetanRanges, assertTibetanShape, SkippedDayError } from "../types.js";
 import { floorDiv, mod } from "./arithmetic.js";
 import {
-	assertClosedFormYear,
+	assertMonthCountYear,
 	classifyDay,
 	losarJulianDay,
 	monthFromCount,
@@ -155,6 +157,7 @@ export function asPlainDate(date: Temporal.PlainDate, subject?: string): Tempora
 							: ""),
 		);
 	}
+	assertTemporalPresent();
 	try {
 		return assertIsoCalendar(Temporal.PlainDate.from(raw));
 	} catch (error) {
@@ -225,6 +228,7 @@ export function asWesternDay(
 				"TCT_INVALID_ARGUMENT",
 				`${functionName}: received a value that cannot be read — reading its isoDate threw ` +
 					`${thrownDetail(error)}. Pass the date itself.`,
+				error,
 			);
 		}
 		if (temporalKindOf(isoDate) === "PlainDate") return asPlainDate(isoDate as Temporal.PlainDate);
@@ -484,11 +488,11 @@ export function tibetanToIso(
 	input: TibetanDateFields,
 	tradition: TraditionConfig = PHUGPA,
 ): Temporal.PlainDate {
-	assertTibetanShape("tibetanToIso", input, "date");
+	const fields = assertTibetanShape("tibetanToIso", input, "date");
 	// The tradition between the shape and the range, the order tibetanDateExists depends on.
-	scalingFor(tradition);
-	const subject = assertTibetanRanges("tibetanToIso", input, "date");
-	return isoFromJulianDayUnchecked(julianDayOfFields(subject, tradition, input));
+	tradition = scalingFor(tradition).tradition;
+	const subject = assertTibetanRanges("tibetanToIso", fields, "date");
+	return isoFromJulianDayUnchecked(julianDayOfFields(subject, tradition, fields));
 }
 
 /**
@@ -508,10 +512,10 @@ export function tibetanToIso(
 export function monthCountFor(
 	subject: () => string,
 	tradition: TraditionConfig,
-	month: TibetanMonthFields,
+	month: TibetanMonthSnapshot,
 ): number {
 	const year = yearFromRoyalEra(month.year);
-	assertClosedFormYear(subject, year, tradition);
+	assertMonthCountYear(subject, year, tradition);
 	const isLeapMonth = month.isLeapMonth ?? false;
 	// Without this, asking for a leap month that does not exist returns the *previous* month's count
 	// rather than refusing — a wrong answer indistinguishable from a right one.
@@ -534,13 +538,13 @@ export function monthCountFor(
  * `tibetanDateExists` report their own name rather than `tibetanToIso`'s. Not exported from the
  * package barrel.
  *
- * Throws {@link SkippedDayError} carrying the caller's own object, since `docs/guide.md` promises
- * that `error.requested` is the input that was passed.
+ * Throws {@link SkippedDayError} carrying the snapshot of the fields the caller passed, which equals
+ * the input in value: `docs/guide.md` promises that `error.requested` is the date that was passed.
  */
 export function julianDayOfFields(
 	subject: () => string,
 	tradition: TraditionConfig,
-	date: TibetanDateFields,
+	date: TibetanDateSnapshot,
 ): number {
 	const scaled = scalingFor(tradition);
 	const monthCount = monthCountFor(subject, tradition, date);
@@ -560,10 +564,14 @@ export function julianDayOfFields(
 	const classification = classifyDay(scaled, date.day, monthCount);
 
 	if (classification.kind === "skipped") throw new SkippedDayError(date);
-	if (classification.kind === "doubled" && (date.isLeapDay ?? false)) {
-		return classification.leapJulianDay as number;
-	}
-	return classification.julianDay as number;
+	const julianDay =
+		classification.kind === "doubled" && (date.isLeapDay ?? false)
+			? (classification.leapJulianDay as number)
+			: (classification.julianDay as number);
+	// The mean date above is within 0.6 days of the true date, so the day returned can lie just past
+	// the bound the mean date passed, where `isoToTibetan` refuses it.
+	assertExactJulianDay(scaled, julianDay, subject);
+	return julianDay;
 }
 
 /**
@@ -625,10 +633,10 @@ export function tibetanDateExists(
 	// are checked outside the `try`, so a Temporal instance or a broken config throws rather than
 	// answering `false`; the range is checked inside it, and only after the tradition — checked
 	// first, a range error would be swallowed and a broken config reported as a missing date.
-	assertTibetanShape("tibetanDateExists", input, "date");
-	scalingFor(tradition);
+	const fields = assertTibetanShape("tibetanDateExists", input, "date");
+	tradition = scalingFor(tradition).tradition;
 	try {
-		julianDayOfFields(assertTibetanRanges("tibetanDateExists", input, "date"), tradition, input);
+		julianDayOfFields(assertTibetanRanges("tibetanDateExists", fields, "date"), tradition, fields);
 		return true;
 	} catch (error) {
 		// Matched by class first, as before: SkippedDayError carries TCT_SKIPPED_DAY too, but the
@@ -681,10 +689,13 @@ export function isoToTibetan(
 	date: Temporal.PlainDate,
 	tradition: TraditionConfig = PHUGPA,
 ): TibetanDate {
-	const scaled = scalingFor(tradition);
+	// The shape, then the tradition, then the range: the one order every other Western-date export
+	// reports a doubly-bad call in.
 	// Normalised once here rather than relying on julianDayFromIso alone, so the error message below
 	// quotes the date the caller meant rather than whatever they passed.
 	const plain = asPlainDate(date);
+	const scaled = scalingFor(tradition);
+	tradition = scaled.tradition;
 	const target = julianDayFromIso(plain);
 	assertExactJulianDay(scaled, target, () => plain.toString());
 
@@ -779,6 +790,7 @@ export function isoToTibetan(
  */
 export function losarFor(year: number, tradition: TraditionConfig = PHUGPA): TibetanDate {
 	const scaled = scalingFor(tradition);
+	tradition = scaled.tradition;
 	assertSafeYear(`losarFor(${describe(year)})`, year);
 	const julianDay = losarJulianDay(scaled, tradition, yearFromRoyalEra(year));
 	assertExactJulianDay(scaled, julianDay, () => `losarFor(${year})`);

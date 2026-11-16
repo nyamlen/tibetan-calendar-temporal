@@ -3,6 +3,7 @@ import { TRIGRAM_NAMES } from "../../src/astrology/calendar-day.js";
 import {
 	attributesFor,
 	calendarDayAttributesFor,
+	elementalYoga,
 	elementalYogaFor,
 	lunarDayAttributesFor,
 	lunarMansionFor,
@@ -10,9 +11,8 @@ import {
 	yearAttributesFor,
 } from "../../src/astrology/index.js";
 import { isoToTibetan, tibetanDateExists } from "../../src/computation/conversion.js";
-import { weekdayNameFor } from "../../src/cycles.js";
 import { NAME_TABLES } from "../../src/names.js";
-import { BHUTAN } from "../../src/traditions/bhutan.js";
+import { BHUTAN, BHUTAN_HENNING } from "../../src/traditions/bhutan.js";
 import { PHUGPA, PHUGPA_HENNING } from "../../src/traditions/phugpa.js";
 import { thrownBy } from "../support/thrown.js";
 
@@ -48,8 +48,8 @@ describe("the composition on a doubled date", () => {
 		// `isLeapDay` down to the mansion. A code review proved that on 2026-09-12 by deleting the flag
 		// and watching all 990 tests stay green, while 19 of 31 doubled-first days changed answer —
 		// including this one, from maraṇa to amṛta.
-		expect(first.yoga.sanskritName.iast).toBe("maraṇa");
-		expect(second.yoga.sanskritName.iast).toBe("pratikūla");
+		expect(first.yoga?.sanskritName.iast).toBe("maraṇa");
+		expect(second.yoga?.sanskritName.iast).toBe("pratikūla");
 	});
 
 	it("differs on the calendar day, because there are two calendar days", () => {
@@ -73,7 +73,7 @@ describe("the composition on a doubled date", () => {
 			false,
 		]);
 		expect([july9.lunarMansion.index, july10.lunarMansion.index]).toEqual([8, 9]);
-		expect([july9.yoga.englishName, july10.yoga.englishName]).toEqual(["death", "death"]);
+		expect([july9.yoga?.englishName, july10.yoga?.englishName]).toEqual(["death", "death"]);
 	});
 
 	it("marks which half is which, so a caller can tell them apart", () => {
@@ -167,56 +167,72 @@ describe("the year entry point", () => {
 		);
 	});
 });
-describe("the yoga's weekday element is tradition-free", () => {
+describe("the yoga is unsourced under a shifted weekday", () => {
 	/**
-	 * Janson gives the yoga's weekday element in one table, states Bhutan's name shift separately as a
-	 * naming feature, and never revisits the yoga for it. So the engine takes his printed table and
-	 * does not let `naming.weekdayOffset` propagate — following the shifted *name* would be an
-	 * inference nobody has published, and external validation here is Phugpa only.
-	 *
-	 * Until 2026-09-12 the offset did propagate, which gave Bhutan a different yoga on 12 of 14
-	 * consecutive days and made two shipped claims false: `TraditionNaming.weekdayOffset`'s "applies to
-	 * the name only", and `docs/astrology.md`'s "the yoga varies only through the mansion".
+	 * Under a nonzero `naming.weekdayOffset` the whole weekday moves (name, planet and element), and
+	 * no source says what the yoga's weekday element is then. So the yoga is refused rather than
+	 * answered from either table. It was answered from the unshifted table until 2026-11-16, which
+	 * paired a Bhutanese Saturday's name with the element of a different day.
 	 */
-	it("pairs the unshifted weekday element even under a tradition that shifts the name", () => {
+	const BHUTANESE = [BHUTAN, BHUTAN_HENNING];
+
+	it("is refused by the primitive with TCT_ATTRIBUTE_NOT_SOURCED, under both Bhutanese configs", () => {
+		for (const tradition of BHUTANESE) {
+			for (const day of ["2026-09-01", "2026-02-14", "2024-05-15"]) {
+				const error = thrownBy(() => elementalYogaFor(iso(day), tradition));
+				expect(error?.code, `${tradition.name} ${day}`).toBe("TCT_ATTRIBUTE_NOT_SOURCED");
+			}
+		}
+	});
+
+	it("is refused on every one of 14 consecutive days, so the refusal is not a weekday's", () => {
 		const bad: string[] = [];
 		let day = iso("2026-09-01");
-		for (let i = 0; i < 28; i++) {
-			const resolved = isoToTibetan(day, BHUTAN);
-			// Bhutan's own naming says one planet on; the yoga must still use the element Janson's
-			// weekday table gives for that weekday number.
-			const shifted = weekdayNameFor(resolved.tibetanWeekday, BHUTAN).element;
-			const unshifted = weekdayNameFor(resolved.tibetanWeekday, PHUGPA).element;
-			const yoga = elementalYogaFor(day, BHUTAN);
-			if (!yoga.elements.includes(unshifted)) {
-				bad.push(`${day}: ${yoga.elements.join("+")} omits ${unshifted}`);
-			}
-			if (shifted !== unshifted && yoga.elements.every((e) => e === shifted)) {
-				bad.push(`${day}: both halves are Bhutan's shifted ${shifted}`);
-			}
+		for (let i = 0; i < 14; i++) {
+			const code = thrownBy(() => elementalYogaFor(day, BHUTAN))?.code;
+			if (code !== "TCT_ATTRIBUTE_NOT_SOURCED") bad.push(`${day}: ${code}`);
 			day = day.add({ days: 1 });
 		}
 		expect(bad).toEqual([]);
 	});
 
-	it("still lets the mansion differ between traditions, which is the one thing that should", () => {
-		// docs/astrology.md: "the yoga varies only through the mansion". Bhutan's month count differs
-		// from Phugpa's, so some days genuinely disagree — the claim is about the *route*, not about
-		// the answers being identical. A suite asserting equality outright would be wrong.
-		let day = iso("2026-09-01");
-		let differing = 0;
-		for (let i = 0; i < 28; i++) {
-			if (
-				elementalYogaFor(day, PHUGPA).sanskritName.iast !==
-				elementalYogaFor(day, BHUTAN).sanskritName.iast
-			) {
-				differing++;
-			}
-			day = day.add({ days: 1 });
+	it("is reached through the config's weekdayOffset, not through the tradition's name", () => {
+		const renamed = { ...PHUGPA, name: "bhutan-looking", naming: { weekdayOffset: 1 } };
+		expect(thrownBy(() => elementalYogaFor(iso("2026-09-01"), renamed))?.code).toBe(
+			"TCT_ATTRIBUTE_NOT_SOURCED",
+		);
+		const unshifted = { ...BHUTAN, naming: { weekdayOffset: 0 } };
+		expect(elementalYogaFor(iso("2026-09-01"), unshifted).englishName).toBe("death");
+	});
+
+	it("leaves tibetanDateExists true for the date, and throws a RangeError rather than a skipped-day error", () => {
+		const resolved = isoToTibetan(iso("2026-09-01"), BHUTAN);
+		expect(tibetanDateExists(resolved, BHUTAN)).toBe(true);
+		expect(thrownBy(() => elementalYogaFor(iso("2026-09-01"), BHUTAN))).toBeInstanceOf(RangeError);
+	});
+
+	it("reports null in the composition and leaves every other attribute as it was", () => {
+		for (const tradition of BHUTANESE) {
+			const day = iso("2026-09-01");
+			const attributes = attributesFor(day, tradition);
+			expect(attributes.yoga, tradition.name).toBeNull();
+			expect(attributes.lunarMansion, tradition.name).toEqual(lunarMansionFor(day, tradition));
+			expect(attributes.calendarDay, tradition.name).toEqual(attributesFor(day).calendarDay);
+			expect(attributes.year, tradition.name).toEqual(attributesFor(day).year);
+			expect(attributes.date, tradition.name).toEqual(isoToTibetan(day, tradition));
 		}
-		expect(differing).toBeGreaterThan(0);
-		// And far fewer than the weekday offset produced: it moved 12 of every 14.
-		expect(differing).toBeLessThan(14);
+	});
+
+	it("leaves Phugpa's yoga unchanged, pinned by value", () => {
+		for (const tradition of [PHUGPA, PHUGPA_HENNING]) {
+			expect(elementalYogaFor(iso("2026-09-01"), tradition).englishName).toBe("death");
+			expect(attributesFor(iso("2024-05-15"), tradition).yoga?.sanskritName.iast).toBe("maraṇa");
+			expect(attributesFor(iso("2024-05-16"), tradition).yoga?.sanskritName.iast).toBe("pratikūla");
+		}
+	});
+
+	it("keeps the element-pair primitive free of any tradition", () => {
+		expect(elementalYoga("fire", "water").sanskritName.iast).toBe("maraṇa");
 	});
 });
 
@@ -357,5 +373,54 @@ describe("the tradition is the last parameter, positional", () => {
 		// 8 September 2026: Phugpa's month count puts the moon in mansion 6, Bhutan's in 7.
 		expect(lunarMansionFor(iso("2026-09-08")).index).toBe(6);
 		expect(lunarMansionFor(iso("2026-09-08"), BHUTAN).index).toBe(7);
+	});
+});
+
+describe("yearAttributesFor at the extreme safe integers", () => {
+	const representative = (year: number) => {
+		const r = ((year % 180) + 180) % 180;
+		return 2000 + ((r - 2000 + 180 * 1000) % 180);
+	};
+
+	it("equals the answer for a small year in the same class mod 180, at both ends", () => {
+		const bad: string[] = [];
+		for (let k = 0; k < 3000; k++) {
+			for (const year of [Number.MIN_SAFE_INTEGER + k, Number.MAX_SAFE_INTEGER - k]) {
+				const rep = representative(year);
+				if (((rep % 180) + 180) % 180 !== ((year % 180) + 180) % 180) {
+					bad.push(`${year}: bad representative ${rep}`);
+					continue;
+				}
+				if (JSON.stringify(yearAttributesFor(year)) !== JSON.stringify(yearAttributesFor(rep))) {
+					bad.push(`${year} differs from ${rep}`);
+				}
+			}
+		}
+		expect(bad).toEqual([]);
+	});
+
+	it("pins a value: MIN_SAFE_INTEGER is a horse year with cyclePosition 19", () => {
+		const got = yearAttributesFor(Number.MIN_SAFE_INTEGER);
+		expect(got.animal).toBe("horse");
+		expect(got.cyclePosition).toBe(19);
+	});
+
+	it("pins the top: MAX_SAFE_INTEGER is a monkey year, cyclePosition 21, power wood", () => {
+		const got = yearAttributesFor(Number.MAX_SAFE_INTEGER);
+		expect(got.animal).toBe("monkey");
+		expect(got.cyclePosition).toBe(21);
+		expect(got.power).toBe("wood");
+	});
+
+	it("has period 180 over 1900 to 2400, and no proper divisor of 180 is one", () => {
+		const key = (y: number) => JSON.stringify(yearAttributesFor(y));
+		const failures: number[] = [];
+		for (let y = 1900; y < 2400; y++) if (key(y) !== key(y + 180)) failures.push(y);
+		expect(failures).toEqual([]);
+		for (const d of [1, 2, 3, 4, 5, 6, 9, 10, 12, 15, 18, 20, 30, 36, 45, 60, 90]) {
+			let differs = false;
+			for (let y = 1900; y < 2080 && !differs; y++) differs = key(y) !== key(y + d);
+			expect(differs, `period ${d}`).toBe(true);
+		}
 	});
 });

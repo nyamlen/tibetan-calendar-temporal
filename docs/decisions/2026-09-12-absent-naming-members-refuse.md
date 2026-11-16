@@ -111,6 +111,6 @@ What a contributor would otherwise do is make `nineNumbers` required-when-presen
 `monthAnimals`, for symmetry.
 That would make `PHUGPA` restate a default and would make "unnumbered" look like a claim someone
 had to source per tradition, when Janson has already made it for all of them.
-A present `naming.months` is rejected by the validator rather than ignored, because nothing rejects
-unknown keys and a spread of `PHUGPA.naming` carrying Tsurphu's rules under the old name would
-otherwise keep Phugpa's animals.
+A present `naming.months` is rejected by the validator with a message of its own, rather than as one
+more unknown key, because a spread of `PHUGPA.naming` carrying Tsurphu's rules under the old name
+would otherwise keep Phugpa's animals, and the message says where the rules went.

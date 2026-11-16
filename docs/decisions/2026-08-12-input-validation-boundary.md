@@ -106,23 +106,42 @@ cost, far beyond a day-walker like `eachDayOfInterval`.
 
 ## Consumer configs are validated once per object
 
-**Both** config types, on the same pattern: checked rather than trusted, memoised on a `WeakSet`
-keyed by the config object — the same bargain `scalingFor` already makes with its `WeakMap`. A
-consumer who mutates a config in place after first use escapes revalidation; that is accepted, not
-overlooked.
+**Both** config types, on the same pattern: checked rather than trusted, validated once per config
+**object**, and the engine reads a **private, deeply frozen copy** made at that moment — never the
+caller's object. The copy is memoised on a `WeakMap` keyed by the object the caller passed, and
+maps to itself, so passing a copy back is a hit. A consumer who mutates a config in place after
+first use therefore changes nothing the engine sees: the answers stay those of the config as it was
+validated.
 
-The bargain covers **consumer-supplied** configs only. `PHUGPA`, `PHUGPA_HENNING` and `EXAMPLE_OBSERVANCES` are
-deeply frozen, because they are the objects the docs point a reader at for `{ ...PHUGPA, … }` and so
-the ones a keystroke off a spread mutates. Keep them frozen: a mutation after first use produces
-neither the old constants nor the new ones but a stale mix — a fresh `moonTab` beside a
-`commonDenominator` derived from the old one — and unfreezing them later would be no easier than
-freezing them was.
+That is not the bargain `scalingFor`'s cache makes, and the two must not be confused. The scaling
+cache derives its constants once and keeps serving them, so a mutated config gets stale answers
+that are still internally consistent. Validation without a copy was worse: `getObservances` and
+the calendar functions re-read `rules`, `when`, `moonTab`, `leapIndexThreshold` and the other
+fields from the caller's object on every call, so a mutation after first use got **unvalidated**
+reads — a `days: [31]` that extrapolated into the next month, a `rules: null` that escaped as an
+uncoded `TypeError`, a table of the wrong length that surfaced as `TCT_INTERNAL`, which tells the
+consumer to report the engine's bug for their own mistake. Reading a validated copy closes all of
+those at once, and `scalingFor` now derives from the same copy, so the scaling and the fields the
+arithmetic reads can no longer disagree.
 
-`ObservanceConfig` is validated by `validateObservanceConfig` in `src/observances/validate.ts`;
-`TraditionConfig` by [`assertTraditionConfig`](../../src/traditions/validate.ts), called from both
-`scalingFor` functions, which are the single choke point every public entry reaches. Because the
-scaling derivation is already memoised per object, the check costs nothing after the first call —
-which is what lets it be thorough without touching the hot path.
+The copy is made by `structuredClone` after the check and checked again as a new object, because a
+getter, an inherited field or a non-enumerable one answers differently once cloned. A value
+`structuredClone` cannot copy is refused with the config's own code, not a `DOMException`. A new
+object — a fresh `{ ...PHUGPA, … }` — is validated and copied again, which is what makes it the
+way to change a config. Two consequences follow. `Observance.rule` is the copy's rule object, not
+the caller's, and it is frozen. And a config's identity is not preserved: the engine's copy is never
+`===` the object a consumer passed, shipped configs included.
+
+`PHUGPA`, `PHUGPA_HENNING`, `BHUTAN`, `BHUTAN_HENNING` and `EXAMPLE_OBSERVANCES` are still deeply
+frozen, because they are the objects the docs point a reader at for `{ ...PHUGPA, … }` and so the
+ones a keystroke off a spread mutates: freezing stops the mutation reaching the shared singleton
+itself, where the copy only protects the engine. Keep them frozen.
+
+`ObservanceConfig` is validated by `ensureValidated` in `src/observances/validate.ts`, which
+returns the copy; `TraditionConfig` by [`validatedTradition`](../../src/traditions/validate.ts),
+which returns the copy and which every entry point and `scalingFor` read the tradition through.
+`composeObservances` returns the validated copy of its candidate, so composing from a result
+as a base finds it already in the map.
 
 Add a config type, and it gets a validator. `TraditionConfig` went unchecked for a while despite
 this record already requiring "integrality, range, **and config shape**", and the gap was invisible
@@ -155,7 +174,9 @@ convert back.
 
 The window now derives from the tradition in
 [`deriveScaling`](../../src/computation/scaling.ts), and the general check in the validator bounds
-the **derived window** rather than the table magnitudes. Bounding the tables instead would mean
+the **derived window** rather than the table magnitudes. The validator runs that derivation, so a
+config whose window or common denominator cannot be derived is refused by every export on its first
+call, never by only the exports that reach the scaling. Bounding the tables instead would mean
 writing `|moonTab| ≤ 25` — hardcoding Phugpa's numbers into the injectable field all over again —
 and deciding "is this Phugpa" from a consumer-settable `id`. Phugpa-specific assertions belong in
 the test suite, where `deriveScaling(PHUGPA).searchHalfWidth === 3` also guards the tables against a

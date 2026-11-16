@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { attributesFor, elementalYogaFor } from "../src/astrology/index.js";
 import { lunarDayAttributes } from "../src/astrology/lunar-day.js";
 import { monthAttributes } from "../src/astrology/month.js";
 import { isoToTibetan, losarFor, tibetanToIso } from "../src/computation/conversion.js";
@@ -21,6 +22,7 @@ import { composeObservances, EXAMPLE_OBSERVANCES } from "../src/observances/inde
 import { BHUTAN } from "../src/traditions/bhutan.js";
 import { PHUGPA } from "../src/traditions/phugpa.js";
 import { asTibetanWeekday, type TibetanWeekday } from "../src/types.js";
+import { thrownBy } from "./support/thrown.js";
 
 /**
  * Every docblock `@example` in `src/` that states a concrete result, asserted.
@@ -287,6 +289,18 @@ describe("docblock examples", () => {
 				number: 7,
 			});
 			expect(day.tibetanNames.trigram.wylie).toBe("kham");
+		});
+	});
+
+	describe("astrology/index.ts", () => {
+		it("states the yoga of 1 September 2026, and its refusal under BHUTAN", () => {
+			const date = Temporal.PlainDate.from("2026-09-01");
+			expect(attributesFor(date).yoga?.englishName).toBe("death");
+			expect(elementalYogaFor(date).englishName).toBe("death");
+			expect(attributesFor(date, BHUTAN).yoga).toBeNull();
+			expect(thrownBy(() => elementalYogaFor(date, BHUTAN))?.code).toBe(
+				"TCT_ATTRIBUTE_NOT_SOURCED",
+			);
 		});
 	});
 });

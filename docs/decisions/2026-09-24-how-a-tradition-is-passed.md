@@ -49,8 +49,10 @@ what happens if one arrives.
 - **Do not export `TraditionOptions` alone as a parameter type.** It exists as the base of the
   two-choice bags. It is declared in `src/traditions/types.ts`, outside the barrels, so that
   `check:conventions` rule 13 would see it if it were ever exported.
-- **The unknown-key refusal applies to bags, never to a config.** `{ ...PHUGPA, extra }` is a
-  supported way to build a `TraditionConfig` and must keep working. `assertQueryOptions` checks
+- **The unknown-key refusal in `assertQueryOptions` applies to bags.** A `TraditionConfig` refuses
+  unknown keys in its own validator, with `TCT_INVALID_TRADITION_CONFIG`, as an `ObservanceConfig`
+  does with its code; `{ ...PHUGPA, extra }` is therefore refused, and a misspelt field is not a
+  setting that silently does nothing. `assertQueryOptions` checks
   inherited keys as well as own ones, because the call sites read `options.tradition`, which honours
   an inherited key — but **stops at `Object.prototype`**. A bare `for…in` went past it for a few
   hours, so any dependency that made a key enumerable there made every bag function throw, even one

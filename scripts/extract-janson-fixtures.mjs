@@ -6,8 +6,11 @@
  *   node scripts/extract-janson-fixtures.mjs <path-to-tibet.tex>
  *
  * Obtain the source with:
- *   curl -o 1401.6285.gz https://arxiv.org/e-print/1401.6285
+ *   curl -L -o 1401.6285.gz https://arxiv.org/e-print/1401.6285
  *   gzip -dc 1401.6285.gz > tibet.tex
+ *
+ * `-L` is required: arXiv redirects /e-print/ to /src/, and without it curl saves a 215-byte
+ * redirect page that gunzips to an empty file.
  *
  * Keep `tibet.tex` OUTSIDE this repository. arXiv's default submission licence grants arXiv
  * distribution rights, not third-party redistribution, so vendoring a copy here would raise

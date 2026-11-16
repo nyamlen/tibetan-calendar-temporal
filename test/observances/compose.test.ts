@@ -563,8 +563,8 @@ describe("composeObservances: hostile values nested in rules and levels", () => 
 
 // A Proxy with no traps is indistinguishable from its target to every read the validator makes, so
 // it passes validation, and `structuredClone` then refuses it. That refusal is the caller's input
-// being the wrong kind of thing, and it carries a code. A Proxy whose trap throws is a different
-// case, and the README leaves it uncoded: the error is the caller's own.
+// being the wrong kind of thing, and it carries a code. A Proxy whose trap throws is refused with the
+// same code, and the caller's own error is its `cause`.
 describe("composeObservances: a Proxy standing for a whole rule or level", () => {
 	const proxied = <T extends object>(target: T): T => new Proxy(target, {});
 	const rule = () => monthly("q");

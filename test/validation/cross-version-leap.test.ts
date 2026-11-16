@@ -19,7 +19,7 @@
  * The configs come from `test/support/versions.ts` — `PHUGPA` with three fields replaced, which is
  * legitimate precisely because nothing else participates. `leapMonthPosition` is the third and does
  * not affect anything this file asserts — a leap month's *number* is the same whichever side of its
- * twin it falls — but `test/validation/bhutan-month-sequence.test.ts` turns on it, which is why the
+ * twin it falls — but `test/validation/bhutan.test.ts` turns on it, which is why the
  * four now live in one place rather than being restated per suite.
  */
 

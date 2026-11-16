@@ -2,8 +2,11 @@
 
 **Status: reference, not shipped data.** Nothing in `src/` or `test/` reads this file.
 
-**Exported means day-by-day validated.** `PHUGPA`, `PHUGPA_HENNING`, `BHUTAN` and `BHUTAN_HENNING`
-are exported because each has been tiled against an external calendar day by day. Tsurphu and the
+**Exported means checked against an external calendar, and the docblock says how.** `PHUGPA`,
+`PHUGPA_HENNING`, `BHUTAN` and `BHUTAN_HENNING` are exported because each is checked.
+`PHUGPA`, `PHUGPA_HENNING` and `BHUTAN_HENNING` have been tiled day by day;
+`BHUTAN` has not, and rests on twenty-five days of the Royal Government's own calendar — see
+[the decision record](decisions/2026-08-16-exported-means-validated.md). Tsurphu and the
 Mongolian version are documented here and *not* exported, and the difference is evidence rather than
 effort: their leap months are validated against Janson, their dates against nothing. That is the
 rule, not an accident of what got written first — see "Why there are no drop-in configs here".
@@ -196,20 +199,30 @@ The check is deliberately about **months, not dates**, and that is what let it r
 depends on the epoch, the threshold and the position alone. Bhutan's `m₀`, `s₀` and `a₀` are still
 unreconciled, so no day-level Bhutanese date is claimed here.
 
-### A defect in the fixture, recorded not smoothed
+### A defect in the source, recorded not smoothed
 
-Its leap months reproduce Janson's four-version table exactly for twelve of thirteen, then carry a
-thirteenth he does not list: a leap month 2 from 2030-04-03, directly after the leap month 1 he does.
+The source's leap months reproduce Janson's four-version table exactly for twelve of thirteen, then
+carry a thirteenth he does not list: a leap month 2 from 2030-04-03, directly after the leap month 1 he
+does.
 That year would hold regular 1, leap 1, leap 2, regular 3 — two consecutive leap months and no
-regular month 2. The upstream leaves its leap flag set one month too long, once.
+regular month 2. The upstream leaves its leap flag set one month too long.
+That is not a single slip.
+Measured over the source's whole span, 1900-01-31 to 2101-02-27, there are seven such runs, each a
+leap 2 straight after a leap 1: 1900-03-31, 1919-04-01, 1965-04-02, 1984-04-02, 2030-04-03,
+2049-04-03 and 2095-04-05.
+Only the one in 2030 falls in a year of Janson's table, so it is the only one this fixture could have
+carried.
 
-`scripts/fetch-bhutan-fixtures.mjs` now carries a fifth check requiring every leap month to be paired
-with a regular month of the same number immediately before it. Validation runs up to the anomaly and
-the anomaly is pinned exactly, so a corrected re-fetch fails the test and reopens the window rather
-than leaving a narrower check than the data supports.
+`scripts/fetch-bhutan-fixtures.mjs` carries a fifth check requiring every leap month in the emitted
+window to be paired with a regular month of the same number immediately before it.
+The fixture ends the day before the defect (its extent is in [testing.md](testing.md)), and `test/validation/bhutan.test.ts` pins
+that end, so a regenerated fixture that reached the defect fails there.
+The check read a field the rows do not have until 2026-11-16, so its pairing half had never fired;
+`scripts/evidence/bhutan-fixtures/` proves it now does.
 
-**One consequence to know before re-running that script: it will now refuse to write this window.**
-The committed fixture predates the fifth check and does not satisfy it.
+The generator records the first unpaired leap month after the window and the count inside Janson's
+table years in the fixture itself, measured from the source on every run, and
+`test/validation/bhutan.test.ts` asserts that the window ends on the day before the first.
 
 ### The a₂ fork is one fork, not one per tradition
 
@@ -219,8 +232,9 @@ proposed by Minling Lochen Dharmashri (1654–1717). So the choice is between **
 Henning's computed calendars**, across all four versions at once — not between Tibet and Bhutan.
 
 `BHUTAN` therefore keeps the rounded value, exactly as `PHUGPA` does, and `BHUTAN_HENNING` carries
-the exact one. They differ on **three days in 11,050** — 2001-12-10, 2004-04-10 and 2020-04-23 —
-about one in 3,700, matching the rate Janson gives for Tibet.
+the exact one. They differ on **three days of the swept window** — 2001-12-10, 2004-04-10 and 2020-04-23 —
+against the nominal one in 4,100 Janson gives for Tibet; the window and its day count are in
+[testing.md](testing.md).
 
 **Which side the validation data sits on, stated plainly.** The only day-by-day Bhutanese calendar
 available descends from Henning's own software, so it follows Henning's `a₂` and validates
@@ -240,7 +254,10 @@ winter solstice computed at mean solar longitude 250° that has no counterpart i
 
 Bhutan names its **weekdays one planet ahead** of Tibet — Saturday is *nyi ma* there where Tibet has
 *spen pa*. That is `TraditionNaming.weekdayOffset`, a naming concern rather than a calendrical one,
-and it affects no date.
+and it affects no date. It moves the whole weekday — name, planet and element — so a Bhutanese
+Saturday is *nyi ma*, the Sun, fire, and the elemental yoga, which pairs the weekday's element with
+the mansion's, is refused under it as unsourced: Janson and Henning's Bhutanese data carry the name
+and planet, and nothing says what the yoga does with the shifted element.
 
 ## Still Tsurphu's, and not modelled
 

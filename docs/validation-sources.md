@@ -127,8 +127,8 @@ icons**, not with the almanac.
 
 | Source | Lineage | Format | Coverage | Settles |
 |---|---|---|---|---|
-| `bhutan.ts` | **Henning** | SQL tuples via a WordPress plugin | 11,050 days compared, 1 Jan 2000 – 2 Apr 2030; the file holds 11,323, to 31 Dec 2030 | day numbers, months, leap months |
-| `rgob.ts` | **almanac** (Ministry of Home Affairs) | scanned PDF, hand-read | 25 days, 2025–2026 | day numbers, 3 skipped + 2 doubled days, Losar |
+| `bhutan.ts` | **Henning** | SQL tuples via a WordPress plugin | a day-by-day sweep of the whole file, window in [testing.md](testing.md) | day numbers, months, leap months |
+| `rgob.ts` | **almanac** (Ministry of Home Affairs) | scanned PDF, hand-read | 25 government-published days, no day-by-day sweep | day numbers, 3 skipped + 2 doubled days, Losar |
 | `cross-version-leap.ts` | Janson | LaTeX, generated | 2000–2030 | leap-month numbers and years |
 
 `bhutan.ts` provides the breadth and `rgob.ts` provides the **independence** — it is the only
@@ -136,7 +136,7 @@ non-Henning check on Bhutanese day numbers here. Its rows were chosen for the do
 days, which is where Janson §8 warns published tables go wrong.
 
 **`a₂` is NOT settled for Bhutan, and no source available today can settle it.** `BHUTAN` and
-`BHUTAN_HENNING` agree on all 25 government-published days, and the fixture's 11,050 trusted days validate
+`BHUTAN_HENNING` agree on all 25 government-published days, and the fixture's trusted days validate
 `BHUTAN_HENNING` only because it descends from Henning — which is circular. Settling it needs a
 **Bhutanese state** day-by-day grid covering a date where the two values disagree. The Ministry
 publishes 2025 and 2026 only, neither of which contains one, and the Drukpa calendar is a different
@@ -174,8 +174,9 @@ Bhutanese calendar for 2001, 2004 or 2020 — from an archive, a library, a mona
 kept one — resolves the question now. The Ministry's website does not go back that far and the Wayback
 Machine has nothing, so this is a paper-archive question rather than a web one.
 
-Note what this does *not* undermine: everything except `a₂` is validated for Bhutan, including against
-the government's own calendar. The open question is a choice between two values that differ on about
+Note what this does *not* undermine: everything except `a₂` is validated for Bhutan, over Henning's
+lineage by `BHUTAN_HENNING`'s day-by-day sweep and over the government's own calendar by `BHUTAN`'s
+twenty-five days. The open question is a choice between two values that differ on about
 one day in 4,100, and `BHUTAN` resolves it the same way Phugpa's evidence does — toward almanac
 practice.
 
@@ -268,8 +269,8 @@ reproduces Janson's Mongolian leap months for **all 12** of the years in
 faithful implementation and a fixture could be generated from it exactly as
 `crosscheck-eszthoff.ts` is. But it is **the same lineage as this engine** — both derive from
 Janson — so agreement would establish that the arithmetic is implemented correctly, not that the
-dates match the calendar Mongolians use. Compare Bhutan, which was exported on one implementation
-lineage **plus** twenty-five days of a government-published almanac.
+dates match the calendar Mongolians use. Compare Bhutan, whose `BHUTAN_HENNING` was exported on one
+implementation lineage and whose `BHUTAN` rests on twenty-five days of a government-published almanac.
 
 So the realistic route to exporting a Mongolian config is: tile against `@hnw/date-tibetan` day by
 day for the arithmetic, **and** find a Mongolian equivalent of `rgob.ts` — a run of officially

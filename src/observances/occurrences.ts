@@ -103,8 +103,24 @@ export function occurrencesOfRule(
 	const tradition = scaled.tradition;
 	const when = rule.when;
 	const held = new Map<number, Occurrence>();
+	// An annual occurrence is tested by the Tibetan year of the date it stands for, which is not
+	// `date.year` where `skippedDay` moved a 1/1 or a 12/30 across the new year. A Western rule
+	// has the Gregorian year of its day.
+	const windowYear = (hit: Occurrence): number => {
+		const year = when.type === "western" ? isoFromJulianDayUnchecked(hit.julianDay).year : hit.year;
+		/* c8 ignore next */
+		if (year === undefined) throw codedError("TCT_INTERNAL", "an annual day carries no year");
+		return year;
+	};
 	const claim = (hit: Occurrence): void => {
 		if (hit.julianDay < firstJd || hit.julianDay > lastJd) return;
+		// The window is each entry's own, applied before precedence picks between entries: an entry
+		// outside it must not displace one inside it.
+		if (when.type === "annual" || when.type === "western") {
+			const year = windowYear(hit);
+			if (when.fromYear !== undefined && year < when.fromYear) return;
+			if (when.untilYear !== undefined && year > when.untilYear) return;
+		}
 		const incumbent = held.get(hit.julianDay);
 		if (incumbent === undefined || precedence(hit.resolution) < precedence(incumbent.resolution)) {
 			held.set(hit.julianDay, hit);
@@ -127,9 +143,12 @@ export function occurrencesOfRule(
 		// whole Tibetan year before the range and after it; the other forms are filtered to the range
 		// by `claim`.
 		const counted = when.type === "counted";
+		// The other forms start at the last month of the year before, not one before month 1: under
+		// `leapMonthPosition: "before"` a year that opens with a leap month 1 has that month just
+		// before month 1, and a 12/30 shifted onto Losar lies one month further back.
 		const firstMonth = counted
 			? trueMonthCount(tradition, startYear - 1, 1) - 1
-			: trueMonthCount(tradition, startYear, 1) - 1;
+			: lastMonthCountOfYear(tradition, startYear - 1);
 		const lastMonth = counted
 			? lastMonthCountOfYear(tradition, endYear + 1) + 1
 			: trueMonthCount(tradition, endYear + 1, 1) + 1;
@@ -217,15 +236,7 @@ export function occurrencesOfRule(
 		if (when.type !== "annual" && when.type !== "western") {
 			throw codedError("TCT_INTERNAL", `unhandled when type ${JSON.stringify(when)}`);
 		}
-		// An annual occurrence is tested by the Tibetan year of the date it stands for, which is not
-		// `date.year` where `skippedDay` moved a 1/1 or a 12/30 across the new year. A Western rule
-		// has the Gregorian year of its day.
-		const year = when.type === "western" ? isoFromJulianDayUnchecked(hit.julianDay).year : hit.year;
-		/* c8 ignore next */
-		if (year === undefined) throw codedError("TCT_INTERNAL", "an annual day carries no year");
-		if (when.fromYear !== undefined && year < when.fromYear) continue;
-		if (when.untilYear !== undefined && year > when.untilYear) continue;
-		const age = when.ageFromYear === undefined ? -1 : year - when.ageFromYear;
+		const age = when.ageFromYear === undefined ? -1 : windowYear(hit) - when.ageFromYear;
 		results.push(
 			age < 0
 				? { date, rule, resolution: hit.resolution }

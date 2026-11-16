@@ -24,15 +24,18 @@ import { describe, expect, it } from "vitest";
 import { monthFromCount, trueMonthCount } from "../../src/computation/calendar.js";
 import { losarFor } from "../../src/computation/conversion.js";
 import { BHUTAN_HENNING } from "../../src/traditions/bhutan.js";
-import { BHUTAN_DAYS, BHUTAN_END, BHUTAN_START } from "../fixtures/bhutan.js";
+import {
+	BHUTAN_DAYS,
+	BHUTAN_END,
+	BHUTAN_FIRST_UNPAIRED_LEAP_AFTER_END,
+	BHUTAN_START,
+} from "../fixtures/bhutan.js";
 import { CROSS_VERSION_LEAP } from "../fixtures/cross-version-leap.js";
 import {
-	ALL_BLOCKS,
 	a2ForkDivergences,
 	BLOCKS,
 	type Block,
 	bhutanDayMismatches,
-	TRUSTED_BLOCKS,
 	trustedEnd,
 	unpairedLeapBlocks,
 } from "../support/bhutan.js";
@@ -153,24 +156,33 @@ function matchingOffsets(): number[] {
 	return found;
 }
 
-describe("the upstream anomaly this file works around", () => {
-	// Pinned precisely, so it cannot drift and cannot be forgotten. If a re-fetch fixes the upstream
-	// these fail, and TRUSTED_BLOCKS should then be raised to cover the whole window.
-	it("is a single spurious leap month, and it is the last one", () => {
-		const unpairedLeap = unpairedLeapBlocks();
-		expect(unpairedLeap).toHaveLength(1);
-		expect(unpairedLeap[0]?.index).toBe(TRUSTED_BLOCKS);
-		expect(unpairedLeap[0]?.block).toEqual({ month: 2, isLeap: true });
+describe("where the fixture ends, and the upstream defect it ends before", () => {
+	// The source carries a leap month 2 from 2030-04-03, straight after the leap month 1 Janson
+	// lists, and the fixture stops the day before (see TRUSTED_DAYS in test/support). These pin
+	// the stop, so a regenerated fixture that reached the defect, or stopped short of it, fails here.
+	it("ends on 2030-04-02, inside the leap month 1 Janson lists for 2030", () => {
+		expect(BHUTAN_END).toBe("2030-04-02");
+		expect(BHUTAN_DAYS.at(-1)).toEqual([30, 1, 1]);
+		expect(BLOCKS.at(-1)).toEqual({ month: 1, isLeap: true });
+		expect(BHUTAN_DAYS).toHaveLength(11050);
+		expect(BLOCKS).toHaveLength(375);
 	});
 
-	it("leaves every earlier block trustworthy", () => {
-		expect(ALL_BLOCKS.length).toBeGreaterThan(TRUSTED_BLOCKS);
-		expect(BLOCKS).toHaveLength(TRUSTED_BLOCKS);
+	it("ends the day before the first unpaired leap month the generator measured after it", () => {
+		expect(BHUTAN_FIRST_UNPAIRED_LEAP_AFTER_END).toEqual({ iso: "2030-04-03", month: 2 });
+		expect(trustedEnd.add({ days: 1 }).toString()).toBe(BHUTAN_FIRST_UNPAIRED_LEAP_AFTER_END?.iso);
+	});
+
+	it("holds no leap month without its regular twin, and the last leap month is 2030/1", () => {
+		expect(unpairedLeapBlocks()).toEqual([]);
+		const leaps = BLOCKS.map((block, index) => ({ block, index })).filter((b) => b.block.isLeap);
+		expect(leaps.at(-1)?.index).toBe(BLOCKS.length - 1);
+		expect(leaps.at(-1)?.block.month).toBe(1);
 	});
 });
 
 describe("the fixture reduces to a month sequence worth checking", () => {
-	it("covers 2000 to early 2030 as a few hundred consecutive months", () => {
+	it("covers 2000 to 2 April 2030 as a few hundred consecutive months", () => {
 		expect(BHUTAN_START).toBe("2000-01-01");
 		expect(BLOCKS.length).toBeGreaterThan(370);
 		expect(BLOCKS.length).toBeLessThan(400);
@@ -280,8 +292,9 @@ describe("the runnable Bhutanese config, day by day", () => {
 		// BHUTAN carries the almanac's rounded a₂ = 1/28, matching what PHUGPA defaults to; the
 		// variant carries Henning's exact (1+a₁)/30. The fixture descends from Henning's own software
 		// and so follows his value — which is why it validates the variant and not the default. Three
-		// misses in 11,050 days is about one in 3,700, the rate PHUGPA's docblock records for this
-		// fork. Concluding from this which value Bhutanese *almanacs* print would be circular.
+		// misses in 11,050 days is about one in 3,700 in this window, against the nominal one in
+		// 4,100 PHUGPA's docblock records for this fork.
+		// Concluding from this which value Bhutanese *almanacs* print would be circular.
 		const differing = a2ForkDivergences(start, trustedEnd);
 		expect(differing).toEqual(["2001-12-10", "2004-04-10", "2020-04-23"]);
 	}, 30_000);

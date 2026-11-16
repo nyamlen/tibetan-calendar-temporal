@@ -20,32 +20,19 @@
  * @packageDocumentation
  */
 
-import { rabjungFromYear, yearFromRoyalEra, yearNameFromYear } from "./computation/epoch.js";
-import { describe, rangeError } from "./errors.js";
+import { rabjungFromRoyalEra, yearNameFromRoyalEra } from "./computation/epoch.js";
+import { assertSafeYear, describe, rangeError } from "./errors.js";
 import { weekdayNameWithOffset } from "./names.js";
 import { PHUGPA } from "./traditions/phugpa.js";
 import type { TraditionConfig } from "./traditions/types.js";
-import { assertTraditionConfig } from "./traditions/validate.js";
+import { validatedTradition } from "./traditions/validate.js";
 import type { Rabjung, TibetanWeekday, TibetanWeekdayName, TibetanYearName } from "./types.js";
 
-/**
- * Validates a year for the naming functions.
- *
- * @remarks
- * A safe-integer check and nothing else, deliberately. These evaluate no `true_date` and reach no
- * closed form on the *absolute* year large enough to overflow, so they need neither
- * `assertClosedFormYear` nor a tradition — and adding a bound they do not require would be a
- * refusal to answer a question this arithmetic can answer perfectly well.
- */
-function assertYear(subject: string, year: number): void {
-	if (!Number.isSafeInteger(year)) {
-		throw rangeError(
-			"TCT_FIELD_OUT_OF_RANGE",
-			`${subject}: year must be a safe integer, received ${describe(year)}. ` +
-				"Years here are the royal era, matching TibetanDate.year — 2153, not 2026.",
-		);
-	}
-}
+// A safe-integer check and nothing else, deliberately: the naming functions reduce the year modulo
+// their cycle before the offset is subtracted (see `yearNameFromRoyalEra`), so every safe integer
+// has an exact answer and they need no tradition and no wider bound.
+const ROYAL_ERA_HINT =
+	". Years here are the royal era, matching TibetanDate.year — 2153, not 2026.";
 
 /**
  * The element–animal name of a Tibetan year.
@@ -76,8 +63,8 @@ function assertYear(subject: string, year: number): void {
  * ```
  */
 export function yearNameFor(year: number): TibetanYearName {
-	assertYear("yearNameFor", year);
-	return yearNameFromYear(yearFromRoyalEra(year));
+	assertSafeYear("yearNameFor", year, ROYAL_ERA_HINT);
+	return yearNameFromRoyalEra(year);
 }
 
 /**
@@ -109,8 +96,8 @@ export function yearNameFor(year: number): TibetanYearName {
  * ```
  */
 export function rabjungFor(year: number): Rabjung {
-	assertYear("rabjungFor", year);
-	return rabjungFromYear(yearFromRoyalEra(year));
+	assertSafeYear("rabjungFor", year, ROYAL_ERA_HINT);
+	return rabjungFromRoyalEra(year);
 }
 
 /**
@@ -162,6 +149,6 @@ export function weekdayNameFor(
 				"This is the Tibetan numbering — 0 is Saturday — not the ISO dayOfWeek",
 		);
 	}
-	assertTraditionConfig(tradition);
+	tradition = validatedTradition(tradition);
 	return weekdayNameWithOffset(weekday, tradition.naming?.weekdayOffset ?? 0);
 }
