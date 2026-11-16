@@ -30,11 +30,11 @@ import type { TraditionConfig } from "./types.js";
  * The Bhutanese configuration, epoch JD 2361807 — Monday, 22 April 1754.
  *
  * @remarks
- * **Not swept day by day.** What is checked is 25 days of the Royal Government of Bhutan's own
- * published calendar, in 2025 and 2026 — day numbers, three skipped days, two doubled days and
- * Losar — plus Bhutan's leap months against Janson's table. The day-by-day sweep, 11,050 days
- * against Henning's lineage, validates {@link BHUTAN_HENNING} and not this config: the two differ
- * on three days inside it. See `docs/testing.md` for the windows and what each does and does not
+ * **Not swept day by day.** What is checked is 25 government-published days of the Royal Government of
+ * Bhutan's own calendar — day numbers, three skipped days, two doubled days and Losar — plus
+ * Bhutan's leap months against Janson's table. The day-by-day sweep against Henning's lineage
+ * validates {@link BHUTAN_HENNING} and not this config: the two differ on three days inside it.
+ * See `docs/testing.md` for the years, the day counts, and what each check does and does not
  * cover.
  *
  * **A disagreement this does not resolve.** Janson records that Bhutan's *government calendar* gives
@@ -131,7 +131,7 @@ export const BHUTAN: TraditionConfig = deepFreeze({
  *
  * **This is the variant the validation data supports, and that is worth stating plainly.** The only
  * day-by-day Bhutanese calendar available descends from Henning's own software, so it follows
- * Henning's `a₂` — with the rounded value, three days in 11,050 disagree. Concluding from that which
+ * Henning's `a₂` — with the rounded value, three days of the swept window disagree (`docs/testing.md` has its extent). Concluding from that which
  * value *Bhutanese almanacs* print would be circular, and Janson gives no Bhutanese statement on the
  * fork. {@link BHUTAN} therefore keeps almanac practice as the default, exactly as
  * {@link ../traditions/phugpa.PHUGPA} does.

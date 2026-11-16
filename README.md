@@ -675,7 +675,7 @@ Two traditions, Phugpa and Bhutanese, each in two parameterisations. See
 #### Errors
 
 `SkippedDayError` is the only exported error class, and carries the offending date as
-`.requested` — a frozen copy of the fields it read, equal to what you passed, not the same object. Every failure about your **input** is a `RangeError`; the two that are not about your
+`.requested` — a frozen copy of the date fields it read, not the same object, so extra keys on what you passed are dropped. Every failure about your **input** is a `RangeError`; the two that are not about your
 input — `TCT_INTERNAL` and `TCT_MISSING_TEMPORAL` — are plain `Error`s, deliberately, as the
 at-a-glance signal that the fault is not yours. What actually keeps `tibetanDateExists` from
 reporting either as "that date does not exist" is their **absence from its allowlist**, which is one

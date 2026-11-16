@@ -127,8 +127,8 @@ icons**, not with the almanac.
 
 | Source | Lineage | Format | Coverage | Settles |
 |---|---|---|---|---|
-| `bhutan.ts` | **Henning** | SQL tuples via a WordPress plugin | 11,050 days compared, 1 Jan 2000 – 2 Apr 2030, which is the whole file | day numbers, months, leap months |
-| `rgob.ts` | **almanac** (Ministry of Home Affairs) | scanned PDF, hand-read | 25 days, 2025–2026 | day numbers, 3 skipped + 2 doubled days, Losar |
+| `bhutan.ts` | **Henning** | SQL tuples via a WordPress plugin | a day-by-day sweep of the whole file, window in [testing.md](testing.md) | day numbers, months, leap months |
+| `rgob.ts` | **almanac** (Ministry of Home Affairs) | scanned PDF, hand-read | 25 government-published days, no day-by-day sweep | day numbers, 3 skipped + 2 doubled days, Losar |
 | `cross-version-leap.ts` | Janson | LaTeX, generated | 2000–2030 | leap-month numbers and years |
 
 `bhutan.ts` provides the breadth and `rgob.ts` provides the **independence** — it is the only
@@ -136,7 +136,7 @@ non-Henning check on Bhutanese day numbers here. Its rows were chosen for the do
 days, which is where Janson §8 warns published tables go wrong.
 
 **`a₂` is NOT settled for Bhutan, and no source available today can settle it.** `BHUTAN` and
-`BHUTAN_HENNING` agree on all 25 government-published days, and the fixture's 11,050 trusted days validate
+`BHUTAN_HENNING` agree on all 25 government-published days, and the fixture's trusted days validate
 `BHUTAN_HENNING` only because it descends from Henning — which is circular. Settling it needs a
 **Bhutanese state** day-by-day grid covering a date where the two values disagree. The Ministry
 publishes 2025 and 2026 only, neither of which contains one, and the Drukpa calendar is a different

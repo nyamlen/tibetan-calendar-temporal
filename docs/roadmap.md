@@ -506,6 +506,14 @@ that its first step is still open.
   - `scripts/fetch-fpmt-observances.mjs`'s month-span guard accepts a caption implying two leap
     pairs, e.g. `6A-7B`; the parser it replaced did too, and the task that rewrote it did not
     take it up.
+  - `getObservances`' 10-year span cap reads `to.year - from.year` from the caller's object
+    (`src/observances/index.ts`), so a `Temporal.PlainDate` subclass with a lying `year` getter
+    bypasses the cap — a cost, not a wrong answer — and can produce a self-contradicting
+    `TCT_SPAN_TOO_WIDE` message; compute the span from the Julian days or ISO fields the engine
+    already holds.
+  - Range-refusal messages at the edge name a lunation as if it were the argument
+    (`addMonthsToDate(-3049305) is outside…`), and the lunation-bound message says "this
+    tradition's" without naming it; message text, not contract.
 - [ ] **Small findings parked by the phonetics-by-word reviews (2026-11-15).**
   None blocks 1.0.0; each is a guard or a comment that could be tighter, found by the task reviews
   and the final review and judged acceptable when the branch merged.
