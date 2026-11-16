@@ -38,6 +38,25 @@ export const BHUTAN_START = "2000-01-01";
 export const BHUTAN_END = "2030-04-02";
 
 /**
+ * The first leap month after the window that is not paired with a regular month of its number, as
+ * measured in the source's rows beyond it, or `null` if there is none. It is where the window stops
+ * being trustworthy, and the day it begins is the day after `BHUTAN_END` when the window was cut
+ * for it.
+ */
+export const BHUTAN_FIRST_UNPAIRED_LEAP_AFTER_END: {
+	readonly iso: string;
+	readonly month: number;
+} | null = { iso: "2030-04-03", month: 2 };
+
+/**
+ * How many unpaired leap months the source has in the Tibetan years Janson's leap-month table
+ * lists for Bhutan (2000 to 2030), counted over the whole source, which runs 1900-01-31 to
+ * 2101-02-27. Janson lists none of them; they are the leap months of the source that his table
+ * does not carry.
+ */
+export const BHUTAN_UNPAIRED_LEAPS_IN_JANSON_YEARS = 1;
+
+/**
  * One tuple per consecutive Gregorian day: `[bhutaneseDay, bhutaneseMonth, leapMonthNumber]`.
  *
  * `leapMonthNumber` is 0 in a regular month, and otherwise the number of the leap month the day
