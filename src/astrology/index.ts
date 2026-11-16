@@ -284,7 +284,7 @@ export function elementalYogaFor(
 	tradition: TraditionConfig = PHUGPA,
 ): ElementalYoga {
 	const resolved = isoToTibetan(isoOf("elementalYogaFor", date), tradition);
-	return yogaOf(resolved, tradition);
+	return yogaOf(resolved, scalingFor(tradition).tradition);
 }
 
 /**

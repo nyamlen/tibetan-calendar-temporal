@@ -5,6 +5,7 @@ import {
 	tibetanDateExists,
 	tibetanToIso,
 } from "../src/computation/conversion.js";
+import { elementalYogaFor } from "../src/astrology/index.js";
 import { moonEquation, sunEquation } from "../src/computation/corrections.js";
 import { deriveScaling } from "../src/computation/scaling.js";
 import { hasLeapMonth, leapMonthNumberFor, monthsFor } from "../src/months.js";
@@ -686,6 +687,34 @@ describe("a tradition mutated after its first use", () => {
 		expect(lunationFromMonth(month, t)).toBe(lunation);
 		expect(monthsFor(2153, t).length).toBe(monthsFor(2153, spread()).length);
 		expect(thrownBy(() => leapMonthNumberFor(2153, t))?.code).toBeUndefined();
+	});
+});
+
+describe("elementalYogaFor reads the validated copy", () => {
+	const day = iso("2026-09-01");
+	const fresh = (): TraditionConfig => ({
+		...PHUGPA,
+		id: "yoga-mutated-after-use",
+		moonTab: [...PHUGPA.moonTab],
+		sunTab: [...PHUGPA.sunTab],
+		naming: { ...PHUGPA.naming },
+	});
+
+	it("keeps answering when weekdayOffset is changed after first use", () => {
+		const t = fresh();
+		const first = elementalYogaFor(day, t);
+		(t.naming as { weekdayOffset?: number }).weekdayOffset = 1;
+		const after = thrownBy(() => elementalYogaFor(day, t));
+		expect(after?.code).toBeUndefined();
+		expect(elementalYogaFor(day, t)).toEqual(first);
+	});
+
+	it("refuses a revoked Proxy with the config's code and the caller's error as cause", () => {
+		const { proxy, revoke } = Proxy.revocable(fresh(), {});
+		revoke();
+		const error = thrownBy(() => elementalYogaFor(day, proxy));
+		expect(error?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
+		expect(error?.cause).toBeInstanceOf(TypeError);
 	});
 });
 
