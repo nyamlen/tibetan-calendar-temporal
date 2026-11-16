@@ -2086,7 +2086,7 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
   runnable config — `m₀`, `s₀` and `a₀` remain unreconciled, so no day-level Bhutanese date is
   claimed and `BHUTAN` is not exported" until 2026-08-21, by which time every clause of it was
   false. `BHUTAN` and `BHUTAN_HENNING` are both exported and deeply frozen, and `BHUTAN_HENNING` is
-  validated day by day against Bhutanese calendar data for 2000–2030, where `BHUTAN` is checked
+  validated day by day against Bhutanese calendar data, where `BHUTAN` is checked
   against twenty-five government-published days only — see
   [../src/traditions/bhutan.ts](../src/traditions/bhutan.ts) and
   [testing.md](testing.md) for the window.
@@ -2132,7 +2132,7 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
      and element, as Tsurphu does, but not Tsurphu's nine month numbers. Whether the weekday names
      and the `./astrology` attributes carry over has to be sourced, not assumed — the lesson of the
      Bhutanese `weekdayOffset`.
-  3. **Day-by-day external validation from two lineages**, as Bhutan had. `@hnw/date-tibetan`'s
+  3. **Day-by-day external validation from two lineages**, as `BHUTAN_HENNING` (day by day) and the 25 government days (`BHUTAN`) have. `@hnw/date-tibetan`'s
      `CalendarMongolian` derives from Janson, so it can confirm the arithmetic and cannot confirm the
      calendar. The independent candidates: published Tsagaan Sar dates; the printed Buryat almanacs
      Zurkhai's App Store listing names (Yampilov-Galsanov's "Zurkhai-3" and Atsagatsky Datsan

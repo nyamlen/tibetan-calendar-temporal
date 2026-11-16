@@ -3,7 +3,7 @@ date: 2026-08-16
 status: accepted
 ---
 
-# A tradition config is exported only when its dates are validated day by day
+# A tradition config is exported only when its dates are checked externally, and its docblock says how
 
 **Decision:** a `TraditionConfig` reaches `src/index.ts` only once its **dates** have been checked
 against an **external** calendar, and its docblock states exactly what was checked. Expressing a
@@ -31,11 +31,11 @@ calendar that is quietly incorrect — the failure this package exists to preven
 
 | Tradition | Expressible | Leap months validated | Dates validated | Exported |
 |---|---|---|---|---|
-| Phugpa | yes | yes | yes — three implementations + FPMT, 2022–2027 | **yes** |
-| Bhutanese, `BHUTAN_HENNING` | yes | yes — Janson's table, 2000–2030 | yes — day by day over Henning's data, 2000 to early 2030 | **yes** |
-| Bhutanese, `BHUTAN` | yes | yes — Janson's table, 2000–2030 | sample only — 25 days of the Royal Government's calendar, no sweep | **yes** |
-| Tsurphu | yes | yes — Janson's table, 2000–2030 | **no** | no |
-| Mongolian | yes | yes — Janson's table, 2000–2030 | **no** | no |
+| Phugpa | yes | yes | yes — day by day, four sources; window in [testing.md](../testing.md) | **yes** |
+| Bhutanese, `BHUTAN_HENNING` | yes | yes — Janson's table | yes — day by day over Henning's data; window in [testing.md](../testing.md) | **yes** |
+| Bhutanese, `BHUTAN` | yes | yes — Janson's table | sample only — 25 days of the Royal Government's calendar, no sweep; window in [testing.md](../testing.md) | **yes** |
+| Tsurphu | yes | yes — Janson's table | **no** | no |
+| Mongolian | yes | yes — Janson's table | **no** | no |
 
 Tsurphu and the Mongolian version are fully expressible and their leap months are checked against
 Janson. They are still not exported, and that gap is the rule doing its work rather than unfinished

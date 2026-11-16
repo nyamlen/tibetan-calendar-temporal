@@ -497,14 +497,15 @@ derivation; in `docs/` they are just noise.
 
   **A `TraditionConfig` is judged by a different rule, because it is a different kind of claim.**
   That record is about API design; a config asserts that dates computed with it are a real
-  tradition's real dates. So it is exported only once the engine has been tiled against an
-  **external** calendar for that tradition, day by day —
+  tradition's real dates. So it is exported only once its dates have been checked against an
+  **external** calendar, and its docblock says exactly what that check was — a day-by-day tiling
+  earns "validated day by day", a sample of published days earns only "a sample". `BHUTAN` is
+  checked against 25 government-published days and has no sweep; the sweep validates
+  `BHUTAN_HENNING` —
   [docs/decisions/2026-08-16-exported-means-validated.md](docs/decisions/2026-08-16-exported-means-validated.md),
   enforced by `check:conventions`, which requires a suite in `test/validation/` to **import** the
   config. Naming it in a comment or a `describe` title does not count — that grep-shaped version of
   the rule stayed green when a suite's assertions were deleted and its prose left behind.
-  A config's docblock says what was checked **for that config**: `BHUTAN` is checked against 25
-  government-published days and has no sweep, while the day-by-day sweep validates `BHUTAN_HENNING`.
   Expressing a tradition, validating its leap months and validating
   its dates are three claims, not one: **Tsurphu and the Mongolian version are fully expressible and
   their leap months are checked against Janson, and both stay unexported**, because nothing checks a

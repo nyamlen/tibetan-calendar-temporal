@@ -280,8 +280,8 @@ describe("the runnable Bhutanese config, day by day", () => {
 		// BHUTAN carries the almanac's rounded a₂ = 1/28, matching what PHUGPA defaults to; the
 		// variant carries Henning's exact (1+a₁)/30. The fixture descends from Henning's own software
 		// and so follows his value — which is why it validates the variant and not the default. Three
-		// misses in 11,050 days is about one in 3,700, the rate PHUGPA's docblock records for this
-		// fork. Concluding from this which value Bhutanese *almanacs* print would be circular.
+		// misses in 11,050 days is about one in 3,700 in this window, against the nominal one in
+		// 4,100 PHUGPA's docblock records for this fork. Concluding from this which value Bhutanese *almanacs* print would be circular.
 		const differing = a2ForkDivergences(start, trustedEnd);
 		expect(differing).toEqual(["2001-12-10", "2004-04-10", "2020-04-23"]);
 	}, 30_000);

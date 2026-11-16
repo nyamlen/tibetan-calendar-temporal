@@ -2,9 +2,9 @@
 
 **Status: reference, not shipped data.** Nothing in `src/` or `test/` reads this file.
 
-**Exported means day-by-day validated.** `PHUGPA`, `PHUGPA_HENNING`, `BHUTAN` and `BHUTAN_HENNING`
-are exported because each is checked against an external calendar. `PHUGPA`, `PHUGPA_HENNING` and
-`BHUTAN_HENNING` have been tiled day by day; `BHUTAN` has not, and rests on twenty-five days of the
+**Exported means checked against an external calendar, and the docblock says how.** `PHUGPA`,
+`PHUGPA_HENNING`, `BHUTAN` and `BHUTAN_HENNING` are exported because each is checked.
+`PHUGPA`, `PHUGPA_HENNING` and `BHUTAN_HENNING` have been tiled day by day; `BHUTAN` has not, and rests on twenty-five days of the
 Royal Government's own calendar — see
 [the decision record](decisions/2026-08-16-exported-means-validated.md). Tsurphu and the
 Mongolian version are documented here and *not* exported, and the difference is evidence rather than
@@ -223,7 +223,7 @@ Henning's computed calendars**, across all four versions at once — not between
 
 `BHUTAN` therefore keeps the rounded value, exactly as `PHUGPA` does, and `BHUTAN_HENNING` carries
 the exact one. They differ on **three days in 11,050** — 2001-12-10, 2004-04-10 and 2020-04-23 —
-about one in 3,700, matching the rate Janson gives for Tibet.
+about one in 3,700 in this window, against the nominal one in 4,100 Janson gives for Tibet.
 
 **Which side the validation data sits on, stated plainly.** The only day-by-day Bhutanese calendar
 available descends from Henning's own software, so it follows Henning's `a₂` and validates
