@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
 	isoToTibetan,
 	losarFor,
-	tibetanDateExists,
 	tibetanToIso,
 } from "../src/computation/conversion.js";
 import { elementalYogaFor } from "../src/astrology/index.js";
