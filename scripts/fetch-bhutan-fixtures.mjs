@@ -308,6 +308,13 @@ const jansonLastYear = Math.max(...jansonYears);
 const sourceStart = all[0].iso;
 const sourceEnd = all.at(-1).iso;
 
+const windowEndNote =
+	firstDefectAfter === undefined
+		? "The source has no unpaired leap month after the window, so its end is the one asked for, and the"
+		: `A leap month ${firstDefectAfter.entry.month} begins ${firstDefectAfter.entry.iso}, straight after
+ * the leap month 1 Janson lists, giving that year two consecutive leap months and no regular month
+ * 2 at all; the source's leap flag runs one month too long. The window stops the day before, and the`;
+
 const doubled = window.filter((r, i) => i > 0 && window[i - 1].day === r.day).length;
 const skipped = window.filter((r, i) => i > 0 && r.day === window[i - 1].day + 2).length;
 const leapMonths = new Set(window.filter((r) => r.leapMonth !== 0).map((r) => r.iso.year)).size;
@@ -342,9 +349,7 @@ writeFileSync(
  * \`TraditionConfig.leapMonthPosition: "after"\` and reproduces the month sequence here — see
  * \`test/validation/bhutan.test.ts\`, which is what settles the convention.
  *
- * **The window ends where the source goes wrong.** A leap month 2 begins 2030-04-03, straight after
- * the leap month 1 Janson lists, giving that year two consecutive leap months and no regular month
- * 2 at all; the source's leap flag runs one month too long. The window stops the day before, and the
+ * **The window ends where the source goes wrong.** ${windowEndNote}
  * generating script's check 5 refuses a later end.
  */
 

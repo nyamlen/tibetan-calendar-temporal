@@ -1,5 +1,5 @@
 import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { describe, expect, it } from "vitest";
 import * as astrologyApi from "../src/astrology/index.js";
 import {
@@ -375,11 +375,6 @@ const sourcesUnder = (dir: string): string[] =>
 				? [join(dir, entry.name)]
 				: [],
 	);
-const BARRELS = new Set([
-	...Object.keys(rootApi),
-	...Object.keys(astrologyApi),
-	...Object.keys(observancesApi),
-]);
 // The parameter list is read by matching parentheses, so a type such as `(x: T) => U` inside it
 // does not end the list early.
 const parametersAt = (text: string, open: number): string => {
@@ -390,22 +385,64 @@ const parametersAt = (text: string, open: number): string => {
 	}
 	throw new Error(`unbalanced parameter list at offset ${open}`);
 };
-const declaredFunctions = (): Map<string, string> => {
-	const found = new Map<string, string>();
+interface Declaration {
+	readonly file: string;
+	readonly name: string;
+	readonly parameters: string;
+}
+// Every declaration is kept, because two modules may each declare a name (`daysInMonth` is in
+// `computation/calendar.ts` and `months.ts`), and which one a barrel publishes is read from the
+// barrel and not from the order the files were visited.
+const declaredFunctions = (): Declaration[] => {
+	const found: Declaration[] = [];
 	for (const file of sourcesUnder(SRC)) {
 		const text = readFileSync(file, "utf8");
 		for (const match of text.matchAll(/export (?:async )?function (\w+)\s*(?:<[^(]*>)?\(/g)) {
 			const open = match.index + match[0].length - 1;
-			found.set(match[1] as string, parametersAt(text, open));
+			found.push({ file, name: match[1] as string, parameters: parametersAt(text, open) });
 		}
 	}
 	return found;
 };
-const DECLARED = declaredFunctions();
+const DECLARATIONS = declaredFunctions();
+const DECLARED = new Set(DECLARATIONS.map((declaration) => declaration.name));
+const BARREL_FILES = [
+	join(SRC, "index.ts"),
+	join(SRC, "astrology", "index.ts"),
+	join(SRC, "observances", "index.ts"),
+];
+// The file each barrel publishes a name from: the module of its runtime `export { … } from`, else
+// the barrel itself when it declares the function.
+const homeOf = (barrel: string, name: string): string => {
+	const text = readFileSync(barrel, "utf8");
+	for (const match of text.matchAll(/^export \{([^}]*)\} from "([^"]+)";/gm)) {
+		const names = (match[1] ?? "").split(",").map((part) => part.trim());
+		if (names.includes(name))
+			return join(dirname(barrel), (match[2] as string).replace(/\.js$/, ".ts"));
+	}
+	return barrel;
+};
 const exportsTaking = (type: RegExp): string[] =>
-	[...DECLARED]
-		.filter(([name, parameters]) => BARRELS.has(name) && type.test(parameters))
-		.map(([name]) => name)
+	BARREL_FILES.flatMap((barrel) =>
+		Object.keys(
+			barrel === BARREL_FILES[0]
+				? rootApi
+				: barrel === BARREL_FILES[1]
+					? astrologyApi
+					: observancesApi,
+		)
+			.map((name) => ({ name, home: homeOf(barrel, name) }))
+			.filter(({ name, home }) =>
+				DECLARATIONS.some(
+					(declaration) =>
+						declaration.name === name &&
+						declaration.file === home &&
+						type.test(declaration.parameters),
+				),
+			)
+			.map(({ name }) => name),
+	)
+		.filter((name, index, all) => all.indexOf(name) === index)
 		.sort();
 
 describe("the scan for exports that take a date or month cannot pass by not seeing one", () => {

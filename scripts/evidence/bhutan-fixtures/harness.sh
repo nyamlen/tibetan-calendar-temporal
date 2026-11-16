@@ -54,7 +54,7 @@ control() {
   rows "$FIX" > "$CONV/out/control-rows-$1.txt"
   N=$(wc -l < "$CONV/out/control-rows-$1.txt")
   rows "$COMMITTED" | head -n "$N" > "$CONV/out/committed-head-$1.txt"
-  if cmp -s "$CONV/out/control-rows-$1.txt" "$CONV/out/committed-head-$1.txt"      && grep -q 'BHUTAN_START = "2000-01-01"' "$FIX"      && grep -q 'BHUTAN_END = "2030-04-02"' "$FIX"      && grep -qF 'AFTER_END: { readonly iso: string; readonly month: number } | null = { iso: "2030-04-03", month: 2 };' "$FIX"      && grep -qF 'BHUTAN_UNPAIRED_LEAPS_IN_JANSON_YEARS = 1;' "$FIX"; then
+  if cmp -s "$CONV/out/control-rows-$1.txt" "$CONV/out/committed-head-$1.txt"      && grep -q 'BHUTAN_START = "2000-01-01"' "$FIX"      && grep -q 'BHUTAN_END = "2030-04-02"' "$FIX"      && grep -qF 'AFTER_END: { readonly iso: string; readonly month: number } | null = { iso: "2030-04-03", month: 2 };' "$FIX"      && grep -qF 'A leap month 2 begins 2030-04-03, straight after' "$FIX"      && grep -qF 'BHUTAN_UNPAIRED_LEAPS_IN_JANSON_YEARS = 1;' "$FIX"; then
     ok "control $1: exit 0; $N rows equal the first $N of the fixture at $BASE_REV ($(rows "$COMMITTED" | wc -l) rows), window 2000-01-01 to 2030-04-02, first unpaired leap after it 2030-04-03 month 2, 1 in Janson's years"
   else bad "control $1: rows differ from the committed fixture" "control-$1"; fi
 }
@@ -78,7 +78,7 @@ if [ $code -ne 0 ] && [ ! -f "$FIX" ]; then ok "leap-after-leap, K1 reverted: al
 # defect-gone-from-2030: the emitted measurements follow the source. Same rows, other values.
 run new defect-gone-from-2030 gone
 rows "$FIX" > "$CONV/out/gone-rows.txt"
-if [ $code -eq 0 ] && cmp -s "$CONV/out/gone-rows.txt" "$CONV/out/control-rows-start.txt" && grep -qF '{ iso: "2049-04-03", month: 2 };' "$FIX" && grep -qF 'BHUTAN_UNPAIRED_LEAPS_IN_JANSON_YEARS = 0;' "$FIX" && grep -q 'BHUTAN_END = "2030-04-02"' "$FIX"; then ok "defect-gone-from-2030: same rows as the control; fixture reports the next unpaired leap as 2049-04-03 and none in Janson's years"; else bad "defect-gone-from-2030" gone; fi
+if [ $code -eq 0 ] && cmp -s "$CONV/out/gone-rows.txt" "$CONV/out/control-rows-start.txt" && grep -qF '{ iso: "2049-04-03", month: 2 };' "$FIX" && grep -qF 'BHUTAN_UNPAIRED_LEAPS_IN_JANSON_YEARS = 0;' "$FIX" && grep -qF 'A leap month 2 begins 2049-04-03,' "$FIX" && ! grep -qF 'begins 2030-04-03' "$FIX" && grep -q 'BHUTAN_END = "2030-04-02"' "$FIX"; then ok "defect-gone-from-2030: same rows as the control; fixture reports the next unpaired leap as 2049-04-03 and none in Janson's years"; else bad "defect-gone-from-2030" gone; fi
 
 # unpaired-leap-in-february: a defect after the window that begins in February belongs to the Tibetan
 # year its numbering gives it. The Gregorian approximation counts it among Janson's years.

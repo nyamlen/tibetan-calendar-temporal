@@ -126,7 +126,7 @@ The rule for naming a calendar day is, in Janson's words:
 > A calendar day is labelled by the lunar day that is current at the beginning of the calendar day.
 
 He restates it straight away the other way round, and the second form is the easier one to reason
-with: a lunar day gives its number to the calendar day **in which it ends**. The two are one rule —
+with: a lunar day gives its number (and month) to the calendar day **in which it ends**. The two are one rule —
 the lunar day current at daybreak is the one that ends next.
 
 Now consider what happens when lunar days drift against civil days:

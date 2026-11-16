@@ -329,7 +329,7 @@ export function addDays(
  * @param date - The date to resolve. `isLeapMonth` and `isLeapDay` default to `false`: an unmarked
  * identity names the regular unit and the extra one must be marked. For a day, the regular half of
  * a doubled pair is the calendar day in which its lunar day ends, and the leap half borrows the
- * number (Janson, "a lunar day gives its number to the calendar day in which it ends").
+ * number (Janson: "a lunar day gives its name (number and month) to the calendar day where the lunar day ends").
  * @param tradition - Astronomical constants. Defaults to `PHUGPA`.
  *
  * @throws {@link SkippedDayError} — code `TCT_SKIPPED_DAY` — if no calendar day carries `date`.
@@ -510,8 +510,8 @@ export function addMonthsToDate(
 	// takes the regular half, the calendar day just before where the requested one would have been.
 	//
 	// Why a start that is not doubled lands on the regular half of a doubled target: Janson, "a
-	// lunar day gives its number to the calendar day in which it ends". The regular half is the day
-	// lunar day N ends; the leap half is a day in which no lunar day ends and which borrows N. An
+	// lunar day gives its name (number and month) to the calendar day where the lunar day ends".
+	// The regular half is the day lunar day N ends; the leap half is a day in which no lunar day ends and which borrows N. An
 	// ordinary start is also the day its lunar day ends, so the regular half steps from "the day N
 	// ends" to "the day N ends next month", thirty lunar days. Measured on Phugpa over Tibetan
 	// 2027-2227 (1900-2101 CE): every "+1 month, same number" step from an ordinary day elapses 29

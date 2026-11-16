@@ -1126,7 +1126,7 @@ export interface TibetanDateFields {
 	 * and the extra unit must be marked, as an omitted `isLeapMonth` names the regular month (the
 	 * second under Phugpa, the first under Bhutan) and as Temporal's and CLDR's month codes do
 	 * (`M05` regular, `M05L` leap). The regular day is the one in which its lunar day ends: Janson,
-	 * "a lunar day gives its number to the calendar day in which it ends".
+	 * "a lunar day gives its name (number and month) to the calendar day where the lunar day ends".
 	 *
 	 * @remarks
 	 * **Ignored on a day that is not doubled**, which returns that day as though the flag were

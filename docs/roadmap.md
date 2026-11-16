@@ -503,8 +503,8 @@ that its first step is still open.
   - `scripts/extract-janson-fixtures.mjs` does not check leap-column cells for shape, or that the
     Losar years are contiguous.
   - `scripts/fetch-eszthoff-fixtures.mjs` has no guard against being run from inside the repository.
-  - `scripts/fetch-fpmt-observances.mjs`'s month-span guard accepts a Gregorian month holding two
-    consecutive leap pairs; the parser it replaced did too, and the task that rewrote it did not
+  - `scripts/fetch-fpmt-observances.mjs`'s month-span guard accepts a caption implying two leap
+    pairs, e.g. `6A-7B`; the parser it replaced did too, and the task that rewrote it did not
     take it up.
 - [ ] **Small findings parked by the phonetics-by-word reviews (2026-11-15).**
   None blocks 1.0.0; each is a guard or a comment that could be tighter, found by the task reviews
