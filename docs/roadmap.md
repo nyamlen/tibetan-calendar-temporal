@@ -1517,10 +1517,18 @@ nothing and reports success.
       reviews rather than `/code-review`, then scored by independent agents: 57 findings, 47 kept.
       The fixes go on one branch, reviewed by the one free ultrareview before merging; the false
       docblocks among them go to the docblock audit. The item closes when the fixes merge.
+
+      **Status 2026-11-16:** every kept finding is fixed or parked with a ruling on the branch
+      `pre-1.0-review-fixes`, each task reviewed by an independent Opus reviewer and the whole branch
+      by a final hostile-input pass, which found it ready to merge. Parked findings are in the item
+      "Small findings parked by the pre-1.0.0 code review". Awaiting the ultrareview, then merge.
 - [ ] **Security review.** **Run 2026-11-15 at `34b8ab4`:** no high findings. Two medium — the
       `monthsFor` cache grows without bound on the shipped configs, and the CI-token item was stale
       (rewritten under Publishing) — and one low, action pinning by tag. The cache cap goes on the
-      code-review fixes branch. Still open: `/security-review` on the release branch's diff. State the honest scope first, or the pass will invent findings: zero
+      code-review fixes branch.
+      **Status 2026-11-16:** on that branch, not yet merged — the cache is an LRU of 64 years per
+      config, and both CI actions are pinned to commit SHAs.
+      Still open: `/security-review` on the release branch's diff. State the honest scope first, or the pass will invent findings: zero
       runtime dependencies, no I/O, no network, no filesystem access, no user-supplied strings
       reaching anything but integer arithmetic. The real attack surface is **supply chain and
       release**, most of it already itemised under Publishing — provenance, the lockfile, token
@@ -2112,8 +2120,8 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
 
   A third turned up when the engine was finally held to the data: the source carries **one leap
   month Janson does not list**, at 2030-04-03, because the upstream leaves its leap flag set a month
-  too long. The generator has a fifth check for it, and the fixture now ends on 2030-04-02, the day
-  before; asking the generator for a later end refuses to write.
+  too long. The generator has a fifth check for it, and the fixture now ends the day before (its
+  extent is in `docs/testing.md`); asking the generator for a later end refuses to write.
 
 - **Mongolian tradition** (New Genden) via its own `TraditionConfig`. Added as its own entry on
   2026-09-24, at Andreas' request; its route was first scoped inside the Tsurphu entry above, which

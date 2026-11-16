@@ -11,7 +11,7 @@ tradition, validating its leap months, and validating its dates are three separa
 the third earns an export. A day-by-day tiling is the strongest form of the third claim, and a
 config that has it may say "validated day by day". A config that has only a sample of externally
 published days is still exported, but its docblock says it is a sample, names the days, and names the
-config that holds the sweep. `BHUTAN_HENNING` has the sweep: 11,050 days against Henning's lineage in
+config that holds the sweep. `BHUTAN_HENNING` has the sweep, day by day against Henning's lineage in
 `test/validation/bhutan.test.ts`. `BHUTAN` has 25 government-published days in
 `test/validation/rgob.test.ts` and no sweep, and is exported on that. Windows live in
 `docs/testing.md`.
