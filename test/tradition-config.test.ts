@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
-import {
-	isoToTibetan,
-	losarFor,
-	tibetanToIso,
-} from "../src/computation/conversion.js";
 import { elementalYogaFor } from "../src/astrology/index.js";
+import { isoToTibetan, losarFor, tibetanToIso } from "../src/computation/conversion.js";
 import { moonEquation, sunEquation } from "../src/computation/corrections.js";
 import { deriveScaling } from "../src/computation/scaling.js";
 import { hasLeapMonth, leapMonthNumberFor, monthsFor } from "../src/months.js";

@@ -517,10 +517,7 @@ function assertShape(tradition: TraditionConfig): void {
  *
  * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG`.
  */
-export function assertDerivable(
-	tradition: TraditionConfig,
-	searchHalfWidth: number,
-): void {
+export function assertDerivable(tradition: TraditionConfig, searchHalfWidth: number): void {
 	// A general bound on the search window, deliberately not a bound on the tables themselves.
 	// `|moonTab| ≤ 25` would hardcode Phugpa's magnitudes into a field the non-negotiables declare
 	// injectable, and would have to decide "is this Phugpa" from a consumer-settable `id`. What is
