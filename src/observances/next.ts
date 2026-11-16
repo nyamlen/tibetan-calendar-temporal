@@ -117,9 +117,8 @@ function firstWithin(
  * cannot be computed; {@link getObservances} and {@link observancesOn} refuse that case with
  * `TCT_OUTSIDE_EXACT_RANGE`, since they cannot answer a day without its span.
  *
- * **Near the lower end the search skips instead.** A `period` whose span, or a counted rule whose
- * anchors, begin before the start of the range has no occurrence there that can be built, and the
- * search goes on to the days after it; {@link getObservances} and {@link observancesOn} refuse such
+ * **Near the lower end the search skips instead.** A `period` whose span begins before the start of
+ * the range has no occurrence there that can be built, and the search goes on to the days after it; {@link getObservances} and {@link observancesOn} refuse such
  * a day with `TCT_OUTSIDE_EXACT_RANGE`.
  *
  * Arguments are checked in a fixed order, as in {@link getObservances}: `from`, then the config,

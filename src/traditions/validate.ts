@@ -507,6 +507,39 @@ function assertShape(tradition: TraditionConfig): void {
 }
 
 /**
+ * The common denominator the scaled arithmetic puts every quantity over must be a safe integer, and
+ * leave at least one Julian day of exact range.
+ *
+ * @remarks
+ * Each mean motion can be scalable on its own while the lcm of all three with the table
+ * denominators is not; `lcm` multiplies in doubles, so past 2^53 the result is rounded and the
+ * failure surfaces late, from `scaleTo`, or as an exact range of no days. The lcm is taken here in
+ * `BigInt` from the same three denominators.
+ *
+ * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG`.
+ */
+export function assertCommonDenominatorExact(
+	tradition: TraditionConfig,
+	denominators: readonly number[],
+): void {
+	let common = 1n;
+	for (const den of denominators) {
+		const d = BigInt(den);
+		// exact: BigInt, and a gcd divides both its arguments.
+		common = (common / bigGcd(common, d)) * d;
+	}
+	// A range of at least one day is what `exactToJulianDay = floor(MAX_SAFE / common)` needs.
+	if (common > BigInt(Number.MAX_SAFE_INTEGER)) {
+		throw invalid(
+			tradition,
+			`the common denominator of its mean motions and correction tables is ${common}, beyond ` +
+				"2^53 - 1, so no Julian day can be computed exactly. Shrink the denominators of meanDate, " +
+				"meanSun and lunarAnomaly",
+		);
+	}
+}
+
+/**
  * The checks that need derived quantities rather than the raw config.
  *
  * @remarks

@@ -805,8 +805,31 @@ describe("a mean motion whose denominators cannot be scaled exactly", () => {
 		expect(error?.message).toMatch(/lunarAnomaly/);
 	});
 
-	it("accepts the largest odd meanSun denominator whose multiple of 4 is safe", () => {
-		const t = broken({ meanSun: motionOver(WITHIN) });
+	it("refuses at use a config whose motions are each scalable but whose common denominator is not", () => {
+		const t = broken({ id: "within", meanSun: motionOver(WITHIN) });
 		expect(thrownBy(() => validatedTradition(t))).toBeUndefined();
+		const error = thrownBy(() => isoToTibetan(iso("2026-08-12"), t));
+		expect(error?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
+		expect(error?.message).toMatch(/"within".*common denominator/);
+	});
+
+	it("still accepts the shipped config written over denominators scaled by 10,000", () => {
+		const scale = (r: { num: number; den: number }) => ({
+			num: r.num * 10_000,
+			den: r.den * 10_000,
+		});
+		const motion = (m: typeof PHUGPA.meanDate) => ({
+			perMonth: scale(m.perMonth),
+			perDay: scale(m.perDay),
+			atEpoch: scale(m.atEpoch),
+		});
+		const t = broken({
+			id: "scaled",
+			meanDate: motion(PHUGPA.meanDate),
+			meanSun: motion(PHUGPA.meanSun),
+			lunarAnomaly: motion(PHUGPA.lunarAnomaly),
+		});
+		const day = iso("2026-08-12");
+		expect(isoToTibetan(day, t)).toEqual({ ...isoToTibetan(day, PHUGPA) });
 	});
 });

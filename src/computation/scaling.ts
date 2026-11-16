@@ -20,7 +20,11 @@
 
 import { rangeError } from "../errors.js";
 import type { MeanMotion, Rational, TraditionConfig } from "../traditions/types.js";
-import { assertDerivable, validatedTradition } from "../traditions/validate.js";
+import {
+	assertCommonDenominatorExact,
+	assertDerivable,
+	validatedTradition,
+} from "../traditions/validate.js";
 import { ceilDiv, gcd, lcm, scaleTo } from "./arithmetic.js";
 
 /** A {@link MeanMotion} with each coefficient expressed as an integer over a shared denominator. */
@@ -215,6 +219,7 @@ export function deriveScaling(tradition: TraditionConfig): ScaledTradition {
 	const sunTabArgFactor = 12 / sunGcd;
 
 	// true_date = mean_date + moon_equ/60 − sun_equ/60, so D must absorb all three.
+	assertCommonDenominatorExact(tradition, [meanDate.den, moonTabArgDen * 60, sunTabArgDen * 60]);
 	const commonDenominator = [meanDate.den, moonTabArgDen * 60, sunTabArgDen * 60].reduce(lcm);
 
 	// The correction bound, in lunar days, from this tradition's own tables. See

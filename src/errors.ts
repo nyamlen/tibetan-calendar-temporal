@@ -462,9 +462,10 @@ export interface PrivateCopySpec<T extends object> {
  *
  * @remarks
  * The one home for the protocol both config validators follow. Every read of the caller's object —
- * the cache lookup, the first validation, the clone — is inside {@link readingCallersObject}, because
- * each can run their code. The copy is then validated as a new object, since a getter, an inherited
- * field or a non-enumerable one answers differently once cloned, and the cache records the copy only
+ * the cache lookup, the first validation, the clone — is inside {@link readingCallersObject}. The
+ * lookup itself (`WeakMap.get`) runs no code of theirs, but the caller-supplied `isCandidate` can, and
+ * that is why it sits inside the guard too. The copy is then validated as a new object, since a
+ * getter, an inherited field or a non-enumerable one answers differently once cloned, and the cache records the copy only
  * after that: a refused config is never cached, and a copy maps to itself so passing one back is a hit.
  * Validation runs before the clone because `structuredClone` throws an uncoded `DataCloneError` on a
  * function or a Symbol, which is recoded to the config's code.
