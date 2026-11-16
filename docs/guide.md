@@ -253,10 +253,10 @@ day.lunarMansion.index;              // 26 — where the moon is that morning
 day.lunarMansion.sanskritName.iast;  // 'revatī'
 day.lunarMansion.tibetanName.wylie;  // 'nam gru'
 day.lunarMansion.element;            // 'water'
-day.yoga.englishName;        // 'death'
-day.yoga.sanskritName.iast;  // 'maraṇa'
-day.yoga.favorable;  // false
-day.yoga.auspiciousness.englishName;  // 'worst'
+day.yoga?.englishName;       // 'death'
+day.yoga?.sanskritName.iast; // 'maraṇa'
+day.yoga?.favorable;  // false
+day.yoga?.auspiciousness.englishName;  // 'worst'
 ```
 
 **What `yoga` is.** The day's *elemental yoga*: the pairing of two elements from the Indian set of
@@ -325,7 +325,9 @@ them; the four-way `auspiciousness` grading is a Tibetan dictionary's, read by l
 
 *Two traditions answer and two refuse.* Janson tabulates no month-animal list for the Bhutanese
 version, so `month` and `lunarDay` are `null` under `BHUTAN` and `BHUTAN_HENNING` rather than quietly
-carrying Phugpa's answers. The primitives throw `TCT_ATTRIBUTE_NOT_SOURCED` where the composition
+carrying Phugpa's answers. So is `yoga`: Bhutan shifts the weekday by one day, and no source says what
+the yoga's weekday element is then. The mansion, the year and the calendar day still answer.
+The primitives throw `TCT_ATTRIBUTE_NOT_SOURCED` where the composition
 reports `null`: a specific question with no answer is an error, while "what is known about this day"
 is not.
 
@@ -1071,8 +1073,9 @@ date.weekdayName.phonetic;   // spoken form
 `monthNamesFor` takes one too, for the Tiger month and the leap-month check; `yearNameFor` and
 `rabjungFor` take none. A `TibetanDate` produced with a non-default config already
 carries the shifted name on its `weekdayName` field — you do not need to look it up again.
-The shift moves the name only: the `planet` and `element` stay those of the Tibetan weekday, so a
-Bhutanese Saturday is named *nyi ma* and still reports Saturn and earth.
+The whole weekday moves: name, `planet` and `element` are the next weekday's, so a Bhutanese
+Saturday is *nyi ma*, the Sun, fire. Janson and Henning's Bhutanese data bear out the name and
+planet; that the element moves with them is an inference no source states.
 
 **What deliberately does not ship:** translations into any other language. The names are the
 calendar's own vocabulary, not user-interface strings, and an application supplying French or

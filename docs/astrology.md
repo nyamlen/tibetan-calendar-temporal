@@ -10,7 +10,7 @@ what else the day is held to be.
 The whole layer is on the `tibetan-calendar-temporal/astrology` subpath: the year, month, lunar-day
 and calendar-day attributes, the lunar mansion, the element each mansion carries, and the elemental
 yoga with its names, favorability and four-way grading. The month and lunar-day attributes **refuse** for the Bhutanese
-configs, as the gap below describes.
+configs, as the gap below describes, and so does the yoga, because Bhutan shifts the weekday.
 This document explains the *system*, which is stable knowledge independent of our implementation.
 It deliberately states **no API examples** — no function names, no call signatures — and that is now a
 division of labour rather than a wait: the consumer account lives in
@@ -323,8 +323,15 @@ default rather than Bhutanese evidence — see [validation-sources.md](validatio
 An independent Bhutanese source is required.
 
 Until it is sourced, the behaviour is to **refuse rather than guess**: Bhutan gets the year
-attributes, the calendar-day attributes and the yoga, and a coded error for the month and lunar-day
-attributes naming the gap.
+attributes, the calendar-day attributes and the lunar mansion, and a coded error for the month and
+lunar-day attributes naming the gap.
+
+**The yoga is refused under Bhutan for a different reason.**
+Bhutan shifts the whole weekday by one day — name, planet and element — and no source says what the
+yoga pairs the mansion with after the shift; that the element moves is an inference, Andreas' ruling
+of 2026-11-16.
+The refusal is reached through the config's nonzero `naming.weekdayOffset`, again not by asking "is
+this Bhutan", and `attributesFor` reports `null` for it.
 That is implemented as of 2026-09-12 — `TCT_ATTRIBUTE_NOT_SOURCED`, thrown because a tradition whose
 month attributes nobody has sourced carries no month-naming block at all, rather than because any
 code asks "is this Bhutan"; see

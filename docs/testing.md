@@ -254,7 +254,7 @@ narrower still.
 | Month attributes: element | 1900–2100, both element rules | Janson's **prose**, there being no printed table | that the Tiger month takes the son of the year's element, that each element runs two months, and that Phugpa restarts annually where Tsurphu does not |
 | Lunar-day attributes | every day of every month | Janson's **prose** | the opening animal of odd and even months, and the opening trigram and number he names for each month animal |
 | Lunar mansion, day by day | 2022–2026, Phugpa only | FPMT's day-quality codes | the mansion arithmetic, at **98.0%** — see below |
-| Yoga favorability, day by day | 2022–2026, and tradition-free | FPMT's `FD-`/`UD-` prefixes | the favorability table, at **99.8%** — it reads FPMT's own pair letters, so the mansion residual cannot reach it, and the four disagreements are days FPMT contradicts itself on |
+| Yoga favorability, day by day | 2022–2026, Phugpa only: the yoga is refused under the Bhutanese configs | FPMT's `FD-`/`UD-` prefixes | the favorability table, at **99.8%** — it reads FPMT's own pair letters, so the mansion residual cannot reach it, and the four disagreements are days FPMT contradicts itself on |
 | Yoga element pairs and grading | the ten rows; no window | the *tshig mdzod chen mo*'s `'phrod sbyor`, through `verify:month-and-yoga-names` | that Henning's ten pairs are the dictionary's, and that `auspiciousness` is its grading — **membership read by list order**, since it states group sizes only. `test/astrology/yoga.test.ts` pins that good + restorative are exactly the favorable six |
 
 **That 98.0% is a characterised figure, not a tolerance.** 1,784 of 1,821 days agree — a **2.0%**

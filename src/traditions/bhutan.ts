@@ -113,7 +113,8 @@ export const BHUTAN: TraditionConfig = deepFreeze({
 	 * Day 0 is *nyi ma* rather than *spen pa* — Janson's "unique feature of the Bhutanese calendar",
 	 * and Unicode CLDR agrees, naming the same date one planet apart in `bo` and `dz`.
 	 *
-	 * Naming only. No date moves.
+	 * No date moves. The weekday's name, planet and element do, and the elemental yoga is refused
+	 * as unsourced.
 	 */
 	naming: { weekdayOffset: 1 },
 });

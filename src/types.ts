@@ -318,13 +318,15 @@ export type TibetanWeekdayElement = "earth" | "fire" | "water" | "wind";
  *
  * @remarks
  * In Tibet the name of the day essentially *is* the planet's name. Under Bhutan, where
- * `TraditionNaming.weekdayOffset` shifts the name, `planet` and `element` do not follow it: a day
- * named *nyi ma* may report `saturn`. They are the weekday's values in the Tibetan table.
- * The element is the day's astrological attribute, which combines with the lunar day's own element
- * in the almanac's elemental yoga.
+ * `TraditionNaming.weekdayOffset` shifts the weekday, the name, `planet` and `element` all move
+ * together: a Bhutanese Saturday is *nyi ma*, `sun`, `fire`. That the element moves is an
+ * inference no source states (Andreas' ruling of 2026-11-16), which is why the elemental yoga is
+ * not answered under such a tradition.
+ * The element is the day's astrological attribute, which combines with the lunar mansion's own
+ * element in the almanac's elemental yoga.
  */
 export interface TibetanWeekdayName extends TibetanName {
-	/** The planet of the weekday in the Tibetan table; not shifted by `weekdayOffset`. */
+	/** The planet of the weekday, shifted with the name by `weekdayOffset`. */
 	planet: TibetanPlanet;
 
 	/** The day's astrological element. See {@link TibetanWeekdayElement} — `wind` is possible. */

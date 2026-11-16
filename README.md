@@ -507,8 +507,8 @@ day.year.power;          // "fire" — 2026 is a Fire Horse year
 day.year.life;           // "fire", and body, fortune and spirit each run on their own cycle
 day.calendarDay.animal;  // the sunrise-to-sunrise day's animal
 day.lunarDay?.animal;    // the lunar day's, which is a different label for the same date
-day.yoga.englishName;    // "death" — the least auspicious of the ten
-day.yoga.favorable;      // false
+day.yoga?.englishName;   // "death" — the least auspicious of the ten
+day.yoga?.favorable;     // false
 ```
 
 **A day carries two sets of labels that disagree, and almanacs print both.** The lunar day is the
@@ -516,9 +516,10 @@ thirtieth of a lunation; the calendar day runs sunrise to sunrise. On a doubled 
 share `year`, `month` and `lunarDay` and differ in `calendarDay`, and can differ in `yoga` and
 `lunarMansion` — that is the calendar, not a bug.
 
-**`month` and `lunarDay` are `null` for the Bhutanese traditions.** Janson tabulates no month-animal
-list for that version, so the package refuses rather than handing over Phugpa's answers; the
-primitives throw `TCT_ATTRIBUTE_NOT_SOURCED` where the composition reports `null`.
+**`month`, `lunarDay` and `yoga` are `null` for the Bhutanese traditions.** Janson tabulates no
+month-animal list for that version, and Bhutan shifts the weekday by one day, which no source carries
+through to the yoga's weekday element, so the package refuses rather than handing over Phugpa's
+answers; the primitives throw `TCT_ATTRIBUTE_NOT_SOURCED` where the composition reports `null`.
 
 Favorability is FPMT's convention and is in neither Janson nor Henning; `auspiciousness` is a Tibetan
 dictionary's four-way grading of the same ten yogas, with its groups read from the order it lists them in. What is validated, over which
@@ -692,7 +693,7 @@ a `code`, which is what to branch on rather than the type:
 | `TCT_INVALID_TRADITION_CONFIG` | any function taking a tradition | The `TraditionConfig` is malformed, or is not one at all — `null`, or a `{ tradition }` bag passed where the config itself belongs. A key the config does not have is refused, a misspelt one included, and so is a value that cannot be copied — an exotic `Proxy`, a function-valued field. The message names the field or the key |
 | `TCT_INVALID_OBSERVANCE_CONFIG` | `getObservances`, `observancesOn`, `nextObservance`, `composeObservances` | The `ObservanceConfig`, one of its rules, levels or `when` forms, or a `composeObservances` layer is malformed — an unknown key, a setting the rule's form does not use, a rule naming a level the config does not declare, or a layer naming an id the base does not have — or a value that cannot be copied, such as an exotic `Proxy` or a function-valued field. The message names the field or id |
 | `TCT_SPAN_TOO_WIDE` | `getObservances` | `to.year - from.year` is more than 10: the rule is on calendar years, so 2020-01-01 to 2030-12-31 is admitted and 2020-12-31 to 2031-01-01 is not. Chunk it; the function is pure, so concatenating is correct |
-| `TCT_ATTRIBUTE_NOT_SOURCED` | `monthAttributesFor`, `lunarDayAttributesFor` | Your input is fine; no source gives this attribute for this tradition. Thrown under `BHUTAN` and `BHUTAN_HENNING`, whose month animals Janson does not tabulate. `attributesFor` reports the same gap as `null` instead |
+| `TCT_ATTRIBUTE_NOT_SOURCED` | `monthAttributesFor`, `lunarDayAttributesFor`, `elementalYogaFor` | Your input is fine; no source gives this attribute for this tradition. Thrown under `BHUTAN` and `BHUTAN_HENNING`, whose month animals Janson does not tabulate and whose shifted weekday leaves the yoga's weekday element unsourced (`elementalYogaFor` only). `attributesFor` reports the same gap as `null` instead |
 | `TCT_MISSING_TEMPORAL` | the `import` itself, and any date entry point if the global `Temporal` is deleted afterwards | No `Temporal` in this runtime — see [Requirements](#requirements) |
 | `TCT_INTERNAL` | `isoToTibetan`, and the arithmetic primitives beneath it | An invariant the engine proves for itself did not hold. A bug here rather than in your input; please [report it](https://github.com/nyamlen/tibetan-calendar-temporal/issues) |
 
@@ -743,13 +744,13 @@ passed last and positionally as on the root: `attributesFor(date, BHUTAN)`.
 
 | Export | Signature | Notes |
 |---|---|---|
-| `attributesFor` | `(date: Temporal.PlainDate \| TibetanDate, tradition?) => DayAttributes` | Everything about one day. `month` and `lunarDay` are `null` where unsourced |
+| `attributesFor` | `(date: Temporal.PlainDate \| TibetanDate, tradition?) => DayAttributes` | Everything about one day. `month`, `lunarDay` and `yoga` are `null` where unsourced |
 | `yearAttributesFor` | `(year: number) => YearAttributes` | Royal era, and no tradition: closed forms on the year alone |
 | `monthAttributesFor` | `(month: TibetanMonthFields, tradition?) => MonthAttributes` | Throws `TCT_ATTRIBUTE_NOT_SOURCED` for the Bhutanese configs |
 | `lunarDayAttributesFor` | `(date: TibetanDateFields, tradition?) => LunarDayAttributes` | Tibetan fields in, so a **skipped** lunar day can be asked about. Throws `TCT_ATTRIBUTE_NOT_SOURCED` for the Bhutanese configs |
 | `calendarDayAttributesFor` | `(date: Temporal.PlainDate \| TibetanDate) => CalendarDayAttributes` | Congruences on the Julian day; the number differs in Tsurphu calendars, which is not modelled |
 | `lunarMansionFor` | `(date: Temporal.PlainDate \| TibetanDate, tradition?) => LunarMansion` | `{ index, tibetanName, sanskritName, element }`, index 0–26 as Janson and Henning number them, and no English name, because no source prints one. Needs the moon's real position; a published almanac sometimes prints the next mansion, late in a mansion — how often is in [why-trust-these-dates.md](docs/why-trust-these-dates.md). |
-| `elementalYogaFor` | `(date: Temporal.PlainDate \| TibetanDate, tradition?) => ElementalYoga` | The weekday's element paired with the lunar mansion's |
+| `elementalYogaFor` | `(date: Temporal.PlainDate \| TibetanDate, tradition?) => ElementalYoga` | The weekday's element paired with the lunar mansion's. Throws `TCT_ATTRIBUTE_NOT_SOURCED` for the Bhutanese configs |
 | `elementalYoga` | `(a: TibetanWeekdayElement, b: TibetanWeekdayElement) => ElementalYoga` | The pair alone, order-insensitive |
 | `ELEMENTAL_YOGAS` | | The ten, frozen: Henning's names, FPMT's favorability, and the *tshig mdzod chen mo*'s four-way grading as `auspiciousness` |
 | `LUNAR_MANSIONS` | | All 27, frozen, in index order — the table `lunarMansionFor` looks a day up in |

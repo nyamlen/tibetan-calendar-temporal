@@ -542,7 +542,8 @@ derivation; in `docs/` they are just noise.
 
   **A third semantics, neither of the two below:**
   `TCT_ATTRIBUTE_NOT_SOURCED` means the caller's input is **fine** and no source gives the answer —
-  the Bhutanese month and lunar-day attributes, which Janson does not tabulate. It is
+  the Bhutanese month and lunar-day attributes, which Janson does not tabulate, and the elemental
+  yoga under any config whose `naming.weekdayOffset` is nonzero. It is
   `TCT_INVALID_ARGUMENT`'s neighbour rather than `TCT_FIELD_OUT_OF_RANGE`'s, it is deliberately
   **off** `tibetanDateExists`'s allowlist (a Bhutanese date exists; only an attribute of it is
   unsourced), and the refusal is reached by a tradition carrying no `naming.monthAnimals` block rather than
@@ -830,13 +831,13 @@ item does not reach the prose that names it, here or in this file: when you tick
 its name.
 
 **A new layer that reuses an existing accessor inherits its tradition-dependence, whether or not a
-source licenses that.** The elemental yoga read `weekdayNameFor(weekday, tradition)` for its weekday
-element, which applies `naming.weekdayOffset` — so Bhutan silently got a different yoga on 12 of 14
-consecutive days, from a naming fact Janson states separately and never connects to the yoga. Two
-shipped claims said it could not happen, including `weekdayOffset`'s own "applies to the name only".
-External validation is Phugpa-only, so nothing could catch it. When a new module reaches into the
-naming or config layer, ask which tradition-dependence comes with the call, and whether any source
-establishes it; the default is the table the paper actually prints.
+source licenses that.** The elemental yoga reads its weekday's element, and `naming.weekdayOffset`
+moves the whole weekday — name, planet and element — so reusing the accessor gives Bhutan a different
+yoga on most days, from a naming fact Janson states separately and never connects to the yoga. No
+source says which element the yoga pairs after the shift, and external validation is Phugpa-only, so
+nothing could catch a guess: the yoga is refused under a nonzero offset. When a new module reaches
+into the naming or config layer, ask which tradition-dependence comes with the call, and whether any
+source establishes it; where none does, refuse.
 
 **And restore the mutant from a copy, never with `git checkout` — which silently cannot restore a file
 that is not yet tracked.** On an untracked file `git checkout <path>` fails with `pathspec did not

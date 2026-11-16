@@ -100,19 +100,19 @@ export const NAME_TABLES = freeze({ WEEKDAYS, ELEMENTS, GENDERS, ANIMALS });
  * calendar", and Unicode CLDR agrees: its `bo` and `dz` locales differ by exactly one planet for
  * the same date.
  *
- * The offset applies to the **name only**. `tibetanWeekday` is `mod(julianDay + 2, 7)` for every
- * tradition, and the Western weekday is correct in both — which is why the difference is invisible
- * when dates are written in English, as Janson notes.
+ * The **whole weekday** moves: name, `planet` and `element` are all the shifted weekday's row, so a
+ * Bhutanese Saturday is *nyi ma*, the sun, fire. `tibetanWeekday` itself is `mod(julianDay + 2, 7)`
+ * for every tradition, and the Western weekday is correct in both — which is why the difference is
+ * invisible when dates are written in English, as Janson notes.
  *
- * The `planet` and `element` stay those of the unshifted weekday, and that is a ruling, not
- * something the source settles. Janson writes "A unique feature of the Bhutanese calendar is that
- * its day of week differs by one day from Tibet (and the rest of the world,
- * see his figure of the weekday–planet correspondence)"
- * — which does not mention the element, and points at that correspondence — and then "day 0
- * (Saturday) is *spen pa* in Tibet but *nyi ma* (really meaning sun) in Bhutan". Andreas ruled on
- * 2026-11-15 that the offset moves the name only, which ends a contradiction with the elemental
- * yoga, where Janson's table is read unshifted. So a Bhutanese Saturday is named *nyi ma*, the sun's
- * word, and reports Saturn and earth.
+ * That the name and planet move is evidenced: Janson writes "A unique feature of the Bhutanese
+ * calendar is that its day of week differs by one day from Tibet (and the rest of the world, see his
+ * figure of the weekday–planet correspondence)" and "day 0 (Saturday) is *spen pa* in Tibet but
+ * *nyi ma* (really meaning sun) in Bhutan"; Henning's Bhutanese data labels the same date with the
+ * next weekday, and Unicode CLDR's `dz` locale names it by the sun. That the **element** moves with
+ * them is an inference no source states, and it is Andreas' ruling of 2026-11-16. Because no source
+ * says what the elemental yoga's weekday element is under such a shift, the yoga is refused there:
+ * see `elementalYogaFor`.
  *
  * @param weekday - Tibetan weekday, 0 = Saturday through 6 = Friday.
  * @param offset - Planets to shift the name by: 0 for every Tibetan version, 1 for Bhutan.
@@ -133,13 +133,12 @@ export function weekdayNameWithOffset(weekday: number, offset: number): TibetanW
 	let rows = SHIFTED_ROWS.get(shift);
 	if (rows === undefined) {
 		rows = freeze(
-			WEEKDAYS.map((day, index) => {
-				const named = assertInternal(
+			WEEKDAYS.map((_, index) =>
+				assertInternal(
 					WEEKDAYS[(index + shift) % 7],
 					"the shifted index is forced into 0..6 and WEEKDAYS has seven entries",
-				);
-				return shift === 0 ? day : { ...named, planet: day.planet, element: day.element };
-			}),
+				),
+			),
 		);
 		SHIFTED_ROWS.set(shift, rows);
 	}

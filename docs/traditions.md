@@ -253,7 +253,10 @@ winter solstice computed at mean solar longitude 250° that has no counterpart i
 
 Bhutan names its **weekdays one planet ahead** of Tibet — Saturday is *nyi ma* there where Tibet has
 *spen pa*. That is `TraditionNaming.weekdayOffset`, a naming concern rather than a calendrical one,
-and it affects no date.
+and it affects no date. It moves the whole weekday — name, planet and element — so a Bhutanese
+Saturday is *nyi ma*, the Sun, fire, and the elemental yoga, which pairs the weekday's element with
+the mansion's, is refused under it as unsourced: Janson and Henning's Bhutanese data carry the name
+and planet, and nothing says what the yoga does with the shifted element.
 
 ## Still Tsurphu's, and not modelled
 

@@ -85,6 +85,10 @@ export interface DayAttributes {
 	calendarDay: CalendarDayAttributes;
 	/** The lunar mansion at the start of the calendar day. */
 	lunarMansion: LunarMansion;
-	/** The elemental yoga — the weekday's element paired with the lunar mansion's. */
-	yoga: ElementalYoga;
+	/**
+	 * The elemental yoga — the weekday's element paired with the lunar mansion's — or `null` where
+	 * the tradition shifts the weekday (`naming.weekdayOffset` nonzero, as both Bhutanese configs
+	 * do) and no source says what the yoga's weekday element is then.
+	 */
+	yoga: ElementalYoga | null;
 }

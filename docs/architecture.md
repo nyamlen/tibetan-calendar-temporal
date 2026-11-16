@@ -494,7 +494,7 @@ interface DayAttributes {
   lunarDay: LunarDayAttributes | null; // likewise
   calendarDay: CalendarDayAttributes;
   lunarMansion: LunarMansion;
-  yoga: ElementalYoga;
+  yoga: ElementalYoga | null;          // null where the weekday is shifted (the Bhutanese configs)
 }
 
 interface LunarMansion {

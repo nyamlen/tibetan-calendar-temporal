@@ -6,7 +6,7 @@ import {
 	tibetanWeekday,
 } from "../src/computation/conversion.js";
 import { rabjungFor, weekdayNameFor, yearNameFor } from "../src/cycles.js";
-import { BHUTAN } from "../src/traditions/bhutan.js";
+import { BHUTAN, BHUTAN_HENNING } from "../src/traditions/bhutan.js";
 import { PHUGPA, PHUGPA_HENNING } from "../src/traditions/phugpa.js";
 import { asTibetanWeekday, type TibetanWeekday } from "../src/types.js";
 
@@ -268,34 +268,49 @@ describe("the extreme safe integers", () => {
 	});
 });
 
-describe("Bhutan's weekday offset moves the name only", () => {
-	it("keeps the planet and element of the unshifted weekday, on the public function and on a date", () => {
+describe("Bhutan's weekday offset moves the whole weekday", () => {
+	// Before 2026-11-16 the offset moved the name only and these pinned `saturn`/`earth` for a
+	// Bhutanese Saturday; the ruling is now that name, planet and element all move together.
+	const SATURDAY = "2026-02-14";
+	const SUN_ROW = { wylie: "nyi ma", planet: "sun", element: "fire" };
+	const SATURN_ROW = { wylie: "spen pa", planet: "saturn", element: "earth" };
+	const brief = (n: { wylie: string; planet: string; element: string }) => ({
+		wylie: n.wylie,
+		planet: n.planet,
+		element: n.element,
+	});
+
+	it("gives a Bhutanese Saturday nyi ma, the sun and fire, under both Bhutanese configs", () => {
+		for (const tradition of [BHUTAN, BHUTAN_HENNING]) {
+			const date = isoToTibetan(iso(SATURDAY), tradition);
+			expect(brief(date.weekdayName), tradition.name).toEqual(SUN_ROW);
+			expect(brief(weekdayNameFor(date.tibetanWeekday, tradition)), tradition.name).toEqual(
+				SUN_ROW,
+			);
+		}
+	});
+
+	it("leaves Saturday spen pa, Saturn and earth under Phugpa", () => {
+		expect(brief(isoToTibetan(iso(SATURDAY), PHUGPA).weekdayName)).toEqual(SATURN_ROW);
+		expect(brief(weekdayNameFor(asTibetanWeekday(0), PHUGPA))).toEqual(SATURN_ROW);
+	});
+
+	it("shifts name, planet and element together on 14 consecutive days, as the next row of the table", () => {
 		const bad: string[] = [];
 		let day = iso("2026-02-09");
 		for (let i = 0; i < 14; i++) {
 			const date = isoToTibetan(day, BHUTAN);
-			const tibetan = weekdayNameFor(date.tibetanWeekday, PHUGPA);
-			const viaFunction = weekdayNameFor(date.tibetanWeekday, BHUTAN);
+			const next = weekdayNameFor(asTibetanWeekday((date.tibetanWeekday + 1) % 7), PHUGPA);
 			for (const [source, name] of [
-				["weekdayNameFor", viaFunction],
+				["weekdayNameFor", weekdayNameFor(date.tibetanWeekday, BHUTAN)],
 				["TibetanDate", date.weekdayName],
 			] as const) {
-				if (name.planet !== tibetan.planet || name.element !== tibetan.element) {
-					bad.push(
-						`${day} ${source}: ${name.planet}/${name.element}, Tibet ${tibetan.planet}/${tibetan.element}`,
-					);
+				if (JSON.stringify(name) !== JSON.stringify(next)) {
+					bad.push(`${day} ${source}: ${name.wylie}/${name.planet}/${name.element}`);
 				}
-				if (name.wylie === tibetan.wylie) bad.push(`${day} ${source}: name did not shift`);
 			}
 			day = day.add({ days: 1 });
 		}
 		expect(bad).toEqual([]);
-	});
-
-	it("names Saturday 2026-02-14 nyi ma yet reports Saturn and earth", () => {
-		const date = isoToTibetan(iso("2026-02-14"), BHUTAN);
-		expect(date.weekdayName.wylie).toBe("nyi ma");
-		expect(date.weekdayName.planet).toBe("saturn");
-		expect(date.weekdayName.element).toBe("earth");
 	});
 });
