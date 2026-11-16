@@ -87,6 +87,12 @@ export type TibetanCalendarErrorCode =
 export type Coded<E extends Error> = E & { code: TibetanCalendarErrorCode };
 
 /**
+ * Every error this package constructed, by identity. A `code` is a string a caller can forge on an
+ * error of their own, so {@link readingCallersObject} asks this instead.
+ */
+const ownErrors = new WeakSet<object>();
+
+/**
  * A `RangeError` carrying a code.
  *
  * @remarks
@@ -105,6 +111,7 @@ export function rangeError(
 	// from every other one. `cause` is the caller's error, kept so they can find their own stack.
 	const error =
 		cause.length === 0 ? new RangeError(message) : new RangeError(message, { cause: cause[0] });
+	ownErrors.add(error);
 	return Object.assign(error, { code });
 }
 
@@ -126,7 +133,9 @@ export function rangeError(
  * engine's fault rather than theirs.
  */
 export function codedError(code: TibetanCalendarErrorCode, message: string): Coded<Error> {
-	return Object.assign(new Error(message), { code });
+	const error = new Error(message);
+	ownErrors.add(error);
+	return Object.assign(error, { code });
 }
 
 /**
@@ -382,6 +391,7 @@ export function assertQueryOptions<O extends object>(
 			"TCT_INVALID_ARGUMENT",
 			`${functionName}: options could not be read — reading it threw ${thrownDetail(error)}. ` +
 				`options must be an object like ${shape} or omitted`,
+			error,
 		);
 	}
 	if (isArray) throw notABag();
@@ -404,10 +414,10 @@ export function assertQueryOptions<O extends object>(
  *
  * @remarks
  * The one home for the config validators' first pass, the only one that touches the caller's object:
- * everything after it reads a private copy. The guard's own refusals carry `code` already and pass
- * through unchanged, so a bad field is still reported as one. `what` names the object in the message.
- * A thrown value that cannot even be inspected is treated as the caller's, since a Proxy thrown as
- * the error makes `instanceof` itself throw.
+ * everything after it reads a private copy. An error this package constructed passes through
+ * unchanged, so a bad field is still reported as one; that is decided by identity, because a `code`
+ * is a string a caller can forge. Anything else, a forged code included, is the caller's and is
+ * wrapped. `what` names the object in the message.
  *
  * @throws An error with `code` — the guard's own, or one wrapping the caller's.
  */
@@ -419,13 +429,8 @@ export function readingCallersObject<T>(
 	try {
 		return read();
 	} catch (error) {
-		let own = false;
-		try {
-			own = hasCode(error, code);
-		} catch {
-			// Not inspectable, so not ours.
-		}
-		if (own) throw error;
+		// Identity, not the `code` property: a caller's own error can carry any string.
+		if (typeof error === "object" && error !== null && ownErrors.has(error)) throw error;
 		throw rangeError(
 			code,
 			`${what} could not be read — reading it threw ${thrownDetail(error)}. ${what} is plain ` +

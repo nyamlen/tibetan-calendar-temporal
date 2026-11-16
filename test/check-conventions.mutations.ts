@@ -386,8 +386,8 @@ const X: readonly Row[] = [
 				"src/temporal-kind.ts",
 				(source) =>
 					source.replace(
-						"\tif (value instanceof Temporal.PlainDate) {\n",
-						"\tif (value === undefined) {\n",
+						"\t\tisNative = value instanceof Temporal.PlainDate;\n",
+						"\t\tisNative = value === undefined;\n",
 					),
 				"the one identity check in src/temporal-kind.ts",
 			),

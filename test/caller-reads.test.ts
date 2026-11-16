@@ -1,5 +1,16 @@
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { lunarDayAttributesFor, monthAttributesFor } from "../src/astrology/index.js";
+import * as astrologyApi from "../src/astrology/index.js";
+import {
+	attributesFor,
+	calendarDayAttributesFor,
+	elementalYogaFor,
+	lunarDayAttributesFor,
+	lunarMansionFor,
+	monthAttributesFor,
+} from "../src/astrology/index.js";
+import * as rootApi from "../src/index.js";
 import {
 	addDays,
 	addMonths,
@@ -13,6 +24,8 @@ import {
 	lunationFromMonth,
 	monthNamesFor,
 	monthsBetween,
+	nextFullMoon,
+	nextNewMoon,
 	PHUGPA,
 	resolveDate,
 	resolveMonth,
@@ -20,6 +33,7 @@ import {
 	tibetanDateExists,
 	tibetanToIso,
 } from "../src/index.js";
+import * as observancesApi from "../src/observances/index.js";
 import { EXAMPLE_OBSERVANCES, observancesOn } from "../src/observances/index.js";
 import { thrownBy } from "./support/thrown.js";
 
@@ -228,20 +242,25 @@ describe("a getter or a Proxy trap that throws while a date or month is read", (
 	});
 
 	it.each(["get", "has", "ownKeys", "getOwnPropertyDescriptor"] as const)(
-		"is refused when a Proxy's %s trap throws",
+		"is refused by every export when a Proxy's %s trap throws, with the trap's error as the cause",
 		(trap) => {
-			const proxy = new Proxy(
-				{ ...VALID, month: 1, day: 1 },
-				{
+			const wrong: string[] = [];
+			for (const [name, shape, , call] of EXPORTS) {
+				const target = Object.fromEntries(FIELDS[shape].map((f) => [f, VALID[f]]));
+				const proxy = new Proxy(target, {
 					[trap]: () => {
 						throw callerError;
 					},
-				},
-			);
-			const error = thrownBy(() => resolveDate(v(proxy)));
-			// A trap that a plain field read never reaches leaves the call answering.
-			if (error === undefined) expect(trap).not.toBe("get");
-			else expect(error.code).toBe("TCT_INVALID_ARGUMENT");
+				});
+				const error = thrownBy(() => call(proxy));
+				// A trap that a plain field read never reaches leaves the call answering.
+				if (error === undefined) {
+					if (trap === "get") wrong.push(`${name} answered`);
+				} else if (error.code !== "TCT_INVALID_ARGUMENT" || error.cause !== callerError) {
+					wrong.push(`${name}: ${error.code} cause ${String(error.cause)}`);
+				}
+			}
+			expect(wrong).toEqual([]);
 		},
 	);
 
@@ -341,5 +360,194 @@ describe("a config whose own code throws while the validator reads it", () => {
 	it("ObservanceConfig: the caller's own error is the cause of a getter's refusal", () => {
 		const error = thrownBy(() => useObservances(withGetter(EXAMPLE_OBSERVANCES, ["englishName"])));
 		expect(error?.cause).toBe(callerError);
+	});
+});
+
+// Where an export takes a date or month, found by reading the sources rather than by remembering:
+// `export function name(params)` whose parameters name the type, kept where the name is a runtime
+// export of one of the three barrels. A missing row is what the branded snapshot cannot see.
+const SRC = join(import.meta.dirname, "..", "src");
+const sourcesUnder = (dir: string): string[] =>
+	readdirSync(dir, { withFileTypes: true }).flatMap((entry) =>
+		entry.isDirectory()
+			? sourcesUnder(join(dir, entry.name))
+			: entry.name.endsWith(".ts")
+				? [join(dir, entry.name)]
+				: [],
+	);
+const BARRELS = new Set([
+	...Object.keys(rootApi),
+	...Object.keys(astrologyApi),
+	...Object.keys(observancesApi),
+]);
+const exportsTaking = (type: RegExp): string[] =>
+	sourcesUnder(SRC)
+		.flatMap((file) => {
+			const text = readFileSync(file, "utf8");
+			return [...text.matchAll(/export function (\w+)\(([^)]*)\)/g)]
+				.filter((match) => type.test(match[2] ?? ""))
+				.map((match) => match[1] as string);
+		})
+		.filter((name) => BARRELS.has(name))
+		.sort();
+
+describe("the table of exports covers every export that takes a date or month", () => {
+	it("is the set of barrel exports with a TibetanDateFields or TibetanMonthFields parameter", () => {
+		expect([...new Set(EXPORTS.map(([name]) => name))].sort()).toEqual(
+			exportsTaking(/\bTibetan(Date|Month)Fields\b/),
+		);
+	});
+});
+
+describe("a resolved TibetanDate is read once, for its isoDate", () => {
+	const names = exportsTaking(/\bTibetanDate\b(?!Fields|Snapshot)/);
+	const calls: Record<string, (date: unknown) => unknown> = {
+		nextFullMoon: (d) => nextFullMoon(v(d)),
+		nextNewMoon: (d) => nextNewMoon(v(d)),
+		calendarDayAttributesFor: (d) => calendarDayAttributesFor(v(d)),
+		elementalYogaFor: (d) => elementalYogaFor(v(d)),
+		lunarMansionFor: (d) => lunarMansionFor(v(d)),
+		attributesFor: (d) => attributesFor(v(d)),
+	};
+
+	it("has a row for each such export", () => {
+		expect(Object.keys(calls).sort()).toEqual(names);
+	});
+
+	it("reads isoDate once, and refuses a throwing getter with the caller's error as cause", () => {
+		const wrong: string[] = [];
+		const cause = new TypeError("mine");
+		for (const [name, call] of Object.entries(calls)) {
+			let reads = 0;
+			const counted = {
+				get isoDate() {
+					reads++;
+					return ISO;
+				},
+			};
+			call(counted);
+			if (reads !== 1) wrong.push(`${name} read isoDate ${reads}x`);
+			const error = thrownBy(() =>
+				call({
+					get isoDate() {
+						throw cause;
+					},
+				}),
+			);
+			if (error?.code !== "TCT_INVALID_ARGUMENT" || error.cause !== cause) {
+				wrong.push(`${name}: ${error?.code} cause ${String(error?.cause)}`);
+			}
+		}
+		expect(wrong).toEqual([]);
+	});
+});
+
+describe("the caller's error is the cause of every refusal of a throw", () => {
+	const cause = new TypeError("mine");
+	const throws = (): never => {
+		throw cause;
+	};
+	const brandedProxy = () =>
+		new Proxy(
+			{},
+			{
+				get: (_, key) => (key === Symbol.toStringTag ? "Temporal.PlainDate" : undefined),
+				getPrototypeOf: throws,
+			},
+		);
+	const rows: readonly (readonly [string, () => unknown])[] = [
+		[
+			"an options bag getter",
+			() =>
+				addMonthsToDate(LOSAR, 1, {
+					get tradition(): never {
+						return throws();
+					},
+				}),
+		],
+		[
+			"an options bag ownKeys trap",
+			() => addMonthsToDate(LOSAR, 1, new Proxy({}, { ownKeys: throws })),
+		],
+		[
+			"a date's Symbol.toStringTag getter",
+			() =>
+				resolveDate(
+					v({
+						...LOSAR,
+						get [Symbol.toStringTag](): never {
+							return throws();
+						},
+					}),
+				),
+		],
+		[
+			"a PlainDate argument's Symbol.toStringTag getter",
+			() =>
+				isoToTibetan(
+					v({
+						get [Symbol.toStringTag](): never {
+							return throws();
+						},
+					}),
+				),
+		],
+		[
+			"a Proxy get trap on a date",
+			() => observancesOn(v(new Proxy({}, { get: throws })), EXAMPLE_OBSERVANCES),
+		],
+		[
+			"a spoofed ZonedDateTime whose toPlainDate getter throws",
+			() =>
+				isoToTibetan(
+					v({
+						[Symbol.toStringTag]: "Temporal.ZonedDateTime",
+						get toPlainDate(): never {
+							return throws();
+						},
+					}),
+				),
+		],
+		[
+			"a spoofed ZonedDateTime whose toPlainDate throws",
+			() =>
+				isoToTibetan(v({ [Symbol.toStringTag]: "Temporal.ZonedDateTime", toPlainDate: throws })),
+		],
+		[
+			"a spoofed PlainDate whose toString throws",
+			() => isoToTibetan(v({ [Symbol.toStringTag]: "Temporal.PlainDate", toString: throws })),
+		],
+		[
+			"a PlainDate-branded Proxy whose getPrototypeOf throws, at isoToTibetan",
+			() => isoToTibetan(v(brandedProxy())),
+		],
+		[
+			"a PlainDate-branded Proxy whose getPrototypeOf throws, at observancesOn",
+			() => observancesOn(v(brandedProxy()), EXAMPLE_OBSERVANCES),
+		],
+		[
+			"a PlainDate-branded Proxy whose getPrototypeOf throws, at nextFullMoon",
+			() => nextFullMoon(v(brandedProxy())),
+		],
+	];
+
+	it.each(rows)("%s is TCT_INVALID_ARGUMENT with the error as cause", (_, call) => {
+		const error = thrownBy(call);
+		expect(error?.code).toBe("TCT_INVALID_ARGUMENT");
+		expect(error?.cause).toBe(cause);
+	});
+
+	it("a thrown object forging a config code is still wrapped, not passed through", () => {
+		const forged = Object.assign(new TypeError("forged"), { code: "TCT_INVALID_TRADITION_CONFIG" });
+		const config = structuredClone(PHUGPA);
+		Object.defineProperty(config, "epochYear", {
+			enumerable: true,
+			get() {
+				throw forged;
+			},
+		});
+		const error = thrownBy(() => isoToTibetan(ISO, v(config)));
+		expect(error).toBeInstanceOf(RangeError);
+		expect(error?.cause).toBe(forged);
 	});
 });

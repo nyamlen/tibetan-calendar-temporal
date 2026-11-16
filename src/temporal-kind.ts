@@ -85,11 +85,12 @@ export function temporalTypeNameOf(value: unknown): string | null {
 	let tag: string;
 	try {
 		tag = Object.prototype.toString.call(value);
-	} catch {
+	} catch (error) {
 		throw rangeError(
 			"TCT_INVALID_ARGUMENT",
 			"received a value whose type cannot be read: reading its Symbol.toStringTag threw. Pass " +
 				"the date itself.",
+			error,
 		);
 	}
 	if (!tag.startsWith(TAG_PREFIX) || !tag.endsWith("]")) return null;
@@ -173,7 +174,17 @@ export function toNativePlainDate(value: unknown, kind: TemporalDayKind): Tempor
 		// is not a function` — at the one boundary whose stated job is to convert uncoded TypeErrors
 		// into coded errors, and on the exact branch the spoofing argument above rests on. A
 		// `toPlainDate` that throws on its own escaped the same way.
-		const narrow = (value as { toPlainDate?: unknown }).toPlainDate;
+		let narrow: unknown;
+		try {
+			narrow = (value as { toPlainDate?: unknown }).toPlainDate;
+		} catch (error) {
+			throw rangeError(
+				"TCT_INVALID_ARGUMENT",
+				`received a value branded Temporal.${kind} whose toPlainDate could not be read: ` +
+					`${describe(value)} (${thrownDetail(error)})`,
+				error,
+			);
+		}
 		if (typeof narrow !== "function") {
 			throw rangeError(
 				"TCT_INVALID_ARGUMENT",
@@ -189,23 +200,39 @@ export function toNativePlainDate(value: unknown, kind: TemporalDayKind): Tempor
 				"TCT_INVALID_ARGUMENT",
 				`received a value branded Temporal.${kind} whose toPlainDate failed: ` +
 					`${describe(value)} (${thrownDetail(error)})`,
+				error,
 			);
 		}
 		return toNativePlainDate(narrowed, "PlainDate");
 	}
-	if (value instanceof Temporal.PlainDate) {
+	// `instanceof` walks the prototype chain, which a Proxy answers with its own trap, so it is guarded
+	// like every other read of the caller's value.
+	let isNative: boolean;
+	try {
+		isNative = value instanceof Temporal.PlainDate;
+	} catch (error) {
+		throw rangeError(
+			"TCT_INVALID_ARGUMENT",
+			`received a value branded Temporal.${kind} whose prototype cannot be read: ` +
+				`${describe(value)} (${thrownDetail(error)})`,
+			error,
+		);
+	}
+	if (isNative) {
+		const native = value as Temporal.PlainDate;
 		// `instanceof` is true for `Object.create(Temporal.PlainDate.prototype)`, which carries no
 		// brand: the native getter then throws, so the read is guarded and refused with a code.
 		try {
-			void value.calendarId;
-		} catch {
+			void native.calendarId;
+		} catch (error) {
 			throw rangeError(
 				"TCT_INVALID_ARGUMENT",
 				`received a value that is an instance of Temporal.PlainDate's prototype but not a ` +
 					`PlainDate, so it cannot name a calendar day: ${describe(value)}`,
+				error,
 			);
 		}
-		return assertIsoCalendar(value);
+		return assertIsoCalendar(native);
 	}
 	let normalised: Temporal.PlainDate;
 	try {
@@ -215,6 +242,7 @@ export function toNativePlainDate(value: unknown, kind: TemporalDayKind): Tempor
 			"TCT_INVALID_ARGUMENT",
 			`received a value branded Temporal.${kind} that does not serialise to a calendar day: ` +
 				`${describe(value)} (${thrownDetail(error)})`,
+			error,
 		);
 	}
 	return assertIsoCalendar(normalised);

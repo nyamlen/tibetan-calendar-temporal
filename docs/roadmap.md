@@ -1755,7 +1755,7 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
       a frozen snapshot that every later step uses. The same work closed a defect it found: a getter
       answering 8 and then 31 passed validation as 8 and was computed on as 31, a confident wrong
       date from `resolveDate`, `tibetanToIso` and `addDays`. The README's sentence beside its code table
-      is narrowed to the one read that still propagates, and
+      no longer carries an exception, since every read of a caller's object is guarded, and
       [decisions/2026-08-12-error-codes-not-classes.md](decisions/2026-08-12-error-codes-not-classes.md)
       records it. `test/hostile-inputs.test.ts` no longer leaves a Proxy out of its config rows.
 - [x] **The Tibetan date-field guard is written six times.** Answering the review question the `describe`

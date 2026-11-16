@@ -674,8 +674,8 @@ Two traditions, Phugpa and Bhutanese, each in two parameterisations. See
 
 #### Errors
 
-`SkippedDayError` is the only exported error class, and carries the offending input as
-`.requested`. Every failure about your **input** is a `RangeError`; the two that are not about your
+`SkippedDayError` is the only exported error class, and carries the offending date as
+`.requested` — a frozen copy of the fields it read, equal to what you passed, not the same object. Every failure about your **input** is a `RangeError`; the two that are not about your
 input — `TCT_INTERNAL` and `TCT_MISSING_TEMPORAL` — are plain `Error`s, deliberately, as the
 at-a-glance signal that the fault is not yours. What actually keeps `tibetanDateExists` from
 reporting either as "that date does not exist" is their **absence from its allowlist**, which is one
@@ -697,12 +697,11 @@ a `code`, which is what to branch on rather than the type:
 | `TCT_MISSING_TEMPORAL` | the `import` itself, and any date entry point if the global `Temporal` is deleted afterwards | No `Temporal` in this runtime — see [Requirements](#requirements) |
 | `TCT_INTERNAL` | `isoToTibetan`, and the arithmetic primitives beneath it | An invariant the engine proves for itself did not hold. A bug here rather than in your input; please [report it](https://github.com/nyamlen/tibetan-calendar-temporal/issues) |
 
-Where **your own code** throws while the engine reads your argument — a getter, or a `Proxy` trap —
-the error is refused with a code and yours is kept as its `cause`: `TCT_INVALID_ARGUMENT` for a date's
-or month's fields and an options bag, and the config's own code for a `TraditionConfig` or an
-`ObservanceConfig`. Each field is read once, so a getter that answers differently the second time
-cannot change what is computed. One read is outside this: the `toPlainDate` property of a value that
-claims to be a foreign `Temporal.PlainDateTime` or `ZonedDateTime` and is not one.
+Where **your own code** throws while the engine reads your argument — a getter, a `Proxy` trap, a
+method of a value you pass — the error is refused with a code and yours is kept as its `cause`:
+`TCT_INVALID_ARGUMENT` for a date, month, options bag or Temporal-like value, and the config's own
+code for a `TraditionConfig` or an `ObservanceConfig`. Each field of a Tibetan date is read once, so a
+getter that answers differently the second time cannot change what is computed.
 
 Codes are stable and part of the API. Message text is not — match on the code.
 

@@ -1160,7 +1160,14 @@ export interface TibetanDateFields {
  * {@link SkippedDayError.code} and its siblings — see `src/errors.ts` for why.
  */
 export class SkippedDayError extends Error {
-	/** The date that was requested and does not exist. */
+	/**
+	 * The date that was requested and does not exist.
+	 *
+	 * @remarks
+	 * A frozen copy of the fields that were read from the argument, equal to it in value but not the
+	 * same object: extra keys the caller's object carried are dropped, and assigning to it throws in
+	 * strict mode.
+	 */
 	readonly requested: TibetanDateFields;
 
 	/**

@@ -228,6 +228,7 @@ export function asWesternDay(
 				"TCT_INVALID_ARGUMENT",
 				`${functionName}: received a value that cannot be read — reading its isoDate threw ` +
 					`${thrownDetail(error)}. Pass the date itself.`,
+				error,
 			);
 		}
 		if (temporalKindOf(isoDate) === "PlainDate") return asPlainDate(isoDate as Temporal.PlainDate);
