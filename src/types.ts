@@ -16,10 +16,8 @@
  *   lookups instead: `yearNameFor`, `rabjungFor`, and `monthNamesFor`, which returns every
  *   month-naming system at once and so could not be one `monthName` field without choosing a system.
  *
- * Grouping everything instead — `year.number`, `month.code`, `day.isLeap` — was considered and
- * rejected. It is more uniform, but it makes `month` an object where `Temporal.PlainDate.month`
- * is a number, which fails silently: `date.month === 11` is quietly `false` and
- * `` `${date.month}` `` renders `[object Object]`.
+ * `month` is therefore a number, as `Temporal.PlainDate.month` is: `date.month === 11` and
+ * `` `${date.month}` `` behave as a Temporal user expects.
  *
  * @packageDocumentation
  */
@@ -33,6 +31,11 @@ import {
 } from "./errors.js";
 import { formatTibetanDate } from "./format.js";
 import { temporalKindOf, temporalTypeNameOf } from "./temporal-kind.js";
+
+// Grouping everything instead — `year.number`, `month.code`, `day.isLeap` — was considered and
+// rejected. It is more uniform, but it makes `month` an object where `Temporal.PlainDate.month`
+// is a number, which fails silently: `date.month === 11` is quietly `false` and
+// `${date.month}` renders `[object Object]`.
 
 /**
  * The five elements of the 60-year cycle, in the order of Janson's ten-year cycle table (§4).
@@ -49,21 +52,24 @@ import { temporalKindOf, temporalTypeNameOf } from "./temporal-kind.js";
  */
 export type TibetanElement = "wood" | "fire" | "earth" | "iron" | "water";
 
+// The `Tibetan` prefix is for consistency with the rest of the package rather than to claim a
+// distinct cycle.
 /**
  * The twelve animals of the 60-year cycle, in the order of Janson's twelve-year cycle table (§4).
  *
  * @remarks
  * Unlike {@link TibetanElement}, this cycle *is* one-to-one with the Chinese one — same twelve
  * animals, same order, same phase; Janson calls it "the well-known cycle of animals found in the
- * Chinese and many other Asian calendars". The prefix is for consistency with the rest of the
- * package rather than to claim a distinct cycle.
+ * Chinese and many other Asian calendars".
  *
  * The English renderings are Janson's, following Henning. Common variants are Mouse/Rat,
  * Bird/Rooster and Sheep/Goat.
  *
  * These are the *year* animals, which Phugpa and Tsurphu share. The traditions disagree about
- * animal names for **months** — Phugpa sets month 11 = Tiger, Tsurphu month 1 = Tiger — but
- * month naming is not computed by this package.
+ * animal names for **months** — Phugpa sets month 11 = Tiger, Tsurphu month 1 = Tiger. The month's
+ * animal is computed by `monthAttributesFor`, from the `./astrology` entry point, for a config
+ * carrying `naming.monthAnimals` (`PHUGPA` and `PHUGPA_HENNING`); under a config without one, such
+ * as `BHUTAN` and `BHUTAN_HENNING`, it throws `TCT_ATTRIBUTE_NOT_SOURCED`.
  */
 export type TibetanAnimal =
 	| "mouse"
@@ -82,6 +88,9 @@ export type TibetanAnimal =
 /** The alternating gender of the 60-year cycle — Chinese *yin* and *yang*. */
 export type TibetanGender = "male" | "female";
 
+// The two numbering fields are grouped rather than flattened to `rabjungCycle` / `rabjungYear`
+// because they are only meaningful together — unlike `year` and `yearStartsIn`, each of which
+// stands alone.
 /**
  * Position in the rabjung (*rab byung*), the Indian 60-year cycle — a **numbering** that also
  * carries the cycle's own name.
@@ -90,21 +99,17 @@ export type TibetanGender = "male" | "female";
  * `cycle` and `year` are the numbering. Janson §4 is explicit: the Indian cycles are numbered, so
  * cycle plus position identifies a year unambiguously, whereas "the Chinese cycles are not numbered
  * in the Tibetan calendar" and are used only as names. That is the distinction that keeps this
- * separate from {@link TibetanYearName}, and it survives `name` being added: the cycles assign a
- * year **different positions** — 2026 is year 40 of the Indian cycle but year 43 of the Chinese one
- * (Janson App. B) — so indexing one cycle's name table with the other's number would be wrong for
- * 57 of every 60 years, and wrong quietly.
+ * separate from {@link TibetanYearName}. The cycles assign a year **different positions** — 2026 CE
+ * is year 40 of the Indian cycle but year 43 of the Chinese one (the sixty-year table in Janson's
+ * appendix) — so indexing one cycle's name table with the other's number is wrong for every year,
+ * and wrong quietly.
  *
- * `name` is the Tibetan name attached to the position, and **only** that. The cycle has two
- * Sanskrit name lists, which carry different names at 16, 17, 18, 20 and 34; neither ships here,
- * because a type pairing one of them with the Tibetan name would name something the Tibetan does not
- * render at five of every sixty years, silently. Both lists are tabulated in
+ * `tibetanName` is the Tibetan name attached to the position, and **only** that. The cycle has two
+ * Sanskrit name lists, which carry different names at positions 16, 17, 18, 20 and 34; neither
+ * ships here, because a type pairing one of them with the Tibetan name would name something the
+ * Tibetan does not render at five of every sixty years, silently. Both lists are tabulated in
  * `docs/names/rabjung.md`. See `docs/decisions/2026-08-25-rabjung-ships-the-tibetan-name-only.md`,
  * which also records the shape they would take if they ever return.
- *
- * The two numbering fields are grouped rather than flattened to `rabjungCycle` / `rabjungYear`
- * because they are only meaningful together — unlike `year` and `yearStartsIn`, each of which
- * stands alone.
  *
  * @see {@link TibetanYearName} for the element–animal name, which is what practitioners
  * normally use.
@@ -137,9 +142,8 @@ export interface Rabjung {
  *
  * @remarks
  * This is what practitioners actually recognise — "Fire–Horse" — and is a **name**, not a
- * numbering. It is valid from 1027 CE onward, which makes it the culturally correct label for
- * historical dates where {@link TibetanDate.year}'s royal-era numbering is a modern
- * back-projection.
+ * numbering. It is the culturally correct label for historical dates, where
+ * {@link TibetanDate.year}'s royal-era numbering is a modern back-projection.
  *
  * The gender is often omitted in speech, "Fire–Horse" being used for "Fire–male–Horse".
  */
@@ -150,15 +154,16 @@ export interface TibetanYearName {
 	/** One of the twelve animals. Computed as `(Y − 3) amod 12`. */
 	animal: TibetanAnimal;
 
+	// Storing the gender, though the animal determines it: recomputing it at every call site is worse
+	// than one derived field.
 	/**
 	 * The year's gender.
 	 *
 	 * @remarks
 	 * Redundant, and deliberately so. Janson notes the gender is the year modulo 2 and is
 	 * therefore already determined by the animal — every Horse year is male, every Sheep year
-	 * female. It is stored anyway because almanacs print it as part of the name and because
-	 * recomputing it at every call site is worse than one derived field. This interface models a
-	 * name as printed, not a minimal encoding.
+	 * female. It is stored anyway because almanacs print it as part of the name: this interface
+	 * models a name as printed, not a minimal encoding.
 	 */
 	gender: TibetanGender;
 
@@ -172,6 +177,11 @@ export interface TibetanYearName {
 	animalName: TibetanName;
 }
 
+// Why a brand rather than a runtime check alone: the deciding argument is **reversibility, not
+// safety**. Widening a parameter later is non-breaking; narrowing one is not. Branded-now to
+// plain-`number`-later stays available forever, and the reverse never does — which is why this
+// lands before 1.0.0 rather than after. Types erase and the brand does not survive `JSON.parse`,
+// `structuredClone` or a database read; neither limit changes the direction.
 /**
  * A Tibetan weekday number, 0 = Saturday through 6 = Friday — **branded**, so an ISO
  * `dayOfWeek` cannot be passed where one belongs.
@@ -183,21 +193,16 @@ export interface TibetanYearName {
  *
  * The two numberings differ, and both are on {@link TibetanDate}:
  * {@link TibetanDate.dayOfWeek} is ISO, 1 = Monday through 7 = Sunday, and
- * {@link TibetanDate.tibetanWeekday} is Tibetan, 0 = Saturday. So
- * `weekdayNameFor(date.dayOfWeek)` compiles, throws nothing, and returns **the wrong name six
- * days in seven** — the only silent wrong answer a consumer spike found anywhere on this surface.
- * It is now a compile error, and the two legitimate sources flow through untouched.
+ * {@link TibetanDate.tibetanWeekday} is Tibetan, 0 = Saturday. Without the brand,
+ * `weekdayNameFor(date.dayOfWeek)` would compile and return **the wrong name on six days of
+ * seven**; on the seventh, ISO Sunday, it throws. With it, that is a compile error, and the two
+ * legitimate sources flow through untouched.
  *
- * ## Why a brand rather than a runtime check alone
+ * ## Limits
  *
- * The deciding argument is **reversibility, not safety**. Widening a parameter later is
- * non-breaking; narrowing one is not. Branded-now to plain-`number`-later stays available
- * forever, and the reverse never does — which is why this lands before 1.0.0 rather than after.
- *
- * Two known limits, neither of which changes the direction. Types erase, so a JavaScript consumer
- * keeps the slip. And the brand does not survive `JSON.parse`, `structuredClone` or a database
- * read — which is exactly why {@link asTibetanWeekday} exists and **validates** rather than being
- * a bare cast.
+ * Types erase, so a JavaScript consumer keeps the slip. And the brand does not survive
+ * `JSON.parse`, `structuredClone` or a database read — which is why {@link asTibetanWeekday}
+ * exists and **validates** rather than being a bare cast.
  */
 export type TibetanWeekday = number & { readonly __tibetanWeekday: unique symbol };
 
@@ -209,9 +214,8 @@ export type TibetanWeekday = number & { readonly __tibetanWeekday: unique symbol
  * field, a database column. It validates rather than asserting, because the values that reach it
  * are precisely the ones no compiler has seen.
  *
- * `asTibetanWeekday(7)` throws `TCT_FIELD_OUT_OF_RANGE` — a **present number outside its
- * range**, which is the same rule every other field check on this surface follows, and not
- * `TCT_INVALID_ARGUMENT`, which is reserved for the wrong *kind* of thing.
+ * `asTibetanWeekday(7)` throws `TCT_FIELD_OUT_OF_RANGE`, and so does any other value that is not
+ * an integer 0–6 — a non-integer, `NaN`, and a value that is not a number at all (`"3"`, `null`).
  *
  * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `value` is not an integer 0–6.
  *
@@ -231,30 +235,24 @@ export function asTibetanWeekday(value: number): TibetanWeekday {
 	return value as TibetanWeekday;
 }
 
+// These objects are shared rather than copied: a `TibetanDate` holds a pointer, so building a year
+// of dates costs pointer fields rather than thousands of strings — and freezing is what keeps that
+// sharing safe.
+//
+// Where Monier-Williams heads a word with a different orthography — *saṃpanna* संपन्न against his
+// सम्पन्न — the Devanāgarī follows the IAST, and the dictionary is reached through a stated
+// normalisation rather than by changing the name.
 /**
- * A Tibetan name, in the three renderings this package ships.
+ * A Sanskrit name: IAST with full diacritics, and the same word in Devanāgarī.
  *
  * @remarks
- * **There is deliberately no English field, for every subtype but one.** For an element or an
- * animal the English identity is already carried by the sibling union — `TibetanYearName.element`
- * *is* `"fire"` — so a gloss here would duplicate it. Those unions are the i18n contract: they are
- * stable lowercase identifiers, and a consumer's message catalogue keys off them to produce French,
- * Russian or anything else. This package ships no translations, because authoring them would mean
- * writing content in languages nobody here reads. A rabjung name is the one place that rationale
- * does not reach: a position is a bare integer 1–60, with no sibling union to carry an English
- * identity. It is still not answered here. The English for those sixty is authored rather than
- * sourced, so it lives in `docs/names/rabjung.md`, where a reader can see which columns are which.
+ * Carried by the lunar mansion, Indian-month and six-season names of `monthNamesFor`, and by the
+ * lunar mansions and elemental yogas of the `./astrology` entry point. A `TibetanDate` holds none,
+ * and neither does a {@link Rabjung}: the sixty-year cycle has two Sanskrit name lists, which
+ * disagree at five positions, so neither ships.
  *
- * Every value was verified before being written down. For the weekday, element, gender and animal
- * vocabulary: two independent EWTS implementations must agree on the script, it must read back as
- * the same Wylie, and English Wiktionary must have an entry at exactly that title — see
- * `docs/names/vocabulary.md`. The sixty rabjung names carry a different, weaker evidence tier:
- * Monier-Williams' Sanskrit dictionary, via the Cologne scan and a stated normalisation ladder, not
- * English Wiktionary — see `docs/names/rabjung.md` and `docs/names/rabjung-sourcing.md`.
- *
- * These objects are **shared and frozen**. A `TibetanDate` holds a pointer, not a copy, so building
- * a year of dates costs pointer fields rather than thousands of strings — and freezing is what keeps
- * that sharing safe.
+ * An object carrying both keys them `tibetanName` beside `sanskritName`, rather than calling either
+ * one `name`. Instances are **shared and frozen**.
  */
 export interface SanskritName {
 	/** IAST, with full diacritics. */
@@ -264,20 +262,40 @@ export interface SanskritName {
 	 * Devanāgarī.
 	 *
 	 * @remarks
-	 * Transliterated from the IAST by the verification script, never typed by hand, so the two
-	 * fields always spell the same word. Where Monier-Williams heads the word with a different
-	 * orthography — *saṃpanna* संपन्न against his सम्पन्न — this follows the IAST, and the dictionary
-	 * is reached through a stated normalisation rather than by changing the name.
+	 * Transliterated from the IAST by the verification scripts, never typed by hand, so the two
+	 * fields always spell the same word.
 	 */
 	devanagari: string;
 }
 
+// This package ships no translations because authoring them would mean writing content in
+// languages nobody here reads.
 /**
- * A name in Tibetan, rendered three ways.
+ * A name in Tibetan, in three renderings: script, Wylie and phonetics.
  *
  * @remarks
- * {@link SanskritName} is its counterpart, and an object carrying both keys them explicitly —
- * `tibetanName` beside `sanskritName` — rather than calling either one `name`.
+ * Carried by every Tibetan name this package ships, including the weekday name on each
+ * {@link TibetanDate}. {@link SanskritName} is its counterpart, and an object carrying both keys
+ * them `tibetanName` beside `sanskritName`.
+ *
+ * **There is deliberately no English field.** For an element or an animal the English identity is
+ * already carried by the sibling union — `TibetanYearName.element` *is* `"fire"` — so a gloss here
+ * would duplicate it. Those unions are the i18n contract: they are stable lowercase identifiers, and
+ * a consumer's message catalogue keys off them to produce French, Russian or anything else. This
+ * package ships no translations. A rabjung position is a bare integer 1–60 with no sibling union to
+ * carry an English identity, and is not answered here either: the English for those sixty is
+ * authored rather than sourced, so it lives in `docs/names/rabjung.md`, where a reader can see
+ * which columns are which.
+ *
+ * Every shipped value is checked against sources by a verification script, and the evidence for
+ * each family is in `docs/names/`. For the weekday, element, gender and animal vocabulary, two
+ * independent EWTS implementations must agree on the script, it must read back as the same Wylie,
+ * and English Wiktionary must have an entry at exactly that title — see `docs/names/vocabulary.md`.
+ * The sixty rabjung names carry a different, weaker evidence tier: Monier-Williams' Sanskrit
+ * dictionary, via the Cologne scan and a stated normalisation ladder, not English Wiktionary — see
+ * `docs/names/rabjung.md` and `docs/names/rabjung-sourcing.md`.
+ *
+ * Instances are **shared and frozen**.
  */
 export interface TibetanName {
 	/** Tibetan script. First, because it is the name; the other two are ways of reaching it. */
@@ -287,8 +305,8 @@ export interface TibetanName {
 	 * Extended Wylie transliteration, and the **key** rather than a convenience.
 	 *
 	 * @remarks
-	 * ASCII, collision-free, and the form Janson prints. Phonetics collide — མཆུ *mchu* (a month
-	 * name) and ཆུ *chu* (water) both render *chu* — so lookups, logs and tests key on this.
+	 * ASCII, one spelling to one string, and the form Janson prints. Phonetics collide — མཆུ *mchu*
+	 * (a month name) and ཆུ *chu* (water) both render *chu* — so lookups, logs and tests key on this.
 	 */
 	wylie: string;
 
@@ -298,8 +316,8 @@ export interface TibetanName {
 	 * @remarks
 	 * A published standard rather than a house style, which is what makes the column verifiable.
 	 * Multi-syllable names are THL's word-separated output: a two-syllable name is one word (*penpa*), a
-	 * longer one is split into words (*saga dawa düchen*). Eleven shipped values are recorded corrections of
-	 * THL's output, and the sourcing records name them.
+	 * longer one is split into words (*saga dawa düchen*). A few shipped values are recorded
+	 * corrections of THL's output, and the sourcing records in `docs/names/` name them.
 	 * Not an identifier: see {@link TibetanName.wylie}.
 	 */
 	phonetic: string;
@@ -314,8 +332,8 @@ export type TibetanPlanet = "saturn" | "sun" | "moon" | "mars" | "mercury" | "ju
  * @remarks
  * A genuinely different set. The years cycle through wood, fire, earth, iron and water; the
  * weekdays take earth, fire, water and **wind**, which is not a year element at all. Janson gives
- * the weekday column in his day-of-week table and the year elements in a separate one. Typing this
- * as {@link TibetanElement} would be wrong and would make `wind` unrepresentable.
+ * the weekday elements as the last column of his day-of-week table and the year elements in a
+ * separate one. {@link TibetanElement} cannot represent `wind`.
  */
 export type TibetanWeekdayElement = "earth" | "fire" | "water" | "wind";
 
@@ -326,8 +344,8 @@ export type TibetanWeekdayElement = "earth" | "fire" | "water" | "wind";
  * In Tibet the name of the day essentially *is* the planet's name. Under Bhutan, where
  * `TraditionNaming.weekdayOffset` shifts the weekday, the name, `planet` and `element` all move
  * together: a Bhutanese Saturday is *nyi ma*, `sun`, `fire`. That the element moves is an
- * inference no source states (Andreas' ruling of 2026-11-16), which is why the elemental yoga is
- * not answered under such a tradition.
+ * inference no source states, which is why `elementalYogaFor`, from the `./astrology` entry
+ * point, throws `TCT_ATTRIBUTE_NOT_SOURCED` under such a tradition.
  * The element is the day's astrological attribute, which combines with the lunar mansion's own
  * element in the almanac's elemental yoga.
  */
@@ -352,15 +370,15 @@ export interface TibetanWeekdayName extends TibetanName {
  * doubled-day information. Use the package's formatting function.
  *
  * **Year-level naming is deliberately not here.** The element–animal name and the rabjung position
- * are properties of the *year*, so on a date they are one value repeated for all 354 or 384 days —
- * together more than half of a serialised year. Both are closed forms over {@link TibetanDate.year}
- * alone: use `yearNameFor(date.year)` and `rabjungFor(date.year)`, neither of which takes a config
- * or evaluates the calendar. {@link TibetanMonth.yearName} keeps one-hop access on the
- * `monthsFor` → `datesFor` path.
+ * are properties of the *year*, so on a date they would be one value repeated for every day of a
+ * year of 354, 355, 383, 384 or 385 days — together about half of a serialised year. Both are closed
+ * forms over {@link TibetanDate.year} alone: use `yearNameFor(date.year)` and
+ * `rabjungFor(date.year)`, neither of which takes a config or evaluates the calendar.
+ * {@link TibetanMonth.yearName} keeps one-hop access on the `monthsFor` → `datesFor` path.
  *
- * {@link TibetanDate.weekdayName} stays for the reason those two go: it is the one name a date
- * cannot regenerate from itself, because `weekdayNameFor` needs the `TraditionConfig` — Bhutan
- * names its weekdays one planet ahead of Tibet — and a serialised date carries none.
+ * {@link TibetanDate.weekdayName} stays because it is the one name a date cannot regenerate from
+ * itself: `weekdayNameFor` needs the `TraditionConfig` — Bhutan names its weekdays one planet ahead
+ * of Tibet — and a serialised date carries none.
  */
 export interface TibetanDate {
 	/**
@@ -372,11 +390,11 @@ export interface TibetanDate {
 	 * the paper. The relationship is `year = yearStartsIn + 127`, applied only at the public
 	 * boundary; everything under `computation/` works in *Y*.
 	 *
-	 * For historical dates this is a modern label applied backwards. The royal-era count is a
-	 * convention of the second half of the twentieth century, and Janson records that epochs of
-	 * 255 and 1027 have also been used. It is not wrong, but it asserts a numbering that nobody
-	 * alive at the time used — `yearNameFor(year)` gives the element–animal name, which is the
-	 * culturally correct label for such dates.
+	 * For historical dates this is a modern label applied backwards. Janson dates the royal-era
+	 * count to the second half of the twentieth century and records that epochs of 255 and 1027
+	 * have also been used. It is not wrong, but it asserts a numbering that was not in use at the
+	 * time — `yearNameFor(year)` gives the element–animal name, which is the culturally correct
+	 * label for such dates.
 	 */
 	year: number;
 
@@ -385,8 +403,9 @@ export interface TibetanDate {
 	 *
 	 * @remarks
 	 * Exposed for cross-referencing the paper and other implementations, which are uniformly
-	 * written in terms of *Y*. Because a Tibetan year starts in February or early March, this
-	 * differs from `isoDate.year` for dates in January and February.
+	 * written in terms of *Y*. A Tibetan year starts early in the Gregorian year, so this differs
+	 * from `isoDate.year` for the dates from 1 January until the next Losar — in January, February
+	 * and March, and in rare years early April.
 	 */
 	yearStartsIn: number;
 
@@ -489,9 +508,9 @@ export interface TibetanDate {
 	 *
 	 * @remarks
 	 * Proleptic Gregorian, because that is what `Temporal.PlainDate` is. The civil Gregorian
-	 * calendar begins in 1582, so for earlier dates this is a third back-projection alongside
-	 * the royal-era numbering and Phugpa itself: historical sources give Julian dates, which
-	 * diverge by about ten days at 1582 and more before that.
+	 * calendar begins in 1582, so for earlier dates this is a back-projection alongside the
+	 * royal-era numbering: historical sources give Julian dates, which diverge from it by about
+	 * ten days in 1582 and by a different number of days at any other date.
 	 */
 	isoDate: Temporal.PlainDate;
 
@@ -501,12 +520,14 @@ export interface TibetanDate {
 	 * @remarks
 	 * Deliberately the ISO numbering rather than the Tibetan one, which runs 0 = Saturday through
 	 * 6 = Friday. The Tibetan and Western weekdays are the same seven-day cycle, so no
-	 * information is lost, and matching `Temporal.PlainDate.dayOfWeek` avoids an off-by-two that
+	 * information is lost, and matching `Temporal.PlainDate.dayOfWeek` avoids an off-by-one that
 	 * would be invisible in most tests. For the Tibetan numbering see {@link
 	 * TibetanDate.tibetanWeekday}.
 	 */
 	dayOfWeek: number;
 
+	// Computed here from the Julian day the conversion already holds. It is flat rather than grouped
+	// because it is a date component; the name groups under `*Name` — see `weekdayName`.
 	/**
 	 * Tibetan day of week: 0 = Saturday through 6 = Friday.
 	 *
@@ -526,10 +547,8 @@ export interface TibetanDate {
 	 * doubled pair carry the same {@link TibetanDate.day}, and the weekday is what tells them apart.
 	 * He also lists it as the first of the five components (*lnga bsdus*) that make up the calendar.
 	 *
-	 * Field and function carry one name: this is exactly `tibetanWeekday(julianDayFromIso(isoDate))`,
-	 * computed here from the Julian day the conversion already holds. It is flat rather than grouped
-	 * because it is a date component; the name groups under `*Name` — see
-	 * {@link TibetanDate.weekdayName}.
+	 * Field and function carry one name: this is exactly `tibetanWeekday(julianDayFromIso(isoDate))`.
+	 * For its name see {@link TibetanDate.weekdayName}.
 	 */
 	tibetanWeekday: TibetanWeekday;
 
@@ -541,7 +560,10 @@ export interface TibetanDate {
 	 * **Tradition-dependent, which nothing else about the weekday is.** Bhutan names its weekdays
 	 * one planet ahead of Tibet: day 0 is *spen pa* in Tibet and *nyi ma* in Bhutan. The number
 	 * above and the Western weekday are identical in both, which is why Janson notes the difference
-	 * vanishes when dates are written in English.
+	 * vanishes when dates are written in English. The name follows the tradition the date was
+	 * built with, so `isoToTibetan(day, BHUTAN).weekdayName` is already the Bhutanese name and
+	 * needs no second lookup; `weekdayNameFor` with a different config than the date was built
+	 * with gives a name that disagrees with it.
 	 *
 	 * For a weekday name in a **Western language**, do not look here — use `Intl` on
 	 * {@link TibetanDate.isoDate}, which covers every locale CLDR carries:
@@ -552,11 +574,6 @@ export interface TibetanDate {
 	 *
 	 * This package ships the Tibetan name and no translations; see the README's
 	 * Internationalisation section for why, and for how to localise the rest.
-	 *
-	 * **This field follows the tradition the date was built with.** Bhutan names its days one
-	 * planet ahead of Tibet, so `isoToTibetan(day, BHUTAN).weekdayName` is already the Bhutanese
-	 * name — there is no second lookup to perform, and calling `weekdayNameFor` with a different
-	 * config than the date was built with is how the two get out of step.
 	 */
 	weekdayName: TibetanWeekdayName;
 
@@ -564,14 +581,13 @@ export interface TibetanDate {
 	 * The lunation this date falls in — the same integer {@link TibetanMonth.lunation} carries.
 	 *
 	 * @remarks
-	 * The date's route back to its own month. Without it a consumer holding a date has to rediscover
-	 * the month by matching two keys — `monthsFor(d.year).find(m => m.month === d.month &&
-	 * m.isLeapMonth === d.isLeapMonth)` — and the second key is the one that gets forgotten, which
-	 * silently picks the wrong half of a leap pair. With it, `monthFromLunation(date.lunation)` is
-	 * the whole operation.
+	 * The date's route back to its own month: `monthFromLunation(date.lunation)`, with the tradition
+	 * the date was built with, returns it. The alternative is to match two keys — `monthsFor(d.year)
+	 * .find(m => m.month === d.month && m.isLeapMonth === d.isLeapMonth)` — and the second key is the
+	 * one that gets forgotten, which silently picks the wrong half of a leap pair.
 	 *
-	 * Zero is the epoch, so values are large, and negative before it. It is a coordinate, not a
-	 * month number.
+	 * Zero is the tradition's epoch, so values are large, and negative before it. It is a coordinate,
+	 * not a month number.
 	 */
 	lunation: number;
 }
@@ -598,38 +614,36 @@ export interface TibetanDate {
  * **{@link TibetanMonth.month} is not a unique key within the year.** In a leap year two months
  * share a number. {@link TibetanMonth.monthCode} is the unique one.
  *
- * **The year is Tibetan, not Gregorian.** It opens in February or early March, so it straddles two
- * ISO years.
+ * **The year is Tibetan, not Gregorian.** It opens in the first months of the Gregorian year, so it
+ * straddles two ISO years.
  *
  * A returned month is frozen, so assigning to one of its fields throws in strict mode.
  */
 export interface TibetanMonth {
+	// A month carries its year so that it identifies itself. `monthsFor(year)` supplies the year
+	// implicitly — the caller passed it — but that holds only while `monthsFor` is the sole producer,
+	// and it is not what a consumer holding one month needs.
 	/**
 	 * Royal-era year this month belongs to, matching {@link TibetanDate.year}.
 	 *
 	 * @remarks
-	 * Present so that a `TibetanMonth` identifies itself. `monthsFor(year)` supplies the year
-	 * implicitly — the caller passed it — but that only holds while `monthsFor` is the sole producer,
-	 * and it is not what a consumer holding one month needs. Without this field a month could not be
-	 * passed to `daysInMonth`, could not be spread into a date as `{ ...month, day: 8 }`, and could
-	 * not be returned by anything that crosses a year boundary.
+	 * Lets a `TibetanMonth` identify itself: it can be passed to `daysInMonth`, spread into a date
+	 * as `{ ...month, day: 8 }`, and returned by anything that crosses a year boundary.
 	 *
-	 * Tibetan years straddle two ISO years, opening in February or early March, so this is not
-	 * recoverable from {@link TibetanMonth.firstDay} without redoing the conversion.
+	 * Tibetan years straddle two ISO years, so this is not recoverable from
+	 * {@link TibetanMonth.firstDay} without redoing the conversion.
 	 */
 	readonly year: number;
 
+	// The key framing leads in the summary deliberately. A consumer looking for "the month as one
+	// storable value" searches for *key* or *id*, not for *lunation*. The name stays — it is what the
+	// number *is* — but the summary line says what it is *for*, since that is the line an editor
+	// shows on hover.
 	/**
 	 * The month's identity as a single sortable integer — its **database key, cache key or array
 	 * index** — being its position in the unbroken count of lunations since the tradition's epoch.
 	 *
 	 * @remarks
-	 * The key framing leads deliberately. A consumer looking for "the month as one storable value"
-	 * searches for *key* or *id*, not for *lunation*, and a 2026-08-27 spike reached for `monthKey`
-	 * and `monthId` before finding this field. The name stays — it is what the number *is*, and it
-	 * matches `julianDay` one tier down, which is named the same way for the same reason — but the
-	 * summary line says what it is *for*, since that is the line an editor shows on hover.
-	 *
 	 * A Tibetan month **is** a lunation, and every month counts once — leap months included — so
 	 * this increases by exactly one per month with no special case, and continues across Losar
 	 * without a gap. Janson calls it the true month count.
@@ -647,18 +661,18 @@ export interface TibetanMonth {
 	 */
 	readonly lunation: number;
 
+	// Rendering a month header without this field means hopping into the date tier through
+	// `losarFor`, which is not a route anyone would guess from the name.
 	/**
 	 * The element–animal name of the year this month belongs to.
 	 *
 	 * @remarks
-	 * The same value `yearNameFor(month.year)` returns, and it is here for the same reason
-	 * {@link TibetanMonth.year} is: a month should identify itself. Rendering a month header
-	 * otherwise means hopping into the date tier through `losarFor`, which is not a route anyone
-	 * would guess from the name.
+	 * The same value `yearNameFor(month.year)` returns, here so that a month header can be rendered
+	 * from the month alone.
 	 *
-	 * A `TibetanDate` does **not** carry this field — year-level naming came off it on 2026-08-24,
-	 * since a date repeated one value across every day of its year. A month is the tier where the
-	 * name is worth storing, because there are twelve or thirteen of them rather than 354.
+	 * A `TibetanDate` does **not** carry this field: a date would repeat one value across every day
+	 * of its year, whereas a month is the tier where the name is worth storing, because a year has
+	 * twelve or thirteen of them.
 	 *
 	 * Both halves of a leap pair carry the same name — they are two months of one year.
 	 */
@@ -690,13 +704,15 @@ export interface TibetanMonth {
 	 */
 	readonly days: number;
 
+	// Computed from the previous month's last day rather than by evaluating date 1, because date 1
+	// may be skipped or doubled. Janson §8 notes that evaluating it directly is the source of errors
+	// in published tables.
 	/**
 	 * The Western calendar day this month begins on.
 	 *
 	 * @remarks
-	 * Computed from the previous month's last day rather than by evaluating date 1, because date 1
-	 * may be skipped or doubled. Janson §8 notes that evaluating it directly is the source of errors
-	 * in published tables.
+	 * The day after the previous month's last day. It is not found by evaluating date 1, which
+	 * may be skipped (the month then begins on date 2) or doubled.
 	 */
 	readonly firstDay: Temporal.PlainDate;
 
@@ -728,10 +744,14 @@ export interface TibetanMonth {
  * for `tibetanDateExists`. That predicate's allowlist for answering `false` is one class and two
  * codes — `SkippedDayError`, `TCT_FIELD_OUT_OF_RANGE` and `TCT_NO_SUCH_LEAP_MONTH` — and
  * `TCT_INVALID_ARGUMENT` is none of them, so a Temporal instance thrown from here propagates out of
- * it — telling a caller who
- * confused the two APIs that they did, instead of reporting a Western date as a Tibetan one that
- * does not exist. While the two shared one code, `tibetanDateExists` had to call this itself before
- * its own `try` to get that behaviour; it no longer does.
+ * it, telling a caller who confused the two APIs that they did, instead of reporting a Western date
+ * as a Tibetan one that does not exist.
+ *
+ * @param functionName - The export the caller called, named in the message.
+ * @param shape - Whether the caller expected a month or a date, which sets the remedy the message
+ * suggests.
+ *
+ * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `value` is any `Temporal` instance.
  */
 export function rejectTemporalInstance(
 	functionName: string,
@@ -789,23 +809,25 @@ function rejectNonObject(functionName: string, value: unknown): asserts value is
  *
  * @remarks
  * Both flags are read as `value.isLeapMonth ?? false` / `value.isLeapDay ?? false` and then used
- * for truthiness, so a non-boolean that is merely *absent-like* — the string `"false"`, the
- * number `0`'s sibling `1`, a stray object — is truthy and silently selects the leap month or
- * leap day. `0` and `""` would happen to fall out falsy and do the right thing by accident; `1`,
- * `"false"` and everything else would not, and the failure is silent because nothing throws.
+ * for truthiness, so a non-boolean — the string `"false"`, the number `1`, a stray object — is
+ * truthy and would silently select the leap month or leap day, with nothing thrown. `0` and `""`
+ * would happen to fall out falsy and do the right thing by accident; every non-boolean is refused
+ * all the same.
  *
  * `undefined` is deliberately still accepted here: the fields are optional and default to
  * `false`, and this check only narrows their *type* when present, not their *presence*.
  *
- * Also the null/non-object guard. Entry points once read a field off their input before any such
- * check, so `null` or `undefined` reached `input.year` and threw an uncoded native `TypeError`;
- * checking it here closes that at the one shared point.
+ * Also the null/non-object guard: `null`, `undefined` and any other non-object are refused here
+ * with a coded error rather than left to an uncoded native `TypeError` on a field read.
  *
  * Reached through {@link assertTibetanShape}, like {@link rejectTemporalInstance} and for the same
  * reason: one policy for the message and the code. Both throws are
  * `TCT_INVALID_ARGUMENT` — a non-boolean flag and a non-object are wrong *kinds* of argument, not
  * numbers out of a range — which is what keeps them off `tibetanDateExists`'s allowlist and so
  * thrown out to the caller rather than reported as a date that does not exist.
+ *
+ * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `value` is not an object, or `isLeapMonth`
+ * or `isLeapDay` is present and not a boolean.
  */
 export function rejectInvalidLeapFlags(
 	functionName: string,
@@ -829,6 +851,11 @@ export function rejectInvalidLeapFlags(
 /** The fields {@link rejectMissingFields} can be asked about — the required ones of the two field types. */
 export type RequiredDateField = "year" | "month" | "day";
 
+// Mirrors `rejectInvalidLeapFlags`: one policy for the message and the code in one place rather
+// than the same guard written out at each entry point that needs it. The check belongs here, not
+// in a wrong-shape branch, because the engine never detects that the argument is a month — only
+// that a field is missing. Throwing loses nothing the `false` was giving, since neither case is
+// reachable by a caller who is right about what they are passing.
 /**
  * Rejects a required numeric field that is absent, nullish, or not a number at all.
  *
@@ -836,26 +863,19 @@ export type RequiredDateField = "year" | "month" | "day";
  * The presence half of the boundary check, and it carries a **different code** from the range
  * half on purpose. `TCT_FIELD_OUT_OF_RANGE` means a number is wrong; `TCT_INVALID_ARGUMENT` means
  * the argument is the wrong *kind* of thing — and only the first is on `tibetanDateExists`'s
- * swallow-allowlist. That is the whole reason the split exists, and until 2026-08-26 the presence
- * case was on the wrong side of it:
- *
- * ```ts
- * tibetanDateExists({ year: 2151, month: 6, isLeapMonth: true });  // was false — it is a MONTH
- * tibetanDateExists({ year: 2153, month: 1 });                     // was false — day forgotten
- * ```
- *
- * Both reported type confusion as *a date that does not exist*. The engine never detects that the
- * argument is a month; it detects a missing field, which is why the fix belongs here rather than
- * in a wrong-shape branch. Neither case is reachable by a caller who is right about what they are
- * passing, so throwing loses nothing the `false` was giving.
+ * swallow-allowlist. So a month passed to `tibetanDateExists` (`{ year: 2151, month: 6,
+ * isLeapMonth: true }`) and a date missing its day (`{ year: 2153, month: 1 }`) both throw
+ * `TCT_INVALID_ARGUMENT` instead of being reported as a date that does not exist. The engine never
+ * detects that the argument is a month; it detects a missing field. Neither case is reachable by a
+ * caller who is right about what they are passing.
  *
  * **`NaN` and non-integers are deliberately *not* here.** They are present numbers that are out of
  * range, so they keep `TCT_FIELD_OUT_OF_RANGE` and keep answering `false`; the range check at each
  * call site still owns them. Four input classes, two codes, and the line between them is
  * **presence**, not validity.
  *
- * Mirrors {@link rejectInvalidLeapFlags}: one policy for the message and the code in one place
- * rather than the same guard written out at each entry point that needs it.
+ * @throws RangeError with code `TCT_INVALID_ARGUMENT` if a listed field is absent, nullish or not
+ * a number.
  */
 export function rejectMissingFields(
 	functionName: string,
@@ -881,7 +901,7 @@ const DATE_FIELDS = ["year", "month", "day"] as const;
 
 /**
  * Every field a shape reads, in the order it reads them: the required ones, then the leap flags. A
- * month reads `isLeapDay` too, to refuse a non-boolean one as it always has, and then drops it.
+ * month reads `isLeapDay` too, to refuse a non-boolean one, and then drops it.
  */
 const MONTH_READS = ["year", "month", "isLeapMonth", "isLeapDay"] as const;
 const DATE_READS = ["year", "month", "day", "isLeapMonth", "isLeapDay"] as const;
@@ -960,6 +980,10 @@ function readFieldsOnce(
  * `tibetanDateExists` validate the tradition *between* the two: were the range checked before the
  * tradition, `tibetanDateExists({ year: 2153, month: 13, day: 1 }, {})` would swallow the range
  * error and report a broken config as a date that does not exist.
+ *
+ * @throws RangeError with code `TCT_INVALID_ARGUMENT` for a `Temporal` instance, a non-object, a
+ * field whose read throws, a non-boolean leap flag, or a required field that is absent or not a
+ * number.
  */
 export function assertTibetanShape<S extends "month" | "date">(
 	label: string,
@@ -1000,6 +1024,9 @@ export function assertTibetanShape<S extends "month" | "date">(
  *
  * Every failure is `TCT_FIELD_OUT_OF_RANGE`, which `tibetanDateExists` answers as `false`. `hint`,
  * when given, is appended to whichever message fires.
+ *
+ * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if the year is not a safe integer, the month
+ * is not an integer 1–12, or, for a date, the day is not an integer 1–30.
  */
 export function assertTibetanRanges(
 	functionName: string,
@@ -1061,21 +1088,25 @@ export interface TibetanMonthFields {
 	 */
 	isLeapMonth?: boolean;
 
+	// Do not delete this as an unused field: it has no reads because its entire job is to make an
+	// *invalid* call fail to typecheck. Checked against `lib.esnext.temporal.d.ts`, and at runtime
+	// on Node 26.7.0, where `PlainDate`, `PlainDateTime` and `ZonedDateTime` return `"iso8601"`.
 	/**
-	 * Always absent. Present only to reject `Temporal.PlainDate`, `PlainDateTime` and
-	 * `ZonedDateTime` at compile time.
+	 * Always absent. Present only to reject `Temporal.PlainDate`, `PlainDateTime`, `ZonedDateTime`
+	 * and `PlainYearMonth` at compile time.
 	 *
 	 * @remarks
-	 * All three classes declare `readonly calendarId: string` (checked against
-	 * `lib.esnext.temporal.d.ts` and confirmed at runtime on Node v26.7.0, where all three return
-	 * `"iso8601"`). `string` does not satisfy `never`, so a `Temporal.PlainDate` stops being
-	 * structurally assignable to this type — closing the compile-time half of the confusion that
-	 * the argument guards close at runtime. Do not delete this as an unused field: it
-	 * has no reads because its entire job is to make an *invalid* call fail to typecheck.
+	 * Each of those classes declares `readonly calendarId: string`, and `string` does not satisfy
+	 * `never`, so a Temporal instance stops being structurally assignable to this type — closing the
+	 * compile-time half of the confusion that the argument guards close at runtime. Without the
+	 * field, all four would be assignable, since each has numeric `year` and `month`.
 	 */
 	calendarId?: never;
 }
 
+// Named `Fields` rather than `Input` because the role is not only input: `parseTibetanDate`
+// **returns** one, and a type named for being an input, appearing in a return position, tells a
+// reader the wrong thing about what it is.
 /**
  * The identifying fields needed to name a Tibetan date, as accepted by `tibetanToIso`.
  *
@@ -1083,24 +1114,19 @@ export interface TibetanMonthFields {
  * A {@link TibetanDate} is assignable to this type, so a value obtained from `isoToTibetan` can
  * be passed straight back in.
  *
- * ## Why `Fields` rather than `Input`
- *
- * It was `TibetanDateInput` until the 1.0.0 corrections, and that name described a role it does not
- * only play: `parseTibetanDate` **returns** one. A type named for being an input, appearing in a
- * return position, tells a reader the wrong thing about what it is.
- *
- * What it actually is: the fields that *name* a date, resolved or not. That distinction is
- * load-bearing rather than cosmetic — naming a date without resolving it is the only way to
- * represent a **skipped** date, which is a string almanacs print and no calendar day carries. A
- * type that could only hold resolved dates could not be `parseTibetanDate`'s return.
+ * It holds the fields that *name* a date, resolved or not. That distinction is load-bearing rather
+ * than cosmetic — naming a date without resolving it is the only way to represent a **skipped**
+ * date, which is a string almanacs print and no calendar day carries, and `parseTibetanDate`
+ * returns one.
  */
 export interface TibetanDateFields {
+	// A wrong-era year is loud enough to be caught immediately, which is part of why the royal-era
+	// numbering was chosen.
 	/**
 	 * Royal-era year, matching {@link TibetanDate.year}.
 	 *
 	 * @remarks
-	 * Not Janson's *Y*. Passing 2026 where 2153 is meant yields a date 127 years away — an error
-	 * loud enough to be caught immediately, which is part of why this numbering was chosen.
+	 * Not Janson's *Y*. Passing 2026 where 2153 is meant yields a date 127 years away.
 	 */
 	year: number;
 
@@ -1118,15 +1144,15 @@ export interface TibetanDateFields {
 	 */
 	isLeapMonth?: boolean;
 
+	// An unmarked identity names the regular unit and the extra unit must be marked, as an omitted
+	// `isLeapMonth` names the regular month (the second under Phugpa, the first under Bhutan) and as
+	// Temporal's and CLDR's month codes do (`M05` regular, `M05L` leap).
 	/**
 	 * Select the first day when two calendar days share this number.
 	 *
-	 * @defaultValue `false` — the regular second day. Without this, a doubled date would be
-	 * ambiguous and the conversion would have to guess. An unmarked identity names the regular unit
-	 * and the extra unit must be marked, as an omitted `isLeapMonth` names the regular month (the
-	 * second under Phugpa, the first under Bhutan) and as Temporal's and CLDR's month codes do
-	 * (`M05` regular, `M05L` leap). The regular day is the one in which its lunar day ends: Janson,
+	 * @defaultValue `false` — the regular second day, the one in which its lunar day ends: Janson,
 	 * "a lunar day gives its name (number and month) to the calendar day where the lunar day ends".
+	 * Without this flag a doubled date would be ambiguous and the conversion would have to guess.
 	 *
 	 * @remarks
 	 * **Ignored on a day that is not doubled**, which returns that day as though the flag were
@@ -1149,11 +1175,17 @@ export interface TibetanDateFields {
 	calendarId?: never;
 }
 
+// Why this is the only error class: see `src/errors.ts` and
+// docs/decisions/2026-08-12-error-codes-not-classes.md.
 /**
  * Thrown when a requested date is a **skipped** date — by `tibetanToIso`, and by `resolveDate`,
  * `addDays`, `daysBetween` and `addMonthsToDate`, which resolve the dates they are given.
  *
  * @remarks
+ * `addMonthsToDate` throws it for a skipped **starting** date under either `overflow` setting, and
+ * for a skipped **target** only under `overflow: "reject"`; under `"constrain"` a skipped target
+ * moves to the nearest earlier day that exists.
+ *
  * A skipped date is a number that no calendar day carries: it happens when a lunar day begins
  * and ends inside a single calendar day, so the labelling rule of Janson §6 never assigns its
  * number. Such dates appear in written sources and in user input, but they correspond to no
@@ -1162,8 +1194,9 @@ export interface TibetanDateFields {
  * This is an error rather than a `null` return because a skipped date is almost always a data
  * problem worth surfacing. Callers who want to test first should use `tibetanDateExists`.
  *
- * The only error class this package exports. Everything else discriminates on
- * {@link SkippedDayError.code} and its siblings — see `src/errors.ts` for why.
+ * The only error class this package exports. Every other error carries a `code`, which is what a
+ * caller branches on; {@link SkippedDayError.code} carries `TCT_SKIPPED_DAY`, so a caller can
+ * switch on `code` throughout.
  */
 export class SkippedDayError extends Error {
 	/**
@@ -1187,11 +1220,8 @@ export class SkippedDayError extends Error {
 	readonly code: TibetanCalendarErrorCode = "TCT_SKIPPED_DAY";
 
 	constructor(requested: TibetanDateFields) {
-		// Through the canonical formatter, not hand-rolled. This message used to print
-		// `2150-12-29` — no `M`, so indistinguishable from an ISO date by eye — and used the
-		// ` (leap)` suffix for a leap *month* where `formatTibetanDate` uses it for a leap *day*.
-		// Two incompatible renderings of a date inside one package is exactly what that function's
-		// docblock argues against, and this was the second one.
+		// Through the canonical formatter, not hand-rolled: two incompatible renderings of a date inside
+		// one package is exactly what `formatTibetanDate`'s docblock argues against.
 		super(`Tibetan date ${formatTibetanDate(requested)} is skipped: no calendar day carries it.`);
 		this.name = "SkippedDayError";
 		this.requested = requested;
