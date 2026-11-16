@@ -3,7 +3,10 @@
  * Builds a day-by-day Bhutanese calendar fixture, and refuses to write one it cannot vouch for.
  *
  * Usage:
- *   node scripts/fetch-bhutan-fixtures.mjs [fromYear] [toYear]
+ *   node scripts/fetch-bhutan-fixtures.mjs [from] [to]
+ *
+ * `from` and `to` are ISO dates, both inclusive, defaulting to 2000-01-01 and 2030-04-02. The window
+ * is cut by date and not by year because it ends at a defect in the source, which falls mid-year.
  *
  * ## The source
  *
@@ -36,12 +39,14 @@
  * 3. **Janson's anchor** — see below.
  * 4. **Agreement with Janson's own leap-month table**, over the years the two overlap. Two sources
  *    with entirely separate lineages, checked against each other.
- * 5. **Every leap month is paired** with a regular month of the same number immediately before it.
- *    Added after check 4 passed on data carrying a leap month Janson does *not* list — check 4 asks
- *    whether his leap months appear and cannot see an extra one. The committed 2000–2030 window
- *    still contains that defect, at 2030-04-03; `test/validation/bhutan-month-sequence.test.ts`
- *    pins it and validates up to it. Re-running this script will now refuse to write until the
- *    source is fixed or the window is narrowed.
+ * 5. **Every leap month is paired** with a regular month of the same number immediately before it,
+ *    over the rows that are emitted and no others. Added after check 4 passed on data carrying a
+ *    leap month Janson does *not* list — check 4 asks whether his leap months appear and cannot see
+ *    an extra one. The source has that defect at 2030-04-03 and at six earlier dates outside any
+ *    window used here; the default window ends on 2030-04-02, the day before, which is also where
+ *    `test/support/bhutan.ts` stops trusting it. Asking for a later `to` refuses to write. The
+ *    check scans the emitted rows only, because a check over the whole file would refuse the
+ *    source for defects in years nobody asked for.
  *
  * ## The anchor, and the trap it avoids
  *
@@ -60,10 +65,19 @@ import { writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const fromYear = Number(process.argv[2] ?? 2000);
-const toYear = Number(process.argv[3] ?? 2030);
-if (!Number.isInteger(fromYear) || !Number.isInteger(toYear) || fromYear > toYear) {
-	console.error("usage: node scripts/fetch-bhutan-fixtures.mjs [fromYear] [toYear]");
+const usage = "usage: node scripts/fetch-bhutan-fixtures.mjs [from] [to]  (ISO dates, inclusive)";
+const asIso = (text) => {
+	try {
+		return Temporal.PlainDate.from(text, { overflow: "reject" });
+	} catch {
+		console.error(usage);
+		return process.exit(1);
+	}
+};
+const fromDate = asIso(process.argv[2] ?? "2000-01-01");
+const toDate = asIso(process.argv[3] ?? "2030-04-02");
+if (Temporal.PlainDate.compare(fromDate, toDate) > 0) {
+	console.error(usage);
 	process.exit(1);
 }
 
@@ -125,6 +139,13 @@ console.log(`parsed ${all.length} rows`);
 
 // File order is not date order. Sorting is load-bearing, not tidiness.
 all.sort((a, b) => Temporal.PlainDate.compare(a.iso, b.iso));
+
+// The rows that will be emitted. Check 5 reads these and nothing else.
+const window = all.filter(
+	(r) =>
+		Temporal.PlainDate.compare(r.iso, fromDate) >= 0 &&
+		Temporal.PlainDate.compare(r.iso, toDate) <= 0,
+);
 
 // 1. Continuity.
 for (let i = 1; i < all.length; i += 1) {
@@ -193,18 +214,21 @@ for (const [year, expected] of JANSON_BHUTAN_LEAP) {
 // 5. Every leap month is paired with a regular month of the same number, immediately before it.
 //
 // Added 2026-08-16, after check 4 passed on data carrying a leap month Janson does not list. That
-// check asks whether *his* leap months appear; it cannot see an extra one. The 2000-2030 window
-// held a leap month 2 running 2030-04-03 to 2030-05-02, straight after the leap month 1 he does
-// list — so that year had regular 1, leap 1, leap 2, regular 3, with no regular month 2 at all.
-// The upstream leaves its leap flag set one month too long there.
+// check asks whether *his* leap months appear; it cannot see an extra one. The source has a leap
+// month 2 running 2030-04-03 to 2030-05-02, straight after the leap month 1 he does list — so that
+// year has regular 1, leap 1, leap 2, regular 3, with no regular month 2 at all. The upstream
+// leaves its leap flag set one month too long there, and in six other years outside the window.
+//
+// Over the emitted rows only. A leap run that opens the window has no predecessor to test and is
+// skipped, so the window should open on a regular month.
 //
 // Stated as pairing rather than as "one leap month per year", because the pairing is what the
 // Bhutanese convention actually claims: a leap month takes the number of the month *preceding* it.
 const months = [];
-for (const row of all) {
+for (const row of window) {
 	const last = months[months.length - 1];
-	if (!last || last.month !== row.bhutaneseMonth || last.leapMonth !== row.leapMonth) {
-		months.push({ month: row.bhutaneseMonth, leapMonth: row.leapMonth, iso: row.iso });
+	if (!last || last.month !== row.month || last.leapMonth !== row.leapMonth) {
+		months.push({ month: row.month, leapMonth: row.leapMonth, iso: row.iso });
 	}
 }
 for (const [index, entry] of months.entries()) {
@@ -228,7 +252,7 @@ if (problems.length > 0) {
 	process.exit(1);
 }
 
-console.log("all four checks passed");
+console.log("all five checks passed");
 
 // ---------------------------------------------------------------------------------------------
 // Emit the requested window, compactly.
@@ -237,7 +261,10 @@ console.log("all four checks passed");
 // existing fixture. Dates are consecutive, so the start date plus one small tuple per day carries
 // everything without the repetition.
 // ---------------------------------------------------------------------------------------------
-const window = all.filter((r) => r.iso.year >= fromYear && r.iso.year <= toYear);
+if (window.length === 0) {
+	console.error("the requested window holds no rows");
+	process.exit(1);
+}
 const start = window[0];
 const end = window.at(-1);
 
@@ -275,10 +302,10 @@ writeFileSync(
  * \`TraditionConfig.leapMonthPosition: "after"\` and reproduces the month sequence here — see
  * \`test/validation/bhutan.test.ts\`, which is what settles the convention.
  *
- * **One leap month in this window is the source's own, not Janson's.** A leap month 2 begins
- * 2030-04-03, straight after the leap month 1 he lists, giving that year two consecutive leap months
- * and no regular month 2 at all. Validation runs up to it. Check 5 above exists because of it, and
- * the committed window predates that check.
+ * **The window ends where the source goes wrong.** A leap month 2 begins 2030-04-03, straight after
+ * the leap month 1 Janson lists, giving that year two consecutive leap months and no regular month
+ * 2 at all; the source's leap flag runs one month too long. The window stops the day before, and the
+ * generating script's check 5 refuses a later end.
  */
 
 /** First Gregorian day of the window; rows run consecutively from here, one per day. */
