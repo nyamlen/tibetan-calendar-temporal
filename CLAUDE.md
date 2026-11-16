@@ -556,10 +556,11 @@ derivation; in `docs/` they are just noise.
   **off** `tibetanDateExists`'s allowlist (a Bhutanese date exists; only an attribute of it is
   unsourced), and the month and lunar-day refusal is reached by a tradition carrying no `naming.monthAnimals`
   block, the yoga's by a nonzero `naming.weekdayOffset`, rather than by any code asking "is this
-  Bhutan" — a property of the config is what a consumer's own tradition can also carry. A **composition** may report it as `null` where a primitive
-  throws — `attributesFor` does — on the reasoning that a specific question with no answer is an
-  error while "what is known about this day" is not. Reach for this code, not the range one, when the
-  gap is in the sources.
+  Bhutan".
+  A **composition** may report it as `null` where a primitive throws — `attributesFor` does — on the
+  reasoning that a specific question with no answer is an error while "what is known about this
+  day" is not.
+  Reach for this code, not the range one, when the gap is in the sources.
 
   Two codes, not one, for bad input: `TCT_FIELD_OUT_OF_RANGE` means a **number** is wrong;
   `TCT_INVALID_ARGUMENT` means the argument is the wrong **kind of thing** — a `Temporal` instance

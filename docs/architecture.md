@@ -151,6 +151,7 @@ tibetan-calendar-temporal/
 │   │                               #   also the Tiger-month reader ./astrology shares
 │   ├── navigation.ts               # the lunation coordinate, day and month arithmetic, the phases
 │   ├── cycles.ts                   # the cyclic names: year, rabjung, weekday, element, gender, animal
+│   ├── cycle-tables.ts             # the element and animal orderings Janson's tables index, and their one-based reader (internal)
 │   ├── names.ts                    # the frozen name vocabulary — internal; cycles.ts, epoch.ts,
 │   │                               #   conversion.ts all read it
 │   ├── rabjung-names.ts            # the 60 rabjung names, Tibetan only — a weaker

@@ -104,10 +104,14 @@ The lower-day default is not invented: falling to the nearest lower existing day
 already the shipped `/observances` convention and what Janson and FPMT agree on. The day-2 case is
 `"following"`, this function's own rule, since no lower day exists there. `Temporal` faces the
 identical problem and clamps by default rather than refusing.
+
 Where the landing number is **doubled**, the half is chosen by role and not by position. A start on
 a leap half lands on the target's leap half and a start on a regular half on its regular half, so a
 step of zero returns the start. A start that is not doubled lands on the regular half, the calendar
-day in which that lunar day ends. A number reached by falling down lands on its regular half, and
+day in which that lunar day ends.
+The reason is Janson's: "a lunar day gives its number to the calendar day in which it ends".
+The regular half is the day lunar day N ends, and the leap half is a day in which no lunar day ends and which borrows N.
+A number reached by falling down lands on its regular half, and
 the fall from a skipped day 1 onto a doubled day 2 lands on its leap half, the month's first
 calendar day.
 

@@ -1,3 +1,12 @@
+/**
+ * The element and animal orderings Janson's tables index into, and the one reader of them.
+ *
+ * @remarks
+ * Internal. `epoch.ts` and the four year, month, lunar-day and calendar-day modules of
+ * `./astrology` share one copy of each ordering, so that a table indexed by his one-based number
+ * cannot be read against a different order in one place than in another. A name string is not held
+ * here: the vocabulary is `names.ts`.
+ */
 import { assertInternal } from "./errors.js";
 import type { TibetanAnimal, TibetanElement } from "./types.js";
 

@@ -309,8 +309,8 @@ It does not tell anyone what to do about it.
 
 ## What varies between traditions, and one gap
 
-The year and calendar-day attributes are the same everywhere. The **month** and **lunar-day** attributes
-depend on the tradition. So does the yoga, in two ways: through the mansion, which the engine computes
+The year and calendar-day attributes are the same everywhere.
+The **month** and **lunar-day** attributes depend on the tradition. So does the yoga, in two ways: through the mansion, which the engine computes
 from each tradition's own constants, and through the weekday element, which depends on whether the
 tradition shifts its weekday.
 

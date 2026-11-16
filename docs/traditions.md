@@ -4,8 +4,8 @@
 
 **Exported means checked against an external calendar, and the docblock says how.** `PHUGPA`,
 `PHUGPA_HENNING`, `BHUTAN` and `BHUTAN_HENNING` are exported because each is checked.
-`PHUGPA`, `PHUGPA_HENNING` and `BHUTAN_HENNING` have been tiled day by day; `BHUTAN` has not, and rests on twenty-five days of the
-Royal Government's own calendar — see
+`PHUGPA`, `PHUGPA_HENNING` and `BHUTAN_HENNING` have been tiled day by day;
+`BHUTAN` has not, and rests on twenty-five days of the Royal Government's own calendar — see
 [the decision record](decisions/2026-08-16-exported-means-validated.md). Tsurphu and the
 Mongolian version are documented here and *not* exported, and the difference is evidence rather than
 effort: their leap months are validated against Janson, their dates against nothing. That is the

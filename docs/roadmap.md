@@ -503,6 +503,9 @@ that its first step is still open.
   - `scripts/extract-janson-fixtures.mjs` does not check leap-column cells for shape, or that the
     Losar years are contiguous.
   - `scripts/fetch-eszthoff-fixtures.mjs` has no guard against being run from inside the repository.
+  - `scripts/fetch-fpmt-observances.mjs`'s month-span guard accepts a Gregorian month holding two
+    consecutive leap pairs; the parser it replaced did too, and the task that rewrote it did not
+    take it up.
 - [ ] **Small findings parked by the phonetics-by-word reviews (2026-11-15).**
   None blocks 1.0.0; each is a guard or a comment that could be tighter, found by the task reviews
   and the final review and judged acceptable when the branch merged.
@@ -1745,7 +1748,7 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
       uncoded — `addMonthsToDate(d, 1, new Proxy({}, { ownKeys() { throw … } }))` — where before it
       passed the guard and answered.
 - [x] **A throw from the caller's own code while the engine reads a config or a fields object
-      escapes uncoded — decide whether it should.** **Decided 2026-11-16 by Andreas (option 3): it
+      escapes uncoded, and it no longer does.** **Decided 2026-11-16 by Andreas (option 3): it
       is coded.** Question put to him 2026-11-15, after the post-validation re-read of a config was
       removed: should the validator code errors thrown by the caller's own getters or Proxies at first
       read, and should the fields guards? It overtakes the 2026-09-24 decision that such an error may
@@ -2126,8 +2129,9 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
      and element, as Tsurphu does, but not Tsurphu's nine month numbers. Whether the weekday names
      and the `./astrology` attributes carry over has to be sourced, not assumed — the lesson of the
      Bhutanese `weekdayOffset`.
-  3. **Day-by-day external validation from two lineages**, as `BHUTAN_HENNING` (day by day) and the 25 government days (`BHUTAN`) have. `@hnw/date-tibetan`'s
-     `CalendarMongolian` derives from Janson, so it can confirm the arithmetic and cannot confirm the
+  3. **External validation from two lineages**, as Bhutan has: one day by day (`BHUTAN_HENNING`) and
+     one a 25-day sample (`BHUTAN`).
+     `@hnw/date-tibetan`'s `CalendarMongolian` derives from Janson, so it can confirm the arithmetic and cannot confirm the
      calendar. The independent candidates: published Tsagaan Sar dates; the printed Buryat almanacs
      Zurkhai's App Store listing names (Yampilov-Galsanov's "Zurkhai-3" and Atsagatsky Datsan
      publications); and Zurkhai's own Hural list, whose 2027 dates follow Mongolian month
