@@ -215,7 +215,7 @@ carried.
 
 `scripts/fetch-bhutan-fixtures.mjs` carries a fifth check requiring every leap month in the emitted
 window to be paired with a regular month of the same number immediately before it.
-The fixture ends on 2030-04-02, the day before the defect, and `test/validation/bhutan.test.ts` pins
+The fixture ends the day before the defect (its extent is in [testing.md](testing.md)), and `test/validation/bhutan.test.ts` pins
 that end, so a regenerated fixture that reached the defect fails there.
 The check read a field the rows do not have until 2026-11-16, so its pairing half had never fired;
 `scripts/evidence/bhutan-fixtures/` proves it now does.
@@ -232,8 +232,9 @@ proposed by Minling Lochen Dharmashri (1654–1717). So the choice is between **
 Henning's computed calendars**, across all four versions at once — not between Tibet and Bhutan.
 
 `BHUTAN` therefore keeps the rounded value, exactly as `PHUGPA` does, and `BHUTAN_HENNING` carries
-the exact one. They differ on **three days in 11,050** — 2001-12-10, 2004-04-10 and 2020-04-23 —
-about one in 3,700 in this window, against the nominal one in 4,100 Janson gives for Tibet.
+the exact one. They differ on **three days of the swept window** — 2001-12-10, 2004-04-10 and 2020-04-23 —
+against the nominal one in 4,100 Janson gives for Tibet; the window and its day count are in
+[testing.md](testing.md).
 
 **Which side the validation data sits on, stated plainly.** The only day-by-day Bhutanese calendar
 available descends from Henning's own software, so it follows Henning's `a₂` and validates

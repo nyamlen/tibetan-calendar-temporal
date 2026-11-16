@@ -131,8 +131,8 @@ export const BHUTAN: TraditionConfig = deepFreeze({
  *
  * **This is the variant the validation data supports, and that is worth stating plainly.** The only
  * day-by-day Bhutanese calendar available descends from Henning's own software, so it follows
- * Henning's `a₂` — with the rounded value, three days of the swept window disagree (`docs/testing.md` has its extent). Concluding from that which
- * value *Bhutanese almanacs* print would be circular, and Janson gives no Bhutanese statement on the
+ * Henning's `a₂` — with the rounded value, three days of the swept window disagree
+ * (`docs/testing.md` has its extent). Concluding from that which value *Bhutanese almanacs* print would be circular, and Janson gives no Bhutanese statement on the
  * fork. {@link BHUTAN} therefore keeps almanac practice as the default, exactly as
  * {@link ../traditions/phugpa.PHUGPA} does.
  *

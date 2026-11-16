@@ -319,6 +319,7 @@ Those are all **Phugpa**. Bhutan has a window of its own, and a wider one:
 | Losar 2003 | 2003 | Janson's Bhutan appendix |
 | `BHUTAN`, twenty-five days | 2025-2026 | **the Royal Government of Bhutan's own calendar**, via `test/fixtures/rgob.ts` |
 
+The day-by-day row compares 11,050 days.
 Three things to keep straight about that window. It ends on **2 April 2030**, not at the end of 2030,
 because the source carries one leap month Janson does not list, from 3 April 2030 — the fixture stops
 the day before, and `scripts/evidence/bhutan-fixtures/` reproduces the refusal. It validates **`BHUTAN_HENNING`**, not `BHUTAN`: the data descends
