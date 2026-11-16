@@ -164,6 +164,7 @@ function parseMonthSpan(caption, count, url) {
 	const tokens = [...caption.matchAll(/(\d{1,2})\s*([AB])?/g)].map((m) => ({
 		month: Number(m[1]),
 		isLeapMonth: m[2] === "A",
+		isRegularOfLeapPair: m[2] === "B",
 	}));
 	if (tokens.length === 0) throw new Error(`${url}: unparsed month span "${caption}"`);
 
@@ -173,13 +174,25 @@ function parseMonthSpan(caption, count, url) {
 	if (count === 2) return [first, last];
 	if (count === 3) {
 		// The middle month is determined: after a leap month comes the regular month sharing its
-		// number; before a regular month of a leap pair comes its leap month; otherwise the
-		// numbering simply advances.
+		// number; before the regular month of a leap pair (a `B` on the LAST token) comes its leap
+		// month; otherwise the numbering simply advances. A `B` on the first token says nothing
+		// about the middle.
 		const middle = first.isLeapMonth
 			? { month: first.month, isLeapMonth: false }
-			: /B/.test(caption) && last.month !== first.month
+			: last.isRegularOfLeapPair && last.month !== first.month
 				? { month: last.month, isLeapMonth: true }
 				: { month: (first.month % 12) + 1, isLeapMonth: false };
+		// The inferred month has to follow from the first and lead to the last, or the caption
+		// is not one this inference describes.
+		const followsFirst = middle.isLeapMonth
+			? middle.month === (first.month % 12) + 1
+			: middle.month === (first.isLeapMonth ? first.month : (first.month % 12) + 1);
+		const leadsToLast =
+			last.month === (middle.isLeapMonth ? middle.month : (middle.month % 12) + 1);
+		if (!followsFirst || !leadsToLast)
+			throw new Error(
+				`${url}: the month span "${caption}" has three months, but the middle one inferred (${middle.month}${middle.isLeapMonth ? "A" : ""}) does not run from the first to the last`,
+			);
 		return [first, middle, last];
 	}
 	throw new Error(`${url}: ${count} Tibetan months in one Gregorian month, which cannot happen`);
