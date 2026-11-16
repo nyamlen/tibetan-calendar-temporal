@@ -21,9 +21,8 @@ import {
 	describe,
 	isPlainObject,
 	rangeError,
-	readingCallersObject,
+	validatedPrivateCopy,
 } from "../errors.js";
-import { deepFreeze } from "../freeze.js";
 import type { FormulaName, ObservanceConfig, ObservanceRule, ObservanceWhen } from "./types.js";
 
 export const CODE = "TCT_INVALID_OBSERVANCE_CONFIG";
@@ -621,34 +620,14 @@ export function ensureValidated(
 	config: ObservanceConfig,
 	caller: ObservanceCaller,
 ): ObservanceConfig {
-	// Every read of the caller's object, which can run their code — a getter, or any trap of a Proxy, a
-	// revoked one included — is inside this guard, and the copy that follows is plain data.
-	const what = `${configArgument(caller)}: the config`;
-	const hit = readingCallersObject(CODE, what, () =>
-		isRecord(config) ? privateCopies.get(config) : undefined,
-	);
-	if (hit !== undefined) return hit;
-	readingCallersObject(CODE, what, () => validateObservanceConfig(config, caller));
-	const copy = deepFreeze(cloneOf(config, caller));
-	validateObservanceConfig(copy, caller);
-	privateCopies.set(config, copy);
-	privateCopies.set(copy, copy);
-	return copy;
-}
-
-function cloneOf(config: ObservanceConfig, caller: ObservanceCaller): ObservanceConfig {
-	return readingCallersObject(CODE, `${configArgument(caller)}: the config`, () => {
-		try {
-			return structuredClone(config);
-		} catch (error) {
-			if (error instanceof Error && error.name === "DataCloneError") {
-				throw rangeError(
-					CODE,
-					`${configArgument(caller)}: the config could not be copied, because a rule, level or ` +
-						"name in it is not plain data (a Proxy, for one); pass plain objects",
-				);
-			}
-			throw error;
-		}
+	return validatedPrivateCopy(config, {
+		cache: privateCopies,
+		code: CODE,
+		what: `${configArgument(caller)}: the config`,
+		isCandidate: isRecord,
+		validate: (value) => validateObservanceConfig(value, caller),
+		uncopyable: () =>
+			`${configArgument(caller)}: the config could not be copied, because a rule, level or ` +
+			"name in it is not plain data (a Proxy, for one); pass plain objects",
 	});
 }

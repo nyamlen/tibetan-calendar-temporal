@@ -9,6 +9,7 @@ import {
 	observancesOn,
 } from "../../src/observances/index.js";
 import type { Observance, ObservanceConfig, ObservanceRule } from "../../src/observances/types.js";
+import { ensureValidated } from "../../src/observances/validate.js";
 import { BHUTAN } from "../../src/traditions/bhutan.js";
 import { PHUGPA } from "../../src/traditions/phugpa.js";
 import {
@@ -1997,5 +1998,64 @@ describe("an observance config structuredClone cannot copy", () => {
 		const error = thrownBy(() => observancesOn(iso("2026-03-03"), proxied));
 		expect(error?.code).toBe(CONFIG_CODE);
 		expect(error?.message).toMatch(/observancesOn\(config\).*could not be copied/);
+	});
+});
+
+describe("an observance config's private copy", () => {
+	const spread = (): ObservanceConfig => structuredClone(EXAMPLE_OBSERVANCES);
+	const day = iso("2026-03-03");
+	// Valid for its first read and empty for every later one: validation reads `englishName` once,
+	// the clone reads it again, and the copy is then plain data holding the invalid value.
+	const answersOnce = (): ObservanceConfig => {
+		const config = spread();
+		let reads = 0;
+		Object.defineProperty(config, "englishName", {
+			enumerable: true,
+			configurable: true,
+			get: () => (reads++ === 0 ? "Answers once" : ""),
+		});
+		return config;
+	};
+
+	it("is deeply frozen and is never the caller's object", () => {
+		const config = spread();
+		const rule = getObservances(day, day, config)[0]?.rule ?? config.rules[0];
+		expect(rule).not.toBe(config.rules[0]);
+		expect(Object.isFrozen(rule)).toBe(true);
+		expect(Object.isFrozen(rule?.when)).toBe(true);
+		expect(Object.isFrozen(config)).toBe(false);
+	});
+
+	it("refuses a config that is valid when read and invalid once copied", () => {
+		const error = thrownBy(() => observancesOn(day, answersOnce()));
+		expect(error?.code).toBe(CONFIG_CODE);
+		expect(error?.message).toMatch(/englishName must be a non-empty string/);
+	});
+
+	it("does not cache a refusal", () => {
+		const config = answersOnce();
+		const first = thrownBy(() => observancesOn(day, config));
+		expect(first?.message).toMatch(/englishName must be a non-empty string/);
+		const second = thrownBy(() => observancesOn(day, config));
+		expect(second?.code).toBe(CONFIG_CODE);
+		expect(second?.message).toMatch(/englishName must be a non-empty string/);
+	});
+
+	// Through the guard itself: an export revalidates the copy it is handed, which would mask a refusal that had been cached.
+	it("does not cache a refusal, seen at the guard", () => {
+		const config = answersOnce();
+		expect(thrownBy(() => ensureValidated(config, "observancesOn"))?.code).toBe(CONFIG_CODE);
+		const second = thrownBy(() => ensureValidated(config, "observancesOn"));
+		expect(second?.code).toBe(CONFIG_CODE);
+		expect(second?.message).toMatch(/englishName must be a non-empty string/);
+	});
+
+	it("refuses a revoked Proxy at the cache lookup, with the config's code and the caller's error as cause", () => {
+		const { proxy, revoke } = Proxy.revocable(spread(), {});
+		revoke();
+		const error = thrownBy(() => observancesOn(day, proxy));
+		expect(error?.code).toBe(CONFIG_CODE);
+		expect(error?.message).toMatch(/observancesOn\(config\): the config could not be read/);
+		expect(error?.cause).toBeInstanceOf(TypeError);
 	});
 });

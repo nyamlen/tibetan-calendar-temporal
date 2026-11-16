@@ -15,6 +15,8 @@
  * @packageDocumentation
  */
 
+import { deepFreeze } from "./freeze.js";
+
 /**
  * Every code this package attaches to a thrown error.
  *
@@ -438,6 +440,58 @@ export function readingCallersObject<T>(
 			error,
 		);
 	}
+}
+
+/** What {@link validatedPrivateCopy} needs to know about one kind of config. */
+export interface PrivateCopySpec<T extends object> {
+	/** The private copies already made, keyed by the caller's object; a copy maps to itself. */
+	readonly cache: WeakMap<T, T>;
+	readonly code: TibetanCalendarErrorCode;
+	/** Names the caller's object in the message of a refused read. */
+	readonly what: string;
+	/** Whether a value may be looked up at all; a `WeakMap` refuses a primitive as a key. */
+	readonly isCandidate: (value: unknown) => boolean;
+	/** Throws a coded error for a value that is not a valid config; runs on the caller's object, then on the copy. */
+	readonly validate: (value: T) => void;
+	/** The message for a config `structuredClone` refuses. Runs inside the guarded read. */
+	readonly uncopyable: (value: T) => string;
+}
+
+/**
+ * Validates a config once per object and returns the private, deeply frozen copy the engine reads.
+ *
+ * @remarks
+ * The one home for the protocol both config validators follow. Every read of the caller's object —
+ * the cache lookup, the first validation, the clone — is inside {@link readingCallersObject}, because
+ * each can run their code. The copy is then validated as a new object, since a getter, an inherited
+ * field or a non-enumerable one answers differently once cloned, and the cache records the copy only
+ * after that: a refused config is never cached, and a copy maps to itself so passing one back is a hit.
+ * Validation runs before the clone because `structuredClone` throws an uncoded `DataCloneError` on a
+ * function or a Symbol, which is recoded to the config's code.
+ */
+export function validatedPrivateCopy<T extends object>(config: T, spec: PrivateCopySpec<T>): T {
+	const { cache, code, what, isCandidate, validate, uncopyable } = spec;
+	const hit = readingCallersObject(code, what, () =>
+		isCandidate(config) ? cache.get(config) : undefined,
+	);
+	if (hit !== undefined) return hit;
+	readingCallersObject(code, what, () => validate(config));
+	const copy = deepFreeze(
+		readingCallersObject(code, what, () => {
+			try {
+				return structuredClone(config);
+			} catch (error) {
+				if (error instanceof Error && error.name === "DataCloneError") {
+					throw rangeError(code, uncopyable(config));
+				}
+				throw error;
+			}
+		}),
+	);
+	validate(copy);
+	cache.set(config, copy);
+	cache.set(copy, copy);
+	return copy;
 }
 
 /**

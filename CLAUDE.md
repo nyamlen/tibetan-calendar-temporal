@@ -320,8 +320,8 @@ derivation; in `docs/` they are just noise.
   two ways. They drift: `./astrology`'s copies shipped error messages that misdescribe their own
   functions — `nextFullMoon` naming two accepted shapes while accepting four. Or they are borrowed,
   so an export reports errors under another export's name, which `test/error-subjects.test.ts` pins.
-  The homes: `assertSafeYear`, `assertQueryOptions`, `assertKnownKeys`, `readingCallersObject` and
-  `describe` in `src/errors.ts`; `assertTibetanShape` and `assertTibetanRanges` in `src/types.ts`;
+  The homes: `assertSafeYear`, `assertQueryOptions`, `assertKnownKeys`, `readingCallersObject`,
+  `validatedPrivateCopy` and `describe` in `src/errors.ts`; `assertTibetanShape` and `assertTibetanRanges` in `src/types.ts`;
   `asWesternDay`, `monthCountFor` and `julianDayOfFields` in `src/computation/conversion.ts`;
   `boundedMonth` in `src/months.ts`.
 

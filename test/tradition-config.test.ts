@@ -722,3 +722,57 @@ describe("a tradition structuredClone cannot copy", () => {
 		expect(error?.message).toMatch(/could not be copied/);
 	});
 });
+
+describe("validatedTradition's private copy", () => {
+	const spread = (): TraditionConfig => ({
+		...PHUGPA,
+		id: "copy-protocol",
+		moonTab: [...PHUGPA.moonTab],
+		sunTab: [...PHUGPA.sunTab],
+		naming: { ...PHUGPA.naming },
+	});
+	// Valid for its first read and `undefined` for every later one: the first validation reads it once,
+	// the clone reads it again, and the copy is then plain data holding the invalid value.
+	const answersOnce = (): TraditionConfig => {
+		const config = spread();
+		let reads = 0;
+		Object.defineProperty(config, "epochYear", {
+			enumerable: true,
+			configurable: true,
+			get: () => (reads++ === 0 ? PHUGPA.epochYear : undefined),
+		});
+		return config;
+	};
+
+	it("is deeply frozen and is never the caller's object", () => {
+		const config = spread();
+		const copy = validatedTradition(config);
+		expect(copy).not.toBe(config);
+		expect(Object.isFrozen(copy)).toBe(true);
+		expect(Object.isFrozen(copy.moonTab)).toBe(true);
+		expect(Object.isFrozen(copy.naming)).toBe(true);
+		expect(Object.isFrozen(config)).toBe(false);
+	});
+
+	it("answers the same copy for the caller's object and for the copy itself", () => {
+		const config = spread();
+		const copy = validatedTradition(config);
+		expect(validatedTradition(config)).toBe(copy);
+		expect(validatedTradition(copy)).toBe(copy);
+	});
+
+	it("refuses a config that is valid when read and invalid once copied", () => {
+		const error = thrownBy(() => validatedTradition(answersOnce()));
+		expect(error?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
+		expect(error?.message).toMatch(/epochYear must be a safe integer/);
+	});
+
+	it("does not cache a refusal", () => {
+		const config = answersOnce();
+		const first = thrownBy(() => validatedTradition(config));
+		expect(first?.message).toMatch(/epochYear must be a safe integer/);
+		const second = thrownBy(() => validatedTradition(config));
+		expect(second?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
+		expect(second?.message).toMatch(/epochYear must be a safe integer/);
+	});
+});
