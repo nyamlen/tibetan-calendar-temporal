@@ -249,7 +249,7 @@ attributes are **not** covered by either figure above, and the differences are n
   (FPMT gives the *next* mansion late in a mansion), cluster in 2025 (22, against 2 in 2026), have no
   established cause, and **eight of them fit no pattern**. Janson's `/27` approximation cannot explain them: he gives it as the
   almanac's own method, so it cannot separate the two. Before explaining a residual by a formula, check whether the source uses the same formula.
-- **Yoga favorability** agrees with FPMT's printed prefixes on 99.8% of **its own 1,825 days** — every
+- **Yoga favorability**, Phugpa only, agrees with FPMT's printed prefixes on 99.8% of **its own 1,825 days** — every
   day whose code has a readable prefix and pair, four more than the mansion's, because 2024-09-12's
   `UD-EW` and three `UD-EF` codes in April 2026 name no yoga consistent with their weekday and so
   cannot force a mansion element but are still favorability claims. That
@@ -546,8 +546,9 @@ derivation; in `docs/` they are just noise.
   yoga under any config whose `naming.weekdayOffset` is nonzero. It is
   `TCT_INVALID_ARGUMENT`'s neighbour rather than `TCT_FIELD_OUT_OF_RANGE`'s, it is deliberately
   **off** `tibetanDateExists`'s allowlist (a Bhutanese date exists; only an attribute of it is
-  unsourced), and the refusal is reached by a tradition carrying no `naming.monthAnimals` block rather than
-  by any code asking "is this Bhutan". A **composition** may report it as `null` where a primitive
+  unsourced), and the month and lunar-day refusal is reached by a tradition carrying no `naming.monthAnimals`
+  block, the yoga's by a nonzero `naming.weekdayOffset`, rather than by any code asking "is this
+  Bhutan" — a property of the config is what a consumer's own tradition can also carry. A **composition** may report it as `null` where a primitive
   throws — `attributesFor` does — on the reasoning that a specific question with no answer is an
   error while "what is known about this day" is not. Reach for this code, not the range one, when the
   gap is in the sources.

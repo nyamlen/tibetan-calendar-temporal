@@ -205,7 +205,7 @@ describe("the yoga is unsourced under a shifted weekday", () => {
 		expect(elementalYogaFor(iso("2026-09-01"), unshifted).englishName).toBe("death");
 	});
 
-	it("is not swallowed by tibetanDateExists, which a Bhutanese date still satisfies", () => {
+	it("leaves tibetanDateExists true for the date, and throws a RangeError rather than a skipped-day error", () => {
 		const resolved = isoToTibetan(iso("2026-09-01"), BHUTAN);
 		expect(tibetanDateExists(resolved, BHUTAN)).toBe(true);
 		expect(thrownBy(() => elementalYogaFor(iso("2026-09-01"), BHUTAN))).toBeInstanceOf(RangeError);

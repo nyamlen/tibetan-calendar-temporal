@@ -309,9 +309,10 @@ It does not tell anyone what to do about it.
 
 ## What varies between traditions, and one gap
 
-Only the **month** and **lunar-day** attributes are tradition-dependent; the year and calendar-day
-attributes are the same everywhere, and the yoga varies only through the mansion, which the engine
-computes from each tradition's own constants.
+The year and calendar-day attributes are the same everywhere. The **month** and **lunar-day** attributes
+depend on the tradition. So does the yoga, in two ways: through the mansion, which the engine computes
+from each tradition's own constants, and through the weekday element, which depends on whether the
+tradition shifts its weekday.
 
 **Bhutan is an open gap.**
 Janson gives month-animal lists for Phugpa and Tsurphu and **none for Bhutan**, even though
@@ -325,16 +326,16 @@ An independent Bhutanese source is required.
 Until it is sourced, the behaviour is to **refuse rather than guess**: Bhutan gets the year
 attributes, the calendar-day attributes and the lunar mansion, and a coded error for the month and
 lunar-day attributes naming the gap.
-
-**The yoga is refused under Bhutan for a different reason.**
-Bhutan shifts the whole weekday by one day — name, planet and element — and no source says what the
-yoga pairs the mansion with after the shift; that the element moves is an inference, Andreas' ruling
-of 2026-11-16.
-The refusal is reached through the config's nonzero `naming.weekdayOffset`, again not by asking "is
-this Bhutan", and `attributesFor` reports `null` for it.
 That is implemented as of 2026-09-12 — `TCT_ATTRIBUTE_NOT_SOURCED`, thrown because a tradition whose
 month attributes nobody has sourced carries no month-naming block at all, rather than because any
 code asks "is this Bhutan"; see
 [decisions/2026-09-12-absent-naming-members-refuse.md](decisions/2026-09-12-absent-naming-members-refuse.md).
 Silently falling back to Phugpa's list would hand one tradition's answers to another, which is the
 failure this repository is most careful about.
+
+**The yoga is refused under Bhutan for a different reason.**
+Bhutan shifts the whole weekday by one day — name, planet and element — and no source says what the
+yoga pairs the mansion with after the shift; that the element moves is an inference, Andreas' ruling
+of 2026-11-16.
+The refusal is reached through the config's nonzero weekday offset, not by asking "is this Bhutan",
+and the composition reports the yoga as unsourced rather than refusing the whole day.
