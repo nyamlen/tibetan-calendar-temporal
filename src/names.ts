@@ -16,6 +16,7 @@
  * @packageDocumentation
  */
 
+import { mod } from "./computation/arithmetic.js";
 import { assertInternal } from "./errors.js";
 import { deepFreeze } from "./freeze.js";
 import type {
@@ -82,10 +83,6 @@ const ANIMALS: Readonly<Record<TibetanAnimal, TibetanName>> = freeze({
 	pig: { tibetan: "ཕག", wylie: "phag", phonetic: "pak" },
 });
 
-// Seven frozen rows per offset value, built once, so a date under a shifting tradition still holds a
-// pointer to a shared frozen object. At most seven entries: the offset is taken modulo 7.
-const SHIFTED_ROWS = new Map<number, readonly TibetanWeekdayName[]>();
-
 /** The whole vocabulary, for the test that pins it against the generated fixture. */
 export const NAME_TABLES = freeze({ WEEKDAYS, ELEMENTS, GENDERS, ANIMALS });
 
@@ -129,22 +126,9 @@ export const NAME_TABLES = freeze({ WEEKDAYS, ELEMENTS, GENDERS, ANIMALS });
  * recurses infinitely rather than failing to typecheck. Renaming removed the last instance of it.
  */
 export function weekdayNameWithOffset(weekday: number, offset: number): TibetanWeekdayName {
-	const shift = ((offset % 7) + 7) % 7;
-	let rows = SHIFTED_ROWS.get(shift);
-	if (rows === undefined) {
-		rows = freeze(
-			WEEKDAYS.map((_, index) =>
-				assertInternal(
-					WEEKDAYS[(index + shift) % 7],
-					"the shifted index is forced into 0..6 and WEEKDAYS has seven entries",
-				),
-			),
-		);
-		SHIFTED_ROWS.set(shift, rows);
-	}
-	const index = ((weekday % 7) + 7) % 7;
+	const index = mod(weekday + offset, 7);
 	return assertInternal(
-		rows[index],
+		WEEKDAYS[index],
 		`weekday index ${index} is forced into 0..6 and WEEKDAYS has seven entries`,
 	);
 }
