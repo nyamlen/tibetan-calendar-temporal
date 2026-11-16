@@ -33,7 +33,8 @@ import type { TraditionConfig } from "../traditions/types.js";
 import type {
 	TibetanDate,
 	TibetanDateFields,
-	TibetanMonthFields,
+	TibetanDateSnapshot,
+	TibetanMonthSnapshot,
 	TibetanWeekday,
 } from "../types.js";
 import { assertTibetanRanges, assertTibetanShape, SkippedDayError } from "../types.js";
@@ -486,11 +487,11 @@ export function tibetanToIso(
 	input: TibetanDateFields,
 	tradition: TraditionConfig = PHUGPA,
 ): Temporal.PlainDate {
-	assertTibetanShape("tibetanToIso", input, "date");
+	const fields = assertTibetanShape("tibetanToIso", input, "date");
 	// The tradition between the shape and the range, the order tibetanDateExists depends on.
 	tradition = scalingFor(tradition).tradition;
-	const subject = assertTibetanRanges("tibetanToIso", input, "date");
-	return isoFromJulianDayUnchecked(julianDayOfFields(subject, tradition, input));
+	const subject = assertTibetanRanges("tibetanToIso", fields, "date");
+	return isoFromJulianDayUnchecked(julianDayOfFields(subject, tradition, fields));
 }
 
 /**
@@ -510,7 +511,7 @@ export function tibetanToIso(
 export function monthCountFor(
 	subject: () => string,
 	tradition: TraditionConfig,
-	month: TibetanMonthFields,
+	month: TibetanMonthSnapshot,
 ): number {
 	const year = yearFromRoyalEra(month.year);
 	assertMonthCountYear(subject, year, tradition);
@@ -536,13 +537,13 @@ export function monthCountFor(
  * `tibetanDateExists` report their own name rather than `tibetanToIso`'s. Not exported from the
  * package barrel.
  *
- * Throws {@link SkippedDayError} carrying the caller's own object, since `docs/guide.md` promises
- * that `error.requested` is the input that was passed.
+ * Throws {@link SkippedDayError} carrying the snapshot of the fields the caller passed, which equals
+ * the input in value: `docs/guide.md` promises that `error.requested` is the date that was passed.
  */
 export function julianDayOfFields(
 	subject: () => string,
 	tradition: TraditionConfig,
-	date: TibetanDateFields,
+	date: TibetanDateSnapshot,
 ): number {
 	const scaled = scalingFor(tradition);
 	const monthCount = monthCountFor(subject, tradition, date);
@@ -631,10 +632,10 @@ export function tibetanDateExists(
 	// are checked outside the `try`, so a Temporal instance or a broken config throws rather than
 	// answering `false`; the range is checked inside it, and only after the tradition — checked
 	// first, a range error would be swallowed and a broken config reported as a missing date.
-	assertTibetanShape("tibetanDateExists", input, "date");
+	const fields = assertTibetanShape("tibetanDateExists", input, "date");
 	tradition = scalingFor(tradition).tradition;
 	try {
-		julianDayOfFields(assertTibetanRanges("tibetanDateExists", input, "date"), tradition, input);
+		julianDayOfFields(assertTibetanRanges("tibetanDateExists", fields, "date"), tradition, fields);
 		return true;
 	} catch (error) {
 		// Matched by class first, as before: SkippedDayError carries TCT_SKIPPED_DAY too, but the

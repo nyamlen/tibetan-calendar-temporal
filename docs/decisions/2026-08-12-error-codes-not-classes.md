@@ -65,32 +65,50 @@ Message *text* carries no such promise, and deliberately so: the messages are me
 improving. Do not assert on wording in a test where a code would do, and do not tell a consumer to
 match on it.
 
-## An error the caller's own code throws is not this package's to code
+## An error the caller's own code throws while this package reads their argument is coded
 
-Added 2026-09-24, amended 2026-11-15. The promise is about errors **this package** throws. When
-the engine reads an argument and the caller's own code throws — a getter, a `Proxy` trap — that
-error is the caller's, and it may propagate unchanged. The README says so beside its code table.
-Reading a `TraditionConfig`, an `ObservanceConfig` or a Tibetan date's fields does not catch it.
+Added 2026-09-24 as "it may propagate unchanged", amended 2026-11-15, and **decided the other way on
+2026-11-16 by Andreas**: a throw from the caller's own code — a getter, a `Proxy` trap, a revoked
+`Proxy` — while the engine reads an argument is refused with a code, and the caller's original error
+is kept as `cause`. The README's "every failure about your input … carries a code" is therefore
+true without an exception for it.
 
-For the two configs, the only reads of the caller's object are the validator's own first read and
-the `structuredClone` that follows it: the engine then reads a private frozen copy and never the
-caller's object again. So a getter or `Proxy` trap that throws surfaces from the **first call** that
-uses the config, uncoded, and there is no later read for it to surface from. Whether the validator
-should code such a throw is open, and it is not decided here. A Tibetan date's fields are still read
-by each export that takes them, so for those the throw can come from any of about seventeen exports.
+- **A config.** `TraditionConfig` and `ObservanceConfig` are each read from the caller's object in
+  exactly one place, the validator's first pass, and then copied with `structuredClone`; the engine
+  reads the private frozen copy and never the caller's object again. That first pass and the copy
+  are one guarded read, `readingCallersObject` in `src/errors.ts`, and a throw from it is refused with
+  `TCT_INVALID_TRADITION_CONFIG` or `TCT_INVALID_OBSERVANCE_CONFIG`. `composeObservances` reads its
+  layer the same way.
+- **A Tibetan date or month.** `assertTibetanShape` in `src/types.ts` reads each field **exactly
+  once** — `year`, `month`, `day` where the shape has one, `isLeapMonth`, `isLeapDay` — inside a
+  guard that refuses a throwing read with `TCT_INVALID_ARGUMENT`, and returns a frozen snapshot.
+  `assertTibetanRanges`, `monthCountFor`, `julianDayOfFields` and every export take the snapshot and
+  never the caller's object again; their types are branded, so a call site that still passes the
+  argument does not compile. Before this, `day` was read four times per `resolveDate`: a getter
+  answering 8 and then 31 passed validation as 8 and was computed on as 31, a confident wrong date.
+  A month reads `isLeapDay` only to refuse a non-boolean one, and drops it.
+- **The code is `TCT_INVALID_ARGUMENT`, never `TCT_FIELD_OUT_OF_RANGE`**, for a throwing read of a
+  date's fields. The range code is on `tibetanDateExists`'s allowlist and would turn a caller's
+  throwing getter into "that date does not exist"; `tibetanDateExists` rethrows this one.
+- **What still propagates.** One read: the `toPlainDate` property of a value that carries a
+  `Temporal.PlainDateTime` or `Temporal.ZonedDateTime` brand it does not have, which
+  `toNativePlainDate` reads outside its guard. The call to it, and every other read of such a value,
+  is guarded. Nothing else the engine reads of a caller's argument is outside a guard.
 
-Three rules follow, each of which was broken before this was written down:
+Three rules from the earlier version still hold, each of which was broken before it was written down:
 
 - **Rendering a value must never throw.** A message is built after the decision to throw, so a
   renderer that throws turns a coded error into an uncoded one. Use `describe` in `src/errors.ts`,
   which is total, never a bare `${}` on a value not yet proved a number.
-- **A guard that already wraps a read may keep wrapping it**, as `temporalTypeNameOf`, the options
-  guard and `asWesternDay` do — but with `TCT_INVALID_ARGUMENT`, **never** `TCT_FIELD_OUT_OF_RANGE`,
-  which is on `tibetanDateExists`'s allowlist and would turn a caller's throwing getter into "that
-  date does not exist".
-- **Widening the promise later is additive; narrowing it is not.** Codes can be added where an error
-  now has none without breaking anyone, so converting these throws stays open. Taking a code away
-  once consumers branch on it is a breaking change, which is why the narrower promise was chosen.
+- **A guard that wraps a read uses `TCT_INVALID_ARGUMENT`**, as `temporalTypeNameOf`, the options
+  guard, `asWesternDay` and the fields guard do — **never** `TCT_FIELD_OUT_OF_RANGE`.
+- **Widening the promise later is additive; narrowing it is not.** The promise was widened here, to
+  every read of a config or a date's fields. Taking a code away once consumers branch on it is a
+  breaking change, so a new site that reads a caller's object is guarded, not left to propagate.
+
+A getter that throws on the first read and answers on the second is refused on the first, so the
+guard does not need to know whether a getter is deterministic: it reads once, and what it read is
+what the arithmetic uses.
 
 ## What a message should contain
 

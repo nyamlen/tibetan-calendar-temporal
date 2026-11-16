@@ -96,8 +96,16 @@ export type Coded<E extends Error> = E & { code: TibetanCalendarErrorCode };
  * `SkippedDayError` plus `TCT_FIELD_OUT_OF_RANGE` and `TCT_NO_SUCH_LEAP_MONTH`. It was such a
  * caller under the denylist era, which is where this remark's example came from.
  */
-export function rangeError(code: TibetanCalendarErrorCode, message: string): Coded<RangeError> {
-	return Object.assign(new RangeError(message), { code });
+export function rangeError(
+	code: TibetanCalendarErrorCode,
+	message: string,
+	...cause: [cause?: unknown]
+): Coded<RangeError> {
+	// Present only when given, so `"cause" in error` still tells a refusal of the caller's own throw
+	// from every other one. `cause` is the caller's error, kept so they can find their own stack.
+	const error =
+		cause.length === 0 ? new RangeError(message) : new RangeError(message, { cause: cause[0] });
+	return Object.assign(error, { code });
 }
 
 /**
@@ -387,6 +395,44 @@ export function assertQueryOptions<O extends object>(
 	// A fresh plain object carrying only the allowed keys, which is what the call sites read — so
 	// they never touch the caller's object again, and a getter cannot answer differently twice.
 	return snapshot as Partial<O>;
+}
+
+/**
+ * Runs a guard's read of an object the caller built, refusing whatever the caller's own code throws
+ * during it — a getter, or any trap of a Proxy, a revoked one included — with `code` and the caller's
+ * error as `cause`.
+ *
+ * @remarks
+ * The one home for the config validators' first pass, the only one that touches the caller's object:
+ * everything after it reads a private copy. The guard's own refusals carry `code` already and pass
+ * through unchanged, so a bad field is still reported as one. `what` names the object in the message.
+ * A thrown value that cannot even be inspected is treated as the caller's, since a Proxy thrown as
+ * the error makes `instanceof` itself throw.
+ *
+ * @throws An error with `code` — the guard's own, or one wrapping the caller's.
+ */
+export function readingCallersObject<T>(
+	code: TibetanCalendarErrorCode,
+	what: string,
+	read: () => T,
+): T {
+	try {
+		return read();
+	} catch (error) {
+		let own = false;
+		try {
+			own = hasCode(error, code);
+		} catch {
+			// Not inspectable, so not ours.
+		}
+		if (own) throw error;
+		throw rangeError(
+			code,
+			`${what} could not be read — reading it threw ${thrownDetail(error)}. ${what} is plain ` +
+				"data: pass an object whose fields can be read without running code",
+			error,
+		);
+	}
 }
 
 /**

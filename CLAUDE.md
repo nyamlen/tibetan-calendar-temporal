@@ -320,9 +320,17 @@ derivation; in `docs/` they are just noise.
   two ways. They drift: `./astrology`'s copies shipped error messages that misdescribe their own
   functions — `nextFullMoon` naming two accepted shapes while accepting four. Or they are borrowed,
   so an export reports errors under another export's name, which `test/error-subjects.test.ts` pins.
-  The homes: `assertSafeYear`, `assertQueryOptions`, `assertKnownKeys` and `describe` in `src/errors.ts`;
-  `assertTibetanShape` and `assertTibetanRanges` in `src/types.ts`; `asWesternDay`, `monthCountFor`
-  and `julianDayOfFields` in `src/computation/conversion.ts`; `boundedMonth` in `src/months.ts`.
+  The homes: `assertSafeYear`, `assertQueryOptions`, `assertKnownKeys`, `readingCallersObject` and
+  `describe` in `src/errors.ts`; `assertTibetanShape` and `assertTibetanRanges` in `src/types.ts`;
+  `asWesternDay`, `monthCountFor` and `julianDayOfFields` in `src/computation/conversion.ts`;
+  `boundedMonth` in `src/months.ts`.
+
+  **`assertTibetanShape` reads each field of the caller's date or month once and returns a frozen,
+  branded snapshot; everything after it takes the snapshot, never the caller's object.** A getter can
+  answer differently the second time — one answering 8, then 31, was validated as 8 and computed on as
+  31 — and a read that throws is refused with `TCT_INVALID_ARGUMENT`, never the range code. The brand
+  makes a call site that still passes the argument a compile error, and
+  `test/caller-reads.test.ts` counts the reads. A new export taking a date or month goes in its table.
 
   `check:conventions` rule 14 refuses two functions in `src/` that share a body. **It catches
   copy-paste, not a re-implementation** with a different body or arity, such as a private

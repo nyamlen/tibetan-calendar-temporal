@@ -21,7 +21,7 @@
  * @packageDocumentation
  */
 
-import { assertKnownKeys, describe, rangeError } from "../errors.js";
+import { assertKnownKeys, describe, rangeError, readingCallersObject } from "../errors.js";
 import { deepFreeze } from "../freeze.js";
 import type {
 	MeanMotion,
@@ -436,7 +436,9 @@ export function validatedTradition(tradition: TraditionConfig): TraditionConfig 
 		const copy = privateCopies.get(tradition);
 		if (copy !== undefined) return copy;
 	}
-	assertShape(tradition);
+	// The only pass that reads the caller's object, so the only one that can run their code: a getter,
+	// or any trap of a Proxy. The copy below is plain data.
+	readingCallersObject(CODE, "TraditionConfig", () => assertShape(tradition));
 	const copy = deepFreeze(cloneOf(tradition));
 	// The copy is checked as a new object: a getter, an inherited field or a non-enumerable one
 	// answers differently once cloned, and the copy is what the engine will read.
@@ -447,18 +449,20 @@ export function validatedTradition(tradition: TraditionConfig): TraditionConfig 
 }
 
 function cloneOf(tradition: TraditionConfig): TraditionConfig {
-	try {
-		return structuredClone(tradition);
-	} catch (error) {
-		if (error instanceof Error && error.name === "DataCloneError") {
-			throw rangeError(
-				CODE,
-				`TraditionConfig ${typeof tradition.id === "string" ? `"${tradition.id}"` : "<unnamed>"} ` +
-					"could not be copied, because a field is not plain data; pass plain objects and arrays",
-			);
+	return readingCallersObject(CODE, "TraditionConfig", () => {
+		try {
+			return structuredClone(tradition);
+		} catch (error) {
+			if (error instanceof Error && error.name === "DataCloneError") {
+				throw rangeError(
+					CODE,
+					`TraditionConfig ${typeof tradition.id === "string" ? `"${tradition.id}"` : "<unnamed>"} ` +
+						"could not be copied, because a field is not plain data; pass plain objects and arrays",
+				);
+			}
+			throw error;
 		}
-		throw error;
-	}
+	});
 }
 
 function assertShape(tradition: TraditionConfig): void {

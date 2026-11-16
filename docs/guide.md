@@ -863,7 +863,7 @@ try {
 } catch (error) {
   switch (error.code) {
     case 'TCT_SKIPPED_DAY':
-      // error instanceof SkippedDayError, and error.requested is the input you passed
+      // error instanceof SkippedDayError, and error.requested is the date you passed
       return `${format(error.requested)} is not a day in this calendar`;
     case 'TCT_FIELD_OUT_OF_RANGE':
       // A number is wrong: month 13, day 31, a year that is not an integer.

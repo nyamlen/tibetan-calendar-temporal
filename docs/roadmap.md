@@ -1745,25 +1745,19 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
       uncoded — `addMonthsToDate(d, 1, new Proxy({}, { ownKeys() { throw … } }))` — where before it
       passed the guard and answered.
 - [x] **A throw from the caller's own code while the engine reads a config or a fields object
-      escapes uncoded — decide whether it should.** **Decided 2026-09-24 by Andreas: it may.** The
-      README now says beside its code table that an error the caller's own code throws may reach them
-      unchanged, and
+      escapes uncoded — decide whether it should.** **Decided 2026-11-16 by Andreas (option 3): it
+      is coded.** Question put to him 2026-11-15, after the post-validation re-read of a config was
+      removed: should the validator code errors thrown by the caller's own getters or Proxies at first
+      read, and should the fields guards? It overtakes the 2026-09-24 decision that such an error may
+      propagate unchanged. A throw while a `TraditionConfig` or an `ObservanceConfig` is read is refused
+      with the config's code and the caller's error as `cause`; a throw while a Tibetan date's or
+      month's fields are read is refused with `TCT_INVALID_ARGUMENT`, each field read exactly once into
+      a frozen snapshot that every later step uses. The same work closed a defect it found: a getter
+      answering 8 and then 31 passed validation as 8 and was computed on as 31, a confident wrong
+      date from `resolveDate`, `tibetanToIso` and `addDays`. The README's sentence beside its code table
+      is narrowed to the one read that still propagates, and
       [decisions/2026-08-12-error-codes-not-classes.md](decisions/2026-08-12-error-codes-not-classes.md)
-      records the boundary. Converting stays open, since adding codes later breaks nobody. **Open
-      question for Andreas (2026-11-15):** with the post-validation re-read gone — the engine now
-      reads a validated frozen copy of a config — should the validator code errors thrown by the
-      caller's own getters or Proxies at first read? Found 2026-09-24 with the item above and left out
-      of it on purpose. A Proxy passed as a `TraditionConfig` — revoked, or with any one trap that
-      throws — escapes from the first read in `validatedTradition` (`isoToTibetan(d, proxy)`,
-      `monthNamesFor(m, proxy)`), and an `ObservanceConfig` whose `rules`, `rules[0]` or
-      `rules[0].when` is one does the same. The review also measured a throwing getter on a
-      Tibetan-date fields object escaping at about seventeen exports. The **argument** guards already
-      convert such a throw — `temporalTypeNameOf` always has, and since this item the options guard
-      and `asWesternDay` do — so the question was whether the config validators and the fields
-      guards should too, or whether the README's "every failure about your input … carries a code"
-      should say that an error your own code throws propagates unchanged.
-      `test/hostile-inputs.test.ts` leaves every Proxy out of its config rows for this reason, and
-      says so.
+      records it. `test/hostile-inputs.test.ts` no longer leaves a Proxy out of its config rows.
 - [x] **The Tibetan date-field guard is written six times.** Answering the review question the `describe`
       item above carried, 2026-09-24: `assertMonthFields` and `assertDateFields` in `navigation.ts`, the
       inline checks in `resolveMonth`, `daysInMonth` and `datesFor` in `months.ts`, and those in

@@ -6,7 +6,7 @@
  * validator's own, exported from `validate.ts`: a second copy of any of them would drift.
  */
 
-import { assertKnownKeys, describe, rangeError } from "../errors.js";
+import { assertKnownKeys, describe, rangeError, readingCallersObject } from "../errors.js";
 import type {
 	ObservanceConfig,
 	ObservanceLayer,
@@ -150,6 +150,20 @@ export function composeObservances(
 	layer: ObservanceLayer,
 ): ObservanceConfig {
 	base = ensureValidated(base, "composeObservances");
+	// The layer, and the rules and levels it adds or replaces, are the caller's objects and are read
+	// here and in the validation that follows. Each read that can run their code is guarded, and a
+	// throw from it is refused with the config code.
+	const candidate = readingCallersObject(CODE, "composeObservances: the layer", () =>
+		candidateFrom(base, layer),
+	);
+	// The validated copy is private and deeply frozen, and none of it is shared with a caller's input,
+	// which is why `candidate` need not be copied again: its rules and levels are the base's and the
+	// layer's own objects until the validator clones them.
+	return ensureValidated(candidate, "composeObservances");
+}
+
+/** The unvalidated config `layer` makes of `base`, refusing a malformed layer. */
+function candidateFrom(base: ObservanceConfig, layer: ObservanceLayer): ObservanceConfig {
 	if (!isRecord(layer)) {
 		throw rangeError(CODE, `${SUBJECT}: the layer must be an object, received ${describe(layer)}`);
 	}
@@ -270,7 +284,7 @@ export function composeObservances(
 
 	// Validated before it is copied: `structuredClone` throws an uncoded error on a function or a
 	// Symbol, and only a value the validator has accepted is safe to hand it.
-	const candidate: ObservanceConfig = {
+	return {
 		id: layer.id,
 		englishName: layer.englishName,
 		...(layer.tibetanName === undefined ? {} : { tibetanName: layer.tibetanName }),
@@ -280,8 +294,4 @@ export function composeObservances(
 		...(levels === undefined ? {} : { levels }),
 		rules,
 	};
-	// The validated copy is private and deeply frozen, and none of it is shared with a caller's input,
-	// which is why `candidate` need not be copied again: its rules and levels are the base's and the
-	// layer's own objects until the validator clones them.
-	return ensureValidated(candidate, "composeObservances");
 }

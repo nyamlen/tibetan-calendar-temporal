@@ -64,11 +64,10 @@ import { thrownBy } from "./support/thrown.js";
 // so: a bag with no prototype is an empty bag, and `tibetanDateExists` reports a bad field as a date
 // that does not exist, by its allowlist.
 //
-// Left out on purpose: a Proxy passed **as a config** — revoked, or with any one trap that throws —
-// escapes uncoded from the config validators, which read it field by field. That is the caller's
-// own code throwing, which the README says may reach them unchanged — decided 2026-09-24, recorded
-// in docs/decisions/2026-08-12-error-codes-not-classes.md — so every Proxy is left out of the config
-// rows. Argument and bag guards that already wrap a read do convert one, and are held to it here.
+// A Proxy passed **as a config** — revoked, or with any one trap that throws — is held to the same
+// rule: the validators read the caller's object in one guarded pass and refuse a throw from it with the
+// config code (decided 2026-11-16, docs/decisions/2026-08-12-error-codes-not-classes.md). Nothing is
+// left out of these tables for being the caller's own code.
 
 const throwing = () => {
 	throw new Error("trap");
@@ -474,7 +473,7 @@ const RULE_FIELD: readonly Row[] = [
 	],
 ];
 
-// Where a whole object belongs, so a Proxy is the caller's own code throwing and is left out.
+// Where a whole object belongs, so a Proxy is the caller's own code throwing, and is refused with the config code.
 const layerWith = (patch: object) => v({ id: "l", englishName: "L", ...patch });
 const RULE_OBJECT: readonly Row[] = [
 	["composeObservances(base, layer) base", (x) => composeObservances(v(x), layerWith({}))],
@@ -617,13 +616,11 @@ const table = (label: string, rows: readonly Row[], values: typeof HOSTILE) =>
 		});
 	});
 
-const NOT_A_PROXY = HOSTILE.filter(([name]) => !name.includes("Proxy"));
-
 table("a hostile value as the argument", SCALAR, HOSTILE);
 table("a hostile value as one field", FIELD, HOSTILE);
-table("a hostile value as the tradition or config", CONFIG, NOT_A_PROXY);
+table("a hostile value as the tradition or config", CONFIG, HOSTILE);
 table("a hostile value in a consumer's observance rule", RULE_FIELD, HOSTILE);
-table("a hostile object in a consumer's observance rule", RULE_OBJECT, NOT_A_PROXY);
+table("a hostile object in a consumer's observance rule", RULE_OBJECT, HOSTILE);
 table("a hostile value as the options bag", BAG, HOSTILE);
 
 describe('a message tells 10n, the string "10" and the number 10 apart', () => {

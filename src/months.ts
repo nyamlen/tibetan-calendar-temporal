@@ -47,7 +47,14 @@ import { deepFreeze } from "./freeze.js";
 import { PHUGPA } from "./traditions/phugpa.js";
 import type { TraditionConfig } from "./traditions/types.js";
 import { validatedTradition } from "./traditions/validate.js";
-import type { TibetanDate, TibetanDateFields, TibetanMonth, TibetanMonthFields } from "./types.js";
+import type {
+	TibetanDate,
+	TibetanDateFields,
+	TibetanDateSnapshot,
+	TibetanMonth,
+	TibetanMonthFields,
+	TibetanMonthSnapshot,
+} from "./types.js";
 import { assertTibetanRanges, assertTibetanShape } from "./types.js";
 
 /**
@@ -96,16 +103,22 @@ export function boundedMonth(
 	month: TibetanMonthFields | TibetanDateFields,
 	shape: "month" | "date",
 	tradition: TraditionConfig,
-): { scaled: ScaledTradition; monthCount: number; first: number; last: number } {
-	assertTibetanShape(functionName, month, shape);
+): {
+	fields: TibetanMonthSnapshot | TibetanDateSnapshot;
+	scaled: ScaledTradition;
+	monthCount: number;
+	first: number;
+	last: number;
+} {
+	const fields = assertTibetanShape(functionName, month, shape);
 	const scaled = scalingFor(tradition);
-	const subject = assertTibetanRanges(functionName, month, shape);
-	const monthCount = monthCountFor(subject, scaled.tradition, month);
+	const subject = assertTibetanRanges(functionName, fields, shape);
+	const monthCount = monthCountFor(subject, scaled.tradition, fields);
 	const first = firstDayOfMonth(scaled, monthCount);
 	const last = lastDayOfMonth(scaled, monthCount);
 	assertExactJulianDay(scaled, first, subject);
 	assertExactJulianDay(scaled, last, subject);
-	return { scaled, monthCount, first, last };
+	return { fields, scaled, monthCount, first, last };
 }
 
 /**
@@ -294,8 +307,8 @@ export function resolveMonth(
 	month: TibetanMonthFields,
 	tradition: TraditionConfig = PHUGPA,
 ): TibetanMonth {
-	const { scaled, monthCount } = boundedMonth("resolveMonth", month, "month", tradition);
-	return describeMonth(scaled, monthCount, month.year, month.month, month.isLeapMonth ?? false);
+	const { fields, scaled, monthCount } = boundedMonth("resolveMonth", month, "month", tradition);
+	return describeMonth(scaled, monthCount, fields.year, fields.month, fields.isLeapMonth ?? false);
 }
 /**
  * How many **calendar days** a Tibetan month spans: 29 or 30.

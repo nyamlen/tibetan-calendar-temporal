@@ -24,7 +24,13 @@
  * @packageDocumentation
  */
 
-import { assertSafeYear, describe, rangeError, type TibetanCalendarErrorCode } from "./errors.js";
+import {
+	assertSafeYear,
+	describe,
+	rangeError,
+	type TibetanCalendarErrorCode,
+	thrownDetail,
+} from "./errors.js";
 import { formatTibetanDate } from "./format.js";
 import { temporalKindOf, temporalTypeNameOf } from "./temporal-kind.js";
 
@@ -759,6 +765,20 @@ export function rejectTemporalInstance(functionName: string, value: unknown): vo
 }
 
 /**
+ * Rejects a value that is not an object where a Tibetan date or month belongs, before any field of it
+ * is read. Reached through {@link assertTibetanShape} and {@link rejectInvalidLeapFlags}, so the
+ * message and the code are one policy.
+ */
+function rejectNonObject(functionName: string, value: unknown): asserts value is object {
+	if (value === null || typeof value !== "object") {
+		throw rangeError(
+			"TCT_INVALID_ARGUMENT",
+			`${functionName}: expected an object naming a Tibetan date, received ${describe(value)}`,
+		);
+	}
+}
+
+/**
  * Rejects an `isLeapMonth` or `isLeapDay` flag that is present but not a boolean.
  *
  * @remarks
@@ -785,12 +805,7 @@ export function rejectInvalidLeapFlags(
 	functionName: string,
 	value: { isLeapMonth?: unknown; isLeapDay?: unknown } | null | undefined,
 ): void {
-	if (value === null || typeof value !== "object") {
-		throw rangeError(
-			"TCT_INVALID_ARGUMENT",
-			`${functionName}: expected an object naming a Tibetan date, received ${describe(value)}`,
-		);
-	}
+	rejectNonObject(functionName, value);
 	for (const field of ["isLeapMonth", "isLeapDay"] as const) {
 		const flag = value[field];
 		if (flag !== undefined && typeof flag !== "boolean") {
@@ -859,27 +874,101 @@ const MONTH_FIELDS = ["year", "month"] as const;
 const DATE_FIELDS = ["year", "month", "day"] as const;
 
 /**
+ * Every field a shape reads, in the order it reads them: the required ones, then the leap flags. A
+ * month reads `isLeapDay` too, to refuse a non-boolean one as it always has, and then drops it.
+ */
+const MONTH_READS = ["year", "month", "isLeapMonth", "isLeapDay"] as const;
+const DATE_READS = ["year", "month", "day", "isLeapMonth", "isLeapDay"] as const;
+
+declare const snapshotBrand: unique symbol;
+
+/**
+ * A Tibetan date's fields as read **once** off the caller's object, frozen: what
+ * {@link assertTibetanShape} returns for a date, and the only thing the engine goes on to read.
+ *
+ * @remarks
+ * Branded so that a function taking one cannot be handed the caller's own object: a getter or a Proxy
+ * answers differently the second time it is asked, and a value validated on one read and computed on
+ * another is a confident wrong date. `monthCountFor`, `julianDayOfFields` and
+ * {@link assertTibetanRanges} take the snapshot for that reason, and a call site that still passes the
+ * argument fails to compile instead of reading it again.
+ */
+export type TibetanDateSnapshot = Readonly<TibetanDateFields> & { readonly [snapshotBrand]: true };
+
+/** The month-shaped counterpart of {@link TibetanDateSnapshot}: `year`, `month` and `isLeapMonth`. */
+export type TibetanMonthSnapshot = Readonly<TibetanMonthFields> & {
+	readonly [snapshotBrand]: true;
+};
+
+/**
+ * Reads each field a shape needs off the caller's object exactly once, refusing a read that throws.
+ *
+ * @remarks
+ * Everything in the `try` can run the caller's code — a getter, or any trap of a Proxy — so a throw
+ * there is refused with `TCT_INVALID_ARGUMENT` and the caller's own error as its `cause`, rather than
+ * escaping as the trap's own error. It is **not** `TCT_FIELD_OUT_OF_RANGE`: that code is on
+ * `tibetanDateExists`'s allowlist, and would turn a caller's throwing getter into "that date does not
+ * exist". A field that is `undefined` is left out of the snapshot, so a missing one is reported by
+ * {@link rejectMissingFields} and `error.requested` on a `SkippedDayError` has no stray keys.
+ */
+function readFieldsOnce(
+	label: string,
+	value: object,
+	fields: readonly (typeof DATE_READS)[number][],
+): Record<string, unknown> {
+	const snapshot: Record<string, unknown> = {};
+	let reading: string = fields[0] ?? "";
+	try {
+		for (const field of fields) {
+			reading = field;
+			const read = (value as Record<string, unknown>)[field];
+			if (read !== undefined) snapshot[field] = read;
+		}
+	} catch (error) {
+		throw rangeError(
+			"TCT_INVALID_ARGUMENT",
+			`${label}: reading ${reading} threw ${thrownDetail(error)}. A Tibetan date or month is plain ` +
+				"data: pass an object whose fields can be read without running code",
+			error,
+		);
+	}
+	return snapshot;
+}
+
+/**
  * The shape half of the boundary check for a Tibetan month or date argument: not a `Temporal`
- * instance, leap flags boolean or absent, the required fields present and numbers.
+ * instance, leap flags boolean or absent, the required fields present and numbers. Returns the
+ * fields it read, as a frozen snapshot.
  *
  * @remarks
  * `label` is what the caller called, and for a two-argument function which argument —
  * `"addDays"`, or `"daysBetween(to)"`. Every failure here is `TCT_INVALID_ARGUMENT`, off
  * `tibetanDateExists`'s allowlist.
  *
+ * **Every later read is of the snapshot, never of `value`.** Each field is read once, here, inside a
+ * guard that refuses a throwing read; {@link assertTibetanRanges} and everything after it take the
+ * snapshot. A getter that answers 8 and then 31 therefore gets 8 throughout, instead of passing
+ * validation as 8 and being computed on as 31.
+ *
  * **Kept apart from {@link assertTibetanRanges} on purpose.** `tibetanToIso` and
  * `tibetanDateExists` validate the tradition *between* the two: were the range checked before the
  * tradition, `tibetanDateExists({ year: 2153, month: 13, day: 1 }, {})` would swallow the range
  * error and report a broken config as a date that does not exist.
  */
-export function assertTibetanShape(label: string, value: unknown, shape: "month" | "date"): void {
+export function assertTibetanShape<S extends "month" | "date">(
+	label: string,
+	value: unknown,
+	shape: S,
+): S extends "month" ? TibetanMonthSnapshot : TibetanDateSnapshot {
 	rejectTemporalInstance(label, value);
-	rejectInvalidLeapFlags(label, value as { isLeapMonth?: unknown; isLeapDay?: unknown });
-	rejectMissingFields(
-		label,
-		value as { year?: unknown; month?: unknown; day?: unknown },
-		shape === "month" ? MONTH_FIELDS : DATE_FIELDS,
-	);
+	rejectNonObject(label, value);
+	const snapshot = readFieldsOnce(label, value, shape === "month" ? MONTH_READS : DATE_READS);
+	rejectInvalidLeapFlags(label, snapshot);
+	rejectMissingFields(label, snapshot, shape === "month" ? MONTH_FIELDS : DATE_FIELDS);
+	// A month has no day to be the leap half of, and `error.requested`-style echoes render only what the
+	// shape carries.
+	if (shape === "month") delete snapshot.isLeapDay;
+	return Object.freeze(snapshot) as never;
 }
 
 /**
@@ -887,9 +976,10 @@ export function assertTibetanShape(label: string, value: unknown, shape: "month"
  * a date, the day an integer 1–30. Returns the call's echo, for the caller's later checks.
  *
  * @remarks
- * **Precondition: {@link assertTibetanShape} has already run** on `value` with the same shape, so
- * every field it reads is a number and every flag a boolean or absent. That is what makes rendering
- * them with a bare `${}` safe here.
+ * **Precondition: {@link assertTibetanShape} has already run** on the caller's value with the same
+ * shape, and `value` is the snapshot it returned — which is why the type is the branded snapshot,
+ * and why every field this reads is a number and every flag a boolean or absent. That is what makes
+ * rendering them with a bare `${}` safe here.
  *
  * **The subject echoes the call the caller made** — `tibetanToIso({ year: 2153, month: 13, day: 1 })`,
  * or `daysBetween(to: { … })` when `parameter` names the argument — so a caller converting a table
@@ -907,15 +997,15 @@ export function assertTibetanShape(label: string, value: unknown, shape: "month"
  */
 export function assertTibetanRanges(
 	functionName: string,
-	value: TibetanMonthFields | TibetanDateFields,
+	value: TibetanMonthSnapshot | TibetanDateSnapshot,
 	shape: "month" | "date",
 	options: { parameter?: string; hint?: string } = {},
 ): () => string {
 	const subject = () => {
 		const fields = [`year: ${value.year}`, `month: ${value.month}`];
-		if (shape === "date") fields.push(`day: ${(value as TibetanDateFields).day}`);
+		if (shape === "date") fields.push(`day: ${(value as TibetanDateSnapshot).day}`);
 		if (value.isLeapMonth === true) fields.push("isLeapMonth: true");
-		if (shape === "date" && (value as TibetanDateFields).isLeapDay === true) {
+		if (shape === "date" && (value as TibetanDateSnapshot).isLeapDay === true) {
 			fields.push("isLeapDay: true");
 		}
 		const argument = options.parameter === undefined ? "" : `${options.parameter}: `;
@@ -930,7 +1020,7 @@ export function assertTibetanRanges(
 		);
 	}
 	if (shape === "date") {
-		const { day } = value as TibetanDateFields;
+		const { day } = value as TibetanDateSnapshot;
 		if (!Number.isInteger(day) || day < 1 || day > 30) {
 			throw rangeError(
 				"TCT_FIELD_OUT_OF_RANGE",
