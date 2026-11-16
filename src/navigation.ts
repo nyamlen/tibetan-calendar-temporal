@@ -516,8 +516,9 @@ export function addMonthsToDate(
 	// ends" to "the day N ends next month", thirty lunar days. Measured on Phugpa over Tibetan
 	// 2027-2227 (1900-2101 CE): every "+1 month, same number" step from an ordinary day elapses 29
 	// or 30 calendar days, never 28 or 31; of 67,321 such steps (an ordinary start, a target that
-	// carries the number) 1,631 hit a doubled target, and the regular half gives 30 for every one. test/navigation.test.ts re-measures this for PHUGPA and
-	// BHUTAN, whose doubled days also put the leap half first.
+	// carries the number) 1,631 hit a doubled target, and the regular half gives 30 for every one.
+	// test/navigation.test.ts re-measures this for PHUGPA and BHUTAN, whose doubled days also put
+	// the leap half first.
 	for (let day = fields.day; day >= 1; day--) {
 		const candidate: TibetanDateFields = {
 			year: target.year,

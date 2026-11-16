@@ -380,16 +380,58 @@ const BARRELS = new Set([
 	...Object.keys(astrologyApi),
 	...Object.keys(observancesApi),
 ]);
+// The parameter list is read by matching parentheses, so a type such as `(x: T) => U` inside it
+// does not end the list early.
+const parametersAt = (text: string, open: number): string => {
+	let depth = 0;
+	for (let i = open; i < text.length; i++) {
+		if (text[i] === "(") depth++;
+		else if (text[i] === ")" && --depth === 0) return text.slice(open + 1, i);
+	}
+	throw new Error(`unbalanced parameter list at offset ${open}`);
+};
+const declaredFunctions = (): Map<string, string> => {
+	const found = new Map<string, string>();
+	for (const file of sourcesUnder(SRC)) {
+		const text = readFileSync(file, "utf8");
+		for (const match of text.matchAll(/export (?:async )?function (\w+)\s*(?:<[^(]*>)?\(/g)) {
+			const open = match.index + match[0].length - 1;
+			found.set(match[1] as string, parametersAt(text, open));
+		}
+	}
+	return found;
+};
+const DECLARED = declaredFunctions();
 const exportsTaking = (type: RegExp): string[] =>
-	sourcesUnder(SRC)
-		.flatMap((file) => {
-			const text = readFileSync(file, "utf8");
-			return [...text.matchAll(/export function (\w+)\(([^)]*)\)/g)]
-				.filter((match) => type.test(match[2] ?? ""))
-				.map((match) => match[1] as string);
-		})
-		.filter((name) => BARRELS.has(name))
+	[...DECLARED]
+		.filter(([name, parameters]) => BARRELS.has(name) && type.test(parameters))
+		.map(([name]) => name)
 		.sort();
+
+describe("the scan for exports that take a date or month cannot pass by not seeing one", () => {
+	const barrelValues = (api: Record<string, unknown>) =>
+		Object.entries(api).filter(([, value]) => typeof value === "function");
+	const classNames = new Set(
+		sourcesUnder(SRC).flatMap((file) =>
+			[...readFileSync(file, "utf8").matchAll(/export class (\w+)/g)].map((m) => m[1] as string),
+		),
+	);
+
+	it("sees a declaration of every function the three barrels export", () => {
+		const unseen = [rootApi, astrologyApi, observancesApi]
+			.flatMap((api) => barrelValues(api as Record<string, unknown>))
+			.map(([name]) => name)
+			.filter((name) => !DECLARED.has(name) && !classNames.has(name));
+		expect(unseen).toEqual([]);
+	});
+
+	it("reads a parameter list that holds its own parentheses", () => {
+		const text = "export function f(a: (x: number) => string, b: TibetanDateFields): void {}";
+		expect(parametersAt(text, text.indexOf("("))).toBe(
+			"a: (x: number) => string, b: TibetanDateFields",
+		);
+	});
+});
 
 describe("the table of exports covers every export that takes a date or month", () => {
 	it("is the set of barrel exports with a TibetanDateFields or TibetanMonthFields parameter", () => {

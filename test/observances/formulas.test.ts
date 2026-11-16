@@ -83,6 +83,7 @@ describe("the formula form before the Julian day count turns negative", () => {
 			if (remainder === 1 || remainder === 2) expected.push(day.toString());
 		}
 		for (const o of getObservances(from, to, formula())) found.push(o.date.isoDate.toString());
+		expect(expected.length).toBeGreaterThan(0);
 		expect(found).toEqual(expected);
 	});
 });

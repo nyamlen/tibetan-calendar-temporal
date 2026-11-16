@@ -733,7 +733,11 @@ export interface TibetanMonth {
  * does not exist. While the two shared one code, `tibetanDateExists` had to call this itself before
  * its own `try` to get that behaviour; it no longer does.
  */
-export function rejectTemporalInstance(functionName: string, value: unknown): void {
+export function rejectTemporalInstance(
+	functionName: string,
+	value: unknown,
+	shape: "month" | "date" = "date",
+): void {
 	// Kind, not identity. `instanceof` asked whether the value came from *this* realm's Temporal, so
 	// a `PlainDate` from a second implementation sailed past this guard and was then read
 	// structurally for year/month/day — which a PlainDate has — turning ISO 2024-07-09 into a
@@ -747,7 +751,9 @@ export function rejectTemporalInstance(functionName: string, value: unknown): vo
 		throw rangeError(
 			"TCT_INVALID_ARGUMENT",
 			`${functionName}: received a Temporal.${typeName}, which is not a Tibetan date or month. ` +
-				"Pass { year, month } or { year, month, day } fields, or a resolved TibetanDate.",
+				(shape === "month"
+					? "Pass { year, month } fields."
+					: "Pass { year, month, day } fields, or a resolved TibetanDate."),
 		);
 	}
 	// tibetanToIso and tibetanDateExists take a Tibetan date and can be swapped directly for
@@ -960,7 +966,7 @@ export function assertTibetanShape<S extends "month" | "date">(
 	value: unknown,
 	shape: S,
 ): S extends "month" ? TibetanMonthSnapshot : TibetanDateSnapshot {
-	rejectTemporalInstance(label, value);
+	rejectTemporalInstance(label, value, shape);
 	rejectNonObject(label, value);
 	const snapshot = readFieldsOnce(label, value, shape === "month" ? MONTH_READS : DATE_READS);
 	rejectInvalidLeapFlags(label, snapshot);
@@ -1164,9 +1170,10 @@ export class SkippedDayError extends Error {
 	 * The date that was requested and does not exist.
 	 *
 	 * @remarks
-	 * A frozen copy of the fields that were read from the argument, equal to it in value but not the
-	 * same object: extra keys the caller's object carried are dropped, and assigning to it throws in
-	 * strict mode.
+	 * When this package throws it, a frozen copy of the fields that were read from the argument, equal
+	 * to it in value but not the same object: extra keys the caller's object carried are dropped, and
+	 * assigning to it throws in strict mode. An error a caller constructs with `new SkippedDayError`
+	 * holds whatever object it was given.
 	 */
 	readonly requested: TibetanDateFields;
 

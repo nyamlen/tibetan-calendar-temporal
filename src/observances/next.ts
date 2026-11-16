@@ -35,14 +35,21 @@ const FIRST_CHUNK_DAYS: Record<ObservanceWhen["type"], number> = {
 	counted: 31,
 };
 
+/** What a chunk search found, and whether it reached a day the tradition cannot convert. */
+interface ChunkResult {
+	readonly found: Observance[];
+	readonly metEnd: boolean;
+}
+
 /**
  * The results of one rule over a chunk, or what lies before the first day it cannot answer.
  *
- * A period's result carries its whole span's bounds, so a span ending past the exact range cannot
- * be built for any of its days: the search has met the end. That is only true of the days inside
- * the span, so a chunk that fails is halved and its earlier half searched first, down to one day,
- * which is `[]`. Only this code, and only here, which is the one site a span's last day is converted
- * from inside the range.
+ * A form whose result needs more than its own day, a period's whole span or a counted rule's
+ * anchors up to a year either side, cannot be built for a day whose span or anchors lie past the
+ * exact range: the search has met the end. That is only true of the days that need the far side, so a
+ * chunk that fails is halved and its earlier half searched first, down to one day, which is where
+ * the end is met. Every day after such a day fails too, so the later half is skipped once the
+ * earlier one has met it. Only `TCT_OUTSIDE_EXACT_RANGE` is read this way, whichever form throws it.
  */
 function firstWithin(
 	rule: ObservanceRule,
@@ -51,17 +58,19 @@ function firstWithin(
 	config: ObservanceConfig,
 	scaled: ScaledTradition,
 	tibetanDateOf: TibetanDateOfDay,
-): Observance[] {
+): ChunkResult {
 	try {
-		return occurrencesOfRule(rule, start, end, config, scaled, tibetanDateOf);
+		return {
+			found: occurrencesOfRule(rule, start, end, config, scaled, tibetanDateOf),
+			metEnd: false,
+		};
 	} catch (error) {
 		if (!hasCode(error, "TCT_OUTSIDE_EXACT_RANGE")) throw error;
-		if (start === end) return [];
+		if (start === end) return { found: [], metEnd: true };
 		const middle = start + floorDiv(end - start, 2);
 		const earlier = firstWithin(rule, start, middle, config, scaled, tibetanDateOf);
-		return earlier.length > 0
-			? earlier
-			: firstWithin(rule, middle + 1, end, config, scaled, tibetanDateOf);
+		if (earlier.found.length > 0 || earlier.metEnd) return earlier;
+		return firstWithin(rule, middle + 1, end, config, scaled, tibetanDateOf);
 	}
 }
 
@@ -155,8 +164,9 @@ export function nextObservance(
 	let size = FIRST_CHUNK_DAYS[rule.when.type];
 	while (start <= lastJd) {
 		const end = Math.min(start + size - 1, lastJd);
-		const [first] = firstWithin(rule, start, end, config, scaled, tibetanDateOf);
-		if (first !== undefined) return first;
+		const { found, metEnd } = firstWithin(rule, start, end, config, scaled, tibetanDateOf);
+		if (found[0] !== undefined) return found[0];
+		if (metEnd) return null;
 		start = end + 1;
 		size *= 2;
 	}

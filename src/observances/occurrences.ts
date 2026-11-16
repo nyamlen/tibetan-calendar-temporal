@@ -103,15 +103,21 @@ export function occurrencesOfRule(
 	const tradition = scaled.tradition;
 	const when = rule.when;
 	const held = new Map<number, Occurrence>();
+	// An annual occurrence is tested by the Tibetan year of the date it stands for, which is not
+	// `date.year` where `skippedDay` moved a 1/1 or a 12/30 across the new year. A Western rule
+	// has the Gregorian year of its day.
+	const windowYear = (hit: Occurrence): number => {
+		const year = when.type === "western" ? isoFromJulianDayUnchecked(hit.julianDay).year : hit.year;
+		/* c8 ignore next */
+		if (year === undefined) throw codedError("TCT_INTERNAL", "an annual day carries no year");
+		return year;
+	};
 	const claim = (hit: Occurrence): void => {
 		if (hit.julianDay < firstJd || hit.julianDay > lastJd) return;
 		// The window is each entry's own, applied before precedence picks between entries: an entry
 		// outside it must not displace one inside it.
 		if (when.type === "annual" || when.type === "western") {
-			const year =
-				when.type === "western" ? isoFromJulianDayUnchecked(hit.julianDay).year : hit.year;
-			/* c8 ignore next */
-			if (year === undefined) throw codedError("TCT_INTERNAL", "an annual day carries no year");
+			const year = windowYear(hit);
 			if (when.fromYear !== undefined && year < when.fromYear) return;
 			if (when.untilYear !== undefined && year > when.untilYear) return;
 		}
@@ -230,13 +236,7 @@ export function occurrencesOfRule(
 		if (when.type !== "annual" && when.type !== "western") {
 			throw codedError("TCT_INTERNAL", `unhandled when type ${JSON.stringify(when)}`);
 		}
-		// An annual occurrence is tested by the Tibetan year of the date it stands for, which is not
-		// `date.year` where `skippedDay` moved a 1/1 or a 12/30 across the new year. A Western rule
-		// has the Gregorian year of its day.
-		const year = when.type === "western" ? isoFromJulianDayUnchecked(hit.julianDay).year : hit.year;
-		/* c8 ignore next */
-		if (year === undefined) throw codedError("TCT_INTERNAL", "an annual day carries no year");
-		const age = when.ageFromYear === undefined ? -1 : year - when.ageFromYear;
+		const age = when.ageFromYear === undefined ? -1 : windowYear(hit) - when.ageFromYear;
 		results.push(
 			age < 0
 				? { date, rule, resolution: hit.resolution }

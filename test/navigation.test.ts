@@ -761,9 +761,12 @@ describe("addMonthsToDate", () => {
 	});
 
 	// Tibetan 2027 to 2227 is 1900 to 2101 CE; the first assertion in each sweep pins that.
-	for (const [name, tradition] of [
-		["PHUGPA", PHUGPA],
-		["BHUTAN", BHUTAN],
+	// Per tradition: steps from an ordinary day, those whose target carries the number, and those
+	// of the latter that hit a doubled target. PHUGPA's last two are the figures quoted in
+	// src/navigation.ts.
+	for (const [name, tradition, expectedSteps, expectedCarrying, expectedDoubled] of [
+		["PHUGPA", PHUGPA, 70119, 67321, 1631],
+		["BHUTAN", BHUTAN, 70135, 67328, 1639],
 	] as const) {
 		it(`${name}: a +1 month step from an ordinary day elapses 29 or 30 days and keeps the number or its skip fallback, over Tibetan 2027-2227`, () => {
 			const months: ReturnType<typeof datesFor>[] = [];
@@ -775,6 +778,7 @@ describe("addMonthsToDate", () => {
 
 			const bad: string[] = [];
 			let steps = 0;
+			let carrying = 0;
 			let doubledTargets = 0;
 			for (let i = 0; i < months.length - 1; i++) {
 				const here = months[i] as ReturnType<typeof datesFor>;
@@ -792,6 +796,7 @@ describe("addMonthsToDate", () => {
 					const where = `${start.isoDate} (${start.day}) -> ${stepped.isoDate} (${stepped.day})`;
 					if (stepped.day !== expected) bad.push(`${where}: expected day ${expected}`);
 					if (days !== 29 && days !== 30) bad.push(`${where}: elapsed ${days}`);
+					if (start.day === expected) carrying++;
 					if (start.day === expected && doubled.has(expected)) {
 						doubledTargets++;
 						if (days !== 30 || stepped.isLeapDay) bad.push(`${where}: doubled target not regular`);
@@ -799,8 +804,11 @@ describe("addMonthsToDate", () => {
 				}
 			}
 			expect(bad).toEqual([]);
-			expect(steps).toBeGreaterThan(60000);
-			expect(doubledTargets).toBeGreaterThan(1000);
+			expect([steps, carrying, doubledTargets]).toEqual([
+				expectedSteps,
+				expectedCarrying,
+				expectedDoubled,
+			]);
 		}, 120_000);
 	}
 
