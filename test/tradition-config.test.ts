@@ -174,27 +174,52 @@ describe("tradition config validation", () => {
 		);
 	});
 
-	// The solar anomaly is mean_sun - 1/4, so 4 must divide the *derived* meanSun denominator -- the
-	// lcm of its three coefficient denominators, not any one of them. Unchecked, this reached
-	// `scaleTo` and threw an uncoded RangeError from three frames down, which `tibetanDateExists`
-	// read as "that date does not exist" and reported `false` for Losar.
-	it("rejects a meanSun denominator that cannot express a quarter", () => {
-		// All three coefficients, because the derived denominator is their lcm: leaving any one of
-		// Phugpa's own (804, 4824) in place reintroduces the factor of 4 and the config is fine.
-		const patch = {
+	// The solar anomaly is mean_sun - 1/4, so the quarter must be exact. The derived denominator is
+	// scaled onto lcm(den, 4) rather than refused, so a meanSun over an odd denominator is a config
+	// like any other, and the same rationals over any denominator give the same dates.
+	it("accepts a meanSun whose reduced denominator has no factor of 4, and dates it as its multiples", () => {
+		const over = (den: number, k: number) => ({
 			meanSun: {
-				perMonth: { num: 65, den: 803 },
-				perDay: { num: 13, den: 803 },
-				atEpoch: { num: 743, den: 803 },
+				perMonth: { num: 65 * k, den },
+				perDay: { num: 13 * k, den },
+				atEpoch: { num: 743 * k, den },
 			},
-		};
-		for (const call of [
-			() => isoToTibetan(iso("2026-02-18"), broken(patch)),
-			() => tibetanToIso({ year: 2153, month: 1, day: 1 }, broken(patch)),
-			() => tibetanDateExists({ year: 2153, month: 1, day: 1 }, broken(patch)),
-		]) {
-			expect(thrownBy(call)?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
+		});
+		const key = (t: ReturnType<typeof isoToTibetan>) =>
+			`${t.year}-${t.month}-${t.day}${t.isLeapMonth ? "L" : ""}${t.isLeapDay ? "d" : ""}`;
+		const problems: string[] = [];
+		for (const [id, patch, reference] of [
+			["odd803", over(803, 1), over(803 * 4, 4)],
+			[
+				"twoQuarters",
+				{
+					meanSun: {
+						perMonth: { num: 2, den: 4 },
+						perDay: { num: 2, den: 120 },
+						atEpoch: { num: 2, den: 4 },
+					},
+				},
+				{
+					meanSun: {
+						perMonth: { num: 60, den: 120 },
+						perDay: { num: 2, den: 120 },
+						atEpoch: { num: 60, den: 120 },
+					},
+				},
+			],
+		] as const) {
+			const config = broken({ id, ...patch });
+			const twin = broken({ id: `${id}-twin`, ...reference });
+			const scaled = deriveScaling(config);
+			if (scaled.meanSun.den % 4 !== 0) problems.push(`${id}: den ${scaled.meanSun.den}`);
+			if (scaled.quarterCircle * 4 !== scaled.meanSun.den) problems.push(`${id}: quarter inexact`);
+			for (let d = iso("2026-01-01"); d.year === 2026; d = d.add({ days: 1 })) {
+				if (key(isoToTibetan(d, config)) !== key(isoToTibetan(d, twin))) {
+					problems.push(`${id}: ${d.toString()} differs`);
+				}
+			}
 		}
+		expect(problems).toEqual([]);
 	});
 });
 

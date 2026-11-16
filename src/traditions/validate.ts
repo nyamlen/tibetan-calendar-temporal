@@ -513,16 +513,12 @@ function assertShape(tradition: TraditionConfig): void {
  * has computed them, not because they are any less part of validating a config — both throw the
  * same code, and both are reached through the same `scalingFor` choke point.
  *
- * Called from the **middle** of `deriveScaling`, after the mean motions are scaled and before
- * `quarterCircle` is formed. The order is load-bearing: `scaleTo(1, 4, meanSun.den)` carries the
- * same code, so putting this after it would leave the check unreachable and hand the consumer a
- * message naming two integers instead of the field to fix.
+ * Called from `deriveScaling` once the search window is derived.
  *
  * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG`.
  */
 export function assertDerivable(
 	tradition: TraditionConfig,
-	meanSunDen: number,
 	searchHalfWidth: number,
 ): void {
 	// A general bound on the search window, deliberately not a bound on the tables themselves.
@@ -537,21 +533,6 @@ export function assertDerivable(
 			`the correction tables imply a search window of ±${searchHalfWidth} lunar days, ` +
 				`beyond the ±${MAX_SEARCH_HALF_WIDTH} this engine will search. moonTab and sunTab are ` +
 				"equations in sixtieths of a day; entries this large describe no lunisolar calendar",
-		);
-	}
-
-	// `deriveScaling` forms the solar anomaly as `mean_sun − 1/4`, so 4 must divide the *derived*
-	// mean-sun denominator — the lcm of the three coefficient denominators, not any one of them —
-	// or `scaleTo(1, 4, meanSun.den)` cannot represent the quarter exactly. It holds for every
-	// tradition Janson gives and went unchecked, so a config that failed it threw from three frames
-	// down with no code at all, and `tibetanDateExists` read that as "the date does not exist".
-	if (meanSunDen % 4 !== 0) {
-		throw invalid(
-			tradition,
-			`the derived meanSun denominator ${meanSunDen} is not divisible by 4. The solar ` +
-				"anomaly is mean_sun − 1/4, so a denominator that cannot express a quarter exactly " +
-				"makes the derivation inexact; it is the lcm of meanSun's three coefficient " +
-				"denominators, so it is one of those that needs the factor of 4",
 		);
 	}
 }

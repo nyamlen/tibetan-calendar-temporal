@@ -154,12 +154,15 @@ function lowestTerms(r: Rational): Rational {
 	return { num: r.num / divisor, den: r.den / divisor };
 }
 
-/** Scales one mean motion's three coefficients onto the lcm of their reduced denominators. */
-function scaleMeanMotion(motion: MeanMotion): ScaledMeanMotion {
+/**
+ * Scales one mean motion's three coefficients onto the lcm of their reduced denominators and of
+ * `alsoDivides`, a factor the caller needs the denominator to carry.
+ */
+function scaleMeanMotion(motion: MeanMotion, alsoDivides = 1): ScaledMeanMotion {
 	const [perMonth, perDay, atEpoch] = [motion.perMonth, motion.perDay, motion.atEpoch].map(
 		lowestTerms,
 	) as [Rational, Rational, Rational];
-	const den = lcm(lcm(perMonth.den, perDay.den), atEpoch.den);
+	const den = lcm(lcm(lcm(perMonth.den, perDay.den), atEpoch.den), alsoDivides);
 	return {
 		den,
 		perMonth: scaleTo(perMonth.num, perMonth.den, den),
@@ -187,7 +190,9 @@ function scaleMeanMotion(motion: MeanMotion): ScaledMeanMotion {
  */
 export function deriveScaling(tradition: TraditionConfig): ScaledTradition {
 	const meanDate = scaleMeanMotion(tradition.meanDate);
-	const meanSun = scaleMeanMotion(tradition.meanSun);
+	// The solar anomaly is mean_sun − 1/4, so the denominator carries a factor of 4 and
+	// `quarterCircle` is exact for any coefficients.
+	const meanSun = scaleMeanMotion(tradition.meanSun, 4);
 	const lunarAnomaly = scaleMeanMotion(tradition.lunarAnomaly);
 
 	// moon_tab takes 28 · anomaly_moon. Writing 28 · x/den as (28/g · x)/(den/g) with g = gcd(28, den)
@@ -201,8 +206,8 @@ export function deriveScaling(tradition: TraditionConfig): ScaledTradition {
 	const moonTabArgFactor = 28 / moonGcd;
 
 	// sun_tab takes 12 · (mean_sun − 1/4). The subtraction needs 4 to divide the denominator, which
-	// `assertDerivable` enforces; the multiplication is the same gcd split as above.
-	const sunAnomalyDen = lcm(meanSun.den, 4);
+	// `scaleMeanMotion(…, 4)` guarantees; the multiplication is the same gcd split as above.
+	const sunAnomalyDen = meanSun.den;
 	const sunGcd = gcd(12, sunAnomalyDen);
 	// exact: a gcd divides its arguments, as above.
 	const sunTabArgDen = sunAnomalyDen / sunGcd;
@@ -217,10 +222,7 @@ export function deriveScaling(tradition: TraditionConfig): ScaledTradition {
 	const equationBound = maxMagnitude(tradition.moonTab) + maxMagnitude(tradition.sunTab);
 	const searchHalfWidth = ceilDiv(equationBound * meanDate.den, 60 * meanDate.perDay) + 2;
 
-	// Before `quarterCircle` below, not after. `scaleTo` guards the same divisibility and carries the
-	// same code, so checking afterwards would be dead code and would hand the consumer a message
-	// naming two integers rather than the field to fix.
-	assertDerivable(tradition, meanSun.den, searchHalfWidth);
+	assertDerivable(tradition, searchHalfWidth);
 
 	// exact: a safe-integer quotient floored to a bound, not a calendar quantity.
 	const exactToJulianDay = Math.floor(Number.MAX_SAFE_INTEGER / commonDenominator);
