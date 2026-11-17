@@ -494,50 +494,82 @@ that its first step is still open.
   *yongdzin* by the nasal policy, and *lo-ngen*, which is no nasal-rule case but a reading ruling.
   *senchang*, *nyönden*, *kündzin*, *künden* and the season months stand as THL gives them, and
   *dongngen* is a plain join left as THL gives it.
-- [ ] **Small findings parked by the pre-1.0.0 code review (2026-11-15).**
-  Each scored below 80 by an independent scorer and was not taken; the full text is in the review's
-  plans, not in this repository.
-  - The year functions `hasLeapMonth`, `leapMonthNumberFor` and `monthsInYear` check the year
-    before the tradition, where `monthsFor` checks the tradition first; no ruled order covers
-    number-only functions.
-  - The `isoToTibetan` search evaluates `trueDate` a little past the exact range's end, where
-    3 of 7 values at the `PHUGPA_HENNING` boundary exceed 2⁵³; no wrong date results.
-  - `scripts/fetch-fpmt-observances.mjs` never checks that a fetched page is the month it asked for.
-  - `scripts/fetch-steinert-fixtures.mjs` checks only the row count, not that dates are consecutive.
-  - `scripts/extract-janson-fixtures.mjs` does not check leap-column cells for shape, or that the
-    Losar years are contiguous.
-  - `scripts/fetch-eszthoff-fixtures.mjs` has no guard against being run from inside the repository.
-  - `scripts/fetch-fpmt-observances.mjs`'s month-span guard accepts a caption implying two leap
-    pairs, e.g. `6A-7B`; the parser it replaced did too, and the task that rewrote it did not
-    take it up.
-  - `getObservances`' 10-year span cap reads `to.year - from.year` from the caller's object
-    (`src/observances/index.ts`), so a `Temporal.PlainDate` subclass with a lying `year` getter
-    bypasses the cap — a cost, not a wrong answer — and can produce a self-contradicting
-    `TCT_SPAN_TOO_WIDE` message; compute the span from the Julian days or ISO fields the engine
-    already holds.
-  - Range-refusal messages at the edge name a lunation as if it were the argument
-    (`addMonthsToDate(-3049305) is outside…`), and the lunation-bound message says "this
-    tradition's" without naming it; message text, not contract.
-- [ ] **Small findings parked by the phonetics-by-word reviews (2026-11-15).**
-  None blocks 1.0.0; each is a guard or a comment that could be tighter, found by the task reviews
-  and the final review and judged acceptable when the branch merged.
-  - `scripts/evidence/observance-names-verifier/harness.sh`: `ONLY` refuses an unknown run name only
-    after the batch has run.
-  - `scripts/evidence/observance-names-verifier/replay.mjs`: the `record-column` mutant is in
-    `mayLeaveUnchanged`, so a no-op edit is caught only by the message assertion.
-  - `scripts/verify-month-and-yoga-names.mjs` passes the yoga `enumerated` set for every term,
-    months and seasons included; harmless, and scoping it to the yoga ids is tighter.
-  - A `${p.id}: ${p.message}` failure can print an id twice ("position 15: correction for
-    position 15 …"); cosmetic.
-  - The `(?)` refusal lives in `scripts/thl.mjs` and again in the observance verifier, where the
-    copy only stops a double report.
-  - The `wylie:` regex in `test/word-boundaries.test.ts` also matches inside comments; it can only
-    add names, so it fails loudly and never passes silently.
-  - The `CORRECTIONS` comment and its id-existence loop are repeated in three verifiers.
-  - `docs/names/vocabulary.md`'s template hardcodes "none here" for longer names; not a count, but
-    it goes stale if a longer term is ever added.
-  - `test/nasal-rulings.test.ts` repeats THL's three nasal rule shapes, so a fourth rule added by
-    THL would go unseen; `docs/names/phonetics.md` says where to re-read them.
+- [ ] **Small findings parked by the pre-1.0.0 reviews — one list, each with a decision.**
+  The code review (2026-11-15), the phonetics-by-word reviews (2026-11-15) and the docblock audit
+  (2026-11-17) each found small defects they did not fix on their own branch.
+  Every one is here, marked **fix** (done in one cleanup batch after the navigator build and before
+  the adversarial review) or **accepted** (left as it is, with the reason).
+  Andreas ruled on every entry on 2026-11-17.
+  Limits of throwaway plan tooling that never ships, such as the audit's lost-text script, are not
+  tracked here.
+
+  *From the code review*, each scored below 80 by an independent scorer; the full text is in the
+  review's plans, not in this repository:
+  - **Fix** (Andreas, 2026-11-17). `getObservances`' 10-year span cap reads `to.year - from.year` from the
+    caller's object (`src/observances/index.ts`), so a `Temporal.PlainDate` subclass with a lying
+    `year` getter bypasses the cap — a cost, not a wrong answer — and can produce a
+    self-contradicting `TCT_SPAN_TOO_WIDE` message; compute the span from the Julian days or ISO
+    fields the engine already holds.
+  - **Fix: tradition first, everywhere** (Andreas, 2026-11-17). The year functions `hasLeapMonth`,
+    `leapMonthNumberFor` and `monthsInYear` check the year before the tradition, where `monthsFor`
+    checks the tradition first. The ruling: every function taking a tradition validates it before its
+    other arguments, so with two bad arguments the code is `TCT_INVALID_TRADITION_CONFIG`; a test row
+    per function pins it. A one-way door at 1.0.0, since the code thrown is contract.
+  - **Accepted** (Andreas, 2026-11-17) — message text, not contract. Range-refusal messages at the edge name a
+    lunation as if it were the argument (`addMonthsToDate(-3049305) is outside…`), and the
+    lunation-bound message says "this tradition's" without naming it.
+  - **Accepted** (Andreas, 2026-11-17) — no wrong date results. The `isoToTibetan` search evaluates `trueDate` a
+    little past the exact range's end, where 3 of 7 values at the `PHUGPA_HENNING` boundary exceed
+    2⁵³.
+  - **Accepted** (Andreas, 2026-11-17) — release-time generator guards; each fixture is reviewed as a
+    diff when regenerated:
+    `scripts/fetch-fpmt-observances.mjs` never checks that a fetched page is the month it asked for,
+    and its month-span guard accepts a caption implying two leap pairs, e.g. `6A-7B`;
+    `scripts/fetch-steinert-fixtures.mjs` checks only the row count, not that dates are consecutive;
+    `scripts/extract-janson-fixtures.mjs` does not check leap-column cells for shape, or that the
+    Losar years are contiguous; `scripts/fetch-eszthoff-fixtures.mjs` has no guard against being run
+    from inside the repository.
+
+  *From the phonetics-by-word reviews*, each a guard or comment that could be tighter:
+  - **Accepted** (Andreas, 2026-11-17) — none affects a shipped name, and each fails loudly rather
+    than silently:
+    `harness.sh`'s `ONLY` refuses an unknown run name only after the batch has run;
+    `replay.mjs`'s `record-column` mutant sits in `mayLeaveUnchanged`, so a no-op edit is caught only
+    by the message assertion; `verify-month-and-yoga-names.mjs` passes the yoga `enumerated` set for
+    every term; a `${p.id}: ${p.message}` failure can print an id twice; the `(?)` refusal lives in
+    `scripts/thl.mjs` and again in the observance verifier; the `wylie:` regex in
+    `test/word-boundaries.test.ts` also matches inside comments; the `CORRECTIONS` comment and its
+    id-existence loop are repeated in three verifiers; `test/nasal-rulings.test.ts` repeats THL's
+    three nasal rule shapes.
+  - **Fix** (Andreas, 2026-11-17). `docs/names/vocabulary.md`'s template hardcodes "none here" for longer names;
+    it goes stale silently if a longer term is ever added — interpolate it.
+
+  *From the docblock audit*:
+  - **Fix** (Andreas, 2026-11-17). The three refusal messages in the next item.
+  - **Fix** (Andreas, 2026-11-17). `TibetanName`'s provenance (`src/types.ts`) names Janson, Csoma and the two
+    converters for the rabjung Tibetan names but not THL, which supplies the phonetics.
+  - **Fix** (Andreas, 2026-11-17). `nextFullMoon` and `nextNewMoon` (`src/navigation.ts`) state where their
+    2,500-lunation sample starts (Tibetan 2000, 1873 CE) but not where it ends (about 2075 CE).
+  - **Fix** (Andreas, 2026-11-17). Over-long or joined lines: `src/computation/calendar.ts`'s `//` block near
+    `lastMonthCountOfYear` (118 characters); `docs/architecture.md`'s "Why year-level naming" holds
+    two sentences on one line; the long comment above the moon test in `test/navigation.test.ts`.
+  - **Fix** (Andreas, 2026-11-17). `check:conventions` rule 17 starts an `@example` block on any line mentioning
+    `@example`, and ends one on any `@`-line such as `@ts-expect-error`; anchor the start to a tag
+    line and end only on known TSDoc tags, each with a `test:conventions` row.
+  - **Accepted** (Andreas, 2026-11-17) — documented as a ratchet: rule 17 also lets through a date after a stray
+    backtick, in a fence outside `@example`, or split across a line wrap.
+  - **Accepted** (Andreas, 2026-11-17) — message text, not contract: rule 18 gives "a stray opener above it"
+    as the cause even for a `//` line with no gutter.
+  - **Accepted** (Andreas, 2026-11-17) — already stated as a reach limit in the docblocks decision record:
+    rule 4 leaves a docblock's links unchecked when a `//` and then a second docblock follow it.
+  - **Accepted** (Andreas, 2026-11-17) — the next paragraph states the exact case: `yearStartsIn`'s rule "from
+    1 January to the day before Losar" is loose for a year whose Losar falls in December.
+  - **Accepted** (Andreas, 2026-11-17) — unshipped, and asserted by the test it cites: a `//` in
+    `src/observances/formulas.ts` repeats "39 of the 40 days", a figure owned by
+    `docs/why-trust-these-dates.md`.
+  - **Accepted** (Andreas, 2026-11-17) — consistent on a careful read: `src/astrology/types.ts` cites Henning's
+    Appendix I, whose index column starts at 0, beside his web list, where Abhijit is the 23rd entry.
+  - **Accepted** (Andreas, 2026-11-17) — cosmetic: row X13 sits before X12 in `test/check-conventions.mutations.ts`.
 - [x] **Composable/additive `ObservanceConfig`s — decide before 1.0.0, not after.** Today, a
       consumer combining several institutions' rule sets (e.g. `DEFAULT_OBSERVANCES` plus a `TEACHERS` and a
       `TANTRA` config) hand-rolls
