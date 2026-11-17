@@ -12,7 +12,7 @@
  * import { attributesFor } from "tibetan-calendar-temporal/astrology";
  *
  * const day = attributesFor(Temporal.PlainDate.from("2026-09-01"));
- * day.year.power;        // "fire" — 2026 is a Fire Horse year
+ * day.year.power;        // "fire" — the Tibetan year beginning in 2026 CE is a Fire Horse year
  * day.calendarDay.animal;
  * day.yoga?.englishName;     // "death" — the least auspicious of the ten
  * ```
@@ -28,8 +28,8 @@
  * neither source** and is FPMT's; the *tshig mdzod chen mo* states the same ten yoga pairs and grades
  * the ten, which is `auspiciousness`. `docs/astrology.md` is the reader-facing account.
  *
- * **`PHUGPA` and `PHUGPA_HENNING` answer everything; `BHUTAN` and `BHUTAN_HENNING` refuse two
- * things.** Janson tabulates no month-animal list for the Bhutanese version, so
+ * **`PHUGPA` and `PHUGPA_HENNING` answer everything; `BHUTAN` and `BHUTAN_HENNING` refuse the
+ * month-dependent attributes and the elemental yoga.** Janson tabulates no month-animal list for the Bhutanese version, so
  * {@link monthAttributesFor} and {@link lunarDayAttributesFor} throw `TCT_ATTRIBUTE_NOT_SOURCED`
  * for the two Bhutanese configs rather than handing over Phugpa's answers. The elemental yoga is
  * refused too, by any tradition whose `naming.weekdayOffset` is nonzero — both Bhutanese configs —
@@ -266,7 +266,7 @@ export function calendarDayAttributesFor(
  * carries `isLeapDay`, the flag that says which half it is.
  *
  * The mansion of a doubled date's first half follows a rule — the moon's longitude at the end of
- * the lunar day, less 1/27 of a circle — that has one source, the Men-Tsee-Khang Phugpa almanac, as
+ * the lunar day, less 1/27 of a circle — that has one source, Men-Tsee-Khang's 2013 almanac, as
  * Janson reports it. Under another tradition, applying it is an inference.
  *
  * **Refused under a shifted weekday.** A tradition whose `naming.weekdayOffset` is nonzero — `BHUTAN`
@@ -310,7 +310,7 @@ export function elementalYogaFor(
  * day }` fields are refused, because that shape is a value of both calendars.
  *
  * The mansion of a doubled date's first half follows a rule — the moon's longitude at the end of
- * the lunar day, less 1/27 of a circle — that has one source, the Men-Tsee-Khang Phugpa almanac, as
+ * the lunar day, less 1/27 of a circle — that has one source, Men-Tsee-Khang's 2013 almanac, as
  * Janson reports it. Under another tradition, such as the Bhutanese, applying it is an inference.
  *
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` for an argument that names no calendar day;
@@ -346,7 +346,7 @@ export function lunarMansionFor(
  * the same for both — while they are two different calendar days, so `calendarDay` differs and
  * `yoga` can. Anyone who has not met the two-clocks point reads that as a bug; it is the point.
  *
- * `lunarMansion` of the first half follows a rule that has one source, the Men-Tsee-Khang Phugpa
+ * `lunarMansion` of the first half follows a rule that has one source, Men-Tsee-Khang's 2013
  * almanac, as Janson reports it: the moon's longitude is that at the end of the lunar day, less 1/27
  * of a circle. Under another tradition, such as the Bhutanese, applying it is an inference.
  *

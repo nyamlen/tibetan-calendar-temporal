@@ -145,10 +145,10 @@ export interface ElementalYoga {
  * The four elements in the order this module normalises a pair into.
  *
  * @remarks
- * An arbitrary fixed order, which is neither the order Janson's day-of-week table first prints the
- * elements in (earth, fire, water, wind) nor any traditional one. It exists so that
- * {@link elementalYoga} returns one tuple per yoga rather than two, and it is the order its
- * argument error lists the four.
+ * A fixed order. Nothing traditional rests on it, and it is not the order Janson's day-of-week table
+ * prints the elements in (earth, fire, water, wind). It exists so that {@link elementalYoga}
+ * returns one tuple per yoga rather than two, and it is the order its argument error lists the
+ * four.
  */
 const ELEMENT_ORDER: readonly TibetanWeekdayElement[] = ["earth", "water", "fire", "wind"];
 
@@ -177,8 +177,9 @@ const WORST: YogaAuspiciousness = deepFreeze({
  * the one a keystroke off a spread would mutate.
  *
  * Six favorable against four unfavorable, and the division is FPMT's. The four unfavorable ones are
- * the pairs that mix elements held to fight: earth with wind, water with wind, earth with fire, and
- * fire with water — *maraṇa*, "death", which the *tshig mdzod chen mo* puts alone in its lowest group.
+ * earth with wind, water with wind, earth with fire, and fire with water — *maraṇa*, "death", which
+ * FPMT glosses "most inauspicious" and which the *tshig mdzod chen mo*'s grading, read from list
+ * order, puts alone in its lowest group.
  */
 export const ELEMENTAL_YOGAS: readonly ElementalYoga[] = deepFreeze([
 	{

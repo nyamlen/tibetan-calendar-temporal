@@ -43,8 +43,8 @@ export interface LunarMansion {
 	 *
 	 * @remarks
 	 * Zero-based because both sources number them so: Janson "from 0 to 26", and Henning's list, headed
-	 * *Index*, from 0. Henning's list has 28 entries, two of them at 21 — Śravaṇa and Abhijit — and this
-	 * numbering is the 27 without Abhijit.
+	 * *Index*, from 0. Henning's Appendix I (pp. 356–357) has 28 entries, two of them at 21 — Śravaṇa
+	 * and Abhijit — and this numbering is the 27 without Abhijit.
 	 */
 	index: number;
 	/** The mansion's Tibetan name — *tha skar* at 0, *nam gru* at 26. */

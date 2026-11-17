@@ -53,8 +53,8 @@ export function mansionDenominator(scaled: ScaledTradition): number {
  * Returned as an exact integer numerator over {@link mansionDenominator}.
  *
  * For the first half of a doubled date the longitude is `moon_lunar_day − 1/27`, the rule Janson
- * gives for the Men-Tsee-Khang Phugpa almanac, and not the `FRAC(true_date)/27` of every other day.
- * That almanac is the only source for the rule, so under another tradition, such as the Bhutanese,
+ * gives for Men-Tsee-Khang's 2013 almanac: it subtracts 1/27 where every other day subtracts
+ * `FRAC(true_date)/27`. That almanac is the only source for the rule, so under another tradition, such as the Bhutanese,
  * applying it is an inference.
  *
  * @param firstOfDoubledPair - Whether the day is the first of two calendar days sharing one lunar

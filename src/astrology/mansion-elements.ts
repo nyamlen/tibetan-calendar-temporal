@@ -5,7 +5,8 @@
  * **This table is Henning's, not Janson's.** Janson defines the elemental yoga and then says he
  * does not derive this list, pointing to Henning for it. Citing Henning there is an ordinary
  * citation chain rather than two sources competing to define one number — see
- * [../../docs/astrology.md](../../docs/astrology.md).
+ * [../../docs/astrology.md](../../docs/astrology.md), which records why the sole-source rule does
+ * not reach it.
  *
  * Source: Edward Henning, "Symbolic details of the Kālacakra calendar",
  * `http://www.kalacakra.org/calendar/symlst.htm`, last updated 3 February 2010, accessed
@@ -70,7 +71,7 @@ const INTERCALATED = "Abhijit";
  * The element of each mansion, indexed **0 to 26** as Janson numbers them.
  *
  * @remarks
- * Henning prints 28 mansions including *Abhijit*, the 23rd; Janson numbers the mansions 0–26, so
+ * Henning's web list prints 28 mansions including *Abhijit*, the 23rd; Janson numbers the mansions 0–26, so
  * this table omits Abhijit. Dropping a different entry would shift the mansions between it and
  * Abhijit's place by one.
  */
