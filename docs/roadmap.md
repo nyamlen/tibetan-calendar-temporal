@@ -9,7 +9,7 @@
 | 2 | Validation: FPMT fixtures, cross-check against reference implementations — **done** | 12h |
 | 3 | Observances: config-driven rules, an example config — **done**; rebuilt in November 2026, see the checklist | 8h |
 | 4 | TypeDoc + release workflow + publish v1.0.0 (docblock audit split out — see Phase 4a) | 6h |
-| 4a | Code review: 629 docblocks (counted 2026-11-16) verified against behaviour, plus convention and derivation conformance across all of `src/` — see the [Pre-v1.0.0 checklist](#pre-v100-checklist) | 14h |
+| 4a | Code review: 629 docblocks (counted 2026-11-16) verified against behaviour, plus convention and derivation conformance across all of `src/` — **done** (code review merged 2026-11-16, docblock audit 2026-11-17); see the [Pre-v1.0.0 checklist](#pre-v100-checklist) | 14h |
 
 **Safe timeline: 3 weeks** (accounts for debugging edge cases in doubled/skipped day logic —
 predates Phase 4a's addition below and has not been revisited against its extra 10h)
@@ -152,7 +152,8 @@ The second is the one 1.0.0 freezes permanently, and no test in this repository 
 suite imports from `src/`, so none of them meets the package the way a consumer does.
 
 This **relaxes** the release rather than adding to it.
-The docblock audit below merges before the navigator build (agreed 2026-11-15).
+The docblock audit below merges before the navigator build (agreed 2026-11-15); it merged on
+2026-11-17, so the navigator build, from a tarball packed from `main`, is next.
 Docblocks reach the shipped `.d.ts` and are what editor hover shows, so a consumer reading them in an
 editor is a better signal of what is wrong than reading every block in sequence, and the client's
 friction list is the place to collect what it finds.
@@ -377,6 +378,7 @@ The list is grouped by subject, not by sequence, and one run of items does have 
 3. The **docblock audit** ("Audit and correct all 629 docblocks"), under the rule in
    [decisions/2026-11-15-docblocks-are-for-callers.md](decisions/2026-11-15-docblocks-are-for-callers.md).
    It follows the code review because fixes rewrite docblocks, and auditing first would do those twice.
+   **Merged to `main` on 2026-11-17** (`2d0dbbf`).
    The **Security review** runs alongside the end of the code review: its subject is release
    configuration, not `src/`.
 4. The **Full adversarial review**, last of the passes, so it sees the final state.
@@ -1054,8 +1056,11 @@ that its first step is still open.
       why they stay exact. All three are fixed; `assertInternal` is now the single idiom for
       discharging a `noUncheckedIndexedAccess` widening.
 
-- [ ] **Audit and correct all 629 docblocks against actual behaviour** — see
+- [x] **Audit and correct all 629 docblocks against actual behaviour** — see
       [Phase 4a](#implementation-phases) for the effort estimate.
+      **Merged to `main` on 2026-11-17** (`2d0dbbf`): every docblock in `src/` checked against the
+      code, comments only in `src/`, guarded since by `check:conventions` rules 17 and 18 and rule 4's
+      `//` skip. The three code items it raised are open items in this checklist.
       **Since 2026-11-15 it also applies a content rule**: a docblock holds what a caller needs, and
       rationale moves to `//` comments, history to commits —
       [decisions/2026-11-15-docblocks-are-for-callers.md](decisions/2026-11-15-docblocks-are-for-callers.md).
