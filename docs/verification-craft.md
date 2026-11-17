@@ -301,3 +301,37 @@ review. **A last pass over the whole branch that runs hostile and edge inputs fi
 review passed**: five Important findings, among them a `period` whose span runs past the tradition's
 exact range, which made queries on in-range days throw. Give it the plan, the specs and the branch
 and nothing else, and have it reproduce each finding with a command.
+
+## Reading a source, and a guard's reach
+
+**Before calling a source falsified, test every reading its words allow — and read it to the end.**
+The sojong teaching said sojong "at the end of the odd months" is "the 14th". Tested as Tibetan date
+29 against 30, it failed and was recorded as falsified; it means the **14th day counted since the
+previous sojong** — the notes' own last line says "14 or 15 days between the Sojongs" — and read that
+way it reproduces 95 of FPMT's 98 intervals. A number in a rule can be a **label or a count**, and a
+test of one says nothing about the other. And a source that seems to **contradict itself** — FPMT
+putting sojong on the first of a doubled day while keeping düchens on the second — is first evidence
+that the model of the item is wrong: sojong was never a date, so no doubled-day convention applied to it.
+Never write "do not re-test" into a verdict; record which readings were tested instead.
+
+**A justification for dropping a branch has to hold for every caller, not the one you are looking
+at.** Merging the describers dropped a `constructor?.name` arm because `temporalTypeNameOf` now
+names a `Temporal.PlainDate` — true for `asPlainDate`, which consults it, and false for
+`asWesternDay` and `parse.ts`, which do not. So `new Date()` — the likeliest wrong argument in a
+package whose first rule is *Temporal only* — rendered as "an object". The arm stays, narrowed to a
+*named* class so a plain object is still "an object". Nothing in the suite could fail, because
+message text is not contract.
+
+**Before deciding a guard's reach is good enough, write down the forms the thing it hunts can take
+and run each one past it.** Rule 15's first pattern was written from the shape the codebase
+happened to contain and missed the destructured form — idiomatic JavaScript, and therefore the
+*likeliest* accidental one. It surfaced only when the evasions were **measured against the
+checker** instead of reasoned about. "Nobody would write that" is an assumption about other people.
+
+**A year in this repository is a Tibetan year unless it says otherwise, and a prose window must say
+which era it is.** `monthsFor(1900)` is Tibetan 1900, which begins in 1773 CE, and Tibetan 1900–2100 runs from **1773-02-22 to 1974-02-21 CE**.
+A sweep written as "1900–2100" and described in a shipped document as "the two centuries 1900–2100"
+therefore measures one window and claims another. **No measurement can catch this**:
+both windows round to the same 94% and 64%, so the mutant that swapped them passed. What catches it
+is stating the window **twice, in both eras**, and having the test check the correspondence — that
+Tibetan 2027 begins in 1900 CE and 2227 ends in 2101. Do that for any measured figure in a document.
