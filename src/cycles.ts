@@ -58,7 +58,8 @@ const ROYAL_ERA_HINT =
  * ```ts
  * yearNameFor(2153);   // { element: "fire", animal: "horse", gender: "male", … }
  *
- * // The twelve-year animal return — lokeg, the obstacle year, at ages 13, 25, 37, 49, 61.
+ * // The animal returns after twelve years, the arithmetic behind the obstacle year (lokek);
+ * // the guide gives the custom and its source.
  * yearNameFor(2130 + 12).animal === yearNameFor(2130).animal;   // true
  * ```
  */

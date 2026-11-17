@@ -62,7 +62,7 @@ describe("yearNameFor and rabjungFor", () => {
 	});
 
 	/**
-	 * The twelve-year animal return, which is what *lokeg* (ལོ་སྐེག) counts — the obstacle year
+	 * The twelve-year animal return, which is what *lokek* (ལོ་སྐེག) counts — the obstacle year
 	 * falling every twelfth year from birth, at ages 13, 25, 37, 49 and 61.
 	 */
 	it("returns the birth animal every twelfth year", () => {

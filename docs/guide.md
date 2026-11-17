@@ -819,6 +819,38 @@ Both lists are tabulated in full, with a verdict for every divergent row, in
 See [how-it-is-calculated.md](how-it-is-calculated.md#the-sixty-year-cycle-one-cycle-two-reckonings-two-name-lists)
 for what the cycle is and why two lists exist.
 
+### The obstacle year, and counting twelve from birth
+
+*Lokek* (ལོ་སྐེག) is the obstacle year, the custom of treating the year whose animal matches the year of one's birth as a hazardous one.
+Berzin's glossary on studybuddhism.com lists the term as "lo-kag | obstacle year".
+Men-Tsee-Khang, in [The special amulet for obstacle years](https://mentseekhang.org/amulets/), gives the ages:
+
+> obstacle years of 13, 25, 37, 49, 61, 73, 85 etc according to the Tibetan calendar.
+> Obstacle years are nothing but when individual's birth year sign matches the year sign of the present year.
+
+The package does not ship the custom, because it is a practice and not a computation, but the arithmetic is two calls to `yearNameFor`.
+The ages are in the Tibetan count, where a person is 1 at birth, so a person of age *a* is living in year `born + a - 1`.
+The animal advances one step a year and returns after twelve, which is why 13 is the first age that matches and each later one is twelve years after the last.
+Under a Western count, where a person is 0 at birth, the same years fall at ages 12, 24, 36 and so on.
+
+```js
+import { yearNameFor } from 'tibetan-calendar-temporal';
+
+const born = 2130;   // Tibetan year of birth, royal era
+yearNameFor(born + 13 - 1).animal === yearNameFor(born).animal;   // true: age 13
+yearNameFor(born + 12 - 1).animal === yearNameFor(born).animal;   // false: age 12
+```
+
+The birth sign is the Tibetan year of birth, not the Western one, so it depends on whether the birth fell before or after Losar.
+A person born in the weeks between 1 January and Losar belongs to the previous Tibetan year, and `isoToTibetan` gives the year to use.
+
+```js
+import { isoToTibetan } from 'tibetan-calendar-temporal';
+
+isoToTibetan(Temporal.PlainDate.from('2003-01-01')).year;   // 2129, before Losar
+isoToTibetan(Temporal.PlainDate.from('2003-06-01')).year;   // 2130, after it
+```
+
 ### The cost of a year
 
 **A year of dates, serialised, is about 126 KB** (354 days, ordinary year 2153) or **137 KB** for a
