@@ -281,7 +281,7 @@ measured over the same days.** The lunar mansion's agreement is over the days wh
 force a mansion element; yoga favorability's is over a slightly larger set, because a few codes name
 no yoga consistent with their weekday but are still favorability claims. The two sets happen to give
 the same rounded favorability figure; keep naming the set regardless. The figures and both day counts
-are in `docs/testing.md`.
+are in `docs/testing.md` and `docs/why-trust-these-dates.md`.
 
 **Prose windows are as exact as the table beside them; only durations are rounded.** A window written
 as a span of whole years, or as "early" in a year, cannot be checked by the reader the page is written

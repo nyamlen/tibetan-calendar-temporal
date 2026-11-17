@@ -138,7 +138,7 @@ never quote one from this file. Three windows must not be confused:
 - **Observances, and full and new moons** — narrower: only `fpmt-observances.ts` carries labels and
   moon icons. Moon agreement is with FPMT's icons, whose own source is unrecorded; count moons, not icons.
 - **`./astrology` attributes** — neither. The cycles are checked only against Janson's own tables (not
-  external corroboration); the lunar mansion and yoga favourability have their own agreement figures
+  external corroboration); the lunar mansion and yoga favourability are checked for Phugpa only, with their own agreement figures
   and an unexplained residual; the yoga grading's membership is inferred from list order. Never call
   the mansion "validated" without its figure and residual.
 
@@ -204,8 +204,11 @@ Before explaining a residual by a formula, check whether the source uses the sam
   whether that was intended. `test/docblock-examples.test.ts` asserts every valued `@example`, **is
   maintained by hand and nothing checks it is complete**: add the `expect` in the same commit as the example.
 - **Types and signatures are invisible to those suites.** Rules 13 and 16 hold barrels against the
-  README's lists ([docs/coding-standards.md](docs/coding-standards.md)); prose describing a type's
-  fields is unguarded. Removing or renaming a type needs a hand sweep of `docs/architecture.md`,
+  README's lists ([docs/coding-standards.md](docs/coding-standards.md)); each barrel declares the README
+  heading its section opens with, and the rules refuse to guess if one is missing or out of order.
+  **A type declared in a barrel's body is invisible to them** — they read `export type { … } from`
+  blocks — so declare types in a module and re-export them (`DayAttributes` lives in
+  `src/astrology/types.ts`). Prose describing a type's fields is unguarded. Removing or renaming a type needs a hand sweep of `docs/architecture.md`,
   `docs/guide.md` and docblocks (re-count the shapes with `grep -c '^interface ' docs/architecture.md`). **`docs/architecture.md`'s shapes are complete — every field**; adding
   a field to an exported type includes its shape there.
 - **Before changing a signature, count the call sites that actually break and put the number in the
@@ -218,7 +221,10 @@ Before explaining a residual by a formula, check whether the source uses the sam
   later is free, narrowing never is.
 - **A `TraditionConfig` is exported only once its dates are checked against an external calendar**,
   and its docblock says what that check was (a day-by-day tiling vs a sample). A suite in
-  `test/validation/` must **import** it. Expressing a tradition, validating its leap months and
+  `test/validation/` must **import** it — rule 10, which matches only `export … from "./traditions/…"`
+  in `src/index.ts`. It does not see `ObservanceConfig` or the `./observances` and `./astrology` barrels;
+  their runtime exports (`EXAMPLE_OBSERVANCES`, `ELEMENTAL_YOGAS`, `LUNAR_MANSIONS`) are held by
+  `test/public-api.test.ts` and rule 16. Expressing a tradition, validating its leap months and
   validating its dates are three claims: Tsurphu and Mongolian stay unexported. Self-consistency is not
   a substitute.
   [docs/decisions/2026-08-16-exported-means-validated.md](docs/decisions/2026-08-16-exported-means-validated.md).
@@ -238,7 +244,8 @@ Before explaining a residual by a formula, check whether the source uses the sam
   **kind of thing**; a new shape check uses this one.
   [docs/decisions/2026-08-15-argument-errors-split.md](docs/decisions/2026-08-15-argument-errors-split.md).
   `TCT_ATTRIBUTE_NOT_SOURCED`: the input is fine and **no source gives the answer** — off the allowlist,
-  reached by a missing `naming` block or a nonzero `weekdayOffset`, never by asking "is this Bhutan".
+  reached by a tradition with no `naming.monthAnimals` (month and lunar-day attributes) or a nonzero
+  `naming.weekdayOffset` (the yoga), never by asking "is this Bhutan".
   A composition may report it as `null` (`attributesFor` does).
 
 ### How a tradition is passed: seven points, approved by Andreas
@@ -254,7 +261,8 @@ after 1.0.0. A consumer cannot be asked to know which entry point a function is 
 
 **A bag is a new argument boundary and needs its own guard**; read it with `=== undefined`, never `??`
 (which silently turns an explicit `null` into the default); and **refuse an array**, as
-`assertQueryOptions` does.
+`assertQueryOptions` does. `test/navigation.test.ts` pins both null fields, `{ tradition: null }` and
+`{ overflow: null }`.
 
 ### Validators and guards
 
@@ -288,7 +296,8 @@ WebKit has a native `Temporal` and shipping Safari does not. Evidence: `docs/tes
 **TypeScript 7 is load-bearing**: it ships `lib.esnext.temporal.d.ts`, hence
 `"lib": ["ES2024", "ESNext.Temporal"]`. Do not downgrade it or install any Temporal typings package —
 the published `.d.ts` references the global. **VS Code's four errors in the tsconfigs are its stale
-schema**; do not edit the configs to satisfy it.
+schema**; both configs name schemastore's schema, and a local, gitignored `.vscode/settings.json` points
+the editor there. Do not edit the configs to satisfy it.
 
 **`scripts/indic.ts` may use only erasable TypeScript syntax**: an `.mjs` generator loads it under
 Node's erase-only type stripping (`erasableSyntaxOnly` catches violations at typecheck); `allowImportingTsExtensions` is legal only under `noEmit`, which is why `tsconfig.build.json` turns it off.
@@ -326,7 +335,8 @@ restore a fixture that differs only by its date stamp. Details: [docs/names/veri
   branch is a finding.
 - **`bench`** lives in `bench/`, not `test/`: a directory under `test/` must mirror one under `src/`
   (plus `validation`, `fixtures`, `support`). **A performance number may be quoted only with its
-  harness** in `bench/RESULTS.md`. No regression threshold, not in CI.
+  harness** in `bench/RESULTS.md`. No regression threshold, not in CI. `package.json#files` excludes `bench/`; `tsconfig.json` and
+  `biome.json` include it deliberately.
 
 ## Documents
 
@@ -362,8 +372,8 @@ own wording verbatim (with the printing's year where it varies), or is marked as
 Technical identifiers are lowercase (`nyamlen`); the brand is capitalised (`Nyamlen`) — npm rejects
 uppercase package names.
 
-Markdown uses semantic line breaks; `.markdownlint.jsonc` disables the rules that fight it. Do not
-re-wrap prose for a linter. **Two guards were investigated and rejected — do not propose them again**: a
+Markdown uses semantic line breaks; `.markdownlint.jsonc` disables the rules that fight it (`MD013`
+above all). Do not re-wrap prose for a linter, and do not remove those exclusions. **Two guards were investigated and rejected — do not propose them again**: a
 semantic-line-break check (fires thousands of times; no document is clean enough to ratchet from) and
 a path-liveness check over this file (it drifts in counts and rule descriptions, not paths).
 
