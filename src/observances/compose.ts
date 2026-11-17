@@ -72,13 +72,9 @@ function idsOf(value: unknown, field: string): { id: string; item: unknown }[] {
 	});
 }
 
-/**
- * Refuses an id that appears twice across the given lists, naming it and the lists it is in.
- *
- * @remarks
- * Strict on purpose: an id in `remove` and `add` would silently move a rule to the end, which
- * `replace` exists to avoid, and loosening later is free where tightening after 1.0.0 is not.
- */
+/** Refuses an id that appears twice across the given lists, naming it and the lists it is in. */
+// Strict on purpose: an id in `remove` and `add` would silently move a rule to the end, which
+// `replace` exists to avoid, and loosening later is free where tightening after 1.0.0 is not.
 function assertNoRepeats(lists: readonly (readonly [string, readonly string[]])[], label: string) {
 	const where = new Map<string, string[]>();
 	for (const [field, ids] of lists) {
@@ -96,11 +92,12 @@ function assertNoRepeats(lists: readonly (readonly [string, readonly string[]])[
 }
 
 /**
- * A new, validated, deeply frozen {@link ObservanceConfig}: `base` with the differences in `layer`.
+ * Returns a new, validated, deeply frozen {@link ObservanceConfig}: `base` with the differences in `layer`.
  *
  * @remarks
- * A centre that differs from a base configuration writes only its differences. Kopan keeps FPMT's
- * rules and moves doubled days to the first of the two:
+ * A centre that differs from a base configuration writes only its differences. Kopan keeps the
+ * example's rules and moves the doubled day of every rule that does not set its own to the first of
+ * the two:
  *
  * ```ts
  * const kopan = composeObservances(EXAMPLE_OBSERVANCES, {

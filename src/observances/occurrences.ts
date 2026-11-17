@@ -32,14 +32,10 @@ import type {
  */
 export const MAX_SPAN_YEARS = 10;
 
-/**
- * Which of two results for one rule on one calendar day is kept: lower wins.
- *
- * @remarks
- * An exact landing beats a doubled half, which beats a day shifted off a skipped number, because
- * the first is what the rule says, the second is what the almanac prints, and the third is a
- * substitute for a day that does not exist.
- */
+/** Which of two results for one rule on one calendar day is kept: lower wins. */
+// An exact landing beats a doubled half, which beats a day shifted off a skipped number, because
+// the first is what the rule says, the second is what the almanac prints, and the third is a
+// substitute for a day that does not exist.
 const PRECEDENCE: Record<ObservanceResolution, number> = {
 	exact: 0,
 	firstOfDoubled: 1,
@@ -61,13 +57,9 @@ function precedence(resolution: ObservanceResolution): number {
 /** A function from a Julian day to its Tibetan date, remembering what it has converted. */
 export type TibetanDateOfDay = (julianDay: number) => TibetanDate;
 
-/**
- * A fresh memo over `isoToTibetan` for one tradition.
- *
- * @remarks
- * One per query rather than module state: a 15th carries several rules, so a query over many rules
- * shares one memo, and nothing outlives the call.
- */
+/** Returns a fresh memo over `isoToTibetan` for one tradition, shared by the rules of one query. */
+// One per query rather than module state: a 15th carries several rules, so a query over many rules
+// shares one memo, and nothing outlives the call.
 export function tibetanDateMemo(scaled: ScaledTradition): TibetanDateOfDay {
 	const dates = new Map<number, TibetanDate>();
 	return (julianDay) => {
@@ -81,7 +73,7 @@ export function tibetanDateMemo(scaled: ScaledTradition): TibetanDateOfDay {
 }
 
 /**
- * Every result of one rule between two Julian days, inclusive, in date order.
+ * Returns every result of one rule between two Julian days, inclusive, in date order.
  *
  * @remarks
  * The whole-range reduction for one rule: one result per calendar day, across the range and not per

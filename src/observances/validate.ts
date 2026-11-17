@@ -3,17 +3,19 @@
  *
  * @remarks
  * Internal: the barrel exports nothing from here. `ObservanceConfig` is the documented extension
- * point, and the mean-motion formulas are linear in the lunar day, so they extrapolate past the end
- * of a month rather than failing — `day: 31` once returned the 1st of the *following* month and
- * `day: 0` the 30th of the *previous* one, each labelled `"exact"`. An out-of-range month failed the
- * other way, silently yielding no hits so the observance vanished from the year. Every field is
- * therefore checked, and every object a config contains refuses a key it does not know, because a
- * config written for an earlier shape — `kind`, `tier`, `source`, `name`, or `isLeapMonth` inside a
- * date — would otherwise be half-read and answer confidently.
+ * point, so every field is checked, and every object a config contains refuses a key it does not
+ * know.
  *
  * Every problem is `TCT_INVALID_OBSERVANCE_CONFIG`: a bad value, an inapplicable setting, an unknown
  * key, an undeclared level.
  */
+
+// Why every field and every key: the mean-motion formulas are linear in the lunar day, so they
+// extrapolate past the end of a month rather than failing — `day: 31` returned the 1st of the
+// *following* month and `day: 0` the 30th of the *previous* one, each labelled `"exact"`. An
+// out-of-range month failed the other way, silently yielding no hits so the observance vanished from
+// the year. And a config written for an earlier shape — `kind`, `tier`, `source`, `name`, or
+// `isLeapMonth` inside a date — would otherwise be half-read and answer confidently.
 
 import {
 	assertKnownKeys,
@@ -89,11 +91,11 @@ type FormSetting = "doubledDay" | "skippedDay" | "leapMonth";
  * The per-rule settings each form reads, keyed by `when.type`.
  *
  * @remarks
- * A `Record` over the form names, so adding a form without a row is a compile error. A per-rule
- * setting absent from its form's row is refused rather than ignored: a monthly rule has no month,
- * so a `leapMonth` on it would be read by nothing and look as if it had been honoured. Config-level
- * defaults are never refused — a form simply does not read the ones it cannot use.
+ * A per-rule setting absent from its form's row is refused rather than ignored: a monthly rule has
+ * no month, so a `leapMonth` on it would be read by nothing and look as if it had been honoured.
+ * Config-level defaults are never refused — a form simply does not read the ones it cannot use.
  */
+// A `Record` over the form names, so adding a form without a row is a compile error.
 const SETTINGS_BY_FORM: Record<ObservanceWhen["type"], readonly FormSetting[]> = {
 	monthly: ["doubledDay", "skippedDay"],
 	annual: ["doubledDay", "skippedDay", "leapMonth"],
@@ -106,13 +108,9 @@ const SETTINGS_BY_FORM: Record<ObservanceWhen["type"], readonly FormSetting[]> =
 /** Days in each Gregorian month in a leap year, the most any year gives it. */
 const WESTERN_MONTH_LENGTHS = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
-/**
- * Whether a value is a non-null object that is not an array.
- *
- * @remarks
- * An array is an object, so it must be refused by name where a record belongs: `[t].flatMap(f)`
- * hands an array to a parameter nobody meant to be one.
- */
+/** Returns whether a value is a non-null object that is not an array. */
+// An array is an object, so it must be refused by name where a record belongs: `[t].flatMap(f)`
+// hands an array to a parameter nobody meant to be one.
 export function isRecord(value: unknown): value is Record<string, unknown> {
 	return value !== null && typeof value === "object" && !Array.isArray(value);
 }
@@ -123,14 +121,10 @@ export function assertNonEmptyString(value: unknown, subject: string): void {
 	}
 }
 
-/**
- * Rejects a **required** field that is not one of its documented values, `undefined` included.
- *
- * @remarks
- * The `undefined` case is the whole point of the split from {@link assertOptionalChoice}. The three
- * conventions are required on `ObservanceConfig`, and a missing one used to fall through to
- * whichever branch of the resolver came last.
- */
+/** Rejects a **required** field that is not one of its documented values, `undefined` included. */
+// The `undefined` case is the whole point of the split from `assertOptionalChoice`. The three
+// conventions are required on `ObservanceConfig`, and a missing one would fall through to whichever
+// branch of the resolver came last.
 function assertChoice(value: unknown, allowed: readonly string[], subject: string): void {
 	if (typeof value !== "string" || !allowed.includes(value)) {
 		throw rangeError(
@@ -155,7 +149,7 @@ export function assertOptionalChoice(
 	if (value !== undefined) assertChoice(value, allowed, subject);
 }
 
-/** `{ tibetan, wylie, phonetic }`, three non-empty strings, when present. */
+/** Checks that a name, when present, is `{ tibetan, wylie, phonetic }`: three non-empty strings. */
 export function assertOptionalTibetanName(value: unknown, subject: string): void {
 	if (value === undefined) return;
 	if (!isRecord(value)) {
@@ -216,7 +210,7 @@ const FORTNIGHT_WHY =
 const MONTH_WHY =
 	"A leap month is selected by the leapMonth convention, not by a thirteenth number";
 
-/** The shared `TibetanMonthDay` guard: month 1-12 and day 1-30, and no other key. */
+/** Checks a `TibetanMonthDay`: month 1-12 and day 1-30, and no other key; the guard every form shares. */
 function assertMonthDay(
 	date: unknown,
 	subject: string,
@@ -410,11 +404,12 @@ function assertSettingsApplicable(rule: Record<string, unknown>, ruleSubject: st
  * Refuses a value a form cannot use, once the effective setting is known.
  *
  * @remarks
- * A `counted` rule refuses `skippedDay: "omit"`. An omitted anchor removes that year's anchor, and
- * two in a row leave a gap wider than the lookback, so the schedule is undefined there and a query's
- * answer would depend on where its range starts. The effective setting is checked, the rule's own or
- * else the config's default, which has already been validated by now.
+ * A `counted` rule refuses `skippedDay: "omit"`, whether set on the rule or inherited from the
+ * config's default, which has already been validated by now.
  */
+// Why: an omitted anchor removes that year's anchor, and two in a row leave a gap wider than the
+// lookback, so the schedule is undefined there and a query's answer would depend on where its range
+// starts.
 function assertFormValues(
 	rule: Record<string, unknown>,
 	config: ObservanceConfig,
@@ -435,7 +430,7 @@ function assertFormValues(
 }
 
 /**
- * Whether an object looks like a `TraditionConfig`, or a `{ tradition }` bag, rather than anything
+ * Returns whether an object looks like a `TraditionConfig`, or a `{ tradition }` bag, rather than anything
  * an observance export takes.
  *
  * @remarks
@@ -448,17 +443,13 @@ export function looksLikeTradition(value: Record<string, unknown>): boolean {
 	);
 }
 
-/**
- * The likeliest wrong objects in the config position, named for what they are.
- *
- * @remarks
- * A `TraditionConfig` and the `{ config }` bag the signature took until 2026-11-11 are what a
- * caller migrating from the old shape or confusing the two kinds of config passes, and a `Date` is
- * the likeliest wrong object in a package whose first rule is Temporal. Without this a caller is
- * told `epochYear` is an unknown key, or that `id` is undefined — a field they never meant to
- * write. Each message names the export that was called and its own signature, because the guard
- * is shared and a message naming another function's signature sends the caller to the wrong place.
- */
+/** Refuses the likeliest wrong objects in the config position, naming each for what it is. */
+// A `TraditionConfig` and a `{ config }` bag are what a caller confusing the two kinds of config
+// passes, and a `Date` is the likeliest wrong object in a package whose first rule is Temporal.
+// Without this a caller is told `epochYear` is an unknown key, or that `id` is undefined — a field
+// they never meant to write. Each message names the export that was called and its own signature,
+// because the guard is shared and a message naming another function's signature sends the caller to
+// the wrong place.
 function assertNotAnotherShape(config: Record<string, unknown>, caller: ObservanceCaller): void {
 	const subject = configArgument(caller);
 	const signature = SIGNATURES[caller];
@@ -609,13 +600,13 @@ const privateCopies = new WeakMap<ObservanceConfig, ObservanceConfig>();
  * The engine never reads the caller's object after this, so a config mutated after first use
  * changes nothing it sees: a monthly `days: [31]` set afterwards cannot bring back the day-31
  * extrapolation the validator exists to stop, and a `rules` set to `null` cannot escape as an
- * uncoded `TypeError`. A new object, such as a fresh spread, is validated again. Validation runs
- * before the copy because `structuredClone` throws an uncoded error on a function or a Symbol,
- * and the copy is validated as a new object because a getter, an inherited field or a
- * non-enumerable one answers differently once cloned.
+ * uncoded `TypeError`. A new object, such as a fresh spread, is validated again.
  *
  * @param caller - The export that was called, so a refusal of the config names it.
  */
+// Validation runs before the copy because `structuredClone` throws an uncoded error on a function or
+// a Symbol, and the copy is validated as a new object because a getter, an inherited field or a
+// non-enumerable one answers differently once cloned.
 export function ensureValidated(
 	config: ObservanceConfig,
 	caller: ObservanceCaller,

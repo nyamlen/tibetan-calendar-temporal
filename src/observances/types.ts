@@ -30,7 +30,7 @@ import type { TibetanDate, TibetanName } from "../types.js";
  * @remarks
  * A doubled date is one number shared by two consecutive calendar days, the first of which
  * almanacs mark "Extra". Both are the same Tibetan date, so this is not a question the arithmetic
- * can answer — Janson says so explicitly, and the institutions differ in practice.
+ * can answer, and the institutions differ in practice.
  *
  * - `"first"` — the leap day. Janson's holidays section, citing Berzin. Kopan Monastery observed
  *   the 2024 Chokhor Duchen this way, on 9 July.
@@ -57,7 +57,7 @@ export type DoubledDayChoice = "first" | "second" | "both";
  *   first half of the doubled day. Not sourced by either publication above: it is the choice for a
  *   tradition that moves a skipped observance later.
  * - `"omit"` — no {@link Observance} at all. Correct for a caller who wants only exact matches,
- *   but it makes an annual observance vanish from a year, which no almanac does.
+ *   but it makes an annual observance vanish from a year, which neither source above does.
  */
 export type SkippedDayChoice = "preceding" | "following" | "omit";
 
@@ -67,8 +67,8 @@ export type SkippedDayChoice = "preceding" | "following" | "omit";
  * @remarks
  * Janson's holidays section says observances are "usually not celebrated in leap months", with
  * the New Year the stated exception. FPMT's calendars do the opposite for the case this
- * repository has evidence for: the 2024 Chokhor Duchen is printed in leap month 6, and 4 of the
- * regular month 6 that follows carries no observance at all.
+ * repository has evidence for: the 2024 Chokhor Duchen is printed in leap month 6, and the 4th of
+ * the regular month 6 that follows carries no observance at all.
  *
  * Hence a setting rather than a rule. `"regular"` follows Janson, `"leap"` follows FPMT, and
  * `"both"` observes in each.
@@ -76,8 +76,8 @@ export type SkippedDayChoice = "preceding" | "following" | "omit";
  * **For a `period` the setting chooses which twin each endpoint's month means, and the span runs
  * between them.** It is not "in each twin" as it is for an `annual` date: under `"both"` the span
  * starts on the earlier twin and ends on the later, so it covers every day between, and under
- * `"leap"` or `"regular"` the two endpoints can name different months. Measured for Phugpa in
- * Tibetan 2143, which has leap month 4: a period from 4/1 to 4/30 covers 29 days under
+ * `"leap"` or `"regular"` the two endpoints can name different months. Measured for `PHUGPA` in
+ * Tibetan 2143 (2016 CE), which has leap month 4: a period from 4/1 to 4/30 covers 29 days under
  * `"regular"` (the regular month 4 only), 30 under `"leap"` (the leap month 4 only) and 59 under
  * `"both"`; a period from 4/28 to 5/5 covers 8 days under `"regular"` and 37 under both `"leap"`
  * and `"both"`, because under `"leap"` it starts on leap 4/28 (2016-06-03) and must cross all of
@@ -128,11 +128,11 @@ export type TibetanMonthDay = { readonly month: number; readonly day: number };
  *   per-rule setting is `leapMonth`, which chooses which twin each endpoint's month means in a year
  *   with two months of that number; under `"both"` `first` takes the earlier twin and `last` the
  *   later, so the span covers both. **The span runs between its endpoints**, so with a twin it can
- *   cover days whose numbers lie outside `first` to `last`: in Tibetan 2143 (leap month 4) a period
- *   from 4/1 to 4/30 is 29 days under `"regular"`, 30 under `"leap"` and 59 under `"both"`, and one
- *   from 4/28 to 5/5 is 8, 37 and 37 days. See {@link LeapMonthChoice}. A span may not cross the new
- *   year. Its results are
- *   `"inPeriod"`, one per calendar day, each carrying {@link Observance.period}.
+ *   cover days whose numbers lie outside `first` to `last`: under `PHUGPA` in Tibetan 2143 (2016 CE,
+ *   leap month 4) a period from 4/1 to 4/30 is 29 days under `"regular"`, 30 under `"leap"` and 59
+ *   under `"both"`, and one from 4/28 to 5/5 is 8, 37 and 37 days. See {@link LeapMonthChoice}. A
+ *   span may not cross the new year. Its results are `"inPeriod"`, one per calendar day, each
+ *   carrying {@link Observance.period}.
  *
  * - `"formula"` — on every calendar day for which the named {@link FormulaName} holds. Each calendar
  *   day is tested, not each day number: the two halves of a doubled date differ in weekday and may
@@ -155,8 +155,9 @@ export type TibetanMonthDay = { readonly month: number; readonly day: number };
  *   **The rule is inferred, not sourced.** It is the fit that reproduces Rabten Choeling's published
  *   sojong schedule exactly — anchor 1/15, 15 days waxing, 14 waning in an odd month and 15 in an even
  *   one, `exclude` 1/1, with `leapMonth: "leap"`, `doubledDay: "first"` and `skippedDay: "following"` —
- *   and Rabten states no method. FPMT's calendar departs from it for one run in 2022-2023, which this
- *   form does not express. The window of the agreement is in `docs/testing.md`. **`skippedDay: "omit"`
+ *   and Rabten states no method. FPMT's calendar departs from it for one run in 2022, which this
+ *   form does not express. How far the rule agrees with Rabten's calendar, and over which years, is
+ *   in `docs/why-trust-these-dates.md`. **`skippedDay: "omit"`
  *   is refused**, set on the rule or inherited from the config: an omitted anchor leaves that year
  *   with no anchor and the schedule undefined, so a query's answer would depend on where its range
  *   starts.
@@ -394,8 +395,9 @@ export interface ObservanceLayer {
  *
  * @remarks
  * Reported so a consumer can show the almanac-style footnote rather than presenting a moved date
- * as if it were exact. `"dayBeforeSkipped"` and `"dayAfterSkipped"` in particular are worth surfacing: the
- * observance is a day away from its nominal date, and a practitioner will want to know why.
+ * as if it were exact. `"dayBeforeSkipped"` and `"dayAfterSkipped"` in particular are worth
+ * surfacing: the observance is a day away from its nominal date, and a practitioner will want to
+ * know why.
  *
  * **This union is open to additions.** Further values may be added in a minor release, so a consumer
  * switching on a resolution, or keying a table of labels on one, handles an unknown value with a
