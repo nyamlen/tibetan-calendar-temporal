@@ -14,7 +14,7 @@ import {
 import { lunarDayAttributes } from "../src/astrology/lunar-day.js";
 import { mansionNumber } from "../src/astrology/mansions.js";
 import { monthAttributes } from "../src/astrology/month.js";
-import { trueMonthCount } from "../src/computation/calendar.js";
+import { monthFromCount, trueMonthCount } from "../src/computation/calendar.js";
 import { isoToTibetan, losarFor, tibetanToIso } from "../src/computation/conversion.js";
 import {
 	rabjungFromYear,
@@ -386,6 +386,54 @@ describe("docblock examples", () => {
 			expect(elementalYoga("water", "fire").favorable).toBe(false);
 			expect(elementalYoga("water", "fire")).toBe(elementalYoga("fire", "water"));
 			expect(ELEMENTAL_YOGAS).toHaveLength(10);
+		});
+	});
+
+	describe("traditions/*.ts", () => {
+		it("BHUTAN's example states Losar 2130 as 4 March 2003", () => {
+			expect(losarFor(2130, BHUTAN).isoDate.toString()).toBe("2003-03-04");
+		});
+
+		it("epochMonth states which month true month count 0 is, per leap month position", () => {
+			// `epochMonth` 3 throughout. Position "before": month 3 below the threshold, leap month 3
+			// for the threshold and one more, month 2 above. Position "after": the same pattern with
+			// the threshold plus 2, and the leap month is month 2.
+			const countZero = (
+				leapMonthPosition: "before" | "after",
+				leapIndexThreshold: number,
+				intercalationIndexAtEpoch: number,
+			) =>
+				monthFromCount(
+					{ ...PHUGPA, leapMonthPosition, leapIndexThreshold, intercalationIndexAtEpoch },
+					0,
+				);
+			const picture = (m: { month: number; isLeap: boolean }) =>
+				`${m.isLeap ? "leap " : ""}month ${m.month}`;
+
+			const before = [47, 48, 49, 50].map((beta) => picture(countZero("before", 48, beta)));
+			expect(before).toEqual(["month 3", "leap month 3", "leap month 3", "month 2"]);
+			const after = [58, 59, 60, 61].map((beta) => picture(countZero("after", 57, beta)));
+			expect(after).toEqual(["month 3", "leap month 2", "leap month 2", "month 2"]);
+
+			expect(picture(monthFromCount(PHUGPA, 0))).toBe("month 2");
+			expect(picture(monthFromCount(BHUTAN, 0))).toBe("month 3");
+		});
+
+		it("leapIndexThreshold states that 59 is not Bhutan stated against the traditional index", () => {
+			const differing = (leapIndexThreshold: number) => {
+				const start = Temporal.PlainDate.from("2020-01-01");
+				const other = { ...BHUTAN, leapIndexThreshold };
+				let count = 0;
+				for (let day = 0; day < 3650; day++) {
+					const date = start.add({ days: day });
+					const a = isoToTibetan(date, BHUTAN);
+					const b = isoToTibetan(date, other);
+					if (a.lunation !== b.lunation || a.isLeapMonth !== b.isLeapMonth) count++;
+				}
+				return count;
+			};
+			expect(differing(57)).toBe(0);
+			expect(differing(59)).toBeGreaterThan(0);
 		});
 	});
 });

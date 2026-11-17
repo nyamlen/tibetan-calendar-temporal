@@ -336,8 +336,8 @@ const X: readonly Row[] = [
 				"src/traditions/types.ts",
 				(source) =>
 					source.replace(
-						"rule in the true month count adds",
-						"rule in {@link trueMonthCount} adds",
+						"The rounding term of the true month count,",
+						"The rounding term of {@link trueMonthCount},",
 					),
 				"the true-month-count sentence on leapIndexThreshold",
 			),

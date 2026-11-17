@@ -1,19 +1,24 @@
 /**
- * Phugpa (*phug-lugs*) constants, from Janson §7 with epoch E806.
+ * Defines the Phugpa (*phug-lugs*) constants, from Janson's astronomical-functions section (§7)
+ * with epoch E806.
  *
  * @remarks
- * Phugpa was introduced in 1447 and is the most widely used version of the Tibetan calendar —
- * the one followed by the Dalai Lama. Dates computed for years before 1447 are a
- * back-projection: earlier traditions give genuinely different dates.
- *
- * Every constant below is quoted from Janson's LaTeX source, never from PDF-extracted text.
+ * Phugpa was introduced in 1447 CE and is the most widely used version of the Tibetan calendar —
+ * the one followed by the Dalai Lama. Dates computed for years before 1447 are a back-projection:
+ * the earlier versions of the calendar, such as the original Kālacakra Tantra (*karaṇa*) one, used
+ * different constants.
  *
  * @packageDocumentation
  */
 
+// Every constant below is quoted from Janson's LaTeX source, never from PDF-extracted text.
+
 import { deepFreeze } from "../freeze.js";
 import type { TraditionConfig } from "./types.js";
 
+// The engine reads a private frozen copy it takes on first use, so a consumer's own config mutated
+// after that changes nothing the engine sees; freezing is what protects this shared singleton, whose
+// mutation every later spread would pick up.
 /**
  * The standard Phugpa configuration, epoch E806.
  *
@@ -22,16 +27,18 @@ import type { TraditionConfig } from "./types.js";
  * produce the same calendar. E806 is used here because it makes the true month count `n`
  * non-negative for every date after 806 CE; see {@link TraditionConfig.epochYear}.
  *
+ * It claims to be the dates Tibetans use, and is checked day by day against four independent
+ * published calendars; `docs/why-trust-these-dates.md` states over which years. It follows the
+ * rounded `a₂ = 1/28` of the Men-Tsee-Khang almanac; see {@link PHUGPA_HENNING} for the fork.
+ *
+ * **Deeply frozen**, correction tables included. This is the object the docs point a reader at for
+ * `{ ...PHUGPA, … }`, so a mutation of it would be inherited by every later spread.
+ *
  * @example
  * ```ts
  * import { PHUGPA } from "tibetan-calendar-temporal";
  * isoToTibetan(Temporal.PlainDate.from("2027-01-15"), PHUGPA);
  * ```
- *
- * **Deeply frozen**, correction tables included. This is the object the docs point a reader at for
- * `{ ...PHUGPA, … }`, and a mutation one keystroke away from that spread would change the calendar
- * for every caller in the process — silently, because the derived scaling is memoised on the
- * object and would not be recomputed. Frozen recursively, correction tables included.
  */
 export const PHUGPA: TraditionConfig = deepFreeze({
 	id: "phugpa",
@@ -47,8 +54,9 @@ export const PHUGPA: TraditionConfig = deepFreeze({
 	intercalationIndexAtEpoch: 61,
 
 	/**
-	 * A leap month has intercalation index 48 or 49 — Janson's Phugpa leap-month rule, and the
-	 * value from which the `+17` of the rounding rule is derived (`65 − 48`).
+	 * A month number has a leap month when its intercalation index is 48 or 49 — Janson's Phugpa
+	 * leap-month rule, and the value from which the `+17` of the rounding rule is derived
+	 * (`65 − 48`).
 	 *
 	 * Not shared with the other versions: Tsurphu uses 0, the Mongolian 46, the Bhutanese 57.
 	 */
@@ -97,12 +105,12 @@ export const PHUGPA: TraditionConfig = deepFreeze({
 		 *
 		 * This is a **known fork in the tradition**. Henning instead uses the mathematically more
 		 * natural `(1 + a₁)/30 = 3781/105840`, proposed by Minling Lochen Dharmashri
-		 * (1654–1717), and his computed calendars follow it. The two disagree on roughly one day
-		 * in 4,100 days — Janson counts 9 divergences in 1900–1999 and 8 in 2000–2099, though 16 in
-		 * the single cycle 1027–1091, so the rate is not uniform.
+		 * (1654–1717 CE), and his computed calendars follow it. The two disagree on roughly one day
+		 * in 4,100 days — Janson counts 9 divergences in 1900–1999 CE and 8 in 2000–2099 CE, though
+		 * 16 in the single 65-year cycle 1027–1091 CE, so the rate is not uniform.
 		 *
-		 * Janson names three recent divergence dates: 10 February 2001, 10 May 2006 and
-		 * 19 November 2025. Because published validation sources straddle this fork, changing
+		 * Janson gives 10 February 2001 and 10 May 2006 as recent divergence dates, and 19 November
+		 * 2025 as the next. Because published validation sources straddle this fork, changing
 		 * this value will make a handful of fixtures fail in a way that looks like an arithmetic
 		 * bug and is not.
 		 */
@@ -135,22 +143,28 @@ export const PHUGPA: TraditionConfig = deepFreeze({
  * @remarks
  * Identical to {@link PHUGPA} except for the lunar anomaly's per-day increment, which uses the
  * exact `(1 + a₁)/30 = 3781/105840` rather than the rounded `1/28`. The exact value was proposed by
- * Minling Lochen Dharmashri སྨིན་གླིང་ལོ་ཆེན་དྷརྨ་ཤྲཱི (1654–1717); Edward Henning uses it in his computed
- * calendars.
+ * Minling Lochen Dharmashri སྨིན་གླིང་ལོ་ཆེན་དྷརྨ་ཤྲཱི (1654–1717 CE); Edward Henning uses it in his
+ * computed calendars.
  *
  * **This is a diagnostic, not a rival answer to "what calendar does my community use."** The two
  * configs make different claims, and the distinction is the whole reason both are exported:
  *
- * - {@link PHUGPA} claims *these are the dates Tibetans use*, and is validated against the
- *   Men-Tsee-Khang line.
+ * - {@link PHUGPA} claims *these are the dates Tibetans use*, and is checked against four
+ *   independent published calendars, among them FPMT's, which is prepared from the Men-Tsee-Khang
+ *   almanac; `docs/why-trust-these-dates.md` states over which years.
  * - This claims *these are the dates Henning's line produces*, which is what most public Tibetan
  *   calendar data descends from.
  *
  * So reach for it when a source disagrees with {@link PHUGPA} on about one day in 4,100 — that is
  * the fork, and this identifies it. If you do not know which you want, you want {@link PHUGPA}.
  *
- * @see {@link PHUGPA} for the divergence dates and frequency, and `docs/how-it-is-calculated.md`
- * for what `a₂` is and why a difference of one part in 105,840 moves a date at all.
+ * Janson's estimate of the disagreement is one day in 4,100. His computer search found 9
+ * divergences in 1900–1999 CE and 8 in 2000–2099 CE, though 16 in the single 65-year cycle
+ * 1027–1091 CE, so the rate is not uniform. He gives 10 February 2001 and 10 May 2006 as recent
+ * divergence dates, and 19 November 2025 as the next.
+ *
+ * @see `docs/how-it-is-calculated.md` for what `a₂` is and why a difference of one part in 105,840
+ * moves a date at all.
  */
 export const PHUGPA_HENNING: TraditionConfig = deepFreeze({
 	...PHUGPA,

@@ -1,5 +1,5 @@
 /**
- * Bhutanese constants, from Janson's Bhutan appendix with epoch JD 2361807.
+ * Defines the Bhutanese constants, from Janson's Bhutan appendix with epoch JD 2361807.
  *
  * @remarks
  * Bhutan uses a version of the Tibetan calendar as an official state calendar, in Dzongkha. It is
@@ -7,13 +7,11 @@
  * leap month *after* the regular month sharing its number — see
  * {@link ./types.TraditionConfig.leapMonthPosition}.
  *
- * Every constant below is quoted from Janson's LaTeX source, never from PDF-extracted text.
- *
- * **The epoch is his own, not the four-version comparison table.** His Bhutan appendix gives the
- * epoch data directly, and states that `m₀` is already "modified to yield the JD" — the same form
+ * The epoch is Janson's own from his Bhutan appendix, not the four-version comparison table, and the
+ * appendix states that `m₀` is already "modified to yield the JD" — the same form
  * {@link ../traditions/phugpa.PHUGPA}'s constant takes. So the one-mean-lunar-month offset
- * `docs/traditions.md` warns about does not arise here. It still does for Tsurphu and Mongolia,
- * whose epoch data he gives only in that table.
+ * `docs/traditions.md` warns about does not arise here; it belongs to the comparison table's
+ * common-epoch values.
  *
  * `m₁`, `s₁`, `a₁` are Phugpa's — Janson states it — and therefore so are `m₂` and `s₂`. The
  * correction tables are shared too: `moon_tab` and `sun_tab` are defined once, in his astronomical
@@ -22,20 +20,25 @@
  * @packageDocumentation
  */
 
+// Every constant below is quoted from Janson's LaTeX source, never from PDF-extracted text.
+// The comparison table's Tsurphu and Mongolian values are the ones that do carry the offset; Janson
+// also gives each of those versions' own epoch data in its appendix, so "only in that table" would
+// overstate it (docs/traditions.md says those two "genuinely need" the table).
+
 import { deepFreeze } from "../freeze.js";
 import { PHUGPA } from "./phugpa.js";
 import type { TraditionConfig } from "./types.js";
 
 /**
- * The Bhutanese configuration, epoch JD 2361807 — Monday, 22 April 1754.
+ * The Bhutanese configuration, epoch JD 2361807 — Monday, 22 April 1754 (Gregorian).
  *
  * @remarks
- * **Not swept day by day.** What is checked is 25 government-published days of the Royal Government of
- * Bhutan's own calendar — day numbers, three skipped days, two doubled days and Losar — plus
+ * **Not swept day by day.** What is checked is 25 government-published days of the Royal
+ * Government of Bhutan's own calendar — day numbers, skipped days, doubled days and Losar — plus
  * Bhutan's leap months against Janson's table. The day-by-day sweep against Henning's lineage
- * validates {@link BHUTAN_HENNING} and not this config: the two differ on three days inside it.
- * See `docs/testing.md` for the years, the day counts, and what each check does and does not
- * cover.
+ * validates {@link BHUTAN_HENNING} and not this config, which differs from it where `a₂` does.
+ * `docs/why-trust-these-dates.md` states over which years and with what independence; the day counts
+ * are in `docs/testing.md`.
  *
  * **A disagreement this does not resolve.** Janson records that Bhutan's *government calendar* gives
  * New Year 2003 as 3 March, with day 1 of month 1 repeated, while his own calculations and Henning's
@@ -61,7 +64,10 @@ export const BHUTAN: TraditionConfig = deepFreeze({
 	id: "bhutan",
 	name: "Bhutanese",
 
-	/** JD 2361807 falls in month 3 of the Tibetan year beginning in 1754. */
+	/**
+	 * JD 2361807 is day 30 of month 2 of the Tibetan year beginning in 1754, and the epoch — the mean
+	 * new moon 52/707 of a day after it — opens month 3.
+	 */
 	epochYear: 1754,
 	epochMonth: 3,
 
@@ -75,10 +81,12 @@ export const BHUTAN: TraditionConfig = deepFreeze({
 	intercalationIndexAtEpoch: 2,
 
 	/**
-	 * A leap month has intercalation index 57 or 58 — the **simplified** index this package computes.
+	 * A month number has a leap month, which follows it, when its intercalation index is 57 or 58 —
+	 * the **simplified** index this package computes.
 	 *
-	 * Janson states the same rule against the *traditional* index as 59-or-60. The two differ by two
-	 * and describe the same calendar; do not mix them.
+	 * Janson states the same rule against the *traditional* index as 59-or-60. That index is the
+	 * simplified one raised by 2 from the leap month onward, so each statement describes the same
+	 * calendar against its own index; giving this field 59 would describe a different calendar.
 	 */
 	leapIndexThreshold: 57,
 
@@ -131,12 +139,13 @@ export const BHUTAN: TraditionConfig = deepFreeze({
  *
  * **This is the variant the validation data supports, and that is worth stating plainly.** The only
  * day-by-day Bhutanese calendar available descends from Henning's own software, so it follows
- * Henning's `a₂` — with the rounded value, three days of the swept window disagree
- * (`docs/testing.md` has its extent). Concluding from that which value *Bhutanese almanacs* print would be circular, and Janson gives no Bhutanese statement on the
- * fork. {@link BHUTAN} therefore keeps almanac practice as the default, exactly as
- * {@link ../traditions/phugpa.PHUGPA} does.
+ * Henning's `a₂` — with the rounded value, some days of the swept window disagree
+ * (`docs/testing.md` has its extent). Concluding from that which value *Bhutanese almanacs* print
+ * would be circular, and Janson gives no Bhutanese statement on the fork. {@link BHUTAN} therefore
+ * keeps the rounded `1/28` the Tibetan almanacs use, exactly as {@link ../traditions/phugpa.PHUGPA}
+ * does.
  *
- * @see {@link ../traditions/phugpa.PHUGPA} for the divergence dates and frequency in Tibet.
+ * @see {@link ../traditions/phugpa.PHUGPA_HENNING} for the divergence dates and frequency in Tibet.
  */
 export const BHUTAN_HENNING: TraditionConfig = deepFreeze({
 	...BHUTAN,
