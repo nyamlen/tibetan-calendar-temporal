@@ -29,9 +29,10 @@ import { deepFreeze } from "./freeze.js";
  *   but not a safe integer (`NaN`, `1.5`), or falls outside its permitted range (`99` for a day).
  *   **What counts as a number depends on the shape.** In a date or month object, a field that is
  *   absent or is not a number at all (`undefined`, `"5"`, `null`) is `TCT_INVALID_ARGUMENT`, and only
- *   a present number gets this code. Where a function takes a bare number — `yearNameFor`,
- *   `rabjungFor`, `weekdayNameFor`, `asTibetanWeekday` — a value that is not a number is refused with
- *   this code too.
+ *   a present number gets this code. Where a function takes a bare number — such as `yearNameFor`,
+ *   `rabjungFor`, `weekdayNameFor`, `asTibetanWeekday`, `losarFor`, `monthsFor`, `isoFromJulianDay`
+ *   or the counts of `addDays` and `addMonths` — a value that is not a number is refused with this
+ *   code too.
  * - `TCT_INVALID_ARGUMENT` — the argument is the wrong *kind of thing*, so no field of it is out of
  *   any range: a `Temporal.PlainDate`/`PlainDateTime`/`ZonedDateTime` passed where a Tibetan-date
  *   input is expected, a bare `{ year, month, day }` object passed where a Western date is expected,
@@ -310,7 +311,9 @@ export function assertKnownKeys(
  * @remarks
  * Refuses a bag that is not an object, an array, or one that carries a key not in `allowed`.
  * `TCT_INVALID_ARGUMENT` rather than a config code: the bag is the wrong *kind* of thing, and no
- * config has been reached yet.
+ * config has been reached yet. A bag whose `tradition` is invalid gets the config code from that
+ * validator, not from here: `addMonthsToDate(f, 0, { tradition: {} })` is
+ * `TCT_INVALID_TRADITION_CONFIG`.
  *
  * - A key not in `allowed` is refused **whatever its value**, `undefined` included.
  * - **Inherited** enumerable keys are checked as well as own ones, because the call sites read
@@ -333,9 +336,9 @@ export function assertKnownKeys(
  */
 // A bag is a new argument boundary and needs its own guard: without one `addMonthsToDate(f, 0, null)`
 // reads a property off `null` and throws a raw uncoded `TypeError`, which is the failure the config
-// validators exist to end: a consumer's `catch (e) { if (e.code === …) }` falls through it. Unknown keys are refused because every bag once ignored them, so
-// `addMonthsToDate(f, 0, { config: BHUTAN })` answered Phugpa's date without a word; the fifth point of
-// the tradition-parameter pattern, `docs/decisions/2026-09-24-how-a-tradition-is-passed.md`. An
+// validators exist to end: a consumer's `catch (e) { if (e.code === …) }` falls through it. Unknown
+// keys are refused because every bag ignored them, so `addMonthsToDate(f, 0, { config: BHUTAN })`
+// answered Phugpa's date without a word; the fifth point of the tradition-parameter pattern, `docs/decisions/2026-09-24-how-a-tradition-is-passed.md`. An
 // own-keys check would let `Object.create({ config: BHUTAN })` through, which is why inherited keys
 // are walked. Symbol keys are ignored because nobody writes one by mistake and `Object.keys` does not
 // list them.
