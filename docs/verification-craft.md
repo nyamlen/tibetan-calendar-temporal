@@ -264,8 +264,8 @@ refactor to prove by mutation in **both** suites that call it.
 
 **A guard comparing two documents is no guard if they share an error.** Anchor every figure to data,
 and treat document-against-document agreement as a secondary check. `docs/testing.md` carried the
-same window errors as the page it was meant to check — Lotsawa House's window given as 2023–2027 where
-the fixture runs 21 February 2023 to 25 February 2028 — so equality between them would have passed.
+same window errors as the page it was meant to check — Lotsawa House's window given in rounded years
+that the fixture's own first and last rows contradict — so equality between them would have passed.
 This is the lineage rule applied to the project's own documents.
 
 **Inventory a document line by line, not figure by figure.** On why-trust-these-dates the claims that
@@ -277,15 +277,17 @@ inside a claim, asserted or listed with its reason, which closes for that docume
 docblock suite still has.
 
 **A percentage names its day set, and two figures may not share "of those days" unless they are
-measured over the same days.** The mansion's 98.0% is over the 1,821 days whose code can force a
-mansion element; favorability's 99.8% is over its own 1,825, because four days' codes name no yoga
-consistent with their weekday but are still favorability claims. Over the 1,821, favorability is
-also 99.8%, so here the two day sets give the same rounded figure; keep naming the set regardless.
+measured over the same days.** The lunar mansion's agreement is over the days whose FPMT code can
+force a mansion element; yoga favorability's is over a slightly larger set, because a few codes name
+no yoga consistent with their weekday but are still favorability claims. The two sets happen to give
+the same rounded favorability figure; keep naming the set regardless. The figures and both day counts
+are in `docs/testing.md`.
 
-**Prose windows are as exact as the table beside them; only durations are rounded.** "2022–2027" and
-"early 2030" cannot be checked by the reader the page is written for, and both once hid an error:
-2022–2027 was a union no single source reaches, and the early-2030 table count included 273 days no
-test compares. "1 January 2022 to 25 February 2028" is as safe, being true, and checkable.
+**Prose windows are as exact as the table beside them; only durations are rounded.** A window written
+as a span of whole years, or as "early" in a year, cannot be checked by the reader the page is written
+for, and two such windows once hid an error: one was a union of years no single source reaches, and
+the other's table count included days no test compares. A window from first date to last date is as
+safe, being true, and checkable.
 
 ## Independent review
 
