@@ -60,15 +60,8 @@ import { assertTibetanRanges, assertTibetanShape } from "./types.js";
 /**
  * Validates a year for the closed-form functions, which need no lunar arithmetic.
  *
- * @remarks
- * Returns Janson's *Y* with the validated copy of the config, which the caller reads from and never
- * the one it was handed. The config is still validated — `γ*` is derived from `epochYear`,
- * `epochMonth` and `intercalationIndexAtEpoch`, so a malformed config gives a wrong answer rather
- * than no answer. `scalingFor` is the memoised choke point that does it, and after the first call
- * per config object it costs a `WeakMap` hit.
- *
- * `assertClosedFormYear` runs after `yearFromRoyalEra` converts to Janson's *Y*, since that is the
- * value the closed forms — and the bound itself — are stated in terms of.
+ * @returns Janson's *Y* with the validated copy of the config, which the caller reads from and
+ * never the one it was handed.
  */
 function closedFormYear(
 	subject: string,
@@ -76,7 +69,13 @@ function closedFormYear(
 	tradition: TraditionConfig,
 ): { y: number; tradition: TraditionConfig } {
 	assertSafeYear(subject, year);
+	// The config is still validated although no lunar arithmetic runs: `γ*` is derived from
+	// `epochYear`, `epochMonth` and `intercalationIndexAtEpoch`, so a malformed config gives a wrong
+	// answer rather than no answer. `scalingFor` is the memoised choke point that does it, and after
+	// the first call per config object it costs a `WeakMap` hit.
 	tradition = validatedTradition(tradition);
+	// The bound is checked after the conversion to Janson's *Y*, since that is the value the closed
+	// forms, and the bound itself, are stated in terms of.
 	const y = yearFromRoyalEra(year);
 	assertClosedFormYear(() => subject, y, tradition);
 	return { y, tradition };
@@ -87,18 +86,14 @@ function closedFormYear(
  *
  * @remarks
  * The whole guard for every function that answers about one month — `resolveMonth`, `daysInMonth`
- * and `datesFor` here, and `monthNamesFor`, `monthAttributesFor` and `lunarDayAttributesFor`, which
- * used to borrow `daysInMonth`'s and so reported every error under its name. Not exported from the
- * package barrel.
+ * and `datesFor` here, and `monthNamesFor`, `monthAttributesFor` and `lunarDayAttributesFor`, so
+ * each reports errors under its own name. Not exported from the package barrel.
  *
  * The order is the shape, the tradition, the ranges, the leap twin, the exact range — the order every
  * export taking a Tibetan month or date follows.
  *
- * **Both ends are bounded.** `daysInMonth` bounded only the last day, and the first comes from the
- * previous month's last, which nothing checked; since the bound is symmetric in the Julian day, a
- * month straddling its negative end was answered by `daysInMonth` and the three functions borrowing
- * it while `resolveMonth` refused it — `PHUGPA_HENNING`, royal year −20652, month 3. At the positive
- * end the extra check is a no-op, since the first day never lies past the last.
+ * **Both ends are bounded:** the first and the last day of the month must both lie inside the
+ * tradition's exact range, so a month straddling either end of it is refused.
  *
  * `shape: "date"` range-checks the day as well, for `lunarDayAttributesFor`, which takes a date but
  * answers about a lunar day rather than a calendar day, and so bounds the month rather than the day.
@@ -121,6 +116,11 @@ export function boundedMonth(
 	const monthCount = monthCountFor(subject, scaled.tradition, fields);
 	const first = firstDayOfMonth(scaled, monthCount);
 	const last = lastDayOfMonth(scaled, monthCount);
+	// Both ends, because the first day comes from the previous month's last, which nothing else
+	// checks. The bound is symmetric in the Julian day, so checking only the last day answered a
+	// month straddling the negative end while `resolveMonth` refused it (`PHUGPA_HENNING`, royal
+	// year −20652, month 3). At the positive end this check is a no-op: the first day never lies
+	// past the last.
 	assertExactJulianDay(scaled, first, subject);
 	assertExactJulianDay(scaled, last, subject);
 	return { fields, scaled, monthCount, first, last };
@@ -130,22 +130,21 @@ export function boundedMonth(
  * Computed months, keyed by config identity and then by royal-era year.
  *
  * @remarks
- * Keyed on the **config**, not the year alone. A cache ignoring it would serve one tradition's
- * months for another, and the two shipped configs do diverge — royal-era 2226 M09 begins
- * 2099-10-15 under `PHUGPA` and 2099-10-14 under `PHUGPA_HENNING`. Rare enough (four years between
- * 1500 and 2500) that a config-blind cache would pass almost every test written against it, which
- * is exactly what makes it worth stating.
- *
- * A `WeakMap` on the outside so a caller's throwaway config does not pin its months forever — the
- * way {@link scalingFor} keys its cache. That alone does not bound the shipped configs, which
- * live as long as the module, so each inner `Map` is also capped at 64 years
- * and evicts the least recently used. Insertion order is the recency order: a hit deletes and
- * re-inserts its year.
- *
- * This is memoisation of a **pure** function, so it changes cost and nothing else. It earns its
- * place because stepping a month grid re-derives neighbouring years constantly: advancing twelve
- * months through the obvious consumer-side route costs 24 recomputations of work already done.
+ * Memoisation of a **pure** function, so it changes cost and nothing else.
  */
+// Keyed on the **config**, not the year alone. A cache ignoring it would serve one tradition's
+// months for another, and the configs do diverge: royal-era 2226 M09 begins 2099-10-15 under
+// `PHUGPA` and 2099-10-14 under `PHUGPA_HENNING`, `BHUTAN` and `BHUTAN_HENNING`. Between royal-era
+// 1500 and 2500 only a handful of years differ between `PHUGPA` and `PHUGPA_HENNING`, so a
+// config-blind cache would pass almost every test written against it, which is what makes it
+// worth stating.
+// A `WeakMap` on the outside so a caller's throwaway config does not pin its months forever, the
+// way `scalingFor` keys its cache. That alone does not bound the shipped configs, which live as
+// long as the module, so each inner `Map` is also capped at 64 years and evicts the least recently
+// used. Insertion order is the recency order: a hit deletes and re-inserts its year.
+// It earns its place because stepping a month grid re-derives neighbouring years constantly:
+// advancing twelve months through the obvious consumer-side route costs 24 recomputations of work
+// already done.
 const monthCache = new WeakMap<TraditionConfig, Map<number, readonly TibetanMonth[]>>();
 
 const MONTH_CACHE_YEARS = 64;
@@ -181,7 +180,7 @@ export function describeMonth(
 }
 
 /**
- * The months of the Tibetan year beginning at Losar of `year`, in calendar order.
+ * Returns the months of the Tibetan year beginning at Losar of `year`, in calendar order.
  *
  * @remarks
  * Twelve entries, or thirteen when the year carries a leap month. They tile the year exactly:
@@ -190,10 +189,13 @@ export function describeMonth(
  *
  * That the boundaries line up is a consequence of the arithmetic rather than an assumption.
  * Janson §8 defines Losar as one day after the last day of regular month 12 of the preceding year,
- * and consecutive solar months take consecutive true month counts — a leap month takes `rounded − 1`
- * and its twin takes `rounded`, so the sequence has no gap. Losar is therefore the first day of the
- * year's first month, which is leap month 1 where one exists and regular month 1 otherwise. This is
- * why the year 2000, which opens with a leap month 1, needs no special case.
+ * and consecutive months take consecutive true month counts — a leap month and its twin take
+ * `rounded − 1` and `rounded` in the order the tradition's `leapMonthPosition` gives, so the
+ * sequence has no gap. Losar is therefore the first day of the year's first month. Under `PHUGPA`
+ * and `PHUGPA_HENNING`, where the leap month comes first, that month is leap month 1 where one
+ * exists and regular month 1 otherwise: the year beginning 6 February 2000 (royal-era 2127) opens
+ * with a leap month 1 and needs no special case. Under `BHUTAN` and `BHUTAN_HENNING` the leap month
+ * follows its twin, so the year always opens with regular month 1 and a leap month can end it.
  *
  * `year` is the **royal era**, matching {@link TibetanDate.year}: 2153, not 2026.
  *
@@ -201,7 +203,8 @@ export function describeMonth(
  * date numbers, and looping `1..days` builds a wrong calendar.
  *
  * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `year` is not a safe integer, or
- * `TCT_OUTSIDE_EXACT_RANGE` if the year falls beyond where the tradition's arithmetic stays exact.
+ * `TCT_OUTSIDE_EXACT_RANGE` if the year falls beyond where the tradition's arithmetic stays exact;
+ * `TCT_INVALID_TRADITION_CONFIG` if `tradition` is not a valid config.
  *
  * @example
  * ```ts
@@ -276,14 +279,14 @@ export function monthsFor(year: number, tradition: TraditionConfig = PHUGPA): Ti
 }
 
 /**
- * The one {@link TibetanMonth} named by `month`, resolved from its identifying fields.
+ * Returns the one {@link TibetanMonth} named by `month`, resolved from its identifying fields.
  *
  * @remarks
  * The month tier's counterpart to {@link resolveDate}, and the named route from a month's
- * **identity** to the month itself. Before it existed the two available routes were both
- * accidents: `addMonths(month, 0)` — a zero step, which reads as a mistake — and
- * `monthsFor(year).find(…)`, which must match on `month` **and** `isLeapMonth` together and
- * silently returns the wrong half of a leap pair when it matches on the number alone.
+ * **identity** to the month itself. The alternatives are both accidents: `addMonths(month, 0)` — a
+ * zero step, which reads as a mistake — and `monthsFor(year).find(…)`, which must match on `month`
+ * **and** `isLeapMonth` together and silently returns the wrong half of a leap pair when it
+ * matches on the number alone.
  *
  * Equal to the corresponding entry of `monthsFor(month.year)`, computed directly rather than by
  * building the year: one `true_date` pair against the ~26 the whole list costs.
@@ -297,8 +300,9 @@ export function monthsFor(year: number, tradition: TraditionConfig = PHUGPA): Ti
  *
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `month` is not an object naming a Tibetan
  * month, or `isLeapMonth` is present and not a boolean; `TCT_FIELD_OUT_OF_RANGE` for a field out of
- * range; `TCT_NO_SUCH_LEAP_MONTH` if `isLeapMonth` is set for a month with no twin that year;
- * `TCT_OUTSIDE_EXACT_RANGE` past the tradition's exact range.
+ * range or not an integer; `TCT_NO_SUCH_LEAP_MONTH` if `isLeapMonth` is set for a month with no
+ * twin that year; `TCT_OUTSIDE_EXACT_RANGE` past the tradition's exact range;
+ * `TCT_INVALID_TRADITION_CONFIG` if `tradition` is not a valid config.
  *
  * @example
  * ```ts
@@ -316,15 +320,15 @@ export function resolveMonth(
 	return describeMonth(scaled, monthCount, fields.year, fields.month, fields.isLeapMonth ?? false);
 }
 /**
- * How many **calendar days** a Tibetan month spans: 29 or 30.
+ * Returns how many **calendar days** a Tibetan month spans: 29 or 30.
  *
  * @remarks
  * Not the highest date number, which is always 30 — see the remarks on {@link TibetanMonth}.
  *
  * There is no correct consumer-side route to this. Differencing `tibetanToIso({ month, day: 1 })`
  * and `{ month, day: 30 }` throws whenever either number is skipped, and is off by one when either
- * is doubled. Janson §8 is explicit that a month's first day must be computed from the previous
- * month's last, never by evaluating date 1.
+ * is doubled. Janson §8 computes a month's first day as one day after the previous month's last,
+ * because date 1 can itself be skipped or doubled.
  *
  * Accepts anything carrying `year`, `month` and optionally `isLeapMonth`, so a {@link TibetanDate}
  * from `isoToTibetan` can be passed straight in.
@@ -332,8 +336,9 @@ export function resolveMonth(
  * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` for a non-integer or out-of-range field;
  * `TCT_INVALID_ARGUMENT` if `month` is not an object naming a Tibetan month — a `Temporal` instance,
  * `null` — or if `isLeapMonth` is present but not `boolean`; `TCT_NO_SUCH_LEAP_MONTH` if
- * `isLeapMonth` is set for a month with no leap twin that year; or `TCT_OUTSIDE_EXACT_RANGE` past
- * the tradition's exact range.
+ * `isLeapMonth` is set for a month with no leap twin that year; `TCT_OUTSIDE_EXACT_RANGE` past
+ * the tradition's exact range; or `TCT_INVALID_TRADITION_CONFIG` if `tradition` is not a valid
+ * config.
  *
  * @example
  * ```ts
@@ -350,31 +355,30 @@ export function daysInMonth(
 }
 
 /**
- * Whether the Tibetan year `year` contains a leap month.
+ * Returns whether the Tibetan year `year` contains a leap month.
  *
  * @remarks
- * Named for the leap **month** rather than as `isLeapYear`, because every other `leap` name in this
- * API — {@link TibetanDate.isLeapMonth}, {@link TibetanDate.isLeapDay} — denotes the thing that is
- * duplicated rather than the container holding it. A Tibetan leap year has a thirteenth *month*,
- * not an extra day, and `isLeapYear` invites the Gregorian reading.
+ * Janson's closed form, `(24·Y + γ*) mod 65 ≥ 41`, with `γ*` derived from the config. This touches
+ * no lunar arithmetic, so unlike {@link monthsFor} it stays exact up to the configured tradition's
+ * derivable range and is not bounded by the tradition's exact range. Past that bound the month
+ * boundaries were never computed, but leap-year-ness still has a correct answer — up until `24·Y`
+ * itself would overflow a safe integer, where the arithmetic is refused rather than answered.
  *
- * Janson's closed form, `(24·Y + γ*) mod 65 ≥ 41`. This touches no lunar arithmetic, so unlike
- * {@link monthsFor} it stays exact up to the configured tradition's derivable range and is not
- * bounded by the tradition's exact range. That asymmetry is deliberate: past that
- * bound the month boundaries were never computed, but leap-year-ness still has a correct answer —
- * up until `24·Y` itself would overflow a safe integer, where the arithmetic is refused rather
- * than answered.
- *
- * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `year` is not a safe integer, or
- * `TCT_OUTSIDE_EXACT_RANGE` if it falls beyond the tradition's derivable range.
+ * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `year` is not a safe integer, a value
+ * that is not a number included; `TCT_OUTSIDE_EXACT_RANGE` if it falls beyond the tradition's
+ * derivable range; `TCT_INVALID_TRADITION_CONFIG` if `tradition` is not a valid config.
  */
 export function hasLeapMonth(year: number, tradition: TraditionConfig = PHUGPA): boolean {
+	// Named for the leap **month** rather than as `isLeapYear`, because every other `leap` name in
+	// this API, `TibetanDate.isLeapMonth` and `TibetanDate.isLeapDay`, denotes the thing that is
+	// duplicated rather than the container holding it. A Tibetan leap year has a thirteenth
+	// *month*, not an extra day, and `isLeapYear` invites the Gregorian reading.
 	const closed = closedFormYear(`hasLeapMonth(${describe(year)})`, year, tradition);
 	return isLeapYear(closed.tradition, closed.y);
 }
 
 /**
- * Which month number is doubled in `year`, or `undefined` if the year has no leap month.
+ * Returns which month number is doubled in `year`, or `undefined` if the year has no leap month.
  *
  * @remarks
  * The leap month carries this number. Exact up to the configured tradition's derivable range, like
@@ -389,13 +393,14 @@ export function hasLeapMonth(year: number, tradition: TraditionConfig = PHUGPA):
  * sets `leapMonthPosition`, which changes the numbering: `leapMonthNumberFor(2151, BHUTAN)` is **8**,
  * not 10. Quote such a figure with the constant it varies, never as "the Bhutanese answer".
  *
- * Where the leap month *sits* relative to its twin is `TraditionConfig.leapMonthPosition`, settled
- * on 2026-08-16. Phugpa, Tsurphu and the Mongolian version place it **before** the regular month
+ * Where the leap month *sits* relative to its twin is `TraditionConfig.leapMonthPosition`.
+ * Phugpa, Tsurphu and the Mongolian version place it **before** the regular month
  * sharing the number; Bhutan numbers from the **preceding** month, so its leap month follows —
  * `monthsFor(2151, BHUTAN)` runs `... M08 M08L ...`. See [traditions.md](../docs/traditions.md).
  *
- * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `year` is not a safe integer, or
- * `TCT_OUTSIDE_EXACT_RANGE` if it falls beyond the tradition's derivable range.
+ * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `year` is not a safe integer, a value
+ * that is not a number included; `TCT_OUTSIDE_EXACT_RANGE` if it falls beyond the tradition's
+ * derivable range; `TCT_INVALID_TRADITION_CONFIG` if `tradition` is not a valid config.
  *
  * @example
  * ```ts
@@ -412,14 +417,15 @@ export function leapMonthNumberFor(
 }
 
 /**
- * How many months the Tibetan year `year` has: 12, or 13 in a year with a leap month.
+ * Returns how many months the Tibetan year `year` has: 12, or 13 in a year with a leap month.
  *
  * @remarks
  * Equal to `monthsFor(year).length`, and exact up to the configured tradition's derivable range
  * where that is not.
  *
- * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `year` is not a safe integer, or
- * `TCT_OUTSIDE_EXACT_RANGE` if it falls beyond the tradition's derivable range.
+ * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `year` is not a safe integer, a value
+ * that is not a number included; `TCT_OUTSIDE_EXACT_RANGE` if it falls beyond the tradition's
+ * derivable range; `TCT_INVALID_TRADITION_CONFIG` if `tradition` is not a valid config.
  */
 export function monthsInYear(year: number, tradition: TraditionConfig = PHUGPA): number {
 	const closed = closedFormYear(`monthsInYear(${describe(year)})`, year, tradition);
@@ -427,7 +433,7 @@ export function monthsInYear(year: number, tradition: TraditionConfig = PHUGPA):
 }
 
 /**
- * Every calendar day of a Tibetan month, in order, each labelled with its Tibetan date.
+ * Returns every calendar day of a Tibetan month, in order, each labelled with its Tibetan date.
  *
  * @remarks
  * The month grid, and the counterpart of {@link monthsFor}: `monthsFor(year)` then `datesFor(month)`
@@ -436,12 +442,13 @@ export function monthsInYear(year: number, tradition: TraditionConfig = PHUGPA):
  * **Why this is not `for (let d = 1; d <= month.days; d++)`.** Date numbers always run 1–30 while
  * the span is 29 or 30 *calendar days*, because some numbers are skipped and some are carried by
  * two consecutive days. Counting to `days` therefore produces a grid that is wrong in most months —
- * over 754 months sampled, 708 are missing at least one number. This walks the calendar days
- * instead, which is also the right model for a UI: one cell per day, labelled by conversion.
+ * under `PHUGPA`, 2,333 of the 2,473 months of Tibetan 2000–2199 (1873–2073 CE), 94%, lack at least
+ * one number. This walks the calendar days instead, which is also the right model for a UI: one
+ * cell per day, labelled by conversion.
  *
  * So a doubled number appears **twice**, the first carrying {@link TibetanDate.isLeapDay}, and a
- * skipped number does not appear at all. Both are ordinary — expect roughly one of each every
- * couple of months.
+ * skipped number does not appear at all. Both are ordinary: over the same months, 94% skip a
+ * number and 64% carry a doubled one.
  *
  * Bounded by construction at 29 or 30 entries, so unlike a date *range* it needs no span cap.
  *
@@ -451,8 +458,9 @@ export function monthsInYear(year: number, tradition: TraditionConfig = PHUGPA):
  *
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `month` is not an object naming a Tibetan
  * month, or `isLeapMonth` is present and not a boolean; `TCT_FIELD_OUT_OF_RANGE` for a field out of
- * range; `TCT_NO_SUCH_LEAP_MONTH` if `isLeapMonth` is set for a month with no twin that year;
- * `TCT_OUTSIDE_EXACT_RANGE` past the tradition's exact range.
+ * range or not an integer; `TCT_NO_SUCH_LEAP_MONTH` if `isLeapMonth` is set for a month with no
+ * twin that year; `TCT_OUTSIDE_EXACT_RANGE` past the tradition's exact range;
+ * `TCT_INVALID_TRADITION_CONFIG` if `tradition` is not a valid config.
  *
  * @example
  * ```ts

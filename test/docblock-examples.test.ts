@@ -9,7 +9,7 @@ import { deriveScaling } from "../src/computation/scaling.js";
 import { rabjungFor, weekdayNameFor, yearNameFor } from "../src/cycles.js";
 import { formatTibetanDate } from "../src/format.js";
 import { monthNamesFor } from "../src/month-names.js";
-import { daysInMonth, leapMonthNumberFor, monthsFor } from "../src/months.js";
+import { daysInMonth, leapMonthNumberFor, monthsFor, resolveMonth } from "../src/months.js";
 import {
 	addDays,
 	addMonths,
@@ -19,6 +19,7 @@ import {
 	nextFullMoon,
 } from "../src/navigation.js";
 import { composeObservances, EXAMPLE_OBSERVANCES } from "../src/observances/index.js";
+import { parseTibetanMonth } from "../src/parse.js";
 import { BHUTAN } from "../src/traditions/bhutan.js";
 import { PHUGPA } from "../src/traditions/phugpa.js";
 import { asTibetanWeekday, type TibetanWeekday } from "../src/types.js";
@@ -149,6 +150,22 @@ describe("docblock examples", () => {
 			expect(forThreshold(0)).toBeUndefined();
 		});
 
+		it("resolveMonth states the leap month's code, first day and length", () => {
+			const leap = resolveMonth({ year: 2151, month: 6, isLeapMonth: true });
+			expect(leap.monthCode).toBe("M06L");
+			expect(leap.firstDay.toString()).toBe("2024-07-06");
+			expect(leap.days).toBe(30);
+		});
+
+		it("leapMonthNumberFor gives BHUTAN's leap month 8 in 2151, after its twin", () => {
+			expect(leapMonthNumberFor(2151, BHUTAN)).toBe(8);
+			expect(
+				monthsFor(2151, BHUTAN)
+					.map((month) => month.monthCode)
+					.slice(6, 10),
+			).toEqual(["M07", "M08", "M08L", "M09"]);
+		});
+
 		it("daysInMonth accepts a leap month and a date's own month", () => {
 			expect(daysInMonth({ year: 2151, month: 6, isLeapMonth: true })).toBeTypeOf("number");
 			expect(daysInMonth(isoToTibetan(Temporal.PlainDate.from("2026-08-12")))).toBeTypeOf("number");
@@ -219,6 +236,12 @@ describe("docblock examples", () => {
 			expect(() => asTibetanWeekday(7)).toThrow(
 				expect.objectContaining({ code: "TCT_FIELD_OUT_OF_RANGE" }),
 			);
+		});
+	});
+
+	describe("parse.ts", () => {
+		it("parseTibetanMonth returns the leap month's three fields", () => {
+			expect(parseTibetanMonth("2151-M06L")).toEqual({ year: 2151, month: 6, isLeapMonth: true });
 		});
 	});
 

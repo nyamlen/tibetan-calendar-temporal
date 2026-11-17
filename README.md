@@ -584,7 +584,7 @@ from; in coordinate space a leap month is simply the next lunation.
 | `monthsBetween` | `(from: TibetanMonthFields, to: TibetanMonthFields, tradition?) => number` | Signed, counted in **lunations** — month 5 to month 7 is three in a year that doubles month 6, two otherwise |
 | `lunationFromMonth` | `(month: TibetanMonthFields, tradition?) => number` | The month as one sortable integer, for a database or cache key. No consumer-side route: it needs the intercalation index |
 | `monthFromLunation` | `(lunation: number, tradition?) => TibetanMonth` | The inverse, for a stored coordinate with no year in hand. Narrower domain than its inverse — it returns boundaries, so it evaluates the calendar |
-| `nextFullMoon` | `(date: Temporal.PlainDate \| TibetanDate, tradition?) => TibetanDate` | Strictly after. **Not** `day === 15`: when 15 is skipped the full moon is on the day numbered 14, about one month in forty-five. Takes a *resolved* date, so it chains — a bare `{ year, month, day }` names no calendar and is refused; pass `resolveDate(…)` |
+| `nextFullMoon` | `(date: Temporal.PlainDate \| TibetanDate, tradition?) => TibetanDate` | Strictly after. **Not** `day === 15`: when 15 is skipped the full moon is on the day numbered 14, about one month in forty-four. Takes a *resolved* date, so it chains — a bare `{ year, month, day }` names no calendar and is refused; pass `resolveDate(…)` |
 | `nextNewMoon` | `(date: Temporal.PlainDate \| TibetanDate, tradition?) => TibetanDate` | Strictly after. On a doubled 30 it is the **second** of the pair, not the leap day |
 
 These two chain with themselves: the resolved date they return is a date they accept.
