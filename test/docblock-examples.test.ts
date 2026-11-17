@@ -14,8 +14,21 @@ import {
 import { lunarDayAttributes } from "../src/astrology/lunar-day.js";
 import { mansionNumber } from "../src/astrology/mansions.js";
 import { monthAttributes } from "../src/astrology/month.js";
-import { monthFromCount, trueMonthCount } from "../src/computation/calendar.js";
-import { isoToTibetan, losarFor, tibetanToIso } from "../src/computation/conversion.js";
+import {
+	isLeapYear,
+	lastMonthCountOfYear,
+	monthFromCount,
+	sharesNumberWithLeapMonth,
+	trueMonthCount,
+} from "../src/computation/calendar.js";
+import {
+	isoFromJulianDay,
+	isoToTibetan,
+	losarFor,
+	tibetanDateExists,
+	tibetanToIso,
+	tibetanWeekday,
+} from "../src/computation/conversion.js";
 import {
 	rabjungFromYear,
 	royalEraFromYear,
@@ -38,8 +51,8 @@ import {
 } from "../src/navigation.js";
 import { composeObservances, EXAMPLE_OBSERVANCES } from "../src/observances/index.js";
 import { parseTibetanMonth } from "../src/parse.js";
-import { BHUTAN } from "../src/traditions/bhutan.js";
-import { PHUGPA } from "../src/traditions/phugpa.js";
+import { BHUTAN, BHUTAN_HENNING } from "../src/traditions/bhutan.js";
+import { PHUGPA, PHUGPA_HENNING } from "../src/traditions/phugpa.js";
 import { asTibetanWeekday, type TibetanWeekday } from "../src/types.js";
 import { thrownBy } from "./support/thrown.js";
 
@@ -91,6 +104,109 @@ describe("docblock examples", () => {
 			expect(losarFor(2153).isoDate.toString()).toBe("2026-02-18");
 			expect(losarFor(2104).day).toBe(2);
 			expect(losarFor(2146).monthCode).toBe("M01L");
+		});
+
+		it("tibetanToIso and isoToTibetan state the same day, 2027-01-15 and 2153-M12-08", () => {
+			expect(tibetanToIso({ year: 2153, month: 12, day: 8 }).toString()).toBe("2027-01-15");
+			const date = isoToTibetan(Temporal.PlainDate.from("2027-01-15"));
+			expect([date.year, date.yearStartsIn, date.month, date.day]).toEqual([2153, 2026, 12, 8]);
+		});
+
+		it("tibetanDateExists throws for a forgotten day and for a month passed as a date", () => {
+			expect(thrownBy(() => tibetanDateExists({ year: 2153, month: 1 } as never))?.code).toBe(
+				"TCT_INVALID_ARGUMENT",
+			);
+			expect(
+				thrownBy(() => tibetanDateExists({ year: 2151, month: 6, isLeapMonth: true } as never))
+					?.code,
+			).toBe("TCT_INVALID_ARGUMENT");
+			expect(tibetanDateExists({ year: 2153, month: 13, day: 1 })).toBe(false);
+		});
+
+		it("losarFor opens in a leap month 1 under the Phugpa configs only, in 2000 and 2019", () => {
+			for (const config of [PHUGPA, PHUGPA_HENNING]) {
+				expect(losarFor(2000 + 127, config).monthCode).toBe("M01L");
+				expect(losarFor(2019 + 127, config).monthCode).toBe("M01L");
+			}
+			const inLeapMonth: number[] = [];
+			for (const config of [BHUTAN, BHUTAN_HENNING]) {
+				for (let y = 1447; y <= 2500; y++) {
+					if (losarFor(y + 127, config).isLeapMonth) inLeapMonth.push(y);
+				}
+			}
+			expect(inLeapMonth).toEqual([]);
+		});
+
+		it("isoFromJulianDay states each config's exactness bound as an ISO year", () => {
+			const bounds = (config: typeof PHUGPA) => {
+				const reach = scalingFor(config).exactToJulianDay;
+				return [
+					isoFromJulianDay(-reach, config).year,
+					isoFromJulianDay(reach, config).year,
+					thrownBy(() => isoFromJulianDay(reach + 1, config))?.code,
+				];
+			};
+			for (const config of [PHUGPA, BHUTAN]) {
+				expect(bounds(config)).toEqual([-245_737, 236_312, "TCT_OUTSIDE_EXACT_RANGE"]);
+			}
+			for (const config of [PHUGPA_HENNING, BHUTAN_HENNING]) {
+				expect(bounds(config)).toEqual([-20_781, 11_356, "TCT_OUTSIDE_EXACT_RANGE"]);
+			}
+		});
+
+		it("tibetanWeekday numbers 2007-01-01 as Monday, 2, and no tradition moves the number", () => {
+			expect(tibetanWeekday(2_454_102)).toBe(2);
+			const day = Temporal.PlainDate.from("2026-09-01");
+			const phugpa = isoToTibetan(day, PHUGPA);
+			const bhutan = isoToTibetan(day, BHUTAN);
+			expect(phugpa.tibetanWeekday).toBe(3);
+			expect(bhutan.tibetanWeekday).toBe(3);
+			expect(phugpa.weekdayName.wylie).toBe("mig dmar");
+			expect(bhutan.weekdayName.wylie).toBe("lhag pa");
+		});
+	});
+
+	describe("calendar.ts", () => {
+		it("lastMonthCountOfYear names a leap month 1 opening and a leap month 12 closing", () => {
+			for (const config of [PHUGPA, PHUGPA_HENNING]) {
+				for (const y of [2000, 2019]) {
+					const first = monthFromCount(config, lastMonthCountOfYear(config, y - 1) + 1);
+					expect(first).toEqual({ year: y, month: 1, isLeap: true });
+				}
+			}
+			for (const config of [BHUTAN, BHUTAN_HENNING]) {
+				for (const y of [2002, 2021]) {
+					const last = monthFromCount(config, lastMonthCountOfYear(config, y));
+					expect(last).toEqual({ year: y, month: 12, isLeap: true });
+				}
+			}
+		});
+
+		it("isLeapYear's γ* is 33 for the Phugpa configs and 28 for the Bhutanese", () => {
+			const wrong: string[] = [];
+			const gammas: [typeof PHUGPA, number][] = [
+				[PHUGPA, 33],
+				[PHUGPA_HENNING, 33],
+				[BHUTAN, 28],
+				[BHUTAN_HENNING, 28],
+			];
+			for (const [config, gamma] of gammas) {
+				for (let y = 1000; y <= 3000; y++) {
+					if (isLeapYear(config, y) !== (24 * y + gamma) % 65 >= 41)
+						wrong.push(`${config.id} ${y}`);
+				}
+			}
+			expect(wrong).toEqual([]);
+		});
+
+		it("trueMonthCount is zero at the epoch month and states what isLeap does without a twin", () => {
+			expect(trueMonthCount(PHUGPA, 806, 2)).toBe(0);
+			expect(trueMonthCount(BHUTAN, 1754, 3)).toBe(0);
+			// 2026 month 3 has no twin under either config.
+			expect(sharesNumberWithLeapMonth(PHUGPA, 2026, 3)).toBe(false);
+			expect(sharesNumberWithLeapMonth(BHUTAN, 2026, 3)).toBe(false);
+			expect(trueMonthCount(PHUGPA, 2026, 3, true)).toBe(trueMonthCount(PHUGPA, 2026, 2));
+			expect(trueMonthCount(BHUTAN, 2026, 3, true)).toBe(trueMonthCount(BHUTAN, 2026, 3));
 		});
 	});
 
