@@ -392,6 +392,11 @@ its tests inside the importer.
 `biome.json` raises `lineWidth` to 250 for `test/fixtures/fpmt-observances.ts` so its rows stay one per
 line. Measure with Biome (a tab counts as `indentWidth`), raise it when a field is added, never remove it.
 
+**A review that parks a finding records it in the roadmap's "Small findings parked by the pre-1.0.0
+reviews" item, marked Fix or Accepted with the reason — never in a private ledger or an undecided
+list.** A finding with no recorded decision is one nobody will ever close. Limits of throwaway plan
+tooling that never ships are not tracked.
+
 **Decision records** document a constraint a contributor would otherwise violate, not deliberation.
 Format: `YYYY-MM-DD-slug.md`, front matter with only `date` and `status`
 (`accepted`/`superseded`/`deprecated`), one H1, then a bold `**Decision:**` line. No `title` in front
