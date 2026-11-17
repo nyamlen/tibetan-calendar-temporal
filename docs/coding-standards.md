@@ -37,7 +37,7 @@ A rule with a command beside it will stop a push. A rule marked **review** will 
 | A cache never hands out shared mutable state | **review** | One consumer's `sort()` otherwise corrupts the next consumer's |
 | A cache is bounded: `monthsFor` keeps at most 64 years per config, least recently used out | `test/months.test.ts`, by object identity | A `WeakMap` on the config lets go of a throwaway config but not of the four shipped ones, so an unbounded inner map is a memory exhaustion for a caller who picks the years |
 
-`PHUGPA` and `PHUGPA_HENNING` diverge at month level in only four years between 1500 and 2500, which is why a config-blind cache passes the suite.
+`PHUGPA` and `PHUGPA_HENNING` diverge at month level in only four Tibetan years between 1500 and 2500 (1373 to 2373 CE) by a month's first day — five by any month boundary, 1538 included — which is why a config-blind cache passes the suite.
 
 ## API surface and errors
 

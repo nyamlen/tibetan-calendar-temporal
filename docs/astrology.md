@@ -204,9 +204,12 @@ detail.**
 Henning's published list — the same page the table below comes from — prints **28**, including
 *Abhijit* at position 23; Janson numbers the mansions 0–26, so reaching 27 means dropping Abhijit.
 Its elements run seven each across the 28, so dropping it leaves six earth against seven of each
-other, which is how the drop can be checked rather than assumed.
-Drop the wrong one and every element from *Dhaniṣṭhā* onward shifts by one, silently, with nothing
-about the output looking wrong.
+other, which catches a mistyped element or a drop of a mansion of another element, though not which
+earth mansion left: dropping any of the seven earth ones gives the same counts, so the table
+drops Abhijit by name.
+Drop a different one and the mansions between it and Abhijit's place each read a neighbour's element,
+silently, with nothing about the output looking wrong.
+Keeping Abhijit and dropping *Revatī* shifts every element from *Dhaniṣṭhā* onward by one.
 
 The order of the pair does not matter, so there are exactly **ten** combinations: four matched pairs
 and six mixed.

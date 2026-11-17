@@ -241,7 +241,9 @@ Before explaining a residual by a formula, check whether the source uses the sam
   stated in many places: find them by the export's **name**, never by a phrase.
   [docs/decisions/2026-08-12-error-codes-not-classes.md](docs/decisions/2026-08-12-error-codes-not-classes.md).
 - `TCT_FIELD_OUT_OF_RANGE`: a **number** is wrong. `TCT_INVALID_ARGUMENT`: the argument is the wrong
-  **kind of thing**; a new shape check uses this one.
+  **kind of thing**; a new shape check uses this one. The exception is deliberate: a bare-number
+  argument that is not a number keeps the range code (`tibetanWeekday(null)`), and only a field of a
+  date or month object, or a shape, gets the argument code ("What is deliberately *not* split").
   [docs/decisions/2026-08-15-argument-errors-split.md](docs/decisions/2026-08-15-argument-errors-split.md).
   `TCT_ATTRIBUTE_NOT_SOURCED`: the input is fine and **no source gives the answer** — off the allowlist,
   reached by a tradition with no `naming.monthAnimals` (month and lunar-day attributes) or a nonzero

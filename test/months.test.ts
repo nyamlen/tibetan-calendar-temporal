@@ -145,8 +145,9 @@ describe("monthsFor", () => {
 
 	/**
 	 * The cache must key on the config, not the year alone, or it serves one tradition's months for
-	 * another. Royal-era 2226 is one of only four years between 1500 and 2500 where the two shipped
-	 * configs disagree at month level — M09 begins 2099-10-15 under `PHUGPA` and 2099-10-14 under
+	 * another. Royal-era 2226 is one of only four Tibetan years between 1500 and 2500 (1373 to 2373
+	 * CE) where the two shipped configs disagree on a month's first day, five by any month boundary
+	 * — M09 begins 2099-10-15 under `PHUGPA` and 2099-10-14 under
 	 * `PHUGPA_HENNING` — which is exactly why the test names it rather than a convenient year: a
 	 * config-blind cache passes everywhere else.
 	 */

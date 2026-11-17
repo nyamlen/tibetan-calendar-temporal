@@ -9,7 +9,7 @@
 | 2 | Validation: FPMT fixtures, cross-check against reference implementations — **done** | 12h |
 | 3 | Observances: config-driven rules, an example config — **done**; rebuilt in November 2026, see the checklist | 8h |
 | 4 | TypeDoc + release workflow + publish v1.0.0 (docblock audit split out — see Phase 4a) | 6h |
-| 4a | Code review: 300 docblocks verified against behaviour, plus convention and derivation conformance across all of `src/` — see the [Pre-v1.0.0 checklist](#pre-v100-checklist) | 14h |
+| 4a | Code review: 629 docblocks (counted 2026-11-16) verified against behaviour, plus convention and derivation conformance across all of `src/` — see the [Pre-v1.0.0 checklist](#pre-v100-checklist) | 14h |
 
 **Safe timeline: 3 weeks** (accounts for debugging edge cases in doubled/skipped day logic —
 predates Phase 4a's addition below and has not been revisited against its extra 10h)
@@ -44,7 +44,7 @@ otherwise.
   literal would have made Tsurphu unrepresentable and broken the injection rule.
 - **`rabjung` is separate from `yearName`.** The Indian and Chinese cycles number a year
   differently — 2026 is Indian 40 but Chinese 43 — so one combined object invited a lookup that
-  is wrong for 57 of every 60 years.
+  is wrong in every year of the cycle.
 - **Losar is not always day 1.** Where day 1 is skipped it is numbered day 2, as in 1977. This is
   why Losar is computed from the previous year's month 12.
 - **2027-01-15 is month 12 day 8**, not month 11 day 27 as the plan and an early draft of the
@@ -321,8 +321,8 @@ brief.
       components stay flat, mirroring `Temporal.PlainDate`; naming systems group under a `*Name`
       field. `rabjung` was split out of `yearName` because the Indian cycle is a numbering and
       the Chinese cycle is a name, and because the two give a year different positions — 2026 is
-      Indian 40 but Chinese 43, so holding both in one object invited a lookup that is wrong for
-      57 of every 60 years. See
+      Indian 40 but Chinese 43, so holding both in one object invited a lookup that is wrong in
+      every year of the cycle. See
       [architecture.md](architecture.md#why-rabjung-is-separate-from-yearname).
 
 Setup work not yet done. None of it blocks Phase 3.
@@ -373,7 +373,7 @@ The list is grouped by subject, not by sequence, and one run of items does have 
    content, membership and names could still change, and they have settled.
 2. The **Full code review**, under Review passes below. **Merged to `main` on 2026-11-16**
    (`51c7c03`).
-3. The **docblock audit** ("Audit and correct all 300 docblocks"), under the rule in
+3. The **docblock audit** ("Audit and correct all 629 docblocks"), under the rule in
    [decisions/2026-11-15-docblocks-are-for-callers.md](decisions/2026-11-15-docblocks-are-for-callers.md).
    It follows the code review because fixes rewrite docblocks, and auditing first would do those twice.
    The **Security review** runs alongside the end of the code review: its subject is release
@@ -1053,7 +1053,7 @@ that its first step is still open.
       why they stay exact. All three are fixed; `assertInternal` is now the single idiom for
       discharging a `noUncheckedIndexedAccess` widening.
 
-- [ ] **Audit and correct all 300 docblocks against actual behaviour** — see
+- [ ] **Audit and correct all 629 docblocks against actual behaviour** — see
       [Phase 4a](#implementation-phases) for the effort estimate.
       **Since 2026-11-15 it also applies a content rule**: a docblock holds what a caller needs, and
       rationale moves to `//` comments, history to commits —
@@ -1063,6 +1063,10 @@ that its first step is still open.
       `src/computation/calendar.ts` (30), `src/observances/types.ts` (28),
       `src/computation/scaling.ts` (22) and `src/navigation.ts` (16) are the concentrations, across
       22 files in `src/` in total.
+
+      **Recount 2026-11-16: 629 docblocks, 6,562 docblock lines, in 44 files of `src/`**, counted as lines
+      opening `/**` and the lines up to the closing `*/`.
+      The per-file figures and the 22-file total above, and the 10h estimate, are from the 2026-08-15 count.
 
       **Recount 2026-08-15: 265 became 300.** The navigation and naming work added 35, and the
       10h estimate predates them — it has not been revisited. The new ones are the least likely to
@@ -1094,6 +1098,42 @@ that its first step is still open.
       5. Citations follow the clean-room rule: by section and content, never by a rendered equation
          or table number.
       6. Only then, prose quality and consistency of voice.
+
+- [ ] **Three refusal messages that misdescribe their own check — found by the docblock audit,
+      deliberately not fixed on its comments-only branch, because each is a string literal and
+      changing one is a code change.** Messages are not contract, but each is read by a consumer.
+      1. **`MANSION_ELEMENTS`'s `assertInternal` message** in `src/astrology/mansion-elements.ts`
+         reads "element counts are …, not earth:6 fire:7 water:7 wind:7. Henning's 28 divide seven
+         to each element, so the 27 must lose exactly one earth — and that is Abhijit. Any other
+         signature means the wrong entry was dropped or the table was mistranscribed".
+         The first two sentences are true and the third implies that the right signature proves the
+         right entry was dropped, which it does not: dropping any one of the seven earth mansions
+         gives `earth:6 fire:7 water:7 wind:7`.
+         It should say that the counts catch a mistyped element or a dropped non-earth mansion, and
+         that Abhijit itself is pinned by the filter on its name and the length check above it.
+         Decided by Andreas, 2026-11-17, as a roadmap entry rather than a fix on that branch.
+      2. **`validatedTradition`'s refusal of `meanDate.perMonth` against `meanDate.perDay`** in
+         `src/traditions/validate.ts` reads "Janson's m₂ is m₁/30 in every version, and the search
+         for a lunar day's date is bounded only while that holds".
+         The first clause is false: his original Kālacakra Tantra (*karaṇa*) version gives
+         `m₂ = 59/60` beside `m₁ = 29;31,50 ⟨60,60⟩` and does not satisfy it, and the code comment
+         above the check already says so.
+         It should say that the tradition must have `m₂ = m₁/30`, as the Phugpa version and every
+         other modern version he knows of do, and name the bound the search window needs, without
+         claiming it of every version.
+      3. **`asPlainDate` and `asWesternDay` in `src/computation/conversion.ts`** name no caller in
+         two refusals.
+         For a `Temporal.PlainDate` in another calendar, or an ISO string carrying one, `asPlainDate`
+         refuses with "received a Temporal.PlainDate in the hebrew calendar. The arithmetic here is
+         defined on ISO days, so the calendar has to be said explicitly: convert it with
+         .withCalendar("iso8601"), which names the same day." and no `f(x):` prefix, where its other
+         refusals open with the subject.
+         `asWesternDay`, given a string it cannot parse, refuses with "expected a Temporal.PlainDate,
+         received "junk": Temporal error: Invalid character while parsing year value." and no
+         subject at all, because it passes none for a string.
+         Both should open with the caller's name as the other refusals do.
+         Reproduce with `asPlainDate(Temporal.PlainDate.from("2007-01-01").withCalendar("hebrew"),
+         "f(x)")` and `asWesternDay("f", "junk")` against a build.
 
 - [x] **Decided: `name` is a required field on `Rabjung`.** Free now at `0.0.1`, a breaking change
       after `1.0.0`, and approved on its own against the real, fully-sourced table rather than as a
