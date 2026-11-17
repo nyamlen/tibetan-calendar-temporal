@@ -102,7 +102,6 @@ export function julianDayFromIso(date: Temporal.PlainDate): number {
 	return JULIAN_DAY_AT_UNIX_EPOCH + plain.since(UNIX_EPOCH, { largestUnit: "day" }).days;
 }
 
-/**
 // The code is the wrong-kind-of-argument one rather than the range one because none of the refused
 // values has a field to be out of a range — they are not Western dates at all. This is the one
 // guard every entry point shares, so each states its own name through `subject` rather than
@@ -784,8 +783,8 @@ export function isoToTibetan(
  * Losar cannot be obtained as `tibetanToIso({ month: 1, day: 1 })`. Where day 1 is skipped the
  * year begins on the day numbered **2** — the year beginning in 1977 is one — and that call throws
  * {@link SkippedDayError} instead of returning the new year. Where the year opens with a leap
- * month 1, which happens twice per 65-year cycle under `PHUGPA` and `PHUGPA_HENNING` — 2000 and
- * 2019 are two — the year begins in the leap month rather than the regular one. Under `BHUTAN` and
+ * month 1, which happens twice per 65-year cycle under `PHUGPA` and `PHUGPA_HENNING` — the years
+ * beginning in 2000 and 2019 CE are two — the year begins in the leap month rather than the regular one. Under `BHUTAN` and
  * `BHUTAN_HENNING`, whose leap months follow their twins, a year never opens with one.
  *
  * Janson computes it as one day after the last day of the preceding year, which sidesteps both
