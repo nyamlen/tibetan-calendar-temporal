@@ -4,34 +4,32 @@
  *
  * @remarks
  * `TraditionConfig` and `ObservanceConfig` are `readonly` throughout, which is a **compile-time**
- * claim and nothing more. A JavaScript consumer, a TypeScript one holding the value as `any`, or
- * any transitive dependency reaching the module registry can assign to `PHUGPA.moonTab[4]` or push
- * onto `EXAMPLE_OBSERVANCES.rules`, and "same input, same output, no side effects" stops being
- * true for every caller in the process.
- *
- * That is ordinary hygiene anywhere. Two things make it worth enforcing here.
- *
- * The first is that these are the objects the documentation *tells* consumers to reach for.
- * `{ ...PHUGPA, lunarAnomaly: … }` appears in `CLAUDE.md`, the README, `docs/architecture.md` and
- * three doc comments, so a keystroke away from a spread is an assignment to the shared singleton.
- *
- * The second is that these are shared singletons. The engine reads a private frozen copy of any
- * config it validates, so a consumer's own object cannot reach it; but a mutation of `PHUGPA`
- * itself would be seen by every later spread, and by the copy of every config spread from it
- * afterwards. Freezing is what stops the shared object being written to at all.
- *
- * Free now, breaking later: a consumer who ships `PHUGPA.moonTab.sort()` against v1.0.0 would
- * break on the release that adds this.
+ * claim and nothing more; freezing makes a write to a shipped config, such as `PHUGPA.moonTab[4]` or
+ * `EXAMPLE_OBSERVANCES.rules.push`, throw in strict mode instead of changing what every later
+ * caller in the process sees. The engine reads a private frozen copy of any config it validates, so
+ * a consumer's own object cannot reach it.
  *
  * @packageDocumentation
  */
+// A JavaScript consumer, a TypeScript one holding the value as `any`, or any transitive dependency
+// reaching the module registry can otherwise assign to a shipped config, and "same input, same
+// output, no side effects" stops being true for every caller in the process. Two things make it
+// worth enforcing. These are the objects the documentation *tells* consumers to
+// reach for — the README shows `{ ...PHUGPA, … }` as the way to build a config — so a keystroke away
+// from a spread is an assignment to the shared singleton. And they are shared
+// singletons: a mutation of `PHUGPA` itself would be seen by every later spread, and by the copy of
+// every config spread from it afterwards.
 
 /**
- * Recursively freezes an object and every plain object and array reachable from it.
+ * Recursively freezes an object and every object reachable from it through own string-keyed
+ * properties.
  *
  * @remarks
- * Idempotent, and skips anything already frozen — which matters because `PHUGPA_HENNING` spreads
- * `PHUGPA` and therefore shares its frozen correction tables by reference.
+ * Idempotent, and it does **not descend into an object that is already frozen**, so an object frozen
+ * shallowly keeps its unfrozen children. That is what lets `PHUGPA_HENNING`, which spreads `PHUGPA`,
+ * share its frozen correction tables by reference. Functions and symbol-keyed properties are left
+ * alone; a getter is invoked and its result frozen; a `Map` or `Set` is frozen as a shell, not its
+ * entries; a non-empty typed array throws `TypeError`, as `Object.freeze` does.
  *
  * @returns The same object, so this reads as a wrapper at the point of definition.
  */

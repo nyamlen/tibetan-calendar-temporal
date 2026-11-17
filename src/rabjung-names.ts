@@ -2,21 +2,11 @@
  * The 60 rabjung cycle names: the Tibetan tradition's name at each position.
  *
  * @remarks
- * A weaker evidence tier than `names.ts`'s vocabulary — see {@link TibetanName} — so it lives in its
- * own module rather than joining that table, keeping one module per evidence standard and one
- * generator per fixture.
+ * Its evidence differs from `names.ts`'s vocabulary — see {@link TibetanName}: the Tibetan names rest
+ * on Janson's Wylie, Csoma de Kőrös' grammar and two EWTS converters, checked by
+ * `scripts/verify-rabjung-names.mjs`; see `docs/names/rabjung.md` and `docs/names/rabjung-sourcing.md`.
  *
- * Every row was verified by `scripts/verify-rabjung-names.mjs` before it was written down, against
- * five independent sources — see `docs/names/rabjung.md` and `docs/names/rabjung-sourcing.md`.
- * `test/fixtures/rabjung-names.ts` holds the generated copy and the suite asserts this file matches
- * it, so a hand-edit here fails `npm test` even though the generating script needs the network and
- * is not on the CI path.
- *
- * **Neither of the cycle's two Sanskrit lists ships here**, and the fixture is deliberately fuller
- * than this file: it keeps `devanagari`, `iast`, the Monier-Williams senses and Csoma's two columns,
- * because they are what would make a later change cheap and because they are the evidence for the
- * rows that do ship. The suite therefore asserts this file against a **subset** of the fixture; that
- * asymmetry is deliberate and is not drift. See
+ * **Neither of the cycle's two Sanskrit lists ships here**; see
  * `docs/decisions/2026-08-25-rabjung-ships-the-tibetan-name-only.md`.
  *
  * @packageDocumentation
@@ -26,12 +16,21 @@ import { assertInternal } from "./errors.js";
 import { deepFreeze } from "./freeze.js";
 import type { TibetanName } from "./types.js";
 
+// It lives in its own module rather than joining `names.ts`, keeping one module per evidence standard
+// and one generator per fixture. `test/fixtures/rabjung-names.ts` holds the generated copy and the
+// suite asserts this file matches it, so a hand-edit here fails `npm test` even though the generating
+// script needs the network and is not on the CI path. The fixture is deliberately fuller than this
+// file: it keeps `devanagari`, `iast`, the Monier-Williams senses and Csoma's two columns, because
+// they are what would make a later change cheap and the evidence for the rows that do ship. The suite
+// therefore asserts this file against a **subset** of the fixture; that asymmetry is deliberate and is
+// not drift.
+
 /**
  * All sixty names, indexed by position **minus one** — `RABJUNG_NAMES[0]` is position 1.
  *
  * @remarks
- * Frozen and shared, matching `names.ts`'s `NAME_TABLES`: a `Rabjung` holds a pointer to one of
- * these rather than a copy, so `datesFor` over a year adds pointer fields, not sixty-row copies.
+ * Frozen and shared, matching `names.ts`'s `NAME_TABLES`: the `tibetanName` of a `Rabjung` is a
+ * pointer to one of these rows rather than a copy.
  */
 export const RABJUNG_NAMES: readonly TibetanName[] = deepFreeze([
 	{
@@ -337,10 +336,12 @@ export const RABJUNG_NAMES: readonly TibetanName[] = deepFreeze([
 ]);
 
 /**
- * The Tibetan name at a rabjung position.
+ * Returns the Tibetan name at a rabjung position.
  *
- * @param position - 1–60. Every caller here has already computed this via `(Y − 1026) amod 60`,
- * which is always in range, so an out-of-range position is an internal bug, not user input.
+ * @param position - 1–60. The caller has already computed this via `(Y − 1026) amod 60`, which is
+ * always in range, so an out-of-range position is an internal bug, not user input.
+ *
+ * @throws A `TCT_INTERNAL` error if `position` is not an integer from 1 to 60.
  */
 export function rabjungNameOf(position: number): TibetanName {
 	return assertInternal(

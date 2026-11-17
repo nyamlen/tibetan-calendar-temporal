@@ -2,54 +2,44 @@
  * What a Temporal value **is**, decided by its brand rather than by its identity.
  *
  * @remarks
- * ## Why this file exists
+ * A value is a Temporal value of a kind when `Object.prototype.toString.call(x)` gives
+ * `[object Temporal.<Kind>]`, which is the same for an instance from this realm's `Temporal`, a
+ * second implementation's (a polyfill, an iframe) and a deliberately disguised object. A bare
+ * `{ year, month, day }` gives `[object Object]` and so stays distinguishable, which it must: it is
+ * this package's own `TibetanDateFields`.
  *
- * Every guard in this package used to ask `value instanceof Temporal.PlainDate`, which is a
- * question about *identity*: it is true only for an instance built by whichever `Temporal` is the
- * global object at call time. Two Temporal implementations meet in one page more often than that
- * assumption survives — native Chrome plus a dependency bundling a polyfill, Safari with two
- * non-deduplicated copies in `node_modules`, a date arriving from an iframe, or a polyfill
- * installed after this package was imported. In each of those a perfectly ordinary `PlainDate`
- * fails every `instanceof`, and this package then did one of two wrong things: refused a genuine
- * Western date at ten exports, or — worse — let a Western date fall through a Tibetan-side guard
- * and be read structurally for `year`/`month`/`day`, which a `PlainDate` has, returning a
- * confident wrong answer at seventeen more.
+ * The brand is spoofable. An object carrying `Symbol.toStringTag` `"Temporal.PlainDate"` reads as a
+ * `PlainDate` here. {@link toNativePlainDate} then normalises it through its own string form, so it
+ * is accepted only if that string is an ISO calendar day, and otherwise refused with a coded error.
  *
- * `Symbol.toStringTag` is what separates them, and the Temporal proposal mandates it on every
- * type. `Object.prototype.toString.call(x)` gives `[object Temporal.PlainDate]` for a native and a
- * foreign instance alike, and `[object Object]` for a bare `{ year, month, day }` — which is the
- * shape that must stay distinguishable, since it is this package's own `TibetanDateFields`. So the
- * boundary tests **kind, not identity**, and `docs/decisions/2026-09-23-brand-not-identity.md`
- * records that as the constraint it is.
- *
- * ## The brand is spoofable, and that is survivable in both directions
- *
- * `{ [Symbol.toStringTag]: "Temporal.PlainDate", year: 1, month: 1, day: 1 }` reads as a
- * `PlainDate` here. On the *reject* side, over-rejecting a deliberately disguised object is
- * harmless — nobody writes that by accident. On the *accept* side, {@link toNativePlainDate} then
- * fails to normalise it and throws a coded error rather than computing on it. `instanceof` was not
- * strong here either: it is strong about identity, and this package needs kind.
- *
- * ## This is the only file in `src/` allowed to say `instanceof Temporal`
- *
- * Five identity checks accumulated across three files with nothing watching, and two of the five
- * were a second copy of a policy that already existed elsewhere. `check:conventions` rule 15 now
- * refuses `instanceof Temporal` in every other file's code, which is a checkable rule precisely
- * because the home is one named file rather than "the guards".
- *
- * **What the rule reaches, stated exactly, because it is narrower than "anywhere else".** It
- * matches `instanceof` against `Temporal` **or against any of the three constructor names**, in
- * code lines. So the qualified, aliased and destructured forms are all caught — including
- * `const { PlainDate } = Temporal; v instanceof PlainDate`, which is idiomatic JavaScript and so
- * the likeliest accidental one. What still passes is a single-identifier alias
- * (`const P = Temporal.PlainDate; v instanceof P`) and a `getPrototypeOf` comparison, neither
- * written by accident, both needing the checker to resolve bindings. **A ratchet against the
- * accident, not a proof that no identity check exists** — do not cite it as one.
+ * This is the only file in `src/` that tests `instanceof Temporal`.
  *
  * @packageDocumentation
  */
 
 import { codedError, describe, rangeError, thrownDetail } from "./errors.js";
+
+// Every guard once asked `value instanceof Temporal.PlainDate`, a question about *identity*: true only
+// for an instance built by whichever `Temporal` is global at call time. Two implementations meet in
+// one page more often than that assumption survives — native Chrome plus a dependency bundling a
+// polyfill, Safari with two non-deduplicated copies in `node_modules`, a date arriving from an iframe,
+// a polyfill installed after this package was imported. A perfectly ordinary `PlainDate` then failed
+// every `instanceof`, and the package either refused a genuine Western date or — worse — let one fall
+// through a Tibetan-side guard to be read structurally for `year`/`month`/`day`, which a `PlainDate`
+// has, returning a confident wrong answer. `Symbol.toStringTag` is mandated by the Temporal proposal
+// on every type, so the boundary tests **kind, not identity**:
+// `docs/decisions/2026-09-23-brand-not-identity.md`. On the reject side, over-rejecting a
+// deliberately disguised object is harmless; on the accept side `toNativePlainDate` normalises it
+// rather than computing on its fields.
+//
+// `check:conventions` rule 15 refuses `instanceof Temporal` in every other file's code, a checkable
+// rule precisely because the home is one named file rather than "the guards". It matches `instanceof`
+// against `Temporal` **or any of the three constructor names**, in code lines, so the qualified,
+// aliased and destructured forms are all caught — including
+// `const { PlainDate } = Temporal; v instanceof PlainDate`, the likeliest accidental one. A
+// single-identifier alias (`const P = Temporal.PlainDate; v instanceof P`) and a `getPrototypeOf`
+// comparison still pass, needing the checker to resolve bindings: **a ratchet against the accident,
+// not a proof that no identity check exists** — do not cite it as one.
 
 /** The Temporal types that name a calendar day, and so can be normalised to one. */
 export type TemporalDayKind = "PlainDate" | "PlainDateTime" | "ZonedDateTime";
@@ -63,23 +53,21 @@ const DAY_KINDS: ReadonlySet<string> = new Set<TemporalDayKind>([
 ]);
 
 /**
- * The Temporal type name a value carries, or `null` if it carries none.
+ * Returns the Temporal type name a value carries, or `null` if it carries none.
  *
  * @remarks
- * Returns the tag's suffix — `"PlainDate"`, `"Instant"`, `"Duration"` — rather than a boolean,
- * because a caller needs to *say* what it received. `Instant`, `PlainYearMonth`, `PlainMonthDay`,
- * `PlainTime` and `Duration` each carry their own tag and so reach this function; none of them
- * names a calendar day, so {@link temporalKindOf} answers `null` for them while this one names
- * them for the message.
+ * Returns the suffix of a `[object Temporal.<Name>]` tag — `"PlainDate"`, `"Instant"`, `"Duration"` —
+ * whether or not `<Name>` is a real Temporal type, so the caller can *say* what it received. A
+ * non-object, a function without such a tag and a plain object answer `null`. `Instant`,
+ * `PlainYearMonth`, `PlainMonthDay`, `PlainTime` and `Duration` each carry their own tag and so are
+ * named here; none of them names a calendar day, so {@link temporalKindOf} answers `null` for them.
  *
- * **The read is wrapped**, because `Object.prototype.toString.call` throws on a revoked `Proxy`,
- * and on any object whose `Symbol.toStringTag` getter throws. That is not a regression —
- * `instanceof` throws on a revoked `Proxy` too — but a boundary is where an uncoded `TypeError`
- * becomes a coded error, so it is converted here rather than left to escape. The message names
- * neither cause, since nothing here establishes which one it was.
- *
- * @throws A `TCT_INVALID_ARGUMENT` error if the value's own brand cannot be read.
+ * @throws A `TCT_INVALID_ARGUMENT` error if the value's own brand cannot be read: a revoked `Proxy`,
+ * or an object whose `Symbol.toStringTag` getter throws. The message names neither cause.
  */
+// The read is wrapped because a boundary is where an uncoded `TypeError` becomes a coded error. That
+// is not a regression: `instanceof` throws on a revoked `Proxy` too. The message names neither cause
+// because nothing here establishes which one it was.
 export function temporalTypeNameOf(value: unknown): string | null {
 	if (value === null || (typeof value !== "object" && typeof value !== "function")) return null;
 	let tag: string;
@@ -98,12 +86,12 @@ export function temporalTypeNameOf(value: unknown): string | null {
 }
 
 /**
- * Which of the three day-naming Temporal types a value is, or `null`.
+ * Returns which of the three day-naming Temporal types a value is — `"PlainDate"`,
+ * `"PlainDateTime"` or `"ZonedDateTime"` — or `null`.
  *
  * @remarks
- * A kind and not a boolean, because both callers need the distinction: {@link toNativePlainDate}
- * has to know whether to call `.toPlainDate()`, and the entry points accept different subsets. A
- * boolean predicate could serve neither.
+ * A kind and not a boolean, because {@link toNativePlainDate} has to know whether to call
+ * `.toPlainDate()`, and the entry points accept different subsets of the three.
  *
  * @throws A `TCT_INVALID_ARGUMENT` error if the value's own brand cannot be read.
  */
@@ -113,14 +101,15 @@ export function temporalKindOf(value: unknown): TemporalDayKind | null {
 }
 
 /**
- * Refuses a call made after the global `Temporal` was deleted, with `TCT_MISSING_TEMPORAL`.
+ * Throws `TCT_MISSING_TEMPORAL` if the global `Temporal` was deleted after import, and returns
+ * nothing otherwise.
  *
  * @remarks
  * The import-time guard in `computation/conversion.ts` has already run and will not run again, so a
  * global deleted after import lands here. A bare `ReferenceError: Temporal is not defined` names
- * neither the requirement nor the fix; this code does. Every path that reads `Temporal` after
- * import calls it first, the ISO-string arm of `asPlainDate` included, which would otherwise
- * recode the `ReferenceError` as the caller's fault.
+ * neither the requirement nor the fix; this code does. The paths that normalise a caller's date call
+ * it first — `toNativePlainDate` and the ISO-string arm of `asPlainDate` — so the `ReferenceError` is
+ * not recoded as the caller's fault.
  *
  * @throws A `TCT_MISSING_TEMPORAL` error if the global `Temporal` has been removed since import.
  */
@@ -139,33 +128,35 @@ export function assertTemporalPresent(): void {
 }
 
 /**
- * Brings a Temporal value of a known kind into **this** realm, as a `Temporal.PlainDate`.
+ * Brings a Temporal value of a known kind into **this** realm, as an ISO `Temporal.PlainDate`.
  *
  * @remarks
- * A foreign instance is normalised through `Temporal.PlainDate.from(String(value))` — its own
- * ISO-8601 serialisation, which every implementation must produce and this one must read. Two
- * alternatives were rejected. `from(value)` reads an unrecognised object's *fields*, which is a
- * path whose behaviour across implementations is not established here; `from({ year, month, day })`
- * is silently catastrophic on a non-ISO calendar, reading a hebrew-calendar day as the year 5784 —
- * three and a half millennia out, with nothing about the output looking wrong. The string form
- * carries the calendar annotation, which is what makes the refusal below possible at all.
+ * A `PlainDate` from this realm's `Temporal` is returned as it is. A `PlainDateTime` or
+ * `ZonedDateTime` is narrowed with its own `toPlainDate()`, so the day is the one on its own wall
+ * clock, with no time-zone conversion. Any other instance — a second implementation's — is
+ * normalised through `Temporal.PlainDate.from(String(value))`, its own ISO-8601 serialisation, so a
+ * disguised object is accepted only if its string form is an ISO calendar day.
  *
- * Every arithmetic operation downstream then runs inside one implementation, which is the point:
- * `julianDayFromIso` subtracts a module-level anchor captured from whichever `Temporal` was global
- * at import, and mixing implementations across that subtraction is a dependence nothing here wants
- * to rest on.
- *
- * ## Non-ISO calendars are refused, not converted
- *
- * `julianDayFromIso(Temporal.PlainDate.from("2024-07-09").withCalendar("hebrew"))` threw an
- * **uncoded** `RangeError: Mismatched calendars` from `since()`, at a public export, with no
- * foreign implementation involved at all. Refusing with a code is the narrow arm, and narrowing
- * later is the move that is never free: `.withCalendar("iso8601")` preserves the day exactly, so
- * the refusal costs a caller one call and the message names it. Accepting these remains open.
+ * **Non-ISO calendars are refused, not converted**: the arithmetic here is defined on ISO days, and
+ * `.withCalendar("iso8601")` preserves the day exactly, so the refusal costs a caller one call and
+ * the message names it.
  *
  * @throws A `TCT_MISSING_TEMPORAL` error if the global `Temporal` has been removed since import.
- * @throws A `TCT_INVALID_ARGUMENT` error if the value cannot be read as an ISO calendar day.
+ * @throws A `TCT_INVALID_ARGUMENT` error if the value cannot be read as an ISO calendar day: a
+ * non-ISO calendar, an object whose brand names a kind it is not (no `toPlainDate`, or one that
+ * throws), a prototype that cannot be read, `Object.create(Temporal.PlainDate.prototype)`, or a
+ * string form that is not a calendar day.
  */
+// The string form is the one every implementation must produce and this one must read. Two
+// alternatives were rejected: `from(value)` reads an unrecognised object's *fields*, a path whose
+// behaviour across implementations is not established here, and `from({ year, month, day })` is
+// silently catastrophic on a non-ISO calendar, reading a hebrew-calendar day as the year 5784 — three
+// and a half millennia out, with nothing about the output looking wrong. The string carries the
+// calendar annotation, which is what makes the refusal possible at all. Every arithmetic operation
+// downstream then runs inside one implementation: `julianDayFromIso` subtracts a module-level anchor
+// captured from whichever `Temporal` was global at import. Refusing non-ISO calendars with a code was
+// the narrow arm — it replaced an uncoded `RangeError: Mismatched calendars` from `since()` — and
+// narrowing later is never free, so accepting them remains open.
 export function toNativePlainDate(value: unknown, kind: TemporalDayKind): Temporal.PlainDate {
 	assertTemporalPresent();
 	if (kind !== "PlainDate") {
@@ -249,11 +240,11 @@ export function toNativePlainDate(value: unknown, kind: TemporalDayKind): Tempor
 }
 
 /**
- * Refuses a `PlainDate` that is not in the ISO 8601 calendar.
+ * Returns `date` if it is in the ISO 8601 calendar and refuses it otherwise.
  *
  * @remarks
- * Exported because {@link toNativePlainDate} is not the only way one arrives: an ISO string may
- * carry a `[u-ca=hebrew]` annotation, and `asPlainDate` parses those itself.
+ * Exported because {@link toNativePlainDate} is not the only way a `PlainDate` arrives: an ISO
+ * string may carry a `[u-ca=hebrew]` annotation, and `asPlainDate` parses those itself.
  *
  * @throws A `TCT_INVALID_ARGUMENT` error naming the calendar received and the conversion that
  * preserves the day.

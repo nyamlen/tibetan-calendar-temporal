@@ -7,10 +7,10 @@
  * `code: "ENOENT"`. The reasoning is recorded in
  * `docs/decisions/2026-08-12-error-codes-not-classes.md`.
  *
- * `SkippedDayError` is the one exception, and predates this: it is a class because a caller
- * genuinely branches on it at runtime — "that day does not exist, offer the neighbour" is a
- * different response from "your input is malformed". It carries a code too, so a caller can
- * discriminate uniformly without mixing `instanceof` and property tests.
+ * `SkippedDayError` is the one exported class: a caller genuinely branches on it at runtime —
+ * "that day does not exist, offer the neighbour" is a different response from "your input is
+ * malformed". It carries a code too, so a caller can discriminate uniformly without mixing
+ * `instanceof` and property tests.
  *
  * @packageDocumentation
  */
@@ -25,22 +25,25 @@ import { deepFreeze } from "./freeze.js";
  * in `test/public-api.test.ts`. Message *text* carries no such promise — match on the code, never
  * on the wording.
  *
- * - `TCT_FIELD_OUT_OF_RANGE` — a year, month, day or Julian day is not an integer, or falls
- *   outside its permitted range. The argument was the right *kind* of thing and one of its numbers
- *   was wrong. An absent required field counts, since `undefined` is not an integer, and so does a
- *   non-number where a number belongs: the check is "is this a safe integer", and splitting inside
- *   it would buy a distinction no caller acts on.
+ * - `TCT_FIELD_OUT_OF_RANGE` — a number is wrong: a year, month, day or Julian day that is a number
+ *   but not a safe integer (`NaN`, `1.5`), or falls outside its permitted range (`99` for a day).
+ *   **What counts as a number depends on the shape.** In a date or month object, a field that is
+ *   absent or is not a number at all (`undefined`, `"5"`, `null`) is `TCT_INVALID_ARGUMENT`, and only
+ *   a present number gets this code. Where a function takes a bare number — `yearNameFor`,
+ *   `rabjungFor`, `weekdayNameFor`, `asTibetanWeekday` — a value that is not a number is refused with
+ *   this code too.
  * - `TCT_INVALID_ARGUMENT` — the argument is the wrong *kind of thing*, so no field of it is out of
  *   any range: a `Temporal.PlainDate`/`PlainDateTime`/`ZonedDateTime` passed where a Tibetan-date
  *   input is expected, a bare `{ year, month, day }` object passed where a Western date is expected,
  *   a non-boolean `isLeapMonth`/`isLeapDay`, `null`/`undefined`/a non-object where a date-shaped
- *   input is expected, or a string that is not in the grammar `parseTibetanDate` accepts.
+ *   input is expected, a date or month field that is absent or not a number, an options bag that is
+ *   not an object or carries a key it does not have, or a string that is not in the grammar
+ *   `parseTibetanDate` accepts.
  *
- *   These two used to share `TCT_FIELD_OUT_OF_RANGE`, which named neither a field nor a range for
- *   half its sites. The split is not cosmetic: it is what lets `tibetanDateExists` allowlist the
- *   range code — "that date does not exist" — while a caller who passed a `PlainDate` gets a throw
- *   rather than a `false` they will read as a calendrical fact. See
- *   `docs/decisions/2026-08-15-argument-errors-split.md`.
+ *   The split decides what `tibetanDateExists` answers: it answers `false` for the range code —
+ *   "that date does not exist" — and throws for this one, so a caller who passed a `PlainDate`, or a
+ *   date missing its `day`, gets a throw rather than a `false` they would read as a calendrical fact.
+ *   See `docs/decisions/2026-08-15-argument-errors-split.md`.
  * - `TCT_NO_SUCH_LEAP_MONTH` — `isLeapMonth` was set for a month that has no leap twin that year.
  * - `TCT_SKIPPED_DAY` — the date is well-formed but no calendar day carries its number. Not an
  *   input error; use `tibetanDateExists` to test first.
@@ -51,27 +54,32 @@ import { deepFreeze } from "./freeze.js";
  *   would be a confident false claim.
  * - `TCT_INVALID_TRADITION_CONFIG` — a `TraditionConfig` is malformed.
  * - `TCT_INVALID_OBSERVANCE_CONFIG` — an `ObservanceConfig` or one of its rules is malformed.
- * - `TCT_SPAN_TOO_WIDE` — `getObservances` was asked for more than 10 years at once.
+ * - `TCT_SPAN_TOO_WIDE` — `getObservances` was asked for a range whose end year is more than 10 years
+ *   after its start year.
  * - `TCT_ATTRIBUTE_NOT_SOURCED` — an astrological attribute was asked for in a tradition no source
- *   gives it for. Thrown by the month and lunar-day attributes for the Bhutanese configs, because
- *   Janson tabulates no month-animal list for that version. **Nothing about the caller's input is
- *   wrong** — it is `TCT_INVALID_ARGUMENT`'s neighbour rather than `TCT_FIELD_OUT_OF_RANGE`'s — and
- *   it is deliberately **not** on `tibetanDateExists`'s allowlist: a Bhutanese date exists perfectly
- *   well, only an attribute of it is unsourced.
+ *   gives it for. Thrown by the month and lunar-day attributes for `BHUTAN` and `BHUTAN_HENNING`,
+ *   because Janson tabulates no month-animal list for that version, and by the elemental yoga under
+ *   any config with a nonzero `naming.weekdayOffset`, which both Bhutanese configs have.
+ *   **Nothing about the caller's input is wrong** — it is `TCT_INVALID_ARGUMENT`'s neighbour rather
+ *   than `TCT_FIELD_OUT_OF_RANGE`'s — and it is deliberately **not** on `tibetanDateExists`'s
+ *   allowlist: a Bhutanese date exists perfectly well, only an attribute of it is unsourced.
  * - `TCT_MISSING_TEMPORAL` — the runtime has no `Temporal`. Normally thrown at **import** time,
  *   by the guard in `computation/conversion.ts`. Also thrown at **call** time, by
  *   `temporal-kind.ts`, in the one case the import guard cannot cover: a global deleted after
  *   this package was imported. Both are plain `Error`s, not `RangeError`s.
  * - `TCT_INTERNAL` — an invariant this engine proves for itself did not hold. A bug here rather
- *   than a problem with the caller's input; please report it.
- *
- * That last claim is only true because the boundary keeps it true, and it has been false once. The
- * ±3 search window in `isoToTibetan` was proved from Phugpa's correction tables but the tables are
- * injected, so a consumer's config could break the window and be told the engine was broken and
- * asked to open an issue. The window is now derived per tradition and a config that could not
- * satisfy it is rejected as `TCT_INVALID_TRADITION_CONFIG` instead. Before adding a `TCT_INTERNAL`,
- * check that no consumer-supplied value can reach it.
+ *   than a problem with the caller's input; please report it. A plain `Error`.
  */
+// A bare-number argument that is not a number carries the range code because the check is "is this a
+// safe integer", and splitting inside it would buy a distinction no caller acts on:
+// `docs/decisions/2026-08-15-argument-errors-split.md`, "What is deliberately not split".
+//
+// A `TCT_INTERNAL` is only a bug of the engine's while the boundary keeps a consumer-supplied value
+// from reaching it. The ±3 search window in `isoToTibetan` was proved from Phugpa's correction
+// tables, but the tables are injected, so a consumer's config could break the window and be told the
+// engine was broken; the window is now derived per tradition, and a config that could not satisfy it
+// is rejected as `TCT_INVALID_TRADITION_CONFIG`. Before adding a `TCT_INTERNAL`, check that no
+// consumer-supplied value can reach it.
 export type TibetanCalendarErrorCode =
 	| "TCT_FIELD_OUT_OF_RANGE"
 	| "TCT_INVALID_ARGUMENT"
@@ -89,20 +97,23 @@ export type TibetanCalendarErrorCode =
 export type Coded<E extends Error> = E & { code: TibetanCalendarErrorCode };
 
 /**
- * Every error this package constructed, by identity. A `code` is a string a caller can forge on an
- * error of their own, so {@link readingCallersObject} asks this instead.
+ * Every error built by `rangeError` or `codedError`, by identity (`SkippedDayError` is not among
+ * them). A `code` is a string a caller can forge on an error of their own, so
+ * {@link readingCallersObject} asks this instead.
  */
 const ownErrors = new WeakSet<object>();
 
 /**
- * A `RangeError` carrying a code.
+ * Returns a plain `RangeError` carrying a code.
  *
  * @remarks
  * `RangeError` rather than a subclass so that a consumer's existing
- * `catch (e) { if (e instanceof RangeError) }` keeps working. No caller **inside** this package
- * narrows that way any longer: `tibetanDateExists` swallows by allowlist — one class and two codes,
- * `SkippedDayError` plus `TCT_FIELD_OUT_OF_RANGE` and `TCT_NO_SUCH_LEAP_MONTH`. It was such a
- * caller under the denylist era, which is where this remark's example came from.
+ * `catch (e) { if (e instanceof RangeError) }` keeps working. Nothing inside this package narrows by
+ * type: `tibetanDateExists` swallows by allowlist — one class and two codes, `SkippedDayError` plus
+ * `TCT_FIELD_OUT_OF_RANGE` and `TCT_NO_SUCH_LEAP_MONTH`.
+ *
+ * @param cause - The error to carry as `cause`. The property is set whenever this argument is
+ * passed, `undefined` included, and is absent otherwise.
  */
 export function rangeError(
 	code: TibetanCalendarErrorCode,
@@ -118,21 +129,17 @@ export function rangeError(
 }
 
 /**
- * A plain `Error` carrying a code.
+ * Returns a plain `Error` carrying a code.
  *
  * @remarks
- * Used for failures that are **not** about the caller's input, which is why the type differs.
+ * Used for failures that are **not** about the caller's input, which is why the type differs: where
+ * every input problem is a `RangeError`, a plain `Error` says at a glance that this one is the
+ * engine's fault rather than the caller's. The code, not the type, is the contract.
  *
- * The reason is the *signal*, not the mechanism, and this remark used to give the mechanism and get
- * it wrong. What keeps an internal invariant violation out of `tibetanDateExists`'s `false` is that
- * `TCT_INTERNAL` is absent from that predicate's allowlist — one class and two codes,
- * `SkippedDayError` plus `TCT_FIELD_OUT_OF_RANGE` and `TCT_NO_SUCH_LEAP_MONTH` — and not that it is
- * a plain `Error`. The predicate has never reported `false` for every `RangeError` since the
- * allowlist landed, and `SkippedDayError` is not a `RangeError` at all yet answers `false`.
- *
- * The type earns its place one level out, for consumers: a code is contract and a class is not, but
- * a plain `Error` where every input problem is a `RangeError` says at a glance that this one is the
- * engine's fault rather than theirs.
+ * What keeps such a failure out of `tibetanDateExists`'s `false` is the code's absence from that
+ * predicate's allowlist — one class and two codes, `SkippedDayError` plus `TCT_FIELD_OUT_OF_RANGE`
+ * and `TCT_NO_SUCH_LEAP_MONTH` — not the plain type: `SkippedDayError` is not a `RangeError` and still
+ * answers `false`.
  */
 export function codedError(code: TibetanCalendarErrorCode, message: string): Coded<Error> {
 	const error = new Error(message);
@@ -141,22 +148,25 @@ export function codedError(code: TibetanCalendarErrorCode, message: string): Cod
 }
 
 /**
- * Narrows a value this engine has already proved cannot be absent.
+ * Returns `value`, narrowed from `T | undefined`, for a value this engine has already proved cannot
+ * be `undefined`.
  *
  * @remarks
- * `noUncheckedIndexedAccess` widens every array index to `T | undefined`, including the ones a
- * preceding `amod` or `%` has forced into range. There are two ways to discharge that, and only
- * one of them is safe: a cast asserts the claim and a bad index then returns `undefined` wearing
- * the element type, propagating silently into a name or a date; this throws, and the code says the
- * fault is the engine's rather than the caller's.
+ * Only `undefined` is refused; `null` and other falsy values pass. Use it only where the index is
+ * provably in range; where it is not, the caller's input is involved and `rangeError` is the right
+ * throw.
  *
- * Both idioms were in use — a throw in `epoch.ts`, a cast in `names.ts` — for the same constraint.
- * This is the one to use. Reach for it only where the index is provably in range and say why at the
- * call site; where it is *not* provable, the caller's input is involved and the error belongs to
- * them, so `rangeError` is the right throw.
+ * @param invariant - Why the value cannot be `undefined`; it becomes the error message.
  *
- * @throws A `TCT_INTERNAL` error if the value is absent, which means this engine has a bug.
+ * @throws A `TCT_INTERNAL` error (a plain `Error`) if the value is `undefined`, which means this
+ * engine has a bug.
  */
+// `noUncheckedIndexedAccess` widens every array index to `T | undefined`, including the ones a
+// preceding `amod` or `%` has forced into range. There are two ways to discharge that, and only one
+// is safe: a cast asserts the claim and a bad index then returns `undefined` wearing the element
+// type, propagating silently into a name or a date; this throws, and the code says the fault is the
+// engine's rather than the caller's. A throw and a cast were both in use for the same constraint;
+// this is the one to use.
 export function assertInternal<T>(value: T | undefined, invariant: string): T {
 	/* c8 ignore next */
 	if (value === undefined) throw codedError("TCT_INTERNAL", `${invariant} — please report this.`);
@@ -164,51 +174,45 @@ export function assertInternal<T>(value: T | undefined, invariant: string): T {
 }
 
 /**
- * Whether a caught value carries a particular code.
+ * Returns whether a caught value is an `Error` whose `code` is `code`.
  *
  * @remarks
- * The narrowing a consumer would write, and what `tibetanDateExists` uses to match the **two codes**
- * on its allowlist, `TCT_FIELD_OUT_OF_RANGE` and `TCT_NO_SUCH_LEAP_MONTH`. The third member of that
- * allowlist, `SkippedDayError`, is matched by class and does not come through here.
+ * What `tibetanDateExists` uses to match the **two codes** on its allowlist,
+ * `TCT_FIELD_OUT_OF_RANGE` and `TCT_NO_SUCH_LEAP_MONTH`. The third member of that allowlist,
+ * `SkippedDayError`, is matched by class and does not come through here. `nextObservance` also
+ * uses it, for `TCT_OUTSIDE_EXACT_RANGE`.
  *
- * The error *type* is too coarse to do that job: a malformed `TraditionConfig` is a `RangeError`
- * like every other input problem, but it is a broken program rather than a date that does not
- * exist. It is rethrown by **omission** — nothing on the allowlist matches it, so it falls through
- * to `throw error` — and never reaches this function. An earlier version of this remark named that
- * rethrow as the one case this function serves, which was the inverse of the truth.
+ * It reads the `code` property and nothing else, so an `Error` of the caller's own carrying a
+ * forged code matches too. A value that is not an `Error` never matches.
  */
+// The error *type* is too coarse for the allowlist: a malformed `TraditionConfig` is a `RangeError`
+// like every other input problem, but it is a broken program rather than a date that does not
+// exist. It is rethrown by omission — nothing on the allowlist matches it, so it falls through to
+// `throw error` — and never reaches this function.
 export function hasCode(error: unknown, code: TibetanCalendarErrorCode): boolean {
 	return error instanceof Error && (error as Partial<Coded<Error>>).code === code;
 }
 
 /**
- * A value rendered short enough for a message, and unambiguously — `"3"` is not `3`.
+ * Returns a value rendered short enough for a message, and unambiguously — `"3"` is not `3`.
  *
  * @remarks
  * **Never throws, and always returns a string**, whatever it is handed — which is why a guard may
  * render its raw input here before it knows what that input is, and never with a bare `${}`: a
  * template literal throws on a Symbol, on an object whose `toString` throws and on one with no
- * prototype, and renders `10n` and `"10"` both as `10`. Until 2026-09-24 fourteen sites did exactly
- * that, and the escape was an uncoded `TypeError` from the guard meant to report the problem.
+ * prototype, and renders `10n` and `"10"` both as `10`.
  *
- * Lives here because every caller is building a coded error, and because it existed **twice**,
- * character-identical, in `traditions/validate.ts` and `observances/index.ts` until 2026-09-23.
- * Both copies were written by whoever needed a value rendered next to a `rangeError`, which is
- * this module — so this is where the one copy belongs.
- *
- * **The three near-siblings converged here on 2026-09-23**: `describeValue` in
- * `computation/conversion.ts`, `describeFlagValue` in `types.ts` and another `describe` in
- * `parse.ts`. Merging them changed message text, which is why it waited for the boundary
- * consolidation rather than riding along with the mechanical move. The union body is this one and
- * not `describeValue`'s: its `constructor?.name` branch existed to name a `Temporal.PlainDate`,
- * and `temporalTypeNameOf` now does that from the brand. **That justification held only for
- * `asPlainDate`**, which consults `temporalTypeNameOf`; `asWesternDay` and `parse.ts` never do, so
- * for them the branch was doing a second job — naming a `Date` — that the merge briefly lost. It is
- * back, narrowed: a plain object is still "an object", because "Object" says strictly less.
- * `format.ts` kept a `describe` of its own, listing an object's keys, until 2026-09-24, when its
- * field check moved to `assertTibetanRanges` in `types.ts` and the message began echoing the fields
- * instead.
+ * A string is JSON-quoted (`"3"`); an array is `an array of 2`; an object of a named class is that
+ * class's name (`Date`) and any other object, a plain or null-prototype one included, is
+ * `an object`; a bigint is `10n`; a function is `function name`, or `a function` if it has no
+ * string name; anything else is `String(value)`.
  */
+// The object branch names a **named** class because the wrong argument a consumer actually passes is
+// `new Date()`, and "an object" would hide it. The `constructor?.name` reading was dropped once on
+// the belief that `temporalTypeNameOf` already names a `Temporal.PlainDate` — true for `asPlainDate`,
+// which consults it, and false for `asWesternDay` and `parse.ts`, which do not — so it is kept, and a
+// plain object is still "an object" because "Object" says strictly less. It lives here because every
+// caller is building a coded error.
 export function describe(value: unknown): string {
 	if (typeof value === "string") return JSON.stringify(value);
 	if (value !== null && typeof value === "object") {
@@ -252,13 +256,13 @@ export function describe(value: unknown): string {
 }
 
 /**
- * Whether a value is a plain object — the one shape that could be a bare `{ year, month, day }`.
+ * Returns whether a value is a plain object — one whose prototype is `Object.prototype` or `null`,
+ * the one shape that could be a bare `{ year, month, day }`.
  *
  * @remarks
- * The two date guards append a paragraph explaining why such an object is refused, and until
- * 2026-09-24 they appended it for anything `typeof "object"`: `nextFullMoon(new Date())` and an
- * array were both told about fields they had not passed. A class instance or an array is not
- * ambiguous between calendars, so it is named by {@link describe} and nothing more.
+ * Total: a value whose prototype cannot be read (a Proxy whose trap throws, a revoked one) is not
+ * plain. The date guards append a paragraph explaining why a bare fields object is refused only when
+ * this is true, so a class instance or an array is named by {@link describe} and nothing more.
  */
 export function isPlainObject(value: unknown): boolean {
 	if (value === null || typeof value !== "object") return false;
@@ -274,13 +278,15 @@ export function isPlainObject(value: unknown): boolean {
 }
 
 /**
- * Refuses any own key of `value` that is not in `allowed`, naming it.
+ * Refuses any own enumerable string key of `value` that is not in `allowed`, naming it.
  *
  * @remarks
- * Beside `assertQueryOptions`, deliberately: that one guards a function's options bag and throws
- * `TCT_INVALID_ARGUMENT`, while this guards objects inside a config and throws the config code its
- * caller passes — `TCT_INVALID_OBSERVANCE_CONFIG` or `TCT_INVALID_TRADITION_CONFIG` — so the two
- * differ in code and subject.
+ * Beside `assertQueryOptions`, deliberately: that one guards a function's options bag, checks
+ * inherited keys too and throws `TCT_INVALID_ARGUMENT`, while this guards objects inside a config,
+ * checks own keys only and throws the config code its caller passes — `TCT_INVALID_OBSERVANCE_CONFIG`
+ * or `TCT_INVALID_TRADITION_CONFIG` — so the two differ in code and subject.
+ *
+ * @throws A `RangeError` with `code`, naming the first key not in `allowed`.
  */
 export function assertKnownKeys(
 	value: object,
@@ -299,47 +305,40 @@ export function assertKnownKeys(
 }
 
 /**
- * Rejects an options bag that is not an object, or that carries a key the bag does not have.
+ * Guards an options bag and returns a snapshot of its allowed keys.
  *
  * @remarks
- * New boundary, new guard — CLAUDE.md requires one per exported argument shape, and reshaping
- * `getObservances`/`observancesOn` to a bag on 2026-08-26 created one. Without it
- * `observancesOn(date, null)` reads `.config` off `null` and throws a raw uncoded `TypeError`,
- * which is the exact failure the config validators were added to end: a consumer's
- * `catch (e) { if (e.code === …) }` falls through it.
- *
+ * Refuses a bag that is not an object, an array, or one that carries a key not in `allowed`.
  * `TCT_INVALID_ARGUMENT` rather than a config code: the bag is the wrong *kind* of thing, and no
- * config has been reached yet. A bag carrying a bad `config` still gets the config code, from the
- * validator that has always owned it.
+ * config has been reached yet.
  *
- * **Unknown keys are refused since 2026-09-24**, the fifth point of the tradition-parameter pattern
- * (`docs/decisions/2026-09-24-how-a-tradition-is-passed.md`). Every bag used to ignore them, so
- * `addMonthsToDate(f, 0, { tradition: BHUTAN })` — `tradition` then being a key that bag lacked —
- * answered Phugpa's date without a word. Three choices here are deliberate:
- *
- * - A key is refused **whatever its value**, `undefined` included: `{ config: undefined }` is still
- *   a caller writing a key that does nothing.
+ * - A key not in `allowed` is refused **whatever its value**, `undefined` included.
  * - **Inherited** enumerable keys are checked as well as own ones, because the call sites read
- *   `options.tradition`, which honours an inherited key. An own-keys check would let
- *   `Object.create({ config: BHUTAN })` through after a rename. The walk stops at
- *   `Object.prototype`, whose keys belong to whatever library polluted it, not to the caller.
- * - **Symbol keys are ignored.** Nobody writes one by mistake, and `Object.keys` does not list them.
+ *   `options.tradition`, which honours an inherited key. The walk stops at `Object.prototype`, whose
+ *   keys belong to whatever library polluted it, not to the caller.
+ * - **Symbol keys are ignored.**
  *
- * This applies to **bags only**. A `TraditionConfig` and an `ObservanceConfig` refuse unknown keys
- * through their own validators, with their own codes, for the same reason.
+ * The result is a fresh plain object with one own property per entry of `allowed`, `undefined` where
+ * the caller gave none, read once inside the guard. Call sites read it rather than the caller's
+ * object, so a getter cannot answer differently twice. This applies to **bags only**: a
+ * `TraditionConfig` and an `ObservanceConfig` refuse unknown keys through their own validators, with
+ * their own codes.
  *
- * `allowed` is the bag's key list, and the shape shown to the caller is **built from it** — until
- * 2026-09-24 each call site passed a hand-written shape string, which could name a key the bag no
- * longer had.
- *
- * **It returns a snapshot of the allowed keys**, read inside the same guard, and the call sites read
- * that rather than the caller's object — so a Proxy trap or a getter that throws is refused here with
- * a code, where before a `get` trap passed the walk and escaped at the call site's read.
+ * @param functionName - Named in the message.
+ * @param allowed - The bag's key list; the shape shown to the caller is built from it.
  *
  * @throws A `TCT_INVALID_ARGUMENT` error if `options` is `null`, not an object, an array, cannot be
  * read (a Proxy whose trap throws, a revoked one, or a getter that throws), or carries an enumerable
  * string key not in `allowed`.
  */
+// A bag is a new argument boundary and needs its own guard: without one `addMonthsToDate(f, 0, null)`
+// reads a property off `null` and throws a raw uncoded `TypeError`, which is the failure the config
+// validators exist to end: a consumer's `catch (e) { if (e.code === …) }` falls through it. Unknown keys are refused because every bag once ignored them, so
+// `addMonthsToDate(f, 0, { config: BHUTAN })` answered Phugpa's date without a word; the fifth point of
+// the tradition-parameter pattern, `docs/decisions/2026-09-24-how-a-tradition-is-passed.md`. An
+// own-keys check would let `Object.create({ config: BHUTAN })` through, which is why inherited keys
+// are walked. Symbol keys are ignored because nobody writes one by mistake and `Object.keys` does not
+// list them.
 export function assertQueryOptions<O extends object>(
 	functionName: string,
 	allowed: readonly (keyof O & string)[],
@@ -416,12 +415,16 @@ export function assertQueryOptions<O extends object>(
  *
  * @remarks
  * The one home for the config validators' first pass, the only one that touches the caller's object:
- * everything after it reads a private copy. An error this package constructed passes through
- * unchanged, so a bad field is still reported as one; that is decided by identity, because a `code`
- * is a string a caller can forge. Anything else, a forged code included, is the caller's and is
- * wrapped. `what` names the object in the message.
+ * everything after it reads a private copy. An error built by `rangeError` or `codedError` passes
+ * through unchanged, with its own code, so a bad field is still reported as one; that is decided by
+ * identity, because a `code` is a string a caller can forge. Anything else, a forged code included, is
+ * the caller's and is wrapped.
  *
- * @throws An error with `code` — the guard's own, or one wrapping the caller's.
+ * @param what - Names the object in the message.
+ * @param read - The read to run; its result is returned.
+ *
+ * @throws The package's own error unchanged (its own code), or a `RangeError` carrying `code` that
+ * wraps whatever else `read` threw.
  */
 export function readingCallersObject<T>(
 	code: TibetanCalendarErrorCode,
@@ -463,13 +466,19 @@ export interface PrivateCopySpec<T extends object> {
  * @remarks
  * The one home for the protocol both config validators follow. Every read of the caller's object —
  * the cache lookup, the first validation, the clone — is inside {@link readingCallersObject}. The
- * lookup itself (`WeakMap.get`) runs no code of theirs, but the caller-supplied `isCandidate` can, and
- * that is why it sits inside the guard too. The copy is then validated as a new object, since a
- * getter, an inherited field or a non-enumerable one answers differently once cloned, and the cache records the copy only
- * after that: a refused config is never cached, and a copy maps to itself so passing one back is a hit.
- * Validation runs before the clone because `structuredClone` throws an uncoded `DataCloneError` on a
- * function or a Symbol, which is recoded to the config's code.
+ * copy is validated again as a new object, since a getter, an inherited field or a non-enumerable one
+ * answers differently once cloned, and the cache records it only after that: a refused config is never
+ * cached, and a copy maps to itself so passing one back is a hit. A value `structuredClone` refuses
+ * (a function or a Symbol in it) is refused with `spec.code` and the message `spec.uncopyable` gives.
+ *
+ * @throws A `RangeError` with `spec.code` for a config that fails validation, cannot be copied, or
+ * cannot be read; an error built by `rangeError` or `codedError` inside `spec.validate` passes through
+ * with its own code.
  */
+// The lookup itself (`WeakMap.get`) runs no code of the caller's, but the caller-supplied
+// `isCandidate` can, which is why it sits inside the guard too. Validation runs before the clone
+// because `structuredClone` throws an uncoded `DataCloneError` on a function or a Symbol, which is
+// recoded to the config's code.
 export function validatedPrivateCopy<T extends object>(config: T, spec: PrivateCopySpec<T>): T {
 	const { cache, code, what, isCandidate, validate, uncopyable } = spec;
 	const hit = readingCallersObject(code, what, () =>
@@ -496,9 +505,9 @@ export function validatedPrivateCopy<T extends object>(config: T, spec: PrivateC
 }
 
 /**
- * What a caller's code threw while a guard read their argument — a Proxy trap or a getter — for a
- * message: the class and its message. Total, like {@link describe}, because it runs inside the
- * `catch` that exists to stop such a throw escaping.
+ * Returns what a caller's code threw while a guard read their argument — a Proxy trap or a getter —
+ * for a message: the class and its message, as `TypeError: "boom"`, or `describe` of a value that is
+ * not an `Error`. Total, like {@link describe}.
  */
 export function thrownDetail(error: unknown): string {
 	try {
@@ -514,28 +523,27 @@ export function thrownDetail(error: unknown): string {
  * Rejects a year that is not a safe integer.
  *
  * @remarks
- * One predicate covers fractions, `NaN`, `±Infinity` and 2⁵³ overflow — the bounds checks alone
- * cannot, since `NaN` satisfies no comparison and would reach the arithmetic.
+ * One predicate covers fractions, `NaN`, `±Infinity`, 2⁵³ overflow and any value that is not a
+ * number at all (`"5"`, `null`, `undefined`), all with the same code, `TCT_FIELD_OUT_OF_RANGE` by
+ * default.
  *
- * This does **not** catch the royal-era confusion — passing Gregorian 2026 where royal-era 2153 is
- * meant. 2026 is a perfectly valid royal-era year (1899 CE), so no guard can distinguish the two,
- * and the conversion returns a well-formed date 127 years away. That is a documentation problem,
- * handled in the README, not something an error message can reach.
+ * It checks the number and nothing about the era: passing Gregorian 2026 where royal-era 2153 is
+ * meant is a valid year to it.
  *
- * Also existed twice, character-identical, in `months.ts` and `computation/conversion.ts` until
- * 2026-09-23 — with *different* docblocks, so each copy carried half the reasoning above. That is
- * the quieter cost of a duplicate: not the repeated code, but the knowledge that ends up in only
- * one of the two places a reader might look.
+ * @param subject - Names the call in the message; a thunk is called only on the throw.
+ * @param year - Typed `unknown` so a validator can hand it a value it has not yet type-checked.
+ * @param suffix - Appended to the message.
+ * @param code - The code the refusal carries; the observance validator passes
+ * `TCT_INVALID_OBSERVANCE_CONFIG`.
  *
- * `subject` may be a thunk, so a caller whose subject echoes the whole call builds it only on the
- * throw; `suffix` is appended to the message, which is how `assertTibetanRanges`' `hint` reaches the
- * year as well as the month and the day.
- *
- * `code` is the code the refusal carries, `TCT_FIELD_OUT_OF_RANGE` unless the subject is a config
- * field: the observance validator passes `TCT_INVALID_OBSERVANCE_CONFIG`, so a bad year window is a
- * config problem like every other one there, without a second copy of this predicate. `year` is
- * `unknown` so a validator can hand it a value it has not yet type-checked.
+ * @throws A `RangeError` with `code` if `year` is not a safe integer.
  */
+// One predicate rather than bounds checks alone, since `NaN` satisfies no comparison and would reach
+// the arithmetic. No guard can catch the royal-era confusion: 2026 is a perfectly valid royal-era year
+// (1899 CE), so the conversion returns a well-formed date 127 years away; that is a documentation
+// problem, handled in the README. One copy lives here because the two copies that once existed had
+// different docblocks, so each carried half the reasoning, and `suffix` is how `assertTibetanRanges`'
+// `hint` reaches the year as well as the month and the day.
 export function assertSafeYear(
 	subject: string | (() => string),
 	year: unknown,
