@@ -69,8 +69,8 @@ export type {
  * doubled half, then a shifted day.
  *
  * **The span is capped at 10 years.** The rule is on calendar years, `to.year - from.year <= 10`,
- * not on elapsed time: 2020-01-01 to 2030-12-31 is admitted, though it touches 11 calendar years and
- * runs almost 11, and 2020-12-31 to 2031-01-01 is refused, though it is 10 years and 2 days. Cost is
+ * not on elapsed time: `2020-01-01` to `2030-12-31` is admitted, though it touches 11 calendar years and
+ * runs almost 11, and `2020-12-31` to `2031-01-01` is refused, though it is 10 years and 2 days. Cost is
  * linear in the range. A day, month, year or planning view needs at most about two years. Measured
  * on the machine recorded in `bench/RESULTS.md`, 10 years over a config holding one rule of each
  * form but `counted` takes about 22 ms on average (the slowest sample 29 ms), and two years about

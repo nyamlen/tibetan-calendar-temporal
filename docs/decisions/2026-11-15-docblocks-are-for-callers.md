@@ -42,21 +42,35 @@ The story of how the source was found does not, and moves out.
 
 ## What enforces it
 
-Review, and the docblock audit in `docs/roadmap.md`, which applies it to every docblock in `src/` in one pass.
-Nothing mechanical yet.
-The candidate is a `check:conventions` rule refusing an ISO date in a docblock's prose, outside code spans and `@example` blocks, which use dates legitimately; it is to be written failing-case first.
+Review, the docblock audit in `docs/roadmap.md` that applied the rule to every docblock in `src/` in one pass, and three `check:conventions` guards.
+Each was written failing-case first, in the `npm run test:conventions` mutation suite, and each reports in its message where its reach ends.
 
-**What moving text to `//` costs is Rule 4, and only for `{@link}` references.**
-Rule 4 checks that every `{@link X}` in a docblock names a symbol that exists, and in a shipped docblock one an entry point exports.
-It checks nothing else: a symbol named in backticks was never checked, in a docblock or out of one.
-So the loss is exactly the `{@link}`s in the text that moves, and a rename of their target then leaves the `//` comment stale without failing anything.
+**History in prose: Rule 17, a ratchet and not enforcement of rule 5.**
+It refuses `20\d\d-\d\d-\d\d` in a docblock's prose, outside backtick code spans and outside `@example` blocks, which use dates legitimately.
+A date a caller needs, such as the bound of a range, goes in a code span.
+History written as "used to", "until it was bounded" or "since the tradition became positional" carries no ISO date and passes, as does a date in another century or in another format.
+Review remains the check for those.
+Proved by row R17, whose mutant puts a violating line beside a date in a code span, one in an `@example` and one in a `//` comment, and asserts that only the first is reported.
 
-The audit therefore does three things with a `{@link}` in moved text:
+**What moving text to `//` costs, and the two traps of the move.**
+`tsc` drops a `//` comment, so moving a docblock's rationale there also moves it out of reach of every check that reads docblocks.
 
-- **Converts it to the symbol in backticks** — `{@link scalingFor}` becomes `` `scalingFor` `` — since `{@link}` in a `//` comment renders nowhere and Rule 4 does not read it.
-- **Counts the conversions and states the number in the commit**, so the loss of checking is measured rather than assumed.
-  On 2026-09-23 there were 320 symbol links in `src/`; how many sit in text that moves was not measured.
-- **Keeps a `{@link}` in the docblock where the caller needs it** — a link to an exported type is caller information and stays checked.
+- **Rule 4 reads only `{@link}`.**
+  It checks that every `{@link X}` in a docblock names a symbol that exists, and in a shipped docblock one an entry point exports.
+  A symbol named in backticks was never checked, in a docblock or out of one.
+  So the loss is exactly the `{@link}`s in the text that moves, and a rename of their target then leaves the `//` comment stale without failing anything.
+  The audit therefore converts a `{@link}` in moved text to the symbol in backticks, states the number converted in the commit, and keeps a `{@link}` to an exported type in the docblock where a caller needs it.
+  Extending Rule 4 to backticked names in `//` comments was considered and not taken: a backticked word in a comment is often not a symbol (a field name, a code snippet, an error code), so the rule would need an allowlist larger than the problem.
+  If a stale `//` reference is ever found by hand, that is the evidence to revisit it.
+- **A `//` between a public docblock and its declaration hid the docblock from Rule 4.**
+  The rule decided whether a docblock ships from the first non-blank line after its closer, so a maintainer note placed there made a public docblock look internal and its links went unchecked.
+  TypeScript attaches the docblock across the note, so Rule 4 now skips `//` lines as it skips blanks.
+  Proved by row X13, which restores X12's bad link on a published interface member and puts a `//` between the docblock and the member.
+- **A lone opener above `//` lines swallows them.**
+  A line holding only the opening marker, followed by `//` lines and then a docblock's own opener, is one block to TypeScript: the `//` lines and the next docblock's text ship as the first block's.
+  It happened in `src/computation/conversion.ts`.
+  The comments-only build check of the audit cannot see it, because that build strips every comment before comparing; counting the openers in each `.d.ts` with comments kept did.
+  Rule 18 refuses a `//` line or a second opener inside a docblock, since a docblock line carries its `*` gutter.
+  Proved by row R18, a lone opener, a `//` line and a real docblock; the checker's self-test adds the clean case, a docblock whose example holds a `//` after its gutter.
 
-Extending Rule 4 to backticked names in `//` comments was considered and not taken: a backticked word in a comment is often not a symbol (a field name, a code snippet, an error code), so the rule would need an allowlist larger than the problem.
-If a stale `//` reference is ever found by hand, that is the evidence to revisit it.
+Rules 17 and 18 share one reader of a docblock, `docblocksOf`, which ends a block at the first closer exactly as `publicDocblockLinks` does, so a stray opener is seen as TypeScript sees it.

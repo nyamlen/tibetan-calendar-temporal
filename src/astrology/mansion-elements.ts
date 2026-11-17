@@ -10,7 +10,7 @@
  *
  * Source: Edward Henning, "Symbolic details of the Kālacakra calendar",
  * `http://www.kalacakra.org/calendar/symlst.htm`, last updated 3 February 2010, accessed
- * 2026-09-10; [../../docs/almanac-sources.md](../../docs/almanac-sources.md) carries a Wayback
+ * `2026-09-10`; [../../docs/almanac-sources.md](../../docs/almanac-sources.md) carries a Wayback
  * snapshot beside the live URL.
  *
  * **The elements are the Indian four, not the Chinese five.** Earth, fire, water and *wind* —

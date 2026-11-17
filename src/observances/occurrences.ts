@@ -28,7 +28,7 @@ import type {
  * The widest range {@link getObservances} will answer, in years, and how far `nextObservance` looks.
  *
  * @remarks
- * Compared as `to.year - from.year`, so 2020-01-01 to 2030-12-31 is 10 and admissible.
+ * Compared as `to.year - from.year`, so `2020-01-01` to `2030-12-31` is 10 and admissible.
  */
 export const MAX_SPAN_YEARS = 10;
 
