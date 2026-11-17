@@ -14,6 +14,7 @@ import {
 import { lunarDayAttributes } from "../src/astrology/lunar-day.js";
 import { mansionNumber } from "../src/astrology/mansions.js";
 import { monthAttributes } from "../src/astrology/month.js";
+import { ceilDiv, floorDiv, mod, scaleTo } from "../src/computation/arithmetic.js";
 import {
 	isLeapYear,
 	lastMonthCountOfYear,
@@ -29,6 +30,7 @@ import {
 	tibetanToIso,
 	tibetanWeekday,
 } from "../src/computation/conversion.js";
+import { trueDate } from "../src/computation/corrections.js";
 import {
 	rabjungFromYear,
 	royalEraFromYear,
@@ -223,6 +225,23 @@ describe("docblock examples", () => {
 			expect(name.animal).toBe("pig");
 			expect(name.gender).toBe("female");
 			expect(name.animalName.wylie).toBe("phag");
+		});
+	});
+
+	describe("arithmetic.ts", () => {
+		it("floorDiv, ceilDiv, mod and scaleTo give the values their examples state", () => {
+			expect(floorDiv(-7, 2)).toBe(-4);
+			expect(ceilDiv(-7, 2)).toBe(-3);
+			expect(-7 % 3).toBe(-1);
+			expect(mod(-7, 3)).toBe(2);
+			expect(scaleTo(1, 2, 12)).toBe(6);
+		});
+	});
+
+	describe("corrections.ts", () => {
+		it("trueDate's example floors to JD 2015531", () => {
+			const scaled = deriveScaling(PHUGPA);
+			expect(Math.floor(trueDate(scaled, 30, 0) / scaled.commonDenominator)).toBe(2_015_531);
 		});
 	});
 

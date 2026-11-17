@@ -12,13 +12,14 @@
  *    ({@link rabjungFromYear}), and the Chinese element–animal, which is a *name*
  *    ({@link yearNameFromYear}). They assign a year different positions, three apart.
  *
- * None of these is tradition-dependent: Phugpa and Tsurphu number and name **years** identically,
- * so nothing here takes a `TraditionConfig`.
+ * None of these is tradition-dependent: the four shipped configs number and name **years**
+ * identically, so nothing here takes a `TraditionConfig`.
  *
  * That is a claim about years specifically, and it does not extend to naming in general. **Weekday
- * naming is tradition-dependent** — Bhutan names its days one planet ahead — which is why
- * `weekdayName` is built in `conversion.ts`, where the config is in hand, rather than here. Month
- * naming will be too, if it is ever added.
+ * naming is tradition-dependent** — `BHUTAN` and `BHUTAN_HENNING` name each day one planet ahead,
+ * through `naming.weekdayOffset` — which is why `weekdayName` is built in `conversion.ts`, where
+ * the config is in hand, rather than here. So is the month animal, which a config carries in
+ * `naming.monthAnimals`, and which the Bhutanese configs lack.
  *
  * @packageDocumentation
  */
@@ -73,8 +74,8 @@ export function royalEraFromYear(year: number): number {
  * Converts a royal-era year to Janson's *Y*.
  *
  * @remarks
- * The inverse of {@link royalEraFromYear}. This is the only point at which public input is
- * translated into the numbering the computation layer uses.
+ * The inverse of {@link royalEraFromYear}. Callers translate the royal-era years of public input
+ * into the numbering the computation layer uses with this function.
  */
 export function yearFromRoyalEra(royalEraYear: number): number {
 	return royalEraYear - ROYAL_ERA_OFFSET;
@@ -121,8 +122,9 @@ export function rabjungFromYear(year: number): Rabjung {
  * `(Y − 3) amod 12`. The gender alternates with the year, so it is the parity of `z`: odd is
  * male, even is female.
  *
- * Because 10 and 12 share a factor of 2, only 30 of the 60 possible element–animal pairs occur,
- * and the full cycle is 60 years rather than 120.
+ * Because 10 and 12 share a factor of 2, only 60 of the 120 possible stem–animal combinations
+ * occur, so the cycle is 60 years rather than 120. Each of the 60 element–animal pairs occurs once
+ * per cycle, and the animal fixes the gender.
  *
  * @param year - Janson's *Y*.
  *
@@ -183,8 +185,8 @@ export function rabjungFromRoyalEra(royalEraYear: number): Rabjung {
  * @remarks
  * `yearAttributes` reads 60 (the Chinese cycle position), 10 (the power element), 12, 4 and 6
  * (the animal, fortune and body intermediate, via the position) and 9 (the three numbers). Their
- * least common multiple is 180. `test/astrology/index.test.ts` checks 180 is a period over
- * 1900–2400 and that no proper divisor of 180 is one.
+ * least common multiple is 180. `test/astrology/index.test.ts` checks 180 is a period over the
+ * royal-era years 1900 to 2399 (CE 1773 to 2272) and that no proper divisor of 180 is one.
  */
 export function attributesYearFromRoyalEra(royalEraYear: number): number {
 	return yearFromRoyalEra(mod(royalEraYear, ATTRIBUTES_PERIOD));
