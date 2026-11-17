@@ -784,7 +784,9 @@ export function isoToTibetan(
  * year begins on the day numbered **2** — the year beginning in 1977 is one — and that call throws
  * {@link SkippedDayError} instead of returning the new year. Where the year opens with a leap
  * month 1, which happens twice per 65-year cycle under `PHUGPA` and `PHUGPA_HENNING` — the years
- * beginning in 2000 and 2019 CE are two — the year begins in the leap month rather than the regular one. Under `BHUTAN` and
+ * beginning in 2000 and 2019 CE are two — the year begins in the leap month rather than the
+ * regular one.
+ * Under `BHUTAN` and
  * `BHUTAN_HENNING`, whose leap months follow their twins, a year never opens with one.
  *
  * Janson computes it as one day after the last day of the preceding year, which sidesteps both

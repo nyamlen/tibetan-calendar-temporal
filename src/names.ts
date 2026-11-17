@@ -114,7 +114,8 @@ export const NAME_TABLES = freeze({ WEEKDAYS, ELEMENTS, GENDERS, ANIMALS });
 // world, see [his figure of the weekday–planet correspondence])" and "day 0 (Saturday) is *spen pa* in
 // Tibet but *nyi ma* (really meaning sun) in Bhutan"; Henning's Bhutanese data labels the same date
 // with the next weekday (`test/fixtures/bhutan.ts`, from Henning's software, and check 2 of
-// `scripts/fetch-bhutan-fixtures.mjs`, which asserts the one-day shift on every row); and Unicode CLDR's `bo` and `dz` locales differ by exactly one planet for the
+// `scripts/fetch-bhutan-fixtures.mjs`, which asserts the one-day shift on every row); and
+// Unicode CLDR's `bo` and `dz` locales differ by exactly one planet for the
 // same date. That the **element** moves with them is an inference no source states, ruled by the
 // maintainer; because no source says what the elemental yoga's weekday element is under such a shift,
 // the yoga is refused there: see `elementalYogaFor`.

@@ -593,8 +593,8 @@ export function daysInMonth(scaled: ScaledTradition, monthCount: number): number
  * @remarks
  * One day after the last day of the preceding year's last month. Janson §8 recommends this route,
  * stated for month 12, because the alternatives break in two real cases: the year may open with a
- * **leap month 1**, as 2000 did under `PHUGPA`, and its first day may be **day 2** when day 1 is
- * skipped. Working back from the previous year's last month is correct in both. That month is
+ * **leap month 1**, as the year beginning in 2000 CE did under `PHUGPA`, and its first day may be
+ * **day 2** when day 1 is skipped. Working back from the previous year's last month is correct in both. That month is
  * {@link lastMonthCountOfYear}'s, which under `BHUTAN` can be a leap month 12.
  *
  * Janson's Losar remark confirms that Losar is the first day of the year even when that day falls

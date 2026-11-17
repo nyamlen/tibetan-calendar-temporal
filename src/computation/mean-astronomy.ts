@@ -46,8 +46,8 @@ function evaluate(motion: ScaledMeanMotion, day: number, monthCount: number): nu
  * another config's tables set its own bound (see `ScaledTradition.searchHalfWidth`).
  *
  * @param scaled - The tradition's derived constants.
- * @param day - Lunar day within the month. Janson's day 0 is the end of the previous month, and
- * is used when computing month boundaries.
+ * @param day - Lunar day within the month. Janson's day 0 is the end of the previous month; this
+ * package uses day 30 of month n−1 instead.
  * @param monthCount - True month count `n`, zero at the epoch.
  *
  * @example

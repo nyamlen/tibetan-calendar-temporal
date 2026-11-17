@@ -29,7 +29,8 @@
  * the ten, which is `auspiciousness`. `docs/astrology.md` is the reader-facing account.
  *
  * **`PHUGPA` and `PHUGPA_HENNING` answer everything; `BHUTAN` and `BHUTAN_HENNING` refuse the
- * month-dependent attributes and the elemental yoga.** Janson tabulates no month-animal list for the Bhutanese version, so
+ * month-dependent attributes and the elemental yoga.**
+ * Janson tabulates no month-animal list for the Bhutanese version, so
  * {@link monthAttributesFor} and {@link lunarDayAttributesFor} throw `TCT_ATTRIBUTE_NOT_SOURCED`
  * for the two Bhutanese configs rather than handing over Phugpa's answers. The elemental yoga is
  * refused too, by any tradition whose `naming.weekdayOffset` is nonzero — both Bhutanese configs —
@@ -154,8 +155,10 @@ export function yearAttributesFor(year: number): YearAttributes {
  * `number` is `null` for `PHUGPA` and `PHUGPA_HENNING`: Janson states that only Tsurphu calendars
  * number their months.
  *
- * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` for a non-integer or out-of-range field;
- * `TCT_INVALID_ARGUMENT` if `month` is not an object naming a Tibetan month;
+ * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` for a `year` or `month` that is a number but
+ * not an integer or is out of range;
+ * `TCT_INVALID_ARGUMENT` if `month` is not an object naming a Tibetan month, or its `year` or
+ * `month` is absent or not a number;
  * `TCT_INVALID_TRADITION_CONFIG` if `tradition` is not a valid config; `TCT_NO_SUCH_LEAP_MONTH`
  * if `isLeapMonth` is set for a month with no leap twin that year; `TCT_OUTSIDE_EXACT_RANGE` past the
  * tradition's exact range; or **`TCT_ATTRIBUTE_NOT_SOURCED`** for a tradition whose month attributes
@@ -195,8 +198,10 @@ export function monthAttributesFor(
  * month's are unsourced. The refusal is coarse by exactly one field — the animal alone is
  * tradition-free.
  *
- * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` for a non-integer or out-of-range field;
- * `TCT_INVALID_ARGUMENT` if `date` is not an object naming a Tibetan date;
+ * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` for a `year`, `month` or `day` that is a
+ * number but not an integer or is out of range;
+ * `TCT_INVALID_ARGUMENT` if `date` is not an object naming a Tibetan date, or its `year`, `month`
+ * or `day` is absent or not a number;
  * `TCT_INVALID_TRADITION_CONFIG` if `tradition` is not a valid config; `TCT_NO_SUCH_LEAP_MONTH`
  * if `isLeapMonth` is set for a month with no leap twin that year; `TCT_OUTSIDE_EXACT_RANGE` past the
  * tradition's exact range; or **`TCT_ATTRIBUTE_NOT_SOURCED`** for a tradition whose month attributes

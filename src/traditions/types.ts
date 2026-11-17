@@ -98,8 +98,8 @@ export interface TraditionConfig {
 	 * - `"after"`: month 3 for `β*` below the threshold plus 2, leap month 2 for `β*` equal to the
 	 *   threshold plus 2 or plus 3, and month 2 for `β*` four or more above the threshold.
 	 *
-	 * `PHUGPA` (`β*` 61, threshold 48) has count 0 on month 2 of 806; `BHUTAN` (`β*` 2, threshold 57)
-	 * has it on month 3 of 1754.
+	 * `PHUGPA` (`β*` 61, threshold 48) has count 0 on month 2 of the year beginning in 806 CE;
+	 * `BHUTAN` (`β*` 2, threshold 57) has it on month 3 of the year beginning in 1754 CE.
 	 */
 	readonly epochMonth: number;
 

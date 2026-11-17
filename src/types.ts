@@ -238,8 +238,6 @@ export function asTibetanWeekday(value: number): TibetanWeekday {
 // Name objects are shared rather than copied: a `TibetanDate` holds a pointer, so building a year
 // of dates costs pointer fields rather than thousands of strings — and freezing is what keeps that
 // sharing safe.
-//
-// The dictionary is reached through a stated normalisation rather than by changing the name.
 /**
  * A Sanskrit name: IAST with full diacritics, and the same word in Devanāgarī.
  *

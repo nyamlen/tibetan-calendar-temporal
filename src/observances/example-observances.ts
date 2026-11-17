@@ -54,7 +54,7 @@
  * **Sojong** (*sojong* གསོ་སྦྱོང་; Sanskrit *poṣadha* पोषध) is a `counted` rule, inferred and not
  * sourced: it is the fit that reproduces Rabten Choeling's schedule exactly, and Rabten states no
  * method. It overrides the config's conventions with `doubledDay: "first"` and
- * `skippedDay: "following"`, the pair that fit. FPMT departs from it for one run in 2022.
+ * `skippedDay: "following"`, the pair that fit. FPMT departs from it for one run in 2022 CE.
  *
  * The **fire puja** is the `lunarDayPlusWeekdayMod4` formula, which agrees with FPMT's labels on
  * most days and misses some; how many, and over which years, is in `docs/why-trust-these-dates.md`.
@@ -234,7 +234,7 @@ export const EXAMPLE_OBSERVANCES: ObservanceConfig = deepFreeze({
 		// ---- Counted and computed schedules ----
 		{
 			// Inferred from Rabten Choeling's published schedule, which states no method. The two
-			// overrides are the pair that fit it; FPMT's calendar departs for one run in 2022.
+			// overrides are the pair that fit it; FPMT's calendar departs for one run in 2022 CE.
 			id: "sojong",
 			englishName: "Sojong (vow renewal)",
 			tibetanName: { tibetan: "གསོ་སྦྱོང", wylie: "gso sbyong", phonetic: "sojong" },

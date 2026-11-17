@@ -73,8 +73,8 @@ export type {
  * runs almost 11, and `2020-12-31` to `2031-01-01` is refused, though it is 10 years and 2 days. Cost is
  * linear in the range. A day, month, year or planning view needs at most about two years. Measured
  * on the machine recorded in `bench/RESULTS.md`, 10 years over a config holding one rule of each
- * form but `counted` takes about 22 ms on average (the slowest sample 29 ms), and two years about
- * 4 ms.
+ * form but `counted` takes about 28.5 ms on average (the slowest sample about 40 ms), and two
+ * years about 5 ms; the figures are the latest run recorded there.
  *
  * A caller who genuinely wants a wider table — the whole rabjung era, 1027–2027 CE, is the realistic
  * example — requests it in chunks and concatenates. That is correct because this function is pure

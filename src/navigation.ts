@@ -84,9 +84,10 @@ function assertCount(subject: string, name: string, value: number): void {
  * @param tradition - Astronomical constants. Defaults to `PHUGPA`.
  *
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `month` is not an object naming a Tibetan
- * month, or `isLeapMonth` is present and not a boolean; `TCT_FIELD_OUT_OF_RANGE` if `year` is not a
- * safe integer or `month` is not an integer 1–12; `TCT_NO_SUCH_LEAP_MONTH` if `isLeapMonth` is set
- * for a month with no leap twin that year; `TCT_OUTSIDE_EXACT_RANGE` past the closed-form bound;
+ * month, or its `year` or `month` is absent or not a number, or `isLeapMonth` is present and not a
+ * boolean; `TCT_FIELD_OUT_OF_RANGE` for a `year` that is a number but not a safe integer or a
+ * `month` that is a number but not an integer 1–12; `TCT_NO_SUCH_LEAP_MONTH` if `isLeapMonth` is
+ * set for a month with no leap twin that year; `TCT_OUTSIDE_EXACT_RANGE` past the closed-form bound;
  * `TCT_INVALID_TRADITION_CONFIG` if `tradition` is not a valid config.
  *
  * @example
@@ -289,9 +290,11 @@ export function monthsBetween(
  * @param tradition - Astronomical constants. Defaults to `PHUGPA`.
  *
  * @throws SkippedDayError if `date` itself names no calendar day.
- * @throws RangeError with code `TCT_INVALID_ARGUMENT` for a wrong-kind argument;
- * `TCT_FIELD_OUT_OF_RANGE` if a field or `days` is out of range or not an integer, a `days` that is
- * not a number included; `TCT_NO_SUCH_LEAP_MONTH` if `isLeapMonth` is set for a month with no leap
+ * @throws RangeError with code `TCT_INVALID_ARGUMENT` for a wrong-kind argument, including a
+ * `year`, `month` or `day` field that is absent or not a number;
+ * `TCT_FIELD_OUT_OF_RANGE` if a field that is a number is out of range or not an integer, or if
+ * `days` is out of range or not an integer, a `days` that is not a number included;
+ * `TCT_NO_SUCH_LEAP_MONTH` if `isLeapMonth` is set for a month with no leap
  * twin that year; `TCT_OUTSIDE_EXACT_RANGE` if the date or the result lies outside the range where
  * the arithmetic stays exact; `TCT_INVALID_TRADITION_CONFIG` if `tradition` is not a valid config.
  *
@@ -343,8 +346,9 @@ export function addDays(
  * @throws {@link SkippedDayError} — code `TCT_SKIPPED_DAY` — if no calendar day carries `date`.
  * Use {@link tibetanDateExists} to test first.
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `date` is not an object naming a Tibetan
- * date, or a leap flag is present and not a boolean; `TCT_FIELD_OUT_OF_RANGE` for a field out of
- * range or not an integer; `TCT_NO_SUCH_LEAP_MONTH` if `isLeapMonth` is set for a month with no
+ * date, or its `year`, `month` or `day` is absent or not a number, or a leap flag is present and not
+ * a boolean; `TCT_FIELD_OUT_OF_RANGE` for a `year`, `month` or `day` that is a number but not an
+ * integer or is out of range; `TCT_NO_SUCH_LEAP_MONTH` if `isLeapMonth` is set for a month with no
  * leap twin that year; `TCT_OUTSIDE_EXACT_RANGE` past the tradition's exact range;
  * `TCT_INVALID_TRADITION_CONFIG` if `tradition` is not a valid config.
  *

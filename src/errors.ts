@@ -338,7 +338,8 @@ export function assertKnownKeys(
 // reads a property off `null` and throws a raw uncoded `TypeError`, which is the failure the config
 // validators exist to end: a consumer's `catch (e) { if (e.code === …) }` falls through it. Unknown
 // keys are refused because every bag ignored them, so `addMonthsToDate(f, 0, { config: BHUTAN })`
-// answered Phugpa's date without a word; the fifth point of the tradition-parameter pattern, `docs/decisions/2026-09-24-how-a-tradition-is-passed.md`. An
+// answered Phugpa's date without a word; the fifth point of the tradition-parameter pattern,
+// `docs/decisions/2026-09-24-how-a-tradition-is-passed.md`. An
 // own-keys check would let `Object.create({ config: BHUTAN })` through, which is why inherited keys
 // are walked. Symbol keys are ignored because nobody writes one by mistake and `Object.keys` does not
 // list them.

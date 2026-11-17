@@ -299,8 +299,9 @@ export function monthsFor(year: number, tradition: TraditionConfig = PHUGPA): Ti
  * @param tradition - Astronomical constants. Defaults to `PHUGPA`.
  *
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `month` is not an object naming a Tibetan
- * month, or `isLeapMonth` is present and not a boolean; `TCT_FIELD_OUT_OF_RANGE` for a field out of
- * range or not an integer; `TCT_NO_SUCH_LEAP_MONTH` if `isLeapMonth` is set for a month with no
+ * month, or its `year` or `month` is absent or not a number, or `isLeapMonth` is present and not a
+ * boolean; `TCT_FIELD_OUT_OF_RANGE` for a `year` or `month` that is a number but not an integer or
+ * is out of range; `TCT_NO_SUCH_LEAP_MONTH` if `isLeapMonth` is set for a month with no
  * twin that year; `TCT_OUTSIDE_EXACT_RANGE` past the tradition's exact range;
  * `TCT_INVALID_TRADITION_CONFIG` if `tradition` is not a valid config.
  *
@@ -333,9 +334,11 @@ export function resolveMonth(
  * Accepts anything carrying `year`, `month` and optionally `isLeapMonth`, so a {@link TibetanDate}
  * from `isoToTibetan` can be passed straight in.
  *
- * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` for a non-integer or out-of-range field;
+ * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` for a `year` or `month` that is a number but
+ * not an integer or is out of range;
  * `TCT_INVALID_ARGUMENT` if `month` is not an object naming a Tibetan month — a `Temporal` instance,
- * `null` — or if `isLeapMonth` is present but not `boolean`; `TCT_NO_SUCH_LEAP_MONTH` if
+ * `null` — or its `year` or `month` is absent or not a number, or if `isLeapMonth` is present but
+ * not `boolean`; `TCT_NO_SUCH_LEAP_MONTH` if
  * `isLeapMonth` is set for a month with no leap twin that year; `TCT_OUTSIDE_EXACT_RANGE` past
  * the tradition's exact range; or `TCT_INVALID_TRADITION_CONFIG` if `tradition` is not a valid
  * config.
@@ -457,8 +460,9 @@ export function monthsInYear(year: number, tradition: TraditionConfig = PHUGPA):
  * @param tradition - Astronomical constants. Defaults to `PHUGPA`.
  *
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `month` is not an object naming a Tibetan
- * month, or `isLeapMonth` is present and not a boolean; `TCT_FIELD_OUT_OF_RANGE` for a field out of
- * range or not an integer; `TCT_NO_SUCH_LEAP_MONTH` if `isLeapMonth` is set for a month with no
+ * month, or its `year` or `month` is absent or not a number, or `isLeapMonth` is present and not a
+ * boolean; `TCT_FIELD_OUT_OF_RANGE` for a `year` or `month` that is a number but not an integer or
+ * is out of range; `TCT_NO_SUCH_LEAP_MONTH` if `isLeapMonth` is set for a month with no
  * twin that year; `TCT_OUTSIDE_EXACT_RANGE` past the tradition's exact range;
  * `TCT_INVALID_TRADITION_CONFIG` if `tradition` is not a valid config.
  *
