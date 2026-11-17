@@ -111,7 +111,7 @@ export interface TraditionConfig {
 	 *
 	 * @remarks
 	 * 61 for `PHUGPA` at E806 and 2 for `BHUTAN`. With `leapIndexThreshold` it positions the whole
-	 * leap-month cycle, and `β` and `γ*` are derived from the two.
+	 * leap-month cycle, and `β` and `γ*` are derived from these and the epoch.
 	 *
 	 * An integer in 0…64, because it is an index taken mod 65; any other value is refused with
 	 * `TCT_INVALID_TRADITION_CONFIG`.
@@ -127,8 +127,9 @@ export interface TraditionConfig {
 	// 172 for Mongolia, 191 for Bhutan and 77 for Tsurphu, congruent mod 65 to his 142 — the only
 	// sense in which `β` is determined.
 	//
-	// Janson's traditional index is the simplified one increased by 2 from the leap month onward, so
-	// his 59-or-60 is not the simplified rule with the threshold moved by 2. Measured (probe):
+	// Janson's traditional index is the simplified one increased by 2 from the leap month onward,
+	// until the index passes 65, so his 59-or-60 is not the simplified rule with the threshold moved
+	// by 2. Measured (probe):
 	// `{ ...BHUTAN, leapIndexThreshold: 59 }` differs from `BHUTAN` on 177 of the 3,650 days from
 	// 2020-01-01 (CE), the first on 2022-02-02.
 	/**
@@ -155,11 +156,11 @@ export interface TraditionConfig {
 	 *
 	 * The Bhutanese value is the *simplified* index this package computes, not the traditional one an
 	 * almanac prints. Janson also gives the rule against the traditional index, as 59-or-60, but that
-	 * index is the simplified one raised by 2 for a leap month and the months after it, not a uniform
-	 * shift of this threshold: `{ ...BHUTAN, leapIndexThreshold: 59 }` is a different calendar, not
-	 * Bhutan under the traditional index. Bhutan additionally numbers a leap month from the
-	 * **preceding** month rather than the following one, which this field does **not** express; see
-	 * `leapMonthPosition` and `docs/traditions.md`.
+	 * index is the simplified one raised by 2 for a leap month and the months after it, until the index
+	 * passes 65, not a uniform shift of this threshold: `{ ...BHUTAN, leapIndexThreshold: 59 }` is a
+	 * different calendar, not Bhutan under the traditional index. Bhutan additionally numbers a leap
+	 * month from the **preceding** month rather than the following one, which this field does
+	 * **not** express; see `leapMonthPosition` and `docs/traditions.md`.
 	 */
 	readonly leapIndexThreshold: number;
 

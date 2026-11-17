@@ -315,9 +315,9 @@ function assertLeapIndexThreshold(tradition: TraditionConfig): void {
 // either position. `57 ⇒ "after"` would fit the four shipped configs and say nothing of a config
 // built from other numbers. Janson states Bhutan's rule against two different intercalation
 // indices — 57-or-58 simplified, 59-or-60 traditional — and the traditional one is the simplified
-// index raised by 2 from the leap month onward, so `{ ...BHUTAN, leapIndexThreshold: 59 }` is a
-// different calendar from `BHUTAN`, not Bhutan stated the traditional way (177 of 3,650 days from
-// 2020-01-01 differ, probed).
+// index raised by 2 from the leap month onward, until the index passes 65, so
+// `{ ...BHUTAN, leapIndexThreshold: 59 }` is a different calendar from `BHUTAN`, not Bhutan stated
+// the traditional way (177 of 3,650 days from 2020-01-01 differ, probed).
 function assertLeapMonthPosition(tradition: TraditionConfig): void {
 	const value = tradition.leapMonthPosition;
 	if (value === undefined) {

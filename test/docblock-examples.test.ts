@@ -433,7 +433,7 @@ describe("docblock examples", () => {
 				return count;
 			};
 			expect(differing(57)).toBe(0);
-			expect(differing(59)).toBeGreaterThan(0);
+			expect(differing(59)).toBe(177);
 		});
 	});
 });

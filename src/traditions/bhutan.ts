@@ -46,14 +46,14 @@ import type { TraditionConfig } from "./types.js";
  * "I have no explanation for this discrepancy." This config follows the computed line, so it
  * disagrees with the government calendar on that date. Neither side is ours to overrule.
  *
+ * **Deeply frozen**, correction tables included — see the remarks on
+ * {@link ../traditions/phugpa.PHUGPA}, which this is spread from.
+ *
  * @example
  * ```ts
  * import { BHUTAN, losarFor } from "tibetan-calendar-temporal";
  * losarFor(2130, BHUTAN).isoDate.toString(); // "2003-03-04"
  * ```
- *
- * **Deeply frozen**, correction tables included — see the remarks on
- * {@link ../traditions/phugpa.PHUGPA}, which this is spread from.
  */
 export const BHUTAN: TraditionConfig = deepFreeze({
 	// Spread rather than assembled field by field, so the shared constants stay shared by
@@ -85,8 +85,9 @@ export const BHUTAN: TraditionConfig = deepFreeze({
 	 * the **simplified** index this package computes.
 	 *
 	 * Janson states the same rule against the *traditional* index as 59-or-60. That index is the
-	 * simplified one raised by 2 from the leap month onward, so each statement describes the same
-	 * calendar against its own index; giving this field 59 would describe a different calendar.
+	 * simplified one raised by 2 from the leap month onward, until the index passes 65, so each
+	 * statement describes the same calendar against its own index; giving this field 59 would
+	 * describe a different calendar.
 	 */
 	leapIndexThreshold: 57,
 

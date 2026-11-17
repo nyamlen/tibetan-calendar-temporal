@@ -28,7 +28,7 @@ import type { TraditionConfig } from "./types.js";
  * non-negative for every date after 806 CE; see {@link TraditionConfig.epochYear}.
  *
  * It claims to be the dates Tibetans use, and is checked day by day against four independent
- * published calendars; `docs/why-trust-these-dates.md` states over which years. It follows the
+ * sources; `docs/why-trust-these-dates.md` states over which years. It follows the
  * rounded `a₂ = 1/28` of the Men-Tsee-Khang almanac; see {@link PHUGPA_HENNING} for the fork.
  *
  * **Deeply frozen**, correction tables included. This is the object the docs point a reader at for
@@ -150,7 +150,7 @@ export const PHUGPA: TraditionConfig = deepFreeze({
  * configs make different claims, and the distinction is the whole reason both are exported:
  *
  * - {@link PHUGPA} claims *these are the dates Tibetans use*, and is checked against four
- *   independent published calendars, among them FPMT's, which is prepared from the Men-Tsee-Khang
+ *   independent sources, among them FPMT's calendar, which is prepared from the Men-Tsee-Khang
  *   almanac; `docs/why-trust-these-dates.md` states over which years.
  * - This claims *these are the dates Henning's line produces*, which is what most public Tibetan
  *   calendar data descends from.
