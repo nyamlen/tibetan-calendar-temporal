@@ -1,25 +1,24 @@
 /**
- * Shape validation for a consumer-supplied {@link TraditionConfig}.
+ * Validates the shape of a consumer-supplied {@link TraditionConfig}.
  *
  * @remarks
- * `TraditionConfig` is the documented extension point — the README, `docs/architecture.md` and the
- * type comments all push a reader toward `{ ...PHUGPA, lunarAnomaly: … }` for Tsurphu — and until
- * now nothing checked it. A missing field surfaced as `Cannot read properties of undefined
- * (reading 'den')` from inside `scaleMeanMotion`, which names neither the field nor the config,
- * and a `moonTab` of the wrong length reached an interpolation that indexes past its end.
- *
- * `docs/decisions/2026-08-12-input-validation-boundary.md` already requires this: every exported
- * function validates "integrality, range, **and config shape**". This closes that gap rather than
- * deciding anything new.
- *
- * Where it runs: once per config **object**, at the boundary and never on the hot path.
- * {@link validatedTradition} checks the config, takes a private deeply frozen copy and memoises it
- * on a `WeakMap`; every entry point then reads that copy, so a config mutated after first use
- * neither escapes revalidation nor reaches the arithmetic. `scalingFor` is the single choke point
- * for the scaling, and it hands back the copy it derived from.
+ * A config is checked once per config **object**, at the boundary and never on the hot path.
+ * {@link validatedTradition} checks it, takes a private deeply frozen copy and memoises it on a
+ * `WeakMap`; every entry point then reads that copy, so a config mutated after first use changes
+ * nothing the engine sees. `scalingFor` is the single choke point for the scaling, and it hands back
+ * the copy it derived from.
  *
  * @packageDocumentation
  */
+
+// `TraditionConfig` is the documented extension point — the README, `docs/architecture.md` and the
+// type comments all push a reader toward `{ ...PHUGPA, lunarAnomaly: … }` for Tsurphu — so the config
+// is checked like every other boundary: `docs/decisions/2026-08-12-input-validation-boundary.md`
+// requires every exported function to validate "integrality, range, **and config shape**".
+//
+// Without it a missing field surfaces as `Cannot read properties of undefined (reading 'den')` from
+// inside `scaleMeanMotion`, which names neither the field nor the config, and a `moonTab` of the
+// wrong length reaches an interpolation that indexes past its end.
 
 import { deriveScaling } from "../computation/scaling.js";
 import { assertKnownKeys, describe, rangeError, validatedPrivateCopy } from "../errors.js";
@@ -32,7 +31,10 @@ import type {
 	TraditionNineNumbers,
 } from "./types.js";
 
-/** `moonTab` covers arguments 0…7; `sunTab` covers 0…3. Janson §7. */
+/**
+ * The number of entries `moonTab` (arguments 0…7) and `sunTab` (arguments 0…3) must have, from the
+ * tables of Janson's astronomical-functions section (§7).
+ */
 const MOON_TAB_LENGTH = 8;
 const SUN_TAB_LENGTH = 4;
 
@@ -82,7 +84,12 @@ function invalid(tradition: TraditionConfig, detail: string): Error {
 	);
 }
 
-/** A rational must be two numbers with a positive denominator, or the scaling silently degrades. */
+/**
+ * Refuses a rational that is not a `{ num, den }` object of safe integers with a positive `den`.
+ *
+ * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG`.
+ */
+// Without the check the scaling silently degrades.
 function assertRational(
 	tradition: TraditionConfig,
 	path: string,
@@ -142,15 +149,15 @@ function assertMeanMotion(
 }
 
 /**
- * A correction table must have exactly its documented length and hold only integers.
+ * Refuses a correction table that is not an array of exactly its documented length of safe integers
+ * whose first entry is 0.
  *
- * @remarks
- * Length is not incidental. `moonTabAt` extends the table by the symmetries `tab(14 − i) = tab(i)`
- * and `tab(14 + i) = −tab(i)`, which are only meaningful for eight entries; a shorter table
- * interpolates against `undefined` and yields `NaN`, and `NaN` propagates into a date rather than
- * failing. The two `throw`s guarding this inside `corrections.ts` are the last line of defence and
- * become genuinely unreachable once this runs.
+ * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG`.
  */
+// Length is not incidental. `moonTabAt` extends the table by the symmetries `tab(14 − i) = tab(i)`
+// and `tab(14 + i) = −tab(i)`, which are only meaningful for eight entries, and `sunTabAt` likewise
+// for four. The `assertInternal` guard in each is the last line of defence and is unreachable once
+// this runs.
 function assertTable(
 	tradition: TraditionConfig,
 	path: string,
@@ -201,13 +208,15 @@ function assertInteger(tradition: TraditionConfig, path: string, value: number |
 }
 
 /**
- * `β*` is an intercalation index, and the index is `mod 65`.
+ * Refuses an `intercalationIndexAtEpoch` that is not an integer in 0…64.
  *
- * @remarks
- * A value 65 off is the same leap cycle with the true month count shifted by one lunation: `β` and
- * the rounding term both move by one month while `m₀` stays, so every date moves a month and no leap
- * month does. The values in use are 0, 2, 46 and 61, all inside 0…64.
+ * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG`.
  */
+// `β*` is an intercalation index, so it is taken mod 65. A value 65 off is the same leap cycle with
+// every true month count shifted by one while `m₀` stays, so every date moves a month and no leap
+// month does (probed). The values Janson gives, in the epochs the configs use — 61 for `PHUGPA`, 2 for
+// `BHUTAN`, and 0 and 46 for Tsurphu and the Mongolian version counted back to E806 — are all
+// inside 0…64.
 function assertIntercalationIndexAtEpoch(tradition: TraditionConfig): void {
 	const value = tradition.intercalationIndexAtEpoch;
 	if (!Number.isSafeInteger(value) || value < 0 || value > 64) {
@@ -221,18 +230,27 @@ function assertIntercalationIndexAtEpoch(tradition: TraditionConfig): void {
 }
 
 /**
- * The mean date must be a function of the lunar day count `30n + d` alone: `m₁ = 30·m₂`.
+ * Refuses a `meanDate` whose `perMonth` is not 30 times its `perDay`, or whose `perDay` is not
+ * positive.
  *
  * @remarks
- * `isoToTibetan` seeds its search from `meanDate.perDay`, and the width of the window is proved on
- * the same premise. If `perMonth ≠ 30·perDay` the mean date drifts from the seed by `n·(m₁ − 30·m₂)`,
- * which has no bound, and dates stop converting back. Every version Janson gives satisfies it. Run
- * after the shape checks, so both rationals are known to hold safe integers, and in `BigInt` because
- * the cross-multiplication of two safe integers need not be one.
+ * The mean date must be a function of the lunar day count `30n + d` alone: `m₁ = 30·m₂`.
  *
- * `perDay` must also be positive: it is the divisor of the search window, and a zero or negative one
- * reached `ceilDiv` as an engine fault.
+ * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG`.
  */
+// `isoToTibetan` seeds its search from `meanDate.perDay`, and the width of the window is proved on
+// the same premise. If `perMonth ≠ 30·perDay` the mean date drifts from the seed by
+// `n·(m₁ − 30·m₂)`, which has no bound, and dates stop converting back. `perDay` is also the divisor
+// of the search window, so it must be positive.
+//
+// Janson states `m₂ = m₁/30` for the Phugpa version and for every other modern version he knows of.
+// Not every version he describes satisfies it: the original Kālacakra Tantra (*karaṇa*) version,
+// which he says is not used to produce calendars today, gives `m₂ = 59/60` beside
+// `m₁ = 29;31,50 ⟨60,60⟩`, and the earlier historical versions use rounded `m₂` and `s₂` too. This
+// refuses them.
+//
+// Run after the shape checks, so both rationals are known to hold safe integers, and in `BigInt`
+// because the cross-multiplication of two safe integers need not be one.
 function assertMeanDateRelation(tradition: TraditionConfig): void {
 	const { perMonth, perDay } = tradition.meanDate;
 	if (perDay.num <= 0) {
@@ -256,15 +274,18 @@ function assertMeanDateRelation(tradition: TraditionConfig): void {
 }
 
 /**
- * The leap-month rule matches an intercalation index of `threshold` **or `threshold + 1`**, and the
- * index is `mod 65`, so both must be attainable: 64 would leave the second value unreachable and
- * halve the leap months — a calendar that runs, and is wrong. The rule does not wrap; Janson writes
- * Tsurphu's as 0-or-1, never as 64-or-0.
+ * Refuses a `leapIndexThreshold` that is not an integer in 0…63.
  *
- * Checked separately from {@link assertInteger} rather than folded into it, because `undefined` and
- * an out-of-range number are different mistakes and deserve different messages. A missing field is
- * the likelier of the two, since this is the newest member of the interface.
+ * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG`.
  */
+// The leap-month rule matches an intercalation index of `threshold` **or `threshold + 1`**, and the
+// index is `mod 65`, so both must be attainable: 64 would leave the second value unreachable and
+// halve the leap months — a calendar that runs, and is wrong. The rule does not wrap; Janson writes
+// Tsurphu's as 0-or-1, never as 64-or-0.
+//
+// Separate from `assertInteger` because the range differs. A missing field and an out-of-range one
+// get the same message with a different "received" value (probed); `assertLeapMonthPosition` words
+// a missing field apart.
 function assertLeapIndexThreshold(tradition: TraditionConfig): void {
 	const value = tradition.leapIndexThreshold;
 	if (!Number.isSafeInteger(value) || value < 0 || value > 63) {
@@ -279,18 +300,24 @@ function assertLeapIndexThreshold(tradition: TraditionConfig): void {
 }
 
 /**
- * Where a leap month sits relative to the regular month sharing its number.
+ * Refuses a `leapMonthPosition` that is absent, or is neither `"before"` nor `"after"`.
  *
  * @remarks
- * Absence is checked before the value, and reported differently, for the reason
- * {@link assertLeapIndexThreshold} states: a missing field and a mistyped one are different
- * mistakes with different fixes, and the missing one is likelier for the newest member of an
- * interface.
+ * There is no default, and the position is not derived from
+ * {@link TraditionConfig.leapIndexThreshold}.
  *
- * No default, and no derivation from {@link TraditionConfig.leapIndexThreshold} — Janson states
- * Bhutan's leap rule against two different intercalation indices, so `57 ⇒ "after"` would reject a
- * config built from his traditional 59-or-60 formulation, which is correct Bhutan.
+ * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG`.
  */
+// Absence is checked before the value and worded apart, because a missing field and a mistyped one
+// have different fixes and the missing one is likelier for the newest member of an interface.
+//
+// No derivation from the threshold: the two fields are independent, and any threshold validates with
+// either position. `57 ⇒ "after"` would fit the four shipped configs and say nothing of a config
+// built from other numbers. Janson states Bhutan's rule against two different intercalation
+// indices — 57-or-58 simplified, 59-or-60 traditional — and the traditional one is the simplified
+// index raised by 2 from the leap month onward, until the index passes 65, so
+// `{ ...BHUTAN, leapIndexThreshold: 59 }` is a different calendar from `BHUTAN`, not Bhutan stated
+// the traditional way (177 of 3,650 days from 2020-01-01 differ, probed).
 function assertLeapMonthPosition(tradition: TraditionConfig): void {
 	const value = tradition.leapMonthPosition;
 	if (value === undefined) {
@@ -315,13 +342,14 @@ function assertLeapMonthPosition(tradition: TraditionConfig): void {
 }
 
 /**
- * `naming` is optional, so absence is fine — but a present-and-wrong value is not.
+ * Refuses a present `naming` that is not an object, uses a retired or unknown key, or holds a bad
+ * member; an absent `naming` is accepted.
  *
- * @remarks
- * The asymmetry matters. A required field is checked for absence because `undefined` is the likelier
- * mistake; an optional one is checked for *shape*, because a consumer who supplied it meant
- * something by it and a silently ignored typo is worse than a throw.
+ * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG`.
  */
+// A required field is checked for absence because `undefined` is the likelier mistake; an optional
+// one is checked for *shape*, because a consumer who supplied it meant something by it and a
+// silently ignored typo is worse than a throw.
 function assertNaming(tradition: TraditionConfig): void {
 	const naming = tradition.naming;
 	if (naming === undefined) return;
@@ -352,19 +380,23 @@ function assertNaming(tradition: TraditionConfig): void {
 }
 
 /**
- * `naming.monthAnimals` is optional, and absence is a **statement**: nobody has sourced this
- * tradition's month animals, so the astrological layer refuses rather than guessing.
+ * Refuses a present `naming.monthAnimals` that is not an object or lacks a valid `tigerMonth` or
+ * `elementRule`; an absent one is accepted.
  *
  * @remarks
- * Present-and-partial is the case this exists for. The two fields are one claim — the Tiger month
- * decides the animals *and* anchors the elements, and the lunar day's trigram and number are derived
- * from the month's animal — so a block missing one of them would let a tradition answer some
- * attributes confidently and others wrongly. Required-when-present, therefore, and `undefined` is
- * rejected as CLAUDE.md's rule demands for a declared-required field.
+ * Absence is a **statement**: nobody has sourced this tradition's month animals, so the
+ * astrological layer refuses rather than guessing. A present block must be complete.
  *
- * A present `naming.months`, this block's name until 2026-09-13, is rejected by {@link assertNaming}
- * with a message of its own rather than as one more unknown key.
+ * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG`.
  */
+// Present-and-partial is the case this exists for. The two fields are one claim — the Tiger month
+// decides the animals *and* anchors the elements, and the lunar day's trigram and number are derived
+// from the month's animal — so a block missing one of them would let a tradition answer some
+// attributes confidently and others wrongly. `undefined` is rejected for a field the type declares
+// required.
+//
+// The retired `naming.months` is refused by `assertNaming` with a message of its own rather than as
+// one more unknown key.
 function assertMonthAnimals(
 	tradition: TraditionConfig,
 	animals: TraditionMonthAnimals | undefined,
@@ -398,9 +430,13 @@ function assertMonthAnimals(
 }
 
 /**
- * `naming.nineNumbers` is optional and so is each member, and absence means the dominant convention
- * — so only a present-and-wrong value is rejected, the `weekdayOffset` idiom.
+ * Refuses a present `naming.nineNumbers` that is not an object or whose `months` is neither
+ * `"unnumbered"` nor `"descending"`; absence of the block or of `months` is accepted.
+ *
+ * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG`.
  */
+// Absence means the dominant convention, so only a present-and-wrong value is rejected — the
+// `weekdayOffset` idiom.
 function assertNineNumbers(
 	tradition: TraditionConfig,
 	numbers: TraditionNineNumbers | undefined,
@@ -442,16 +478,18 @@ const privateCopies = new WeakMap<TraditionConfig, TraditionConfig>();
  * @remarks
  * Checked and copied once per config **object**, then a `WeakMap` hit. The engine reads the copy
  * and never the caller's object, so mutating a config after first use changes nothing the engine
- * sees: the answers stay those of the config as it was validated, where reading the object live
- * gave an uncoded error, `TCT_INTERNAL`, or a value the validator would have refused. A new
- * object, such as a fresh spread, is checked again.
+ * sees: the answers stay those of the config as it was validated. A new object, such as a fresh
+ * spread, is checked again.
  *
  * This validates **shape, not astronomy**, plus the few values the arithmetic cannot take at all:
  * `m₁ = 30·m₂`, a table whose first entry is zero, an intercalation index inside 0…64. A config
- * with plausible types and wrong constants passes here and produces a wrong calendar — nothing but a fixture can catch that, which is what
- * `docs/testing.md` is about.
+ * with plausible types and wrong constants passes here and produces a wrong calendar; only a
+ * fixture can catch that, which is what `docs/testing.md` is about.
  *
- * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG`, naming the offending field path.
+ * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG`, naming the offending field path
+ * where there is one. The same code answers a value that is not an object, a getter or Proxy that
+ * throws while the config is read, and a config that cannot be copied because a field is not plain
+ * data.
  */
 export function validatedTradition(tradition: TraditionConfig): TraditionConfig {
 	return validatedPrivateCopy(tradition, {
@@ -468,15 +506,15 @@ export function validatedTradition(tradition: TraditionConfig): TraditionConfig 
 }
 
 /**
- * Shape, then the checks that need the derived scaling.
+ * Runs the shape checks, then derives the scaling so the checks that need derived values run too.
  *
- * @remarks
- * A config must not pass one export and fail another, and the derived checks — `assertDerivable`
- * and `assertCommonDenominatorExact`, called from `deriveScaling` — would otherwise run only on the
- * exports that reach `scalingFor`. Deriving here, on the caller's object and then on the copy,
- * refuses a config that cannot be derived on its first call to anything; `scalingFor` derives the
- * copy once more and memoises it.
+ * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG`.
  */
+// A config must not pass one export and fail another, and the derived checks — `assertDerivable`
+// and `assertCommonDenominatorExact`, called from `deriveScaling` — would otherwise run only on the
+// exports that reach `scalingFor`. Deriving here, on the caller's object and then on the copy,
+// refuses a config that cannot be derived on its first call to anything; `scalingFor` derives the
+// copy once more and memoises it.
 function assertValid(tradition: TraditionConfig): void {
 	assertShape(tradition);
 	deriveScaling(tradition);
@@ -491,9 +529,9 @@ function assertShape(tradition: TraditionConfig): void {
 		);
 	}
 
-	// The likeliest non-config object is the `{ tradition }` bag six functions took until 2026-09-24,
-	// when a tradition that is a function's only choice became positional. Without this a migrating
-	// caller is told `id` is missing, a field they never meant to write.
+	// The likeliest non-config object is a `{ tradition }` bag, the shape a function took before its
+	// only choice, the tradition, became a positional parameter. Without this a migrating caller is
+	// told `id` is missing, a field they never meant to write.
 	if (tradition.id === undefined && "tradition" in tradition) {
 		throw rangeError(
 			"TCT_INVALID_TRADITION_CONFIG",
@@ -523,17 +561,18 @@ function assertShape(tradition: TraditionConfig): void {
 }
 
 /**
- * The common denominator the scaled arithmetic puts every quantity over must be a safe integer, and
- * leave at least one Julian day of exact range.
+ * Refuses a tradition whose common denominator, the lcm of `denominators`, is not a safe integer.
  *
  * @remarks
- * Each mean motion can be scalable on its own while the lcm of all three with the table
- * denominators is not; `lcm` multiplies in doubles, so past 2^53 the result is rounded and the
- * failure surfaces late, from `scaleTo`, or as an exact range of no days. The lcm is taken here in
- * `BigInt` from the same three denominators.
+ * The common denominator is the one the scaled arithmetic puts every quantity over; a safe integer
+ * leaves at least one Julian day of exact range. `deriveScaling` passes the mean date's
+ * denominator and the denominators of the two correction-table arguments times 60.
  *
  * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG`.
  */
+// Each mean motion can be scalable on its own while the lcm of those three denominators is not;
+// `lcm` multiplies in doubles, so past 2^53 the result is rounded and the failure surfaces late,
+// from `scaleTo`, or as an exact range of no days. The lcm is taken here in `BigInt`.
 export function assertCommonDenominatorExact(
 	tradition: TraditionConfig,
 	denominators: readonly number[],
@@ -556,18 +595,18 @@ export function assertCommonDenominatorExact(
 }
 
 /**
- * The checks that need derived quantities rather than the raw config.
+ * Refuses a tradition whose correction tables imply a search window wider than the engine will
+ * search.
  *
  * @remarks
- * Split from {@link validatedTradition} because these values do not exist until `deriveScaling`
- * has computed them, not because they are any less part of validating a config — both throw the
- * same code, and `validatedTradition` runs the derivation, so every export refuses such a config on
+ * Called from `deriveScaling` once the search window is derived. It throws the same code as
+ * {@link validatedTradition}, which runs the derivation, so every export refuses such a config on
  * its first call.
- *
- * Called from `deriveScaling` once the search window is derived.
  *
  * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG`.
  */
+// Split from `validatedTradition` because these values do not exist until `deriveScaling` has
+// computed them, not because they are any less part of validating a config.
 export function assertDerivable(tradition: TraditionConfig, searchHalfWidth: number): void {
 	// A general bound on the search window, deliberately not a bound on the tables themselves.
 	// `|moonTab| ≤ 25` would hardcode Phugpa's magnitudes into a field the non-negotiables declare
@@ -586,10 +625,11 @@ export function assertDerivable(tradition: TraditionConfig, searchHalfWidth: num
 }
 
 /**
- * The widest search window this engine will accept from a tradition's correction tables.
+ * The widest search window, in lunar days either side, this engine will accept from a tradition's
+ * correction tables.
  *
  * @remarks
- * A full lunar month. Phugpa derives 3; anything approaching a month describes no lunisolar
- * calendar and is a typo in a table.
+ * A full lunar month. Each of the four shipped configs derives 3; anything approaching a month
+ * describes no lunisolar calendar and is a typo in a table.
  */
 const MAX_SEARCH_HALF_WIDTH = 30;

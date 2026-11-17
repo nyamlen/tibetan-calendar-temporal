@@ -65,10 +65,6 @@ export interface ElementalYoga {
 	 * The yoga's name in English — eight of the ten Henning's translation (p. 204), two a dictionary's.
 	 *
 	 * @remarks
-	 * The third rendering of one name, beside {@link ElementalYoga.tibetanName} and
-	 * {@link ElementalYoga.sanskritName} — not the meaning of the mansion or of anything else. First,
-	 * because it is the key a reader recognises.
-	 *
 	 * **Every one is printed word for word by a public-domain dictionary.** Eight are Henning's
 	 * translation: seven printed by Monier-Williams under the Sanskrit name, *excellence* by Jäschke
 	 * under *phun sum tshogs*. **Two replace his**, because no dictionary consulted prints his word:
@@ -76,6 +72,8 @@ export interface ElementalYoga {
 	 * *opposition* for his *discord* (Monier-Williams p. 661, s.v. *pratikūla*). See
 	 * `docs/names/month-and-yoga-sourcing.md`.
 	 */
+	// The third rendering of one name, beside `tibetanName` and `sanskritName`, and not the meaning of
+	// the mansion or of anything else. It comes first because it is the key a reader recognises.
 	readonly englishName: string;
 	/**
 	 * The Tibetan name — script, Wylie and THL phonetics.
@@ -93,10 +91,11 @@ export interface ElementalYoga {
 	 * @remarks
 	 * Nine of the ten are Monier-Williams headwords. **`pragati` is Henning's alone**: it is the stem,
 	 * and no Cologne dictionary carries it — not Monier-Williams 1899 or 1872, Böhtlingk and Roth, Apte
-	 * or Cappeller. Shipped as he prints it rather than replaced, because the two candidates found are
-	 * each worse: *pragamana* is paired with `'phel 'gyur` by no source, and *vṛddhi* is the name of
-	 * an unrelated astronomical yoga. See `docs/names/month-and-yoga-sourcing.md`.
+	 * or Cappeller. It is shipped as he prints it. See `docs/names/month-and-yoga-sourcing.md`.
 	 */
+	// Shipped as Henning prints it rather than replaced, because the two candidates found are each
+	// worse: *pragamana* is paired with `'phel 'gyur` by no source, and *vṛddhi* is the name of an
+	// unrelated astronomical yoga.
 	readonly sanskritName: SanskritName;
 	/**
 	 * The two elements, **as Henning prints the pair** — not in the order they were supplied.
@@ -146,8 +145,10 @@ export interface ElementalYoga {
  * The four elements in the order this module normalises a pair into.
  *
  * @remarks
- * Janson's day-of-week element table order. Nothing traditional rests on it — it exists so that
- * {@link elementalYoga} returns one tuple per yoga rather than two.
+ * A fixed order. Nothing traditional rests on it, and it is not the order Janson's day-of-week table
+ * prints the elements in (earth, fire, water, wind). It exists so that {@link elementalYoga}
+ * returns one tuple per yoga rather than two, and it is the order its argument error lists the
+ * four.
  */
 const ELEMENT_ORDER: readonly TibetanWeekdayElement[] = ["earth", "water", "fire", "wind"];
 
@@ -176,8 +177,9 @@ const WORST: YogaAuspiciousness = deepFreeze({
  * the one a keystroke off a spread would mutate.
  *
  * Six favorable against four unfavorable, and the division is FPMT's. The four unfavorable ones are
- * the pairs that mix elements held to fight: earth with wind, water with wind, earth with fire, and
- * fire with water — *maraṇa*, "death", which the *tshig mdzod chen mo* puts alone in its lowest group.
+ * earth with wind, water with wind, earth with fire, and fire with water — *maraṇa*, "death", which
+ * FPMT glosses "most inauspicious" and which the *tshig mdzod chen mo*'s grading, read from list
+ * order, puts alone in its lowest group.
  */
 export const ELEMENTAL_YOGAS: readonly ElementalYoga[] = deepFreeze([
 	{
@@ -274,7 +276,7 @@ const BY_PAIR = new Map(
 );
 
 /**
- * The yoga of a weekday element paired with a mansion element.
+ * Returns the yoga of a weekday element paired with a mansion element.
  *
  * @remarks
  * Order-insensitive, which is Janson's definition rather than a convenience: he says outright that
@@ -282,17 +284,10 @@ const BY_PAIR = new Map(
  * pair". So this is symmetric in its arguments — it returns the **same object** for `(fire, water)`
  * and `(water, fire)`, which is what makes two days' yogas comparable by identity.
  *
- * **The one primitive in this subpath exported alongside its `*For` sibling, deliberately.** Every
- * other pair here — `monthAttributes`/`monthAttributesFor`, `yearAttributes`/`yearAttributesFor` and
- * so on — keeps the primitive internal, because the `*For` wrapper validates a raw number against a
- * real range. This primitive takes two {@link TibetanWeekdayElement}s, a four-member closed union
- * with no range to translate, so a wrapper would add nothing — and exporting it lets a caller build
- * the weekday×mansion matrix without reimplementing the unordered-pair lookup. Decided 2026-09-18, on
- * Andreas' reasoning that a consumer may want to enumerate it directly.
+ * Exported alongside `elementalYogaFor` so that a caller can build the weekday × mansion matrix
+ * directly, without reimplementing the unordered-pair lookup.
  *
- * **It checks its own arguments**, since 2026-09-24. The union constrains a TypeScript caller only;
- * from plain JavaScript a misspelt element reached `assertInternal` and was reported as this
- * engine's bug.
+ * It checks its own arguments, so a misspelt element from plain JavaScript is refused.
  *
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` if either argument is not one of the four
  * elements `"earth"`, `"water"`, `"fire"` and `"wind"`.
@@ -304,10 +299,17 @@ const BY_PAIR = new Map(
  * elementalYoga("water", "fire").favorable;  // false — and the same yoga, either way round
  * ```
  */
+// The one primitive in this subpath exported alongside its `*For` sibling, deliberately. Every other
+// pair here, `monthAttributes`/`monthAttributesFor` and `yearAttributes`/`yearAttributesFor` among
+// them, keeps the primitive internal, because the `*For` wrapper validates a raw number against a
+// real range. This primitive takes two `TibetanWeekdayElement`s, a four-member closed union with no
+// range to translate, so a wrapper would add nothing.
 export function elementalYoga(
 	weekdayElement: TibetanWeekdayElement,
 	mansion: TibetanWeekdayElement,
 ): ElementalYoga {
+	// The union constrains a TypeScript caller only. From plain JavaScript a misspelt element would
+	// otherwise reach `assertInternal` below and be reported as this engine's bug.
 	for (const [name, value] of [
 		["weekdayElement", weekdayElement],
 		["mansion", mansion],
@@ -328,7 +330,7 @@ export function elementalYoga(
 }
 
 /**
- * The yoga of the calendar day in lunar mansion `mansionIndex`, whose weekday element is
+ * Returns the yoga of the calendar day in lunar mansion `mansionIndex`, whose weekday element is
  * `weekdayElement`.
  *
  * @remarks

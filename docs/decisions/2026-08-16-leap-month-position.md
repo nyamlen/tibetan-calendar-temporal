@@ -24,18 +24,20 @@ wording.
 
 ## Why it cannot be derived from `leapIndexThreshold`
 
-A rule of the form "threshold 57 ⇒ `"after"`" is wrong on a concrete counterexample, not a
-hypothetical one. Janson publishes the Bhutanese leap rule **twice**: 57-or-58 against the
-simplified intercalation index this package computes, and **59-or-60** against the traditional one.
-A consumer following his traditional formulation writes threshold 59 with position `"after"` —
-correct Bhutan, rejected by that rule.
-
-A validator that rejects correct data is worse than one that misses a wrong config, because there is
-no way to satisfy it.
-
-Underneath that, `57` in shared code is a tradition-specific literal — the same class as the
-hardcoded leap rule and the literal `±3` search window. The pairing is asserted in
-`test/validation/bhutan.test.ts` instead, where tradition-specific assertions belong.
+A rule of the form "threshold 57 ⇒ `"after"`" would put `57` in shared code, and `57` is a
+tradition-specific literal — the same class as the hardcoded leap rule and the literal `±3` search
+window.
+The threshold is also not one number with one meaning.
+Janson publishes the Bhutanese leap rule **twice**: 57-or-58 against the simplified intercalation
+index this package computes, and 59-or-60 against the traditional index, which is that index
+increased by 2 for the leap month and all later months until it passes 65 (his `β* = 2`).
+A threshold of 59 alone does not state the second rule: `{ ...BHUTAN, leapIndexThreshold: 59 }` is a
+different calendar from `BHUTAN`, differing on 177 of the 3,650 days from 2020-01-01, the first being
+2022-02-02.
+So the field takes a value relative to the index the engine computes, and what a value pairs with is
+a fact about a tradition, not about a number.
+The pairing is asserted in `test/validation/bhutan.test.ts` instead, where tradition-specific
+assertions belong.
 
 ## Why it cannot be derived from the config's identity
 
@@ -50,8 +52,8 @@ branching on it is the anti-pattern a `"phugpa" | "tsurphu"` selector would be, 
 
 - Adding a default "so existing configs keep working". Pre-1.0 is when that break is spent, and the
   break is a validator error naming the field rather than a wrong calendar.
-- Adding a cross-field check between the position and the threshold "for safety". It would reject
-  Janson's own traditional formulation.
+- Adding a cross-field check between the position and the threshold "for safety". It would write
+  which threshold values go with which position into shared code, a tradition-specific literal.
 - Reading the field's `"before"`/`"after"` as Janson's vocabulary. **The two framings invert.**
   He says a leap month "takes the number of the *preceding* month", which places it **after** the
   regular month sharing that number. The field states position; his prose states numbering.

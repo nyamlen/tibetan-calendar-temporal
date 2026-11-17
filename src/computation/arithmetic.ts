@@ -13,32 +13,27 @@
  * intercalation index both feed negative values through these operations for dates
  * before the epoch, where a sign error produces a plausible calendar that is wrong.
  *
- * Every `throw` here goes through {@link codedError} or {@link rangeError} rather than a bare
- * construction, so each carries the `code` a consumer branches on. The distinction between the two
- * is load-bearing and not cosmetic: the divisor and modulus guards are invariants this engine
- * proves for itself, so they are `TCT_INTERNAL` plain `Error`s that `tibetanDateExists` must not
- * swallow; {@link scaleTo}'s denominator guards are reached with a **caller-supplied** denominator
- * through `deriveScaling`, so they are `TCT_INVALID_TRADITION_CONFIG` `RangeError`s like every
- * other input problem.
+ * The divisor and modulus guards throw `TCT_INTERNAL` plain `Error`s, and {@link scaleTo}'s
+ * denominator guards throw `TCT_INVALID_TRADITION_CONFIG` `RangeError`s. No function here checks
+ * that an operand is an integer, and none checks that a result stays within the safe-integer range.
  *
  * @packageDocumentation
  */
 
 import { codedError, rangeError } from "../errors.js";
 
+// Every `throw` here goes through `codedError` or `rangeError` rather than a bare construction, so
+// each carries the `code` a consumer branches on. The distinction between the two is load-bearing
+// and not cosmetic: the divisor and modulus guards are invariants this engine proves for itself,
+// so they are `TCT_INTERNAL` plain `Error`s that `tibetanDateExists` must not swallow; `scaleTo`'s
+// denominator guards are reached with a **caller-supplied** denominator through `deriveScaling`,
+// so they are `TCT_INVALID_TRADITION_CONFIG` `RangeError`s like every other input problem.
+
 /**
  * Floor division — the largest integer `q` with `q * divisor <= dividend`.
  *
  * @remarks
- * "Exact for all safe-integer inputs" is a real claim, not a hopeful one, even though
- * `Math.floor(a / b)` performs a floating-point divide first. For `|a| < 2⁵³` the exact quotient
- * `a/b` is at least `1/b` away from the next integer, while the half-ulp rounding error of the
- * divide is at most `a / (b · 2⁵³) < 1/b`. The error is therefore always smaller than the distance
- * to the boundary, so the divide can never round across one and the floor cannot land on the wrong
- * integer.
- *
- * This is why the module needs no `BigInt` and why the whole engine can claim identical results
- * across platforms.
+ * Exact for every pair of safe integers, although the division is a floating-point one.
  *
  * @param dividend - May be negative.
  * @param divisor - Must be non-zero.
@@ -52,6 +47,13 @@ import { codedError, rangeError } from "../errors.js";
  * ```
  */
 export function floorDiv(dividend: number, divisor: number): number {
+	// "Exact for all safe-integer inputs" is a real claim, not a hopeful one, even though
+	// `Math.floor(a / b)` performs a floating-point divide first. For `|a| < 2⁵³` the exact quotient
+	// `a/b` is at least `1/b` away from the next integer, while the half-ulp rounding error of the
+	// divide is at most `a / (b · 2⁵³) < 1/b`. The error is therefore always smaller than the
+	// distance to the boundary, so the divide can never round across one and the floor cannot land
+	// on the wrong integer. This is why the module needs no `BigInt` and why the whole engine can
+	// claim identical results across platforms.
 	if (divisor === 0) throw codedError("TCT_INTERNAL", "floorDiv: divisor must be non-zero");
 	return Math.floor(dividend / divisor);
 }
@@ -60,16 +62,22 @@ export function floorDiv(dividend: number, divisor: number): number {
  * Ceiling division — the smallest integer `q` with `q * divisor >= dividend`.
  *
  * @remarks
- * Janson's month inversion (§5, "The inverse problem") is a **ceiling**: `x = ⌈(65n + β)/67⌉`. Text
- * extracted from the PDF rendered it as a floor, which shifts the month by one at
- * boundaries without ever throwing. This function exists so that the distinction is
- * explicit at the call site.
+ * Janson's month inversion (§5, "The inverse problem") is a **ceiling**: `x = ⌈(65n + β)/67⌉`.
+ * This function exists so that the distinction from {@link floorDiv} is explicit at the call
+ * site.
  *
  * @param dividend - May be negative.
  * @param divisor - Must be non-zero.
  * @throws Error with code `TCT_INTERNAL` if `divisor` is zero.
+ *
+ * @example
+ * ```ts
+ * ceilDiv(-7, 2); // -3
+ * ```
  */
 export function ceilDiv(dividend: number, divisor: number): number {
+	// Text extracted from the PDF renders the ceiling in the month inversion as a floor, which
+	// shifts the month by one at boundaries without ever throwing.
 	if (divisor === 0) throw codedError("TCT_INTERNAL", "ceilDiv: divisor must be non-zero");
 	return Math.ceil(dividend / divisor);
 }
@@ -83,7 +91,8 @@ export function ceilDiv(dividend: number, divisor: number): number {
  *
  * @param m - May be of any sign.
  * @param n - Must be positive; Janson defines the operation only for `n > 0`.
- * @throws Error with code `TCT_INTERNAL` if `n` is not positive.
+ * @throws Error with code `TCT_INTERNAL` if `n` is zero or negative. A `NaN` modulus is not
+ * refused and gives `NaN`.
  *
  * @example
  * ```ts
@@ -128,6 +137,8 @@ export function gcd(a: number, b: number): number {
  * Divides before multiplying so that the intermediate stays as small as possible — this
  * is used to derive scaling denominators in the 10⁹ range, where `a * b` would be near
  * the safe-integer limit before the reduction.
+ *
+ * @returns The non-negative least common multiple, or `0` if either operand is `0`.
  */
 export function lcm(a: number, b: number): number {
 	if (a === 0 || b === 0) return 0;
@@ -142,20 +153,16 @@ export function lcm(a: number, b: number): number {
  * with per-operation gcd normalisation, every quantity is lifted onto one denominator
  * once, after which addition and subtraction are plain integer operations.
  *
- * The common denominator is **derived from the tradition's own constants** via
- * {@link lcm}, never hardcoded. Phugpa's is 102,317,040; Tsurphu's epoch constants carry
- * an extra factor of 5 and of 3, giving 1,534,755,600. A constant baked in here would
- * make the second tradition unrepresentable, and would do so silently.
+ * The common denominator is **derived from the tradition's own constants** via {@link lcm}, never
+ * hardcoded: `PHUGPA`'s and `BHUTAN`'s is 102,317,040 and the Henning pair's is 1,534,755,600.
+ * The result is not checked to be a safe integer.
  *
  * @param num - Numerator of the source rational; may be negative.
  * @param den - Denominator of the source rational; must be positive and must divide
  * `commonDenominator`.
  * @param commonDenominator - The scaling denominator, typically derived per tradition.
- * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG` if `den` does not divide
- * `commonDenominator`, which would make the result inexact. Coded as a config problem rather than
- * as an internal one because every denominator reaching here came from a `TraditionConfig` —
- * `deriveScaling` is on the public path through `scalingFor`, so this is genuinely reachable from
- * a config the shape validator accepted.
+ * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG` if `den` is not positive, or does
+ * not divide `commonDenominator`, which would make the result inexact.
  *
  * @example
  * ```ts
@@ -163,6 +170,10 @@ export function lcm(a: number, b: number): number {
  * ```
  */
 export function scaleTo(num: number, den: number, commonDenominator: number): number {
+	// A constant baked in here would make a further tradition unrepresentable, and silently. The
+	// guards carry a config code rather than an internal one because every denominator reaching
+	// here came from a `TraditionConfig`: `deriveScaling` is on the public path through
+	// `scalingFor`, so a bad one is genuinely reachable from a config the shape validator accepted.
 	if (den <= 0) {
 		throw rangeError(
 			"TCT_INVALID_TRADITION_CONFIG",

@@ -15,17 +15,13 @@ import {
 import type { Observance, ObservanceConfig, ObservanceRule, ObservanceWhen } from "./types.js";
 import { ensureValidated } from "./validate.js";
 
-/**
- * How many days the first search chunk spans, by form: about the form's largest gap.
- *
- * @remarks
- * A monthly rule recurs within about two months, an annual one within a year, or two under
- * `skippedDay: "omit"`, a counted one within 30 days, and a 29 February within eight years, because
- * 1900 and 2100 are not leap years. A formula holds within a few days, and a period begins again
- * within a year, with nothing to find inside a span but the next day. Each chunk that finds nothing
- * is followed by one twice as long, so a rule with a longer gap costs a few more walks and not a
- * wrong answer.
- */
+/** How many days the first search chunk spans, by form: about the form's largest gap. */
+// A monthly rule recurs within about two months, an annual one within a year, or two under
+// `skippedDay: "omit"`, a counted one within 30 days, and a 29 February within eight years, because
+// 1900 and 2100 are not leap years. A formula holds within a few days, and a period begins again
+// within a year, with nothing to find inside a span but the next day. Each chunk that finds nothing
+// is followed by one twice as long, so a rule with a longer gap costs a few more walks and not a
+// wrong answer.
 const FIRST_CHUNK_DAYS: Record<ObservanceWhen["type"], number> = {
 	monthly: 62,
 	annual: 731,
@@ -41,21 +37,18 @@ interface ChunkResult {
 	readonly metEnd: boolean;
 }
 
-/**
- * The results of one rule over a chunk, or what lies before the first day it cannot answer.
- *
- * A form whose result needs more than its own day, a period's whole span or a counted rule's
- * anchors up to a year either side, cannot be built for a day whose span or anchors lie outside the
- * exact range. That is only true of the days that need the far side, so a chunk that fails is halved
- * and its earlier half searched first, down to one day.
- *
- * What a failing day means depends on which end it is near. Near the **upper** bound the search has
- * met the end, and every day after it fails too, so the later half is skipped once the earlier one
- * has met it. Near the **lower** bound the day's span or anchors begin out of range and the days
- * after it may be fine: there is no occurrence there, and the search goes on. The range is symmetric
- * about zero, so the day's half of it says which end. Only `TCT_OUTSIDE_EXACT_RANGE` is read this
- * way, whichever form throws it.
- */
+/** The results of one rule over a chunk, or what lies before the first day it cannot answer. */
+// A form whose result needs more than its own day, a period's whole span or a counted rule's
+// anchors up to a year either side, cannot be built for a day whose span or anchors lie outside the
+// exact range. That is only true of the days that need the far side, so a chunk that fails is halved
+// and its earlier half searched first, down to one day.
+//
+// What a failing day means depends on which end it is near. Near the **upper** bound the search has
+// met the end, and every day after it fails too, so the later half is skipped once the earlier one
+// has met it. Near the **lower** bound the day's span or anchors begin out of range and the days
+// after it may be fine: there is no occurrence there, and the search goes on. The range is symmetric
+// about zero, so the day's half of it says which end. Only `TCT_OUTSIDE_EXACT_RANGE` is read this
+// way, whichever form throws it.
 function firstWithin(
 	rule: ObservanceRule,
 	start: number,
@@ -84,7 +77,7 @@ function firstWithin(
 }
 
 /**
- * The first observance of one rule strictly after a day, or `null` if none lies within 10 years.
+ * Returns the first observance of one rule strictly after a day, or `null` if none lies within 10 years.
  *
  * @remarks
  * What a "next occurrence" screen wants, without computing every rule over a long range: only the
@@ -118,20 +111,20 @@ function firstWithin(
  * `TCT_OUTSIDE_EXACT_RANGE`, since they cannot answer a day without its span.
  *
  * **Near the lower end the search skips instead.** A `period` whose span begins before the start of
- * the range has no occurrence there that can be built, and the search goes on to the days after it; {@link getObservances} and {@link observancesOn} refuse such
- * a day with `TCT_OUTSIDE_EXACT_RANGE`.
+ * the range has no occurrence there that can be built, and the search goes on to the days after it;
+ * {@link getObservances} and {@link observancesOn} refuse such a day with
+ * `TCT_OUTSIDE_EXACT_RANGE`.
  *
  * Arguments are checked in a fixed order, as in {@link getObservances}: `from`, then the config,
  * then the tradition, then `ruleId`.
  *
- * @param from - The day to search after. Accepts the same shapes as `getObservances`' dates,
- * normalised through `asPlainDate`.
+ * @param from - The day to search after. Accepts the same shapes as `getObservances`' dates.
  * @param ruleId - The `id` of a rule in `config`.
  * @param config - Which observances, and the conventions for resolving them. Required.
  * @param tradition - Astronomical constants. Defaults to `PHUGPA`.
  *
- * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `from` is not a value `asPlainDate`
- * accepts, or `ruleId` is not a string or names no rule of `config`; `TCT_INVALID_OBSERVANCE_CONFIG`
+ * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `from` is not one of those shapes, or
+ * `ruleId` is not a string or names no rule of `config`; `TCT_INVALID_OBSERVANCE_CONFIG`
  * if `config` is missing or invalid; `TCT_INVALID_TRADITION_CONFIG` if `tradition` is invalid; or
  * `TCT_OUTSIDE_EXACT_RANGE` if `from` lies beyond where the tradition's arithmetic stays exact.
  */

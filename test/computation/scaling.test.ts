@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { trueSunDenominator } from "../../src/computation/corrections.js";
 import { deriveScaling } from "../../src/computation/scaling.js";
+import { BHUTAN, BHUTAN_HENNING } from "../../src/traditions/bhutan.js";
 import { PHUGPA, PHUGPA_HENNING } from "../../src/traditions/phugpa.js";
 import type { TraditionConfig } from "../../src/traditions/types.js";
 
@@ -82,6 +84,35 @@ describe("D is tradition-dependent, not a constant", () => {
 		expect(henning.commonDenominator % almanac.commonDenominator).toBe(0);
 		// Still exact for every plausible date.
 		expect(henning.exactToJulianDay).toBeGreaterThan(2.9e6);
+	});
+});
+
+describe("deriveScaling for the four shipped configs", () => {
+	// The figures the `ScaledTradition` docblocks state per config.
+	const rows = [
+		{ config: PHUGPA, moonArgDen: 126, common: 102_317_040, exact: 88_032_250 },
+		{ config: BHUTAN, moonArgDen: 126, common: 102_317_040, exact: 88_032_250 },
+		{ config: PHUGPA_HENNING, moonArgDen: 3780, common: 1_534_755_600, exact: 5_868_816 },
+		{ config: BHUTAN_HENNING, moonArgDen: 3780, common: 1_534_755_600, exact: 5_868_816 },
+	];
+
+	it.each(rows)("derives the stated figures for $config.id", ({ config, ...expected }) => {
+		const scaled = deriveScaling(config);
+		expect(scaled.meanDate.den).toBe(11_312);
+		expect(scaled.moonTabArgDen).toBe(expected.moonArgDen);
+		expect(scaled.moonTabArgFactor).toBe(1);
+		expect(scaled.sunTabArgDen).toBe(402);
+		expect(scaled.sunTabArgFactor).toBe(1);
+		expect(scaled.commonDenominator).toBe(expected.common);
+		expect(scaled.exactToJulianDay).toBe(expected.exact);
+		expect(scaled.searchHalfWidth).toBe(3);
+		expect(trueSunDenominator(scaled)).toBe(651_240);
+		expect(trueSunDenominator(scaled)).toBe(scaled.meanSun.den * 135);
+	});
+
+	it.each(rows)("shares the 25 and 11 table maxima for $config.id", ({ config }) => {
+		expect(Math.max(...config.moonTab.map(Math.abs))).toBe(25);
+		expect(Math.max(...config.sunTab.map(Math.abs))).toBe(11);
 	});
 });
 

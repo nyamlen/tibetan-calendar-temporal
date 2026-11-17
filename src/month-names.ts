@@ -6,12 +6,11 @@
  * **Every system is returned, and none is chosen.** Janson's month-names section says almanacs "often
  * give two or several different versions", and the two authorities who attribute a system to Tsurphu
  * disagree about which one (Janson the late-winter identification, Henning p. 196 the early-spring
- * one). So there is no selector and no tradition default: picking a system is a property read, and a
- * default can be added later as an optional config member without breaking anyone.
+ * one). So there is no selector and no tradition default: picking a system is a property read.
  *
  * Every Tibetan string here, and every Indian month name, was verified by
- * `scripts/verify-month-and-yoga-names.mjs` before it was written down, and `test/month-names.test.ts` holds each table against that script's emitted fixture
- * — see `docs/names/month-and-yoga-sourcing.md` for the evidence and the variants not chosen.
+ * `scripts/verify-month-and-yoga-names.mjs` before it was written down — see
+ * `docs/names/month-and-yoga-sourcing.md` for the evidence and the variants not chosen.
  *
  * The mansion's Sanskrit comes from the other verifier, `scripts/verify-mansion-and-trigram-names.mjs`,
  * because it is the same string that script emits for the mansion itself; its evidence is in
@@ -19,6 +18,8 @@
  *
  * @packageDocumentation
  */
+// `test/month-names.test.ts` holds each table against the month-and-yoga verifier's emitted fixture.
+// A default system can be added later as an optional config member without breaking anyone.
 
 import { mod } from "./computation/arithmetic.js";
 import { assertInternal } from "./errors.js";
@@ -71,17 +72,18 @@ export interface MonthNames {
 	 *
 	 * @remarks
 	 * Bare, as Janson, Henning and the Mahāvyutpatti all print it — *mchu*, not *mchu zla ba* — which
-	 * makes several of them **homographs** — *mchu* is also "lip", and *mgo* and *rgyal* are ordinary words too. Month
-	 * 8's *khrums* is not itself a mansion name but the stem the mansions *khrums stod* and *khrums smad*
-	 * share.
+	 * makes several of them **homographs**: *mchu* is also "lip", and *mgo* and *rgyal* are ordinary
+	 * words too. Month 8's *khrums* is not itself a mansion name but the stem the mansions
+	 * *khrums stod* and *khrums smad* share.
 	 *
 	 * `sanskritName` is the **mansion's** name, not the Indian month's: month 1 is *maghā*, where the
 	 * month derived from it is *māgha*. Sanskrit has two words where Tibetan has one, and this member
-	 * holds the one its `tibetanName` renders; {@link MonthNames.indianMonth} holds the other. Month 8 carries the pair's name *bhadrapadā*, which
-	 * drops *pūrva* and *uttara* exactly as *khrums* drops *stod* and *smad*.
+	 * holds the one its `tibetanName` renders; {@link MonthNames.indianMonth} holds the other. Month 8
+	 * carries the pair's name *bhadrapadā*, which drops *pūrva* and *uttara* exactly as *khrums* drops
+	 * *stod* and *smad*.
 	 *
-	 * There is deliberately **no mansion index here**, though `./astrology`'s `LunarMansion` has one: a day is
-	 * in exactly one mansion, while a month can be named for two.
+	 * There is no mansion index here, unlike `./astrology`'s `LunarMansion`: month 8's name stands for
+	 * two mansions.
 	 */
 	readonly mansion: { readonly tibetanName: TibetanName; readonly sanskritName: SanskritName };
 	/**
@@ -109,9 +111,9 @@ export interface MonthNames {
 		 * The Tiger month is early spring, as in the Chinese calendar — Janson's "seasonal II" under Phugpa.
 		 *
 		 * @remarks
-		 * `null` where the tradition's month animals are unsourced, which is the Bhutanese configs today:
-		 * without a Tiger month there is nothing to anchor this system on. The other members still
-		 * answer, since none of them depends on the animals.
+		 * `null` where the tradition's month animals are unsourced, which is `BHUTAN` and
+		 * `BHUTAN_HENNING`: without a Tiger month there is nothing to anchor this system on. The other
+		 * members still answer, since none of them depends on the animals.
 		 */
 		readonly tigerEarlySpring: FourSeasonMonthName | null;
 	};
@@ -298,12 +300,12 @@ const at = <T>(table: readonly T[], index: number, what: string): T =>
 	assertInternal(table[index], `${what}: index ${index} is outside the table`);
 
 /**
- * How many months month `month` lies after the tradition's Tiger month, 0–11, or `null` where the
- * tradition has no sourced month-animal list.
+ * Returns how many months month `month` lies after the tradition's Tiger month, 0–11, or `null`
+ * where the tradition has no sourced month-animal list.
  *
  * @remarks
- * Internal, and shared with `./astrology`'s month and lunar-day attributes, so the two layers read the
- * Tiger month through one definition. **It does not refuse**: `./astrology` throws
+ * Internal, and shared with `./astrology`'s month attribute (`astrology/month.ts`), so the two layers
+ * read the Tiger month through one definition. **It does not refuse**: `./astrology` throws
  * `TCT_ATTRIBUTE_NOT_SOURCED` for a tradition without the list, while {@link monthNamesFor} reports
  * `null` for the one system that needs it. The refusal stays in `./astrology`.
  */
@@ -313,8 +315,8 @@ export function monthsAfterTigerMonth(tradition: TraditionConfig, month: number)
 }
 
 /**
- * Every name of a Tibetan month: its lunar mansion, its Indian month name, and its season in each
- * seasonal system.
+ * Returns every name of a Tibetan month: its lunar mansion, its Indian month name, and its season in
+ * each seasonal system.
  *
  * @remarks
  * **All four seasonal systems at once**, because almanacs print several side by side and no source
@@ -333,11 +335,17 @@ export function monthsAfterTigerMonth(tradition: TraditionConfig, month: number)
  * the tradition. Janson's Bhutan appendix says only that month names "exist as in Tibet, … but are
  * usually not used", and does not say which seasonal version.
  *
- * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` for a non-integer or out-of-range field;
- * `TCT_INVALID_ARGUMENT` if `month` is not an object naming a Tibetan month;
- * `TCT_INVALID_TRADITION_CONFIG` if `tradition` is not a valid config — which is also what a
- * `{ tradition }` bag gets, since 2026-09-24, when the tradition became positional; `TCT_NO_SUCH_LEAP_MONTH` if `isLeapMonth` is set for a month with no leap twin that year; or
- * `TCT_OUTSIDE_EXACT_RANGE` past the tradition's exact range.
+ * The result and its `fourSeasons` and `sixSeasons` groups are new objects on each call; the name
+ * entries inside them (`mansion`, `indianMonth` and each season entry) are frozen and shared between
+ * calls.
+ *
+ * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` for a `year` or `month` that is a number but
+ * not an integer or is out of range;
+ * `TCT_INVALID_ARGUMENT` if `month` is not an object naming a Tibetan month, or its `year` or
+ * `month` is absent or not a number, or `isLeapMonth` is not a boolean;
+ * `TCT_INVALID_TRADITION_CONFIG` if `tradition` is not a valid config — `null` and a
+ * `{ tradition }` bag included; `TCT_NO_SUCH_LEAP_MONTH` if `isLeapMonth` is set for a month with no
+ * leap twin that year; or `TCT_OUTSIDE_EXACT_RANGE` past the tradition's exact range.
  *
  * @example
  * ```ts

@@ -1,10 +1,10 @@
 /**
- * Observances — which days of the Tibetan calendar an institution marks, and why.
+ * Resolves which days of the Tibetan calendar an institution marks as practice days.
  *
  * @remarks
- * This is Layer 4, and the only layer whose content is not derived from Janson. See
- * [types.ts]({@link ./types.js}) for why that difference is load-bearing, and why the conventions
- * are injected data rather than logic.
+ * Unlike the date arithmetic, nothing here is derived from Janson, and no almanac settles it: which
+ * days a centre observes is a convention the published sources disagree about. So the conventions
+ * are injected as data, in an {@link ObservanceConfig}, and never fixed in the engine.
  *
  * @example
  * ```ts
@@ -50,7 +50,7 @@ export type {
 } from "./types.js";
 
 /**
- * Every observance falling between two dates, inclusive, in date order.
+ * Returns every observance falling between two dates, inclusive, in date order.
  *
  * @remarks
  * One query rather than one per category: a consumer's question is "what is significant about
@@ -68,22 +68,19 @@ export type {
  * naming days 29 and 30 in a month whose 30th is skipped — the exact landing is kept, then a
  * doubled half, then a shifted day.
  *
- * **The span is capped at 10 years** (`MAX_SPAN_YEARS`, an internal constant), and the rule applied
- * is on calendar years, `to.year - from.year <= 10`, not on elapsed time: 2020-01-01 to 2030-12-31
- * is admitted, though it touches 11 calendar years and runs almost 11, and 2020-12-31 to 2031-01-01
- * is refused, though it is 10 years and 2 days. Cost is
- * linear in the range, and what the cap guards against is the range beyond it: `Temporal.PlainDate`
- * reaches from -271821 to +275760, about 547,000 years, so a service forwarding user-supplied
- * `from`/`to` straight through would hand its event loop four orders of magnitude more than the
- * cap admits, synchronously and without yielding. A day, month, year or planning view needs at most
- * about two years. Measured on the machine recorded in `bench/RESULTS.md`, the 10-year worst case
- * over a config holding one rule of each form but `counted` takes about 29 ms, and two years about
- * 5 ms.
+ * **The span is capped at 10 years.** The rule is on calendar years, `to.year - from.year <= 10`,
+ * not on elapsed time: `2020-01-01` to `2030-12-31` is admitted, though it touches 11 calendar years and
+ * runs almost 11, and `2020-12-31` to `2031-01-01` is refused, though it is 10 years and 2 days. Cost is
+ * linear in the range. A day, month, year or planning view needs at most about two years. Measured
+ * on the machine recorded in `bench/RESULTS.md`, 10 years over a config holding one rule of each
+ * form but `counted` takes about 28.5 ms on average (the slowest sample about 40 ms), and two
+ * years about 5 ms; the figures are the latest run recorded there.
  *
- * A caller who genuinely wants a wider table — the whole rabjung era, 1027–2027, is the realistic
+ * A caller who genuinely wants a wider table — the whole rabjung era, 1027–2027 CE, is the realistic
  * example — requests it in chunks and concatenates. That is correct because this function is pure
  * and restarts its month walk per call, and consecutive chunks that cut on a day boundary lose and
- * repeat nothing.
+ * repeat nothing. A service forwarding user-supplied `from` and `to` gets `TCT_SPAN_TOO_WIDE` for a
+ * wider range rather than a long synchronous computation.
  *
  * **A `period` whose span ends past the end of the tradition's exact range** makes a day inside it
  * throw `TCT_OUTSIDE_EXACT_RANGE`, though the day itself is inside the range: each result carries
@@ -95,15 +92,14 @@ export type {
  * then the empty-range shortcut — so a reversed range with no config still throws.
  *
  * @param from - First calendar day to include. Accepts a `Temporal.PlainDate`, an ISO string, a
- * `PlainDateTime` or a `ZonedDateTime` — normalised the same way as every other date entry point,
- * via `asPlainDate`.
+ * `PlainDateTime` or a `ZonedDateTime` — normalised the same way as every other date entry point.
  * @param to - Last calendar day to include, accepting the same shapes as `from`. Returns `[]` if
  * before `from`.
  * @param config - Which observances, and the conventions for resolving them. Required.
  * @param tradition - Astronomical constants. Defaults to `PHUGPA`.
  *
- * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `from` or `to` is not a value
- * `asPlainDate` accepts; `TCT_INVALID_OBSERVANCE_CONFIG` if `config` is missing or invalid;
+ * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `from` or `to` is not one of the shapes
+ * above; `TCT_INVALID_OBSERVANCE_CONFIG` if `config` is missing or invalid;
  * `TCT_INVALID_TRADITION_CONFIG` if `tradition` is invalid; `TCT_SPAN_TOO_WIDE` if `to.year -
  * from.year` exceeds 10; or `TCT_OUTSIDE_EXACT_RANGE` if either end, or the span of a `period`
  * result, lies beyond where the tradition's arithmetic stays exact.
@@ -132,6 +128,12 @@ export function getObservances(
 
 	// Compared as year numbers rather than elapsed days, which is how the docblock reads and what
 	// keeps a range ending on 31 December ten years on -- 11 calendar years -- admissible.
+	//
+	// Why a cap at all: cost is linear in the range, and what it guards against is the range beyond
+	// it. `Temporal.PlainDate` reaches from -271821 to +275760, about 547,000 years, so a service
+	// forwarding user-supplied `from`/`to` straight through would hand its event loop four orders of
+	// magnitude more than the cap admits, synchronously and without yielding. `MAX_SPAN_YEARS` is the
+	// constant, shared with `nextObservance`'s horizon.
 	if (to.year - from.year > MAX_SPAN_YEARS) {
 		throw rangeError(
 			"TCT_SPAN_TOO_WIDE",
@@ -176,7 +178,7 @@ export function getObservances(
 }
 
 /**
- * Every observance falling on one calendar day.
+ * Returns every observance falling on one calendar day.
  *
  * @remarks
  * The single-day case of {@link getObservances}, which is what a "what is today" screen wants.
@@ -186,8 +188,9 @@ export function getObservances(
  * @param config - Which observances, and the conventions for resolving them. Required.
  * @param tradition - Astronomical constants. Defaults to `PHUGPA`.
  *
- * @throws The same codes as {@link getObservances}, including `TCT_OUTSIDE_EXACT_RANGE` for a day in
- * a `period` whose span ends past the end of the exact range.
+ * @throws The same codes as {@link getObservances} except `TCT_SPAN_TOO_WIDE`, which a single day
+ * cannot reach; `TCT_OUTSIDE_EXACT_RANGE` includes a day in a `period` whose span ends past the end
+ * of the exact range.
  */
 export function observancesOn(
 	date: Temporal.PlainDate,

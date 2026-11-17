@@ -161,8 +161,10 @@ Three traps in that page, all of which would produce a plausible wrong answer:
 
 - **It lists 28 mansions, not 27.** Abhijit sits at position 23, and Janson numbers the mansions
   0–26. The elements run 7/7/7/7 across the 28, so dropping Abhijit (earth) leaves 6 earth against 7
-  of each other — the drop is identifiable and must be asserted rather than assumed, because getting
-  it wrong shifts every element from Dhaniṣṭhā onward with nothing looking wrong.
+  of each other. That count catches a mistyped element or a dropped mansion of another element, but
+  not which earth mansion left, so the drop must be made by name and asserted rather than assumed,
+  because dropping a different one makes the mansions between it and Abhijit's place read a
+  neighbour's element with nothing looking wrong.
 - **Three different things on that one page are called "yoga"**: the 27 sun-plus-moon-longitude
   yogas, the 28 weekday×mansion yogas, and the 10 elemental yogas. Janson separately warns that the
   first two get confused.

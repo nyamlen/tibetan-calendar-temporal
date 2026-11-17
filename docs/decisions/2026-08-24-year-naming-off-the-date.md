@@ -26,7 +26,7 @@ Bhutanese date stop describing itself. It stays.
 ## Why the two that went, went
 
 They are **year** properties sitting on a **day** object, so an array of dates holds one value
-repeated 354 or 384 times. Measured on `JSON.stringify`, ordinary year 2153:
+repeated 354, 355, 383, 384 or 385 times. Measured on `JSON.stringify`, ordinary year 2153:
 
 | | Bytes | Distinct values in the year |
 |---|---|---|

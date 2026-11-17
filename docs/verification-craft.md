@@ -92,6 +92,12 @@ confident wrong Tibetan date, and nothing about the output looked wrong. **State
 arguments mean before trusting what it agrees about**, and prefer a sweep that names
 each call's argument shape in its output, so a wrong convention is visible rather than silent.
 
+**A check that strips a category cannot see a defect in that category.**
+The comments-only check of the docblock audit compiles `src/` with comments removed and diffs the output against `main`'s, so it proves that no code changed.
+It was blind to a stray `/**` that carried a `//` rationale into a shipped docblock in `src/computation/conversion.ts`, because the stray opener is a comment and the build had removed every comment before comparing.
+Counting `/**` in each shipped `.d.ts` with comments kept caught it.
+Before trusting a check that normalises its input, name what the normalisation removes and ask whether the defect you fear lives there.
+
 ## Shipped instructions, trackers and findings
 
 **A shipped instruction is contract exactly as a shipped example is, and this project's own setup is

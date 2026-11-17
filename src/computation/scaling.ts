@@ -9,11 +9,12 @@
  *
  * The common denominator `D` is **not** a universal constant. It is the least common multiple of
  * the denominators this particular tradition's constants produce, and it differs between
- * traditions — Phugpa gives 102,317,040 while Tsurphu gives 1,534,755,600. Deriving it is what
- * lets a second tradition be added as data rather than as a code change.
+ * configs: `PHUGPA` and `BHUTAN` give 102,317,040, while `PHUGPA_HENNING` and `BHUTAN_HENNING`
+ * give 1,534,755,600, which Janson's Tsurphu constants give too. Deriving it is what lets a
+ * further tradition be added as data rather than as a code change.
  *
- * Deriving it also handles the `a₂` fork for free: Henning's value has denominator 105,840
- * rather than 28, which changes the anomaly denominator and hence `D`, with no other edit.
+ * Deriving it also handles the `a₂` fork for free: Henning's `a₂` is 3781/105,840 where the
+ * almanacs' is 1/28, which changes the anomaly denominator and hence `D`, with no other edit.
  *
  * @packageDocumentation
  */
@@ -44,7 +45,7 @@ export interface ScaledTradition {
 	/** The configuration this was derived from. */
 	tradition: TraditionConfig;
 
-	/** Mean date coefficients. Its denominator is 11,312 for Phugpa. */
+	/** Mean date coefficients. Its denominator is 11,312 for all four shipped configs. */
 	meanDate: ScaledMeanMotion;
 
 	/** Mean solar longitude coefficients. */
@@ -57,14 +58,15 @@ export interface ScaledTradition {
 	 * Denominator of the `moon_tab` argument, `28 · anomaly_moon`.
 	 *
 	 * @remarks
-	 * 126 for Phugpa. The argument numerator over this denominator is the anomaly numerator times
-	 * {@link ScaledTradition.moonTabArgFactor}, which is 1 when 28 divides the anomaly denominator.
+	 * 126 for `PHUGPA` and `BHUTAN`, 3,780 for the Henning pair. The argument numerator over this
+	 * denominator is the anomaly numerator times {@link ScaledTradition.moonTabArgFactor}, which is
+	 * 1 when 28 divides the anomaly denominator.
 	 */
 	moonTabArgDen: number;
 
 	/**
 	 * `28 / gcd(28, anomaly denominator)`, by which the anomaly numerator is multiplied to be the
-	 * `moon_tab` argument's numerator. 1 for Phugpa.
+	 * `moon_tab` argument's numerator. 1 for all four shipped configs.
 	 */
 	moonTabArgFactor: number;
 
@@ -72,14 +74,14 @@ export interface ScaledTradition {
 	 * Denominator of the `sun_tab` argument, `12 · (mean_sun − 1/4)`.
 	 *
 	 * @remarks
-	 * 402 for Phugpa. The argument numerator over this denominator is the solar anomaly numerator
-	 * times {@link ScaledTradition.sunTabArgFactor}.
+	 * 402 for all four shipped configs. The argument numerator over this denominator is the solar
+	 * anomaly numerator times {@link ScaledTradition.sunTabArgFactor}.
 	 */
 	sunTabArgDen: number;
 
 	/**
 	 * `12 / gcd(12, lcm(mean-sun denominator, 4))`, by which the solar anomaly numerator is
-	 * multiplied to be the `sun_tab` argument's numerator. 1 for Phugpa.
+	 * multiplied to be the `sun_tab` argument's numerator. 1 for all four shipped configs.
 	 */
 	sunTabArgFactor: number;
 
@@ -104,9 +106,10 @@ export interface ScaledTradition {
 	 * The largest Julian day number for which `JD · D` stays a safe integer.
 	 *
 	 * @remarks
-	 * Roughly 8.8 × 10⁷ for Phugpa and 5.9 × 10⁶ for Tsurphu. Both are far beyond any date the
-	 * calendar is meaningfully applied to — today's JD is about 2.46 × 10⁶ — but the second is
-	 * thin enough to be worth asserting rather than assuming.
+	 * 88,032,250 for `PHUGPA` and `BHUTAN` (about 8.8 × 10⁷) and 5,868,816 for the Henning pair
+	 * (about 5.9 × 10⁶). Both are far beyond any date the calendar is meaningfully applied to —
+	 * today's JD is about 2.46 × 10⁶ — but the smaller is thin enough to be worth asserting rather
+	 * than assuming.
 	 */
 	exactToJulianDay: number;
 
@@ -114,27 +117,9 @@ export interface ScaledTradition {
 	 * How far either side of the mean-motion estimate `isoToTibetan` must search, in lunar days.
 	 *
 	 * @remarks
-	 * **3 for Phugpa, and derived rather than assumed.** The bound is a function of the tradition's
-	 * own correction tables, which are injected — so writing `3` at the search loop would hardcode
-	 * a Phugpa constant into a computation over data a consumer supplies. A wider `moonTab` then
-	 * breaks the window silently: the search finds no lunar day ending on the target, and either
-	 * reports an internal error or returns a date that does not convert back.
-	 *
-	 * The derivation, which is Janson §7 read as an inequality:
-	 *
-	 * - `true_date = mean_date + moon_equ/60 − sun_equ/60`, and each equation is bounded by the
-	 *   largest magnitude in its table, so `|true_date − mean_date| ≤ (max|moonTab| + max|sunTab|)/60`
-	 *   days. For Phugpa that is `(25 + 11)/60 = 0.6`.
-	 * - One lunar day is `meanDate.perDay / meanDate.den` calendar days, so dividing converts that
-	 *   bound from calendar days into lunar days.
-	 * - `Math.round` on the estimate contributes at most a further half a lunar day, and the `+ 2`
-	 *   below absorbs that with a full unit to spare.
-	 *
-	 * Computed with {@link ceilDiv} on integers, never a floating-point divide, so the result is
-	 * identical on every platform like everything else here.
-	 *
-	 * Do **not** widen this at the call site "to be safe". If a date is not found inside the window
-	 * the fault is elsewhere, and `isoToTibetan` says so with `TCT_INTERNAL`.
+	 * Derived from the tradition's own `moonTab` and `sunTab`, so a config with larger tables has a
+	 * wider window. It is 3 for each of the four shipped configs, whose tables share the maxima 25
+	 * and 11 and so bound the correction of the date by `(25 + 11)/60 = 0.6` days.
 	 */
 	searchHalfWidth: number;
 }
@@ -182,9 +167,14 @@ function scaleMeanMotion(motion: MeanMotion, alsoDivides = 1): ScaledMeanMotion 
  * Pure and cheap, but the result is worth hoisting out of loops — it performs a handful of
  * gcd computations. Nothing here depends on a date.
  *
- * @param tradition - The tradition to derive from.
- * @throws RangeError if a constant's denominator cannot be represented exactly, which would
- * indicate a malformed config rather than a calendar problem.
+ * Does not check the shape of `tradition`: a value that is not a config reaches an uncoded
+ * `TypeError`. {@link scalingFor} validates first.
+ *
+ * @param tradition - A config that has passed validation.
+ * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG` if a denominator is not positive,
+ * if the common denominator is not a safe integer, if the correction tables imply a search window
+ * wider than the engine accepts (30 lunar days), or if a table argument could leave the exactly
+ * representable integers within the exact range.
  *
  * @example
  * ```ts
@@ -222,8 +212,27 @@ export function deriveScaling(tradition: TraditionConfig): ScaledTradition {
 	assertCommonDenominatorExact(tradition, [meanDate.den, moonTabArgDen * 60, sunTabArgDen * 60]);
 	const commonDenominator = [meanDate.den, moonTabArgDen * 60, sunTabArgDen * 60].reduce(lcm);
 
-	// The correction bound, in lunar days, from this tradition's own tables. See
-	// ScaledTradition.searchHalfWidth for the derivation.
+	// The correction bound, in lunar days, from this tradition's own tables. The bound is a function
+	// of the injected correction tables, so writing `3` at the search loop would hardcode a Phugpa
+	// constant into a computation over data a consumer supplies. A wider `moonTab` would then break
+	// the window silently: the search finds no lunar day ending on the target, and either reports an
+	// internal error or returns a date that does not convert back.
+	//
+	// The derivation is Janson §7 read as an inequality:
+	//
+	// - `true_date = mean_date + moon_equ/60 − sun_equ/60`, and each equation is bounded by the
+	//   largest magnitude in its table, so `|true_date − mean_date| ≤ (max|moonTab| + max|sunTab|)/60`
+	//   days. The four shipped configs share the maxima 25 and 11, which gives `(25 + 11)/60 = 0.6`.
+	// - One lunar day is `meanDate.perDay / meanDate.den` calendar days, so dividing converts that
+	//   bound from calendar days into lunar days.
+	// - `Math.round` on the estimate contributes at most a further half a lunar day, and the `+ 2`
+	//   below absorbs that with a full unit to spare.
+	//
+	// Computed with `ceilDiv` on integers, never a floating-point divide, so the result is
+	// identical on every platform like everything else here.
+	//
+	// Do not widen the window at the call site "to be safe". If a date is not found inside it the
+	// fault is elsewhere, and `isoToTibetan` says so with `TCT_INTERNAL`.
 	const equationBound = maxMagnitude(tradition.moonTab) + maxMagnitude(tradition.sunTab);
 	const searchHalfWidth = ceilDiv(equationBound * meanDate.den, 60 * meanDate.perDay) + 2;
 
@@ -255,15 +264,11 @@ export function deriveScaling(tradition: TraditionConfig): ScaledTradition {
 /**
  * Refuses a config whose table-argument numerators could leave the safe-integer range.
  *
- * Why the factors of `moonTabArgFactor` and `sunTabArgFactor` need this at all: the argument
- * numerator is the evaluated numerator of its mean motion times a factor of at most 28 (anomaly) or
- * 12 (solar anomaly), and the multiplication is what they introduce. The bound is derived from the
- * config and computed in `BigInt` so the check cannot overflow itself. The largest lunar day count
- * `l` in the exact range satisfies `l · perDay/den ≤ exactToJulianDay + |m₀|`, so
- * `l ≤ (exactToJulianDay · den + |atEpoch|)/perDay + 31`, and the month count is at most `l/30 + 2`.
- * The mean motion's numerator `n · perMonth + d · perDay + atEpoch`, with `d ≤ 30`, is then at most
- * `|atEpoch| + (l/30 + 2) · |perMonth| + 30 · |perDay|`, and the argument's is that times the factor.
- * For Phugpa the bound is under 10⁹ against 9 · 10¹⁵.
+ * @remarks
+ * Checks the lunar anomaly's and the mean sun's argument numerators over the exact range of
+ * Julian days, `exactToJulianDay` either side of zero.
+ *
+ * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG`, naming the coefficient set.
  */
 function assertArgumentsFit(
 	tradition: TraditionConfig,
@@ -271,6 +276,16 @@ function assertArgumentsFit(
 	meanDate: ScaledMeanMotion,
 	arguments_: readonly { motion: ScaledMeanMotion; factor: number; name: string }[],
 ): void {
+	// Why the factors need this at all: the argument numerator is the evaluated numerator of its
+	// mean motion times a factor of at most 28 (anomaly) or 12 (solar anomaly), and the
+	// multiplication is what they introduce. The bound is derived from the config and computed in
+	// `BigInt` so the check cannot overflow itself. The largest lunar day count `l` in the exact
+	// range satisfies `l · perDay/den ≤ exactToJulianDay + |m₀|`, so
+	// `l ≤ (exactToJulianDay · den + |atEpoch|)/perDay + 31`, and the month count is at most
+	// `l/30 + 2`. The mean motion's numerator `n · perMonth + d · perDay + atEpoch`, with `d ≤ 30`,
+	// is then at most `|atEpoch| + (l/30 + 2) · |perMonth| + 30 · |perDay|`, and the argument's is
+	// that times the factor. Against 9 · 10¹⁵ the larger of the two bounds is about 1.2 · 10⁹ for
+	// `PHUGPA` and `BHUTAN` and about 2.0 · 10⁹ and 2.1 · 10⁹ for the Henning pair.
 	const abs = (n: bigint) => (n < 0n ? -n : n);
 	const reach = BigInt(exactToJulianDay) * BigInt(meanDate.den) + abs(BigInt(meanDate.atEpoch));
 	// exact: BigInt division truncates, which under-counts by less than one day; the `+ 31` absorbs it.
@@ -297,18 +312,22 @@ function assertArgumentsFit(
 /** Memoised scaling, so repeated conversions do not redo the gcd work. */
 const scalingCache = new WeakMap<TraditionConfig, ScaledTradition>();
 
+// It lives here rather than beside its callers: one definition is one cache, so a config validated
+// through one entry point is not revalidated through the next, and a change to the validation
+// cannot land in one copy and not the others.
+
 /**
- * The single choke point for tradition config, and therefore where it is validated.
+ * Validates a tradition config and returns its scaling, derived once per config object.
  *
  * @remarks
- * Every exported function in the package reaches the arithmetic through here, and the cache means
- * the work happens once per config object, so validation costs nothing after the first call. That
- * is what lets the check be thorough without touching the multi-century sweeps.
+ * The date-computing code reaches a tradition's arithmetic through here, and the cache means the
+ * work happens once per config object, so validation costs nothing after the first call. That is
+ * what lets the check be thorough without touching the multi-century sweeps.
  *
- * It lives here rather than beside its callers because there are now three of them — `conversion`,
- * `observances` and `months` — and it was already duplicated verbatim between the first two. Three
- * copies would be three caches, so a config validated through one entry point would be revalidated
- * through the next, and a future change to the validation could land in one copy and not the others.
+ * @param tradition - The config to validate and derive from.
+ * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG` if the config is not a valid
+ * tradition (see `validatedTradition`) or its constants cannot be scaled exactly (see
+ * {@link deriveScaling}).
  */
 export function scalingFor(tradition: TraditionConfig): ScaledTradition {
 	const cached = scalingCache.get(tradition);

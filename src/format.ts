@@ -15,15 +15,16 @@ import {
  * Formats a month as a Temporal-style code: `"M01"`…`"M12"`, with `L` appended for a leap month.
  *
  * @remarks
- * The **sole** producer of this substring, deliberately. It lives here rather than beside
- * `isoToTibetan`, which was its only caller when it was written, because three things now render a
- * month this way — `TibetanDate.monthCode`, `TibetanMonth.monthCode` and `formatTibetanDate` — and
- * a second definition is how two of them would come to disagree.
+ * The **sole** producer of this substring, deliberately: three things render a month this way —
+ * `TibetanDate.monthCode`, `TibetanMonth.monthCode` and `formatTibetanDate` — and a second
+ * definition is how two of them would come to disagree.
  *
  * Not exported from the package barrel. Being in this file does not make it API; `src/index.ts`
  * decides that.
  */
 export function monthCodeOf(month: number, isLeap: boolean): string {
+	// It lives in this file rather than beside `isoToTibetan`, its first caller, so that the
+	// formatter and both month producers import one definition.
 	return `M${String(month).padStart(2, "0")}${isLeap ? "L" : ""}`;
 }
 
@@ -43,26 +44,26 @@ export function monthCodeOf(month: number, isLeap: boolean): string {
  * royal era, and using `M` in the month position means the result can never be mistaken for
  * ISO 8601 by eye or by a parser.
  *
- * ## Why this takes the input shape rather than a `TibetanDate`
+ * ## The input shape
  *
- * `parseTibetanDate` is the inverse, and it returns a {@link TibetanDateFields} — a string names a
- * date without resolving it, and resolving would make a skipped date unreadable. Narrowed to
- * {@link TibetanDate}, this function could not consume that, so `formatTibetanDate(parse(s))` would
- * not even typecheck and the round trip would be a four-step pipeline instead of an identity.
+ * It takes a {@link TibetanDateFields} rather than a {@link TibetanDate}: `parseTibetanDate`, the
+ * inverse, returns fields that name a date without resolving it, so `formatTibetanDate(parse(s))`
+ * is an identity, and a `TibetanDate` is accepted too. The month segment is **derived** from
+ * `month` and `isLeapMonth`, never read from a `monthCode` the object carries, so an object whose
+ * two disagree cannot produce a string contradicting itself.
  *
- * Widening loses nothing: a `TibetanDate` is assignable to {@link TibetanDateFields}, so every
- * existing call still compiles. It also gains something, because the month segment is now
- * **derived** from `month` and `isLeapMonth` rather than read from the caller's `monthCode`. An
- * object whose two disagree can no longer produce a string contradicting itself, since
- * one internal function is the sole producer of that substring.
- *
- * @remarks
  * **This is not a complete encoding of a resolved date.** It renders the *naming* fields — the ones
  * {@link parseTibetanDate} returns — so `isLeapMonth` reaches the string as `M06L` and `isLeapDay`
  * as the ` (leap)` suffix, while `isDoubledDay`, `isFullMoon`, `isNewMoon` and `isoDate` do not
  * appear at all. That is exactly right for the round trip and wrong for equality: comparing two
  * dates by their formatted strings reports "same" where one is the second half of a doubled pair
  * and the other an ordinary day. Compare the fields you care about, not the rendering.
+ *
+ * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `date` is not an object naming a Tibetan
+ * date — `null`, a string, a `Temporal` instance, or an object with no numeric `year`, `month` or
+ * `day` — or if `isLeapMonth` or `isLeapDay` is present but not `boolean`;
+ * `TCT_FIELD_OUT_OF_RANGE` if `year` is not a safe integer, `month` is not an integer in 1–12 or
+ * `day` is not an integer in 1–30.
  *
  * @example
  * ```ts
@@ -75,18 +76,14 @@ export function monthCodeOf(month: number, isLeap: boolean): string {
  * formatTibetanDate(parseTibetanDate("2153-M12-08"));
  * // "2153-M12-08" — the round trip, as an identity
  * ```
- *
- * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `date` is not an object naming a Tibetan
- * date at all — `null`, a string, a `Temporal` instance — or if `isLeapMonth`/`isLeapDay` are
- * present but not `boolean`. Handed `{ isLeapMonth: 1, isLeapDay: "x" }` this once produced a
- * confident `" (leap)"` suffix from a truthy string.
- *
- * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `date` is object-shaped but does not
- * carry an integer year, a month in 1–12 and a day in 1–30. Everything above is an argument that a
- * plausible-but-wrong string is the failure worth preventing, and handed `{}` this produced exactly
- * one: `"undefined-undefined-undefined"`.
  */
 export function formatTibetanDate(date: TibetanDateFields): string {
+	// Narrowed to `TibetanDate`, this could not consume what `parseTibetanDate` returns, so the round
+	// trip would be a four-step pipeline instead of an identity; a `TibetanDate` is assignable to
+	// `TibetanDateFields`, so widening lost no caller.
+	// Both guards exist because a plausible-but-wrong string is the failure worth preventing:
+	// without them `{}` gives "undefined-undefined-undefined", and `{ isLeapMonth: 1, isLeapDay: "x" }`
+	// a confident " (leap)" suffix from a truthy string.
 	const fields = assertTibetanShape("formatTibetanDate", date, "date");
 	assertTibetanRanges("formatTibetanDate", fields, "date", {
 		hint: "Pass a value returned by isoToTibetan, losarFor or parseTibetanDate",
@@ -115,8 +112,9 @@ export function formatTibetanDate(date: TibetanDateFields): string {
  * discovered, because the string it returns is a *month* and looks nothing like a truncated date.
  *
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `month` is not an object naming a Tibetan
- * month, or `isLeapMonth` is present and not a boolean; `TCT_FIELD_OUT_OF_RANGE` if it does not
- * carry an integer year and a month in 1-12.
+ * month — `null`, a `Temporal` instance, or an object with no numeric `year` or `month` — or
+ * `isLeapMonth` is present and not a boolean; `TCT_FIELD_OUT_OF_RANGE` if `year` is not a safe
+ * integer or `month` is not an integer in 1–12.
  *
  * @example
  * ```ts

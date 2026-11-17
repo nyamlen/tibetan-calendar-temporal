@@ -263,7 +263,8 @@ interface TraditionNineNumbers {
 interface TibetanDate {
   year: number;           // Royal era, 127 BC epoch (e.g. 2153)
   yearStartsIn: number;   // Janson's Y — Gregorian year this Tibetan year begins in (2026)
-  month: number;          // Month number (1-12); a leap month repeats the following month's
+  month: number;          // Month number (1-12); a leap month repeats the following month's, except
+                          // under Bhutan, where it repeats the preceding one
   monthCode: string;      // "M06" or "M06L" for leap month
   isLeapMonth: boolean;
   day: number;            // Tibetan day number (1-30)
@@ -533,8 +534,8 @@ exists to eliminate.
 
 ### Why year-level naming is not on `TibetanDate`
 
-Both cycles name a **year**, so on a date they are one value repeated across all 354 or 384 days of
-it — together more than half of a serialised year. `yearNameFor(year)` and `rabjungFor(year)` are
+Both cycles name a **year**, so on a date they are one value repeated across all 354, 355, 383, 384
+or 385 days of it — together more than half of a serialised year. `yearNameFor(year)` and `rabjungFor(year)` are
 closed forms over the year alone, so nothing is lost: a date carries `year`, and both are one call
 away. `TibetanMonth` keeps `yearName`, where the repetition is thirteen-fold rather than
 354-fold and the `monthsFor` → `datesFor` path wants it to hand.
@@ -561,10 +562,10 @@ of system:
   calendar". This is `yearName`.
 
 They also give a year *different positions*. 2026 is year **40** of the Indian cycle and year
-**43** of the Chinese (Janson Table 12). Holding both in one object put `40` directly beside
+**43** of the Chinese (Janson's table of the sixty-year cycle). Holding both in one object put `40` directly beside
 `Fire–Horse`, which it does not index — position 40 indexes *parābhava*. Anyone building a
-60-entry lookup keyed on that number would be wrong for 57 of every 60 years. Splitting them
-makes the mistake unbuildable.
+60-entry lookup keyed on that number would be wrong in every year of the cycle, because the two
+positions differ by a constant three. Splitting them makes the mistake unbuildable.
 
 `rabjung` is grouped rather than two flat scalars because its two numbers are only meaningful
 together — unlike `year` and `yearStartsIn`, each of which stands alone — and because it is where

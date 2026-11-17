@@ -16,7 +16,7 @@
  *
  * - **C0** is the control: the unmutated copy must pass. If it fails, every other row is measuring
  *   nothing.
- * - **R1–R16** each prove one rule still fires. The last test holds the set against the checker's
+ * - **R1–R18** each prove one rule still fires. The last test holds the set against the checker's
  *   own `RULES` registry, so a new rule without a mutant fails here.
  * - **X1–X7** prove the containment added on 2026-09-12: a throw must not cost the findings already
  *   collected, a path in the index but not on disk is reported rather than read, and the registry
@@ -25,7 +25,8 @@
  *   script happens to mention its name.
  * - **X9–X10** prove Rule 15 beyond its own row: its exempt file must hold the check in code, and
  *   the destructured form is caught. **X11** proves the error-table half of Rule 16, which R16 does
- *   not reach. **X12** proves Rule 4's public-docblock scope, widened the same day.
+ *   not reach. **X12** proves Rule 4's public-docblock scope, widened the same day, and **X13** that
+ *   the scope reads past a `//` between a docblock and its declaration.
  *
  * ## Why a copy of the working tree, and not a worktree or the checkout itself
  *
@@ -315,6 +316,61 @@ const R: Record<number, Row> = {
 			),
 		must: ["README API tables match the barrels", "`BHUTAN_HENNING`"],
 	},
+	17: {
+		id: "R17",
+		what: "an ISO date in docblock prose, beside three dates the rule must leave alone",
+		// Every row asserts exit 1, so the exemptions are `mustNot` lines in a failing row. The three
+		// exempt dates sit in the same docblock or beside it: a code span, an `@example` and a `//`.
+		apply: (tree) =>
+			tree.append(
+				"src/freeze.ts",
+				[
+					"",
+					"/**",
+					" * Returns one.",
+					" *",
+					" * Changed on 2026-11-16.",
+					" * A value `zzSpan 2031-02-03` a caller needs stays.",
+					" *",
+					" * @example",
+					" * zzMutantR17(); // zzExample 2031-02-04",
+					" */",
+					"// zzComment 2031-02-05 is a maintainer note, outside the docblock",
+					"export const zzMutantR17 = 1;",
+					"",
+				].join("\n"),
+			),
+		must: [
+			"no ISO date in docblock prose",
+			"src/freeze.ts:",
+			"Changed on 2026-11-16",
+			"Reach: only",
+		],
+		mustNot: ["zzSpan", "zzExample", "zzComment"],
+	},
+	18: {
+		id: "R18",
+		what: "a lone docblock opener above `//` lines, the shape that shipped in conversion.ts",
+		apply: (tree) =>
+			tree.append(
+				"src/freeze.ts",
+				[
+					"",
+					"/**",
+					"// zzR18 rationale the stray opener swallows",
+					"/**",
+					" * Returns one.",
+					" */",
+					"export const zzMutantR18 = 1;",
+					"",
+				].join("\n"),
+			),
+		must: [
+			"a docblock holds no stray opener or // line",
+			"src/freeze.ts:",
+			"zzR18 rationale the stray opener swallows",
+		],
+	},
 };
 
 const rule = (number: number): Row => {
@@ -324,6 +380,34 @@ const rule = (number: number): Row => {
 };
 
 const X: readonly Row[] = [
+	{
+		id: "X13",
+		what: "a public docblock's bad link, hidden by a `//` between it and its declaration",
+		// X12's mutant plus one line: a maintainer note between the docblock and the member it documents.
+		// Rule 4 decided public status from the first line after the closer, so the note made the
+		// docblock internal and the link passed.
+		apply: (tree) => {
+			tree.edit(
+				"src/traditions/types.ts",
+				(source) =>
+					source.replace(
+						"The rounding term of the true month count,",
+						"The rounding term of {@link trueMonthCount},",
+					),
+				"the true-month-count sentence on leapIndexThreshold",
+			);
+			tree.edit(
+				"src/traditions/types.ts",
+				(source) =>
+					source.replace(
+						"\t */\n\treadonly leapIndexThreshold: number;",
+						"\t */\n\t// zzX13 a maintainer note between the docblock and its member\n\treadonly leapIndexThreshold: number;",
+					),
+				"the declaration of leapIndexThreshold",
+			);
+		},
+		must: ["is not exported from any entry point", "src/traditions/types.ts"],
+	},
 	{
 		id: "X12",
 		what: "a public docblock linking a symbol no entry point exports",
@@ -336,8 +420,8 @@ const X: readonly Row[] = [
 				"src/traditions/types.ts",
 				(source) =>
 					source.replace(
-						"rule in the true month count adds",
-						"rule in {@link trueMonthCount} adds",
+						"The rounding term of the true month count,",
+						"The rounding term of {@link trueMonthCount},",
 					),
 				"the true-month-count sentence on leapIndexThreshold",
 			),

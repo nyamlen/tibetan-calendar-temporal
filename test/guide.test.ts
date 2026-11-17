@@ -799,6 +799,63 @@ describe("guide examples", () => {
 		expect((thrown as { code?: string }).code).toBe("TCT_SKIPPED_DAY");
 		expect((thrown as SkippedDayError).requested).toEqual({ year: 2150, month: 12, day: 29 });
 	});
+
+	describe("the obstacle year", () => {
+		const section = guideText.split("\n### The obstacle year")[1]?.split("\n### ")[0] as string;
+
+		// Each `expression;   // value` line of a block, with the block's other lines as its setup.
+		const statedValues = (block: string, scope: Record<string, unknown>) => {
+			const lines = block.split("\n");
+			const claim = /^(.*);\s+\/\/ (true|false|\d+)\b/;
+			const setup = lines.filter((line) => !claim.test(line)).join("\n");
+			return lines.flatMap((line) => {
+				const match = claim.exec(line);
+				if (!match) return [];
+				const [, expression = "", stated = ""] = match;
+				return [{ stated, actual: String(runBlock(setup, scope, expression)) }];
+			});
+		};
+
+		it("is present, and cites the source it quotes", () => {
+			expect(section).toBeDefined();
+			expect(section).toContain("https://mentseekhang.org/amulets/");
+			expect(section).toContain("lo-kag | obstacle year");
+		});
+
+		it("states ages that are the twelve-year animal return in the Tibetan count, 1 at birth", () => {
+			const quoted = /obstacle years of ([\d, ]+) etc/.exec(section)?.[1] ?? "";
+			const ages = quoted.split(",").map((n) => Number(n.trim()));
+			expect(ages.length).toBeGreaterThan(3);
+			ages.forEach((age, i) => {
+				expect(age).toBe(13 + 12 * i);
+			});
+			const birth = 2130;
+			const animal = (year: number) => yearNameFor(year).animal;
+			for (const age of ages) {
+				expect(animal(birth + age - 1)).toBe(animal(birth));
+			}
+			// 13 is the first return, so no earlier age matches.
+			for (let age = 2; age < (ages[0] ?? 0); age++) {
+				expect(animal(birth + age - 1)).not.toBe(animal(birth));
+			}
+			// The Western count the guide gives instead is one lower.
+			expect(section).toContain(
+				`ages ${(ages[0] ?? 0) - 1}, ${(ages[1] ?? 0) - 1}, ${(ages[2] ?? 0) - 1}`,
+			);
+		});
+
+		it("prints values that the engine computes", () => {
+			const names = fenceStarting("js", "import { yearNameFor }");
+			const dates = fenceStarting("js", "import { isoToTibetan }");
+			const stated = [
+				...statedValues(names, { yearNameFor }),
+				...statedValues(dates, { isoToTibetan, Temporal }),
+			];
+			expect(stated.length).toBe(4);
+			expect(stated.filter(({ stated, actual }) => stated !== actual)).toEqual([]);
+		});
+	});
+
 	/**
 	 * The `./astrology` section, added 2026-09-12. Every value it prints, asserted — `docs/guide.md`
 	 * ships in the tarball, so its examples are contract exactly as the README's are.

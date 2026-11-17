@@ -1,5 +1,6 @@
 /**
- * Month numbering, the true month count, and leap months — Janson §5.
+ * Month numbering, the true month count, and leap months — Janson §5, "Numbering of months and
+ * leap months".
  *
  * @remarks
  * The Tibetan calendar rests on the relation **67 lunar months = 65 solar months**, treated as
@@ -9,10 +10,12 @@
  *
  * A leap month **shares its number with an adjacent month**, so a leap year contains two months
  * carrying one number. Which of the two is the leap month is the tradition's to say, through
- * {@link ../traditions/types.TraditionConfig.leapMonthPosition}: the first under Phugpa, Tsurphu
- * and the Mongolian version, the second under the Bhutanese. A month is therefore identified by
- * the triple `(Y, M, isLeap)`, and separately by a linear *true month count* `n` that ignores year
- * boundaries and is zero at the epoch.
+ * {@link ../traditions/types.TraditionConfig.leapMonthPosition}: the first under `PHUGPA` and
+ * `PHUGPA_HENNING`, the second under `BHUTAN` and `BHUTAN_HENNING`. Janson's general rule is the
+ * first, a leap month taking the number of the following month; the Bhutanese version takes the
+ * number of the preceding month. A month is therefore identified by the triple `(Y, M, isLeap)`,
+ * and separately by a linear *true month count* `n` that ignores year boundaries and is zero for
+ * the month that begins at the epoch.
  *
  * @packageDocumentation
  */
@@ -23,19 +26,21 @@ import { amod, ceilDiv, floorDiv, mod } from "./arithmetic.js";
 import { julianDayOfLunarDay } from "./corrections.js";
 import type { ScaledTradition } from "./scaling.js";
 
+// `subject` is a thunk because this guard runs on every closed-form call, and building the message
+// eagerly would cost every success to save one throw.
 /**
  * Rejects a year for which the leap-year closed forms would overflow `Number.MAX_SAFE_INTEGER`.
  *
  * @remarks
  * The guard for {@link isLeapYear}, {@link leapMonthOfYear} and {@link solarMonthsSinceEpoch}, hence
  * `hasLeapMonth`, `leapMonthNumberFor` and `monthsInYear`. Past the bound they would answer from
- * arithmetic noise, so a year beyond it is refused with `TCT_OUTSIDE_EXACT_RANGE`.
+ * arithmetic noise. The bound is derived from the config's `epochYear`.
  *
  * A path that goes on to {@link trueMonthCount} needs the narrower {@link assertMonthCountYear}
  * instead.
  *
- * `subject` is a thunk because this guard runs on every closed-form call, and building the message
- * eagerly would cost every success to save one throw.
+ * @param subject - Builds the subject the message opens with; called only when it throws.
+ * @throws RangeError with code `TCT_OUTSIDE_EXACT_RANGE` if `|year − epochYear|` exceeds the bound.
  */
 export function assertClosedFormYear(
 	subject: () => string,
@@ -53,8 +58,10 @@ export function assertClosedFormYear(
  * The guard for every path that reaches the true month count: `lunationFromMonth`, `monthsBetween`,
  * `addMonths`, `addMonthsToDate` and the date conversions. It is the leap-year bound of
  * {@link assertClosedFormYear} and, as well, a bound on the `67·M*` term, which is 67 times larger
- * than the month count the leap-year forms touch and so leaves the safe range first. Without it
- * two months of one year came back with the same lunation.
+ * than the month count the leap-year forms touch and so leaves the safe range first.
+ *
+ * @param subject - Builds the subject the message opens with; called only when it throws.
+ * @throws RangeError with code `TCT_OUTSIDE_EXACT_RANGE` if `|year − epochYear|` exceeds the bound.
  */
 export function assertMonthCountYear(
 	subject: () => string,
@@ -117,21 +124,23 @@ function monthCountLimit(tradition: TraditionConfig): number {
 	);
 }
 
+// `assertClosedFormYear` cannot cover this: it is stated in `|year − epochYear|`, and the year is
+// not known until *after* the overflowing multiplication has happened.
 /**
- * Bounds a true month count so {@link monthFromCount} cannot overflow into confident nonsense.
+ * Rejects a true month count that would make {@link monthFromCount} overflow into confident
+ * nonsense.
  *
  * @remarks
- * The counterpart of {@link assertClosedFormYear} for the *inverse* direction, and it exists for the
- * same reason. `monthFromCount` computes `65·monthCount + β` before anything else, so a large enough
- * count loses precision past 2⁵³ and silently returns a month identity built from arithmetic noise —
- * exactly the failure `solarMonthsSinceEpoch` had until it was bounded.
- *
- * `assertClosedFormYear` cannot cover this: it is stated in `|year − epochYear|`, and the year is
- * not known until *after* the overflowing multiplication has happened.
+ * The counterpart of {@link assertClosedFormYear} for the *inverse* direction. `monthFromCount`
+ * computes `65·monthCount + β` before anything else, so a large enough count loses precision past
+ * 2⁵³ and silently returns a month identity built from arithmetic noise.
  *
  * The bound is **derived from the config at each call**, never a literal. `β` is built entirely from
  * injected fields — `67·M₀ − β* − (65 − threshold)` — so a tradition with a different epoch month,
  * intercalation index or leap rule gets a different limit.
+ *
+ * @param subject - Builds the subject the message opens with; called only when it throws.
+ * @throws RangeError with code `TCT_OUTSIDE_EXACT_RANGE` if `|monthCount|` exceeds the bound.
  */
 export function assertLunation(
 	subject: () => string,
@@ -182,7 +191,8 @@ export interface MonthIdentity {
  * leap-index threshold. Both are derived here, so the formula stays correct for a tradition with
  * a different epoch month **or** a different leap rule.
  *
- * It reproduces every value Janson publishes:
+ * It reproduces every value Janson publishes, for his four versions (the shipped configs use the
+ * Phugpa and Bhutanese rows):
  *
  * | Tradition | M₀ | β* | threshold | derived β | Janson |
  * |-----------|----|----|-----------|-----------|--------|
@@ -192,8 +202,8 @@ export interface MonthIdentity {
  * | Tsurphu   | 3  | 59 | 0         | 77        | 142    |
  *
  * The Tsurphu row is agreement, not a discrepancy: `142 − 77 = 65`, and β is only ever used
- * modulo 65, so the two are the same constant. Janson's own text says as much, giving different
- * β for two Tsurphu epochs that are likewise congruent.
+ * modulo 65, so the two are the same constant. Janson gives 142 and 187 for his two Tsurphu epochs,
+ * each 65 above the value derived here (77, and 122 from `β* = 14`).
  */
 export function beta(tradition: TraditionConfig): number {
 	return (
@@ -207,8 +217,9 @@ export function beta(tradition: TraditionConfig): number {
  * Janson's `γ*`, the constant of the closed-form leap-year rule.
  *
  * @remarks
- * `γ* = (−24·Y₀ − β) mod 65`, which is 33 for Phugpa. Janson notes the value is the same for
- * every epoch of a given tradition, since the leap years themselves do not depend on the epoch.
+ * `γ* = (−24·Y₀ − β) mod 65`, which is 33 for `PHUGPA` and `PHUGPA_HENNING` and 28 for `BHUTAN` and
+ * `BHUTAN_HENNING`. Janson notes the value is the same for every epoch of a given version, since
+ * the leap years themselves do not depend on the epoch (§5, "Leap years").
  */
 function gammaStar(tradition: TraditionConfig): number {
 	return mod(-24 * tradition.epochYear - beta(tradition), 65);
@@ -238,8 +249,9 @@ export function solarMonthsSinceEpoch(
  * `67 ≡ 2 (mod 65)`.
  *
  * This is the index the **leap-month rule** tests, and it is *not* always the value an almanac
- * prints: Janson's Remark 11 notes that where the true month rounds up, published almanacs show
- * this value plus 2. That correction is irrelevant to dates and is not applied here.
+ * prints: Janson's remark on the traditional formulation of the true month notes that, for the
+ * Phugpa version, where the true month rounds up, published almanacs show this value plus 2. That
+ * correction is irrelevant to dates and is not applied here.
  */
 export function intercalationIndex(
 	tradition: TraditionConfig,
@@ -252,26 +264,23 @@ export function intercalationIndex(
 	);
 }
 
+// Named for the month rather than for the year because the question is per-month, and the two must
+// not share a name with `hasLeapMonth`, which asks per year. `TCT_NO_SUCH_LEAP_MONTH` already
+// describes the failure `monthCountFor` raises on a false answer as "no leap twin that year".
 /**
- * Whether regular month `M` of year `Y` shares its number with a leap month — its *twin*.
+ * Returns whether regular month `M` of year `Y` shares its number with a leap month — its *twin*.
  *
  * @remarks
  * A leap month is inserted when the intercalation index is
  * {@link ../traditions/types.TraditionConfig.leapIndexThreshold} or one more than it — **48 or 49**
- * for Phugpa, but 0-or-1 for Tsurphu, 46-or-47 for the Mongolian version and 57-or-58 for the
- * Bhutanese. The threshold is config, never a literal.
+ * for `PHUGPA` and `PHUGPA_HENNING`, **57 or 58** for `BHUTAN` and `BHUTAN_HENNING`, and in
+ * Janson's other versions 0-or-1 for Tsurphu and 46-or-47 for the Mongolian. The threshold is
+ * config, never a literal.
  *
- * **Deliberately says nothing about which side the twin falls on**, and it was named `hasLeapTwin`
- * with a docblock reading "is *preceded by* a leap month" until 2026-08-16. The predicate is the
- * same either way — the index test does not change — but the claim was Phugpa's, and false for
- * Bhutan, which places the leap month after. Direction is
- * {@link ../traditions/types.TraditionConfig.leapMonthPosition}'s to state; this answers only
- * whether there are two months of this number at all.
- *
- * Named for the month rather than for the year because the question is per-**month**. The public
- * `hasLeapMonth` asks a per-**year** question — does this year contain a leap month anywhere — and
- * the two must not share a name. `TCT_NO_SUCH_LEAP_MONTH` already describes the failure this
- * detects as a month having "no leap twin that year".
+ * **Says nothing about which side the twin falls on.** The test is the same under both positions;
+ * direction is {@link ../traditions/types.TraditionConfig.leapMonthPosition}'s to state, and this
+ * answers only whether there are two months of this number at all. The public `hasLeapMonth` asks
+ * the per-year question instead: whether the year contains a leap month anywhere.
  */
 export function sharesNumberWithLeapMonth(
 	tradition: TraditionConfig,
@@ -283,10 +292,10 @@ export function sharesNumberWithLeapMonth(
 }
 
 /**
- * The true month count `n` for a given month — Janson's *zla-dag*.
+ * Returns the true month count `n` for a month — Janson's *zla-dag*.
  *
  * @remarks
- * `n = ⌊(67·M* + β* + (65 − threshold))/65⌋ − [isLeap]`.
+ * Under `leapMonthPosition` `"before"`: `n = ⌊(67·M* + β* + (65 − threshold))/65⌋ − [isLeap]`.
  *
  * The added term encodes Janson's rounding rule: the preliminary true month rounds down when the
  * intercalation index is below the tradition's
@@ -296,34 +305,26 @@ export function sharesNumberWithLeapMonth(
  * a configurable rule is a silent inconsistency. Subtracting one for a leap month is what gives
  * the two months sharing a number their consecutive counts.
  *
- * `n` is zero at the epoch and increases by exactly one per month, leap months included. That
- * property is not decoration — it is what *determines* the adjustment below, and the test suite
- * sweeps two centuries to hold it.
+ * `n` is zero for the month that begins at the epoch — month 2 of 806 for `PHUGPA`, month 3 of
+ * 1754 for `BHUTAN` — and increases by exactly one per month, leap months included.
  *
  * **Which month of a twinned pair takes the adjustment depends on
  * {@link ../traditions/types.TraditionConfig.leapMonthPosition}, and it is not a sign flip.** The
  * pair always occupies the counts `rounded − 1` and `rounded`; all that changes is which of them is
  * the leap month. Under `"before"` the leap month is the earlier, so it takes `rounded − 1` and the
  * regular month keeps `rounded`. Under `"after"` the leap month is the later, so it keeps `rounded`
- * and the **regular** month takes `rounded − 1`.
+ * and the **regular** month takes `rounded − 1`. So under `"after"` the adjustment applies to a
+ * regular month **only when it has a twin**; an untwinned month keeps `rounded` under both
+ * positions.
  *
- * The consequence is easy to get wrong, and an early draft of this did: under `"after"` the
- * adjustment applies to a regular month **only when it has a twin**. An untwinned month keeps
- * `rounded` under both positions. Writing it as `+1` for the leap month instead leaves a gap of two
- * before every pair and a collision after it — a count that is no longer a bijection, which shifts
- * every date past the first leap month of the epoch.
+ * **Omit `isLeap` for a date in a leap month and nothing throws:** it defaults to `false`, so a
+ * caller deriving a count from a resolved date — `trueMonthCount(config, year, date.month)` — gets
+ * the *regular twin*'s count, a real count for the wrong month. A `TibetanDate` carries
+ * `isLeapMonth`; pass it.
  *
- * @param isLeap - Pass `true` for the leap month of a pair. Passing `true` for a month that is
- * not a leap month yields a count belonging to a different month; use {@link sharesNumberWithLeapMonth} to
- * check first.
- *
- * **Omitting it is the likelier mistake, and it is silent.** It defaults to `false`, so a caller
- * deriving a count from a resolved date — `trueMonthCount(config, year, date.month)` — reads the
- * *regular twin* of every leap month and gets a real count for the wrong month. Nothing throws and
- * nothing looks wrong. On 2026-09-12 that produced 22 spurious failures while cross-checking the
- * lunar mansion, every one of them inside leap month 6 of 2024, and it read as a 4% error in the
- * astronomy until the failures were bucketed by month. **A `TibetanDate` carries `isLeapMonth`;
- * pass it.**
+ * @param isLeap - `true` for the leap month of a pair. For a month with no twin, `true` gives the
+ * previous month's count under `"before"` and changes nothing under `"after"`; use
+ * {@link sharesNumberWithLeapMonth} to check first.
  */
 export function trueMonthCount(
 	tradition: TraditionConfig,
@@ -337,32 +338,34 @@ export function trueMonthCount(
 		65,
 	);
 	if (tradition.leapMonthPosition === "after") {
+		// Writing this as `+1` for the leap month instead leaves a gap of two before every pair and a
+		// collision after it: a count that is no longer a bijection, which shifts every date past the
+		// first leap month of the epoch.
 		return isLeap ? rounded : rounded - (sharesNumberWithLeapMonth(tradition, year, month) ? 1 : 0);
 	}
 	return rounded - (isLeap ? 1 : 0);
 }
 
+// Stated once here rather than patched at each call site, for the reason
+// `ScaledTradition.searchHalfWidth` is: a bound proved from a config's own values belongs beside the
+// proof, not inlined at every site where the next author will miss it.
+//
+// Spelling it `(12, isLeap: false)` at `losarJulianDay` or the bounds of `monthsFor` is right only
+// while leap months precede. Under `"after"` that names the second-to-last month of a year closing
+// with a leap month 12, so the day after it places New Year one whole lunation early, with nothing
+// about the result looking wrong. `test/validation/bhutan.test.ts` anchors on Janson's Bhutanese
+// case, 2 and 3 March 2003 being day 30 of a leap month 12 with New Year on 4 March.
 /**
- * The true month count of the **chronologically last** month of Tibetan year `Y`.
+ * Returns the true month count of the **chronologically last** month of Tibetan year `Y`.
  *
  * @remarks
- * Exists because "the last month of the year" is not `(12, isLeap: false)`, and three call sites
- * spelled it that way until 2026-08-16 — {@link losarJulianDay} and both bounds of `monthsFor`.
- * That spelling is correct only while leap months precede.
- *
- * The two positions are mirror images at the two ends of a year, and the codebase knew about one of
- * them. Under {@link ../traditions/types.TraditionConfig.leapMonthPosition} `"before"` a year may
- * **open** with a leap month 1 — Janson's Remark 20, and the year beginning in 2000 did. Under
- * `"after"` it may instead **close** with a leap month 12, and then `(12, isLeap: false)` names the
- * second-to-last month: `losarJulianDay` returned the day after *that*, placing New Year one whole
- * lunation early with nothing about the result looking wrong.
- *
- * Not theoretical. `test/validation/bhutan.test.ts` anchors on 2 and 3 March 2003 being day 30 of a
- * **leap month 12**, with New Year on 4 March — Janson's own Bhutanese anchor is the failing case.
- *
- * Stated once here rather than patched at each call site, for the reason
- * {@link ScaledTradition.searchHalfWidth} is: a bound proved from a config's own values belongs
- * beside the proof, not inlined three times where the fourth author will miss it.
+ * "The last month of the year" is not `(12, isLeap: false)` in general. The two positions are
+ * mirror images at the two ends of a year. Under
+ * {@link ../traditions/types.TraditionConfig.leapMonthPosition} `"before"` a year may **open** with
+ * a leap month 1 — the years beginning in 2000 and 2019 do, under `PHUGPA` and `PHUGPA_HENNING`,
+ * and Janson's Losar remark records the first. Under `"after"` it may instead **close** with a
+ * leap month 12, and then `(12, isLeap: false)` names the second-to-last month — the years
+ * beginning in 2002 and 2021 do, under `BHUTAN` and `BHUTAN_HENNING`.
  */
 export function lastMonthCountOfYear(tradition: TraditionConfig, year: number): number {
 	// Only "after" can close a year with a leap month; under "before" the leap twin of month 12 sits
@@ -372,6 +375,9 @@ export function lastMonthCountOfYear(tradition: TraditionConfig, year: number): 
 	return trueMonthCount(tradition, year, 12, closesWithLeapMonth);
 }
 
+// The first is a **ceiling**. PDF-extracted text renders it as a floor, which shifts months by one
+// at boundaries and produces a calendar that is plausible and wrong. `amod` in the second is
+// equally load-bearing: `mod` would report month 12 as month 0.
 /**
  * Recovers the month `(Y, M, isLeap)` from a true month count — Janson §5, "The inverse problem".
  *
@@ -383,10 +389,6 @@ export function lastMonthCountOfYear(tradition: TraditionConfig, year: number): 
  * isLeap  = (65n + β) mod 67 ∈ {1, 2}
  * ```
  *
- * The first is a **ceiling**. PDF-extracted text renders it as a floor, which shifts months by
- * one at boundaries and produces a calendar that is plausible and wrong. `amod` in the second is
- * equally load-bearing: `mod` would report month 12 as month 0.
- *
  * The remainder test identifies the **earlier** member of a twinned pair, which under `"before"` is
  * the leap month. Under
  * {@link ../traditions/types.TraditionConfig.leapMonthPosition} `"after"` the leap month is the
@@ -396,6 +398,9 @@ export function lastMonthCountOfYear(tradition: TraditionConfig, year: number): 
  *
  * `x` — and therefore the year and month number — is unaffected by the position. Both members of a
  * pair yield the same `⌈scaled/67⌉`, which is exactly why they share a number.
+ *
+ * Does not bound `monthCount`; a caller holding an untrusted count checks it with
+ * {@link assertLunation} first.
  */
 export function monthFromCount(tradition: TraditionConfig, monthCount: number): MonthIdentity {
 	const scaled = 65 * monthCount + beta(tradition);
@@ -411,46 +416,48 @@ export function monthFromCount(tradition: TraditionConfig, monthCount: number): 
 	};
 }
 
+// The inequality is **`≥`**. PDF-extracted text renders it as `≤`, which selects 42 of every 65
+// years instead of 24 — a calendar with leap months in all the wrong places, and one that still
+// produces well-formed dates.
 /**
- * Whether year `Y` contains a leap month, by Janson's closed form.
+ * Returns whether year `Y` contains a leap month, by Janson's closed form.
  *
  * @remarks
- * `(24·Y + γ*) mod 65 ≥ 41`, with `γ* = 33` for Phugpa.
- *
- * The inequality is **`≥`**. PDF-extracted text renders it as `≤`, which selects the
- * complementary 41 years of every 65 — a calendar with leap months in all the wrong places, and
- * one that still produces well-formed dates.
+ * `(24·Y + γ*) mod 65 ≥ 41`, with `γ* = 33` for `PHUGPA` and `PHUGPA_HENNING` and `γ* = 28` for
+ * `BHUTAN` and `BHUTAN_HENNING`; the 41 and the 65 do not vary with the config.
  *
  * This is an independent derivation from the {@link sharesNumberWithLeapMonth} route, which tests the
- * intercalation index directly. The two must agree for every year, and the test suite asserts
- * that as a cross-check.
+ * intercalation index directly. The two agree for every year, and the test suite asserts that as a
+ * cross-check.
  */
 export function isLeapYear(tradition: TraditionConfig, year: number): boolean {
 	return mod(24 * year + gammaStar(tradition), 65) >= 41;
 }
 
 /**
- * The number of the leap month in a leap year, or `undefined` if the year has none.
+ * Returns the number of the leap month in a leap year, or `undefined` if the year has none.
  *
  * @remarks
  * `M = ⌊33 − ((24·Y + γ*) mod 65)/2⌋`. Janson notes that for a non-leap year this yields an
  * impossible `M ≥ 13`, which is how the absence is detected.
  *
- * Implemented as `⌊(66 − x)/2⌋` so that the halving stays integer arithmetic rather than
- * producing a fraction to floor.
+ * The number is the one the leap month shares with its twin, whichever of the two is the leap
+ * month under the config's `leapMonthPosition`.
  */
 export function leapMonthOfYear(tradition: TraditionConfig, year: number): number | undefined {
+	// `⌊(66 − x)/2⌋` keeps the halving integer, rather than producing a fraction to floor.
 	const x = mod(24 * year + gammaStar(tradition), 65);
 	const month = floorDiv(66 - x, 2);
 	return month <= 12 ? month : undefined;
 }
 
 /**
- * The number of leap years — equivalently leap months — from `firstYear` to `lastYear` inclusive.
+ * Returns the number of leap years — equivalently leap months — from `firstYear` to `lastYear`
+ * inclusive.
  *
  * @remarks
- * `⌊(24(Y₂+1) + γ*)/65⌋ − ⌊(24·Y₁ + γ*)/65⌋`. Useful as an independent check on the leap-year
- * rule: over any 65 consecutive years it must be exactly 24.
+ * `⌊(24(Y₂+1) + γ*)/65⌋ − ⌊(24·Y₁ + γ*)/65⌋`, for `firstYear ≤ lastYear`. Useful as an independent
+ * check on the leap-year rule: over any 65 consecutive years it is exactly 24.
  */
 export function leapYearsBetween(
 	tradition: TraditionConfig,
@@ -462,7 +469,7 @@ export function leapYearsBetween(
 }
 
 /**
- * The number of months in the Tibetan year `Y` — 12, or 13 in a leap year.
+ * Returns the number of months in the Tibetan year `Y` — 12, or 13 in a leap year.
  */
 export function monthsInYear(tradition: TraditionConfig, year: number): number {
 	return isLeapYear(tradition, year) ? 13 : 12;
@@ -472,9 +479,9 @@ export function monthsInYear(tradition: TraditionConfig, year: number): number {
  * How a lunar day's number appears in the calendar — Janson §6.
  *
  * @remarks
- * Calendar days are 24 hours; lunar days vary between about 21.5 and 25.7 hours. The mismatch
- * means the numbering is not always one-to-one, and the labelling rule resolves it: **a calendar
- * day is named by the lunar day current at its start**, equivalently a lunar day names the
+ * Calendar days are 24 hours; lunar days vary, Janson says, between about 21.5 and 25.7 hours. The
+ * mismatch means the numbering is not always one-to-one, and the labelling rule resolves it: **a
+ * calendar day is named by the lunar day current at its start**, equivalently a lunar day names the
  * calendar day in which it ends.
  */
 export type DayKind =
@@ -553,6 +560,7 @@ export function classifyDay(
  * @remarks
  * Simply `⌊true_date(30, n)⌋`. Janson §8 notes this is correct even when day 30 is itself
  * repeated or skipped, which is what makes it a safe basis for month boundaries.
+ * It is not bounded by the tradition's exact range; callers bound the result.
  */
 export function lastDayOfMonth(scaled: ScaledTradition, monthCount: number): number {
 	return julianDayOfLunarDay(scaled, 30, monthCount);
@@ -566,7 +574,7 @@ export function lastDayOfMonth(scaled: ScaledTradition, monthCount: number): num
  * Janson §8 is explicit about this: lunar day 1 may end during the month's second calendar day
  * (when day 1 is repeated) or during the last day of the previous month (when it is skipped), so
  * evaluating it directly gives the wrong answer in both cases. He notes this appears to be the
- * source of errors in published tables.
+ * source of errors in the tables of one published calendar source, Schuh's.
  */
 export function firstDayOfMonth(scaled: ScaledTradition, monthCount: number): number {
 	return lastDayOfMonth(scaled, monthCount - 1) + 1;
@@ -583,13 +591,14 @@ export function daysInMonth(scaled: ScaledTradition, monthCount: number): number
  * The Julian day number of Losar — Tibetan New Year — beginning in Gregorian year `Y`.
  *
  * @remarks
- * One day after the last day of month 12 of the preceding year. Janson §8 recommends exactly
- * this route because the alternatives break in two real cases: the year may open with a **leap
- * month 1**, as 2000 did, and its first day may be **day 2** when day 1 is skipped. Working back
- * from the previous year's month 12 is correct in both.
+ * One day after the last day of the preceding year's last month. Janson §8 recommends this route,
+ * stated for month 12, because the alternatives break in two real cases: the year may open with a
+ * **leap month 1**, as the year beginning in 2000 CE did under `PHUGPA`, and its first day may be
+ * **day 2** when day 1 is skipped. Working back from the previous year's last month is correct in both. That month is
+ * {@link lastMonthCountOfYear}'s, which under `BHUTAN` can be a leap month 12.
  *
- * Janson's Remark 20 confirms that Losar is the first day of the year even when that day falls
- * in a leap month, unlike other holidays which are not observed in leap months.
+ * Janson's Losar remark confirms that Losar is the first day of the year even when that day falls
+ * in a leap month, unlike other holidays which are usually not observed in leap months.
  */
 export function losarJulianDay(
 	scaled: ScaledTradition,

@@ -9,18 +9,20 @@
  *
  * Because a lunar day is identified by its `(month, day)` numbers and nothing else, these answer for
  * a **skipped** lunar day as readily as for any other — the day no calendar day carries still has an
- * animal and an element, and Janson's almanac prints them. That is the reason this layer takes
- * fields rather than a date.
+ * animal and an element. That is the reason this layer takes fields rather than a date.
  *
  * Three of the four attributes reach back through the month, so all four refuse for a tradition
  * whose month attributes are unsourced. The refusal is deliberately **coarse**: the animal alone is
  * tradition-free — `(D + 6M + 8) amod 12` reads only the two numbers — and could be answered for
- * Bhutan. Relaxing a throw into a return later is a widening and costs nothing; per-field nulls now
- * would tax every Phugpa consumer with three narrowings for ever, for a case they never hit, and
- * removing them later would break.
+ * the Bhutanese configs.
  *
  * @packageDocumentation
  */
+
+// Why the refusal is coarse: relaxing a throw into a return later is a widening and costs nothing,
+// while per-field nulls now would tax every Phugpa consumer with three narrowings for ever, for a
+// case they never hit, and removing them later would break. The decision is recorded in
+// `docs/decisions/2026-09-12-absent-naming-members-refuse.md`, "The refusal is coarse on purpose".
 
 import { amod } from "../computation/arithmetic.js";
 import { ANIMALS, ELEMENTS, oneBasedAt } from "../cycle-tables.js";
@@ -49,8 +51,8 @@ export interface LunarDayAttributes {
 }
 
 /**
- * Every attribute of lunar day `day` of month `month`, in the Tibetan year beginning in Gregorian
- * year `year`.
+ * Returns every attribute of lunar day `day` of month `month`, in the Tibetan year beginning in
+ * Gregorian year `year`.
  *
  * @remarks
  * Janson gives each as a congruence, with `A` the month's animal number and `x` its element number:

@@ -95,6 +95,21 @@ describe("the equations stay within their table bounds", () => {
 	});
 });
 
+describe("moonTabAt and sunTabAt zero handling", () => {
+	// The docblock says the guard is idle for the shipped tables, whose only zero is the first
+	// entry, and matters for a table with a zero elsewhere: -0 would otherwise reach callers.
+	it("never returns negative zero for a table with a zero past its first entry", () => {
+		const moon = [0, 5, 10, 0, 19, 22, 24, 25];
+		const sun = [0, 4, 0, 11];
+		for (let i = -60; i < 60; i++) {
+			expect(Object.is(moonTabAt(moon, i), -0)).toBe(false);
+			expect(Object.is(sunTabAt(sun, i), -0)).toBe(false);
+		}
+		expect(moonTabAt(moon, 17)).toBe(0);
+		expect(sunTabAt(sun, 8)).toBe(0);
+	});
+});
+
 describe("trueDate", () => {
 	// This is the bound that makes the inverse search window provable rather than guessed:
 	// |true_date - mean_date| = |moon_equ - sun_equ| / 60 <= (25 + 11)/60 = 0.6 days.

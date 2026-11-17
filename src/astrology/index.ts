@@ -1,17 +1,18 @@
 /**
- * Janson's Appendix E: what kind of day a day is.
+ * What kind of day a day is, after the appendix "Further astrological calculations" of Janson's paper.
  *
  * @remarks
  * The root entry point answers *which day it is*. This subpath answers *what the day is held to
  * be* — the labels an almanac prints beside the date, on cycles that repeat independently of each
- * other: five elements for the year, an animal and an element for the month, four more labels for
- * the lunar day, five for the calendar day, and one pairing that needs the moon's actual position.
+ * other: five elements for the year, an animal, a gender and an element for the month, four more
+ * labels for the lunar day, five for the calendar day, and one pairing that needs the moon's actual
+ * position.
  *
  * ```ts
  * import { attributesFor } from "tibetan-calendar-temporal/astrology";
  *
  * const day = attributesFor(Temporal.PlainDate.from("2026-09-01"));
- * day.year.power;        // "fire" — 2026 is a Fire Horse year
+ * day.year.power;        // "fire" — the Tibetan year beginning in 2026 CE is a Fire Horse year
  * day.calendarDay.animal;
  * day.yoga?.englishName;     // "death" — the least auspicious of the ten
  * ```
@@ -27,18 +28,18 @@
  * neither source** and is FPMT's; the *tshig mdzod chen mo* states the same ten yoga pairs and grades
  * the ten, which is `auspiciousness`. `docs/astrology.md` is the reader-facing account.
  *
- * **Two traditions answer and two refuse.** Janson tabulates no month-animal list for the Bhutanese
- * version, so {@link monthAttributesFor} and {@link lunarDayAttributesFor} throw
- * `TCT_ATTRIBUTE_NOT_SOURCED` for `BHUTAN` and `BHUTAN_HENNING` rather than handing over Phugpa's
- * answers. The elemental yoga is refused too, by any tradition whose `naming.weekdayOffset` is
- * nonzero — the two Bhutanese configs — because no source says what its weekday element is under
- * that shift; {@link elementalYogaFor} throws and {@link attributesFor} reports `null`. Everything
- * else answers for every tradition.
+ * **`PHUGPA` and `PHUGPA_HENNING` answer everything; `BHUTAN` and `BHUTAN_HENNING` refuse the
+ * month-dependent attributes and the elemental yoga.**
+ * Janson tabulates no month-animal list for the Bhutanese version, so
+ * {@link monthAttributesFor} and {@link lunarDayAttributesFor} throw `TCT_ATTRIBUTE_NOT_SOURCED`
+ * for the two Bhutanese configs rather than handing over Phugpa's answers. The elemental yoga is
+ * refused too, by any tradition whose `naming.weekdayOffset` is nonzero — both Bhutanese configs —
+ * because no source says what its weekday element is under that shift; {@link elementalYogaFor}
+ * throws and {@link attributesFor} reports `null`. Everything else answers for every shipped
+ * tradition.
  *
  * **The mansion table ships as `LUNAR_MANSIONS`**, all 27 in index order, mirroring `ELEMENTAL_YOGAS`.
- * It didn't ship until 2026-09-18: an early attempt exported three bare mansion names with no way to
- * learn a day's index, which was a dead export and was withdrawn the same day, 2026-09-12. The names
- * shipped once verified; a mansion has **no English name**, because no source prints one.
+ * A mansion has **no English name**, because no source prints one.
  *
  * **Every attribute block carries `tibetanNames`**, keyed by the English field it names —
  * `day.month.tibetanNames.animal` is the Tibetan for `day.month.animal`.
@@ -82,14 +83,11 @@ export type { ElementalYoga, YogaAuspiciousness } from "./yoga.js";
 export { ELEMENTAL_YOGAS, elementalYoga } from "./yoga.js";
 
 /**
- * All 27 lunar mansions, in index order — the table `lunarMansionFor` looks a day's mansion up in.
+ * Lists all 27 lunar mansions in index order, each with the fields `lunarMansionFor` returns.
  *
  * @remarks
  * Mirrors {@link ELEMENTAL_YOGAS}: a consumer building a reference view (a legend, a translation
- * table) can enumerate every mansion without needing a date for each one. Composed here, not in
- * `mansion-names.ts` or `mansion-elements.ts`, because those two modules are deliberately separate —
- * the names and the elements are Mahāvyutpatti-and-friends versus Henning, different sources — and
- * this table is the same merge {@link lunarMansionFor} does for a single index, run over all 27.
+ * table) can enumerate every mansion without needing a date for each one.
  *
  * @example
  * ```ts
@@ -97,6 +95,10 @@ export { ELEMENTAL_YOGAS, elementalYoga } from "./yoga.js";
  * LUNAR_MANSIONS[26].sanskritName.iast;   // "revatī"
  * ```
  */
+// Composed here, not in `mansion-names.ts` or `mansion-elements.ts`, because those two modules are
+// deliberately separate — the names are the Mahāvyutpatti's and its neighbours, the elements are
+// Henning's, different sources — and this table is the same merge `lunarMansionFor` does for a
+// single index, run over all 27.
 export const LUNAR_MANSIONS: readonly LunarMansion[] = deepFreeze(
 	Array.from({ length: MANSION_COUNT }, (_, index) => {
 		const { tibetanName, sanskritName } = mansionNames(index);
@@ -105,7 +107,7 @@ export const LUNAR_MANSIONS: readonly LunarMansion[] = deepFreeze(
 );
 
 /**
- * The five elements and three numbers of a Tibetan year.
+ * Returns the five elements and three numbers of a Tibetan year.
  *
  * @remarks
  * Takes the **royal era** — 2153, not 2026 — matching `TibetanDate.year` and `yearNameFor`. The
@@ -126,7 +128,7 @@ export const LUNAR_MANSIONS: readonly LunarMansion[] = deepFreeze(
  * @example
  * ```ts
  * yearAttributesFor(2153).power;       // "fire"
- * yearAttributesFor(2153).fortune;     // "water" — and never "earth", for any year
+ * yearAttributesFor(2153).fortune;     // "iron" — Horse years are iron; no year is "earth"
  * ```
  */
 export function yearAttributesFor(year: number): YearAttributes {
@@ -139,7 +141,7 @@ export function yearAttributesFor(year: number): YearAttributes {
 }
 
 /**
- * The animal, gender, element and — in one tradition only — number of a Tibetan month.
+ * Returns the animal, gender, element and — in one tradition only — number of a Tibetan month.
  *
  * @remarks
  * `month.year` is the **royal era**, matching {@link TibetanDate.year} and {@link yearAttributesFor}
@@ -150,10 +152,13 @@ export function yearAttributesFor(year: number): YearAttributes {
  * package, and makes no difference to the answer; it is not ignored silently, because a leap flag on
  * a year with no such leap month is still a caller error.
  *
- * `number` is `null` for Phugpa: Janson states that only Tsurphu calendars number their months.
+ * `number` is `null` for `PHUGPA` and `PHUGPA_HENNING`: Janson states that only Tsurphu calendars
+ * number their months.
  *
- * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` for a non-integer or out-of-range field;
- * `TCT_INVALID_ARGUMENT` if `month` is not an object naming a Tibetan month;
+ * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` for a `year` or `month` that is a number but
+ * not an integer or is out of range;
+ * `TCT_INVALID_ARGUMENT` if `month` is not an object naming a Tibetan month, or its `year` or
+ * `month` is absent or not a number;
  * `TCT_INVALID_TRADITION_CONFIG` if `tradition` is not a valid config; `TCT_NO_SUCH_LEAP_MONTH`
  * if `isLeapMonth` is set for a month with no leap twin that year; `TCT_OUTSIDE_EXACT_RANGE` past the
  * tradition's exact range; or **`TCT_ATTRIBUTE_NOT_SOURCED`** for a tradition whose month attributes
@@ -178,7 +183,7 @@ export function monthAttributesFor(
 }
 
 /**
- * The animal, element, trigram and number of a lunar day.
+ * Returns the animal, element, trigram and number of a lunar day.
  *
  * @remarks
  * `date.year` is the **royal era**, matching {@link TibetanDate.year} and {@link yearAttributesFor} —
@@ -187,15 +192,16 @@ export function monthAttributesFor(
  * Takes the **Tibetan** `(year, month, day)` and never a Western date, which is deliberate in two
  * ways. There is no calendar ambiguity to resolve — a lunar day is a Tibetan notion, so loose fields
  * say everything — and it is what lets a **skipped** lunar day be asked about at all: the day no
- * calendar day carries still has an animal and an element, and an almanac prints them, but
- * `TibetanDate` cannot represent one.
+ * calendar day carries still has an animal and an element, but `TibetanDate` cannot represent one.
  *
  * Three of the four labels reach back through the month, so all four refuse together where the
  * month's are unsourced. The refusal is coarse by exactly one field — the animal alone is
  * tradition-free.
  *
- * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` for a non-integer or out-of-range field;
- * `TCT_INVALID_ARGUMENT` if `date` is not an object naming a Tibetan date;
+ * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` for a `year`, `month` or `day` that is a
+ * number but not an integer or is out of range;
+ * `TCT_INVALID_ARGUMENT` if `date` is not an object naming a Tibetan date, or its `year`, `month`
+ * or `day` is absent or not a number;
  * `TCT_INVALID_TRADITION_CONFIG` if `tradition` is not a valid config; `TCT_NO_SUCH_LEAP_MONTH`
  * if `isLeapMonth` is set for a month with no leap twin that year; `TCT_OUTSIDE_EXACT_RANGE` past the
  * tradition's exact range; or **`TCT_ATTRIBUTE_NOT_SOURCED`** for a tradition whose month attributes
@@ -222,7 +228,7 @@ export function lunarDayAttributesFor(
 }
 
 /**
- * The element, gender, animal, trigram and number of a calendar day, plus its four cycle elements.
+ * Returns the element, gender, animal, trigram and number of a calendar day, plus four more elements.
  *
  * @remarks
  * Every one of these is a congruence on the **Julian day**, so they can be asked of any day at all —
@@ -249,7 +255,7 @@ export function calendarDayAttributesFor(
 }
 
 /**
- * The elemental yoga of a calendar day: the weekday's element paired with the lunar mansion's.
+ * Returns the elemental yoga of a calendar day: the weekday's element paired with the mansion's.
  *
  * @remarks
  * **The one attribute here that needs astronomy.** The mansion is where the moon actually is at the
@@ -263,6 +269,10 @@ export function calendarDayAttributesFor(
  * so do their weekday elements — though the mansion can move too, and the pair can land on the same
  * yoga. Pass the `Temporal.PlainDate` of the half you mean, or a resolved `TibetanDate` — which
  * carries `isLeapDay`, the flag that says which half it is.
+ *
+ * The mansion of a doubled date's first half follows a rule — the moon's longitude at the end of
+ * the lunar day, less 1/27 of a circle — that has one source, Men-Tsee-Khang's 2013 almanac, as
+ * Janson reports it. Under another tradition, applying it is an inference.
  *
  * **Refused under a shifted weekday.** A tradition whose `naming.weekdayOffset` is nonzero — `BHUTAN`
  * and `BHUTAN_HENNING` — moves the weekday, and no source says what the yoga pairs with then, so the
@@ -288,7 +298,7 @@ export function elementalYogaFor(
 }
 
 /**
- * The lunar mansion the moon is in at the start of a calendar day: its index, names and element.
+ * Returns the lunar mansion the moon is in at the start of a calendar day: index, names, element.
  *
  * @remarks
  * **Needs astronomy**, like the yoga it drives: the mansion comes from the same true longitudes the
@@ -303,6 +313,10 @@ export function elementalYogaFor(
  * **On a doubled date the two halves can be in different mansions.** Pass the `Temporal.PlainDate` of
  * the half you mean, or a resolved `TibetanDate`, which carries `isLeapDay`. Loose `{ year, month,
  * day }` fields are refused, because that shape is a value of both calendars.
+ *
+ * The mansion of a doubled date's first half follows a rule — the moon's longitude at the end of
+ * the lunar day, less 1/27 of a circle — that has one source, Men-Tsee-Khang's 2013 almanac, as
+ * Janson reports it. Under another tradition, such as the Bhutanese, applying it is an inference.
  *
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` for an argument that names no calendar day;
  * `TCT_INVALID_TRADITION_CONFIG` for an invalid `tradition`; `TCT_OUTSIDE_EXACT_RANGE` past the
@@ -325,7 +339,7 @@ export function lunarMansionFor(
 }
 
 /**
- * Everything this subpath knows about one calendar day.
+ * Returns everything this subpath knows about one calendar day.
  *
  * @remarks
  * The composition, for the almanac view that wants the whole row at once. The primitives **throw**
@@ -337,6 +351,10 @@ export function lunarMansionFor(
  * the same for both — while they are two different calendar days, so `calendarDay` differs and
  * `yoga` can. Anyone who has not met the two-clocks point reads that as a bug; it is the point.
  *
+ * `lunarMansion` of the first half follows a rule that has one source, Men-Tsee-Khang's 2013
+ * almanac, as Janson reports it: the moon's longitude is that at the end of the lunar day, less 1/27
+ * of a circle. Under another tradition, such as the Bhutanese, applying it is an inference.
+ *
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` for an argument that names no calendar day;
  * `TCT_INVALID_TRADITION_CONFIG` for an invalid `tradition`; `TCT_OUTSIDE_EXACT_RANGE` past the
  * tradition's exact range. **Never**
@@ -345,10 +363,12 @@ export function lunarMansionFor(
  * @example
  * ```ts
  * const day = attributesFor(Temporal.PlainDate.from("2026-09-01"));
- * day.year.power;   // "fire"
+ * day.year.power;        // "fire"
  * day.yoga?.englishName; // "death"
- * day.month;        // null under BHUTAN, where Janson gives no month-animal list
- * attributesFor(Temporal.PlainDate.from("2026-09-01"), BHUTAN).yoga; // null: no source for the weekday element
+ *
+ * const bhutanese = attributesFor(Temporal.PlainDate.from("2026-09-01"), BHUTAN);
+ * bhutanese.month;       // null: Janson gives no Bhutanese month-animal list
+ * bhutanese.yoga;        // null: no source for the weekday element
  * ```
  */
 export function attributesFor(
@@ -359,9 +379,10 @@ export function attributesFor(
 	tradition = scalingFor(tradition).tradition;
 	const y = yearFromRoyalEra(resolved.year);
 
-	// The one place in this subpath that reports rather than refuses, so the refusal is caught here
-	// and nowhere else. Narrow: only the unsourced-attribute code becomes a null, and every other
-	// error — a malformed config, a date out of range — still propagates.
+	// The one place in this subpath that reports rather than refuses. It asks whether the month
+	// attributes are sourced instead of catching the refusal, so only the unsourced attributes
+	// become a null, and every other error — a malformed config, a date out of range — still
+	// propagates.
 	const sourced = tradition.naming?.monthAnimals !== undefined;
 	// Computed once and shared with the yoga, so the composition cannot report one mansion and a
 	// yoga derived from another.
@@ -432,14 +453,10 @@ function weekdayElementOf(resolved: TibetanDate): TibetanWeekdayElement {
 }
 
 /**
- * A `Temporal.PlainDate` from either accepted shape, rejecting loose fields by name.
+ * Returns a `Temporal.PlainDate` from either accepted shape, rejecting loose fields by name.
  *
  * @remarks
- * A thin pass-through to {@link asWesternDay} so that each caller's message names itself. This was
- * a second copy of `navigation.ts`'s `phaseStart` until 2026-09-23, written when `./astrology`
- * landed because the existing helper was private to another module. Its message named four shapes
- * and never mentioned the resolved `TibetanDate` it accepts; `phaseStart`'s named two of four. Both
- * shipped in `dist/*.d.ts`.
+ * A thin pass-through to {@link asWesternDay} so that each caller's message names itself.
  */
 function isoOf(functionName: string, date: Temporal.PlainDate | TibetanDate): Temporal.PlainDate {
 	return asWesternDay(functionName, date);

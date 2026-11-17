@@ -1,39 +1,43 @@
 /**
- * The shape of a Tibetan calendar tradition.
+ * Declares the shape of a Tibetan calendar tradition.
  *
  * @remarks
- * Everything that varies by tradition lives here, so that a second tradition is a new
- * {@link TraditionConfig} rather than a change to any computation module. That held when tested:
- * {@link ../traditions/bhutan.BHUTAN} was added on 2026-08-16 and needed two new fields on this
- * interface and no change to any formula.
+ * Everything that varies by tradition lives here, so that a further tradition is a new
+ * {@link TraditionConfig} rather than a change to any computation module.
  *
  * Shipped: {@link ../traditions/phugpa.PHUGPA}, `PHUGPA_HENNING`,
  * {@link ../traditions/bhutan.BHUTAN} and `BHUTAN_HENNING`. Tsurphu and the Mongolian version are
  * expressible and documented in `docs/traditions.md`, and deliberately not exported — nothing
  * validates a date for either.
  *
- * Note that this is **not** the same claim as "only the constants differ", which an earlier
- * version of this docblock made about Tsurphu and which is false: Tsurphu, the Mongolian and the
- * Bhutanese versions each use a different **leap-month rule**, which is why
- * {@link TraditionConfig.leapIndexThreshold} exists. Bhutan differs further still, placing a leap
- * month *after* rather than *before* the regular month sharing its number — see
- * {@link TraditionConfig.leapMonthPosition}, and `docs/traditions.md` for what a version still has
- * to carry beyond these.
+ * More than the constants differ between versions. The Tsurphu, Mongolian and Bhutanese versions
+ * each use a different **leap-month rule**, which is why {@link TraditionConfig.leapIndexThreshold}
+ * exists. Bhutan also places a leap month *after* rather than *before* the regular month sharing
+ * its number — see {@link TraditionConfig.leapMonthPosition}, and `docs/traditions.md` for what a
+ * version still has to carry beyond these.
  *
- * Constants are held as exact {@link Rational}s rather than pre-scaled integers. The scaling
- * denominator is **derived** from them — see `computation/scaling.ts` — because it is not the
- * same for every tradition: Tsurphu's epoch constants carry a second factor of 5 and a fourth
- * factor of 3, giving a denominator fifteen times Phugpa's.
+ * Constants are held as exact {@link Rational}s. The scaling denominator is derived from them, in
+ * `computation/scaling.ts`, because it differs by tradition.
  *
  * @packageDocumentation
  */
 
+// "A further tradition is a new config, not a change to a computation module" was tested when
+// `BHUTAN` was added: it needed two new fields on `TraditionConfig` and no change to any formula.
+//
+// Constants are exact rationals rather than pre-scaled integers because the scaling denominator is
+// not the same for every tradition. Janson's Tsurphu epoch constants (E1732 and E1852, probed) give
+// a common denominator of 1,534,755,600 against `PHUGPA`'s 102,317,040: a second factor of 5 and a
+// fourth factor of 3, fifteen times as large. `PHUGPA_HENNING` and `BHUTAN_HENNING` are fifteen
+// times `PHUGPA`'s too, through `a₂`'s denominator, and `BHUTAN` has `PHUGPA`'s.
+
+// The denominators come from Janson's mixed-radix constants and are already the ones the arithmetic
+// needs; `lowestTerms` in `computation/scaling.ts` reduces them when the scaling is derived.
 /**
  * An exact rational number.
  *
  * @remarks
- * Held unreduced and unnormalised. Nothing here performs gcd reduction: the denominators come
- * from Janson's mixed-radix constants and are already the ones the arithmetic needs.
+ * Held unreduced and unnormalised: nothing here reduces by the gcd.
  */
 export interface Rational {
 	/** Numerator. May be negative. */
@@ -43,7 +47,8 @@ export interface Rational {
 }
 
 /**
- * The three linear coefficients Janson §7 gives for each mean quantity.
+ * The three linear coefficients Janson's astronomical-functions section (§7) gives for each mean
+ * quantity.
  *
  * @remarks
  * Each mean function has the form `f(d, n) = n · perMonth + d · perDay + atEpoch`, where `n` is
@@ -72,11 +77,11 @@ export interface TraditionConfig {
 	 * The epoch year — Janson's `Y₀`, in his *Y* numbering, not the royal era.
 	 *
 	 * @remarks
-	 * Phugpa uses E806. That choice matters beyond convention: the true month count `n` is zero
-	 * at the epoch, so `n ≥ 0` for every date after 806 CE. A later epoch such as E1987 makes
-	 * `n` negative for anything earlier, and negative operands in `mod` and `⌊⌋` are exactly
-	 * where Janson twice warns implementations break. Do not switch epochs to get smaller
-	 * constants.
+	 * `PHUGPA` uses E806 and `BHUTAN` 1754. The true month count `n` is 0 for the month that begins
+	 * at the epoch, so `n ≥ 0` for every later date — for Phugpa, every date after 806 CE. A later
+	 * epoch such as E1987 makes `n` negative for earlier dates, and negative operands in `mod` and
+	 * `⌊⌋` are where Janson warns that implementations go wrong. Do not switch epochs to get
+	 * smaller constants.
 	 */
 	readonly epochYear: number;
 
@@ -84,26 +89,55 @@ export interface TraditionConfig {
 	 * The epoch month — Janson's `M₀`, always 3 by tradition (*nag pa*, Caitra).
 	 *
 	 * @remarks
-	 * Janson notes this is nominal: because of the rounding rule, the month with true month
-	 * count 0 is actually month 2 whenever `intercalationIndexAtEpoch ≥ 48`.
+	 * Janson notes this is nominal: because of the rounding rule, the month with true month count 0
+	 * is not always month 3. Which month it is depends on `intercalationIndexAtEpoch` (`β*`)
+	 * against `leapIndexThreshold`, and on `leapMonthPosition`. For `epochMonth` 3:
+	 *
+	 * - `"before"`: month 3 for `β*` below the threshold, leap month 3 for `β*` equal to the
+	 *   threshold or one more, and month 2 for `β*` two or more above the threshold.
+	 * - `"after"`: month 3 for `β*` below the threshold plus 2, leap month 2 for `β*` equal to the
+	 *   threshold plus 2 or plus 3, and month 2 for `β*` four or more above the threshold.
+	 *
+	 * `PHUGPA` (`β*` 61, threshold 48) has count 0 on month 2 of the year beginning in 806 CE;
+	 * `BHUTAN` (`β*` 2, threshold 57) has it on month 3 of the year beginning in 1754 CE.
 	 */
 	readonly epochMonth: number;
 
+	// A value 65 off is the same leap cycle with every true month count shifted by one (probed): the
+	// leap rule reads the index mod 65, so no leap month moves, while `β` moves by 65 and `m₀` stays,
+	// so every date moves a whole month. Hence the refusal rather than a normalisation.
 	/**
 	 * Janson's `β*` — the intercalation index at the epoch.
 	 *
 	 * @remarks
-	 * 61 for Phugpa at E806. This is the single constant that positions the whole leap-month
-	 * cycle; `β` and `γ*` are both derived from it.
+	 * 61 for `PHUGPA` at E806 and 2 for `BHUTAN`. With `leapIndexThreshold` it positions the whole
+	 * leap-month cycle, and `β` and `γ*` are derived from these and the epoch.
+	 *
+	 * An integer in 0…64, because it is an index taken mod 65; any other value is refused with
+	 * `TCT_INVALID_TRADITION_CONFIG`.
 	 */
 	readonly intercalationIndexAtEpoch: number;
 
+	// Why the field is required: a default of 48 would silently give Phugpa's leap placement to a
+	// Tsurphu config — no error, no wrong-looking output, a calendar whose leap months fall in the
+	// wrong years. A missing field is the likelier mistake than a wrong one.
+	//
+	// The two derived quantities reproduce every value Janson publishes: the rounding term is his
+	// `+17` for Phugpa (`65 − 48`), and `β = 67·M₀ − β* − (65 − threshold)` gives 123 for Phugpa,
+	// 172 for Mongolia, 191 for Bhutan and 77 for Tsurphu, congruent mod 65 to his 142 — the only
+	// sense in which `β` is determined.
+	//
+	// Janson's traditional index is the simplified one increased by 2 from the leap month onward,
+	// until the index passes 65, so his 59-or-60 is not the simplified rule with the threshold moved
+	// by 2. Measured (probe):
+	// `{ ...BHUTAN, leapIndexThreshold: 59 }` differs from `BHUTAN` on 177 of the 3,650 days from
+	// 2020-01-01 (CE), the first on 2022-02-02.
 	/**
 	 * The intercalation index at which a leap month is inserted — Janson's leap-month rule.
 	 *
 	 * @remarks
-	 * A month is a leap month when its intercalation index is **this value or this value plus
-	 * one**. Janson states the rule separately for each version, and the values differ:
+	 * A month number has a leap month when its intercalation index is **this value or this value
+	 * plus one**. Janson states the rule separately for each version, and the values differ:
 	 *
 	 * | Tradition | threshold |
 	 * |-----------|-----------|
@@ -112,24 +146,39 @@ export interface TraditionConfig {
 	 * | Mongolian | 46        |
 	 * | Bhutanese | 57        |
 	 *
-	 * Two other quantities are derived from it and must not be written as literals. The rounding
-	 * rule in the true month count adds `65 − threshold`, since Janson's
-	 * `+17` for Phugpa is `65 − 48`. And `β` is `67·M₀ − β* − (65 − threshold)`, which reproduces
-	 * every value Janson publishes: 123 for Phugpa, 172 for Mongolia, 191 for Bhutan, and 77 for
-	 * Tsurphu — congruent mod 65 to his 142, which is the only sense in which β is determined.
+	 * An integer in 0…63: the index is taken mod 65, the rule matches the threshold plus one as well,
+	 * and it does not wrap, so a threshold of 64 would leave that second value unreachable. Janson
+	 * writes Tsurphu's as 0-or-1, never as 64-or-0. Any other value is refused with
+	 * `TCT_INVALID_TRADITION_CONFIG`.
 	 *
-	 * **Required, and deliberately so.** A default of 48 would silently give Phugpa's leap
-	 * placement to a Tsurphu config: no error, no wrong-looking output, just a calendar whose leap
-	 * months fall in the wrong years. That is the failure this package is built to prevent, and a
-	 * missing field is the likelier mistake than a wrong one.
+	 * The rounding term of the true month count, `65 − threshold`, and `β` are derived from this
+	 * field and are not set separately. **Required**: there is no default.
 	 *
-	 * The Bhutanese value is the *simplified* index this package computes, not the traditional one
-	 * an almanac prints — Janson gives the rule both ways, as 59-or-60 traditional and 57-or-58
-	 * simplified. Bhutan additionally numbers a leap month from the **preceding** month rather than
-	 * the following one, which this field does **not** express; see `docs/traditions.md`.
+	 * The Bhutanese value is the *simplified* index this package computes, not the traditional one an
+	 * almanac prints. Janson also gives the rule against the traditional index, as 59-or-60, but that
+	 * index is the simplified one raised by 2 for a leap month and the months after it, until the index
+	 * passes 65, not a uniform shift of this threshold: `{ ...BHUTAN, leapIndexThreshold: 59 }` is a
+	 * different calendar, not Bhutan under the traditional index. Bhutan additionally numbers a leap
+	 * month from the **preceding** month rather than the following one, which this field does
+	 * **not** express; see `leapMonthPosition` and `docs/traditions.md`.
 	 */
 	readonly leapIndexThreshold: number;
 
+	// The positional framing is the one the field takes because every reader of it computes with
+	// order — the sign of the true-month adjustment, which twin a count identifies, which month a
+	// year ends with, the order `monthsFor` emits. None of them needs the numbering.
+	//
+	// Why it is required: a default of "before" would silently give Tibet's ordering to a Bhutanese
+	// config — no error, no wrong-looking output, every date in one lunation a month out. A missing
+	// field is the likelier mistake than a wrong one (the `leapIndexThreshold` reasoning, one level out).
+	//
+	// Why it is not derived from the threshold: the two are independent fields, and any threshold is
+	// accepted with either position (`{ ...PHUGPA, leapIndexThreshold: 57 }` and
+	// `{ ...BHUTAN, leapMonthPosition: "before" }` both validate, probed). A rule such as
+	// `57 ⇒ "after"` would fit the four shipped configs and say nothing about a config built from other
+	// numbers. Janson states Bhutan's rule against two different indices — 57-or-58 simplified, 59-or-60
+	// traditional — so the number does not even identify the version. Nor is `id` a basis:
+	// `TraditionConfig.id` is consumer-settable and must never decide which tradition this is.
 	/**
 	 * Where a leap month sits relative to the regular month sharing its number.
 	 *
@@ -147,27 +196,13 @@ export interface TraditionConfig {
 	 * > **after** the regular month sharing its number. The two framings are inverses; this field
 	 * > states the position.
 	 *
-	 * The positional framing is the one the field takes because every reader of it computes with
-	 * **order** — the sign of the true-month adjustment, which twin a count identifies, which month
-	 * a year ends with, the order {@link ../months.monthsFor} emits. None of them needs the
-	 * numbering.
-	 *
 	 * A **numbering convention, not an arithmetic one.** The lunation boundaries are identical
 	 * either way; what moves is which of two consecutive months carries the leap flag, and with it
 	 * every date in one of them.
 	 *
-	 * **Required, and deliberately so** — the same reasoning as
-	 * {@link TraditionConfig.leapIndexThreshold}, one level out. A default of `"before"` would
-	 * silently give Tibet's ordering to a Bhutanese config: no error, no wrong-looking output, just
-	 * every date in one lunation a month out. A missing field is the likelier mistake than a wrong
-	 * one.
-	 *
-	 * Not derivable from anything else here, so do not try. It cannot come from
-	 * {@link TraditionConfig.leapIndexThreshold} — Janson states Bhutan's rule twice, 57-or-58
-	 * against the simplified intercalation index this package computes and 59-or-60 against the
-	 * traditional one, so threshold 59 with `"after"` is correct Bhutan and any derivation rule
-	 * rejects it. Nor from the config's identity: {@link TraditionConfig.id} is consumer-settable and
-	 * must never decide which tradition this is.
+	 * **Required**: there is no default. It is independent of
+	 * {@link TraditionConfig.leapIndexThreshold} and is not derived from it, nor from the config's
+	 * {@link TraditionConfig.id}: supply both fields.
 	 */
 	readonly leapMonthPosition: "before" | "after";
 
@@ -182,7 +217,7 @@ export interface TraditionConfig {
 	readonly lunarAnomaly: MeanMotion;
 
 	/**
-	 * The moon equation table, Janson §7, for arguments 0…7.
+	 * The moon equation table of Janson's astronomical-functions section (§7), for arguments 0…7.
 	 *
 	 * @remarks
 	 * Extended by the symmetries `tab(14 − i) = tab(i)` and `tab(14 + i) = −tab(i)`, giving
@@ -191,7 +226,7 @@ export interface TraditionConfig {
 	readonly moonTab: readonly number[];
 
 	/**
-	 * The sun equation table, Janson §7, for arguments 0…3.
+	 * The sun equation table of Janson's astronomical-functions section (§7), for arguments 0…3.
 	 *
 	 * @remarks
 	 * Extended by `tab(6 − i) = tab(i)` and `tab(6 + i) = −tab(i)`, giving period 12, with
@@ -199,6 +234,15 @@ export interface TraditionConfig {
 	 */
 	readonly sunTab: readonly number[];
 
+	// Nested rather than flat because nothing in `naming` is read by the algorithm, so a flat field
+	// would sit among the constants claiming to be one; nesting keeps the boundary visible at the call
+	// site — `tradition.naming.weekdayOffset` reads as a naming concern.
+	//
+	// A separate top-level config was considered and rejected. The argument that the weekday name is
+	// filled in during conversion, which receives only a `TraditionConfig`, covers `weekdayOffset` and
+	// not the month members, which are never populated during conversion. They belong here anyway
+	// because `naming` is already the not-read-by-the-algorithm bucket, and a second config would have
+	// to be threaded into `./astrology` beside this one for a caller to get one tradition's answers.
 	/**
 	 * How this tradition *names* things, as distinct from how it computes them.
 	 *
@@ -207,50 +251,44 @@ export interface TraditionConfig {
 	 * astrological appendix — rather than by calendar unit, so that each system can be sourced, and
 	 * refused, on its own.
 	 *
-	 * Optional, and **absence means different things** depending on the member, because the rules
-	 * behind them are different. A default is legitimate where there is one dominant convention and
-	 * illegitimate where there is a genuine fork. Every Tibetan version agrees on weekday naming, so
-	 * `weekdayOffset` defaults; only Tsurphu numbers its months, so `nineNumbers` defaults to
-	 * unnumbered; but the month animals fork Dragon against Tiger with no majority, so an absent
-	 * {@link TraditionMonthAnimals} means *not sourced for this tradition*, and the astrological layer
-	 * refuses rather than answering.
+	 * Optional, and **absence means different things** depending on the member. A default is
+	 * legitimate where there is one dominant convention and illegitimate where there is a genuine
+	 * fork. Every version but Bhutan's names weekdays alike, so `weekdayOffset` defaults to 0; only
+	 * Tsurphu numbers its months, so `nineNumbers` defaults to unnumbered; but the month animals fork
+	 * — month 1 is Dragon in Phugpa and Tiger in Tsurphu — so an absent {@link TraditionMonthAnimals}
+	 * means *not sourced for this tradition*, and the astrological layer refuses rather than
+	 * answering.
 	 *
 	 * Janson's **seasonal** month names need no member here. Almanacs print several of his four
 	 * systems at once, so they are not a per-tradition choice; three are fixed functions of the month
 	 * number, and the fourth is anchored on the Tiger month `monthAnimals` already carries.
-	 *
-	 * Nested rather than flat, deliberately. Nothing in here is read by the algorithm, so a flat
-	 * field would sit among the constants claiming to be one. Nesting keeps the boundary visible at
-	 * the call site — `tradition.naming.weekdayOffset` reads as a naming concern.
-	 *
-	 * A separate top-level config was considered and rejected, and the argument is not the one the
-	 * `weekdayOffset` docblock gives. That one — `weekdayName` is populated inside the conversion,
-	 * which receives only a `TraditionConfig` — does not cover the month members, which are never
-	 * populated during conversion. The reason they belong here anyway is that `naming` is already the
-	 * not-read-by-the-algorithm bucket, and a second config would have to be threaded into
-	 * `./astrology` beside this one for a caller to get one tradition's answers.
 	 */
 	readonly naming?: TraditionNaming;
 }
 
+// A `"phugpa" | "tsurphu"` selector inside a tradition-agnostic config is the same anti-pattern as
+// branching on `tradition.id`, which is consumer-settable and must not decide "is this Phugpa".
+// Janson describes the month-element rules functionally, as the *son* of the year's element against
+// a continuous cycle.
 /**
  * The naming conventions of a tradition, one member per naming system.
  *
  * @remarks
- * Every member names what the rule **does**, never a tradition — a `"phugpa" | "tsurphu"` selector
- * inside a tradition-agnostic config is the same anti-pattern as branching on `tradition.id`, which is
- * consumer-settable and must not decide "is this Phugpa". Janson describes the month-element rules
- * functionally, as the *son* of the year's element against a continuous cycle, which is why
- * {@link TraditionMonthAnimals.elementRule} spells them `"son-of-year" | "continuous"`.
+ * Every member names what the rule **does**, never a tradition: the month-element rules are
+ * `"son-of-year" | "continuous"` in {@link TraditionMonthAnimals.elementRule}, not tradition names.
  */
 export interface TraditionNaming {
+	// Optional within `naming` so a config supplying only the other members need not restate a shift
+	// it does not have; an absent `naming` already means offset 0, so this keeps the block consistent
+	// with that rule.
 	/**
 	 * How far this tradition's weekday is shifted from Tibet's, in whole days.
 	 *
 	 * @remarks
-	 * 0 for every Tibetan version. **1 for Bhutan**, where day 0 is *nyi ma* rather than *spen pa* —
-	 * Janson calls it "a unique feature of the Bhutanese calendar", and Unicode CLDR agrees: its
-	 * `bo` and `dz` locales give names one planet apart for the same date.
+	 * 0 for `PHUGPA` and for every version Janson gives but Bhutan's. **1 for Bhutan**, where day 0
+	 * is *nyi ma* rather than *spen pa* — Janson calls it "a unique feature of the Bhutanese
+	 * calendar", and Unicode CLDR agrees: its `bo` and `dz` locales give names one planet apart for
+	 * the same date.
 	 *
 	 * Moves the **whole weekday**: the name, its `planet` and its `element` are all the shifted
 	 * weekday's. That the element moves is an inference no source states. Because of it, a
@@ -260,12 +298,13 @@ export interface TraditionNaming {
 	 * tradition and the Western weekday is correct in both, which is why the difference is invisible
 	 * when dates are written in English.
 	 *
-	 * **Optional within `naming`, defaulting to 0**, so a config supplying only the other members
-	 * need not restate a shift it does not have. Absent `naming` already means offset 0, so this
-	 * makes the block internally consistent with the rule that governs it.
+	 * An integer in 0…6. **Optional within `naming`, defaulting to 0**, as an absent `naming` does.
 	 */
 	readonly weekdayOffset?: number;
 
+	// Defaulting would hand whoever promotes one of those to a real config Phugpa's month
+	// attributes, silently, with nothing about the output looking wrong — the `leapIndexThreshold`
+	// failure verbatim.
 	/**
 	 * The **animal cycle** as this tradition applies it to months, or absent if nobody has sourced it.
 	 *
@@ -274,12 +313,9 @@ export interface TraditionNaming {
 	 * Janson gives no month-animal list for the Bhutanese version, so there is nothing to put here
 	 * and the astrological layer refuses the month and lunar-day attributes instead.
 	 *
-	 * Absence is never a Phugpa fallback, and the reason is a tradition nobody has built yet: Janson
-	 * states that Mongolia uses **Tsurphu's** rules for the month animal, gender and element, and
-	 * worked Tsurphu and Mongolian configs already exist in `docs/traditions.md` as data. Defaulting
-	 * would hand whoever promotes one of those to a real config Phugpa's month attributes, silently,
-	 * with nothing about the output looking wrong — which is the `leapIndexThreshold` failure
-	 * verbatim.
+	 * Absence is never a Phugpa fallback: Janson states that Mongolia uses **Tsurphu's** rules for
+	 * the month animal, gender and element, and Tsurphu and Mongolian configs exist in
+	 * `docs/traditions.md` as data.
 	 */
 	readonly monthAnimals?: TraditionMonthAnimals;
 
@@ -291,39 +327,40 @@ export interface TraditionNaming {
 	 * "only Tsurphu calendars give one of the 9 numbers to each month", so every other version is
 	 * unnumbered by his own statement. `PHUGPA` therefore carries no `nineNumbers` block at all.
 	 *
-	 * A separate member from {@link TraditionMonthAnimals} because it is a separate system: Janson's
-	 * month-number formula, `(3 − (12Y + M)) amod 9`, reads the year and month number and never the
-	 * Tiger month. Tsurphu's calendar days follow a nine-number rule of their own, from the solstices,
-	 * which is not modelled and would belong here beside the month rule.
+	 * Janson's month-number formula, `(3 − (12Y + M)) amod 9`, reads the year and month number and
+	 * never the Tiger month, so this is separate from {@link TraditionMonthAnimals}. Tsurphu's
+	 * calendar days follow a nine-number rule of their own, from the solstices, which is not modelled
+	 * and would belong here beside the month rule.
 	 */
 	readonly nineNumbers?: TraditionNineNumbers;
 }
 
+// A half-filled block would be a claim nobody can make, since the Tiger month decides the animals
+// *and* anchors the elements, and the lunar day's trigram and number are derived from the month's
+// animal.
 /**
  * The month-animal rules Janson's astrological appendix needs, none of which the calendar reads.
  *
  * @remarks
- * Two members rather than one selector, because Janson states two independent things and a
- * tradition can differ on either. Mongolia shares both with Tsurphu; Bhutan has neither sourced.
+ * Two members, because Janson states two independent things and a tradition can differ on either.
+ * Mongolia shares both with Tsurphu; Bhutan has neither sourced.
  *
- * Every field is required **once the block is present**. The block is the unit of "this tradition's
- * month animals are sourced": a half-filled one would be a claim nobody can make, since the Tiger
- * month decides the animals *and* anchors the elements, and the lunar day's trigram and number are
- * derived from the month's animal.
+ * Every field is required **once the block is present**: the block is the unit of "this tradition's
+ * month animals are sourced", and a missing field is refused with `TCT_INVALID_TRADITION_CONFIG`.
  */
 export interface TraditionMonthAnimals {
+	// Expressed as the Tiger month rather than as an animal offset because the element rule hangs off
+	// the same fact — the Tiger month is the one that takes the son of the year's element, and the
+	// twelve-month run of elements starts there — so one field decides both and they cannot drift apart.
 	/**
 	 * Which numbered month is the **Tiger** month — 11 in Phugpa, 1 in Tsurphu and Mongolia.
 	 *
 	 * @remarks
 	 * Janson states it exactly this way: "Phugpa almanacs set month 11 = Tiger, while Tsurphu
-	 * almanacs set month 1 = Tiger (as in the Chinese calendar)". Expressed as the Tiger month rather
-	 * than as an animal offset because the **element** rule hangs off the same fact — the Tiger month
-	 * is the one that takes the son of the year's element, and the twelve-month run of elements
-	 * starts there — so one field decides both and they cannot drift apart.
+	 * almanacs set month 1 = Tiger (as in the Chinese calendar)". An integer in 1…12.
 	 *
-	 * Phugpa's value crossing a year boundary is not an accident of the number: its Tiger month is
-	 * month 11 of the **preceding** Gregorian year, which is why its element formula has two arms.
+	 * Phugpa's Tiger month is month 11 of the **preceding** year, which is why its element formula
+	 * has two arms.
 	 */
 	readonly tigerMonth: number;
 
@@ -348,6 +385,8 @@ export interface TraditionMonthAnimals {
  * convention.
  */
 export interface TraditionNineNumbers {
+	// Named for what the rule does rather than as a boolean, so that a second numbering rule, if a
+	// source ever gives one, is an added value rather than a changed type.
 	/**
 	 * Whether months carry a nine number, and how it runs.
 	 *
@@ -355,9 +394,6 @@ export interface TraditionNineNumbers {
 	 * `"unnumbered"` — the default — for every version but Tsurphu: "only Tsurphu calendars give one
 	 * of the 9 numbers to each month". `"descending"` is Tsurphu's rule: the number decreases by one
 	 * each month, leap months excepted, and therefore by three each year.
-	 *
-	 * Named for what the rule does rather than as a boolean, so that a second numbering rule, if a
-	 * source ever gives one, is an added value rather than a changed type.
 	 *
 	 * @defaultValue `"unnumbered"`
 	 */
@@ -368,10 +404,9 @@ export interface TraditionNineNumbers {
  * The tradition, as a key of an options bag.
  *
  * @remarks
- * The base of every bag that carries a tradition — `AddMonthsToDateOptions`, and the bag
- * `getObservances` took until 2026-11-11 — so the key's name and type are declared once and a new bag cannot
- * drift from them. Until 2026-09-24 they had drifted: `addMonthsToDate`'s key was `config`, the
- * word `./observances` uses for an `ObservanceConfig`.
+ * The base of every options bag that carries a tradition — `AddMonthsToDateOptions` is the only one
+ * — so the key's name and type are declared once and a new bag cannot drift from them. The key is
+ * `tradition`, never `config`, which `./observances` uses for an `ObservanceConfig`.
  *
  * **Only the tradition goes here.** A function whose only choice is the tradition takes it as its
  * last positional parameter instead, so no function takes this type on its own; any other choice

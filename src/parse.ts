@@ -11,11 +11,6 @@ import type { TibetanDateFields, TibetanMonthFields } from "./types.js";
  * The canonical form, and only the canonical form.
  *
  * @remarks
- * Deliberately strict. A parser can be loosened later without breaking anyone; it cannot be
- * tightened. And the failure this package spends most effort preventing is the
- * plausible-but-wrong string, so accepting `"2153-12-08"` — which is not this format, and *is* a
- * well-formed ISO date naming a different day — would be the parser's version of that mistake.
- *
  * Each group, and what it refuses:
  *
  * - **Year** `(0|-?[1-9]\d*)` — no leading zeros, no `+`, no `-0`. The formatter emits
@@ -26,6 +21,10 @@ import type { TibetanDateFields, TibetanMonthFields } from "./types.js";
  * - **Day** `(0[1-9]|[12]\d|30)` — two digits, 01 to 30. Refuses `00` and `31`.
  * - **Leap day** `( \(leap\))?` — exactly one space and lowercase, again as emitted.
  */
+// Deliberately strict. A parser can be loosened later without breaking anyone; it cannot be
+// tightened. And the failure this package spends most effort preventing is the plausible-but-wrong
+// string, so accepting "2153-12-08" — which is not this format, and *is* a well-formed ISO date
+// naming a different day — would be the parser's version of that mistake.
 const CANONICAL = /^(0|-?[1-9]\d*)-M(0[1-9]|1[0-2])(L?)-(0[1-9]|[12]\d|30)( \(leap\))?$/;
 
 /**
@@ -35,19 +34,13 @@ const CANONICAL = /^(0|-?[1-9]\d*)-M(0[1-9]|1[0-2])(L?)-(0[1-9]|[12]\d|30)( \(le
  * The inverse of `formatTibetanDate`, and an exact one:
  * `formatTibetanDate(parseTibetanDate(s)) === s` for every string this accepts.
  *
- * ## Why this returns an input shape rather than a resolved date
+ * ## It returns an input shape, not a resolved date
  *
  * It returns {@link TibetanDateFields} — the fields that *name* a date — rather than a
- * {@link TibetanDate}, and takes no `TraditionConfig`. Three reasons, of which the first decides
- * it:
- *
- * - **A skipped date is a well-formed string.** `"2150-M12-29"` names a date that no calendar day
- *   carries. Such dates appear in written sources and in almanacs, which is why `SkippedDayError`
- *   exists rather than a `null` return. A parser that threw on them could not read back what a
- *   published table prints, which is most of the point of having one.
- * - **Parsing is a string operation.** Resolving a date needs the calendar; reading one does not,
- *   and making the parser consult it would be the wrong dependency.
- * - **It keeps the symmetry with the formatter**, which likewise takes no config.
+ * {@link TibetanDate}, and takes no `TraditionConfig`. **A skipped date is a well-formed
+ * string:** `"2150-M12-29"` names a date that no calendar day carries, so it parses
+ * successfully. Such dates appear in written sources and in almanacs, and a parser that threw on
+ * them could not read back what a published table prints.
  *
  * Pass the result to `tibetanToIso` to resolve it, or to `tibetanDateExists` to test it first.
  *
@@ -75,6 +68,11 @@ const CANONICAL = /^(0|-?[1-9]\d*)-M(0[1-9]|1[0-2])(L?)-(0[1-9]|[12]\d|30)( \(le
  * ```
  */
 export function parseTibetanDate(text: string): TibetanDateFields {
+	// No `TraditionConfig`, and fields rather than a resolved date, for two reasons beside the
+	// skipped date: parsing is a string operation and resolving needs the calendar, so making the
+	// parser consult it would be the wrong dependency; and the formatter likewise takes no config,
+	// which keeps the pair symmetric. A skipped date is also why `SkippedDayError` exists rather
+	// than a `null` return.
 	if (typeof text !== "string") {
 		throw rangeError(
 			"TCT_INVALID_ARGUMENT",
@@ -120,10 +118,11 @@ export function parseTibetanDate(text: string): TibetanDateFields {
  * The canonical month form, and only the canonical form.
  *
  * @remarks
- * {@link CANONICAL} without the day and leap-day groups, and strict for the same reasons: a parser
- * loosens without breaking anyone and tightens by breaking everyone, and `"2151-06"` is a
- * plausible-but-wrong string this must refuse rather than guess at.
+ * `CANONICAL` without the day and leap-day groups, so it refuses `"2151-06"`.
  */
+// Strict for the same reasons as `CANONICAL`: a parser loosens without breaking anyone and tightens
+// by breaking everyone, and "2151-06" is a plausible-but-wrong string this must refuse rather than
+// guess at.
 const CANONICAL_MONTH = /^(0|-?[1-9]\d*)-M(0[1-9]|1[0-2])(L?)$/;
 
 /**

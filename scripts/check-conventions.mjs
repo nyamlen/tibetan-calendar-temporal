@@ -400,8 +400,14 @@ const publicDocblockLinks = (source, isPublic) => {
 		if (!text.trimStart().startsWith("/**")) continue;
 		const start = i;
 		while (i < lines.length && !(lines[i] ?? "").includes("*/")) i++;
+		// A `//` between a docblock and its declaration is a maintainer note the audit moves there, and
+		// TypeScript still attaches the docblock above it; reading it as the declaration hid the links.
 		let next = i + 1;
-		while (next < lines.length && (lines[next] ?? "").trim() === "") next++;
+		while (
+			next < lines.length &&
+			((lines[next] ?? "").trim() === "" || (lines[next] ?? "").trimStart().startsWith("//"))
+		)
+			next++;
 		const following = lines[next] ?? "";
 		const declared =
 			/^export\s+(?:declare\s+)?(?:abstract\s+)?(?:async\s+)?(?:function|const|let|class|interface|type|enum)\s+([A-Za-z_$][\w$]*)/.exec(
@@ -425,6 +431,71 @@ const publicDocblockLinks = (source, isPublic) => {
 	}
 	return out;
 };
+
+/**
+ * Rules 17 and 18 — every docblock in a source, as `{ start, lines }` with `start` the 0-based
+ * index of its opening line. A docblock runs from a line opening `/**` to the first line holding
+ * the closing marker, the same reading `publicDocblockLinks` takes, so a stray opener is seen
+ * exactly as TypeScript sees it: as the start of a block that runs on to the next closer.
+ */
+const docblocksOf = (source) => {
+	const lines = source.split("\n");
+	const out = [];
+	for (let i = 0; i < lines.length; i++) {
+		if (!(lines[i] ?? "").trimStart().startsWith("/**")) continue;
+		const start = i;
+		while (i < lines.length && !(lines[i] ?? "").includes("*/")) i++;
+		out.push({ start, lines: lines.slice(start, i + 1) });
+	}
+	return out;
+};
+
+/**
+ * Rule 17 — the ISO dates in docblock prose, `{ line, text }` with `line` 1-based.
+ *
+ * Prose is what a docblock says outside backtick code spans (a span may run over several lines)
+ * and outside an `@example`, which runs to the next tag. A ratchet against ISO-dated history,
+ * which belongs in a commit message: `20\d\d-\d\d-\d\d` only, so "used to" and "until" history, and
+ * a date in another century, pass it.
+ */
+const docblockDates = (source) => {
+	const out = [];
+	for (const { start, lines } of docblocksOf(source)) {
+		let inExample = false;
+		let inSpan = false;
+		lines.forEach((raw, offset) => {
+			if (/@example\b/.test(raw)) inExample = true;
+			else if (/^\s*\*\s*@[a-z]/.test(raw)) inExample = false;
+			if (inExample) {
+				inSpan = false;
+				return;
+			}
+			let prose = "";
+			for (const char of raw) {
+				if (char === "`") inSpan = !inSpan;
+				else if (!inSpan) prose += char;
+			}
+			if (/20\d\d-\d\d-\d\d/.test(prose)) out.push({ line: start + offset + 1, text: raw.trim() });
+		});
+	}
+	return out;
+};
+
+/**
+ * Rule 18 — the lines a docblock swallows: a `//` line, or a second `/**`, before the closer.
+ *
+ * A line inside a docblock begins with its ` *` gutter, so one that begins `//` or `/**` is a
+ * stray opener's neighbour: the `/**` above it opened a block, and TypeScript ships everything up to
+ * the next closer as that block's text. `{ line }` is 1-based.
+ */
+const docblockSwallows = (source) =>
+	docblocksOf(source).flatMap(({ start, lines }) =>
+		lines
+			.map((raw, offset) => ({ line: start + offset + 1, text: raw.trimStart(), offset }))
+			.filter(
+				({ text, offset }) => offset > 0 && (text.startsWith("//") || text.startsWith("/**")),
+			),
+	);
 
 /**
  * Rule 16 — the runtime names a barrel exports: `export { … }` blocks that are not `export type`,
@@ -1040,6 +1111,71 @@ function selfTest() {
 		"only a docblock on a published declaration (b) or on a member of a published interface (c) is in scope; an internal function's (a), an unpublished interface member's (d) and a module link are not.",
 	);
 
+	// --- Rule 4 reads past a `//` between a docblock and its declaration. ---
+	check(
+		"publicDocblockLinks",
+		publicDocblockLinks(
+			[
+				"/** Public: see {@link b}. */",
+				"// a maintainer note",
+				"",
+				"export function pub() {}",
+			].join("\n"),
+			(name) => name === "pub",
+		)
+			.map(({ line, target }) => `${line}:${target}`)
+			.join(","),
+		"1:b",
+		"a `//` line between a public docblock and its declaration must not hide the docblock's links.",
+	);
+
+	// --- Rule 17's prose: code spans and @example blocks are out of reach, a bare date is in. ---
+	check(
+		"docblockDates",
+		docblockDates(
+			[
+				"/**",
+				" * Bare 2026-11-16 here.",
+				" * A `2026-11-17` span, and one `spanning",
+				" * 2026-11-18` two lines.",
+				" * Bare 2026-11-19 after the span.",
+				" * @example",
+				" * f(); // 2026-11-20",
+				" * @param x 2026-11-21 after the example.",
+				" */",
+				"// 2026-11-22 outside any docblock",
+				"/** Century 1999-01-01 and 2126-01-01 are not 20dd. */",
+			].join("\n"),
+		)
+			.map(({ line }) => line)
+			.join(","),
+		"2,5,8",
+		"only a date outside a code span and an @example block is refused (lines 2, 5, 8); a span over two lines, a // comment and another century are not.",
+	);
+
+	// --- Rule 18's swallow: a stray opener above `//` lines, and a clean docblock beside it. ---
+	check(
+		"docblockSwallows",
+		docblockSwallows(
+			[
+				"/**",
+				"// rationale one",
+				"// rationale two",
+				"/**",
+				" * Real docblock.",
+				" */",
+				"/**",
+				" * Clean, with an example",
+				" * // not a stray, it carries its gutter",
+				" */",
+			].join("\n"),
+		)
+			.map(({ line }) => line)
+			.join(","),
+		"2,3,4",
+		"a `//` line or a second opener inside a block is a swallow (lines 2-4); a `//` after the ` *` gutter is not.",
+	);
+
 	// --- The registry. A rule dropped from it stops running and says nothing. ---
 	//
 	// Every other rule failure in this file is loud; this one is not, because a rule that never runs
@@ -1050,8 +1186,8 @@ function selfTest() {
 		RULES.map(({ number }) => number)
 			.sort((a, b) => a - b)
 			.join(","),
-		Array.from({ length: 16 }, (_, index) => index + 1).join(","),
-		"every rule 1-16 must be registered exactly once. Adding a rule means adding it here too.",
+		Array.from({ length: 18 }, (_, index) => index + 1).join(","),
+		"every rule 1-18 must be registered exactly once. Adding a rule means adding it here too.",
 	);
 	check(
 		"RULES registry",
@@ -1926,6 +2062,45 @@ function rule15() {
 	}
 }
 
+// ---------------------------------------------------------------------------------------
+// Rule 17 — no ISO date in docblock prose
+//
+// Record rule 5 of docs/decisions/2026-11-15-docblocks-are-for-callers.md sends history to the
+// commit message, and an ISO date is its commonest marker. This is a ratchet and not enforcement
+// of that rule: history written as "used to" or "until it was bounded" carries no date and passes,
+// and so does a date in another century; review remains the check for those.
+// ---------------------------------------------------------------------------------------
+function rule17() {
+	for (const file of sources) {
+		for (const { line, text } of docblockDates(read(file))) {
+			fail(
+				"no ISO date in docblock prose",
+				`${file}:${line}`,
+				`\`${text}\` — a date in a docblock is history, and a docblock ships in dist/*.d.ts as a statement of what is true now. Move the history to the commit message; if a caller needs the value, put it in a code span. Reach: only \`20\\d\\d-\\d\\d-\\d\\d\` outside code spans and @example blocks.`,
+			);
+		}
+	}
+}
+
+// ---------------------------------------------------------------------------------------
+// Rule 18 — a docblock does not swallow a `//` comment
+//
+// A lone opener above `//` lines is not a comment of its own: TypeScript reads it as the start of a
+// docblock and ships the `//` lines, and whatever follows up to the next closer, in the .d.ts.
+// The comments-only build check cannot see it, because that build strips every comment first.
+// ---------------------------------------------------------------------------------------
+function rule18() {
+	for (const file of sources) {
+		for (const { line, text } of docblockSwallows(read(file))) {
+			fail(
+				"a docblock holds no stray opener or // line",
+				`${file}:${line}`,
+				`\`${text}\` sits inside a docblock, so a stray opener above it swallows it and ships it in dist/*.d.ts. A docblock line begins with \` *\`; close the block, or start the comment with \`//\` on its own.`,
+			);
+		}
+	}
+}
+
 const RULES = [
 	{ number: 1, run: rule1 },
 	{ number: 2, run: rule2 },
@@ -1943,6 +2118,8 @@ const RULES = [
 	{ number: 16, run: rule16 },
 	{ number: 14, run: rule14 },
 	{ number: 15, run: rule15 },
+	{ number: 17, run: rule17 },
+	{ number: 18, run: rule18 },
 ];
 
 function report() {

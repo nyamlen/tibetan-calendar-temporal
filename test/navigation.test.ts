@@ -505,9 +505,9 @@ describe("nextFullMoon and nextNewMoon", () => {
 
 	/**
 	 * The case `day === 15` gets wrong, with a real date rather than a scan: 2026-12-23 carries the
-	 * full moon of 2153 M11 on the day numbered **14**. Measured over 2500 lunations, 56 of them —
-	 * about one in forty-five — put the full moon on 14 rather than 15, and 48 put the new moon on 29
-	 * rather than 30. A consumer testing the number is silently wrong that often.
+	 * full moon of 2153 M11 on the day numbered **14**. Measured under `PHUGPA` over 2,500
+	 * lunations from month 1 of Tibetan 2000 (1873 CE), 57 of them — about one in forty-four — put the
+	 * full moon on 14 rather than 15, and 58 put the new moon on 29 rather than 30. A consumer testing the number is silently wrong that often.
 	 */
 	it("finds the full moon on a day numbered 14, where 15 is skipped", () => {
 		const moon = nextFullMoon(iso("2026-12-01"));
@@ -866,7 +866,8 @@ describe("addMonthsToDate", () => {
 	it("takes the tradition through the options bag rather than defaulting to PHUGPA", () => {
 		// Threaded, not ignored: the answer must track addMonths under the SAME config. Asserting a
 		// literal here would pass just as well with the config dropped, since the two traditions
-		// agree at month level in all but four years between 1500 and 2500.
+		// agree on every month's first day in all but four Tibetan years between 1500 and 2500
+		// (1373 to 2373 CE), and on every month boundary in all but five.
 		const bad: string[] = [];
 		for (const tradition of [PHUGPA, PHUGPA_HENNING]) {
 			for (let step = -6; step <= 6; step++) {

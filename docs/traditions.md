@@ -117,7 +117,10 @@ the work.** The offset above is a property of the *comparison table*, not of Jan
 Bhutan appendix gives the epoch data directly — JD 2361807, Monday 22 April 1754 — and states that
 `m₀` there is already "modified to yield the JD", which is the form a `TraditionConfig` wants. So
 `BHUTAN` is built from the appendix and the table is not involved. Check the appendices before
-reaching for the comparison table; Tsurphu and Mongolia are the versions that genuinely need it.
+reaching for the comparison table: his Tsurphu appendix gives two epochs, E1732 (JD 2353745) and E1852
+(JD 2397598), each with its `m₀`, and his Mongolia appendix gives E1747 (JD 2359237) with its `m₀`.
+So the table is not what stands between either version and a config; what is missing is a date
+source to check them against.
 
 ## What is now validated: leap months, all four versions
 

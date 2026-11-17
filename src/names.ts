@@ -3,15 +3,12 @@
  *
  * @remarks
  * Every string here was verified by `scripts/verify-name-sources.mjs` before it was written down,
- * against five independent checks — see `docs/names/vocabulary.md`. `test/fixtures/names.ts` holds the
- * generated copy and the suite asserts this file matches it, so a hand-edit here fails `npm test`
- * even though the generating script needs the network and is not on the CI path.
+ * against five independent checks — see `docs/names/vocabulary.md`.
  *
  * **One correction to the source is applied and is not a typo of ours.** Janson's day-of-week table
  * gives Saturday as `spen ma`; his own Bhutan appendix gives `spen pa` for the same day in Tibet.
  * English Wiktionary has an entry at སྤེན་པ and none at སྤེན་མ, and CLDR's `bo` locale independently
- * gives སྤེན་པ. The correction lives in the script as data carrying that evidence, so it
- * self-invalidates if the situation ever changes.
+ * gives སྤེན་པ.
  *
  * @packageDocumentation
  */
@@ -27,23 +24,29 @@ import type {
 	TibetanWeekdayName,
 } from "./types.js";
 
+// `test/fixtures/names.ts` holds the generated copy and the suite asserts this file matches it, so a
+// hand-edit here fails `npm test` even though the generating script needs the network and is not on
+// the CI path. The Saturday correction lives in the script as data carrying its evidence, so it
+// self-invalidates if the situation ever changes.
+
 /**
- * Every name object is frozen and shared.
+ * Deep-freezes a name table, so that every name object is frozen and shared.
  *
  * @remarks
- * A `TibetanDate` holds a pointer to one of these rather than a copy, which is what keeps
- * `datesFor` over a year cheap — it adds pointer fields, not thousands of strings. Sharing mutable
- * objects would reproduce the bug `CLAUDE.md` records for the `monthsFor` cache: one consumer's
- * write corrupting every other consumer's date. Hence `deepFreeze`, not a convention.
+ * A `TibetanDate`'s `weekdayName` is a pointer to one of these rather than a copy, and so are the
+ * name members of a `TibetanYearName`.
  */
+// Sharing keeps a date cheap — it adds a pointer field, not a string copy — and sharing mutable
+// objects would reproduce the bug `CLAUDE.md` records for the `monthsFor` cache: one
+// consumer's write corrupting every other consumer's date. Hence `deepFreeze`, not a convention.
 const freeze = <T>(value: T): T => deepFreeze(value);
 
 /**
- * Weekday names, indexed by the **Tibetan** weekday: 0 = Saturday through 6 = Friday.
+ * Weekday names, in Tibetan weekday order: 0 = Saturday through 6 = Friday.
  *
  * @remarks
- * Not the ISO numbering. `TibetanDate.tibetanWeekday` is the field that indexes this; `dayOfWeek`
- * is ISO and does not.
+ * Not the ISO numbering. `TibetanDate.tibetanWeekday`, plus the tradition's `weekdayOffset`, indexes
+ * this; `dayOfWeek` is ISO and does not.
  */
 const WEEKDAYS: readonly TibetanWeekdayName[] = freeze([
 	{ tibetan: "སྤེན་པ", wylie: "spen pa", phonetic: "penpa", planet: "saturn", element: "earth" },
@@ -87,44 +90,41 @@ const ANIMALS: Readonly<Record<TibetanAnimal, TibetanName>> = freeze({
 export const NAME_TABLES = freeze({ WEEKDAYS, ELEMENTS, GENDERS, ANIMALS });
 
 /**
- * The Tibetan name of a weekday, by Tibetan weekday number and a naming offset.
+ * Returns the Tibetan name of a weekday, after shifting it by a tradition's planet offset.
  *
  * @remarks
- * Takes a resolved offset rather than a `TraditionConfig`: `weekdayNameFor` in `cycles.ts` is the
- * public entry point, and it reads `tradition.naming?.weekdayOffset ?? 0` before calling here. The
- * offset exists because **Bhutan names its weekdays one planet ahead of Tibet** — day 0 is
- * *spen pa* in Tibet and *nyi ma* in Bhutan. Janson calls this "a unique feature of the Bhutanese
- * calendar", and Unicode CLDR agrees: its `bo` and `dz` locales differ by exactly one planet for
- * the same date.
+ * The **whole weekday** moves: name, `planet` and `element` are all the shifted weekday's row, so
+ * with an offset of 1 weekday 0 is *nyi ma*, the sun, fire, where offset 0 gives *spen pa*, Saturn,
+ * earth. Takes a resolved offset rather than a `TraditionConfig`: `weekdayNameFor` is the public entry
+ * point and reads `tradition.naming?.weekdayOffset ?? 0` before calling here.
  *
- * The **whole weekday** moves: name, `planet` and `element` are all the shifted weekday's row, so a
- * Bhutanese Saturday is *nyi ma*, the sun, fire. `tibetanWeekday` itself is `mod(julianDay + 2, 7)`
- * for every tradition, and the Western weekday is correct in both — which is why the difference is
- * invisible when dates are written in English, as Janson notes.
- *
- * That the name and planet move is evidenced: Janson writes "A unique feature of the Bhutanese
- * calendar is that its day of week differs by one day from Tibet (and the rest of the world, see his
- * figure of the weekday–planet correspondence)" and "day 0 (Saturday) is *spen pa* in Tibet but
- * *nyi ma* (really meaning sun) in Bhutan"; Henning's Bhutanese data labels the same date with the
- * next weekday, and Unicode CLDR's `dz` locale names it by the sun. That the **element** moves with
- * them is an inference no source states, and it is Andreas' ruling of 2026-11-16. Because no source
- * says what the elemental yoga's weekday element is under such a shift, the yoga is refused there:
- * see `elementalYogaFor`.
+ * Nothing is validated: `weekday + offset` wraps modulo seven, so any integer is accepted
+ * (`weekdayNameWithOffset(7, 0)` is weekday 0). A non-integer sum is an internal fault.
  *
  * @param weekday - Tibetan weekday, 0 = Saturday through 6 = Friday.
  * @param offset - Planets to shift the name by: 0 for every Tibetan version, 1 for Bhutan.
- */
-/**
- * The Tibetan name of a weekday, after applying a tradition's planet offset.
  *
- * @remarks
- * **Named for what it does, not `weekdayNameOf`, and the asymmetry with its three siblings below is
- * deliberate.** They are pure table access and take no offset; this one shifts the index, which is
- * the whole Bhutan difference. The old name also sat one character from the public
- * `weekdayNameFor` that calls it — a hazard `docs/coding-standards.md` recorded, because writing
- * the public name where this one belongs **compiles**, both returning `TibetanWeekdayName`, and
- * recurses infinitely rather than failing to typecheck. Renaming removed the last instance of it.
+ * @throws A `TCT_INTERNAL` error if `weekday + offset` is not an integer.
  */
+// Bhutan names its weekdays one planet ahead of Tibet — day 0 is *spen pa* in Tibet and *nyi ma* in
+// Bhutan. `tibetanWeekday` itself is `mod(julianDay + 2, 7)` for every tradition, and the Western
+// weekday is correct in both, which is why the difference is invisible when dates are written in
+// English, as Janson notes. That the name and planet move is evidenced: Janson writes "A unique feature
+// of the Bhutanese calendar is that its day of week differs by one day from Tibet (and the rest of the
+// world, see [his figure of the weekday–planet correspondence])" and "day 0 (Saturday) is *spen pa* in
+// Tibet but *nyi ma* (really meaning sun) in Bhutan"; Henning's Bhutanese data labels the same date
+// with the next weekday (`test/fixtures/bhutan.ts`, from Henning's software, and check 2 of
+// `scripts/fetch-bhutan-fixtures.mjs`, which asserts the one-day shift on every row); and
+// Unicode CLDR's `bo` and `dz` locales differ by exactly one planet for the
+// same date. That the **element** moves with them is an inference no source states, ruled by the
+// maintainer; because no source says what the elemental yoga's weekday element is under such a shift,
+// the yoga is refused there: see `elementalYogaFor`.
+//
+// Named for what it does, not `weekdayNameOf`, and the asymmetry with its three siblings below is
+// deliberate: they are pure table access and take no offset, and this one shifts the index, which is
+// the whole Bhutan difference. The old name sat one character from the public `weekdayNameFor` that
+// calls it, a hazard `docs/coding-standards.md` records, because writing the public name where this
+// one belongs compiles and recurses infinitely.
 export function weekdayNameWithOffset(weekday: number, offset: number): TibetanWeekdayName {
 	const index = mod(weekday + offset, 7);
 	return assertInternal(

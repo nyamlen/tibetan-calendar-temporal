@@ -1,5 +1,6 @@
 /**
- * Conversions between `Temporal.PlainDate` and Tibetan dates — Janson §8 and §9.
+ * Conversions between `Temporal.PlainDate` and Tibetan dates — Janson §8, "Calendrical functions",
+ * and §9, "Day of week".
  *
  * @remarks
  * The forward direction is direct: a Tibetan date names a lunar day, and `⌊true_date⌋` gives the
@@ -68,15 +69,15 @@ if (typeof Temporal === "undefined") {
 }
 /* c8 ignore stop */
 
-/** 1970-01-01, the anchor for converting between Temporal and Julian day numbers. */
+/** `1970-01-01`, the anchor for converting between Temporal and Julian day numbers. */
 const UNIX_EPOCH = Temporal.PlainDate.from("1970-01-01");
 
 /**
- * Julian day number of 1970-01-01.
+ * Julian day number of `1970-01-01`.
  *
  * @remarks
- * Checks out against Janson's worked value: 1 January 2007 is JD 2454102, and 2007-01-01 is
- * 13,514 days after the Unix epoch.
+ * Checks out against Janson's worked value in §3, "Some concepts": 1 January 2007 is JD 2454102,
+ * and `2007-01-01` is 13,514 days after the Unix epoch.
  */
 const JULIAN_DAY_AT_UNIX_EPOCH = 2_440_588;
 
@@ -88,24 +89,30 @@ const JULIAN_DAY_AT_UNIX_EPOCH = 2_440_588;
  * timezone. The Julian day number counts days regardless of when they begin, so no time of day
  * is involved; Janson makes the point that this is precisely why the day *number* rather than
  * the Julian *date* is the right tool for calendars.
+ *
+ * At runtime an ISO string, a `PlainDateTime` or a `ZonedDateTime` is also accepted and narrowed
+ * to its date. The result is not bounded by any tradition's exact range.
+ *
+ * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `date` names no calendar day in the ISO
+ * calendar: `null`, a number, a bare `{ year, month, day }` object, a string Temporal cannot read,
+ * or a date in another calendar.
  */
 export function julianDayFromIso(date: Temporal.PlainDate): number {
 	const plain = asPlainDate(date);
 	return JULIAN_DAY_AT_UNIX_EPOCH + plain.since(UNIX_EPOCH, { largestUnit: "day" }).days;
 }
 
+// The code is the wrong-kind-of-argument one rather than the range one because none of the refused
+// values has a field to be out of a range — they are not Western dates at all. This is the one
+// guard every entry point shares, so each states its own name through `subject` rather than
+// keeping a copy that names it.
 /**
  * Normalises whatever a caller passed into a `Temporal.PlainDate`.
  *
  * @remarks
- * The date entry points used to duck-type on `.since`, which produced three different failures
- * for three ways of getting the argument wrong: a `PlainDateTime` was silently accepted and
- * truncated, a string threw `date.since is not a function`, and a `ZonedDateTime` threw Temporal's
- * own `Must specify time zone`. None of the three carried a code.
- *
- * This accepts an ISO string, a `Temporal.PlainDate`, a `PlainDateTime` or a `ZonedDateTime` — all
- * genuine ways to name a calendar day, narrowing a datetime to its date rather than losing
- * anything a caller meant.
+ * Accepts an ISO string, a `Temporal.PlainDate`, a `PlainDateTime` or a `ZonedDateTime` — all
+ * genuine ways to name a calendar day, narrowing a datetime to its date (a `ZonedDateTime` to its
+ * own local date) rather than losing anything a caller meant.
  *
  * It deliberately does **not** accept a bare `{ year, month, day }` object, even though
  * `Temporal.PlainDate.from` does. That shape is exactly this package's own {@link TibetanDateFields}
@@ -116,14 +123,12 @@ export function julianDayFromIso(date: Temporal.PlainDate): number {
  * `Temporal.PlainDate.from({ year, month, day })` explicitly, which is unambiguous because the
  * class it is called on says which calendar is meant.
  *
- * What it does not accept is also nonsense: `null`, a number, a bare fields object, or a string
- * Temporal cannot read throw a `RangeError` with `TCT_INVALID_ARGUMENT`, naming this package rather
- * than Temporal's internals. The code is the wrong-kind-of-argument one rather than the range one
- * because none of these has a field to be out of a range — they are not Western dates at all.
- *
- * `subject` names the export and argument the caller passed, such as `getObservances(from)`, and
- * opens the message when given: this is the one guard every entry point shares, so each states its
- * own name through it rather than keeping a copy that names it.
+ * @param subject - The export and argument the caller passed, such as `getObservances(from)`. It
+ * opens the message of every refusal except a date in a non-ISO calendar, whose message does not
+ * carry it.
+ * @throws RangeError with code `TCT_INVALID_ARGUMENT` for `null`, a number, a bare fields object, a
+ * resolved `TibetanDate`, a `Temporal` type that names no calendar day (`Instant`, `PlainTime` and
+ * the rest), a string Temporal cannot read, and a date in a calendar other than ISO.
  */
 export function asPlainDate(date: Temporal.PlainDate, subject?: string): Temporal.PlainDate {
 	// Declared as `unknown` from here: the parameter's own type says `Temporal.PlainDate`, which is
@@ -193,21 +198,18 @@ function carriesPlainDate(raw: unknown): boolean {
  * instance says Western by construction; a resolved {@link TibetanDate} says Tibetan, because the
  * engine is what produced it. A bare `{ year, month, day }` says *neither* — it is a genuine value
  * of both {@link TibetanDateFields} and Temporal's own fields shape — so it is refused here on
- * exactly the ground {@link asPlainDate} refuses it at every other entry point.
- *
- * **This existed twice**, as `phaseStart` in `navigation.ts` and `isoOf` in `astrology/index.ts`,
- * written months apart because each subsystem needed a boundary helper and neither had one to
- * import. `check:conventions` rule 14 could not see the pair — the bodies differed and so did the
- * arity — and both copies had drifted into shipping a message that misdescribed its own function:
- * `nextFullMoon` named two of the four shapes it accepts, and `attributesFor` named four while
- * never mentioning the resolved `TibetanDate` it takes. One message, named shapes, one home.
+ * exactly the ground {@link asPlainDate} refuses it at every other entry point. An ISO string,
+ * `PlainDateTime` and `ZonedDateTime` are accepted as {@link asPlainDate} accepts them.
  *
  * The Tibetan branch reads `isoDate` rather than re-running {@link tibetanToIso}: a resolved date
- * already carries the answer, so this is a field read and not a conversion — which is why no
- * `TraditionConfig` is a parameter here. It is still normalised, because a resolved date may have
- * been built under a different Temporal implementation from the one now global.
+ * already carries the answer, so this is a field read and not a conversion, and no
+ * `TraditionConfig` is a parameter.
  *
- * @throws A `TCT_INVALID_ARGUMENT` error naming every shape it accepts.
+ * @param functionName - The export the caller called, which opens the message.
+ * @throws RangeError with code `TCT_INVALID_ARGUMENT` for anything else, including a value whose
+ * `isoDate` read throws. The message names every shape accepted, except for a string Temporal
+ * cannot read and a date in a non-ISO calendar: those messages are {@link asPlainDate}'s, which
+ * name neither `functionName` nor the other shapes.
  */
 export function asWesternDay(
 	functionName: string,
@@ -219,7 +221,7 @@ export function asWesternDay(
 	}
 	if (raw !== null && typeof raw === "object") {
 		// Read under `try`, as `temporalKindOf` reads a tag: the `in` runs a Proxy's `has` trap and
-		// the read its `get`, and a throw from either escaped uncoded until review on 2026-09-24.
+		// the read its `get`, and a throw from either would escape uncoded.
 		let isoDate: unknown;
 		try {
 			isoDate = "isoDate" in raw ? (raw as { isoDate: unknown }).isoDate : undefined;
@@ -231,6 +233,8 @@ export function asWesternDay(
 				error,
 			);
 		}
+		// Still normalised, because a resolved date may have been built under a different Temporal
+		// implementation from the one now global.
 		if (temporalKindOf(isoDate) === "PlainDate") return asPlainDate(isoDate as Temporal.PlainDate);
 	}
 	throw rangeError(
@@ -250,18 +254,16 @@ export function asWesternDay(
  * Converts a Julian day number back to a `Temporal.PlainDate`.
  *
  * @remarks
- * Guarded like every other exported function, which it was not: `isoFromJulianDay(0.5)` and
- * `isoFromJulianDay(1e15)` both threw uncoded `RangeError`s whose text named Temporal rather than
- * this package, against the README's blanket claim that every failure carries a code.
+ * A Julian day number counts whole days, so a fraction names nothing. The range bound is a property
+ * of the tradition rather than of the package, so this takes a config and defaults it like every
+ * other entry point: the arithmetic stays exact from about ISO year −245,737 to 236,312 under
+ * `PHUGPA` and `BHUTAN`, and only from about −20,781 to 11,356 under `PHUGPA_HENNING` and
+ * `BHUTAN_HENNING`, whose common denominator is fifteen times larger. All four lie inside
+ * Temporal's own range.
  *
- * The range check matters more than the tidier message. This was the one public route that did not
- * apply the tradition's exact-range bound, so it was the way into the range the rest of the
- * API carefully refuses. That bound is a property of the tradition rather than of the package —
- * `PHUGPA_HENNING` runs out around ISO year 11,356 and `PHUGPA` around 236,312, both inside
- * Temporal's own range — so this takes a config and defaults it like every other entry point.
- *
- * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `julianDay` is not a safe integer, or
- * `TCT_OUTSIDE_EXACT_RANGE` if it lies past where the tradition's arithmetic stays exact.
+ * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `julianDay` is not a safe integer,
+ * `TCT_OUTSIDE_EXACT_RANGE` if it lies past where the tradition's arithmetic stays exact, or
+ * `TCT_INVALID_TRADITION_CONFIG` if `tradition` is malformed.
  */
 export function isoFromJulianDay(
 	julianDay: number,
@@ -278,51 +280,54 @@ export function isoFromJulianDay(
 	return isoFromJulianDayUnchecked(julianDay);
 }
 
+// Every internal use already holds a Julian day this package computed and range-checked, so
+// revalidating each one would put a `scalingFor` lookup and a safe-integer test on the hot path of
+// the multi-century sweeps for no gain. `describeBound` in particular has to stay unguarded: it
+// formats the exactness bound itself, so checking it against that bound would recurse.
 /**
- * The unguarded conversion, for callers inside this package.
+ * Converts a Julian day number to a `Temporal.PlainDate` without validating it.
  *
  * @remarks
- * Every internal use already holds a Julian day this package computed and range-checked, so
- * revalidating each one would put a `scalingFor` lookup and a safe-integer test on the hot path of
- * the multi-century sweeps for no gain. {@link describeBound} in particular has to stay unguarded:
- * it formats the exactness bound itself, so checking it against that bound would recurse.
+ * For callers inside this package that already hold a range-checked Julian day; not exported from
+ * the package barrel. A fraction, or a day past Temporal's own range, raises Temporal's `RangeError`,
+ * which carries no code.
  */
 export function isoFromJulianDayUnchecked(julianDay: number): Temporal.PlainDate {
 	return UNIX_EPOCH.add({ days: julianDay - JULIAN_DAY_AT_UNIX_EPOCH });
 }
 
+// Past the bound the arithmetic degrades silently rather than refusing, and a degraded `true_date`
+// misclassifies the day, so 2⁵³ overflow would be reported as a **skipped date**: a specific,
+// confident calendrical claim about a date that was never computed. The correct response to
+// `SkippedDayError` is "fine, that date does not exist"; the correct response here is "your input
+// is out of range". They must not be the same error.
+//
+// `subject` is a thunk because this sits on the hot path — `isoToTibetan` is called once per day in
+// the multi-century sweeps — and building the message eagerly would format a date on every
+// successful conversion.
 /**
  * Rejects a Julian day past the point where this tradition's arithmetic stays exact.
  *
  * @remarks
  * `true_date` is an integer numerator over `commonDenominator`, so it is roughly `JD · D` and
- * stops being representable at {@link ScaledTradition.exactToJulianDay}. Past that the arithmetic
- * degrades silently rather than refusing, and — worse — a degraded `true_date` misclassifies the
- * day, so 2⁵³ overflow gets reported as a **skipped date**: a specific, confident calendrical
- * claim about a date that was never computed. The correct response to `SkippedDayError` is "fine,
- * that date does not exist"; the correct response here is "your input is out of range". They must
- * not be the same error.
- *
- * Negated comparison so that a `NaN` Julian day fails rather than passes.
- *
- * `subject` is a thunk because this sits on the hot path — `isoToTibetan` is called once per day
- * in the multi-century sweeps — and building the message eagerly would format a date on every
- * successful conversion. It is only ever needed on the throw.
+ * stops being representable at {@link ScaledTradition.exactToJulianDay}. The bound is symmetric in
+ * the Julian day, and its ISO-year equivalents for the four shipped configs are those listed on
+ * `isoFromJulianDay`.
  *
  * The message names the tradition, because the bound is a property of the tradition rather than of
- * the package: `PHUGPA_HENNING`'s common denominator is fifteen times Phugpa's, so its range is a
- * fifteenth as wide — about ISO years −20,781 to 11,356, where Phugpa's is about −245,737 to
- * 236,312. Both lie inside Temporal's own range. A caller who hits this on one config and not the
- * other needs to be told which one refused.
+ * the package: a caller who hits it on one config and not another needs to be told which one
+ * refused. It also names the end of the range on the side the refused value lies on.
  *
- * The bound is symmetric in the Julian day, so the message names the end on the side the refused
- * value lies on: an ISO year of 236,312 is no help to someone refusing a date in −250,000.
+ * @param subject - Builds the subject the message opens with; called only when it throws.
+ * @throws RangeError with code `TCT_OUTSIDE_EXACT_RANGE` if `|julianDay|` exceeds the bound, or is
+ * `NaN`.
  */
 export function assertExactJulianDay(
 	scaled: ScaledTradition,
 	julianDay: number,
 	subject: () => string,
 ): void {
+	// Negated comparison so that a `NaN` Julian day fails rather than passes.
 	if (!(Math.abs(julianDay) <= scaled.exactToJulianDay)) {
 		const below = julianDay < 0;
 		const bound = below ? -scaled.exactToJulianDay : scaled.exactToJulianDay;
@@ -355,13 +360,12 @@ function describeBound(signedBound: number): string {
 }
 
 /**
- * `(JD + 2) mod 7`, with no validation.
+ * Returns `(JD + 2) mod 7` without validating `julianDay`.
  *
  * @remarks
  * For Julian days this package computed and has already bounded. The exported
- * {@link tibetanWeekday} is the guarded entry point, named per the convention
- * `isoFromJulianDayUnchecked` set: an internal caller that has done the checking gets its own name
- * rather than the boundary quietly losing a guard.
+ * {@link tibetanWeekday} is the guarded entry point; an internal caller that has done the checking
+ * gets its own name rather than the boundary quietly losing a guard.
  */
 function tibetanWeekdayUnchecked(julianDay: number): TibetanWeekday {
 	// The one place the brand is applied without asTibetanWeekday, and it is sound by construction:
@@ -372,7 +376,7 @@ function tibetanWeekdayUnchecked(julianDay: number): TibetanWeekday {
 }
 
 /**
- * The Tibetan day of week, 0 = Saturday through 6 = Friday — Janson's day-of-week section.
+ * Returns the Tibetan day of week, 0 = Saturday through 6 = Friday — Janson §9, "Day of week".
  *
  * @remarks
  * `(JD + 2) mod 7`. Each weekday corresponds to one of the seven "planets" and takes its name from
@@ -380,10 +384,15 @@ function tibetanWeekdayUnchecked(julianDay: number): TibetanWeekday {
  * from India and goes back to Roman astrology. The cycle is identical to the Western one, so this
  * is a renumbering rather than a different week.
  *
+ * The number is the same under every tradition. Bhutan shifts the weekday's *name* by one planet
+ * (`TibetanDate.weekdayName`), not the number, and no date moves.
+ *
  * {@link TibetanDate.dayOfWeek} exposes the **ISO** numbering instead, matching
  * `Temporal.PlainDate.dayOfWeek`. {@link TibetanDate.tibetanWeekday} carries *this* numbering as a
  * field, which is what to reach for when a `TibetanDate` is already in hand — this function is for
  * callers working from a Julian day directly.
+ *
+ * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `julianDay` is not a safe integer.
  */
 export function tibetanWeekday(julianDay: number): TibetanWeekday {
 	// The guard this function most needed, and the one it did not have. It returns a plain `number`
@@ -399,7 +408,10 @@ export function tibetanWeekday(julianDay: number): TibetanWeekday {
 	return tibetanWeekdayUnchecked(julianDay);
 }
 
-/** The lunar day whose end is the full moon, and the one whose end is the new moon — Janson §6. */
+/**
+ * The lunar day whose end is the full moon, and the one whose end is the new moon — Janson §6,
+ * "Days".
+ */
 const FULL_MOON_LUNAR_DAY = 15;
 const NEW_MOON_LUNAR_DAY = 30;
 
@@ -432,7 +444,8 @@ function buildDate(
 		// The `day` guard is an optimisation, and a sound one: the phase lands on the day numbered
 		// 15 (or 30), or on 14 (or 29) when that number is skipped, and never earlier. Skipping
 		// two consecutive numbers would need three lunar day ends inside one calendar day, so two
-		// consecutive lunar days totalling under 24 hours, where the minimum length is 21.5 each.
+		// consecutive lunar days totalling under 24 hours, where no lunar day is shorter than about
+		// 21.5 hours (Janson §6; 21.53 and 21.55 are the shortest the four shipped configs produce).
 		// Without it, every conversion pays for two extra true-date evaluations.
 		isFullMoon:
 			(day === FULL_MOON_LUNAR_DAY || day === FULL_MOON_LUNAR_DAY - 1) &&
@@ -460,23 +473,24 @@ function buildDate(
  * Converts a Tibetan date to the Western calendar day carrying it.
  *
  * @remarks
- * Total for every input that names a real day. A **skipped** date names no day at all, and
+ * Returns a day for every date that names one. A **skipped** date names no day at all, and
  * throws — use {@link tibetanDateExists} to test first.
  *
  * `year` is the royal-era numbering, not Janson's *Y*. Passing 2026 where 2153 is meant returns
- * a date 127 years away rather than failing quietly.
+ * a date 127 years earlier, without an error.
  *
- * For dates before 1447 the result is a back-projection of a tradition that did not yet exist;
- * before 1582 the `Temporal.PlainDate` is proleptic Gregorian where historical sources are
- * Julian. Neither is an error, but neither is what a contemporary would have written.
+ * A result before 1447 CE is a back-projection of a tradition that did not yet exist; before 1582
+ * CE the `Temporal.PlainDate` is proleptic Gregorian where historical sources are Julian. Neither
+ * is an error, but neither is what a contemporary would have written.
  *
  * @throws SkippedDayError if the date is skipped.
- * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `year`, `month` or `day` is not an
- * integer or is out of range; `TCT_INVALID_ARGUMENT` if `input` is not an object naming a Tibetan
- * date — a `Temporal` instance, `null` — or if `isLeapMonth`/`isLeapDay` are present but not
- * `boolean`; `TCT_NO_SUCH_LEAP_MONTH` if a leap month is requested for a month that has none; or
- * `TCT_OUTSIDE_EXACT_RANGE` if the date falls outside the range where the arithmetic stays exact —
- * a bound derived from the tradition's constants.
+ * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `year`, `month` or `day` is a number
+ * that is not an integer or is out of range; `TCT_INVALID_ARGUMENT` if `input` is not an object
+ * naming a Tibetan date — a `Temporal` instance, `null` — if a required field is absent or not a
+ * number, or if `isLeapMonth`/`isLeapDay` are present but not `boolean`; `TCT_NO_SUCH_LEAP_MONTH`
+ * if a leap month is requested for a month that has none; `TCT_OUTSIDE_EXACT_RANGE` if the date
+ * falls outside the range where the arithmetic stays exact — a bound derived from the tradition's
+ * constants; or `TCT_INVALID_TRADITION_CONFIG` if `tradition` is malformed.
  *
  * @example
  * ```ts
@@ -496,18 +510,22 @@ export function tibetanToIso(
 }
 
 /**
- * The true month count of an already range-checked month, refusing a leap month with no twin.
+ * Returns the true month count of an already range-checked month, refusing a leap month with no
+ * twin.
  *
  * @remarks
  * The leap-twin preamble every month- and date-tier entry point runs: `yearFromRoyalEra`, the
- * closed-form year bound, the `TCT_NO_SUCH_LEAP_MONTH` refusal, then `trueMonthCount`. It was
- * written out five times with three wordings, two of which built a subject omitting the very flag
- * that was wrong. `subject` is the echo `assertTibetanRanges` returned, so the refusal names the
- * function the caller called.
+ * closed-form year bound, the `TCT_NO_SUCH_LEAP_MONTH` refusal, then `trueMonthCount`.
  *
- * **It does not bound the exact range**, because `lunationFromMonth` and `addMonths` are closed
- * forms and bounding them here would narrow them. Callers that go on to evaluate `true_date` bound
- * what they evaluate.
+ * **It does not bound the exact range of `true_date`**, because `lunationFromMonth` and `addMonths`
+ * are closed forms and bounding them here would narrow them; the year bound it applies is
+ * {@link assertMonthCountYear}'s. Callers that go on to evaluate `true_date` bound what they
+ * evaluate.
+ *
+ * @param subject - The echo `assertTibetanRanges` returned, so a refusal names the function the
+ * caller called.
+ * @throws RangeError with code `TCT_OUTSIDE_EXACT_RANGE` if the year is past the month-count bound,
+ * or `TCT_NO_SUCH_LEAP_MONTH` if `isLeapMonth` names a month with no leap twin that year.
  */
 export function monthCountFor(
 	subject: () => string,
@@ -531,15 +549,19 @@ export function monthCountFor(
 }
 
 /**
- * The Julian day an already range-checked Tibetan date names, reporting under the caller's subject.
+ * Returns the Julian day an already range-checked Tibetan date names, reporting under the caller's
+ * subject.
  *
  * @remarks
  * `tibetanToIso`'s body after its guards, shared so that `resolveDate`, `addDays`, `daysBetween` and
  * `tibetanDateExists` report their own name rather than `tibetanToIso`'s. Not exported from the
  * package barrel.
  *
- * Throws {@link SkippedDayError} carrying the snapshot of the fields the caller passed, which equals
- * the input in value: `docs/guide.md` promises that `error.requested` is the date that was passed.
+ * @throws SkippedDayError if the date is skipped, carrying the snapshot of the fields the caller
+ * passed as `requested`, which equals the input in value.
+ * @throws RangeError with code `TCT_OUTSIDE_EXACT_RANGE` if the date, or the day it resolves to,
+ * is past where the tradition's arithmetic stays exact, or `TCT_NO_SUCH_LEAP_MONTH` if
+ * `isLeapMonth` names a month with no leap twin that year.
  */
 export function julianDayOfFields(
 	subject: () => string,
@@ -551,8 +573,10 @@ export function julianDayOfFields(
 
 	// Bound before classifying, not after. Past the exact limit classifyDay's arithmetic has
 	// already lost precision, and it reports the damage as a skipped date. The mean date is within
-	// 0.6 days of the true date and is exact over a wider range — its denominator divides
-	// `commonDenominator` — so it is the right quantity to test the limit with.
+	// 0.6 days of the true date — (25 + 11)/60, the largest `moonTab` and `sunTab` entries, which
+	// all four shipped configs share — and is exact over a wider range: its denominator divides
+	// `commonDenominator`. So it is the right quantity to test the limit with. A config with larger
+	// tables has a larger bound, which `ScaledTradition.searchHalfWidth` derives.
 	// The bound is this day's, not the month's, so it can accept day 30 of a month whose day 1 it
 	// refuses — where `resolveMonth` and `datesFor` refuse the whole month. That is deliberate.
 	assertExactJulianDay(
@@ -563,19 +587,32 @@ export function julianDayOfFields(
 
 	const classification = classifyDay(scaled, date.day, monthCount);
 
+	// `date` is the snapshot of the caller's fields, which `docs/guide.md` promises `error.requested`
+	// equals in value.
 	if (classification.kind === "skipped") throw new SkippedDayError(date);
 	const julianDay =
 		classification.kind === "doubled" && (date.isLeapDay ?? false)
 			? (classification.leapJulianDay as number)
 			: (classification.julianDay as number);
-	// The mean date above is within 0.6 days of the true date, so the day returned can lie just past
-	// the bound the mean date passed, where `isoToTibetan` refuses it.
+	// The mean date above is within 0.6 days of the true date (for all four shipped configs, whose
+	// tables are shared), so the day returned can lie just past the bound the mean date passed,
+	// where `isoToTibetan` refuses it.
 	assertExactJulianDay(scaled, julianDay, subject);
 	return julianDay;
 }
 
+// The suite's strongest property uses this as an oracle, where masking a failure would make that
+// property pass more easily rather than fail.
+//
+// The `catch` is an **allowlist**, and it matches **one class and two codes**, never three codes:
+// `SkippedDayError` by class, plus `TCT_FIELD_OUT_OF_RANGE` and `TCT_NO_SUCH_LEAP_MONTH`. Everything
+// else propagates. `TCT_SKIPPED_DAY` is deliberately **not** matched as a code, so an error carrying
+// that code without the class is rethrown rather than swallowed — the class is what a caller
+// branches on and what the rest of this package throws. A denylist has to anticipate every failure
+// that will ever be added; an allowlist only has to name the three things that are genuinely answers
+// about the input. See docs/decisions/2026-08-12-error-codes-not-classes.md.
 /**
- * Whether a Tibetan date names a real calendar day.
+ * Returns whether a Tibetan date names a real calendar day.
  *
  * @remarks
  * The predicate counterpart to {@link tibetanToIso}. It answers `false` in the three cases a caller
@@ -585,45 +622,27 @@ export function julianDayOfFields(
  * point at user input.
  *
  * It deliberately does **not** swallow anything else. A predicate that reports "this date does not
- * exist" when the truth is "the engine broke" is worse than a throw, and this one is used as an
- * oracle by the suite's strongest property, where masking a failure would make that property pass
- * more easily rather than fail.
+ * exist" when the truth is "the engine broke" is worse than a throw.
+ * `TCT_OUTSIDE_EXACT_RANGE` throws because past that bound the day was never computed, so `false`
+ * would be a confident claim about arithmetic that was refused rather than performed.
+ * `TCT_INVALID_ARGUMENT` throws because a `Temporal.PlainDate` or a non-boolean `isLeapMonth` is a
+ * confusion in the caller's code, not a date that does not exist.
  *
- * So the `catch` is an **allowlist**, and it matches **one class and two codes**, never three
- * codes: `SkippedDayError` by class, plus `TCT_FIELD_OUT_OF_RANGE` and `TCT_NO_SUCH_LEAP_MONTH`.
- * Everything else propagates. `TCT_SKIPPED_DAY` is deliberately **not** matched as a code, so an
- * error carrying that code without the class would be rethrown rather than swallowed — the class is
- * what a caller branches on and what the rest of this package throws.
- *
- * It was a denylist — every `RangeError` bar one code answered `false` — and that lost the race,
- * because a config whose denominators `deriveScaling` could not work with threw an uncoded
- * `RangeError` from three frames down and this function reported that Losar does not exist. A
- * denylist has to anticipate every failure that will ever be added; an allowlist only has to name
- * the three things that are genuinely answers about the input.
- *
- * `TCT_OUTSIDE_EXACT_RANGE` is on the throwing side on purpose. Past that bound the day was never
- * computed, so `false` would be a confident claim about arithmetic that was refused rather than
- * performed — which is the same reason that code exists separately from `TCT_SKIPPED_DAY`.
- *
- * `TCT_INVALID_ARGUMENT` is on the throwing side for the same kind of reason: a `Temporal.PlainDate`
- * or a non-boolean `isLeapMonth` is a confusion in the caller's code, not a date that does not
- * exist, and answering `false` would let that confusion look like a calendrical fact.
- *
- * ## A missing or wrong-typed field throws — changed 2026-08-26
- *
- * **This is a behaviour change, and a migration note for anyone passing unvalidated input.** A
- * required field that is absent, `null`, or not a number now raises `TCT_INVALID_ARGUMENT` rather
- * than answering `false`:
+ * **A missing or wrong-typed field throws.** A required field that is absent, `null`, or not a
+ * number raises `TCT_INVALID_ARGUMENT` rather than answering `false`:
  *
  * ```ts
  * tibetanDateExists({ year: 2153, month: 1 });                     // throws — day forgotten
  * tibetanDateExists({ year: 2151, month: 6, isLeapMonth: true });  // throws — that is a MONTH
  * ```
  *
- * Both used to answer `false`, reporting the caller's type confusion as a calendrical fact — the
- * exact outcome the two-code split exists to prevent. A **present** number that is out of range,
- * fractional or `NaN` is unchanged and still answers `false`; the line is presence, not validity.
- * Validate shape before calling if you were relying on `false` for arbitrary input.
+ * A **present** number that is out of range, fractional or `NaN` still answers `false`; the line is
+ * presence, not validity. A caller passing unvalidated input checks its shape first.
+ *
+ * @throws RangeError with code `TCT_INVALID_ARGUMENT` for a required field that is absent or not a
+ * number, a `Temporal` instance or other non-date, or a non-boolean leap flag;
+ * `TCT_OUTSIDE_EXACT_RANGE` if the date falls outside the range where the arithmetic stays exact;
+ * or `TCT_INVALID_TRADITION_CONFIG` if `tradition` is malformed.
  */
 export function tibetanDateExists(
 	input: TibetanDateFields,
@@ -654,27 +673,21 @@ export function tibetanDateExists(
  * @remarks
  * There is no closed-form inverse, so this estimates and searches. The estimate comes from mean
  * motion over the linear lunar day count `l = 30n + d`, and the search window is provably wide
- * enough — ±3 for Phugpa, from `|true_date − mean_date| ≤ (25 + 11)/60 = 0.6` days.
- *
- * That bound is **derived from the tradition, not written down here**: `25` and `11` are
- * `moonTab`'s and `sunTab`'s largest entries, which are injected config rather than constants, so
- * a `3` at the loop below would hardcode Phugpa's tables into a computation over a consumer's
- * data. The derivation and the proof are on the internal scaled tradition's `searchHalfWidth`.
- *
- * Do not widen the window at the call site "to be safe" — if a date is not found inside it, the
- * fault is elsewhere.
- *
- * @throws RangeError with code `TCT_OUTSIDE_EXACT_RANGE` if the date falls outside the range where
- * the arithmetic stays exact. This is reachable inside `Temporal.PlainDate`'s own range:
- * `PHUGPA_HENNING` is exact only from about year −20,781 to 11,356, and `PHUGPA` from about
- * −245,737 to 236,312. `TCT_INVALID_ARGUMENT` if `date` is not a
- * value `asPlainDate` accepts — notably a bare `{ year, month, day }` object, which is ambiguous
- * with this package's own Tibetan-date shape.
+ * enough — ±3 lunar days for all four shipped configs, from
+ * `|true_date − mean_date| ≤ (25 + 11)/60 = 0.6` days.
  *
  * Counting matches inside the window classifies the day directly, which is why no separate pass
  * is needed: one lunar day ending here is the ordinary case; two means the second's number is
  * skipped and this day takes the first's name; none means this day is the first of a doubled
  * pair and takes the name of the day after.
+ *
+ * @throws RangeError with code `TCT_OUTSIDE_EXACT_RANGE` if the date falls outside the range where
+ * the arithmetic stays exact. This is reachable inside `Temporal.PlainDate`'s own range: the range
+ * is about ISO years −245,737 to 236,312 under `PHUGPA` and `BHUTAN`, and only about −20,781 to
+ * 11,356 under `PHUGPA_HENNING` and `BHUTAN_HENNING`. `TCT_INVALID_ARGUMENT` if `date` is not a
+ * `Temporal.PlainDate`, ISO string, `PlainDateTime` or `ZonedDateTime` — notably a bare
+ * `{ year, month, day }` object, which is ambiguous with this package's own Tibetan-date shape.
+ * `TCT_INVALID_TRADITION_CONFIG` if `tradition` is malformed.
  *
  * @example
  * ```ts
@@ -707,6 +720,13 @@ export function isoToTibetan(
 	// bounded `target · den` inside the safe range.
 	const estimate = Math.round((target * den - atEpoch) / perDay);
 
+	// The window is `searchHalfWidth`, derived from the tradition's own tables rather than written
+	// down here: `25` and `11` are `moonTab`'s and `sunTab`'s largest entries, which are injected
+	// config rather than constants, so a literal `3` here would hardcode Phugpa's tables into a
+	// computation over a consumer's data. The derivation and the proof are on
+	// `ScaledTradition.searchHalfWidth`. Do not widen it at this site "to be safe" — if a date is
+	// not found inside it, the fault is elsewhere.
+	//
 	// Collect every lunar day in the window that ends on the target calendar day, plus the
 	// first that ends after it — needed for the doubled case, where none ends on it.
 	let named: { day: number; monthCount: number } | undefined;
@@ -761,10 +781,13 @@ export function isoToTibetan(
  *
  * @remarks
  * Losar cannot be obtained as `tibetanToIso({ month: 1, day: 1 })`. Where day 1 is skipped the
- * year begins on the day numbered **2** — 1977 is the case in range — and that call throws
+ * year begins on the day numbered **2** — the year beginning in 1977 is one — and that call throws
  * {@link SkippedDayError} instead of returning the new year. Where the year opens with a leap
- * month 1, which happens twice per 65-year cycle and last did in 2000, the year begins in the
- * leap month rather than the regular one.
+ * month 1, which happens twice per 65-year cycle under `PHUGPA` and `PHUGPA_HENNING` — the years
+ * beginning in 2000 and 2019 CE are two — the year begins in the leap month rather than the
+ * regular one.
+ * Under `BHUTAN` and
+ * `BHUTAN_HENNING`, whose leap months follow their twins, a year never opens with one.
  *
  * Janson computes it as one day after the last day of the preceding year, which sidesteps both
  * cases rather than special-casing them, and confirms in the Losar remark that the new year is the
@@ -785,8 +808,9 @@ export function isoToTibetan(
  * losarFor(2146).monthCode;   // "M01L" — the year opens in a leap month
  * ```
  *
- * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `year` is not a safe integer, or
- * `TCT_OUTSIDE_EXACT_RANGE` if it falls outside the range where the arithmetic stays exact.
+ * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `year` is not a safe integer,
+ * `TCT_OUTSIDE_EXACT_RANGE` if it falls outside the range where the arithmetic stays exact, or
+ * `TCT_INVALID_TRADITION_CONFIG` if `tradition` is malformed.
  */
 export function losarFor(year: number, tradition: TraditionConfig = PHUGPA): TibetanDate {
 	const scaled = scalingFor(tradition);

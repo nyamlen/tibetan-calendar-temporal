@@ -86,15 +86,14 @@ function resolveInMonth(
 	throw codedError("TCT_INTERNAL", `unhandled skippedDay choice ${JSON.stringify(skipped)}`);
 }
 
-/**
- * The calendar day before a skipped number, taken as a Julian day rather than a day number, so
- * day 1 needs no special case beyond reading the month's first day: its predecessor belongs to
- * the previous month. Janson's own advice for month boundaries is the same.
- *
- * The number below is never also skipped: that would need three lunar day ends inside one
- * calendar day, so two consecutive lunar days totalling under 24 hours against a 21.5-hour
- * minimum. So one step back always lands on a real day.
- */
+/** The calendar day before a skipped number, as a Julian day; for day 1, the previous month's last. */
+// Taken as a Julian day rather than a day number, so day 1 needs no special case beyond reading the
+// month's first day: its predecessor belongs to the previous month. Janson's own advice for month
+// boundaries is the same.
+//
+// The number below is never also skipped: that would need three lunar day ends inside one
+// calendar day, so two consecutive lunar days totalling under 24 hours against a 21.5-hour
+// minimum. So one step back always lands on a real day.
 function precedingDay(scaled: ScaledTradition, monthCount: number, day: number): Occurrence {
 	// Exactly 1, not `<= 1`: day is validated to 1-30 before it reaches here, so the wider guard
 	// only ever hid an invalid rule behind a plausible-looking result.
@@ -108,13 +107,15 @@ function precedingDay(scaled: ScaledTradition, monthCount: number, day: number):
 }
 
 /**
- * The calendar day after the one carrying the number below a skipped one, by Julian day.
+ * Returns the calendar day after the one carrying the number below a skipped one, by Julian day.
  *
- * `julianDay` of d - 1 is the later half when d - 1 is doubled, so one step on is always the day
- * that follows. It is not `julianDay ?? leapJulianDay` of d + 1, which picks the second half of a
- * doubled d + 1 and leaves its first half between. A skipped 30 rolls into the next month's first
- * day. A skipped day 1 means the month opens on day 2, so the day after is that first day.
+ * @remarks
+ * A skipped 30 rolls into the next month's first day. A skipped day 1 means the month opens on
+ * day 2, so the day after is that first day.
  */
+// `julianDay` of d - 1 is the later half when d - 1 is doubled, so one step on is always the day
+// that follows. It is not `julianDay ?? leapJulianDay` of d + 1, which picks the second half of a
+// doubled d + 1 and leaves its first half between.
 function followingDay(scaled: ScaledTradition, monthCount: number, day: number): Occurrence {
 	if (day === 1)
 		return { julianDay: firstDayOfMonth(scaled, monthCount), resolution: "dayAfterSkipped" };
@@ -147,7 +148,7 @@ function appliesToMonth(
 }
 
 /**
- * The true month count an endpoint of a period means in a year, given the leap-month convention.
+ * Returns the true month count an endpoint of a period means, given the leap-month convention.
  *
  * @remarks
  * Where the year has two months of the number, `"leap"` and `"regular"` pick one and `"both"` puts
@@ -173,15 +174,16 @@ function periodEndpointCount(
 }
 
 /**
- * Every calendar day of a period, resolved once, from the visit to the month the span opens in.
+ * Returns every calendar day of a period, resolved once, from the visit to the month it opens in.
  *
  * @remarks
  * A membership test: each day number from the first endpoint's to the last's, in month order,
  * contributes the calendar days that carry it — both halves of a doubled number, none of a skipped
- * one — so neither `doubledDay` nor `skippedDay` is consulted. Emitting the whole span at its first
- * month, and nothing at the others, keeps each span from being found once per month it covers.
- * A span cannot cross the new year, so the year of the visited month is the span's year.
+ * one — so neither `doubledDay` nor `skippedDay` is consulted. A span cannot cross the new year, so
+ * the year of the visited month is the span's year.
  */
+// Emitting the whole span at its first month, and nothing at the others, keeps each span from being
+// found once per month it covers.
 function periodOccurrences(
 	rule: ObservanceRule,
 	config: ObservanceConfig,
@@ -214,15 +216,16 @@ function periodOccurrences(
 }
 
 /**
- * The calendar days of one month a `formula` form holds on.
+ * Returns the calendar days of one month that a `formula` form holds on.
  *
  * @remarks
  * A formula is a property of a calendar day, so each day number is classified and every calendar
  * day it occupies is tested on its own: both halves of a doubled number, none of a skipped one.
- * The weekday comes from the Julian day, which is a Monday at 0 modulo 7, so Sunday counts 0 as
- * `(julianDay + 1) mod 7`, a non-negative remainder; no Tibetan date is built until a day is a
- * result. Always `"exact"`.
+ * Always `"exact"`.
  */
+// The weekday comes from the Julian day, which is a Monday at 0 modulo 7, so Sunday counts 0 as
+// `(julianDay + 1) mod 7`, a non-negative remainder; no Tibetan date is built until a day is a
+// result.
 function formulaOccurrences(
 	when: Extract<ObservanceWhen, { type: "formula" }>,
 	scaled: ScaledTradition,
@@ -246,17 +249,18 @@ function formulaOccurrences(
 }
 
 /**
- * The occurrences of one rule in one month, in the order its entries are listed.
+ * Returns the occurrences of one rule in one month, in the order its entries are listed.
  *
  * @remarks
  * A monthly rule is monthly: it recurs in every month, including both halves of a leap pair. The
  * leap-month convention is about *annual* observances, which have one occurrence a year and
- * therefore a choice to make. FPMT's 2024 calendars show this directly — tsog falls on the 10th of
- * leap month 6 and again on the 10th of the regular month 6 — while the Chokhor Duchen, an annual
- * observance, appears only in the leap month.
+ * therefore a choice to make.
  *
  * Two entries of one rule can land on the same calendar day; the query keeps one.
  */
+// FPMT's 2024 calendars show the monthly case directly: tsog falls on the 10th of leap month 6 and
+// again on the 10th of the regular month 6, while the Chokhor Duchen, an annual observance, appears
+// only in the leap month.
 export function occurrencesInMonth(
 	rule: ObservanceRule,
 	config: ObservanceConfig,
@@ -301,7 +305,7 @@ export function occurrencesInMonth(
 }
 
 /**
- * The Julian days a `western` form falls on in each Western year from `firstYear` to `lastYear`.
+ * Returns the Julian days a `western` form falls on in each Western year, `firstYear` to `lastYear`.
  *
  * @remarks
  * A 29 February has no day in a common year and is skipped there rather than moved: a Gregorian
@@ -322,15 +326,11 @@ export function westernOccurrences(
 	return found;
 }
 
-/**
- * How many days before the next year's anchor a counted day must fall to be kept.
- *
- * @remarks
- * A count's landing days fall only 1, 0 or -1 days, or 14, 15 or 16 days, before the next anchor
- * (measured 2026-11-11 over anchors 1999-2102, in both Phugpa configs), so every threshold from 2 to
- * 14 behaves alike and only 1 and 15 change the output. Eight sits inside that gap: a landing within
- * a week of the anchor is the anchor's own slot, and the anchor replaces it.
- */
+/** How many days before the next year's anchor a counted day must fall to be kept. */
+// A count's landing days fall only 1, 0 or -1 days, or 14, 15 or 16 days, before the next anchor
+// (measured over the anchors of CE 1999-2102, in both Phugpa configs), so every threshold from 2 to
+// 14 behaves alike and only 1 and 15 change the output. Eight sits inside that gap: a landing
+// within a week of the anchor is the anchor's own slot, and the anchor replaces it.
 const REANCHOR_DAYS = 8;
 
 /** A counted rule's anchor, with the true month it was resolved in, a starting point for the count. */
@@ -339,7 +339,7 @@ export interface CountedAnchor extends Occurrence {
 }
 
 /**
- * The calendar days one month contributes to a `counted` rule: its anchors and its exclusions.
+ * Returns the calendar days one month contributes to a `counted` rule: anchors and exclusions.
  *
  * @remarks
  * The anchor and each `exclude` entry resolve exactly as an `annual` date does, through the same
@@ -377,7 +377,7 @@ function monthCountOfDay(scaled: ScaledTradition, julianDay: number, near: numbe
 }
 
 /**
- * Every occurrence of a `counted` rule that can fall in a range, from the anchors around it.
+ * Returns every occurrence of a `counted` rule that can fall in a range, from the anchors around it.
  *
  * @remarks
  * Each anchor starts a count that alternates a waning step and a waxing step. A waning step is
@@ -387,12 +387,14 @@ function monthCountOfDay(scaled: ScaledTradition, julianDay: number, near: numbe
  * the count would have put near it. A landing on an excluded day is dropped but the count goes on
  * from it; an anchor is never dropped.
  *
- * **Bounded both ways.** The count starts at the latest anchor on or before `firstJd`, at most 385
- * days back, and the next anchor after `lastJd` must be in `anchors`, because the threshold decides
- * a day just before an anchor by that anchor. Without it a query for the day before an anchor
- * reports a sojong the whole range does not. `anchors` therefore covers the Tibetan year before the
+ * **Bounded both ways.** The count starts at the latest anchor on or before `firstJd`, and the next
+ * anchor after `lastJd` must be in `anchors`. `anchors` therefore covers the Tibetan year before the
  * range and the one after it.
  */
+// Why both: the threshold decides a day just before an anchor by that anchor, so without it a query
+// for the day before an anchor reports a sojong the whole range does not. The latest anchor on or
+// before `firstJd` is at most 385 days back: the largest gap between consecutive anchors over CE
+// 1900-2100, under all four shipped traditions and each `leapMonth` setting.
 export function countedSchedule(
 	when: Extract<ObservanceWhen, { type: "counted" }>,
 	tradition: TraditionConfig,

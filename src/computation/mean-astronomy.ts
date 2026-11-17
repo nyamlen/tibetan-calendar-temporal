@@ -16,8 +16,10 @@
  *
  * Because `m₂ = m₁/30` and `s₂ = s₁/30`, mean date and mean sun are really linear in the total
  * lunar day count `30n + d`, so they increase smoothly across month boundaries. The anomaly is
- * the exception: the standard `a₂ = 1/28` does not equal `a₁/30`, which puts a small jump at the
- * start of each month. That discrepancy is the whole substance of the `a₂` fork.
+ * the exception under `PHUGPA` and `BHUTAN`: their `a₂ = 1/28` is only a close approximation to
+ * `(1 + a₁)/30` (Janson counts the anomaly modulo 1), which puts a small jump at the start of each
+ * month. That discrepancy is the whole substance of the `a₂` fork; the Henning pair's
+ * `a₂ = 3781/105,840` is exactly `(1 + a₁)/30` and has no jump.
  *
  * @packageDocumentation
  */
@@ -40,11 +42,12 @@ function evaluate(motion: ScaledMeanMotion, day: number, monthCount: number): nu
  * Returned as a numerator over {@link ScaledTradition.meanDate}`.den`. Because the tradition's
  * `m₀` carries a Julian-day offset, the value is a mean Julian date rather than a bare fraction:
  * dividing by the denominator gives roughly the JD, and `true_date` corrects it by at most
- * 0.6 days.
+ * 0.6 days under each of the four shipped configs, whose correction tables share their maxima;
+ * another config's tables set its own bound (see `ScaledTradition.searchHalfWidth`).
  *
  * @param scaled - The tradition's derived constants.
- * @param day - Lunar day within the month. Janson's day 0 is the end of the previous month, and
- * is used when computing month boundaries.
+ * @param day - Lunar day within the month. Janson's day 0 is the end of the previous month; this
+ * package uses day 30 of month n−1 instead.
  * @param monthCount - True month count `n`, zero at the epoch.
  *
  * @example
