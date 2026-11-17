@@ -3,7 +3,7 @@
 Every rule this project holds, and **what fails when you break it**.
 
 That last part is the reason this file exists separately from the others.
-[CLAUDE.md](../CLAUDE.md) states each rule together with the failure that produced it, which is what makes the rules persuasive; [CONTRIBUTING.md](../CONTRIBUTING.md) is the on-ramp.
+[CLAUDE.md](../CLAUDE.md) states each rule and why it exists, with at most one example; [verification-craft.md](verification-craft.md) holds the method for proving a check works; [CONTRIBUTING.md](../CONTRIBUTING.md) is the on-ramp.
 Neither says which rules a machine will catch and which depend on somebody noticing.
 This one does, and the honest answer differs by rule.
 

@@ -46,7 +46,7 @@ The last column in both tables is what THL's converter returned on 2026-11-11 fo
 **Two of THL's results carry its own uncertainty marker, "(?)":** *kama(?)pa* and *pandi(?)ta*.
 THL's converter page says its output cannot be 100% accurate and that someone who understands the text should check it.
 Andreas checked them on 2026-11-11 and is sure of *karmapa* and *pandita*, so **these two phonetics are corrections to THL's output**, not THL's output.
-They are held as data in the verifier, in the pattern of the other corrections in this project ([CLAUDE.md](../../CLAUDE.md)): each states the value THL is expected to return (*gyelwang kama(?)pa chudrukpa* and *sakya pandi(?)ta*) and the value it is corrected to, and **the run refuses if THL no longer returns the expected value**, so a correction cannot outlive its reason.
+They are held as data in the verifier, in the pattern of the other corrections in this project ([verifiers.md](verifiers.md#corrections)): each states the value THL is expected to return (*gyelwang kama(?)pa chudrukpa* and *sakya pandi(?)ta*) and the value it is corrected to, and **the run refuses if THL no longer returns the expected value**, so a correction cannot outlive its reason.
 The evidence for each is Andreas' own knowledge of the pronunciation, which is a witness of a different kind from a dictionary, and the record says so rather than presenting it as sourced.
 Nothing else is corrected: the other twelve phonetics are THL's output unchanged.
 
