@@ -143,7 +143,7 @@ export const MANSION_NAMES: readonly MansionNames[] = deepFreeze([
 	},
 ]);
 
-/** The names of mansion `index`, 0–26. */
+/** Returns the names of mansion `index`, 0–26. */
 export function mansionNames(index: number): MansionNames {
 	return assertInternal(
 		MANSION_NAMES.length === MANSION_COUNT ? MANSION_NAMES[index] : undefined,

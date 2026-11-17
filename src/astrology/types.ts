@@ -5,17 +5,15 @@
  * Every other type here sits beside the arithmetic that produces it — `YearAttributes` in `year.ts`,
  * `MonthAttributes` in `month.ts`, and so on — because each is that module's answer. These two are
  * different: `LunarMansion` is composed from three sources, and `DayAttributes` is the composed
- * answer of `attributesFor`. A third, `AstrologyQueryOptions`, lived here until 2026-09-24, when
- * the tradition became a positional parameter.
- *
- * They live here rather than in the barrel for the reason `./observances` does the same: a barrel
- * re-exports, and `check:conventions` rule 13 compares the README's type lists against what each
- * barrel's `export type` blocks name. A type *declared* in a barrel is invisible to it, so declaring
- * one there would quietly leave it unguarded — which is how this file came to exist, the rule having
- * said so on 2026-09-12.
+ * answer of `attributesFor`.
  *
  * @packageDocumentation
  */
+
+// These live here rather than in the barrel for the reason `./observances` does the same: a barrel
+// re-exports, and `check:conventions` rule 13 compares the README's type lists against what each
+// barrel's `export type` blocks name. A type *declared* in a barrel is invisible to it, so declaring
+// one there would quietly leave it unguarded.
 
 import type { SanskritName, TibetanDate, TibetanName, TibetanWeekdayElement } from "../types.js";
 import type { CalendarDayAttributes } from "./calendar-day.js";

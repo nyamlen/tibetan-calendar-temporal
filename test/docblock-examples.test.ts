@@ -1,11 +1,29 @@
 import { describe, expect, it } from "vitest";
-import { attributesFor, elementalYogaFor } from "../src/astrology/index.js";
+import {
+	attributesFor,
+	calendarDayAttributesFor,
+	ELEMENTAL_YOGAS,
+	elementalYoga,
+	elementalYogaFor,
+	LUNAR_MANSIONS,
+	lunarDayAttributesFor,
+	lunarMansionFor,
+	monthAttributesFor,
+	yearAttributesFor,
+} from "../src/astrology/index.js";
 import { lunarDayAttributes } from "../src/astrology/lunar-day.js";
+import { mansionNumber } from "../src/astrology/mansions.js";
 import { monthAttributes } from "../src/astrology/month.js";
+import { trueMonthCount } from "../src/computation/calendar.js";
 import { isoToTibetan, losarFor, tibetanToIso } from "../src/computation/conversion.js";
-import { rabjungFromYear, royalEraFromYear, yearNameFromYear } from "../src/computation/epoch.js";
+import {
+	rabjungFromYear,
+	royalEraFromYear,
+	yearFromRoyalEra,
+	yearNameFromYear,
+} from "../src/computation/epoch.js";
 import { meanDate } from "../src/computation/mean-astronomy.js";
-import { deriveScaling } from "../src/computation/scaling.js";
+import { deriveScaling, scalingFor } from "../src/computation/scaling.js";
 import { rabjungFor, weekdayNameFor, yearNameFor } from "../src/cycles.js";
 import { formatTibetanDate } from "../src/format.js";
 import { monthNamesFor } from "../src/month-names.js";
@@ -315,6 +333,16 @@ describe("docblock examples", () => {
 		});
 	});
 
+	describe("astrology/mansions.ts", () => {
+		it("states the mansion of 1 September 2026 as 26", () => {
+			const resolved = isoToTibetan(Temporal.PlainDate.from("2026-09-01"), PHUGPA);
+			expect([resolved.year, resolved.month, resolved.day]).toEqual([2153, 7, 19]);
+			const scaled = scalingFor(PHUGPA);
+			expect(trueMonthCount(scaled.tradition, yearFromRoyalEra(2153), 7, false)).toBe(15095);
+			expect(mansionNumber(scaled, 19, 15095)).toBe(26);
+		});
+	});
+
 	describe("astrology/index.ts", () => {
 		it("states the yoga of 1 September 2026, and its refusal under BHUTAN", () => {
 			const date = Temporal.PlainDate.from("2026-09-01");
@@ -324,6 +352,40 @@ describe("docblock examples", () => {
 			expect(thrownBy(() => elementalYogaFor(date, BHUTAN))?.code).toBe(
 				"TCT_ATTRIBUTE_NOT_SOURCED",
 			);
+		});
+
+		it("states the values of the other astrology examples", () => {
+			const date = Temporal.PlainDate.from("2026-09-01");
+			expect(yearAttributesFor(2153)).toMatchObject({
+				power: "fire",
+				life: "fire",
+				body: "water",
+				fortune: "iron",
+			});
+			expect(monthAttributesFor({ year: 2153, month: 1 })).toMatchObject({
+				animal: "dragon",
+				gender: "male",
+				element: "iron",
+				number: null,
+			});
+			const day = lunarDayAttributesFor({ year: 2153, month: 1, day: 1 });
+			expect(day).toMatchObject({ animal: "tiger", element: "water", trigram: "water", number: 7 });
+			expect(day.tibetanNames.trigram.wylie).toBe("kham");
+			expect(calendarDayAttributesFor(date).gender).toBe("male");
+			expect(LUNAR_MANSIONS[0]?.tibetanName.wylie).toBe("tha skar");
+			expect(LUNAR_MANSIONS[26]?.sanskritName.iast).toBe("revatī");
+			const mansion = lunarMansionFor(date);
+			expect([mansion.element, mansion.sanskritName.iast, mansion.tibetanName.wylie]).toEqual([
+				"water",
+				"revatī",
+				"nam gru",
+			]);
+			expect(attributesFor(date).year.power).toBe("fire");
+			expect(attributesFor(date, BHUTAN).month).toBeNull();
+			expect(elementalYoga("fire", "water").sanskritName.iast).toBe("maraṇa");
+			expect(elementalYoga("water", "fire").favorable).toBe(false);
+			expect(elementalYoga("water", "fire")).toBe(elementalYoga("fire", "water"));
+			expect(ELEMENTAL_YOGAS).toHaveLength(10);
 		});
 	});
 });

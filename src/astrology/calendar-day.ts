@@ -108,7 +108,7 @@ export interface CalendarDayAttributes {
 }
 
 /**
- * Every attribute of the calendar day with Julian day number `julianDay`.
+ * Returns every attribute of the calendar day with Julian day number `julianDay`.
  *
  * @remarks
  * Janson gives each of these as a bare congruence on `JD`:

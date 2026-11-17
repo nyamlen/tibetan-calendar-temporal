@@ -4,7 +4,7 @@
  * @remarks
  * A year's name gives one element — Fire Horse — and that is only the **power** element. Four more
  * sit behind it, each on its own cycle, and they routinely disagree with the name and with each
- * other. Janson's Appendix E derives all five in closed form.
+ * other. The appendix "Further astrological calculations" of Janson's paper gives all five.
  *
  * **Nothing here takes a `TraditionConfig`.** Every formula is a function of the Gregorian year
  * alone, so the answers are the same in every tradition — which is why these can be asked for years
@@ -99,7 +99,7 @@ export interface YearAttributes {
 }
 
 /**
- * Every attribute of the Gregorian year `year`.
+ * Returns every attribute of the Gregorian year `year`.
  *
  * @remarks
  * Janson's `Y`. The year is the **Gregorian** year the Tibetan year begins in, not the royal era —

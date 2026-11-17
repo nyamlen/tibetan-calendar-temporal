@@ -34,34 +34,41 @@ import { assertInternal } from "../errors.js";
 export const MANSION_COUNT = 27;
 
 /**
- * The denominator on which {@link moonCalendarDay} is an exact integer.
+ * Returns the denominator on which {@link moonCalendarDay} is an exact integer.
  *
  * @remarks
  * Three quantities have to meet: `true_sun` over {@link trueSunDenominator}, `d/30`, and
- * `FRAC(true_date)/27` over `commonDenominator · 27`. For both shipped traditions this comes to
- * 2,762,560,080 — **27 times `commonDenominator`**, which is exactly why
- * {@link moonCalendarDay} reduces before it scales.
+ * `FRAC(true_date)/27` over `commonDenominator · 27`. The result is 27 times `commonDenominator`:
+ * 2,762,560,080 for `PHUGPA` and `BHUTAN`, and 41,438,401,200 for `PHUGPA_HENNING` and
+ * `BHUTAN_HENNING`.
  */
 export function mansionDenominator(scaled: ScaledTradition): number {
 	return lcm(lcm(trueSunDenominator(scaled), 30), scaled.commonDenominator * MANSION_COUNT);
 }
 
 /**
- * The moon's longitude at the **start of the calendar day**, in circles, reduced to `[0, 1)`.
+ * Returns the moon's longitude at the **start of the calendar day**, in circles, reduced to `[0, 1)`.
  *
  * @remarks
  * Returned as an exact integer numerator over {@link mansionDenominator}.
  *
- * **Reduction happens before scaling, and that ordering is the whole design.** `true_sun` grows
- * without bound with the month count, and this denominator is 27 times the one `true_date` uses.
- * Scaling an unreduced longitude onto it would multiply a large number by 27 and cut the
- * safe-integer date bound from about 8.8 × 10⁷ to 3.3 × 10⁶ — against a present-day Julian day of
- * 2.46 × 10⁶, which is about a third of the way to losing exactness inside the calendar's own
- * useful range. Reducing first makes the bound independent of the year, because every term is then
- * below the denominator before anything is multiplied.
+ * For the first half of a doubled date the longitude is `moon_lunar_day − 1/27`, the rule Janson
+ * gives for the Men-Tsee-Khang Phugpa almanac, and not the `FRAC(true_date)/27` of every other day.
+ * That almanac is the only source for the rule, so under another tradition, such as the Bhutanese,
+ * applying it is an inference.
  *
- * Only the fractional part of a longitude means anything, so nothing is lost by reducing.
+ * @param firstOfDoubledPair - Whether the day is the first of two calendar days sharing one lunar
+ * day.
  */
+// **Reduction happens before scaling, and that ordering is the whole design.** `true_sun` grows
+// without bound with the month count, and this denominator is 27 times the one `true_date` uses.
+// Scaling an unreduced longitude onto it would multiply a large number by 27 and cut the
+// safe-integer date bound, for `PHUGPA`'s denominators, from about 8.8 × 10⁷ to 3.3 × 10⁶ — against
+// a present-day Julian day of 2.46 × 10⁶, which is about three quarters of the way to losing
+// exactness inside the calendar's own useful range. Reducing first makes the bound independent of
+// the year, because every term is then below the denominator before anything is multiplied.
+//
+// Only the fractional part of a longitude means anything, so nothing is lost by reducing.
 export function moonCalendarDay(
 	scaled: ScaledTradition,
 	day: number,
@@ -106,7 +113,7 @@ export function moonCalendarDay(
 }
 
 /**
- * The lunar mansion the calendar day begins in, numbered **0 to 26** as Janson numbers them.
+ * Returns the lunar mansion the calendar day begins in, numbered **0 to 26** as Janson numbers them.
  *
  * @remarks
  * `⌊27 · moon_calendar_day⌋`, and in the traditional mixed-radix notation this is simply the first
@@ -114,15 +121,18 @@ export function moonCalendarDay(
  *
  * **Janson's 27 is not Henning's 28.** Henning's published list — the one carrying the element each
  * mansion holds — includes *Abhijit* at position 23, which this numbering omits. Anything mapping
- * these indices onto that table has to drop it, and must assert the drop rather than assume it: get
- * it wrong and every mansion from *Dhaniṣṭhā* onward shifts by one, silently.
+ * these indices onto that table has to skip it, as `MANSION_ELEMENTS` does.
+ *
+ * @param firstOfDoubledPair - Whether the day is the first of two calendar days sharing one lunar
+ * day; see {@link moonCalendarDay}.
  *
  * @example
  * ```ts
- * // Phugpa. 1 September 2026 is a Tuesday, whose element is fire; FPMT prints UD-FW for
- * // that day, so the mansion this returns must be one carrying water.
+ * // Phugpa. 1 September 2026 is Tibetan 2153 month 7, day 19 (day 20 is skipped), and its true
+ * // month count is 15095. The mansion is 26, Revatī, which carries water; with that Tuesday's
+ * // fire, the yoga is "death", and FPMT prints UD-FW for the day.
  * const scaled = scalingFor(PHUGPA);
- * mansionNumber(scaled, 20, 1649); // 0…26
+ * mansionNumber(scaled, 19, 15095); // 26
  * ```
  */
 export function mansionNumber(

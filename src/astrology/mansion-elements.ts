@@ -2,22 +2,18 @@
  * The element each lunar mansion carries, in the Indian system.
  *
  * @remarks
- * **This table is Henning's, not Janson's**, and that distinction is the reason this module is
- * separate. Janson defines the elemental yoga and then says he does not derive this list, pointing
- * to Henning for it. Citing Henning there is an ordinary citation chain rather than two sources
- * competing to define one number — see [../../docs/astrology.md](../../docs/astrology.md), which
- * records why the sole-source rule does not reach it.
+ * **This table is Henning's, not Janson's.** Janson defines the elemental yoga and then says he
+ * does not derive this list, pointing to Henning for it. Citing Henning there is an ordinary
+ * citation chain rather than two sources competing to define one number — see
+ * [../../docs/astrology.md](../../docs/astrology.md).
  *
  * Source: Edward Henning, "Symbolic details of the Kālacakra calendar",
  * `http://www.kalacakra.org/calendar/symlst.htm`, last updated 3 February 2010, accessed
- * 2026-09-10. The site is HTTP-only — its certificate is for another domain — and its author died
- * in 2016, so [../../docs/almanac-sources.md](../../docs/almanac-sources.md) carries a Wayback
+ * 2026-09-10; [../../docs/almanac-sources.md](../../docs/almanac-sources.md) carries a Wayback
  * snapshot beside the live URL.
  *
  * **The elements are the Indian four, not the Chinese five.** Earth, fire, water and *wind* —
- * `wood` and `iron` never appear here, and `wind` is not a year element at all. That is why the
- * type below is {@link TibetanWeekdayElement}, which already exists for the weekday half of the
- * same pairing.
+ * `wood` and `iron` never appear here, and `wind` is not a year element at all.
  *
  * @packageDocumentation
  */
@@ -26,14 +22,16 @@ import { assertInternal } from "../errors.js";
 import type { TibetanWeekdayElement } from "../types.js";
 import { MANSION_COUNT } from "./mansions.js";
 
-/**
- * Henning's list **as he prints it** — twenty-eight entries, including *Abhijit*.
- *
- * @remarks
- * Kept whole rather than pre-trimmed, so the drop below is visible as an operation rather than
- * baked into a literal. Trimming it here would make the twenty-seven look like the source's own
- * count, which it is not.
- */
+/** Henning's list as he prints it: twenty-eight entries, including *Abhijit*. */
+// Kept whole rather than pre-trimmed, so the drop below is visible as an operation rather than
+// baked into a literal. Trimming it here would make the twenty-seven look like the source's own
+// count, which it is not.
+//
+// This table is Henning's and not Janson's, and that distinction is the reason this module is
+// separate from the mansion names. The element type is `TibetanWeekdayElement`, which already
+// exists for the weekday half of the same pairing. The source site is HTTP-only (its certificate is
+// for another domain) and its author died in 2016, which is why `docs/almanac-sources.md` keeps a
+// Wayback snapshot.
 const HENNING_28: readonly { readonly name: string; readonly element: TibetanWeekdayElement }[] = [
 	{ name: "Aśvinī", element: "wind" },
 	{ name: "Bharaṇī", element: "fire" },
@@ -72,17 +70,12 @@ const INTERCALATED = "Abhijit";
  * The element of each mansion, indexed **0 to 26** as Janson numbers them.
  *
  * @remarks
- * **Twenty-seven from twenty-eight, and the drop is asserted rather than assumed.** Henning prints
- * 28 including *Abhijit* at position 23; Janson numbers the mansions 0–26. Drop the wrong one and
- * every element from *Dhaniṣṭhā* onward shifts by one — silently, producing a real element for
- * every day and the wrong one for a third of them.
- *
- * The check that makes the drop verifiable: Henning's 28 divide **exactly evenly**, seven to each of
- * the four elements. Removing Abhijit, which is earth, must therefore leave six earth against seven
- * of each other. No other single removal produces that signature, so the assertion below pins which
- * entry left.
+ * Henning prints 28 mansions including *Abhijit*, the 23rd; Janson numbers the mansions 0–26, so
+ * this table omits Abhijit. Dropping a different entry would shift the mansions between it and
+ * Abhijit's place by one.
  */
 export const MANSION_ELEMENTS: readonly TibetanWeekdayElement[] = (() => {
+	// Abhijit is dropped by name, and the length check proves exactly one entry matched.
 	const kept = HENNING_28.filter((mansion) => mansion.name !== INTERCALATED);
 
 	assertInternal(
@@ -90,6 +83,15 @@ export const MANSION_ELEMENTS: readonly TibetanWeekdayElement[] = (() => {
 		`MANSION_ELEMENTS: dropping ${INTERCALATED} left ${kept.length} mansions, not ${MANSION_COUNT}`,
 	);
 
+	// Henning's 28 divide exactly evenly, seven to each of the four elements, and Abhijit is earth,
+	// so the 27 must hold six earth against seven of each other. That catches a mistyped element
+	// or a drop of an entry of another element. It does not pin WHICH earth entry left: removing
+	// any of the seven earth mansions gives this signature, and removing Śravaṇa or Uttarāṣāḍhā,
+	// Abhijit's earth neighbours, even gives the same list of elements. What pins Abhijit is the
+	// filter on its name above, with the length check.
+	//
+	// A wrong drop is silent, because the table still yields a real element for every day. Keeping
+	// Abhijit and dropping Revatī instead shifts every mansion from Dhaniṣṭhā on by one.
 	const counts = new Map<TibetanWeekdayElement, number>();
 	for (const mansion of kept) counts.set(mansion.element, (counts.get(mansion.element) ?? 0) + 1);
 
@@ -108,7 +110,7 @@ export const MANSION_ELEMENTS: readonly TibetanWeekdayElement[] = (() => {
 	return kept.map((mansion) => mansion.element);
 })();
 
-/** The element of mansion `index`, which {@link mansionNumber} numbers 0 to 26. */
+/** Returns the element of mansion `index`, which {@link mansionNumber} numbers 0 to 26. */
 export function mansionElement(index: number): TibetanWeekdayElement {
 	return assertInternal(
 		MANSION_ELEMENTS[index],
