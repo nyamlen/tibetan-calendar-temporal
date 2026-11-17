@@ -562,7 +562,7 @@ of system:
   calendar". This is `yearName`.
 
 They also give a year *different positions*. 2026 is year **40** of the Indian cycle and year
-**43** of the Chinese (Janson Table 12). Holding both in one object put `40` directly beside
+**43** of the Chinese (Janson's table of the sixty-year cycle). Holding both in one object put `40` directly beside
 `Fire–Horse`, which it does not index — position 40 indexes *parābhava*. Anyone building a
 60-entry lookup keyed on that number would be wrong in every year of the cycle, because the two
 positions differ by a constant three. Splitting them makes the mistake unbuildable.

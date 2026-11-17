@@ -152,9 +152,10 @@ The second is the one 1.0.0 freezes permanently, and no test in this repository 
 suite imports from `src/`, so none of them meets the package the way a consumer does.
 
 This **relaxes** the release rather than adding to it.
-The 300-docblock audit below does not have to precede the client — docblocks reach the shipped
-`.d.ts` and are what editor hover shows, so a consumer reading them in an editor is a better audit
-signal than reading 300 blocks in sequence, and the client should therefore run first and inform it.
+The docblock audit below merges before the navigator build (agreed 2026-11-15).
+Docblocks reach the shipped `.d.ts` and are what editor hover shows, so a consumer reading them in an
+editor is a better signal of what is wrong than reading every block in sequence, and the client's
+friction list is the place to collect what it finds.
 
 The gate closes when every item on the client's friction list carries a verdict — **change the API**
 (free now, breaking forever after), **fix the documentation**, or **accept and record** — not when
@@ -1122,7 +1123,8 @@ that its first step is still open.
          other modern version he knows of do, and name the bound the search window needs, without
          claiming it of every version.
       3. **`asPlainDate` and `asWesternDay` in `src/computation/conversion.ts`** name no caller in
-         two refusals.
+         two refusals; the non-ISO-calendar one is built by `assertIsoCalendar` in
+         `src/temporal-kind.ts`.
          For a `Temporal.PlainDate` in another calendar, or an ISO string carrying one, `asPlainDate`
          refuses with "received a Temporal.PlainDate in the hebrew calendar. The arithmetic here is
          defined on ISO days, so the calendar has to be said explicitly: convert it with

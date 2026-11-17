@@ -43,7 +43,8 @@ The story of how the source was found does not, and moves out.
 ## What enforces it
 
 Review, the docblock audit in `docs/roadmap.md` that applied the rule to every docblock in `src/` in one pass, and three `check:conventions` guards.
-Each was written failing-case first, in the `npm run test:conventions` mutation suite, and each reports in its message where its reach ends.
+Each was written failing-case first, in the `npm run test:conventions` mutation suite.
+Of the three, only Rule 17's message states where its reach ends, as a ratchet; the reach of Rules 4 and 18 is stated in this record, below.
 
 **History in prose: Rule 17, a ratchet and not enforcement of rule 5.**
 It refuses `20\d\d-\d\d-\d\d` in a docblock's prose, outside backtick code spans and outside `@example` blocks, which use dates legitimately.
@@ -60,6 +61,7 @@ Proved by row R17, whose mutant puts a violating line beside a date in a code sp
   A symbol named in backticks was never checked, in a docblock or out of one.
   So the loss is exactly the `{@link}`s in the text that moves, and a rename of their target then leaves the `//` comment stale without failing anything.
   The audit therefore converts a `{@link}` in moved text to the symbol in backticks, states the number converted in the commit, and keeps a `{@link}` to an exported type in the docblock where a caller needs it.
+  Rule 4 has a second reach limit: a `//` comment followed by a second docblock leaves the first docblock's links unchecked, because the rule skips only blank lines and `//` lines, so the line it reaches is the second docblock's opener, which declares nothing, and the first docblock is read as internal.
   Extending Rule 4 to backticked names in `//` comments was considered and not taken: a backticked word in a comment is often not a symbol (a field name, a code snippet, an error code), so the rule would need an allowlist larger than the problem.
   If a stale `//` reference is ever found by hand, that is the evidence to revisit it.
 - **A `//` between a public docblock and its declaration hid the docblock from Rule 4.**
