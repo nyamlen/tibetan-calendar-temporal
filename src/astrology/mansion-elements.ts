@@ -103,9 +103,10 @@ export const MANSION_ELEMENTS: readonly TibetanWeekdayElement[] = (() => {
 	assertInternal(
 		signature === "earth:6 fire:7 water:7 wind:7" || undefined,
 		`MANSION_ELEMENTS: element counts are ${signature}, not earth:6 fire:7 water:7 wind:7. ` +
-			"Henning's 28 divide seven to each element, so the 27 must lose exactly one earth — and " +
-			"that is Abhijit. Any other signature means the wrong entry was dropped or the table was " +
-			"mistranscribed",
+			"Henning's 28 divide seven to each element and Abhijit is earth, so another signature " +
+			"means an element was mistyped or an entry of another element was dropped. The counts " +
+			"cannot tell which earth mansion left: Abhijit is pinned by the filter on its name and " +
+			"the length check above",
 	);
 
 	return kept.map((mansion) => mansion.element);

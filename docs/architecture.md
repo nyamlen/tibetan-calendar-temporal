@@ -540,11 +540,9 @@ exists to eliminate.
 
 ### Why year-level naming is not on `TibetanDate`
 
-Both cycles name a **year**, so on a date they are one value repeated across all 354, 355, 383, 384
-or 385 days of it — together more than half of a serialised year. `yearNameFor(year)` and `rabjungFor(year)` are
-closed forms over the year alone, so nothing is lost: a date carries `year`, and both are one call
-away. `TibetanMonth` keeps `yearName`, where the repetition is thirteen-fold rather than
-354-fold and the `monthsFor` → `datesFor` path wants it to hand.
+Both cycles name a **year**, so on a date they are one value repeated across all 354, 355, 383, 384 or 385 days of it — together more than half of a serialised year.
+`yearNameFor(year)` and `rabjungFor(year)` are closed forms over the year alone, so nothing is lost: a date carries `year`, and both are one call away.
+`TibetanMonth` keeps `yearName`, where the repetition is thirteen-fold rather than 354-fold and the `monthsFor` → `datesFor` path wants it to hand.
 
 **Month names follow the same rule.** `monthNamesFor(month)` needs only the month number (and, for
 `tigerEarlySpring`, the tradition), so a date repeating them thirty times would cost bytes and buy

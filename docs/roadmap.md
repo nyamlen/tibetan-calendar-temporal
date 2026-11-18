@@ -517,11 +517,28 @@ that its first step is still open.
     `year` getter bypasses the cap — a cost, not a wrong answer — and can produce a
     self-contradicting `TCT_SPAN_TOO_WIDE` message; compute the span from the Julian days or ISO
     fields the engine already holds.
+    **Done in `34e8da5`, at the root rather than as written** (Andreas' call C2, 2026-11-18).
+    "A cost, not a wrong answer" was false one step over: every Western-date export used a native
+    subclass instance as handed in, so an overridden `since` made `isoToTibetan` answer a wrong date
+    and an overridden `calendarId` got a Hebrew date accepted. The Julian days the entry proposed
+    are computed by the caller's own `since`, so they would not have closed it.
+    `toNativePlainDate` now reads the calendar through the intrinsic getter and copies the date,
+    and `getObservances` needed no edit.
+    One input changed answer: a Proxy that forwards to a genuine ISO date was accepted before, and the
+    engine read the Proxy itself; it carries no slot, so it is now refused `TCT_INVALID_ARGUMENT`,
+    with a message naming it as a Proxy.
+    The engine's own loops skip the copy through two internal functions, so it runs once where a
+    caller's date enters (`f209109`); `bench/RESULTS.md` records both versions' cost.
   - **Fix: tradition first, everywhere** (Andreas, 2026-11-17). The year functions `hasLeapMonth`,
     `leapMonthNumberFor` and `monthsInYear` check the year before the tradition, where `monthsFor`
     checks the tradition first. The ruling: every function taking a tradition validates it before its
     other arguments, so with two bad arguments the code is `TCT_INVALID_TRADITION_CONFIG`; a test row
     per function pins it. A one-way door at 1.0.0, since the code thrown is contract.
+    **Done in `52d16cf` and `0e52125`, read as the bare-number exports** (Andreas' call C1,
+    2026-11-18): the 2026-11-15 order — shape, then tradition, then range — stands for every export
+    taking a month, a date or a Western date, and a bare number has no shape, so the tradition comes
+    first. Five exports changed, not three: `weekdayNameFor` and `isoFromJulianDay` also checked
+    their number first. `test/error-subjects.test.ts` pins all eight bare-number exports.
   - **Accepted** (Andreas, 2026-11-17) — message text, not contract. Range-refusal messages at the edge name a
     lunation as if it were the argument (`addMonthsToDate(-3049305) is outside…`), and the
     lunation-bound message says "this tradition's" without naming it.
@@ -550,19 +567,26 @@ that its first step is still open.
     three nasal rule shapes.
   - **Fix** (Andreas, 2026-11-17). `docs/names/vocabulary.md`'s template hardcodes "none here" for longer names;
     it goes stale silently if a longer term is ever added — interpolate it.
+    **Done in `8054807`**; the regenerated files were byte-identical.
 
   *From the docblock audit*:
   - **Fix** (Andreas, 2026-11-17). The three refusal messages in the next item.
+    **Done in `61c4d80`.**
   - **Fix** (Andreas, 2026-11-17). `TibetanName`'s provenance (`src/types.ts`) names Janson, Csoma and the two
     converters for the rabjung Tibetan names but not THL, which supplies the phonetics.
+    **Done in `dd311c5`**, with the vocabulary sentence beside it, which omitted THL the same way.
   - **Fix** (Andreas, 2026-11-17). `nextFullMoon` and `nextNewMoon` (`src/navigation.ts`) state where their
     2,500-lunation sample starts (Tibetan 2000, 1873 CE) but not where it ends (about 2075 CE).
+    **Done in `dd311c5`**: it ends at 2202 M02 (2075 CE), and `test/navigation.test.ts` now asserts
+    both ends and the 57 and 58 the docblocks quote.
   - **Fix** (Andreas, 2026-11-17). Over-long or joined lines: `src/computation/calendar.ts`'s `//` block near
     `lastMonthCountOfYear` (118 characters); `docs/architecture.md`'s "Why year-level naming" holds
     two sentences on one line; the long comment above the moon test in `test/navigation.test.ts`.
+    **Done in `dd311c5`.** The `calendar.ts` line was in a docblock, not a `//` block.
   - **Fix** (Andreas, 2026-11-17). `check:conventions` rule 17 starts an `@example` block on any line mentioning
     `@example`, and ends one on any `@`-line such as `@ts-expect-error`; anchor the start to a tag
     line and end only on known TSDoc tags, each with a `test:conventions` row.
+    **Done in `3c2f392`**, rows X14 and X15.
   - **Accepted** (Andreas, 2026-11-17) — documented as a ratchet: rule 17 also lets through a date after a stray
     backtick, in a fence outside `@example`, or split across a line wrap.
   - **Accepted** (Andreas, 2026-11-17) — message text, not contract: rule 18 gives "a stray opener above it"
@@ -1146,7 +1170,7 @@ that its first step is still open.
          or table number.
       6. Only then, prose quality and consistency of voice.
 
-- [ ] **Three refusal messages that misdescribe their own check — found by the docblock audit,
+- [x] **Three refusal messages that misdescribe their own check — found by the docblock audit,
       deliberately not fixed on its comments-only branch, because each is a string literal and
       changing one is a code change.** Messages are not contract, but each is read by a consumer.
       1. **`MANSION_ELEMENTS`'s `assertInternal` message** in `src/astrology/mansion-elements.ts`
@@ -1182,6 +1206,10 @@ that its first step is still open.
          Both should open with the caller's name as the other refusals do.
          Reproduce with `asPlainDate(Temporal.PlainDate.from("2007-01-01").withCalendar("hebrew"),
          "f(x)")` and `asWesternDay("f", "junk")` against a build.
+      **Done in `61c4d80` (2026-11-18).** The mansion message says what the counts catch and what pins
+      Abhijit; the `meanDate` refusal claims the relation only of the Phugpa and other modern versions;
+      and every refusal `asPlainDate` raises, the non-ISO one included, opens with its subject, as does
+      `asWesternDay`'s for an unreadable string. `isoToTibetan` and `julianDayFromIso` pass no subject.
 
 - [x] **Decided: `name` is a required field on `Rabjung`.** Free now at `0.0.1`, a breaking change
       after `1.0.0`, and approved on its own against the real, fully-sourced table rather than as a
@@ -1946,6 +1974,8 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
       `monthFromLunation`, `weekdayNameFor` and the closed-form year functions take a number and no
       shape, so the shape-first order says nothing about them, and they are outside this decision:
       `monthFromLunation` checks the tradition before its number, the other two the number first.
+      **Superseded on 2026-11-18** (`52d16cf`): every bare-number export now checks the tradition
+      first, under the parked finding "tradition first, everywhere".
       `isoToTibetan` was missed by that change, which counted fourteen exports and not fifteen: it
       checked the tradition before its Western date until a review found it, and now has its row in
       the same table.

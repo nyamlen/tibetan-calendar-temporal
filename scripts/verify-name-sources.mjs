@@ -45,8 +45,10 @@
  * Phonetics come from THL's own converter, which is the standard's publisher, in its "Words
  * separated by" mode through `scripts/thl.mjs`. A two-syllable name is one word, so THL joins it
  * (`spen pa` is *penpa*); a name of three syllables or more needs a ruling in
- * `scripts/word-boundaries.data.json`, and none of these terms is that long. Each word of a
- * multi-syllable term must also be a headword in an accepted dictionary, or the run refuses.
+ * `scripts/word-boundaries.data.json`, and the generated `vocabulary.md` says how many terms here
+ * are that long.
+ * Each word of a multi-syllable term must also be a headword in an accepted dictionary, or the run
+ * refuses.
  *
  * ## Why this is not on the CI path
  *
@@ -67,6 +69,7 @@ import {
 	loadBoundaries,
 	phoneticsFor,
 	provePredicates as proveThlPredicates,
+	syllablesOf,
 } from "./thl.mjs";
 
 const source = process.argv[2];
@@ -423,6 +426,14 @@ ${weekdays.map((d) => `\t{ key: ${quote(d.key)}, english: ${quote(d.english)}, p
 `,
 );
 
+// Counted rather than written down, so a longer term added to the source changes the sentence that
+// describes it instead of leaving it saying "none".
+const longer = terms.filter((t) => syllablesOf(t.wylie).length > 2);
+const longerNote =
+	longer.length === 0
+		? "none here"
+		: `${longer.length} here: ${longer.map((t) => `\`${t.wylie}\``).join(", ")}`;
+
 const docRow = (t) => `| \`${t.key}\` | ${t.tibetan} | \`${t.wylie}\` | *${t.phonetic}* |`;
 writeFileSync(
 	join(root, "docs", "names", "vocabulary.md"),
@@ -437,7 +448,7 @@ this file.
 |---|---|---|
 | Wylie | Janson's day-of-week table and his ten- and twelve-year cycle tables | **Sourced**, extracted mechanically |
 | Tibetan | \`jsewts\` and \`tibetan-ewts-converter\`, required to agree | **Derived**, by two independent implementations |
-| Phonetic | THL Simplified Phonetic Transcription, from THL's own converter in its "Words separated by" mode: a two-syllable name is one word and is joined, longer names per \`scripts/word-boundaries.data.json\` (none here) | **Sourced** |
+| Phonetic | THL Simplified Phonetic Transcription, from THL's own converter in its "Words separated by" mode: a two-syllable name is one word and is joined, longer names per \`scripts/word-boundaries.data.json\` (${longerNote}) | **Sourced** |
 | Planet, element, English | Janson's day-of-week table | **Sourced** |
 
 ## What each row survived

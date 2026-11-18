@@ -15,7 +15,7 @@ import {
 	sharesNumberWithLeapMonth,
 	trueMonthCount,
 } from "../computation/calendar.js";
-import { julianDayFromIso } from "../computation/conversion.js";
+import { julianDayFromIsoUnchecked } from "../computation/conversion.js";
 import { royalEraFromYear } from "../computation/epoch.js";
 import type { ScaledTradition } from "../computation/scaling.js";
 import { codedError } from "../errors.js";
@@ -321,7 +321,7 @@ export function westernOccurrences(
 		if (Temporal.PlainDate.from({ year, month: when.month, day: 1 }).daysInMonth < when.day)
 			continue;
 		const date = Temporal.PlainDate.from({ year, month: when.month, day: when.day });
-		found.push({ julianDay: julianDayFromIso(date), resolution: "exact" });
+		found.push({ julianDay: julianDayFromIsoUnchecked(date), resolution: "exact" });
 	}
 	return found;
 }

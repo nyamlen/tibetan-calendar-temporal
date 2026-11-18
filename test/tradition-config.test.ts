@@ -459,6 +459,10 @@ describe("values the arithmetic cannot take", () => {
 		const error = thrownBy(() => isoToTibetan(iso("2026-01-01"), broken({ meanDate })));
 		expect(error?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
 		expect(error?.message).toContain("meanDate.perMonth");
+		// Janson's original Kālacakra version does not satisfy the relation, so the message must not
+		// claim it of every version.
+		expect(error?.message).toContain("Phugpa");
+		expect(error?.message).not.toContain("every version");
 		// The same rational over another denominator is the same relation and is accepted.
 		const same = {
 			...PHUGPA.meanDate,

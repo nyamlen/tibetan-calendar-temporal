@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
 	attributesFor,
 	calendarDayAttributesFor,
@@ -7,6 +7,7 @@ import {
 	lunarMansionFor,
 	monthAttributesFor,
 } from "../src/astrology/index.js";
+import { asPlainDate } from "../src/computation/conversion.js";
 import {
 	addDays,
 	addMonths,
@@ -278,6 +279,100 @@ describe("non-ISO calendars", () => {
 		// Normalising via from({ year, month, day }) would land in 5784 CE. The ISO day is what
 		// toString() and withCalendar("iso8601") both preserve.
 		expect(hebrew.withCalendar("iso8601").toString()).toBe(ISO);
+	});
+});
+
+describe("a date the engine made is not copied again", () => {
+	// The copy belongs at the caller's boundary. The engine's own loops hold Julian days and dates it
+	// built itself, so routing them back through the public guard copied every computed day twice:
+	// about 10-15% of an observance query, recorded in bench/RESULTS.md.
+	const copiesDuring = (run: () => unknown): number => {
+		const spy = vi.spyOn(Temporal.PlainDate, "from");
+		try {
+			run();
+			return spy.mock.calls.length;
+		} finally {
+			spy.mockRestore();
+		}
+	};
+
+	it("datesFor copies nothing", () => {
+		expect(copiesDuring(() => datesFor({ year: 2151, month: 6 }))).toBe(0);
+	});
+
+	it("getObservances copies its two ends, however many days it walks", () => {
+		const from = Temporal.PlainDate.from("2026-01-01");
+		const month = copiesDuring(() =>
+			getObservances(from, Temporal.PlainDate.from("2026-01-31"), EXAMPLE_OBSERVANCES),
+		);
+		const year = copiesDuring(() =>
+			getObservances(from, Temporal.PlainDate.from("2026-12-31"), EXAMPLE_OBSERVANCES),
+		);
+		expect(year).toBe(month);
+	});
+});
+
+describe("a native subclass is read from its slots", () => {
+	// A subclass of this realm's PlainDate passes every brand check, so before the copy each later
+	// read of it — `since` in julianDayFromIso, `year` in getObservances' span cap, `calendarId` in the
+	// ISO check — was the caller's answer rather than the date's.
+	class LyingSince extends Temporal.PlainDate {
+		override since(): Temporal.Duration {
+			return Temporal.Duration.from({ days: 0 });
+		}
+	}
+	class LyingCalendar extends Temporal.PlainDate {
+		override get calendarId(): string {
+			return "iso8601";
+		}
+	}
+
+	it("answers for the date, not for an overridden since", () => {
+		const lying = isoToTibetan(new LyingSince(2024, 7, 9));
+		const honest = isoToTibetan(NATIVE);
+		expect([lying.year, lying.monthCode, lying.day, lying.isoDate.toString()]).toEqual([
+			honest.year,
+			honest.monthCode,
+			honest.day,
+			ISO,
+		]);
+		expect([honest.year, honest.monthCode]).toEqual([2151, "M06L"]);
+	});
+
+	it("refuses a non-ISO date whose calendarId getter claims ISO", () => {
+		expect(codeOf(() => isoToTibetan(new LyingCalendar(2024, 7, 9, "hebrew")))).toBe(
+			"TCT_INVALID_ARGUMENT",
+		);
+	});
+
+	it("hands the engine a plain Temporal.PlainDate, never the caller's subclass", () => {
+		// Compared as a boolean: Vitest's diff of two prototypes calls a Temporal method on one.
+		const prototype = Object.getPrototypeOf(asPlainDate(new LyingSince(2024, 7, 9)));
+		expect(prototype === Temporal.PlainDate.prototype).toBe(true);
+	});
+
+	// Copying alone is not enough: `Temporal.PlainDate.from` on a forwarding Proxy, which passes
+	// `instanceof`, reads its fields rather than its slots, and a Tishrei date's fields read as ISO
+	// 5785-01-03. The calendar must be read through the intrinsic getter first.
+	const forwardingProxy = (target: Temporal.PlainDate) =>
+		new Proxy(target, {
+			get: (inner, key) => {
+				const value = Reflect.get(inner, key, inner);
+				return typeof value === "function" ? value.bind(inner) : value;
+			},
+		});
+
+	it("refuses a forwarding Proxy around a non-ISO date rather than reading its fields", () => {
+		const tishrei = Temporal.PlainDate.from("2024-10-05").withCalendar("hebrew");
+		expect(codeOf(() => isoToTibetan(forwardingProxy(tishrei)))).toBe("TCT_INVALID_ARGUMENT");
+	});
+
+	// Accepted until the copy, which read the Proxy itself on every later call. A Proxy carries no
+	// slot, so only the date it wraps can be trusted, and the message says what to pass instead.
+	it("refuses a forwarding Proxy around an ISO date too, naming it as a Proxy", () => {
+		const error = thrownBy(() => isoToTibetan(forwardingProxy(NATIVE)));
+		expect(error?.code).toBe("TCT_INVALID_ARGUMENT");
+		expect(error?.message).toContain("a Proxy around one");
 	});
 });
 

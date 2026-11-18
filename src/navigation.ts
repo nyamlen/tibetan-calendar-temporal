@@ -33,11 +33,10 @@ import {
 import {
 	assertExactJulianDay,
 	asWesternDay,
-	isoFromJulianDayUnchecked,
-	isoToTibetan,
-	julianDayFromIso,
+	julianDayFromIsoUnchecked,
 	julianDayOfFields,
 	monthCountFor,
+	tibetanFromJulianDay,
 } from "./computation/conversion.js";
 import { julianDayOfLunarDay } from "./computation/corrections.js";
 import { royalEraFromYear } from "./computation/epoch.js";
@@ -319,7 +318,7 @@ export function addDays(
 	// need not be: Julian-day arithmetic walks straight out of it. Without this the conversion below
 	// would either throw uncoded from Temporal or answer from degraded arithmetic.
 	assertExactJulianDay(scaled, target, () => `addDays(…, ${days})`);
-	return isoToTibetan(isoFromJulianDayUnchecked(target), tradition);
+	return tibetanFromJulianDay(target, tradition);
 }
 
 /**
@@ -365,10 +364,7 @@ export function resolveDate(
 	const fields = assertTibetanShape("resolveDate", date, "date");
 	tradition = validatedTradition(tradition);
 	const subject = assertTibetanRanges("resolveDate", fields, "date");
-	return isoToTibetan(
-		isoFromJulianDayUnchecked(julianDayOfFields(subject, tradition, fields)),
-		tradition,
-	);
+	return tibetanFromJulianDay(julianDayOfFields(subject, tradition, fields), tradition);
 }
 
 /**
@@ -513,8 +509,8 @@ export function addMonthsToDate(
 	// change which failure that call names.
 	// Resolved, not read off `date`: a leap flag on a day that is not doubled is ignored there, so
 	// only the resolved start says whether it is the leap half of a doubled pair.
-	const startsOnLeapHalf = isoToTibetan(
-		isoFromJulianDayUnchecked(julianDayOfFields(subject, tradition, fields)),
+	const startsOnLeapHalf = tibetanFromJulianDay(
+		julianDayOfFields(subject, tradition, fields),
 		tradition,
 	).isLeapDay;
 
@@ -653,17 +649,17 @@ function nextPhase(
 	const from = phaseStart(name, date);
 	const scaled = scalingFor(tradition);
 	tradition = scaled.tradition;
-	const target = julianDayFromIso(from);
+	const target = julianDayFromIsoUnchecked(from);
 	assertExactJulianDay(scaled, target, () => `${name}(${from.toString()})`);
 
-	let lunation = isoToTibetan(from, tradition).lunation;
+	let lunation = tibetanFromJulianDay(target, tradition).lunation;
 	let julianDay = julianDayOfLunarDay(scaled, lunarDay, lunation);
 	if (julianDay <= target) {
 		lunation += 1;
 		julianDay = julianDayOfLunarDay(scaled, lunarDay, lunation);
 	}
 	assertExactJulianDay(scaled, julianDay, () => `${name}(${from.toString()})`);
-	return isoToTibetan(isoFromJulianDayUnchecked(julianDay), tradition);
+	return tibetanFromJulianDay(julianDay, tradition);
 }
 
 /**
@@ -673,7 +669,8 @@ function nextPhase(
  * **Do not test for this with `day === 15`.** The full moon is the *end* of the fifteenth lunar
  * day, and when the number 15 is skipped that instant falls on the day numbered 14 — so the naive
  * check misses the full moon entirely in those months, silently. Under `PHUGPA`, 57 of the 2,500
- * lunations from month 1 of Tibetan 2000 (1873 CE) do this: about one month in forty-four.
+ * lunations from month 1 of Tibetan 2000 (1873 CE) to month 2 of 2202 (2075 CE) do this: about one
+ * month in forty-four.
  * `2026-12-23` is one, carrying the full moon of 2153 M11 on the day numbered 14.
  * {@link TibetanDate.isFullMoon} is derived correctly and is what to read when you already have a
  * date.
@@ -713,7 +710,8 @@ export function nextFullMoon(
  * The new moon ends lunar day 30 and so ends the month. Two reasons not to test the number: when 30
  * is **doubled** the instant falls on the *second* of the pair rather than on the leap day, and
  * when 30 is **skipped** it falls on the day numbered 29. Under `PHUGPA`, 58 of the 2,500 lunations
- * from month 1 of Tibetan 2000 (1873 CE) do that, `2025-02-27` among them.
+ * from month 1 of Tibetan 2000 (1873 CE) to month 2 of 2202 (2075 CE) do that, `2025-02-27` among
+ * them.
  * {@link TibetanDate.isNewMoon} is the field form.
  *
  * @throws The codes {@link nextFullMoon} throws.

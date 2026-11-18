@@ -238,6 +238,19 @@ describe("observance resolution", () => {
 		expect(thrownBy(span("0001-01-01", "9999-12-31"))?.code).toBe("TCT_SPAN_TOO_WIDE");
 	});
 
+	it("caps the span by the dates, not by a subclass's year getter", () => {
+		class LyingYear extends Temporal.PlainDate {
+			override get year(): number {
+				return 2024;
+			}
+		}
+		const error = thrownBy(() =>
+			getObservances(new LyingYear(2000, 1, 1), new LyingYear(2030, 1, 1), EXAMPLE_OBSERVANCES),
+		);
+		expect(error?.code).toBe("TCT_SPAN_TOO_WIDE");
+		expect(error?.message).toContain("(30 years)");
+	});
+
 	// The rule applied is on calendar years, `to.year - from.year <= 10`, and not on elapsed time:
 	// a range may touch eleven calendar years and run almost eleven years, and a range of a few days
 	// is refused if it starts in one year and ends eleven later.

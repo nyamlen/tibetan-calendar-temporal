@@ -288,9 +288,11 @@ export interface SanskritName {
  * Every shipped value is checked against sources by a verification script, and the evidence for
  * each family is in `docs/names/`. For the weekday, element, gender and animal vocabulary, two
  * independent EWTS implementations must agree on the script, it must read back as the same Wylie,
- * and English Wiktionary must have an entry at exactly that title — see [`docs/names/vocabulary.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/vocabulary.md).
+ * and English Wiktionary must have an entry at exactly that title; the phonetic comes from THL's
+ * own converter — see [`docs/names/vocabulary.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/vocabulary.md).
  * The sixty rabjung Tibetan names rest on Janson's Wylie, Csoma de Kőrös' grammar and the two
- * EWTS converters, checked by `verify:rabjung-names` — see [`docs/names/rabjung.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/rabjung.md) and
+ * EWTS converters, and their phonetics on THL's converter, checked by `verify:rabjung-names` —
+ * see [`docs/names/rabjung.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/rabjung.md) and
  * [`docs/names/rabjung-sourcing.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/rabjung-sourcing.md).
  *
  * Instances are **shared and frozen**.

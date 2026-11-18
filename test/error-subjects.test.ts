@@ -15,11 +15,17 @@ import {
 	daysInMonth,
 	formatTibetanDate,
 	formatTibetanMonth,
+	hasLeapMonth,
+	isoFromJulianDay,
 	isoToTibetan,
 	leapMonthNumberFor,
+	losarFor,
 	lunationFromMonth,
+	monthFromLunation,
 	monthNamesFor,
 	monthsBetween,
+	monthsFor,
+	monthsInYear,
 	nextFullMoon,
 	nextNewMoon,
 	PHUGPA,
@@ -31,6 +37,7 @@ import {
 	type TraditionConfig,
 	tibetanDateExists,
 	tibetanToIso,
+	weekdayNameFor,
 } from "../src/index.js";
 import {
 	composeObservances,
@@ -562,14 +569,63 @@ describe("which error a doubly-bad call reports", () => {
 	it.each([
 		["resolveMonth", (v: never) => resolveMonth(v, brokenTradition)],
 		["datesFor", (v: never) => datesFor(v, brokenTradition)],
+		["monthNamesFor", (v: never) => monthNamesFor(v, brokenTradition)],
 	] as const)("%s reports the shape, then the tradition, then the range", (_label, call) => {
 		expect(codeOf(() => call(null as never))).toBe("TCT_INVALID_ARGUMENT");
 		expect(codeOf(() => call(month13 as never))).toBe("TCT_INVALID_TRADITION_CONFIG");
 	});
 
+	// A bare number has no shape, so the order reduces to the tradition before the number. Until the
+	// parked cleanup batch, five of these checked the number first; the 2026-11-15 ruling had left
+	// them outside order B, and the 2026-11-17 one brought them in.
+	it.each([
+		["monthsFor", (v: never) => monthsFor(v, brokenTradition)],
+		["losarFor", (v: never) => losarFor(v, brokenTradition)],
+		["monthFromLunation", (v: never) => monthFromLunation(v, brokenTradition)],
+		["hasLeapMonth", (v: never) => hasLeapMonth(v, brokenTradition)],
+		["leapMonthNumberFor", (v: never) => leapMonthNumberFor(v, brokenTradition)],
+		["monthsInYear", (v: never) => monthsInYear(v, brokenTradition)],
+		["weekdayNameFor", (v: never) => weekdayNameFor(v, brokenTradition)],
+		["isoFromJulianDay", (v: never) => isoFromJulianDay(v, brokenTradition)],
+	] as const)("%s reports the tradition before its number", (_label, call) => {
+		expect(codeOf(() => call(1.5 as never))).toBe("TCT_INVALID_TRADITION_CONFIG");
+		expect(codeOf(() => call("x" as never))).toBe("TCT_INVALID_TRADITION_CONFIG");
+	});
+
+	// A count beside a month or date is a value, not a shape, so the tradition comes before it.
+	it.each([
+		["addMonths", () => addMonths(month({}), 1.5, brokenTradition)],
+		["addDays", () => addDays(date({}), 1.5, brokenTradition)],
+		["addMonthsToDate", () => addMonthsToDate(date({}), 1.5, { tradition: brokenTradition })],
+	] as const)("%s reports the tradition before its count", (_label, call) => {
+		expect(codeOf(call)).toBe("TCT_INVALID_TRADITION_CONFIG");
+	});
+
+	// With a valid tradition a bad bare number keeps the range code, a non-number included: the
+	// deliberate exception in the argument-errors record.
+	it.each([
+		["monthsFor", (v: never) => monthsFor(v)],
+		["losarFor", (v: never) => losarFor(v)],
+		["monthFromLunation", (v: never) => monthFromLunation(v)],
+		["hasLeapMonth", (v: never) => hasLeapMonth(v)],
+		["leapMonthNumberFor", (v: never) => leapMonthNumberFor(v)],
+		["monthsInYear", (v: never) => monthsInYear(v)],
+		["weekdayNameFor", (v: never) => weekdayNameFor(v)],
+		["isoFromJulianDay", (v: never) => isoFromJulianDay(v)],
+	] as const)(
+		"%s, under a valid tradition, still reports a wrong number as a range",
+		(_label, call) => {
+			expect(codeOf(() => call(1.5 as never))).toBe("TCT_FIELD_OUT_OF_RANGE");
+			expect(codeOf(() => call("x" as never))).toBe("TCT_FIELD_OUT_OF_RANGE");
+		},
+	);
+
 	// Order B is load-bearing here: were the range checked before the tradition, the allowlist would
 	// swallow the range error and report a broken config as a date that does not exist.
 	it("tibetanDateExists reports a broken tradition rather than answering false", () => {
+		expect(codeOf(() => tibetanDateExists(null as never, brokenTradition))).toBe(
+			"TCT_INVALID_ARGUMENT",
+		);
 		expect(codeOf(() => tibetanDateExists(date13, brokenTradition))).toBe(
 			"TCT_INVALID_TRADITION_CONFIG",
 		);
@@ -638,6 +694,50 @@ describe("nextObservance names itself, not getObservances", () => {
 		expect(error?.code).toBe("TCT_INVALID_ARGUMENT");
 		expect(error?.message).toMatch(opening("nextObservance(ruleId): "));
 		expect(error?.message).not.toMatch(/getObservances/);
+	});
+});
+
+describe("a Western date's refusal opens with the caller's name", () => {
+	// Until the parked cleanup batch these two refusals named no caller: the calendar one was built
+	// by assertIsoCalendar, and asWesternDay passed no subject to asPlainDate for a string.
+	const day = Temporal.PlainDate.from("2026-01-01");
+	const hebrew = Temporal.PlainDate.from("2007-01-01").withCalendar("hebrew");
+	it.each([
+		["a Hebrew-calendar PlainDate", () => getObservances(hebrew, day, EXAMPLE_OBSERVANCES)],
+		[
+			"an ISO string carrying a Hebrew calendar",
+			() => getObservances("2007-01-01[u-ca=hebrew]" as never, day, EXAMPLE_OBSERVANCES),
+		],
+	] as const)("getObservances, given %s", (_label, call) => {
+		const error = thrownBy(call);
+		expect(error?.code).toBe("TCT_INVALID_ARGUMENT");
+		expect(error?.message.startsWith("getObservances(from): ")).toBe(true);
+	});
+
+	it("nextFullMoon, given a string Temporal cannot read", () => {
+		const error = thrownBy(() => nextFullMoon("junk" as never));
+		expect(error?.code).toBe("TCT_INVALID_ARGUMENT");
+		expect(error?.message.startsWith("nextFullMoon: ")).toBe(true);
+	});
+
+	it("nextFullMoon, given a Hebrew-calendar PlainDate", () => {
+		expect(thrownBy(() => nextFullMoon(hebrew))?.message.startsWith("nextFullMoon: ")).toBe(true);
+	});
+
+	// A revoked Proxy's type cannot even be read, and that refusal is built before any other.
+	const revoked = (() => {
+		const { proxy, revoke } = Proxy.revocable({}, {});
+		revoke();
+		return proxy;
+	})();
+	it.each([
+		["getObservances(from): ", () => getObservances(revoked as never, day, EXAMPLE_OBSERVANCES)],
+		["nextFullMoon: ", () => nextFullMoon(revoked as never)],
+		["nextFullMoon: ", () => nextFullMoon({ isoDate: revoked } as never)],
+	] as const)("a value whose type cannot be read opens with %s", (prefix, call) => {
+		const error = thrownBy(call);
+		expect(error?.code).toBe("TCT_INVALID_ARGUMENT");
+		expect(error?.message.startsWith(prefix)).toBe(true);
 	});
 });
 

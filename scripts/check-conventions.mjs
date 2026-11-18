@@ -454,18 +454,50 @@ const docblocksOf = (source) => {
  * Rule 17 — the ISO dates in docblock prose, `{ line, text }` with `line` 1-based.
  *
  * Prose is what a docblock says outside backtick code spans (a span may run over several lines)
- * and outside an `@example`, which runs to the next tag. A ratchet against ISO-dated history,
+ * and outside an `@example`, which starts at a line opening with the `@example` tag and runs to the
+ * next line opening with a TSDoc block or modifier tag, so a mention of `@example` in a sentence, or
+ * a `@ts-expect-error` inside the example, moves neither edge. A ratchet against ISO-dated history,
  * which belongs in a commit message: `20\d\d-\d\d-\d\d` only, so "used to" and "until" history, and
  * a date in another century, pass it.
  */
+// The TSDoc standard block and modifier tags. Inline tags such as `@link` never open a line, and an
+// unknown `@`-word inside an example (`@ts-expect-error`, a decorator) is example text.
+const TSDOC_BLOCK_TAGS = new Set([
+	"alpha",
+	"beta",
+	"decorator",
+	"defaultValue",
+	"deprecated",
+	"eventProperty",
+	"example",
+	"experimental",
+	"inheritDoc",
+	"internal",
+	"label",
+	"override",
+	"packageDocumentation",
+	"param",
+	"privateRemarks",
+	"public",
+	"readonly",
+	"remarks",
+	"returns",
+	"sealed",
+	"see",
+	"throws",
+	"typeParam",
+	"virtual",
+]);
+
 const docblockDates = (source) => {
 	const out = [];
 	for (const { start, lines } of docblocksOf(source)) {
 		let inExample = false;
 		let inSpan = false;
 		lines.forEach((raw, offset) => {
-			if (/@example\b/.test(raw)) inExample = true;
-			else if (/^\s*\*\s*@[a-z]/.test(raw)) inExample = false;
+			const tag = /^\s*\*\s*@(\w+)/.exec(raw)?.[1];
+			if (tag === "example") inExample = true;
+			else if (tag !== undefined && TSDOC_BLOCK_TAGS.has(tag)) inExample = false;
 			if (inExample) {
 				inSpan = false;
 				return;
@@ -1195,12 +1227,18 @@ function selfTest() {
 				"/** A link target [record](https://example.invalid/2026-01-01-x.md) is a filename. */",
 				"/** But a label [2026-01-02](https://example.invalid/x) is prose. */",
 				"/** And so is a bracket that is no target [x](changed 2026-01-03). */",
+				"/**",
+				" * As the @example below shows, 2026-01-04 is prose.",
+				" * @example",
+				" * @ts-expect-error",
+				" * f(); // 2026-01-05",
+				" */",
 			].join("\n"),
 		)
 			.map(({ line }) => line)
 			.join(","),
-		"2,5,8,13,14",
-		"only a date outside a code span, an @example block and a link target is refused (lines 2, 5, 8, 13); a span over two lines, a // comment, another century and a dated filename in a link's URL are not.",
+		"2,5,8,13,14,16",
+		"only a date outside a code span, an @example block and a link target is refused (lines 2, 5, 8, 13, 14, 16); a span over two lines, a // comment, another century, a dated filename in a link's URL and an example line after an unknown @-word are not. An @example starts only at its tag, so a mention mid-sentence (line 16) is prose.",
 	);
 
 	// --- Rule 18's swallow: a stray opener above `//` lines, and a clean docblock beside it. ---
