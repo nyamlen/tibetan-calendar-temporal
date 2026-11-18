@@ -501,7 +501,7 @@ that its first step is still open.
   *yongdzin* by the nasal policy, and *lo-ngen*, which is no nasal-rule case but a reading ruling.
   *senchang*, *nyönden*, *kündzin*, *künden* and the season months stand as THL gives them, and
   *dongngen* is a plain join left as THL gives it.
-- [ ] **Small findings parked by the pre-1.0.0 reviews — one list, each with a decision.**
+- [x] **Small findings parked by the pre-1.0.0 reviews — one list, each with a decision.**
   The code review (2026-11-15), the phonetics-by-word reviews (2026-11-15) and the docblock audit
   (2026-11-17) each found small defects they did not fix on their own branch.
   Every one is here, marked **fix** (done in one cleanup batch after the navigator build and before
@@ -509,6 +509,9 @@ that its first step is still open.
   Andreas ruled on every entry on 2026-11-17.
   Limits of throwaway plan tooling that never ships, such as the audit's lost-text script, are not
   tracked here.
+  **Every Fix entry was done in the cleanup batch, merged as `1417e1b` on 2026-11-18.**
+  A later review that parks a finding adds it here and unticks this item until it is decided and,
+  if marked fix, done.
 
   *From the code review*, each scored below 80 by an independent scorer; the full text is in the
   review's plans, not in this repository:
