@@ -569,6 +569,7 @@ describe("which error a doubly-bad call reports", () => {
 	it.each([
 		["resolveMonth", (v: never) => resolveMonth(v, brokenTradition)],
 		["datesFor", (v: never) => datesFor(v, brokenTradition)],
+		["monthNamesFor", (v: never) => monthNamesFor(v, brokenTradition)],
 	] as const)("%s reports the shape, then the tradition, then the range", (_label, call) => {
 		expect(codeOf(() => call(null as never))).toBe("TCT_INVALID_ARGUMENT");
 		expect(codeOf(() => call(month13 as never))).toBe("TCT_INVALID_TRADITION_CONFIG");
@@ -591,6 +592,15 @@ describe("which error a doubly-bad call reports", () => {
 		expect(codeOf(() => call("x" as never))).toBe("TCT_INVALID_TRADITION_CONFIG");
 	});
 
+	// A count beside a month or date is a value, not a shape, so the tradition comes before it.
+	it.each([
+		["addMonths", () => addMonths(month({}), 1.5, brokenTradition)],
+		["addDays", () => addDays(date({}), 1.5, brokenTradition)],
+		["addMonthsToDate", () => addMonthsToDate(date({}), 1.5, { tradition: brokenTradition })],
+	] as const)("%s reports the tradition before its count", (_label, call) => {
+		expect(codeOf(call)).toBe("TCT_INVALID_TRADITION_CONFIG");
+	});
+
 	// With a valid tradition a bad bare number keeps the range code, a non-number included: the
 	// deliberate exception in the argument-errors record.
 	it("a bare number that is wrong, under a valid tradition, still reports the range", () => {
@@ -601,6 +611,9 @@ describe("which error a doubly-bad call reports", () => {
 	// Order B is load-bearing here: were the range checked before the tradition, the allowlist would
 	// swallow the range error and report a broken config as a date that does not exist.
 	it("tibetanDateExists reports a broken tradition rather than answering false", () => {
+		expect(codeOf(() => tibetanDateExists(null as never, brokenTradition))).toBe(
+			"TCT_INVALID_ARGUMENT",
+		);
 		expect(codeOf(() => tibetanDateExists(date13, brokenTradition))).toBe(
 			"TCT_INVALID_TRADITION_CONFIG",
 		);

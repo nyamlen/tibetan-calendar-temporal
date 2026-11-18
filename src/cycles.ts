@@ -133,7 +133,7 @@ export function rabjungFor(year: number): Rabjung {
  *
  * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `weekday` is not an integer in 0–6, a
  * value that is not a number included; `TCT_INVALID_TRADITION_CONFIG` if `tradition` is not a valid
- * config. The weekday is checked first.
+ * config. The tradition is checked first.
  *
  * @example
  * ```ts
