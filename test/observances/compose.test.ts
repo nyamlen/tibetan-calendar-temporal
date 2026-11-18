@@ -575,21 +575,92 @@ describe("composeObservances: conventions", () => {
 		return () => (reads++ === 0 ? first : then);
 	};
 
-	it("reads an entry's id once, so the rule checked is the rule changed", () => {
+	// The engine checks a private copy and applies only that copy, so a getter answering differently
+	// later can reach the result only as a value the checks have seen, never around them.
+	it("applies only an id the checks have seen, however the caller's getter answers later", () => {
 		const entry = { doubledDay: "first" };
-		Object.defineProperty(entry, "id", {
-			get: fickle("tara", "medicine-buddha"),
-			enumerable: true,
-		});
-		const result = withConventions([entry]);
-		expect(ruleIn(result, "tara").doubledDay).toBe("first");
-		expect(ruleIn(result, "medicine-buddha").doubledDay).toBe("both");
+		Object.defineProperty(entry, "id", { get: fickle("tara", "nope"), enumerable: true });
+		const error = thrownBy(() => withConventions([entry]));
+		expect(error?.code).toBe(INVALID);
+		expect(error?.message).toContain('conventions names "nope"');
 	});
 
-	it("reads a convention once, so the value checked is the value applied", () => {
+	it("applies only a convention the checks have seen, however the caller's getter answers later", () => {
 		const entry = { id: "tara" };
 		Object.defineProperty(entry, "doubledDay", { get: fickle("first", "third"), enumerable: true });
-		expect(ruleIn(withConventions([entry]), "tara").doubledDay).toBe("first");
+		const error = thrownBy(() => withConventions([entry]));
+		expect(error?.code).toBe(INVALID);
+		expect(error?.message).toContain("doubledDay");
+	});
+
+	it.each([
+		[
+			"an entry that is a Proxy with no traps",
+			() => [new Proxy({ id: "tara", doubledDay: "first" }, {})],
+		],
+		[
+			"conventions that is a Proxy with no traps",
+			() => new Proxy([{ id: "tara", doubledDay: "first" }], {}),
+		],
+	])("refuses %s, as every other part of a config does", (_label, conventions) => {
+		const error = thrownBy(() => withConventions(conventions()));
+		expect(error?.code).toBe(INVALID);
+		expect(error?.message).toContain("not plain data");
+	});
+
+	it("does not read a convention an entry only inherits", () => {
+		const entry = Object.assign(Object.create({ doubledDay: "first" }), { id: "tara" });
+		const error = thrownBy(() => withConventions([entry]));
+		expect(error?.code).toBe(INVALID);
+		expect(error?.message).toContain('conventions entry "tara" sets nothing');
+	});
+
+	it("changes a convention on a rule that carries none of its own, taking it out of the defaults", () => {
+		const result = withConventions([{ id: "chokhor-duchen", leapMonth: "regular" }], {
+			leapMonth: "leap",
+		});
+		expect(ruleIn(EXAMPLE_OBSERVANCES, "chokhor-duchen").leapMonth).toBeUndefined();
+		expect(ruleIn(result, "chokhor-duchen").leapMonth).toBe("regular");
+		const dates = getObservances(iso("2024-07-01"), iso("2024-08-31"), result)
+			.filter((o) => o.rule.id === "chokhor-duchen")
+			.map((o) => `${o.date.isoDate.toString()} ${o.resolution}`);
+		expect(dates).toEqual(["2024-08-08 exact"]);
+	});
+
+	it("leaves the layer's defaults reaching every rule the conventions do not name", () => {
+		const result = withConventions([{ id: "tara", doubledDay: "first" }], { doubledDay: "first" });
+		expect(result.doubledDay).toBe("first");
+		expect(ruleIn(result, "medicine-buddha").doubledDay).toBe("both");
+		expect(ruleIn(result, "chokhor-duchen").doubledDay).toBeUndefined();
+		const kopanDates = getObservances(iso("2024-07-01"), iso("2024-07-31"), result)
+			.filter((o) => o.rule.id === "chokhor-duchen")
+			.map((o) => o.date.isoDate.toString());
+		expect(kopanDates).toEqual(["2024-07-09"]);
+	});
+
+	it.each([
+		[
+			"an id the base lacks",
+			{ replace: [{ id: "nope", leapMonth: "regular" }] },
+			'replace names "nope"',
+		],
+		[
+			"an id also in conventions",
+			{ replace: [{ id: "tara" }], conventions: [{ id: "tara", doubledDay: "first" }] },
+			"appears 2 times, in replace and conventions",
+		],
+	])(
+		"refuses a partial replace with %s for that, before saying it is partial",
+		(_label, patch, fragment) => {
+			const error = thrownBy(() => composeObservances(EXAMPLE_OBSERVANCES, layer(patch)));
+			expect(error?.code).toBe(INVALID);
+			expect(error?.message).toContain(fragment);
+		},
+	);
+
+	it("names the layer whose key is unknown", () => {
+		const error = thrownBy(() => composeObservances(EXAMPLE_OBSERVANCES, layer({ adds: [] })));
+		expect(error?.message).toContain('composeObservances(layer "layer") has no key "adds"');
 	});
 
 	it("tells a partial replace that replace takes whole rules", () => {

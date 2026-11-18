@@ -495,11 +495,11 @@ function validateObservanceConfig(config: ObservanceConfig, caller: ObservanceCa
 		);
 	}
 	assertNotAnotherShape(config, caller);
-	assertKnownKeys(config, CONFIG_KEYS, "ObservanceConfig", CODE);
-
-	// `config.id` is interpolated into the messages below, so it is checked before they can quote it.
+	// `config.id` is interpolated into the messages below, so it is checked before they can quote it,
+	// the unknown-key refusal among them.
 	assertNonEmptyString(config.id, "observance config id");
 	const subject = `observance config "${config.id}"`;
+	assertKnownKeys(config, CONFIG_KEYS, subject, CODE);
 	assertNonEmptyString(config.englishName, `${subject}: englishName`);
 	assertOptionalTibetanName(config.tibetanName, `${subject}: tibetanName`);
 

@@ -908,6 +908,12 @@ describe("consumer config validation", () => {
 		expect(error?.message).toMatch(/^[^:]*observance rule "founding-day" has no key "levl"/);
 	});
 
+	it("names the config whose key is unknown", () => {
+		const error = thrownBy(() => run(withRule({}, { extra: 1 })));
+		expect(error?.code).toBe(CONFIG_CODE);
+		expect(error?.message).toContain('observance config "test" has no key "extra"');
+	});
+
 	it("names the level whose key is unknown", () => {
 		const error = thrownBy(() =>
 			run(withRule({}, { levels: [{ id: "lv", englishNam: "Level" }] })),
