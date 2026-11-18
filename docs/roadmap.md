@@ -152,8 +152,8 @@ The second is the one 1.0.0 freezes permanently, and no test in this repository 
 suite imports from `src/`, so none of them meets the package the way a consumer does.
 
 This **relaxes** the release rather than adding to it.
-The docblock audit below merges before the navigator build (agreed 2026-11-15); it merged on
-2026-11-17, so the navigator build, from a tarball packed from `main`, is next.
+The docblock audit below merged before the navigator build (agreed 2026-11-15), on 2026-11-17, and
+the navigator build ran blind the same day against a tarball packed from `main` at `61847df`.
 Docblocks reach the shipped `.d.ts` and are what editor hover shows, so a consumer reading them in an
 editor is a better signal of what is wrong than reading every block in sequence, and the client's
 friction list is the place to collect what it finds.
@@ -174,7 +174,13 @@ bodies name the findings they answer: `90a38ee`, `864f88e`, `6ae4b7e`, `6e5f30d`
 26 August, `aef049f` and `b47c853` on the 27th, and `fcfb4cd` and `409fc09` on
 2026-09-22 for the four claims the verdict pass found still live. The browser client's list is the
 fourth, and it comes in two halves: the polyfill probe's, verdicted on 2026-09-23, and the
-navigator's, still to come. The gate does not close until the second half is verdicted too.
+navigator's, verdicted on 2026-11-18. The navigator's findings were answered in `8ebf6ea`,
+`2f9aa85`, `c361f33`, `2ccf9da`, `8bd0356`, `7b8f7fc`, `0d60ef5`, `46938af` and `1d24a74`, whose
+bodies name them, among them one *change the API*: the `conventions` key on `ObservanceLayer`.
+**Three rows stay pending**: the README banner and the package description, which change in the
+release commit (the item *Remove the placeholder banner from `README.md`*), and one in the private
+client repository's own instructions, due before any future blind run. The gate closes when they
+are discharged.
 
 **What the 18 turned out to be — 2026-09-22.** Sixteen of them had been answered on 26–27 August, by
 commits naming the spike's finding numbers in their own bodies. The ledger had been compiled from
@@ -194,9 +200,10 @@ blocked rather than unexamined.
    were fixed in `012468a`..`48cf255`, every other finding was verdicted and the documentation ones
    fixed in `d719dba`..`44c222b`, and the probe was re-run against `48cf255` with the same hash —
    see `docs/testing.md`, *Under a polyfill*. Verdicts in `nyamlen`'s `VERDICTS.md`.
-3. **The navigator build** (`nyamlen`, blind) — does not.
-4. **The navigator's half of the browser client's friction list** — the probe's half is step 2 —
-   plus N10 once `./observances` moves.
+3. ~~The navigator build~~ **Done 2026-11-17** (`nyamlen`, blind, against `61847df`). It does not
+   gate the freeze.
+4. ~~The navigator's half of the browser client's friction list~~ **Verdicted and discharged
+   2026-11-18**, except the three rows above; see the gate paragraph for the commits.
 5. Freeze, then 1.0.0.
 
 **Why step 1 widened, because an order without its reason gets reordered.** It was written as
@@ -955,7 +962,9 @@ that its first step is still open.
       file alone changes nothing a consumer sees. Until that publish the banner is *accurate* — the
       published version really does export nothing — so removing it early would make the repository
       state the false half of the pair. The `description` in `package.json`, which still reads
-      "Pre-release placeholder — implementation in development", changes in the same commit
+      "Pre-release placeholder — implementation in development", changes in the same commit.
+      That commit discharges the navigator's friction 2, two rows of the private verdict ledger,
+      which Andreas ruled on 2026-11-18 land here rather than earlier
 - [x] Revisit `engines: ">=22"` — resolved to `">=26"`, plus a runtime guard.
 
       The old declaration said Node 22 was supported, so a Node 22 consumer installed the package
@@ -1760,8 +1769,8 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
       `docs/guide.md`, `docs/how-it-is-calculated.md` and `docs/why-trust-these-dates.md`, and none
       of the four cites one. Measured 2026-09-22.
 
-      **Do it in the pre-1.0.0 pass, not before**: the navigator's half of the fourth friction list will add citations, and
-      restating twice is waste. Each row verdicted on 2026-09-22 also cites an engine commit from
+      **Do it in the pre-1.0.0 pass, not before**: the navigator's half of the fourth friction list
+      added its citations on 2026-11-18, and restating twice is waste. Each row verdicted on 2026-09-22 also cites an engine commit from
       inside the private repository, which is why the two publishing options grow more expensive
       with time while this one does not The tarballs are a
       separate matter — they are deliberately untracked, so those two citations name commits that
