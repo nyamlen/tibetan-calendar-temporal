@@ -7,6 +7,7 @@ import {
 	lunarMansionFor,
 	monthAttributesFor,
 } from "../src/astrology/index.js";
+import { asPlainDate } from "../src/computation/conversion.js";
 import {
 	addDays,
 	addMonths,
@@ -278,6 +279,60 @@ describe("non-ISO calendars", () => {
 		// Normalising via from({ year, month, day }) would land in 5784 CE. The ISO day is what
 		// toString() and withCalendar("iso8601") both preserve.
 		expect(hebrew.withCalendar("iso8601").toString()).toBe(ISO);
+	});
+});
+
+describe("a native subclass is read from its slots", () => {
+	// A subclass of this realm's PlainDate passes every brand check, so before the copy each later
+	// read of it — `since` in julianDayFromIso, `year` in getObservances' span cap, `calendarId` in the
+	// ISO check — was the caller's answer rather than the date's.
+	class LyingSince extends Temporal.PlainDate {
+		override since(): Temporal.Duration {
+			return Temporal.Duration.from({ days: 0 });
+		}
+	}
+	class LyingCalendar extends Temporal.PlainDate {
+		override get calendarId(): string {
+			return "iso8601";
+		}
+	}
+
+	it("answers for the date, not for an overridden since", () => {
+		const lying = isoToTibetan(new LyingSince(2024, 7, 9));
+		const honest = isoToTibetan(NATIVE);
+		expect([lying.year, lying.monthCode, lying.day, lying.isoDate.toString()]).toEqual([
+			honest.year,
+			honest.monthCode,
+			honest.day,
+			ISO,
+		]);
+		expect([honest.year, honest.monthCode]).toEqual([2151, "M06L"]);
+	});
+
+	it("refuses a non-ISO date whose calendarId getter claims ISO", () => {
+		expect(codeOf(() => isoToTibetan(new LyingCalendar(2024, 7, 9, "hebrew")))).toBe(
+			"TCT_INVALID_ARGUMENT",
+		);
+	});
+
+	it("hands the engine a plain Temporal.PlainDate, never the caller's subclass", () => {
+		// Compared as a boolean: Vitest's diff of two prototypes calls a Temporal method on one.
+		const prototype = Object.getPrototypeOf(asPlainDate(new LyingSince(2024, 7, 9)));
+		expect(prototype === Temporal.PlainDate.prototype).toBe(true);
+	});
+
+	// Copying alone is not enough: `Temporal.PlainDate.from` on a forwarding Proxy, which passes
+	// `instanceof`, reads its fields rather than its slots, and a Tishrei date's fields read as ISO
+	// 5785-01-03. The calendar must be read through the intrinsic getter first.
+	it("refuses a forwarding Proxy around a non-ISO date rather than reading its fields", () => {
+		const tishrei = Temporal.PlainDate.from("2024-10-05").withCalendar("hebrew");
+		const forwarding = new Proxy(tishrei, {
+			get: (target, key) => {
+				const value = Reflect.get(target, key, target);
+				return typeof value === "function" ? value.bind(target) : value;
+			},
+		});
+		expect(codeOf(() => isoToTibetan(forwarding))).toBe("TCT_INVALID_ARGUMENT");
 	});
 });
 

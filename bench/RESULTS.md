@@ -192,6 +192,25 @@ beside eleven annual, five monthly and one period rule. The earlier 6.5 ms and 0
 `EXAMPLE_OBSERVANCES` measured it before it held the `counted` and `formula` rules, and are
 superseded.
 
+## The `PlainDate` copy, 2026-11-18
+
+A Western date is now copied into a plain `Temporal.PlainDate` before the engine reads it, so a
+subclass's overridden `since` or `year` cannot answer for it.
+The copy runs on every call taking a Western date, and twice inside `isoToTibetan`.
+Measured on the 2026-11-14 harness above (same machine, Node v26.11.1, Vitest 4.1.12), with the
+whole file run three times: before, after, and before again to rule out drift between runs.
+
+| Case | Before | Before, again | After |
+|---|---|---|---|
+| `isoToTibetan`, one date | 148,167 ops/s | 153,723 ops/s | 134,576 ops/s |
+| `getObservances`, 1 year, every form (year view) | 393.9 ops/s | 384.3 ops/s | 338.7 ops/s |
+| `getObservances`, 1 year, counted alone | 3,231.7 ops/s | 3,240.5 ops/s | 2,884.4 ops/s |
+| `monthsFor`, warm (no Western date) | 4,227,017 ops/s | 4,281,202 ops/s | 4,275,088 ops/s |
+
+The two runs before agree within their spread and the row that takes no Western date is unchanged,
+so the drop of about 10% to 12% is the copy's cost, not drift.
+Every view stays far inside its budget: the year view's mean is about 3 ms against 50 ms.
+
 ## What is deliberately not here
 
 No regression thresholds, and `bench` is **not** in CI. Shared runners vary enough that a threshold
