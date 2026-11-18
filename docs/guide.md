@@ -923,6 +923,36 @@ the in-memory cost is a pointer field, not thousands of string copies. `JSON.str
 that sharing and expands every pointer to its full object; the figures above are what a consumer
 actually pays to persist or transmit a year, not what the engine holds in memory.
 
+### The cost in time
+
+**Every call is synchronous and computes its answer.** There is no date table to load, no network
+and nothing to await: a date is integer arithmetic on the tradition's constants, so a call can sit in
+a render path or a request handler as it is.
+Measured on a 2026 laptop ([the harness and every figure](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/bench/RESULTS.md#re-recorded-2026-11-18)):
+
+| What a view does | Time |
+|---|---|
+| Convert one date | about 7 µs |
+| Build one month's grid with `datesFor` | about 0.14 ms |
+| Build a whole year of grids | about 1.7 ms |
+| Ask for a day's observances | about 0.4 ms |
+| Ask for a month's observances | about 0.5 ms |
+| Ask for a year's observances | about 2 ms |
+
+Three behaviours are worth designing around.
+
+- **`monthsFor` remembers years it has computed**, per tradition config, for the 64 years used most
+  recently. Asking for the same year again is a lookup, hundreds of times faster than the first
+  call, and still returns a fresh array you may sort or splice.
+- **`getObservances` takes at most ten years per call**, counted in calendar years
+  (`to.year - from.year`), and refuses a wider span with `TCT_SPAN_TOO_WIDE`. At the cap a call
+  costs about 20 ms. For a longer table, request it in chunks
+  and concatenate: each call is independent, so the pieces join exactly.
+- **`nextObservance` looks at most ten years ahead** and returns `null` past that, in well under a
+  millisecond either way.
+
+Your figures will differ with the machine; the harness page says how to measure them.
+
 ### Handling errors
 
 Two failure kinds, and telling them apart matters because they call for different responses.

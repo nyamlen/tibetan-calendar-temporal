@@ -1,6 +1,6 @@
 import { bench, describe } from "vitest";
 import { isoToTibetan } from "../src/computation/conversion.js";
-import { monthsFor } from "../src/months.js";
+import { datesFor, monthsFor } from "../src/months.js";
 import {
 	EXAMPLE_OBSERVANCES,
 	getObservances,
@@ -23,8 +23,8 @@ import { PHUGPA } from "../src/traditions/phugpa.js";
  *   tune.
  * - `monthsFor`'s cache is the one memoisation whose keep is argued from a number (`CLAUDE.md`:
  *   "~180 µs to under 1 µs"), and that number has never had a harness.
- * - Single-date conversion is the only figure the README quotes, so it is the only one that has to
- *   be reproducible by a reader.
+ * - Single-date conversion, the month grid and the year view's observances are the figures the
+ *   README quotes, so they are the ones a reader has to be able to reproduce.
  *
  * Record results in `bench/RESULTS.md` with the machine, OS and Node version. A number without its
  * harness is what this project treats as unusable, and that applies to its own numbers first.
@@ -46,6 +46,19 @@ describe("conversion", () => {
 			isoToTibetan(day);
 			day = day.add({ days: 1 });
 		}
+	});
+});
+
+describe("month grid", () => {
+	// What a calendar view renders: one entry per calendar day of a month, then a whole year of them.
+	const month = { year: 2153, month: 1 };
+
+	bench("datesFor, one month", () => {
+		datesFor(month);
+	});
+
+	bench("monthsFor and datesFor, one year of grids", () => {
+		for (const m of monthsFor(2153)) datesFor(m);
 	});
 });
 
