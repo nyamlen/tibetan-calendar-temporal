@@ -164,6 +164,11 @@ Before explaining a residual by a formula, check whether the source uses the sam
   branded snapshot; everything after it takes the snapshot. A getter can answer differently the
   second time. A read that throws is `TCT_INVALID_ARGUMENT`. A new export taking a date or month goes
   in `test/caller-reads.test.ts`'s table.
+- **A caller's Western date is copied, never used as handed in.** `toNativePlainDate` reads the
+  calendar through the intrinsic `calendarId` getter, then returns `Temporal.PlainDate.from` of it:
+  a subclass's `since`, `year` or `calendarId` would otherwise answer for the date, and copying
+  first is wrong too, because `from` reads a forwarding Proxy's *fields*. Pinned in
+  `test/temporal-kind.test.ts`.
 - **Identity checks against `Temporal` live only in `src/temporal-kind.ts`** (rule 15). The rule
   catches the idiom, not every alias — a ratchet, not a proof.
 - **Pure stateless functions**, measured by what a **caller** can observe. Memoising is allowed
@@ -249,6 +254,10 @@ Before explaining a residual by a formula, check whether the source uses the sam
   reached by a tradition with no `naming.monthAnimals` (month and lunar-day attributes) or a nonzero
   `naming.weekdayOffset` (the yoga), never by asking "is this Bhutan".
   A composition may report it as `null` (`attributesFor` does).
+- **With two bad arguments the refusal order is the shape, then the tradition, then the range**;
+  a bare number has no shape, so the tradition comes first, and an options bag is read before the
+  tradition it carries. Which code wins is contract, and `tibetanDateExists` depends on it.
+  `test/error-subjects.test.ts` holds one row per export; a new export taking a tradition adds one.
 
 ### How a tradition is passed: seven points, approved by Andreas
 
@@ -270,7 +279,11 @@ after 1.0.0. A consumer cannot be asked to know which entry point a function is 
 
 **Every consumer config gets a validator, and every export gets a guard.** A field declared
 **required** is rejected when absent, not merely when wrong. The whole exported surface is the
-boundary: an internal caller that skips a guard uses a separate name (`isoFromJulianDayUnchecked`).
+boundary: an internal caller that skips a guard uses a separate name (`isoFromJulianDayUnchecked`,
+`julianDayFromIsoUnchecked`, `tibetanFromJulianDay`). **Engine loops never call the public
+`isoToTibetan` or `julianDayFromIso` on a date or Julian day they built**: each such call copies the
+day again, which cost 10–17% across the observance benches; `test/temporal-kind.test.ts` counts
+the copies.
 **A closed-union parameter still needs its guard** — JavaScript callers exist. Render an unchecked value
 through `describe`, never a bare `${}`. `test/hostile-inputs.test.ts` holds every export to never
 escaping uncoded; probe with **one throwing trap at a time**.
@@ -337,7 +350,9 @@ restore a fixture that differs only by its date stamp. Details: [docs/names/veri
   branch is a finding.
 - **`bench`** lives in `bench/`, not `test/`: a directory under `test/` must mirror one under `src/`
   (plus `validation`, `fixtures`, `support`). **A performance number may be quoted only with its
-  harness** in `bench/RESULTS.md`. No regression threshold, not in CI. `package.json#files` excludes `bench/`; `tsconfig.json` and
+  harness** in `bench/RESULTS.md`. **The README, the guide's "The cost in time" and `getObservances`'
+  docblock quote the latest re-record**: a re-record updates all three. Compare a before and after
+  with a second before run, so drift between runs is not read as a cost. No regression threshold, not in CI. `package.json#files` excludes `bench/`; `tsconfig.json` and
   `biome.json` include it deliberately.
 
 ## Documents
