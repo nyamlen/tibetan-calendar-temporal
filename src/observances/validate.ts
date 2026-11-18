@@ -495,11 +495,11 @@ function validateObservanceConfig(config: ObservanceConfig, caller: ObservanceCa
 		);
 	}
 	assertNotAnotherShape(config, caller);
-	assertKnownKeys(config, CONFIG_KEYS, "ObservanceConfig", CODE);
-
-	// `config.id` is interpolated into the messages below, so it is checked before they can quote it.
+	// `config.id` is interpolated into the messages below, so it is checked before they can quote it,
+	// the unknown-key refusal among them.
 	assertNonEmptyString(config.id, "observance config id");
 	const subject = `observance config "${config.id}"`;
+	assertKnownKeys(config, CONFIG_KEYS, subject, CODE);
 	assertNonEmptyString(config.englishName, `${subject}: englishName`);
 	assertOptionalTibetanName(config.tibetanName, `${subject}: tibetanName`);
 
@@ -522,8 +522,9 @@ function validateObservanceConfig(config: ObservanceConfig, caller: ObservanceCa
 					`${subject}: every level must be an object, received ${describe(level)}`,
 				);
 			}
-			assertKnownKeys(level, LEVEL_KEYS, `${subject}: a level`, CODE);
+			// The id first, so the unknown-key refusal below can name the level it is in.
 			assertNonEmptyString(level.id, `${subject}: level id`);
+			assertKnownKeys(level, LEVEL_KEYS, `${subject}: level "${level.id}"`, CODE);
 			if (levelIds.has(level.id as string)) {
 				throw rangeError(CODE, `${subject}: level id must be unique, "${level.id}" repeats`);
 			}
@@ -550,8 +551,10 @@ function validateObservanceConfig(config: ObservanceConfig, caller: ObservanceCa
 				`${subject}: every rule must be an object, received ${describe(rule)}`,
 			);
 		}
-		assertKnownKeys(rule, RULE_KEYS, "an observance rule", CODE);
+		// The id first, so the unknown-key refusal below can name the rule it is in: in a file of a
+		// dozen added rules a misspelt key is the commonest mistake.
 		assertNonEmptyString(rule.id, "observance rule id");
+		assertKnownKeys(rule, RULE_KEYS, `observance rule "${rule.id}"`, CODE);
 		// Documented as "unique within a config" and never enforced; duplicates silently produced
 		// duplicate results, ordered only by the sort's stability.
 		if (seen.has(rule.id as string)) {

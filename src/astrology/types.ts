@@ -28,7 +28,7 @@ import type { ElementalYoga } from "./yoga.js";
  * @remarks
  * Composed from three sources, which is why it is declared here rather than beside any one: Janson
  * gives the arithmetic that finds the mansion, Henning the element each mansion carries, and the
- * dictionaries `docs/names/mansion-and-trigram-sourcing.md` records the names.
+ * dictionaries [`docs/names/mansion-and-trigram-sourcing.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/mansion-and-trigram-sourcing.md) records the names.
  *
  * **No English name, deliberately.** No source prints one for a mansion, and translating either name
  * would pair English with a Tibetan word it does not render. `index` is the key a translation table

@@ -13,8 +13,8 @@
  * witness for `favorable`, through the `FD-`/`UD-` prefix of its published day-quality codes. The
  * *tshig mdzod chen mo*, a Tibetan dictionary outside Henning's lineage, states the same ten element
  * pairs as Henning and grades the ten into four groups, which is `auspiciousness`. See
- * [docs/astrology.md](../../docs/astrology.md) for the reader-facing account and
- * [docs/almanac-sources.md](../../docs/almanac-sources.md) for the sourcing.
+ * [`docs/astrology.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/astrology.md) for the reader-facing account and
+ * [`docs/almanac-sources.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/almanac-sources.md) for the sourcing.
  *
  * **The elements are the Indian four, not the Chinese five** — earth, fire, water and wind. `wood`
  * and `iron` never appear, which is why this uses {@link TibetanWeekdayElement} rather than
@@ -70,7 +70,7 @@ export interface ElementalYoga {
 	 * under *phun sum tshogs*. **Two replace his**, because no dictionary consulted prints his word:
 	 * *increase* for his *progress* (Jäschke p. 357, s.v. *'phel-ba*; Das p. 849 agrees), and
 	 * *opposition* for his *discord* (Monier-Williams p. 661, s.v. *pratikūla*). See
-	 * `docs/names/month-and-yoga-sourcing.md`.
+	 * [`docs/names/month-and-yoga-sourcing.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/month-and-yoga-sourcing.md).
 	 */
 	// The third rendering of one name, beside `tibetanName` and `sanskritName`, and not the meaning of
 	// the mansion or of anything else. It comes first because it is the key a reader recognises.
@@ -91,7 +91,7 @@ export interface ElementalYoga {
 	 * @remarks
 	 * Nine of the ten are Monier-Williams headwords. **`pragati` is Henning's alone**: it is the stem,
 	 * and no Cologne dictionary carries it — not Monier-Williams 1899 or 1872, Böhtlingk and Roth, Apte
-	 * or Cappeller. It is shipped as he prints it. See `docs/names/month-and-yoga-sourcing.md`.
+	 * or Cappeller. It is shipped as he prints it. See [`docs/names/month-and-yoga-sourcing.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/month-and-yoga-sourcing.md).
 	 */
 	// Shipped as Henning prints it rather than replaced, because the two candidates found are each
 	// worse: *pragamana* is paired with `'phel 'gyur` by no source, and *vṛddhi* is the name of an

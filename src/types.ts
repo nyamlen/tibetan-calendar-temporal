@@ -108,7 +108,7 @@ export type TibetanGender = "male" | "female";
  * Sanskrit name lists, which carry different names at positions 16, 17, 18, 20 and 34; neither
  * ships here, because a type pairing one of them with the Tibetan name would name something the
  * Tibetan does not render at five of every sixty years, silently. Both lists are tabulated in
- * `docs/names/rabjung.md`. See `docs/decisions/2026-08-25-rabjung-ships-the-tibetan-name-only.md`,
+ * [`docs/names/rabjung.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/rabjung.md). See [`docs/decisions/2026-08-25-rabjung-ships-the-tibetan-name-only.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/decisions/2026-08-25-rabjung-ships-the-tibetan-name-only.md),
  * which also records the shape they would take if they ever return.
  *
  * @see {@link TibetanYearName} for the element–animal name, which is what practitioners
@@ -282,16 +282,16 @@ export interface SanskritName {
  * a consumer's message catalogue keys off them to produce French, Russian or anything else. This
  * package ships no translations. A rabjung position is a bare integer 1–60 with no sibling union to
  * carry an English identity, and is not answered here either: the English for those sixty is
- * authored rather than sourced, so it lives in `docs/names/rabjung.md`, where a reader can see
+ * authored rather than sourced, so it lives in [`docs/names/rabjung.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/rabjung.md), where a reader can see
  * which columns are which.
  *
  * Every shipped value is checked against sources by a verification script, and the evidence for
  * each family is in `docs/names/`. For the weekday, element, gender and animal vocabulary, two
  * independent EWTS implementations must agree on the script, it must read back as the same Wylie,
- * and English Wiktionary must have an entry at exactly that title — see `docs/names/vocabulary.md`.
+ * and English Wiktionary must have an entry at exactly that title — see [`docs/names/vocabulary.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/vocabulary.md).
  * The sixty rabjung Tibetan names rest on Janson's Wylie, Csoma de Kőrös' grammar and the two
- * EWTS converters, checked by `verify:rabjung-names` — see `docs/names/rabjung.md` and
- * `docs/names/rabjung-sourcing.md`.
+ * EWTS converters, checked by `verify:rabjung-names` — see [`docs/names/rabjung.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/rabjung.md) and
+ * [`docs/names/rabjung-sourcing.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/rabjung-sourcing.md).
  *
  * Instances are **shared and frozen**.
  */
@@ -544,7 +544,7 @@ export interface TibetanDate {
 	 * to Roman astrology, which is why it matches the Latin and English weekday names.
 	 *
 	 * Saturday is *spen pa*, not the *spen ma* Janson's table prints — his own Bhutan appendix uses
-	 * *spen pa*, and Wiktionary and CLDR both agree with the appendix. See `docs/names/vocabulary.md`.
+	 * *spen pa*, and Wiktionary and CLDR both agree with the appendix. See [`docs/names/vocabulary.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/vocabulary.md).
 	 *
 	 * This is not a display convenience. Janson notes that the date and the day of week are usually
 	 * given together because that *resolves the ambiguity when days are repeated*: both halves of a

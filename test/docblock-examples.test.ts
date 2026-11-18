@@ -445,6 +445,22 @@ describe("docblock examples", () => {
 			expect(kopan.doubledDay).toBe("first");
 			expect(kopan.rules).toEqual(EXAMPLE_OBSERVANCES.rules);
 		});
+
+		it("changes tara's doubled day in place with conventions, and nothing else", () => {
+			const taraFirstHalf = composeObservances(EXAMPLE_OBSERVANCES, {
+				id: "tara-first-half",
+				englishName: "Tara on the first half of a doubled day",
+				conventions: [{ id: "tara", doubledDay: "first" }],
+			});
+			const index = EXAMPLE_OBSERVANCES.rules.findIndex((r) => r.id === "tara");
+			expect(taraFirstHalf.rules[index]).toEqual({
+				...EXAMPLE_OBSERVANCES.rules[index],
+				doubledDay: "first",
+			});
+			expect(taraFirstHalf.rules.filter((_, i) => i !== index)).toEqual(
+				EXAMPLE_OBSERVANCES.rules.filter((_, i) => i !== index),
+			);
+		});
 	});
 	describe("astrology/month.ts and astrology/lunar-day.ts", () => {
 		it("states Phugpa's month 1 of 2026 correctly", () => {

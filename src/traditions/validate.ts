@@ -484,7 +484,7 @@ const privateCopies = new WeakMap<TraditionConfig, TraditionConfig>();
  * This validates **shape, not astronomy**, plus the few values the arithmetic cannot take at all:
  * `m₁ = 30·m₂`, a table whose first entry is zero, an intercalation index inside 0…64. A config
  * with plausible types and wrong constants passes here and produces a wrong calendar; only a
- * fixture can catch that, which is what `docs/testing.md` is about.
+ * fixture can catch that, which is what [`docs/testing.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/testing.md) is about.
  *
  * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG`, naming the offending field path
  * where there is one. The same code answers a value that is not an object, a getter or Proxy that

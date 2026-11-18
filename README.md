@@ -51,7 +51,6 @@ see [why you can trust these dates](docs/why-trust-these-dates.md).
   - [Astrological attributes](#astrological-attributes)
 - [API](#api)
 - [Internationalisation](#internationalisation)
-- [Why this exists](#why-this-exists)
 - [Provenance](#provenance)
 - [Project identity](#project-identity)
 - [Documentation](#documentation)
@@ -789,19 +788,6 @@ day-of-week table and `spen pa` in his Bhutan appendix, and this package ships `
 [The guide](docs/guide.md#displaying-tibetan-names) covers the Bhutanese weekday shift, the CLDR
 curiosities, and localising observance labels.
 
-## Why this exists
-
-This engine is the computation backend for **Nyamlen**, a Tibetan Buddhist practice calendar
-app (integrated modular PWA, separate repo). The app has additional modules — Meditation Timer,
-Vow Tracker — but this library is the foundation: it computes what days are significant and
-why.
-
-The engine is separate from the app because:
-
-- Other projects can use it (FPMT centres, independent developers)
-- It's open source to build trust — practitioners need to trust the dates are correct
-- Clean separation enables independent versioning and testing
-
 ## Provenance
 
 Implemented from Svante Janson, *Tibetan Calendar Mathematics*
@@ -817,9 +803,7 @@ keep it that way.
 | GitHub/npm org | `nyamlen` |
 | Repository | `github.com/nyamlen/tibetan-calendar-temporal` |
 
-**Scoping policy.** The flagship engine stays unscoped — unscoped names rank better in npm
-search, and discoverability is this package's job. Everything else in the suite ships scoped:
-`@nyamlen/timer`, `@nyamlen/vows`.
+**Why unscoped.** Unscoped names rank better in npm search, and discoverability is this package's job.
 
 <details>
 <summary><strong>Why the name says "Tibetan" when Bhutan and Mongolia have their own calendars</strong></summary>

@@ -4,10 +4,10 @@
  * @remarks
  * Its evidence differs from `names.ts`'s vocabulary — see {@link TibetanName}: the Tibetan names rest
  * on Janson's Wylie, Csoma de Kőrös' grammar and two EWTS converters, checked by
- * `scripts/verify-rabjung-names.mjs`; see `docs/names/rabjung.md` and `docs/names/rabjung-sourcing.md`.
+ * `scripts/verify-rabjung-names.mjs`; see [`docs/names/rabjung.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/rabjung.md) and [`docs/names/rabjung-sourcing.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/rabjung-sourcing.md).
  *
  * **Neither of the cycle's two Sanskrit lists ships here**; see
- * `docs/decisions/2026-08-25-rabjung-ships-the-tibetan-name-only.md`.
+ * [`docs/decisions/2026-08-25-rabjung-ships-the-tibetan-name-only.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/decisions/2026-08-25-rabjung-ships-the-tibetan-name-only.md).
  *
  * @packageDocumentation
  */

@@ -85,6 +85,34 @@ day, so it needs both flags — `{ month: 6, day: 4, isLeapMonth: true, isLeapDa
 over from the previous result does no harm: `{ month: 6, day: 5, isLeapMonth: true, isLeapDay: true }`
 is 11 July 2024, exactly as it is without the flag.
 
+### Two more cases: the year's first day, and the range's edges
+
+**A year can open on day 2.**
+Day 1 of the first month is skipped in some years, 1928 among them under `PHUGPA`, so Losar is not `{ month: 1, day: 1 }`, which throws there; ask `losarFor`.
+Where the first month is doubled, the traditions differ.
+Under `PHUGPA` the leap month comes first of its pair, so Losar falls in it; under `BHUTAN` the leap month follows, and Losar stays in the regular month:
+
+```js
+formatTibetanDate(losarFor(2211));           // "2211-M01L-02"
+formatTibetanDate(losarFor(2027, BHUTAN));   // "2027-M01-01", with M01L after it
+```
+
+**The calculation has edges.**
+Each tradition's arithmetic is exact over a long but finite range, and these are its first and last whole months:
+
+| Tradition | First whole month | From | Last whole month | To |
+|---|---|---|---|---|
+| `PHUGPA` | `-245591-M10` | -245737-10-29 | `236420-M09` | +236311-12-11 |
+| `PHUGPA_HENNING` | `-20652-M04` | -020781-08-23 | `11482-M03` | +011356-02-16 |
+| `BHUTAN` | `-245591-M10` | -245737-10-29 | `236420-M09` | +236311-12-11 |
+| `BHUTAN_HENNING` | `-20652-M04` | -020781-08-23 | `11482-M03` | +011356-02-16 |
+
+The years at the edges are only partly computable: `monthsFor` refuses an edge year as a whole, while `resolveMonth` answers each of its months that lies inside the range.
+The exact range itself ends inside a partial month, up to 26 days beyond the table depending on the tradition and the direction.
+`getObservances` refuses a span that reaches past it, with `TCT_OUTSIDE_EXACT_RANGE`, rather than trimming it.
+So a front end that lets a visitor go that far clamps its span to the table, which is always safe.
+Nothing exports these bounds.
+
 ### Why `Temporal.PlainDate`, and never `Date`
 
 **Temporal is not an alternative to `Date`; it is its replacement.** It is a finished TC39 proposal
@@ -479,6 +507,33 @@ checked. Build a new object rather than changing a loaded one.
 The package does not freeze the object it was handed, and the config that
 [`composeObservances`](#a-layer-differences-from-a-base) returns is a new, frozen one.
 
+#### The rules the example ships
+
+`EXAMPLE_OBSERVANCES` holds these nineteen rules, in this order.
+The ids are what a layer's `remove`, `replace` and `conventions` take, and *own settings* are the conventions a rule carries itself, which the config's defaults do not reach.
+
+| id | English name | form | level | tags | own settings |
+|---|---|---|---|---|---|
+| `chotrul-duchen` | Day of Miracles | `annual` | `everyone` | `duchen`, `merit-multiplying` |  |
+| `saga-dawa-duchen` | Lord Buddha's birth, enlightenment and parinirvana | `annual` | `everyone` | `duchen`, `merit-multiplying` |  |
+| `chokhor-duchen` | Lord Buddha's first teaching | `annual` | `everyone` | `duchen`, `merit-multiplying` |  |
+| `lhabab-duchen` | Lord Buddha's descent from God Realm of Thirty Three | `annual` | `everyone` | `duchen`, `merit-multiplying` |  |
+| `milarepa` | Milarepa | `annual` | `everyone` | `anniversary` |  |
+| `guru-rinpoche` | Guru Rinpoche | `annual` | `everyone` | `anniversary` |  |
+| `gampopa` | Gampopa | `annual` | `everyone` | `anniversary` |  |
+| `karmapa-16` | Sixteenth Karmapa | `annual` | `everyone` | `anniversary` |  |
+| `tsongkhapa` | Lama Tsong Khapa | `annual` | `everyone` | `anniversary` |  |
+| `sakya-pandita` | Sakya Pandita | `annual` | `everyone` | `anniversary` |  |
+| `dudjom-rinpoche` | Dudjom Rinpoche | `annual` | `everyone` | `anniversary` |  |
+| `saga-dawa-month` | Saga Dawa, Lord Buddha's month | `period` | `everyone` | `merit-multiplying` |  |
+| `sojong` | Sojong (vow renewal) | `counted` | `no-empowerment` | `practice` | `doubledDay: first`, `skippedDay: following` |
+| `fire-puja` | Fire puja | `formula` | `no-empowerment` | `from-restricted-practice`, `practice` |  |
+| `medicine-buddha` | Medicine Buddha puja | `monthly` | `no-empowerment` | `practice` | `doubledDay: both`, `skippedDay: omit` |
+| `tara` | Tara puja | `monthly` | `no-empowerment` | `practice` | `doubledDay: both`, `skippedDay: omit` |
+| `heruka-day` | Heruka Day | `monthly` | `no-empowerment` | `tsok`, `practice` | `doubledDay: both`, `skippedDay: omit` |
+| `dakini-day` | Ḍākinī Day | `monthly` | `no-empowerment` | `tsok`, `practice` | `doubledDay: both`, `skippedDay: omit` |
+| `dharma-protector-day` | Dharma Protector Day | `monthly` | `empowerment` | `tsok`, `practice` | `doubledDay: both`, `skippedDay: omit` |
+
 #### A layer: differences from a base
 
 A centre that differs from another writes only what differs, as a **layer**, and combines it with the
@@ -505,29 +560,25 @@ In `EXAMPLE_OBSERVANCES` six rules do: `sojong` carries `doubledDay: 'first'` an
 Kopan's layer above therefore moves the annual days, Chokhor Duchen among them, and leaves those six
 as they were: on 15 and 16 May 2024, a doubled eighth, `tara` still falls on both days.
 
-To change a rule that carries its own value, **replace the whole rule**.
-`replace` takes complete rules, not a set of changed fields, so spread the base rule and override what
-differs:
+To change a rule that carries its own value, name it in **`conventions`** with the convention to change.
+The rule keeps its place and every other field of the base's, so it still follows later corrections to the example:
 
 ```js
-const tara = EXAMPLE_OBSERVANCES.rules.find((r) => r.id === 'tara');
-const kopanTara = composeObservances(kopan, {
-  id: 'kopan-tara',
-  englishName: 'Kopan, Tara on the first half',
-  replace: [{ ...tara, doubledDay: 'first' }],
+const taraFirstHalf = composeObservances(EXAMPLE_OBSERVANCES, {
+  id: 'tara-first-half',
+  englishName: 'Tara on the first half of a doubled day',
+  conventions: [{ id: 'tara', doubledDay: 'first' }],
 });
 // 15 May 2024: 'firstOfDoubled'. 16 May 2024: no tara.
 ```
 
-A layer can also remove, replace and add rules and levels, each by `id` (`remove`, `replace` and `add`
-for rules, `removeLevels`, `replaceLevels` and `addLevels` for levels), and they are changed in that
-order: removed, then replaced (a replacement keeps the position of what it replaces), then added at
-the end. That is also the order of same-day results.
-An `id` may appear **once** in a layer's rule lists, and once in its level lists, so a rule is never
-removed and added back to land at the end — `replace` is how to change a rule and keep its place.
-A name the base does not have in `remove` or `replace`, or one it does have in `add`, is refused,
-as is a key the layer does not have: a misspelt `doubleDay` throws `TCT_INVALID_OBSERVANCE_CONFIG`
-naming it rather than doing nothing.
+A `conventions` entry takes `id` and at least one of `doubledDay`, `skippedDay` and `leapMonth`, and nothing else.
+To change anything other than those three, use `replace`, which takes complete rules, not a set of changed fields: spread the base rule and override what differs.
+
+A layer can also remove, replace and add rules and levels, each by `id` (`remove`, `replace` and `add` for rules, `removeLevels`, `replaceLevels` and `addLevels` for levels), and they are changed in that order: removed, then replaced (a replacement keeps the position of what it replaces), then added at the end; a `conventions` entry changes its rule in place.
+That is also the order of same-day results.
+An `id` may appear **once** in a layer's rule lists (`remove`, `replace`, `add` and `conventions`), and once in its level lists, so a rule is never removed and added back to land at the end — `replace` is how to change a rule and keep its place.
+A name the base does not have in `remove`, `replace` or `conventions`, or one it does have in `add`, is refused, as is a key the layer does not have: a misspelt `doubleDay` throws `TCT_INVALID_OBSERVANCE_CONFIG` naming it rather than doing nothing.
 
 ```js
 const myCentre = composeObservances(EXAMPLE_OBSERVANCES, {
@@ -682,8 +733,7 @@ Losar is deliberately *not* here: it is a calendar fact rather than a convention
 a Western-dated birthday, or a centre's own founder, is a rule of your own, as above.
 
 Calendar export (ICS) is deliberately out of scope: `getObservances` returns plain objects that a
-consumer maps to whatever format they need, and an `@nyamlen/icalendar` package remains open if
-one is requested.
+consumer maps to whatever format they need.
 
 ### Day of week
 

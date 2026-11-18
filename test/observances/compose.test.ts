@@ -389,11 +389,13 @@ describe("composeObservances", () => {
 				add: [addRule()],
 				removeLevels: ["tiny"],
 				addLevels: [addLevel()],
+				conventions: [{ id: "c", doubledDay: "first" }],
 			}) as ObservanceLayer & {
 				replace: { tags: string[]; tibetanName: object; when: object }[];
 				add: { tags: string[]; tibetanName: object; when: { dates: object } }[];
 				addLevels: { tibetanName: object }[];
 				remove: string[];
+				conventions: object[];
 			};
 			const snapshot = structuredClone(l);
 			composeObservances(plainBase(), l);
@@ -417,6 +419,8 @@ describe("composeObservances", () => {
 				l.addLevels,
 				l.addLevels[0],
 				l.addLevels[0]?.tibetanName,
+				l.conventions,
+				l.conventions[0],
 			]) {
 				expect(Object.isFrozen(value)).toBe(false);
 			}
@@ -463,6 +467,223 @@ describe("composeObservances", () => {
 	it("returns a fresh result each call", () => {
 		const base = plainBase();
 		expect(composeObservances(base, layer())).not.toBe(composeObservances(base, layer()));
+	});
+});
+
+describe("composeObservances: conventions", () => {
+	const ruleIn = (config: ObservanceConfig, id: string) => {
+		const found = config.rules.find((r) => r.id === id);
+		if (found === undefined) throw new Error(`no rule "${id}"`);
+		return found;
+	};
+	const withConventions = (conventions: unknown, patch: object = {}) =>
+		composeObservances(EXAMPLE_OBSERVANCES, layer({ conventions, ...patch }));
+	const tara = ruleIn(EXAMPLE_OBSERVANCES, "tara");
+	const foundingDay = {
+		id: "founding-day",
+		englishName: "Founding day",
+		when: { type: "annual", dates: [{ month: 4, day: 15 }] },
+	};
+
+	it("changes one setting of a shipped rule and keeps every other field", () => {
+		const result = withConventions([{ id: "tara", doubledDay: "first" }]);
+		expect(ruleIn(result, "tara")).toEqual({ ...tara, doubledDay: "first" });
+	});
+
+	it("keeps the rule at its position", () => {
+		const result = withConventions([{ id: "tara", doubledDay: "first" }]);
+		expect(ruleIds(result)).toEqual(ruleIds(EXAMPLE_OBSERVANCES));
+	});
+
+	it("moves tara to the first half of the doubled eighth of 15 and 16 May 2024", () => {
+		const result = withConventions([{ id: "tara", doubledDay: "first" }]);
+		const taraOn = (day: string) =>
+			observancesOn(iso(day), result)
+				.filter((o) => o.rule.id === "tara")
+				.map((o) => o.resolution);
+		expect(taraOn("2024-05-15")).toEqual(["firstOfDoubled"]);
+		expect(taraOn("2024-05-16")).toEqual([]);
+	});
+
+	it("keeps a convention the entry leaves undefined", () => {
+		const result = withConventions([{ id: "tara", doubledDay: "first", skippedDay: undefined }]);
+		expect(ruleIn(result, "tara").skippedDay).toBe("omit");
+	});
+
+	it.each([
+		[
+			"an id the base does not have",
+			[{ id: "nope", doubledDay: "first" }],
+			{},
+			'conventions names "nope"',
+		],
+		[
+			"an id also removed",
+			[{ id: "tara", doubledDay: "first" }],
+			{ remove: ["tara"] },
+			"appears 2 times, in remove and conventions",
+		],
+		[
+			"an id also replaced",
+			[{ id: "tara", doubledDay: "first" }],
+			{ replace: [{ ...tara }] },
+			"appears 2 times, in replace and conventions",
+		],
+		[
+			"an id also added",
+			[{ id: "founding-day", doubledDay: "first" }],
+			{ add: [foundingDay] },
+			"appears 2 times, in add and conventions",
+		],
+		[
+			"a key that is not a convention",
+			[{ id: "tara", englishName: "x" }],
+			{},
+			'conventions entry "tara" has no key "englishName"',
+		],
+		["an entry that sets nothing", [{ id: "tara" }], {}, 'conventions entry "tara" sets nothing'],
+		[
+			"an entry whose only convention is undefined",
+			[{ id: "tara", skippedDay: undefined }],
+			{},
+			'conventions entry "tara" sets nothing',
+		],
+		["a value that is not a choice", [{ id: "tara", doubledDay: "third" }], {}, "doubledDay"],
+		["conventions that is not an array", {}, {}, "conventions must be an array"],
+		["an entry that is not an object", [7], {}, "every conventions entry must be an object"],
+		[
+			"a convention the rule's form does not read",
+			[{ id: "tara", leapMonth: "leap" }],
+			{},
+			'observance rule "tara": leapMonth does not apply to a "monthly" rule',
+		],
+		[
+			"omit on a counted rule",
+			[{ id: "sojong", skippedDay: "omit" }],
+			{},
+			'observance rule "sojong": a "counted" rule does not accept skippedDay "omit"',
+		],
+	])("refuses %s", (_label, conventions, patch, fragment) => {
+		const error = thrownBy(() => withConventions(conventions, patch));
+		expect(error?.code).toBe(INVALID);
+		expect(error?.message).toContain(fragment);
+	});
+
+	// A getter answering differently on a second read must not steer the check and the result apart.
+	const fickle = (first: unknown, then: unknown) => {
+		let reads = 0;
+		return () => (reads++ === 0 ? first : then);
+	};
+
+	// The engine checks a private copy and applies only that copy, so a getter answering differently
+	// later can reach the result only as a value the checks have seen, never around them.
+	it("applies only an id the checks have seen, however the caller's getter answers later", () => {
+		const entry = { doubledDay: "first" };
+		Object.defineProperty(entry, "id", { get: fickle("tara", "nope"), enumerable: true });
+		const error = thrownBy(() => withConventions([entry]));
+		expect(error?.code).toBe(INVALID);
+		expect(error?.message).toContain('conventions names "nope"');
+	});
+
+	it("applies only a convention the checks have seen, however the caller's getter answers later", () => {
+		const entry = { id: "tara" };
+		Object.defineProperty(entry, "doubledDay", { get: fickle("first", "third"), enumerable: true });
+		const error = thrownBy(() => withConventions([entry]));
+		expect(error?.code).toBe(INVALID);
+		expect(error?.message).toContain("doubledDay");
+	});
+
+	it.each([
+		[
+			"an entry that is a Proxy with no traps",
+			() => [new Proxy({ id: "tara", doubledDay: "first" }, {})],
+		],
+		[
+			"conventions that is a Proxy with no traps",
+			() => new Proxy([{ id: "tara", doubledDay: "first" }], {}),
+		],
+	])("refuses %s, as every other part of a config does", (_label, conventions) => {
+		const error = thrownBy(() => withConventions(conventions()));
+		expect(error?.code).toBe(INVALID);
+		expect(error?.message).toContain("not plain data");
+	});
+
+	it("does not read a convention an entry only inherits", () => {
+		const entry = Object.assign(Object.create({ doubledDay: "first" }), { id: "tara" });
+		const error = thrownBy(() => withConventions([entry]));
+		expect(error?.code).toBe(INVALID);
+		expect(error?.message).toContain('conventions entry "tara" sets nothing');
+	});
+
+	it("changes a convention on a rule that carries none of its own, taking it out of the defaults", () => {
+		const result = withConventions([{ id: "chokhor-duchen", leapMonth: "regular" }], {
+			leapMonth: "leap",
+		});
+		expect(ruleIn(EXAMPLE_OBSERVANCES, "chokhor-duchen").leapMonth).toBeUndefined();
+		expect(ruleIn(result, "chokhor-duchen").leapMonth).toBe("regular");
+		const dates = getObservances(iso("2024-07-01"), iso("2024-08-31"), result)
+			.filter((o) => o.rule.id === "chokhor-duchen")
+			.map((o) => `${o.date.isoDate.toString()} ${o.resolution}`);
+		expect(dates).toEqual(["2024-08-08 exact"]);
+	});
+
+	it("leaves the layer's defaults reaching every rule the conventions do not name", () => {
+		const result = withConventions([{ id: "tara", doubledDay: "first" }], { doubledDay: "first" });
+		expect(result.doubledDay).toBe("first");
+		expect(ruleIn(result, "medicine-buddha").doubledDay).toBe("both");
+		expect(ruleIn(result, "chokhor-duchen").doubledDay).toBeUndefined();
+		const kopanDates = getObservances(iso("2024-07-01"), iso("2024-07-31"), result)
+			.filter((o) => o.rule.id === "chokhor-duchen")
+			.map((o) => o.date.isoDate.toString());
+		expect(kopanDates).toEqual(["2024-07-09"]);
+	});
+
+	it.each([
+		[
+			"an id the base lacks",
+			{ replace: [{ id: "nope", leapMonth: "regular" }] },
+			'replace names "nope"',
+		],
+		[
+			"an id also in conventions",
+			{ replace: [{ id: "tara" }], conventions: [{ id: "tara", doubledDay: "first" }] },
+			"appears 2 times, in replace and conventions",
+		],
+	])(
+		"refuses a partial replace with %s for that, before saying it is partial",
+		(_label, patch, fragment) => {
+			const error = thrownBy(() => composeObservances(EXAMPLE_OBSERVANCES, layer(patch)));
+			expect(error?.code).toBe(INVALID);
+			expect(error?.message).toContain(fragment);
+		},
+	);
+
+	it("names the layer whose key is unknown", () => {
+		const error = thrownBy(() => composeObservances(EXAMPLE_OBSERVANCES, layer({ adds: [] })));
+		expect(error?.message).toContain('composeObservances(layer "layer") has no key "adds"');
+	});
+
+	it("tells a partial replace that replace takes whole rules", () => {
+		const error = thrownBy(() =>
+			composeObservances(
+				EXAMPLE_OBSERVANCES,
+				layer({ replace: [{ id: "chokhor-duchen", leapMonth: "regular" }] }),
+			),
+		);
+		expect(error?.code).toBe(INVALID);
+		expect(error?.message).toContain('replace entry "chokhor-duchen" lacks englishName, when');
+		expect(error?.message).toContain("conventions");
+	});
+
+	it("refuses the key misspelt as convention", () => {
+		const error = thrownBy(() =>
+			composeObservances(
+				EXAMPLE_OBSERVANCES,
+				layer({ convention: [{ id: "tara", doubledDay: "first" }] }),
+			),
+		);
+		expect(error?.code).toBe(INVALID);
+		expect(error?.message).toContain('has no key "convention"');
 	});
 });
 

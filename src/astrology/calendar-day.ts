@@ -12,7 +12,7 @@
  * rule is not modelled; the number here is the Julian-day congruence every shipped tradition uses.
  *
  * **A single day carries two sets of labels that disagree** — these, and the lunar day's. That is
- * not a defect to reconcile; almanacs print both. See [docs/astrology.md](../../docs/astrology.md).
+ * not a defect to reconcile; almanacs print both. See [`docs/astrology.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/astrology.md).
  *
  * @packageDocumentation
  */
@@ -35,7 +35,7 @@ import { type YearAttributes, yearAttributes } from "./year.js";
  * `trigram` and `element` can differ: a lunar day of water element can fall on the fire trigram. They
  * are different attributes that share a vocabulary, which is why they are different types. The words
  * are Janson's; Das prints six of them for the trigram itself and *hill* and *tree* for the other two
- * — see `docs/names/mansion-and-trigram-sourcing.md`.
+ * — see [`docs/names/mansion-and-trigram-sourcing.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/mansion-and-trigram-sourcing.md).
  */
 export type TibetanTrigram =
 	| "fire"

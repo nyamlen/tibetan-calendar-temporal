@@ -74,6 +74,8 @@ Kind and level are different questions — what a practice is, and who it is for
 Nothing the engine computes depended on it, and the grouping a calendar's reader needs is the level.
 The one job it did, picking out the four great occasions, is done by **labels** instead (decided 2026-11-10): a practice may carry any number of free labels, which the engine never acts on, and the four great occasions carry one saying so.
 The same labels mark a tsok day and a practice that comes from a restricted one.
+Every practice in the shipped example carries at least one (decided 2026-11-18), so a calendar that lets its reader choose by label reaches all of them: `merit-multiplying` marks the four great occasions and the month of Saga Dawa, and `practice` marks every practice at the two practitioner levels.
+The labels are Andreas' assignments, authored and unsourced: no publisher found groups its days by these words.
 The labels are a **list**, each label its own entry — never one string divided by commas or semicolons — so a label may contain either character, and a single string given in place of a list is refused rather than read as one label.
 
 ### Where a level can be sourced: the practice text, not the day
@@ -111,16 +113,16 @@ Whether centres use established Tibetan headings for these groups is a question 
 
 | Practice | Level | Labels | Basis for the level |
 |---|---|---|---|
-| The four great occasions | For everyone | great occasion | authored |
-| Seven lineage anniversaries, named as FPMT prints them — Milarepa, Guru Rinpoche, Gampopa, Sixteenth Karmapa, Lama Tsong Khapa, Sakya Pandita, Dudjom Rinpoche | For everyone | anniversary | authored (the names are FPMT's labels, verbatim; the label does not say whether a day is a birth or a passing, and FPMT does not either) |
-| Saga Dawa, the 4th month | For everyone | | authored |
-| Vow renewal, counted | No empowerment needed | | authored |
-| Medicine Buddha puja, 8th and 15th | No empowerment needed | | cited: the example means *Medicine Buddha: The Wish-Granting Sovereign*, whose FPMT listing says "Anyone with faith can perform this practice" |
-| Tārā puja, 8th | No empowerment needed | | cited: the example means the *Praises to the Twenty-One Taras* as included in *A Short Practice of Green Tara*, open without empowerment as long as one does not generate oneself as the deity |
-| Fire offering | No empowerment needed | from a restricted practice | authored (decided 2026-11-10): the practice is restricted — both FPMT manuals found, and Study Buddhism's definition — while many centres let non-initiates take part (Andreas' observation) |
-| Heruka Day, 10th | No empowerment needed | tsok | authored: anyone may mark the day; the tsok within it is a commitment for Highest Yoga Tantra initiates, which FPMT's "Dates Explained" states |
-| Ḍākinī Day, 25th | No empowerment needed | tsok | as Heruka Day |
-| Dharma Protector Day, 29th | Empowerment required | tsok | authored: see the next section |
+| The four great occasions | For everyone | `duchen`, `merit-multiplying` | authored |
+| Seven lineage anniversaries, named as FPMT prints them — Milarepa, Guru Rinpoche, Gampopa, Sixteenth Karmapa, Lama Tsong Khapa, Sakya Pandita, Dudjom Rinpoche | For everyone | `anniversary` | authored (the names are FPMT's labels, verbatim; the label does not say whether a day is a birth or a passing, and FPMT does not either) |
+| Saga Dawa, the 4th month | For everyone | `merit-multiplying` | authored |
+| Vow renewal, counted | No empowerment needed | `practice` | authored |
+| Medicine Buddha puja, 8th and 15th | No empowerment needed | `practice` | cited: the example means *Medicine Buddha: The Wish-Granting Sovereign*, whose FPMT listing says "Anyone with faith can perform this practice" |
+| Tārā puja, 8th | No empowerment needed | `practice` | cited: the example means the *Praises to the Twenty-One Taras* as included in *A Short Practice of Green Tara*, open without empowerment as long as one does not generate oneself as the deity |
+| Fire offering | No empowerment needed | `from-restricted-practice`, `practice` | authored (decided 2026-11-10): the practice is restricted — both FPMT manuals found, and Study Buddhism's definition — while many centres let non-initiates take part (Andreas' observation) |
+| Heruka Day, 10th | No empowerment needed | `tsok`, `practice` | authored: anyone may mark the day; the tsok within it is a commitment for Highest Yoga Tantra initiates, which FPMT's "Dates Explained" states |
+| Ḍākinī Day, 25th | No empowerment needed | `tsok`, `practice` | as Heruka Day |
+| Dharma Protector Day, 29th | Empowerment required | `tsok`, `practice` | authored: see the next section |
 
 The two texts are what the **example** means (decided 2026-11-11), not what any centre is known to perform on those days: centres' own pages name *The Wish-Fulfilling Jewel* by Panchen Losang Chökyi Gyaltsen as their Medicine Buddha puja, for which no requirement was found, and the Medicine Buddha notice quoted is from the Sinhalese edition's listing, the English one not checked.
 

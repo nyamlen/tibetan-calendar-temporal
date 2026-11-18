@@ -26,7 +26,7 @@
  * Janson gives every cycle and the mansion arithmetic; Henning gives the element each mansion
  * carries and the ten yoga names, which Janson cites and does not derive; **favorability is in
  * neither source** and is FPMT's; the *tshig mdzod chen mo* states the same ten yoga pairs and grades
- * the ten, which is `auspiciousness`. `docs/astrology.md` is the reader-facing account.
+ * the ten, which is `auspiciousness`. [`docs/astrology.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/astrology.md) is the reader-facing account.
  *
  * **`PHUGPA` and `PHUGPA_HENNING` answer everything; `BHUTAN` and `BHUTAN_HENNING` refuse the
  * month-dependent attributes and the elemental yoga.**

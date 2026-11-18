@@ -5,7 +5,7 @@
  * The convention is Node's own: a built-in error type carrying a stable `code`, rather than a
  * hierarchy of exported error classes. `fs` does not export an `ENOENTError`; it throws with
  * `code: "ENOENT"`. The reasoning is recorded in
- * `docs/decisions/2026-08-12-error-codes-not-classes.md`.
+ * [`docs/decisions/2026-08-12-error-codes-not-classes.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/decisions/2026-08-12-error-codes-not-classes.md).
  *
  * `SkippedDayError` is the one exported class: a caller genuinely branches on it at runtime —
  * "that day does not exist, offer the neighbour" is a different response from "your input is
@@ -44,7 +44,7 @@ import { deepFreeze } from "./freeze.js";
  *   The split decides what `tibetanDateExists` answers: it answers `false` for the range code —
  *   "that date does not exist" — and throws for this one, so a caller who passed a `PlainDate`, or a
  *   date missing its `day`, gets a throw rather than a `false` they would read as a calendrical fact.
- *   See `docs/decisions/2026-08-15-argument-errors-split.md`.
+ *   See [`docs/decisions/2026-08-15-argument-errors-split.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/decisions/2026-08-15-argument-errors-split.md).
  * - `TCT_NO_SUCH_LEAP_MONTH` — `isLeapMonth` was set for a month that has no leap twin that year.
  * - `TCT_SKIPPED_DAY` — the date is well-formed but no calendar day carries its number. Not an
  *   input error; use `tibetanDateExists` to test first.

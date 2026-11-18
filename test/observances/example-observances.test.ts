@@ -64,7 +64,7 @@ describe("EXAMPLE_OBSERVANCES", () => {
 		]).toEqual(["second", "preceding", "leap"]);
 	});
 
-	it("names the four düchens as FPMT prints them, tagged duchen, for everyone", () => {
+	it("names the four düchens as FPMT prints them, tagged duchen and merit-multiplying, for everyone", () => {
 		const expected: Record<string, string> = {
 			"chotrul-duchen": "Day of Miracles",
 			"saga-dawa-duchen": "Lord Buddha's birth, enlightenment and parinirvana",
@@ -80,7 +80,7 @@ describe("EXAMPLE_OBSERVANCES", () => {
 			}).toEqual({
 				id,
 				englishName,
-				tags: ["duchen"],
+				tags: ["duchen", "merit-multiplying"],
 				level: "everyone",
 			});
 		}
@@ -137,7 +137,7 @@ describe("EXAMPLE_OBSERVANCES", () => {
 		expect([r.englishName, r.level, r.tags]).toEqual([
 			"Fire puja",
 			"no-empowerment",
-			["from-restricted-practice"],
+			["from-restricted-practice", "practice"],
 		]);
 		expect(r.when).toEqual({ type: "formula", formula: "lunarDayPlusWeekdayMod4" });
 	});
@@ -163,33 +163,66 @@ describe("EXAMPLE_OBSERVANCES", () => {
 		expect(row("medicine-buddha")).toEqual([
 			"Medicine Buddha puja",
 			"no-empowerment",
-			undefined,
+			["practice"],
 			{ type: "monthly", days: [8, 15] },
 		]);
 		expect(row("tara")).toEqual([
 			"Tara puja",
 			"no-empowerment",
-			undefined,
+			["practice"],
 			{ type: "monthly", days: [8] },
 		]);
 		expect(row("heruka-day")).toEqual([
 			"Heruka Day",
 			"no-empowerment",
-			["tsok"],
+			["tsok", "practice"],
 			{ type: "monthly", days: [10] },
 		]);
 		expect(row("dakini-day")).toEqual([
 			"Ḍākinī Day",
 			"no-empowerment",
-			["tsok"],
+			["tsok", "practice"],
 			{ type: "monthly", days: [25] },
 		]);
 		expect(row("dharma-protector-day")).toEqual([
 			"Dharma Protector Day",
 			"empowerment",
-			["tsok"],
+			["tsok", "practice"],
 			{ type: "monthly", days: [29] },
 		]);
+	});
+});
+
+describe("the example's tags", () => {
+	it("tags every rule", () => {
+		expect(EXAMPLE_OBSERVANCES.rules.filter((r) => !r.tags?.length).map((r) => r.id)).toEqual([]);
+	});
+
+	it("tags each rule as ruled", () => {
+		const duchen = ["duchen", "merit-multiplying"];
+		const anniversary = ["anniversary"];
+		const tsok = ["tsok", "practice"];
+		expect(Object.fromEntries(EXAMPLE_OBSERVANCES.rules.map((r) => [r.id, r.tags]))).toEqual({
+			"chotrul-duchen": duchen,
+			"saga-dawa-duchen": duchen,
+			"chokhor-duchen": duchen,
+			"lhabab-duchen": duchen,
+			milarepa: anniversary,
+			"guru-rinpoche": anniversary,
+			gampopa: anniversary,
+			"karmapa-16": anniversary,
+			tsongkhapa: anniversary,
+			"sakya-pandita": anniversary,
+			"dudjom-rinpoche": anniversary,
+			"saga-dawa-month": ["merit-multiplying"],
+			sojong: ["practice"],
+			"fire-puja": ["from-restricted-practice", "practice"],
+			"medicine-buddha": ["practice"],
+			tara: ["practice"],
+			"heruka-day": tsok,
+			"dakini-day": tsok,
+			"dharma-protector-day": tsok,
+		});
 	});
 });
 

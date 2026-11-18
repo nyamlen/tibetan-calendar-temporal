@@ -60,8 +60,8 @@ without comment.
 data rather than a change to any computation module. A per-tradition package would fork the
 algorithm, which is the outcome the injection design was built to prevent.
 
-If a split is ever warranted it follows the existing seam — engine, observances, and a possible
-`@nyamlen/icalendar` — the same reasoning as
+If a split is ever warranted it follows the existing seam, between the engine and its
+observances — the same reasoning as
 [2026-08-12-public-surface.md](2026-08-12-public-surface.md) applied to packaging.
 
 Publishing stub packages under other names that redirect here is also excluded. It is not a

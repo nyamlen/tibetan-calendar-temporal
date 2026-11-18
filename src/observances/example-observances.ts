@@ -17,7 +17,7 @@
  * ## Levels
  *
  * Three, named by what a practice requires: `everyone`, `no-empowerment` and `empowerment`. The
- * assignments are authored except where `docs/observances.md` cites a publisher's notice. The
+ * assignments are authored except where [`docs/observances.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/observances.md) cites a publisher's notice. The
  * engine never acts on a level.
  *
  * ## English names
@@ -25,7 +25,7 @@
  * The four great days and the seven anniversaries carry FPMT's own labels, word for word, each
  * following one year's printing where FPMT's varies. The Heruka, Ḍākinī and Dharma Protector day
  * names are authored, composed from the dedications Cornu's summary of Dudjom Rinpoche gives those
- * days. The others, and the level names and the config's own, are authored too. `docs/observances.md`
+ * days. The others, and the level names and the config's own, are authored too. [`docs/observances.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/observances.md)
  * gives each name's basis.
  *
  * ## Tibetan names
@@ -113,7 +113,7 @@ export const EXAMPLE_OBSERVANCES: ObservanceConfig = deepFreeze({
 				phonetic: "chontrül düchen",
 			},
 			level: "everyone",
-			tags: ["duchen"],
+			tags: ["duchen", "merit-multiplying"],
 			when: { type: "annual", dates: [{ month: 1, day: 15 }] },
 		},
 		{
@@ -125,7 +125,7 @@ export const EXAMPLE_OBSERVANCES: ObservanceConfig = deepFreeze({
 				phonetic: "saga dawa düchen",
 			},
 			level: "everyone",
-			tags: ["duchen"],
+			tags: ["duchen", "merit-multiplying"],
 			when: { type: "annual", dates: [{ month: 4, day: 15 }] },
 		},
 		{
@@ -137,7 +137,7 @@ export const EXAMPLE_OBSERVANCES: ObservanceConfig = deepFreeze({
 				phonetic: "chönkhor düchen",
 			},
 			level: "everyone",
-			tags: ["duchen"],
+			tags: ["duchen", "merit-multiplying"],
 			when: { type: "annual", dates: [{ month: 6, day: 4 }] },
 		},
 		{
@@ -149,7 +149,7 @@ export const EXAMPLE_OBSERVANCES: ObservanceConfig = deepFreeze({
 				phonetic: "lhabap düchen",
 			},
 			level: "everyone",
-			tags: ["duchen"],
+			tags: ["duchen", "merit-multiplying"],
 			when: { type: "annual", dates: [{ month: 9, day: 22 }] },
 		},
 
@@ -228,6 +228,7 @@ export const EXAMPLE_OBSERVANCES: ObservanceConfig = deepFreeze({
 			englishName: "Saga Dawa, Lord Buddha's month",
 			tibetanName: { tibetan: "ས་ག་ཟླ་བ", wylie: "sa ga zla ba", phonetic: "saga dawa" },
 			level: "everyone",
+			tags: ["merit-multiplying"],
 			when: { type: "period", first: { month: 4, day: 1 }, last: { month: 4, day: 30 } },
 		},
 
@@ -239,6 +240,7 @@ export const EXAMPLE_OBSERVANCES: ObservanceConfig = deepFreeze({
 			englishName: "Sojong (vow renewal)",
 			tibetanName: { tibetan: "གསོ་སྦྱོང", wylie: "gso sbyong", phonetic: "sojong" },
 			level: "no-empowerment",
+			tags: ["practice"],
 			doubledDay: "first",
 			skippedDay: "following",
 			when: {
@@ -255,7 +257,7 @@ export const EXAMPLE_OBSERVANCES: ObservanceConfig = deepFreeze({
 			englishName: "Fire puja",
 			tibetanName: { tibetan: "སྦྱིན་སྲེག", wylie: "sbyin sreg", phonetic: "jinsek" },
 			level: "no-empowerment",
-			tags: ["from-restricted-practice"],
+			tags: ["from-restricted-practice", "practice"],
 			when: { type: "formula", formula: "lunarDayPlusWeekdayMod4" },
 		},
 
@@ -273,6 +275,7 @@ export const EXAMPLE_OBSERVANCES: ObservanceConfig = deepFreeze({
 			id: "medicine-buddha",
 			englishName: "Medicine Buddha puja",
 			level: "no-empowerment",
+			tags: ["practice"],
 			doubledDay: "both",
 			skippedDay: "omit",
 			when: { type: "monthly", days: [8, 15] },
@@ -281,6 +284,7 @@ export const EXAMPLE_OBSERVANCES: ObservanceConfig = deepFreeze({
 			id: "tara",
 			englishName: "Tara puja",
 			level: "no-empowerment",
+			tags: ["practice"],
 			doubledDay: "both",
 			skippedDay: "omit",
 			when: { type: "monthly", days: [8] },
@@ -291,7 +295,7 @@ export const EXAMPLE_OBSERVANCES: ObservanceConfig = deepFreeze({
 			id: "heruka-day",
 			englishName: "Heruka Day",
 			level: "no-empowerment",
-			tags: ["tsok"],
+			tags: ["tsok", "practice"],
 			doubledDay: "both",
 			skippedDay: "omit",
 			when: { type: "monthly", days: [10] },
@@ -300,7 +304,7 @@ export const EXAMPLE_OBSERVANCES: ObservanceConfig = deepFreeze({
 			id: "dakini-day",
 			englishName: "Ḍākinī Day",
 			level: "no-empowerment",
-			tags: ["tsok"],
+			tags: ["tsok", "practice"],
 			doubledDay: "both",
 			skippedDay: "omit",
 			when: { type: "monthly", days: [25] },
@@ -309,7 +313,7 @@ export const EXAMPLE_OBSERVANCES: ObservanceConfig = deepFreeze({
 			id: "dharma-protector-day",
 			englishName: "Dharma Protector Day",
 			level: "empowerment",
-			tags: ["tsok"],
+			tags: ["tsok", "practice"],
 			doubledDay: "both",
 			skippedDay: "omit",
 			when: { type: "monthly", days: [29] },

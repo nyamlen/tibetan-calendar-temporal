@@ -275,6 +275,20 @@ const CONFIG: readonly Row[] = [
 			field === "id" || field === "englishName" ? ["numeric string"] : [],
 		],
 	),
+	...["id", "doubledDay", "skippedDay", "leapMonth"].map(
+		(field): Row => [
+			`composeObservances(base, layer) layer.conventions entry ${field}`,
+			(x) =>
+				composeObservances(
+					EXAMPLE_OBSERVANCES,
+					v({
+						id: "l",
+						englishName: "L",
+						conventions: [{ id: "tara", doubledDay: "first", [field]: x }],
+					}),
+				),
+		],
+	),
 ];
 
 // A consumer's ObservanceConfig, whose rule fields the validator renders. `LEVEL_CONFIG` declares a
@@ -486,6 +500,7 @@ const RULE_OBJECT: readonly Row[] = [
 		"removeLevels",
 		"replaceLevels",
 		"addLevels",
+		"conventions",
 	].flatMap((field): Row[] => [
 		[
 			`composeObservances(base, layer) layer.${field}`,

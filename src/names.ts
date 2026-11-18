@@ -3,7 +3,7 @@
  *
  * @remarks
  * Every string here was verified by `scripts/verify-name-sources.mjs` before it was written down,
- * against five independent checks — see `docs/names/vocabulary.md`.
+ * against five independent checks — see [`docs/names/vocabulary.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/vocabulary.md).
  *
  * **One correction to the source is applied and is not a typo of ours.** Janson's day-of-week table
  * gives Saturday as `spen ma`; his own Bhutan appendix gives `spen pa` for the same day in Tibet.
