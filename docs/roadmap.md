@@ -2091,6 +2091,8 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
   unrelated web surfaces for one project is a maintenance surface nobody asked for. TypeDoc stays
   blocked on TypeScript 7 independently of this.
 
+  If the reference site is not built, add a CI-tested runnable example to this repository instead.
+
 - **The 60 rabjung cycle names — SHIPPED, Tibetan only.** `rabjungFor(year).tibetanName` carries a
   `TibetanName` at every position — script, Wylie, phonetics. **Neither** of the cycle's two Sanskrit
   lists ships, because they carry different names at 16, 17, 18, 20 and 34 and a type pairing either
