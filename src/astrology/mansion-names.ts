@@ -6,7 +6,7 @@
  * names were verified by `scripts/verify-mansion-and-trigram-names.mjs` against the Mahāvyutpatti,
  * Das, Jäschke, the two Tibetan–Tibetan dictionaries and Monier-Williams, and the suite holds this
  * table against that script's fixture. The evidence and the decisions are in
- * `docs/names/mansion-and-trigram-sourcing.md`.
+ * [`docs/names/mansion-and-trigram-sourcing.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/mansion-and-trigram-sourcing.md).
  *
  * - **The Tibetan** is the Mahāvyutpatti's, at the position Jäschke's list — numbered from 0, as the
  *   engine numbers — gives it.

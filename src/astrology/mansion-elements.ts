@@ -5,12 +5,12 @@
  * **This table is Henning's, not Janson's.** Janson defines the elemental yoga and then says he
  * does not derive this list, pointing to Henning for it. Citing Henning there is an ordinary
  * citation chain rather than two sources competing to define one number — see
- * [../../docs/astrology.md](../../docs/astrology.md), which records why the sole-source rule does
+ * [`docs/astrology.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/astrology.md), which records why the sole-source rule does
  * not reach it.
  *
  * Source: Edward Henning, "Symbolic details of the Kālacakra calendar",
  * `http://www.kalacakra.org/calendar/symlst.htm`, last updated 3 February 2010, accessed
- * `2026-09-10`; [../../docs/almanac-sources.md](../../docs/almanac-sources.md) carries a Wayback
+ * `2026-09-10`; [`docs/almanac-sources.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/almanac-sources.md) carries a Wayback
  * snapshot beside the live URL.
  *
  * **The elements are the Indian four, not the Chinese five.** Earth, fire, water and *wind* —

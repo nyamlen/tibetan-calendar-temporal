@@ -7,13 +7,13 @@
  *
  * Shipped: {@link ../traditions/phugpa.PHUGPA}, `PHUGPA_HENNING`,
  * {@link ../traditions/bhutan.BHUTAN} and `BHUTAN_HENNING`. Tsurphu and the Mongolian version are
- * expressible and documented in `docs/traditions.md`, and deliberately not exported — nothing
+ * expressible and documented in [`docs/traditions.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/traditions.md), and deliberately not exported — nothing
  * validates a date for either.
  *
  * More than the constants differ between versions. The Tsurphu, Mongolian and Bhutanese versions
  * each use a different **leap-month rule**, which is why {@link TraditionConfig.leapIndexThreshold}
  * exists. Bhutan also places a leap month *after* rather than *before* the regular month sharing
- * its number — see {@link TraditionConfig.leapMonthPosition}, and `docs/traditions.md` for what a
+ * its number — see {@link TraditionConfig.leapMonthPosition}, and [`docs/traditions.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/traditions.md) for what a
  * version still has to carry beyond these.
  *
  * Constants are held as exact {@link Rational}s. The scaling denominator is derived from them, in
@@ -160,7 +160,7 @@ export interface TraditionConfig {
 	 * passes 65, not a uniform shift of this threshold: `{ ...BHUTAN, leapIndexThreshold: 59 }` is a
 	 * different calendar, not Bhutan under the traditional index. Bhutan additionally numbers a leap
 	 * month from the **preceding** month rather than the following one, which this field does
-	 * **not** express; see `leapMonthPosition` and `docs/traditions.md`.
+	 * **not** express; see `leapMonthPosition` and [`docs/traditions.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/traditions.md).
 	 */
 	readonly leapIndexThreshold: number;
 
@@ -315,7 +315,7 @@ export interface TraditionNaming {
 	 *
 	 * Absence is never a Phugpa fallback: Janson states that Mongolia uses **Tsurphu's** rules for
 	 * the month animal, gender and element, and Tsurphu and Mongolian configs exist in
-	 * `docs/traditions.md` as data.
+	 * [`docs/traditions.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/traditions.md) as data.
 	 */
 	readonly monthAnimals?: TraditionMonthAnimals;
 
@@ -410,7 +410,7 @@ export interface TraditionNineNumbers {
  *
  * **Only the tradition goes here.** A function whose only choice is the tradition takes it as its
  * last positional parameter instead, so no function takes this type on its own; any other choice
- * goes on that function's own bag. See `docs/decisions/2026-09-24-how-a-tradition-is-passed.md`.
+ * goes on that function's own bag. See [`docs/decisions/2026-09-24-how-a-tradition-is-passed.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/decisions/2026-09-24-how-a-tradition-is-passed.md).
  *
  * Not exported from a barrel, because no consumer holds a bag of this type alone. It is declared
  * outside the barrels so that `check:conventions` rule 13 would see it if it ever were.

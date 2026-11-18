@@ -10,11 +10,11 @@
  *
  * Every Tibetan string here, and every Indian month name, was verified by
  * `scripts/verify-month-and-yoga-names.mjs` before it was written down — see
- * `docs/names/month-and-yoga-sourcing.md` for the evidence and the variants not chosen.
+ * [`docs/names/month-and-yoga-sourcing.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/month-and-yoga-sourcing.md) for the evidence and the variants not chosen.
  *
  * The mansion's Sanskrit comes from the other verifier, `scripts/verify-mansion-and-trigram-names.mjs`,
  * because it is the same string that script emits for the mansion itself; its evidence is in
- * `docs/names/mansion-and-trigram-sourcing.md`.
+ * [`docs/names/mansion-and-trigram-sourcing.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/mansion-and-trigram-sourcing.md).
  *
  * @packageDocumentation
  */
@@ -169,7 +169,7 @@ const MANSIONS: readonly {
  * @remarks
  * Verified by `scripts/verify-month-and-yoga-names.mjs` and held against its fixture by
  * `test/month-names.test.ts`; the rule, the month-5 exception and both witnesses' divergences are in
- * `docs/names/month-and-yoga-sourcing.md`.
+ * [`docs/names/month-and-yoga-sourcing.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/month-and-yoga-sourcing.md).
  */
 const INDIAN_MONTHS: readonly { readonly sanskritName: SanskritName }[] = freeze(
 	(

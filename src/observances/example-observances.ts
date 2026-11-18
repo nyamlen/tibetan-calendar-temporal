@@ -17,7 +17,7 @@
  * ## Levels
  *
  * Three, named by what a practice requires: `everyone`, `no-empowerment` and `empowerment`. The
- * assignments are authored except where `docs/observances.md` cites a publisher's notice. The
+ * assignments are authored except where [`docs/observances.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/observances.md) cites a publisher's notice. The
  * engine never acts on a level.
  *
  * ## English names
@@ -25,7 +25,7 @@
  * The four great days and the seven anniversaries carry FPMT's own labels, word for word, each
  * following one year's printing where FPMT's varies. The Heruka, Ḍākinī and Dharma Protector day
  * names are authored, composed from the dedications Cornu's summary of Dudjom Rinpoche gives those
- * days. The others, and the level names and the config's own, are authored too. `docs/observances.md`
+ * days. The others, and the level names and the config's own, are authored too. [`docs/observances.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/observances.md)
  * gives each name's basis.
  *
  * ## Tibetan names

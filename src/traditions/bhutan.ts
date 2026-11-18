@@ -10,7 +10,7 @@
  * The epoch is Janson's own from his Bhutan appendix, not the four-version comparison table, and the
  * appendix states that `m₀` is already "modified to yield the JD" — the same form
  * {@link ../traditions/phugpa.PHUGPA}'s constant takes. So the one-mean-lunar-month offset
- * `docs/traditions.md` warns about does not arise here; it belongs to the comparison table's
+ * [`docs/traditions.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/traditions.md) warns about does not arise here; it belongs to the comparison table's
  * common-epoch values.
  *
  * `m₁`, `s₁`, `a₁` are Phugpa's — Janson states it — and therefore so are `m₂` and `s₂`. The
@@ -38,7 +38,7 @@ import type { TraditionConfig } from "./types.js";
  * Bhutan's leap months against Janson's table. The day-by-day sweep against Henning's lineage
  * validates {@link BHUTAN_HENNING} and not this config, which differs from it where `a₂` does.
  * `docs/why-trust-these-dates.md` states over which years and with what independence; the day counts
- * are in `docs/testing.md`.
+ * are in [`docs/testing.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/testing.md).
  *
  * **A disagreement this does not resolve.** Janson records that Bhutan's *government calendar* gives
  * New Year 2003 as 3 March, with day 1 of month 1 repeated, while his own calculations and Henning's
@@ -141,7 +141,7 @@ export const BHUTAN: TraditionConfig = deepFreeze({
  * **This is the variant the validation data supports, and that is worth stating plainly.** The only
  * day-by-day Bhutanese calendar available descends from Henning's own software, so it follows
  * Henning's `a₂` — with the rounded value, some days of the swept window disagree
- * (`docs/testing.md` has its extent). Concluding from that which value *Bhutanese almanacs* print
+ * ([`docs/testing.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/testing.md) has its extent). Concluding from that which value *Bhutanese almanacs* print
  * would be circular, and Janson gives no Bhutanese statement on the fork. {@link BHUTAN} therefore
  * keeps the rounded `1/28` the Tibetan almanacs use, exactly as {@link ../traditions/phugpa.PHUGPA}
  * does.

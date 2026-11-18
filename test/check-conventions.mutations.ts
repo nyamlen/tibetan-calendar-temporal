@@ -16,7 +16,7 @@
  *
  * - **C0** is the control: the unmutated copy must pass. If it fails, every other row is measuring
  *   nothing.
- * - **R1–R18** each prove one rule still fires. The last test holds the set against the checker's
+ * - **R1–R19** each prove one rule still fires. The last test holds the set against the checker's
  *   own `RULES` registry, so a new rule without a mutant fails here.
  * - **X1–X7** prove the containment added on 2026-09-12: a throw must not cost the findings already
  *   collected, a path in the index but not on disk is reported rather than read, and the registry
@@ -331,6 +331,7 @@ const R: Record<number, Row> = {
 					" *",
 					" * Changed on 2026-11-16.",
 					" * A value `zzSpan 2031-02-03` a caller needs stays.",
+					" * A record [zzRecord](https://example.invalid/2031-02-06-zzTarget.md) is a filename.",
 					" *",
 					" * @example",
 					" * zzMutantR17(); // zzExample 2031-02-04",
@@ -346,7 +347,7 @@ const R: Record<number, Row> = {
 			"Changed on 2026-11-16",
 			"Reach: only",
 		],
-		mustNot: ["zzSpan", "zzExample", "zzComment"],
+		mustNot: ["zzSpan", "zzExample", "zzComment", "zzTarget"],
 	},
 	18: {
 		id: "R18",
@@ -370,6 +371,30 @@ const R: Record<number, Row> = {
 			"src/freeze.ts:",
 			"zzR18 rationale the stray opener swallows",
 		],
+	},
+	19: {
+		id: "R19",
+		what: "a relative path to an unshipped document in a docblock, beside three the rule must leave alone",
+		apply: (tree) =>
+			tree.append(
+				"src/freeze.ts",
+				[
+					"",
+					"/**",
+					" * Returns one. See [zzRelative](../docs/zz-relative.md).",
+					" * The shipped `docs/guide.md` is named relatively, and [`docs/zz-linked.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/zz-linked.md) is linked.",
+					" */",
+					"// docs/zz-comment.md is a maintainer note, outside the docblock",
+					"export const zzMutantR19 = 1;",
+					"",
+				].join("\n"),
+			),
+		must: [
+			"a docblock names an unshipped document only by absolute URL",
+			"src/freeze.ts:",
+			"`docs/zz-relative.md`",
+		],
+		mustNot: ["docs/guide.md`", "zz-linked", "zz-comment"],
 	},
 };
 

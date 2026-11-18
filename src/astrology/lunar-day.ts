@@ -5,7 +5,7 @@
  * @remarks
  * These are the labels an almanac prints against the Tibetan day **number**, and they are a
  * different set from the ones the calendar day carries. A single printed row shows both, and they
- * disagree; that is not a defect to reconcile. See [docs/astrology.md](../../docs/astrology.md).
+ * disagree; that is not a defect to reconcile. See [`docs/astrology.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/astrology.md).
  *
  * Because a lunar day is identified by its `(month, day)` numbers and nothing else, these answer for
  * a **skipped** lunar day as readily as for any other — the day no calendar day carries still has an
