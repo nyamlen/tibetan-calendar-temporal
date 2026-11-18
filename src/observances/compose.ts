@@ -133,8 +133,8 @@ function idsOf(value: unknown, field: string): { id: string; item: unknown }[] {
 				`${SUBJECT}: every ${field} entry must be an object, received ${describe(item)}`,
 			);
 		}
-		// Read once: a `conventions` entry never reaches the validated candidate, so an id answering
-		// differently the second time would change a rule other than the one checked.
+		// Read once, so the id checked is the id returned: a getter can answer differently the second
+		// time. (`conventions` is also read from a private copy; see `conventionsFrom`.)
 		const id = item.id;
 		assertNonEmptyString(id, `${SUBJECT}: every ${field} entry's id`);
 		return { id: id as string, item };
