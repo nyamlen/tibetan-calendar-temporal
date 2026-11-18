@@ -150,7 +150,7 @@ per-rule walk costs something on a config with many rules.
 
 The full `npm run bench` run after the observance rebuild, so its `EXAMPLE_OBSERVANCES` rows are the
 19-rule example, which holds a `counted` rule and a `formula` rule. It supersedes the figures above
-that describe the same cases. Quote these.
+that describe the same cases. **Superseded by the re-record of 2026-11-18 below; quote that.**
 
 | | |
 |---|---|
@@ -225,6 +225,47 @@ In the one run, three rows came out slower: `getObservances`, 1 month, counted a
 A second run gave 0.522 ms, 0.093 ms and 0.066 ms for those, against 0.575 ms, 0.106 ms and 0.069 ms before, so they were noise.
 The test *a date the engine made is not copied again* in `test/temporal-kind.test.ts` holds the
 boundary-only property: before the change, `datesFor` made 58 copies for a 29-day month.
+
+## Re-recorded, 2026-11-18
+
+The full `npm run bench` run on `main` after the parked cleanup batch, which made a caller's date a
+copy and took the engine's own loops off the caller's guard (the section above), and with two new
+rows for the month grid a calendar view renders. It supersedes every figure above that describes
+the same cases. **Quote these**, with this harness:
+
+| | |
+|---|---|
+| Date | 2026-11-18 |
+| CPU | Intel Core Ultra 7 365, 8 logical cores |
+| Memory | 32 GB |
+| OS | Windows 11 Pro (10.0.26300), x64 |
+| Node | v26.11.1 |
+| Vitest | 4.1.12, `vitest bench --run` |
+
+The whole file was run once, and each mean is that run's.
+
+| Case | Mean | Budget | Note |
+|---|---|---|---|
+| `isoToTibetan`, one date | 0.0067 ms | | about 150,000 a second; ±6.4% |
+| `isoToTibetan`, one year of days | 3.40 ms | | ±11.3% |
+| `datesFor`, one month | 0.135 ms | | the month grid; ±4.0% |
+| `monthsFor` and `datesFor`, one year of grids | 1.65 ms | | twelve or thirteen grids; ±4.5% |
+| `monthsFor`, cold | 0.0522 ms | | |
+| `monthsFor`, warm | 0.0002 ms | | **about 260x faster than cold** |
+| `getObservances`, 10 years (the cap), every form | 18.4 ms | | min 16.1, max 25.1 |
+| `getObservances`, 10 years (the cap), `EXAMPLE_OBSERVANCES` | 22.6 ms | | min 19.5, max 29.9 |
+| `getObservances`, 2 years, every form (planning chunk) | 3.66 ms | 100 ms | |
+| `getObservances`, 1 year, every form (year view) | 2.01 ms | 50 ms | |
+| `getObservances`, 1 month, every form (month view) | 0.520 ms | 10 ms | |
+| `observancesOn`, 1 day, every form (day view) | 0.408 ms | 5 ms | |
+| `getObservances`, 1 year, `EXAMPLE_OBSERVANCES` | 2.57 ms | 50 ms | the realistic case |
+| `getObservances`, 1 year, counted and the five other forms | 2.19 ms | 50 ms | |
+| `getObservances`, 1 month, counted and the five other forms | 0.667 ms | 10 ms | ±19.7%, one 48.6 ms outlier |
+| `nextObservance`, the next occurrence is near | 0.042 to 0.438 ms | 100 ms | `formula` the slowest, `annual` the fastest |
+| `nextObservance`, `null` after the full 10-year horizon | 0.058 to 0.085 ms | 100 ms | |
+
+Every view is inside its budget by at least a factor of twelve. The README quotes the single-date,
+month-grid and year-view figures from this table.
 
 ## What is deliberately not here
 
