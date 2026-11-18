@@ -354,15 +354,25 @@ describe("a native subclass is read from its slots", () => {
 	// Copying alone is not enough: `Temporal.PlainDate.from` on a forwarding Proxy, which passes
 	// `instanceof`, reads its fields rather than its slots, and a Tishrei date's fields read as ISO
 	// 5785-01-03. The calendar must be read through the intrinsic getter first.
-	it("refuses a forwarding Proxy around a non-ISO date rather than reading its fields", () => {
-		const tishrei = Temporal.PlainDate.from("2024-10-05").withCalendar("hebrew");
-		const forwarding = new Proxy(tishrei, {
-			get: (target, key) => {
-				const value = Reflect.get(target, key, target);
-				return typeof value === "function" ? value.bind(target) : value;
+	const forwardingProxy = (target: Temporal.PlainDate) =>
+		new Proxy(target, {
+			get: (inner, key) => {
+				const value = Reflect.get(inner, key, inner);
+				return typeof value === "function" ? value.bind(inner) : value;
 			},
 		});
-		expect(codeOf(() => isoToTibetan(forwarding))).toBe("TCT_INVALID_ARGUMENT");
+
+	it("refuses a forwarding Proxy around a non-ISO date rather than reading its fields", () => {
+		const tishrei = Temporal.PlainDate.from("2024-10-05").withCalendar("hebrew");
+		expect(codeOf(() => isoToTibetan(forwardingProxy(tishrei)))).toBe("TCT_INVALID_ARGUMENT");
+	});
+
+	// Accepted until the copy, which read the Proxy itself on every later call. A Proxy carries no
+	// slot, so only the date it wraps can be trusted, and the message says what to pass instead.
+	it("refuses a forwarding Proxy around an ISO date too, naming it as a Proxy", () => {
+		const error = thrownBy(() => isoToTibetan(forwardingProxy(NATIVE)));
+		expect(error?.code).toBe("TCT_INVALID_ARGUMENT");
+		expect(error?.message).toContain("a Proxy around one");
 	});
 });
 

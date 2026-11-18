@@ -524,6 +524,11 @@ that its first step is still open.
     are computed by the caller's own `since`, so they would not have closed it.
     `toNativePlainDate` now reads the calendar through the intrinsic getter and copies the date,
     and `getObservances` needed no edit.
+    One input changed answer: a Proxy that forwards to a genuine ISO date was accepted before, and the
+    engine read the Proxy itself; it carries no slot, so it is now refused `TCT_INVALID_ARGUMENT`,
+    with a message naming it as a Proxy.
+    The engine's own loops skip the copy through two internal functions, so it runs once where a
+    caller's date enters (`f209109`); `bench/RESULTS.md` records both versions' cost.
   - **Fix: tradition first, everywhere** (Andreas, 2026-11-17). The year functions `hasLeapMonth`,
     `leapMonthNumberFor` and `monthsInYear` check the year before the tradition, where `monthsFor`
     checks the tradition first. The ruling: every function taking a tradition validates it before its

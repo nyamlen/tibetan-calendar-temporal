@@ -46,8 +46,9 @@
  * separated by" mode through `scripts/thl.mjs`. A two-syllable name is one word, so THL joins it
  * (`spen pa` is *penpa*); a name of three syllables or more needs a ruling in
  * `scripts/word-boundaries.data.json`, and the generated `vocabulary.md` says how many terms here
- * are that long. Each word of a
- * multi-syllable term must also be a headword in an accepted dictionary, or the run refuses.
+ * are that long.
+ * Each word of a multi-syllable term must also be a headword in an accepted dictionary, or the run
+ * refuses.
  *
  * ## Why this is not on the CI path
  *

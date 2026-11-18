@@ -603,10 +603,22 @@ describe("which error a doubly-bad call reports", () => {
 
 	// With a valid tradition a bad bare number keeps the range code, a non-number included: the
 	// deliberate exception in the argument-errors record.
-	it("a bare number that is wrong, under a valid tradition, still reports the range", () => {
-		expect(codeOf(() => weekdayNameFor("x" as never))).toBe("TCT_FIELD_OUT_OF_RANGE");
-		expect(codeOf(() => hasLeapMonth(1.5))).toBe("TCT_FIELD_OUT_OF_RANGE");
-	});
+	it.each([
+		["monthsFor", (v: never) => monthsFor(v)],
+		["losarFor", (v: never) => losarFor(v)],
+		["monthFromLunation", (v: never) => monthFromLunation(v)],
+		["hasLeapMonth", (v: never) => hasLeapMonth(v)],
+		["leapMonthNumberFor", (v: never) => leapMonthNumberFor(v)],
+		["monthsInYear", (v: never) => monthsInYear(v)],
+		["weekdayNameFor", (v: never) => weekdayNameFor(v)],
+		["isoFromJulianDay", (v: never) => isoFromJulianDay(v)],
+	] as const)(
+		"%s, under a valid tradition, still reports a wrong number as a range",
+		(_label, call) => {
+			expect(codeOf(() => call(1.5 as never))).toBe("TCT_FIELD_OUT_OF_RANGE");
+			expect(codeOf(() => call("x" as never))).toBe("TCT_FIELD_OUT_OF_RANGE");
+		},
+	);
 
 	// Order B is load-bearing here: were the range checked before the tradition, the allowlist would
 	// swallow the range error and report a broken config as a date that does not exist.
@@ -685,10 +697,6 @@ describe("nextObservance names itself, not getObservances", () => {
 	});
 });
 
-// The observance entry points share one date guard and one config validator, and each states its own
-// name through them. A shared message that named another function's signature sent a caller to read
-// the wrong docblock: a TraditionConfig given to `composeObservances`, which takes no tradition, was
-// told to use `getObservances(from, to, config, tradition)`.
 describe("a Western date's refusal opens with the caller's name", () => {
 	// Until the parked cleanup batch these two refusals named no caller: the calendar one was built
 	// by assertIsoCalendar, and asWesternDay passed no subject to asPlainDate for a string.
@@ -715,8 +723,28 @@ describe("a Western date's refusal opens with the caller's name", () => {
 	it("nextFullMoon, given a Hebrew-calendar PlainDate", () => {
 		expect(thrownBy(() => nextFullMoon(hebrew))?.message.startsWith("nextFullMoon: ")).toBe(true);
 	});
+
+	// A revoked Proxy's type cannot even be read, and that refusal is built before any other.
+	const revoked = (() => {
+		const { proxy, revoke } = Proxy.revocable({}, {});
+		revoke();
+		return proxy;
+	})();
+	it.each([
+		["getObservances(from): ", () => getObservances(revoked as never, day, EXAMPLE_OBSERVANCES)],
+		["nextFullMoon: ", () => nextFullMoon(revoked as never)],
+		["nextFullMoon: ", () => nextFullMoon({ isoDate: revoked } as never)],
+	] as const)("a value whose type cannot be read opens with %s", (prefix, call) => {
+		const error = thrownBy(call);
+		expect(error?.code).toBe("TCT_INVALID_ARGUMENT");
+		expect(error?.message.startsWith(prefix)).toBe(true);
+	});
 });
 
+// The observance entry points share one date guard and one config validator, and each states its own
+// name through them. A shared message that named another function's signature sent a caller to read
+// the wrong docblock: a TraditionConfig given to `composeObservances`, which takes no tradition, was
+// told to use `getObservances(from, to, config, tradition)`.
 describe("the observance guards name the function that was called", () => {
 	const from = Temporal.PlainDate.from("2026-01-01");
 	const CONFIG = "TCT_INVALID_OBSERVANCE_CONFIG";

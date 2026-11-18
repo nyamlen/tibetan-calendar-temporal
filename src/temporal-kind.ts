@@ -62,13 +62,14 @@ const DAY_KINDS: ReadonlySet<string> = new Set<TemporalDayKind>([
  * `PlainYearMonth`, `PlainMonthDay`, `PlainTime` and `Duration` each carry their own tag and so are
  * named here; none of them names a calendar day, so {@link temporalKindOf} answers `null` for them.
  *
+ * @param subject - The export and argument the caller passed, which opens the message when given.
  * @throws A `TCT_INVALID_ARGUMENT` error if the value's own brand cannot be read: a revoked `Proxy`,
  * or an object whose `Symbol.toStringTag` getter throws. The message names neither cause.
  */
 // The read is wrapped because a boundary is where an uncoded `TypeError` becomes a coded error. That
 // is not a regression: `instanceof` throws on a revoked `Proxy` too. The message names neither cause
 // because nothing here establishes which one it was.
-export function temporalTypeNameOf(value: unknown): string | null {
+export function temporalTypeNameOf(value: unknown, subject?: string): string | null {
 	if (value === null || (typeof value !== "object" && typeof value !== "function")) return null;
 	let tag: string;
 	try {
@@ -76,8 +77,8 @@ export function temporalTypeNameOf(value: unknown): string | null {
 	} catch (error) {
 		throw rangeError(
 			"TCT_INVALID_ARGUMENT",
-			"received a value whose type cannot be read: reading its Symbol.toStringTag threw. Pass " +
-				"the date itself.",
+			`${subject === undefined ? "" : `${subject}: `}received a value whose type cannot be ` +
+				"read: reading its Symbol.toStringTag threw. Pass the date itself.",
 			error,
 		);
 	}
@@ -93,10 +94,11 @@ export function temporalTypeNameOf(value: unknown): string | null {
  * A kind and not a boolean, because {@link toNativePlainDate} has to know whether to call
  * `.toPlainDate()`, and the entry points accept different subsets of the three.
  *
+ * @param subject - As {@link temporalTypeNameOf}'s.
  * @throws A `TCT_INVALID_ARGUMENT` error if the value's own brand cannot be read.
  */
-export function temporalKindOf(value: unknown): TemporalDayKind | null {
-	const name = temporalTypeNameOf(value);
+export function temporalKindOf(value: unknown, subject?: string): TemporalDayKind | null {
+	const name = temporalTypeNameOf(value, subject);
 	return name !== null && DAY_KINDS.has(name) ? (name as TemporalDayKind) : null;
 }
 
@@ -133,7 +135,8 @@ export function assertTemporalPresent(): void {
  * @remarks
  * A `PlainDate` from this realm's `Temporal`, a subclass's instance included, is returned as a fresh
  * `Temporal.PlainDate` copied from the date itself, so nothing a subclass overrides is read
- * afterwards. A `PlainDateTime` or
+ * afterwards.
+ * A `PlainDateTime` or
  * `ZonedDateTime` is narrowed with its own `toPlainDate()`, so the day is the one on its own wall
  * clock, with no time-zone conversion. Any other instance — a second implementation's — is
  * normalised through `Temporal.PlainDate.from(String(value))`, its own ISO-8601 serialisation, so a
@@ -238,8 +241,9 @@ export function toNativePlainDate(
 		} catch (error) {
 			throw rangeError(
 				"TCT_INVALID_ARGUMENT",
-				`${prefix}received a value that is an instance of Temporal.PlainDate's prototype but not a ` +
-					`PlainDate, so it cannot name a calendar day: ${describe(value)}`,
+				`${prefix}received a value that passes as a Temporal.PlainDate but is not itself one — an ` +
+					"object created from its prototype, or a Proxy around one — so it cannot name a " +
+					`calendar day: ${describe(value)}. Pass the date itself.`,
 				error,
 			);
 		}

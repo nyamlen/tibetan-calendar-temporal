@@ -151,13 +151,13 @@ export function asPlainDate(date: Temporal.PlainDate, subject?: string): Tempora
 	// Kind, not identity: a `PlainDate` from a second Temporal implementation is a Western date and
 	// is normalised into this realm, rather than refused for having been built elsewhere. See
 	// `temporal-kind.ts`, which is the only file in `src/` that asks `instanceof Temporal`.
-	const kind = temporalKindOf(raw);
+	const kind = temporalKindOf(raw, subject);
 	if (kind !== null) return toNativePlainDate(raw, kind, subject);
 	if (typeof raw !== "string") {
 		// A Temporal type outside the three — `Instant`, `PlainYearMonth`, `PlainMonthDay`,
 		// `PlainTime`, `Duration` — carries its own tag and so is named rather than described as
 		// "an object". None of them names a calendar day, so none is normalisable.
-		const temporalType = temporalTypeNameOf(raw);
+		const temporalType = temporalTypeNameOf(raw, subject);
 		throw rangeError(
 			"TCT_INVALID_ARGUMENT",
 			`${prefix}expected a Temporal.PlainDate, an ISO string, a PlainDateTime or a ZonedDateTime, ` +
@@ -228,7 +228,7 @@ export function asWesternDay(
 	date: Temporal.PlainDate | TibetanDate,
 ): Temporal.PlainDate {
 	const raw: unknown = date;
-	if (typeof raw === "string" || temporalKindOf(raw) !== null) {
+	if (typeof raw === "string" || temporalKindOf(raw, functionName) !== null) {
 		return asPlainDate(date as Temporal.PlainDate, functionName);
 	}
 	if (raw !== null && typeof raw === "object") {
@@ -247,7 +247,7 @@ export function asWesternDay(
 		}
 		// Still normalised, because a resolved date may have been built under a different Temporal
 		// implementation from the one now global.
-		if (temporalKindOf(isoDate) === "PlainDate") {
+		if (temporalKindOf(isoDate, functionName) === "PlainDate") {
 			return asPlainDate(isoDate as Temporal.PlainDate, functionName);
 		}
 	}
