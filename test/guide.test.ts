@@ -20,10 +20,10 @@ import {
 	tibetanWeekday,
 } from "../src/computation/conversion.js";
 import { yearNameFor } from "../src/cycles.js";
-import { formatTibetanDate } from "../src/format.js";
+import { formatTibetanDate, formatTibetanMonth } from "../src/format.js";
 import { monthNamesFor } from "../src/month-names.js";
-import { monthsFor } from "../src/months.js";
-import { nextFullMoon } from "../src/navigation.js";
+import { datesFor, monthsFor, resolveMonth } from "../src/months.js";
+import { addMonths, nextFullMoon } from "../src/navigation.js";
 import {
 	composeObservances,
 	EXAMPLE_OBSERVANCES,
@@ -32,7 +32,8 @@ import {
 	observancesOn,
 } from "../src/observances/index.js";
 import { parseTibetanDate } from "../src/parse.js";
-import { BHUTAN } from "../src/traditions/bhutan.js";
+import { BHUTAN, BHUTAN_HENNING } from "../src/traditions/bhutan.js";
+import { PHUGPA, PHUGPA_HENNING } from "../src/traditions/phugpa.js";
 import { SkippedDayError } from "../src/types.js";
 import { getObservancesChunked } from "./support/observances-chunked.js";
 import { thrownBy } from "./support/thrown.js";
@@ -661,15 +662,35 @@ describe("guide examples", () => {
 			]);
 		});
 
-		it("replaces a whole rule, as the guide's example does", () => {
-			const kopanTara = runBlock(
-				fenceStarting("js", "const tara = EXAMPLE_OBSERVANCES.rules.find"),
-				{ EXAMPLE_OBSERVANCES, composeObservances, kopan },
-				"kopanTara",
+		it("lists every rule of EXAMPLE_OBSERVANCES in the guide's table", () => {
+			const code = (text: string) => `\`${text}\``;
+			const expected = EXAMPLE_OBSERVANCES.rules.map((r) => [
+				code(r.id),
+				r.englishName,
+				code(r.when.type),
+				r.level === undefined ? "" : code(r.level),
+				(r.tags ?? []).map(code).join(", "),
+				(["doubledDay", "skippedDay", "leapMonth"] as const)
+					.filter((key) => r[key] !== undefined)
+					.map((key) => code(`${key}: ${r[key]}`))
+					.join(", "),
+			]);
+			expect(tableRows("| id | English name | form | level | tags | own settings |")).toEqual(
+				expected,
+			);
+		});
+
+		it("changes one convention, as the guide's example does, and refuses a partial replace", () => {
+			const taraFirstHalf = runBlock(
+				fenceStarting("js", "const taraFirstHalf = composeObservances"),
+				{ EXAMPLE_OBSERVANCES, composeObservances },
+				"taraFirstHalf",
 			) as typeof kopan;
-			expect(tarasOn(kopanTara, "2024-05-14", "2024-05-17")).toEqual(["2024-05-15 firstOfDoubled"]);
+			expect(tarasOn(taraFirstHalf, "2024-05-14", "2024-05-17")).toEqual([
+				"2024-05-15 firstOfDoubled",
+			]);
 			expect(guideText).toContain("// 15 May 2024: 'firstOfDoubled'. 16 May 2024: no tara.");
-			// Only the whole rule is replaced: a partial one is refused, which is why the guide spreads.
+			// The guide still says `replace` takes complete rules, so a partial one must be refused.
 			const partial = thrownBy(() =>
 				composeObservances(kopan, {
 					id: "partial",
@@ -1076,5 +1097,65 @@ describe("guide statements about observance ranges and periods", () => {
 			month: 4,
 			isLeapMonth: true,
 		});
+	});
+});
+
+describe("two more cases: the year's first day, and the range's edges", () => {
+	const TRADITIONS = { PHUGPA, PHUGPA_HENNING, BHUTAN, BHUTAN_HENNING };
+
+	/** The first or last whole month a tradition computes, found by galloping `addMonths`. */
+	const edgeMonth = (tradition: typeof PHUGPA, direction: 1 | -1) => {
+		let month = resolveMonth({ year: 2153, month: 1 }, tradition);
+		let step = 1;
+		for (;;) {
+			const next = thrownBy(() => addMonths(month, direction * step, tradition))
+				? undefined
+				: addMonths(month, direction * step, tradition);
+			if (next !== undefined) {
+				month = next;
+				step *= 2;
+			} else if (step === 1) {
+				return month;
+			} else {
+				step = 1;
+			}
+		}
+	};
+
+	it("states Losar as the guide prints it", () => {
+		const block = fenceStarting("js", "formatTibetanDate(losarFor(2211))");
+		expect(block).toContain(`// "${formatTibetanDate(losarFor(2211))}"`);
+		expect(formatTibetanDate(losarFor(2211))).toBe("2211-M01L-02");
+	});
+
+	it("states each tradition's whole-month range as the guide's table prints it", () => {
+		const computed = Object.entries(TRADITIONS).map(([name, tradition]) => {
+			const first = edgeMonth(tradition, -1);
+			const last = edgeMonth(tradition, 1);
+			return [
+				`\`${name}\``,
+				`\`${formatTibetanMonth(first)}\``,
+				datesFor(first, tradition)[0]?.isoDate.toString(),
+				`\`${formatTibetanMonth(last)}\``,
+				datesFor(last, tradition).at(-1)?.isoDate.toString(),
+			];
+		});
+		expect(tableRows("| Tradition | First whole month | From | Last whole month | To |")).toEqual(
+			computed,
+		);
+	});
+
+	it("refuses an edge year whole but answers its months", () => {
+		expect(thrownBy(() => monthsFor(236420))?.code).toBe("TCT_OUTSIDE_EXACT_RANGE");
+		expect(thrownBy(() => resolveMonth({ year: 236420, month: 9 }))).toBeUndefined();
+	});
+
+	it("refuses a span that crosses the last whole month, and answers one that ends on it", () => {
+		const last = datesFor(edgeMonth(PHUGPA_HENNING, 1), PHUGPA_HENNING).at(-1)?.isoDate;
+		if (last === undefined) throw new Error("no last day");
+		const span = (to: Temporal.PlainDate) =>
+			getObservances(last.subtract({ days: 20 }), to, EXAMPLE_OBSERVANCES, PHUGPA_HENNING);
+		expect(thrownBy(() => span(last.add({ days: 5 })))?.code).toBe("TCT_OUTSIDE_EXACT_RANGE");
+		expect(thrownBy(() => span(last))).toBeUndefined();
 	});
 });
