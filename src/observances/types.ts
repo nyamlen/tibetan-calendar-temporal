@@ -348,6 +348,9 @@ export interface ObservanceConfig {
  * - `replaceLevels`: levels that take the place, at the same position, of the base level with the
  *   same id. Rules naming that id are unaffected.
  * - `addLevels`: levels appended after the base's remaining ones, in the order given.
+ * - `conventions`: entries `{ id, doubledDay?, skippedDay?, leapMonth? }`, each changing those
+ *   conventions on the base rule with that id, in place; the rule's other fields are the base's.
+ *   This is how to change a rule that carries its own value, which the defaults below do not reach.
  * - `doubledDay`, `skippedDay`, `leapMonth`: the result's defaults in place of the base's.
  *
  * **The keys are exactly these**, and any other is refused, naming it.
@@ -379,6 +382,15 @@ export interface ObservanceLayer {
 
 	/** Levels appended after the base's remaining ones, in the order given. */
 	readonly addLevels?: readonly ObservanceLevel[];
+
+	/**
+	 * Changes to the conventions of base rules, in place, each naming a rule by `id`. Fields an entry
+	 * does not give keep the base rule's values; any key other than these four is refused.
+	 */
+	readonly conventions?: readonly Pick<
+		ObservanceRule,
+		"id" | "doubledDay" | "skippedDay" | "leapMonth"
+	>[];
 
 	/** Replaces the base's {@link ObservanceConfig.doubledDay}. */
 	readonly doubledDay?: DoubledDayChoice;

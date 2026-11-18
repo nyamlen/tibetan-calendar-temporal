@@ -417,6 +417,12 @@ interface ObservanceLayer {            // the differences composeObservances app
   removeLevels?: readonly string[];    // ids of base levels to drop; refused while a remaining rule names one
   replaceLevels?: readonly ObservanceLevel[]; // take the position of the base level with the same id
   addLevels?: readonly ObservanceLevel[];     // appended after the base's remaining ones
+  conventions?: readonly {             // per base rule, in place; the rule's other fields stay the base's
+    id: string;                        // a base rule; once across remove, replace, add and conventions
+    doubledDay?: DoubledDayChoice;     // at least one of the three; any other key refused
+    skippedDay?: SkippedDayChoice;
+    leapMonth?: LeapMonthChoice;
+  }[];
   doubledDay?: DoubledDayChoice;       // each convention replaces the base's; absent means no change
   skippedDay?: SkippedDayChoice;
   leapMonth?: LeapMonthChoice;

@@ -609,6 +609,16 @@ describe("composeObservances names itself, not the validator", () => {
 		["a layer id that is not a string", { id: 5, englishName: "L" }, "id"],
 		["a remove naming no rule", { id: "l", englishName: "L", remove: ["nope"] }, "remove"],
 		["an add naming a kept rule", { id: "l", englishName: "L", add: [{ id: "tara" }] }, "add"],
+		[
+			"a conventions entry with a key that is not a convention",
+			{ id: "l", englishName: "L", conventions: [{ id: "tara", when: {} }] },
+			"conventions",
+		],
+		[
+			"a conventions entry naming no rule",
+			{ id: "l", englishName: "L", conventions: [{ id: "nope", doubledDay: "first" }] },
+			"conventions",
+		],
 	] as const;
 	it.each(layerRows)("%s", (_label, layer) => {
 		const error = thrownBy(() => composeObservances(EXAMPLE_OBSERVANCES, layer as never));

@@ -38,10 +38,45 @@ const LAYER_KEYS = [
 	"removeLevels",
 	"replaceLevels",
 	"addLevels",
+	"conventions",
 	"doubledDay",
 	"skippedDay",
 	"leapMonth",
 ];
+
+const CONVENTION_KEYS = ["id", "doubledDay", "skippedDay", "leapMonth"];
+
+/** The conventions one `conventions` entry gives, those left `undefined` omitted. */
+type Conventions = Partial<Pick<ObservanceRule, "doubledDay" | "skippedDay" | "leapMonth">>;
+
+/**
+ * Checks one `conventions` entry and returns the conventions it gives, read once.
+ *
+ * @remarks
+ * Each field is read once into the snapshot and checked there, so a getter cannot answer one value
+ * to the check and another to the result.
+ */
+function conventionsOf(id: string, item: Record<string, unknown>, label: string): Conventions {
+	const subject = `${label}: conventions entry "${id}"`;
+	assertKnownKeys(item, CONVENTION_KEYS, subject, CODE);
+	const doubledDay = item.doubledDay;
+	const skippedDay = item.skippedDay;
+	const leapMonth = item.leapMonth;
+	assertOptionalChoice(doubledDay, DOUBLED_DAY_CHOICES, `${subject}: doubledDay`);
+	assertOptionalChoice(skippedDay, SKIPPED_DAY_CHOICES, `${subject}: skippedDay`);
+	assertOptionalChoice(leapMonth, LEAP_MONTH_CHOICES, `${subject}: leapMonth`);
+	const given = {
+		...(doubledDay === undefined ? {} : { doubledDay }),
+		...(skippedDay === undefined ? {} : { skippedDay }),
+		...(leapMonth === undefined ? {} : { leapMonth }),
+	} as Conventions;
+	// Refused rather than ignored: an entry that changes nothing is a typo's shape, and accepting it
+	// later is free where refusing it after 1.0.0 is not.
+	if (Object.keys(given).length === 0) {
+		throw rangeError(CODE, `${subject} sets nothing; give doubledDay, skippedDay or leapMonth`);
+	}
+	return given;
+}
 
 /** A layer field that is an array of the right kind of thing, or `[]` when absent. */
 function arrayField(value: unknown, field: string): readonly unknown[] {
@@ -111,10 +146,22 @@ function assertNoRepeats(lists: readonly (readonly [string, readonly string[]])[
  * name pair is never mismatched; with no `tibetanName` on the layer the result has none.
  * `doubledDay`, `skippedDay` and `leapMonth` are the layer's where it gives one, else the base's.
  *
+ * A default reaches only the rules that do not set their own value. To change one convention of a
+ * rule that does, without copying the rule, name it in `conventions` with any of `doubledDay`,
+ * `skippedDay` and `leapMonth`; the rule's other fields stay the base's, and it keeps its place:
+ *
+ * ```ts
+ * const kopanTara = composeObservances(EXAMPLE_OBSERVANCES, {
+ *   id: "kopan-tara",
+ *   englishName: "Kopan, Tara on the first half",
+ *   conventions: [{ id: "tara", doubledDay: "first" }],
+ * });
+ * ```
+ *
  * **Rules** are changed in the order remove, replace, add: the layer's `remove` ids are dropped,
  * each `replace` rule takes the position of the base rule with the same id, and `add` rules follow,
- * in the order given. An id may appear **once** in a layer, across `remove`, `replace` and `add`
- * together: removing a rule and adding it back is refused, because it would silently move the rule
+ * in the order given. `replace` takes complete rules. An id may appear **once** in a layer, across
+ * `remove`, `replace`, `add` and `conventions` together: removing a rule and adding it back is refused, because it would silently move the rule
  * to the end, and `replace` is how to change a rule and keep its place. `add` refuses an id the
  * base has. The result's rule order is therefore the base's, minus what was removed, with replaced
  * rules in place and added ones appended in the layer's order — and that order is the order of
@@ -134,9 +181,11 @@ function assertNoRepeats(lists: readonly (readonly [string, readonly string[]])[
  * @param base - A complete configuration, shipped or the caller's own.
  * @param layer - The differences; its keys are those of {@link ObservanceLayer} and no others.
  * @throws RangeError with code `TCT_INVALID_OBSERVANCE_CONFIG`, naming the offending id or key, for
- *   a `base` or `layer` that is not an object or is malformed; an unknown layer key; a `remove` or
- *   `replace` naming a rule the base does not have; an `add` naming a rule the base has; a rule
- *   id appearing twice across `remove`, `replace` and `add`, whether in one list or two; a
+ *   a `base` or `layer` that is not an object or is malformed; an unknown layer key; a `remove`,
+ *   `replace` or `conventions` entry naming a rule the base does not have; an `add` naming a rule
+ *   the base has; a `conventions` entry with a key other than `id`, `doubledDay`, `skippedDay` and
+ *   `leapMonth`, or one that sets none of the three; a rule id appearing twice across `remove`,
+ *   `replace`, `add` and `conventions`, whether in one list or two; a
  *   `removeLevels` or `replaceLevels` naming an undeclared level; a level id appearing twice across
  *   `removeLevels`, `replaceLevels` and `addLevels`, whether in one list or two; an added level the
  *   base declares; a level removed while a remaining rule names
@@ -184,6 +233,10 @@ function candidateFrom(base: ObservanceConfig, layer: ObservanceLayer): Observan
 	const remove = idList(layer.remove, "remove");
 	const replace = idsOf(layer.replace, "replace");
 	const add = idsOf(layer.add, "add");
+	const conventions = idsOf(layer.conventions, "conventions").map(({ id, item }) => ({
+		id,
+		given: conventionsOf(id, item as Record<string, unknown>, label),
+	}));
 	const removeLevels = idList(layer.removeLevels, "removeLevels");
 	const replaceLevels = idsOf(layer.replaceLevels, "replaceLevels");
 	const addLevels = idsOf(layer.addLevels, "addLevels");
@@ -192,6 +245,7 @@ function candidateFrom(base: ObservanceConfig, layer: ObservanceLayer): Observan
 			["remove", remove],
 			["replace", replace.map((r) => r.id)],
 			["add", add.map((r) => r.id)],
+			["conventions", conventions.map((c) => c.id)],
 		],
 		label,
 	);
@@ -214,6 +268,11 @@ function candidateFrom(base: ObservanceConfig, layer: ObservanceLayer): Observan
 	for (const { id } of replace) {
 		if (!baseRuleIds.has(id)) {
 			throw rangeError(CODE, `${label}: replace names "${id}", which the base does not have`);
+		}
+	}
+	for (const { id } of conventions) {
+		if (!baseRuleIds.has(id)) {
+			throw rangeError(CODE, `${label}: conventions names "${id}", which the base does not have`);
 		}
 	}
 	for (const { id } of add) {
@@ -251,10 +310,16 @@ function candidateFrom(base: ObservanceConfig, layer: ObservanceLayer): Observan
 	}
 
 	const replacements = new Map(replace.map(({ id, item }) => [id, item as ObservanceRule]));
+	const changed = new Map(conventions.map(({ id, given }) => [id, given]));
+	// A convention a rule's form does not read, and `skippedDay: "omit"` on a `counted` rule, are
+	// refused by the validator that runs on this candidate, naming the rule; not checked twice here.
 	const rules: ObservanceRule[] = [
 		...base.rules
 			.filter((rule) => !removed.has(rule.id))
-			.map((rule) => replacements.get(rule.id) ?? rule),
+			.map((rule) => {
+				const given = changed.get(rule.id);
+				return given === undefined ? (replacements.get(rule.id) ?? rule) : { ...rule, ...given };
+			}),
 		...add.map(({ item }) => item as ObservanceRule),
 	];
 	for (const rule of rules) {
