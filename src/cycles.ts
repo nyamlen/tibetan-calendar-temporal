@@ -91,7 +91,8 @@ export function yearNameFor(year: number): TibetanYearName {
  * rabjungFor(2153 + 60).year;        // 40
  *
  * // The Tibetan name only. The cycle has two Sanskrit name lists and neither ships on this type
- * // — see Rabjung's own docblock, and [`docs/names/rabjung.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/rabjung.md), which tabulates both.
+ * // — see Rabjung's own docblock, and the repository's table of the 60 names, which has both:
+ * // https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/rabjung.md
  * rabjungFor(2153).tibetanName.tibetan;     // ཟིལ་གནོན
  * rabjungFor(2153).tibetanName.wylie;       // "zil gnon"
  * ```

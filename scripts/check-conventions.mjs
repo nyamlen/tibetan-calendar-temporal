@@ -475,8 +475,9 @@ const docblockDates = (source) => {
 				if (char === "`") inSpan = !inSpan;
 				else if (!inSpan) prose += char;
 			}
-			// A Markdown link's target is an address, and a date in it is a filename, not history.
-			const withoutTargets = prose.replace(/\]\([^)]*\)/g, "](");
+			// A Markdown link's target is an address, and a date in it is a filename, not history. A target
+			// holds no whitespace, so bracketed prose such as `](changed …)` is still read.
+			const withoutTargets = prose.replace(/\]\([^)\s]*\)/g, "](");
 			if (/20\d\d-\d\d-\d\d/.test(withoutTargets)) {
 				out.push({ line: start + offset + 1, text: raw.trim() });
 			}
@@ -504,27 +505,39 @@ const docblockSwallows = (source) =>
 const REPOSITORY_BLOB = "https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/";
 
 /**
- * Rule 19 — the paths to `docs/*.md` in docblocks that do not resolve for a consumer, `{ line, text,
- * path }` with `line` 1-based.
+ * Rule 19 — the paths to Markdown documents in docblocks that do not resolve for a consumer,
+ * `{ line, text, path }` with `line` 1-based.
  *
- * A document `package.json#files` does not ship is reachable from a `.d.ts` only by absolute URL, and
- * a shipped one is named relatively, never by URL. A link label repeating its own URL target's path
- * is the label, not a second reference. A path split across a line wrap is out of reach.
+ * A `.md` file `package.json#files` does not ship is reachable from a `.d.ts` only by absolute URL,
+ * and a shipped one is named relatively, never by a URL into this repository. Any `https://` URL is
+ * already absolute, another repository's or a permalink at a tag. A path label with an absolute URL
+ * as its target is the label, not a second reference. Out of reach: a path split across a line
+ * wrap, and a directory or a file that is not Markdown.
  */
 const docblockDocPaths = (source, shipped) => {
 	const out = [];
 	for (const { start, lines } of docblocksOf(source)) {
 		lines.forEach((raw, offset) => {
 			for (const match of raw.matchAll(
-				/(https:\/\/github\.com\/nyamlen\/tibetan-calendar-temporal\/blob\/main\/)?(?:\.\.\/)*(docs\/[\w./-]+?\.md)/g,
+				/(https?:\/\/[^\s)\]>`]+)|(?<![\w/.:-])((?:\.\.\/)*(?:[\w-]+\/)*[\w-][\w.-]*\.md)\b/g,
 			)) {
-				const [whole, url, path] = match;
-				const after = raw.slice((match.index ?? 0) + whole.length);
+				const [whole, url, relative] = match;
+				const at = { line: start + offset + 1, text: raw.trim() };
+				if (url !== undefined) {
+					const own =
+						/^https:\/\/github\.com\/nyamlen\/tibetan-calendar-temporal\/blob\/[^/]+\/([^#]+\.md)/.exec(
+							url,
+						);
+					if (own && shipped.has(own[1])) out.push({ ...at, path: own[1] });
+					continue;
+				}
+				const path = relative.replace(/^(\.\.\/)+/, "");
+				if (shipped.has(path)) continue;
 				// The label may be a code span, `[`docs/x.md`](…)`, which keeps a dated filename out of
 				// Rule 17's reach.
-				const labelOfItsUrl = after.replace(/^`/, "").startsWith(`](${REPOSITORY_BLOB}${path}`);
-				const wrong = url ? shipped.has(path) : !shipped.has(path) && !labelOfItsUrl;
-				if (wrong) out.push({ line: start + offset + 1, text: raw.trim(), path });
+				const after = raw.slice((match.index ?? 0) + whole.length).replace(/^`/, "");
+				if (/^\]\(https?:\/\//.test(after)) continue;
+				out.push({ ...at, path });
 			}
 		});
 	}
@@ -1181,11 +1194,12 @@ function selfTest() {
 				"/** Century 1999-01-01 and 2126-01-01 are not 20dd. */",
 				"/** A link target [record](https://example.invalid/2026-01-01-x.md) is a filename. */",
 				"/** But a label [2026-01-02](https://example.invalid/x) is prose. */",
+				"/** And so is a bracket that is no target [x](changed 2026-01-03). */",
 			].join("\n"),
 		)
 			.map(({ line }) => line)
 			.join(","),
-		"2,5,8,13",
+		"2,5,8,13,14",
 		"only a date outside a code span, an @example block and a link target is refused (lines 2, 5, 8, 13); a span over two lines, a // comment, another century and a dated filename in a link's URL are not.",
 	);
 
@@ -1223,6 +1237,9 @@ function selfTest() {
 				" * And [z](../../docs/z.md) is relative.",
 				` * And [g](${REPOSITORY_BLOB}docs/guide.md) links a shipped one by URL.`,
 				` * A code-span label [\`docs/v.md\`](${REPOSITORY_BLOB}docs/v.md) is a label too.`,
+				" * Another repository [t](https://github.com/tc39/proposal-temporal/blob/main/docs/ambiguity.md) is absolute.",
+				" * So is a permalink [p](https://github.com/nyamlen/tibetan-calendar-temporal/blob/v1.0.0/docs/x.md).",
+				" * And `bench/zz.md` is unshipped too.",
 				" */",
 				"// docs/w.md in a comment is out of reach",
 			].join("\n"),
@@ -1230,8 +1247,8 @@ function selfTest() {
 		)
 			.map(({ line }) => line)
 			.join(","),
-		"3,4,5",
-		"a bare or relative unshipped path, and a URL to a shipped document, are refused (lines 3-5); a shipped document named relatively, a label repeating its URL target, plain or as a code span, and a // comment are not.",
+		"3,4,5,9",
+		"a bare or relative unshipped path, under docs/ or not, and a URL to a shipped document are refused (lines 3-5, 9); a shipped document named relatively, a path label with a URL target, plain or as a code span, another repository's URL, a permalink and a // comment are not.",
 	);
 
 	// --- The registry. A rule dropped from it stops running and says nothing. ---
@@ -2167,7 +2184,7 @@ function rule18() {
 // there; and a shipped document linked by URL leaves the package for a copy that may not match.
 // ---------------------------------------------------------------------------------------
 function rule19() {
-	const shipped = new Set(manifest.files.filter((entry) => entry.startsWith("docs/")));
+	const shipped = new Set(manifest.files.filter((entry) => entry.endsWith(".md")));
 	for (const file of sources) {
 		for (const { line, text, path } of docblockDocPaths(read(file), shipped)) {
 			fail(
