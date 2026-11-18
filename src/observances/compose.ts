@@ -232,6 +232,20 @@ function candidateFrom(base: ObservanceConfig, layer: ObservanceLayer): Observan
 
 	const remove = idList(layer.remove, "remove");
 	const replace = idsOf(layer.replace, "replace");
+	// Only here is it known that the object came from `replace`, so only here can a refusal say that
+	// `replace` takes complete rules; the validator would name the first missing field and stop.
+	for (const { id, item } of replace) {
+		const entry = item as Record<string, unknown>;
+		const missing = ["englishName", "when"].filter((field) => entry[field] === undefined);
+		if (missing.length > 0) {
+			throw rangeError(
+				CODE,
+				`${label}: replace entry "${id}" lacks ${missing.join(", ")}; replace takes complete ` +
+					"rules, so spread the base rule and override what differs, or use conventions to " +
+					"change only doubledDay, skippedDay or leapMonth",
+			);
+		}
+	}
 	const add = idsOf(layer.add, "add");
 	const conventions = idsOf(layer.conventions, "conventions").map(({ id, item }) => ({
 		id,

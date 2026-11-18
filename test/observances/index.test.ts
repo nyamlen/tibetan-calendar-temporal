@@ -902,6 +902,20 @@ describe("consumer config validation", () => {
 		expect(error?.message).toContain('"kind"');
 	});
 
+	it("names the rule whose key is unknown", () => {
+		const error = thrownBy(() => run(withRule({ id: "founding-day", levl: "lv" })));
+		expect(error?.code).toBe(CONFIG_CODE);
+		expect(error?.message).toMatch(/^[^:]*observance rule "founding-day" has no key "levl"/);
+	});
+
+	it("names the level whose key is unknown", () => {
+		const error = thrownBy(() =>
+			run(withRule({}, { levels: [{ id: "lv", englishNam: "Level" }] })),
+		);
+		expect(error?.code).toBe(CONFIG_CODE);
+		expect(error?.message).toContain('level "lv" has no key "englishNam"');
+	});
+
 	describe("tags", () => {
 		it("accepts distinct non-empty strings", () => {
 			expect(() => run(withRule({ tags: ["tsok", "monthly"] }))).not.toThrow();

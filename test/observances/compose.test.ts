@@ -569,6 +569,18 @@ describe("composeObservances: conventions", () => {
 		expect(error?.message).toContain(fragment);
 	});
 
+	it("tells a partial replace that replace takes whole rules", () => {
+		const error = thrownBy(() =>
+			composeObservances(
+				EXAMPLE_OBSERVANCES,
+				layer({ replace: [{ id: "chokhor-duchen", leapMonth: "regular" }] }),
+			),
+		);
+		expect(error?.code).toBe(INVALID);
+		expect(error?.message).toContain('replace entry "chokhor-duchen" lacks englishName, when');
+		expect(error?.message).toContain("conventions");
+	});
+
 	it("refuses the key misspelt as convention", () => {
 		const error = thrownBy(() =>
 			composeObservances(
