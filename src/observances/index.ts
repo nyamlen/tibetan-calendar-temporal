@@ -75,8 +75,8 @@ export type {
  * on the machine recorded in
  * [`bench/RESULTS.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/bench/RESULTS.md),
  * 10 years over a config holding one rule of each
- * form but `counted` takes about 28.5 ms on average (the slowest sample about 40 ms), and two
- * years about 5 ms; the figures are the latest run recorded there.
+ * form but `counted` takes about 18 ms on average (the slowest sample about 25 ms), and two
+ * years about 4 ms; the figures are the latest run recorded there.
  *
  * A caller who genuinely wants a wider table — the whole rabjung era, 1027–2027 CE, is the realistic
  * example — requests it in chunks and concatenates. That is correct because this function is pure
