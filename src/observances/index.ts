@@ -21,7 +21,7 @@
  * @packageDocumentation
  */
 
-import { asPlainDate, julianDayFromIso } from "../computation/conversion.js";
+import { asPlainDate, julianDayFromIsoUnchecked } from "../computation/conversion.js";
 import { scalingFor } from "../computation/scaling.js";
 import { rangeError } from "../errors.js";
 import { PHUGPA } from "../traditions/phugpa.js";
@@ -147,8 +147,8 @@ export function getObservances(
 	}
 
 	const scaled = scalingFor(resolvedTradition);
-	const firstJd = julianDayFromIso(from);
-	const lastJd = julianDayFromIso(to);
+	const firstJd = julianDayFromIsoUnchecked(from);
+	const lastJd = julianDayFromIsoUnchecked(to);
 
 	// One memo across the rules: a 15th carries several, and each needs the day's Tibetan date.
 	const tibetanDateOf = tibetanDateMemo(scaled);
@@ -167,7 +167,7 @@ export function getObservances(
 			scaled,
 			tibetanDateOf,
 		)) {
-			found.push({ julianDay: julianDayFromIso(observance.date.isoDate), observance });
+			found.push({ julianDay: julianDayFromIsoUnchecked(observance.date.isoDate), observance });
 		}
 	}
 

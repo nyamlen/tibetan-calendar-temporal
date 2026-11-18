@@ -4,7 +4,7 @@ import {
 	sharesNumberWithLeapMonth,
 	trueMonthCount,
 } from "../computation/calendar.js";
-import { isoFromJulianDayUnchecked, isoToTibetan } from "../computation/conversion.js";
+import { isoFromJulianDayUnchecked, tibetanFromJulianDay } from "../computation/conversion.js";
 import { yearFromRoyalEra } from "../computation/epoch.js";
 import type { ScaledTradition } from "../computation/scaling.js";
 import { codedError } from "../errors.js";
@@ -65,7 +65,7 @@ export function tibetanDateMemo(scaled: ScaledTradition): TibetanDateOfDay {
 	return (julianDay) => {
 		let date = dates.get(julianDay);
 		if (date === undefined) {
-			date = isoToTibetan(isoFromJulianDayUnchecked(julianDay), scaled.tradition);
+			date = tibetanFromJulianDay(julianDay, scaled.tradition);
 			dates.set(julianDay, date);
 		}
 		return date;

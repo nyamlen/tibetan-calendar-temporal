@@ -36,8 +36,8 @@ import {
 import {
 	assertExactJulianDay,
 	isoFromJulianDayUnchecked,
-	isoToTibetan,
 	monthCountFor,
+	tibetanFromJulianDay,
 } from "./computation/conversion.js";
 import { yearFromRoyalEra, yearNameFromYear } from "./computation/epoch.js";
 import { type ScaledTradition, scalingFor } from "./computation/scaling.js";
@@ -483,7 +483,7 @@ export function datesFor(
 
 	const dates: TibetanDate[] = [];
 	for (let julianDay = first; julianDay <= last; julianDay++) {
-		dates.push(isoToTibetan(isoFromJulianDayUnchecked(julianDay), tradition));
+		dates.push(tibetanFromJulianDay(julianDay, tradition));
 	}
 	return dates;
 }

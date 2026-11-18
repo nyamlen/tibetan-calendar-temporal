@@ -48,7 +48,11 @@
  */
 
 import { trueMonthCount } from "../computation/calendar.js";
-import { asWesternDay, isoToTibetan, julianDayFromIso } from "../computation/conversion.js";
+import {
+	asWesternDay,
+	isoToTibetan,
+	julianDayFromIsoUnchecked,
+} from "../computation/conversion.js";
 import { attributesYearFromRoyalEra, yearFromRoyalEra } from "../computation/epoch.js";
 import { scalingFor } from "../computation/scaling.js";
 import { assertSafeYear, rangeError } from "../errors.js";
@@ -251,7 +255,7 @@ export function lunarDayAttributesFor(
 export function calendarDayAttributesFor(
 	date: Temporal.PlainDate | TibetanDate,
 ): CalendarDayAttributes {
-	return calendarDayAttributes(julianDayFromIso(isoOf("calendarDayAttributesFor", date)));
+	return calendarDayAttributes(julianDayFromIsoUnchecked(isoOf("calendarDayAttributesFor", date)));
 }
 
 /**
@@ -393,7 +397,7 @@ export function attributesFor(
 		year: yearAttributes(y),
 		month: sourced ? monthAttributes(tradition, y, resolved.month) : null,
 		lunarDay: sourced ? lunarDayAttributes(tradition, y, resolved.month, resolved.day) : null,
-		calendarDay: calendarDayAttributes(julianDayFromIso(resolved.isoDate)),
+		calendarDay: calendarDayAttributes(julianDayFromIsoUnchecked(resolved.isoDate)),
 		lunarMansion,
 		yoga: yogaIsSourced(tradition)
 			? yogaForMansion(weekdayElementOf(resolved), lunarMansion.index)

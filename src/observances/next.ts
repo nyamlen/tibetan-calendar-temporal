@@ -1,5 +1,9 @@
 import { floorDiv } from "../computation/arithmetic.js";
-import { asPlainDate, isoToTibetan, julianDayFromIso } from "../computation/conversion.js";
+import {
+	asPlainDate,
+	julianDayFromIsoUnchecked,
+	tibetanFromJulianDay,
+} from "../computation/conversion.js";
 import type { ScaledTradition } from "../computation/scaling.js";
 import { scalingFor } from "../computation/scaling.js";
 import { describe, hasCode, rangeError } from "../errors.js";
@@ -155,13 +159,13 @@ export function nextObservance(
 		);
 	}
 
+	const fromJd = julianDayFromIsoUnchecked(from);
 	// Refuses a `from` past the exact range with TCT_OUTSIDE_EXACT_RANGE, as the range query does.
-	isoToTibetan(from, resolvedTradition);
+	tibetanFromJulianDay(fromJd, resolvedTradition);
 
 	const scaled = scalingFor(resolvedTradition);
-	const fromJd = julianDayFromIso(from);
 	const lastJd = Math.min(
-		julianDayFromIso(from.add({ years: MAX_SPAN_YEARS })),
+		julianDayFromIsoUnchecked(from.add({ years: MAX_SPAN_YEARS })),
 		scaled.exactToJulianDay,
 	);
 

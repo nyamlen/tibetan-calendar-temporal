@@ -33,11 +33,10 @@ import {
 import {
 	assertExactJulianDay,
 	asWesternDay,
-	isoFromJulianDayUnchecked,
-	isoToTibetan,
-	julianDayFromIso,
+	julianDayFromIsoUnchecked,
 	julianDayOfFields,
 	monthCountFor,
+	tibetanFromJulianDay,
 } from "./computation/conversion.js";
 import { julianDayOfLunarDay } from "./computation/corrections.js";
 import { royalEraFromYear } from "./computation/epoch.js";
@@ -319,7 +318,7 @@ export function addDays(
 	// need not be: Julian-day arithmetic walks straight out of it. Without this the conversion below
 	// would either throw uncoded from Temporal or answer from degraded arithmetic.
 	assertExactJulianDay(scaled, target, () => `addDays(…, ${days})`);
-	return isoToTibetan(isoFromJulianDayUnchecked(target), tradition);
+	return tibetanFromJulianDay(target, tradition);
 }
 
 /**
@@ -365,10 +364,7 @@ export function resolveDate(
 	const fields = assertTibetanShape("resolveDate", date, "date");
 	tradition = validatedTradition(tradition);
 	const subject = assertTibetanRanges("resolveDate", fields, "date");
-	return isoToTibetan(
-		isoFromJulianDayUnchecked(julianDayOfFields(subject, tradition, fields)),
-		tradition,
-	);
+	return tibetanFromJulianDay(julianDayOfFields(subject, tradition, fields), tradition);
 }
 
 /**
@@ -513,8 +509,8 @@ export function addMonthsToDate(
 	// change which failure that call names.
 	// Resolved, not read off `date`: a leap flag on a day that is not doubled is ignored there, so
 	// only the resolved start says whether it is the leap half of a doubled pair.
-	const startsOnLeapHalf = isoToTibetan(
-		isoFromJulianDayUnchecked(julianDayOfFields(subject, tradition, fields)),
+	const startsOnLeapHalf = tibetanFromJulianDay(
+		julianDayOfFields(subject, tradition, fields),
 		tradition,
 	).isLeapDay;
 
@@ -653,17 +649,17 @@ function nextPhase(
 	const from = phaseStart(name, date);
 	const scaled = scalingFor(tradition);
 	tradition = scaled.tradition;
-	const target = julianDayFromIso(from);
+	const target = julianDayFromIsoUnchecked(from);
 	assertExactJulianDay(scaled, target, () => `${name}(${from.toString()})`);
 
-	let lunation = isoToTibetan(from, tradition).lunation;
+	let lunation = tibetanFromJulianDay(target, tradition).lunation;
 	let julianDay = julianDayOfLunarDay(scaled, lunarDay, lunation);
 	if (julianDay <= target) {
 		lunation += 1;
 		julianDay = julianDayOfLunarDay(scaled, lunarDay, lunation);
 	}
 	assertExactJulianDay(scaled, julianDay, () => `${name}(${from.toString()})`);
-	return isoToTibetan(isoFromJulianDayUnchecked(julianDay), tradition);
+	return tibetanFromJulianDay(julianDay, tradition);
 }
 
 /**

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
 	attributesFor,
 	calendarDayAttributesFor,
@@ -279,6 +279,36 @@ describe("non-ISO calendars", () => {
 		// Normalising via from({ year, month, day }) would land in 5784 CE. The ISO day is what
 		// toString() and withCalendar("iso8601") both preserve.
 		expect(hebrew.withCalendar("iso8601").toString()).toBe(ISO);
+	});
+});
+
+describe("a date the engine made is not copied again", () => {
+	// The copy belongs at the caller's boundary. The engine's own loops hold Julian days and dates it
+	// built itself, so routing them back through the public guard copied every computed day twice:
+	// about 10-15% of an observance query, recorded in bench/RESULTS.md.
+	const copiesDuring = (run: () => unknown): number => {
+		const spy = vi.spyOn(Temporal.PlainDate, "from");
+		try {
+			run();
+			return spy.mock.calls.length;
+		} finally {
+			spy.mockRestore();
+		}
+	};
+
+	it("datesFor copies nothing", () => {
+		expect(copiesDuring(() => datesFor({ year: 2151, month: 6 }))).toBe(0);
+	});
+
+	it("getObservances copies its two ends, however many days it walks", () => {
+		const from = Temporal.PlainDate.from("2026-01-01");
+		const month = copiesDuring(() =>
+			getObservances(from, Temporal.PlainDate.from("2026-01-31"), EXAMPLE_OBSERVANCES),
+		);
+		const year = copiesDuring(() =>
+			getObservances(from, Temporal.PlainDate.from("2026-12-31"), EXAMPLE_OBSERVANCES),
+		);
+		expect(year).toBe(month);
 	});
 });
 

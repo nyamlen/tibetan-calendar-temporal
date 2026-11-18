@@ -196,20 +196,35 @@ superseded.
 
 A Western date is now copied into a plain `Temporal.PlainDate` before the engine reads it, so a
 subclass's overridden `since` or `year` cannot answer for it.
-The copy runs on every call taking a Western date, and twice inside `isoToTibetan`.
-Measured on the 2026-11-14 harness above (same machine, Node v26.11.1, Vitest 4.1.12), with the
-whole file run three times: before, after, and before again to rule out drift between runs.
+Measured on the 2026-11-14 harness above (same machine, Node v26.11.1, Vitest 4.1.12), each column
+one run of the whole file. Means per operation; "before" is the code without the copy, run twice
+to rule out drift between runs.
 
-| Case | Before | Before, again | After |
-|---|---|---|---|
-| `isoToTibetan`, one date | 148,167 ops/s | 153,723 ops/s | 134,576 ops/s |
-| `getObservances`, 1 year, every form (year view) | 393.9 ops/s | 384.3 ops/s | 338.7 ops/s |
-| `getObservances`, 1 year, counted alone | 3,231.7 ops/s | 3,240.5 ops/s | 2,884.4 ops/s |
-| `monthsFor`, warm (no Western date) | 4,227,017 ops/s | 4,281,202 ops/s | 4,275,088 ops/s |
+| Case | Before | Before, again | Copy on every call | Copy at the boundary only |
+|---|---|---|---|---|
+| `isoToTibetan`, one date | 6.7 µs | 6.5 µs | 7.4 µs | 6.6 µs |
+| `observancesOn`, 1 day, every form | 0.386 ms | 0.387 ms | 0.416 ms | 0.379 ms |
+| `getObservances`, 1 month, every form | 0.545 ms | 0.547 ms | 0.606 ms | 0.482 ms |
+| `getObservances`, 1 year, every form | 2.54 ms | 2.60 ms | 2.95 ms | 1.89 ms |
+| `getObservances`, 1 year, `EXAMPLE_OBSERVANCES` | 3.11 ms | 3.11 ms | 3.56 ms | 2.24 ms |
+| `getObservances`, 10 years (the cap), every form | 26.95 ms | 26.64 ms | 30.12 ms | 17.68 ms |
+| `getObservances`, 1 year, counted alone | 0.309 ms | 0.309 ms | 0.347 ms | 0.210 ms |
+| `nextObservance`, annual, the next occurrence is near | 0.053 ms | 0.053 ms | 0.060 ms | 0.033 ms |
+| `monthsFor`, warm (no Western date) | 0.2 µs | 0.2 µs | 0.2 µs | 0.2 µs |
 
-The two runs before agree within their spread and the row that takes no Western date is unchanged,
-so the drop of about 10% to 12% is the copy's cost, not drift.
-Every view stays far inside its budget: the year view's mean is about 3 ms against 50 ms.
+**Copy on every call** was the first version: the engine's own loops (`datesFor`, the observance
+month walk, `losarFor`, the navigation functions) called the public `isoToTibetan` with dates they
+had just built, so each computed day was normalised and copied twice, 10% to 17% slower than before.
+**Copy at the boundary only** is what shipped: those loops call `tibetanFromJulianDay` and
+`julianDayFromIsoUnchecked`, which skip the normalisation the engine's own dates do not need, so a
+caller's date is copied once where it enters.
+That made multi-day queries 25% to 37% faster than **before** the copy existed, because the old
+internal route had run the full boundary check on every day too.
+A single conversion still pays its one copy, within the run-to-run spread of about ±6%.
+In the one run, three rows came out slower: `getObservances`, 1 month, counted and the five other forms (+24%), and two `nextObservance` rows that return `null`.
+A second run gave 0.522 ms, 0.093 ms and 0.066 ms for those, against 0.575 ms, 0.106 ms and 0.069 ms before, so they were noise.
+The test *a date the engine made is not copied again* in `test/temporal-kind.test.ts` holds the
+boundary-only property: before the change, `datesFor` made 58 copies for a 29-day month.
 
 ## What is deliberately not here
 

@@ -98,7 +98,20 @@ const JULIAN_DAY_AT_UNIX_EPOCH = 2_440_588;
  * or a date in another calendar.
  */
 export function julianDayFromIso(date: Temporal.PlainDate): number {
-	const plain = asPlainDate(date);
+	return julianDayFromIsoUnchecked(asPlainDate(date));
+}
+
+// The engine's own dates are already plain ISO `Temporal.PlainDate`s, built by it or normalised by
+// `asPlainDate` at the boundary, so re-normalising them copied every computed day again.
+/**
+ * Converts a `Temporal.PlainDate` the engine already holds to its Julian day number, without
+ * normalising it.
+ *
+ * @remarks
+ * For callers inside this package whose date came from `asPlainDate`, `asWesternDay` or the engine
+ * itself; not exported from the package barrel. A caller's date goes through {@link julianDayFromIso}.
+ */
+export function julianDayFromIsoUnchecked(plain: Temporal.PlainDate): number {
 	return JULIAN_DAY_AT_UNIX_EPOCH + plain.since(UNIX_EPOCH, { largestUnit: "day" }).days;
 }
 
@@ -711,9 +724,32 @@ export function isoToTibetan(
 	// quotes the date the caller meant rather than whatever they passed.
 	const plain = asPlainDate(date);
 	const scaled = scalingFor(tradition);
-	tradition = scaled.tradition;
-	const target = julianDayFromIso(plain);
+	const target = julianDayFromIsoUnchecked(plain);
 	assertExactJulianDay(scaled, target, () => plain.toString());
+	return tibetanAtJulianDay(scaled, target);
+}
+
+/**
+ * The Tibetan date of a Julian day the engine computed, refused past the tradition's exact range.
+ *
+ * @remarks
+ * For callers inside this package that hold a Julian day rather than a caller's date; not exported
+ * from the package barrel. It skips the boundary's normalisation, which has nothing to normalise
+ * here, and keeps the range check, which several callers rely on to refuse a result Julian-day
+ * arithmetic walked out of the range. Its refusal names the day as {@link isoToTibetan}'s does.
+ *
+ * @throws RangeError with code `TCT_OUTSIDE_EXACT_RANGE` past the exact range, or
+ * `TCT_INVALID_TRADITION_CONFIG` if `tradition` is malformed.
+ */
+export function tibetanFromJulianDay(julianDay: number, tradition: TraditionConfig): TibetanDate {
+	const scaled = scalingFor(tradition);
+	assertExactJulianDay(scaled, julianDay, () => isoFromJulianDayUnchecked(julianDay).toString());
+	return tibetanAtJulianDay(scaled, julianDay);
+}
+
+// The search itself, shared by the two entry points above, each of which has range-checked `target`.
+function tibetanAtJulianDay(scaled: ScaledTradition, target: number): TibetanDate {
+	const tradition = scaled.tradition;
 
 	// Invert the mean date over the linear lunar day count l = 30n + d.
 	const { den, perDay, atEpoch } = scaled.meanDate;
@@ -756,7 +792,8 @@ export function isoToTibetan(
 		// the remarks on that function.
 		throw codedError(
 			"TCT_INTERNAL",
-			`no Tibetan date found for ${date.toString()} within the proved search window; ` +
+			`no Tibetan date found for ${isoFromJulianDayUnchecked(target).toString()} within the ` +
+				"proved search window; " +
 				"this indicates a bug in the mean-motion estimate, not an unsupported date. " +
 				"Please report it at https://github.com/nyamlen/tibetan-calendar-temporal/issues",
 		);
@@ -821,5 +858,5 @@ export function losarFor(year: number, tradition: TraditionConfig = PHUGPA): Tib
 	assertSafeYear(`losarFor(${describe(year)})`, year);
 	const julianDay = losarJulianDay(scaled, tradition, yearFromRoyalEra(year));
 	assertExactJulianDay(scaled, julianDay, () => `losarFor(${year})`);
-	return isoToTibetan(isoFromJulianDayUnchecked(julianDay), tradition);
+	return tibetanFromJulianDay(julianDay, tradition);
 }
