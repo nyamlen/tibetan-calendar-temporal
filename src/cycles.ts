@@ -148,6 +148,8 @@ export function weekdayNameFor(
 	weekday: TibetanWeekday,
 	tradition: TraditionConfig = PHUGPA,
 ): TibetanWeekdayName {
+	// Before the weekday: a bare number has no shape, so the tradition comes first.
+	tradition = validatedTradition(tradition);
 	if (!Number.isInteger(weekday) || weekday < 0 || weekday > 6) {
 		throw rangeError(
 			"TCT_FIELD_OUT_OF_RANGE",
@@ -155,6 +157,5 @@ export function weekdayNameFor(
 				"This is the Tibetan numbering — 0 is Saturday — not the ISO dayOfWeek",
 		);
 	}
-	tradition = validatedTradition(tradition);
 	return weekdayNameWithOffset(weekday, tradition.naming?.weekdayOffset ?? 0);
 }

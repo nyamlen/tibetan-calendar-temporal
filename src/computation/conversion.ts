@@ -269,6 +269,8 @@ export function isoFromJulianDay(
 	julianDay: number,
 	tradition: TraditionConfig = PHUGPA,
 ): Temporal.PlainDate {
+	// Before the number: a bare number has no shape, so the tradition comes first.
+	const scaled = scalingFor(tradition);
 	if (!Number.isSafeInteger(julianDay)) {
 		throw rangeError(
 			"TCT_FIELD_OUT_OF_RANGE",
@@ -276,7 +278,7 @@ export function isoFromJulianDay(
 				"number counts whole days, so a fraction names nothing — there is no time of day in it",
 		);
 	}
-	assertExactJulianDay(scalingFor(tradition), julianDay, () => `isoFromJulianDay(${julianDay})`);
+	assertExactJulianDay(scaled, julianDay, () => `isoFromJulianDay(${julianDay})`);
 	return isoFromJulianDayUnchecked(julianDay);
 }
 

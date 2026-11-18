@@ -68,12 +68,13 @@ function closedFormYear(
 	year: number,
 	tradition: TraditionConfig,
 ): { y: number; tradition: TraditionConfig } {
-	assertSafeYear(subject, year);
 	// The config is still validated although no lunar arithmetic runs: `γ*` is derived from
 	// `epochYear`, `epochMonth` and `intercalationIndexAtEpoch`, so a malformed config gives a wrong
 	// answer rather than no answer. `scalingFor` is the memoised choke point that does it, and after
-	// the first call per config object it costs a `WeakMap` hit.
+	// the first call per config object it costs a `WeakMap` hit. It runs before the year is checked:
+	// a bare number has no shape, so the shape-tradition-range order puts the tradition first.
 	tradition = validatedTradition(tradition);
+	assertSafeYear(subject, year);
 	// The bound is checked after the conversion to Janson's *Y*, since that is the value the closed
 	// forms, and the bound itself, are stated in terms of.
 	const y = yearFromRoyalEra(year);

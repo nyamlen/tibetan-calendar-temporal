@@ -15,11 +15,17 @@ import {
 	daysInMonth,
 	formatTibetanDate,
 	formatTibetanMonth,
+	hasLeapMonth,
+	isoFromJulianDay,
 	isoToTibetan,
 	leapMonthNumberFor,
+	losarFor,
 	lunationFromMonth,
+	monthFromLunation,
 	monthNamesFor,
 	monthsBetween,
+	monthsFor,
+	monthsInYear,
 	nextFullMoon,
 	nextNewMoon,
 	PHUGPA,
@@ -31,6 +37,7 @@ import {
 	type TraditionConfig,
 	tibetanDateExists,
 	tibetanToIso,
+	weekdayNameFor,
 } from "../src/index.js";
 import {
 	composeObservances,
@@ -565,6 +572,30 @@ describe("which error a doubly-bad call reports", () => {
 	] as const)("%s reports the shape, then the tradition, then the range", (_label, call) => {
 		expect(codeOf(() => call(null as never))).toBe("TCT_INVALID_ARGUMENT");
 		expect(codeOf(() => call(month13 as never))).toBe("TCT_INVALID_TRADITION_CONFIG");
+	});
+
+	// A bare number has no shape, so the order reduces to the tradition before the number. Until the
+	// parked cleanup batch, five of these checked the number first; the 2026-11-15 ruling had left
+	// them outside order B, and the 2026-11-17 one brought them in.
+	it.each([
+		["monthsFor", (v: never) => monthsFor(v, brokenTradition)],
+		["losarFor", (v: never) => losarFor(v, brokenTradition)],
+		["monthFromLunation", (v: never) => monthFromLunation(v, brokenTradition)],
+		["hasLeapMonth", (v: never) => hasLeapMonth(v, brokenTradition)],
+		["leapMonthNumberFor", (v: never) => leapMonthNumberFor(v, brokenTradition)],
+		["monthsInYear", (v: never) => monthsInYear(v, brokenTradition)],
+		["weekdayNameFor", (v: never) => weekdayNameFor(v, brokenTradition)],
+		["isoFromJulianDay", (v: never) => isoFromJulianDay(v, brokenTradition)],
+	] as const)("%s reports the tradition before its number", (_label, call) => {
+		expect(codeOf(() => call(1.5 as never))).toBe("TCT_INVALID_TRADITION_CONFIG");
+		expect(codeOf(() => call("x" as never))).toBe("TCT_INVALID_TRADITION_CONFIG");
+	});
+
+	// With a valid tradition a bad bare number keeps the range code, a non-number included: the
+	// deliberate exception in the argument-errors record.
+	it("a bare number that is wrong, under a valid tradition, still reports the range", () => {
+		expect(codeOf(() => weekdayNameFor("x" as never))).toBe("TCT_FIELD_OUT_OF_RANGE");
+		expect(codeOf(() => hasLeapMonth(1.5))).toBe("TCT_FIELD_OUT_OF_RANGE");
 	});
 
 	// Order B is load-bearing here: were the range checked before the tradition, the allowlist would
