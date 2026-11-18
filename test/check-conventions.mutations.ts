@@ -26,7 +26,8 @@
  * - **X9–X10** prove Rule 15 beyond its own row: its exempt file must hold the check in code, and
  *   the destructured form is caught. **X11** proves the error-table half of Rule 16, which R16 does
  *   not reach. **X12** proves Rule 4's public-docblock scope, widened the same day, and **X13** that
- *   the scope reads past a `//` between a docblock and its declaration.
+ *   the scope reads past a `//` between a docblock and its declaration. **X14** and **X15** prove
+ *   Rule 17's `@example` block starts only at its tag and ends only at a known TSDoc tag.
  *
  * ## Why a copy of the working tree, and not a worktree or the checkout itself
  *
@@ -405,6 +406,49 @@ const rule = (number: number): Row => {
 };
 
 const X: readonly Row[] = [
+	{
+		id: "X15",
+		what: "an unknown @-word inside an @example, which must not end the block",
+		// The prose date makes the row exit 1; the example line after `@ts-expect-error` must not be
+		// reported. Until X15 the block ended on any line opening with `@` and a letter.
+		apply: (tree) =>
+			tree.append(
+				"src/freeze.ts",
+				[
+					"",
+					"/**",
+					" * Returns one. Changed on 2031-03-01 zzProseX15.",
+					" *",
+					" * @example",
+					" * @ts-expect-error",
+					" * zzMutantX15(); // zzAfterDirective 2031-03-02",
+					" */",
+					"export const zzMutantX15 = 1;",
+					"",
+				].join("\n"),
+			),
+		must: ["no ISO date in docblock prose", "zzProseX15"],
+		mustNot: ["zzAfterDirective"],
+	},
+	{
+		id: "X14",
+		what: "a prose line that mentions @example mid-sentence, beside a date",
+		// The block starts only at a tag line; a mention in a sentence used to start it and exempt the
+		// date on that very line.
+		apply: (tree) =>
+			tree.append(
+				"src/freeze.ts",
+				[
+					"",
+					"/**",
+					" * Returns one. The @example below dates from 2031-03-03 zzMention.",
+					" */",
+					"export const zzMutantX14 = 1;",
+					"",
+				].join("\n"),
+			),
+		must: ["no ISO date in docblock prose", "zzMention"],
+	},
 	{
 		id: "X13",
 		what: "a public docblock's bad link, hidden by a `//` between it and its declaration",
