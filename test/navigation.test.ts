@@ -506,8 +506,11 @@ describe("nextFullMoon and nextNewMoon", () => {
 	/**
 	 * The case `day === 15` gets wrong, with a real date rather than a scan: 2026-12-23 carries the
 	 * full moon of 2153 M11 on the day numbered **14**. Measured under `PHUGPA` over 2,500
-	 * lunations from month 1 of Tibetan 2000 (1873 CE), 57 of them — about one in forty-four — put the
-	 * full moon on 14 rather than 15, and 58 put the new moon on 29 rather than 30. A consumer testing the number is silently wrong that often.
+	 * lunations from month 1 of Tibetan 2000 (1873 CE) to month 2 of 2202 (2075 CE), 57 of them —
+	 * about one in forty-four — put the full moon on 14 rather than 15, and 58 put the new moon on 29
+	 * rather than 30. A consumer testing the number is silently wrong that often.
+	 * "over the 2,500 lunations the docblocks quote" asserts those figures, which the docblocks of
+	 * `nextFullMoon` and `nextNewMoon` ship.
 	 */
 	it("finds the full moon on a day numbered 14, where 15 is skipped", () => {
 		const moon = nextFullMoon(iso("2026-12-01"));
@@ -521,6 +524,21 @@ describe("nextFullMoon and nextNewMoon", () => {
 		expect(moon.isoDate.toString()).toBe("2025-02-27");
 		expect(moon.day).toBe(29);
 		expect(moon.isNewMoon).toBe(true);
+	});
+
+	it("over the 2,500 lunations the docblocks quote, 57 full moons fall on 14 and 58 new moons on 29", { timeout: 30_000 }, () => {
+		const first = lunationFromMonth({ year: 2000, month: 1 });
+		expect(datesFor(monthFromLunation(first))[0]?.isoDate.toString()).toBe("1873-02-28");
+		expect(monthFromLunation(first + 2499).monthCode).toBe("M02");
+		expect(monthFromLunation(first + 2499).year).toBe(2202);
+		let fullOn14 = 0;
+		let newOn29 = 0;
+		for (let n = first; n < first + 2500; n++) {
+			const days = datesFor(monthFromLunation(n));
+			if (days.find((d) => d.isFullMoon)?.day === 14) fullOn14++;
+			if (days.find((d) => d.isNewMoon)?.day === 29) newOn29++;
+		}
+		expect([fullOn14, newOn29]).toEqual([57, 58]);
 	});
 
 	it("puts the new moon on the second of a doubled 30, not the leap day", () => {
