@@ -348,8 +348,12 @@ restore a fixture that differs only by its date stamp. Details: [docs/names/veri
   `docs/how-it-is-calculated.md`, so **their examples are contract**. Each has its own suite reading
   only its own document; a document joining `files` gets its suite in the same commit. A suite reads
   the document and never restates it.
+- **A shipped sentence that quantifies — every tradition, both edges, any year — is asserted over
+  every case it names**, not one: a test that tries only the case where it holds passes a false
+  sentence. Check it against Bhutan, where the traditions diverge most.
 - A shipped document's relative links must resolve in the tarball (`check-pack` enforces it); link
-  repo-only files by absolute URL, and never link a shipped file by absolute URL.
+  repo-only files by absolute URL, and never link a shipped file by absolute URL. A docblock ships
+  too, in the `.d.ts`: it names an unshipped file only by absolute URL (rule 19).
 - **A year here is Tibetan unless it says otherwise**; state any measured window in both eras.
 - **A shipped instruction is contract like an example** — print a runnable config and run it in a clean
   consumer; this repo's own tsconfig masks the defect.
