@@ -509,7 +509,7 @@ describe("nextFullMoon and nextNewMoon", () => {
 	 * lunations from month 1 of Tibetan 2000 (1873 CE) to month 2 of 2202 (2075 CE), 57 of them —
 	 * about one in forty-four — put the full moon on 14 rather than 15, and 58 put the new moon on 29
 	 * rather than 30. A consumer testing the number is silently wrong that often.
-	 * "over the 2,500 lunations the docblocks quote" asserts those figures, which the docblocks of
+	 * "over the sample the docblocks quote" asserts those figures, which the docblocks of
 	 * `nextFullMoon` and `nextNewMoon` ship.
 	 */
 	it("finds the full moon on a day numbered 14, where 15 is skipped", () => {
@@ -526,7 +526,9 @@ describe("nextFullMoon and nextNewMoon", () => {
 		expect(moon.isNewMoon).toBe(true);
 	});
 
-	it("over the 2,500 lunations the docblocks quote, 57 full moons fall on 14 and 58 new moons on 29", { timeout: 30_000 }, () => {
+	it("over the sample the docblocks quote, 57 full moons fall on 14, 58 new moons on 29", {
+		timeout: 30_000,
+	}, () => {
 		const first = lunationFromMonth({ year: 2000, month: 1 });
 		expect(datesFor(monthFromLunation(first))[0]?.isoDate.toString()).toBe("1873-02-28");
 		expect(monthFromLunation(first + 2499).monthCode).toBe("M02");
