@@ -384,8 +384,10 @@ export interface ObservanceLayer {
 	readonly addLevels?: readonly ObservanceLevel[];
 
 	/**
-	 * Changes to the conventions of base rules, in place, each naming a rule by `id`. Fields an entry
-	 * does not give keep the base rule's values; any key other than these four is refused.
+	 * Changes to the conventions of base rules, in place, each entry naming a base rule by `id` and
+	 * giving at least one of `doubledDay`, `skippedDay` and `leapMonth`. Fields an entry does not give
+	 * keep the base rule's values. Any other key, an entry giving none of the three, an id the base
+	 * does not have, and an id also in `remove`, `replace` or `add` are refused.
 	 */
 	readonly conventions?: readonly Pick<
 		ObservanceRule,

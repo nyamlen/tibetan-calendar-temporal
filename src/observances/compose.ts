@@ -49,13 +49,9 @@ const CONVENTION_KEYS = ["id", "doubledDay", "skippedDay", "leapMonth"];
 /** The conventions one `conventions` entry gives, those left `undefined` omitted. */
 type Conventions = Partial<Pick<ObservanceRule, "doubledDay" | "skippedDay" | "leapMonth">>;
 
-/**
- * Checks one `conventions` entry and returns the conventions it gives, read once.
- *
- * @remarks
- * Each field is read once into the snapshot and checked there, so a getter cannot answer one value
- * to the check and another to the result.
- */
+/** Checks one `conventions` entry and returns the conventions it gives. */
+// Each field is read once into the snapshot and checked there, so a getter cannot answer one value
+// to the check and another to the result.
 function conventionsOf(id: string, item: Record<string, unknown>, label: string): Conventions {
 	const subject = `${label}: conventions entry "${id}"`;
 	assertKnownKeys(item, CONVENTION_KEYS, subject, CODE);
@@ -102,8 +98,11 @@ function idsOf(value: unknown, field: string): { id: string; item: unknown }[] {
 				`${SUBJECT}: every ${field} entry must be an object, received ${describe(item)}`,
 			);
 		}
-		assertNonEmptyString(item.id, `${SUBJECT}: every ${field} entry's id`);
-		return { id: item.id as string, item };
+		// Read once: a `conventions` entry never reaches the validated candidate, so an id answering
+		// differently the second time would change a rule other than the one checked.
+		const id = item.id;
+		assertNonEmptyString(id, `${SUBJECT}: every ${field} entry's id`);
+		return { id: id as string, item };
 	});
 }
 
@@ -151,21 +150,22 @@ function assertNoRepeats(lists: readonly (readonly [string, readonly string[]])[
  * `skippedDay` and `leapMonth`; the rule's other fields stay the base's, and it keeps its place:
  *
  * ```ts
- * const kopanTara = composeObservances(EXAMPLE_OBSERVANCES, {
- *   id: "kopan-tara",
- *   englishName: "Kopan, Tara on the first half",
+ * const taraFirstHalf = composeObservances(EXAMPLE_OBSERVANCES, {
+ *   id: "tara-first-half",
+ *   englishName: "Tara on the first half of a doubled day",
  *   conventions: [{ id: "tara", doubledDay: "first" }],
  * });
  * ```
  *
  * **Rules** are changed in the order remove, replace, add: the layer's `remove` ids are dropped,
  * each `replace` rule takes the position of the base rule with the same id, and `add` rules follow,
- * in the order given. `replace` takes complete rules. An id may appear **once** in a layer, across
- * `remove`, `replace`, `add` and `conventions` together: removing a rule and adding it back is refused, because it would silently move the rule
+ * in the order given. `replace` takes complete rules, and a `conventions` entry changes its rule in
+ * place. An id may appear **once** in a layer, across `remove`, `replace`, `add` and `conventions`
+ * together: removing a rule and adding it back is refused, because it would silently move the rule
  * to the end, and `replace` is how to change a rule and keep its place. `add` refuses an id the
  * base has. The result's rule order is therefore the base's, minus what was removed, with replaced
- * rules in place and added ones appended in the layer's order — and that order is the order of
- * same-day results in {@link getObservances}.
+ * and changed rules in place and added ones appended in the layer's order — and that order is the
+ * order of same-day results in {@link getObservances}.
  *
  * **Levels** are changed in the same order as rules: the base's order minus `removeLevels`, each
  * `replaceLevels` entry taking the position of the base level with the same id, then `addLevels` in
@@ -189,7 +189,9 @@ function assertNoRepeats(lists: readonly (readonly [string, readonly string[]])[
  *   `removeLevels` or `replaceLevels` naming an undeclared level; a level id appearing twice across
  *   `removeLevels`, `replaceLevels` and `addLevels`, whether in one list or two; an added level the
  *   base declares; a level removed while a remaining rule names
- *   it; a rule naming a level that is not declared; and any rule or level the validator refuses.
+ *   it; a rule naming a level that is not declared; a `conventions` entry giving a convention its
+ *   rule's form does not read, or `skippedDay: "omit"` to a `counted` rule, each refused naming the
+ *   rule; and any rule or level the validator refuses.
  */
 export function composeObservances(
 	base: ObservanceConfig,

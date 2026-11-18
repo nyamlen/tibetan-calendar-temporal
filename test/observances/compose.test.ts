@@ -569,6 +569,29 @@ describe("composeObservances: conventions", () => {
 		expect(error?.message).toContain(fragment);
 	});
 
+	// A getter answering differently on a second read must not steer the check and the result apart.
+	const fickle = (first: unknown, then: unknown) => {
+		let reads = 0;
+		return () => (reads++ === 0 ? first : then);
+	};
+
+	it("reads an entry's id once, so the rule checked is the rule changed", () => {
+		const entry = { doubledDay: "first" };
+		Object.defineProperty(entry, "id", {
+			get: fickle("tara", "medicine-buddha"),
+			enumerable: true,
+		});
+		const result = withConventions([entry]);
+		expect(ruleIn(result, "tara").doubledDay).toBe("first");
+		expect(ruleIn(result, "medicine-buddha").doubledDay).toBe("both");
+	});
+
+	it("reads a convention once, so the value checked is the value applied", () => {
+		const entry = { id: "tara" };
+		Object.defineProperty(entry, "doubledDay", { get: fickle("first", "third"), enumerable: true });
+		expect(ruleIn(withConventions([entry]), "tara").doubledDay).toBe("first");
+	});
+
 	it("tells a partial replace that replace takes whole rules", () => {
 		const error = thrownBy(() =>
 			composeObservances(
