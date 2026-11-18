@@ -124,8 +124,7 @@ export function julianDayFromIso(date: Temporal.PlainDate): number {
  * class it is called on says which calendar is meant.
  *
  * @param subject - The export and argument the caller passed, such as `getObservances(from)`. It
- * opens the message of every refusal except a date in a non-ISO calendar, whose message does not
- * carry it.
+ * opens the message of every refusal.
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` for `null`, a number, a bare fields object, a
  * resolved `TibetanDate`, a `Temporal` type that names no calendar day (`Instant`, `PlainTime` and
  * the rest), a string Temporal cannot read, and a date in a calendar other than ISO.
@@ -140,7 +139,7 @@ export function asPlainDate(date: Temporal.PlainDate, subject?: string): Tempora
 	// is normalised into this realm, rather than refused for having been built elsewhere. See
 	// `temporal-kind.ts`, which is the only file in `src/` that asks `instanceof Temporal`.
 	const kind = temporalKindOf(raw);
-	if (kind !== null) return toNativePlainDate(raw, kind);
+	if (kind !== null) return toNativePlainDate(raw, kind, subject);
 	if (typeof raw !== "string") {
 		// A Temporal type outside the three — `Instant`, `PlainYearMonth`, `PlainMonthDay`,
 		// `PlainTime`, `Duration` — carries its own tag and so is named rather than described as
@@ -164,7 +163,7 @@ export function asPlainDate(date: Temporal.PlainDate, subject?: string): Tempora
 	}
 	assertTemporalPresent();
 	try {
-		return assertIsoCalendar(Temporal.PlainDate.from(raw));
+		return assertIsoCalendar(Temporal.PlainDate.from(raw), subject);
 	} catch (error) {
 		if (error instanceof Error && "code" in error) throw error;
 		throw rangeError(
@@ -207,9 +206,9 @@ function carriesPlainDate(raw: unknown): boolean {
  *
  * @param functionName - The export the caller called, which opens the message.
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` for anything else, including a value whose
- * `isoDate` read throws. The message names every shape accepted, except for a string Temporal
- * cannot read and a date in a non-ISO calendar: those messages are {@link asPlainDate}'s, which
- * name neither `functionName` nor the other shapes.
+ * `isoDate` read throws. Every message opens with `functionName`. It names every shape accepted,
+ * except for a string Temporal cannot read and a date in a non-ISO calendar: those messages are
+ * {@link asPlainDate}'s, which name only the Western shapes.
  */
 export function asWesternDay(
 	functionName: string,
@@ -217,7 +216,7 @@ export function asWesternDay(
 ): Temporal.PlainDate {
 	const raw: unknown = date;
 	if (typeof raw === "string" || temporalKindOf(raw) !== null) {
-		return asPlainDate(date as Temporal.PlainDate);
+		return asPlainDate(date as Temporal.PlainDate, functionName);
 	}
 	if (raw !== null && typeof raw === "object") {
 		// Read under `try`, as `temporalKindOf` reads a tag: the `in` runs a Proxy's `has` trap and
@@ -235,7 +234,9 @@ export function asWesternDay(
 		}
 		// Still normalised, because a resolved date may have been built under a different Temporal
 		// implementation from the one now global.
-		if (temporalKindOf(isoDate) === "PlainDate") return asPlainDate(isoDate as Temporal.PlainDate);
+		if (temporalKindOf(isoDate) === "PlainDate") {
+			return asPlainDate(isoDate as Temporal.PlainDate, functionName);
+		}
 	}
 	throw rangeError(
 		"TCT_INVALID_ARGUMENT",

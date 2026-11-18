@@ -267,8 +267,10 @@ function assertMeanDateRelation(tradition: TraditionConfig): void {
 		throw invalid(
 			tradition,
 			`meanDate.perMonth (${perMonth.num}/${perMonth.den}) must be 30 times meanDate.perDay ` +
-				`(${perDay.num}/${perDay.den}). Janson's m₂ is m₁/30 in every version, and the search ` +
-				"for a lunar day's date is bounded only while that holds",
+				`(${perDay.num}/${perDay.den}), m₂ = m₁/30, as in the Phugpa version and every other ` +
+				"modern version Janson knows of. isoToTibetan seeds its search from perDay, and the " +
+				"search window is bounded only while that holds: otherwise the seed drifts from the " +
+				"true day by n·(m₁ − 30·m₂), without limit",
 		);
 	}
 }

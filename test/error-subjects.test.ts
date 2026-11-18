@@ -689,6 +689,34 @@ describe("nextObservance names itself, not getObservances", () => {
 // name through them. A shared message that named another function's signature sent a caller to read
 // the wrong docblock: a TraditionConfig given to `composeObservances`, which takes no tradition, was
 // told to use `getObservances(from, to, config, tradition)`.
+describe("a Western date's refusal opens with the caller's name", () => {
+	// Until the parked cleanup batch these two refusals named no caller: the calendar one was built
+	// by assertIsoCalendar, and asWesternDay passed no subject to asPlainDate for a string.
+	const day = Temporal.PlainDate.from("2026-01-01");
+	const hebrew = Temporal.PlainDate.from("2007-01-01").withCalendar("hebrew");
+	it.each([
+		["a Hebrew-calendar PlainDate", () => getObservances(hebrew, day, EXAMPLE_OBSERVANCES)],
+		[
+			"an ISO string carrying a Hebrew calendar",
+			() => getObservances("2007-01-01[u-ca=hebrew]" as never, day, EXAMPLE_OBSERVANCES),
+		],
+	] as const)("getObservances, given %s", (_label, call) => {
+		const error = thrownBy(call);
+		expect(error?.code).toBe("TCT_INVALID_ARGUMENT");
+		expect(error?.message.startsWith("getObservances(from): ")).toBe(true);
+	});
+
+	it("nextFullMoon, given a string Temporal cannot read", () => {
+		const error = thrownBy(() => nextFullMoon("junk" as never));
+		expect(error?.code).toBe("TCT_INVALID_ARGUMENT");
+		expect(error?.message.startsWith("nextFullMoon: ")).toBe(true);
+	});
+
+	it("nextFullMoon, given a Hebrew-calendar PlainDate", () => {
+		expect(thrownBy(() => nextFullMoon(hebrew))?.message.startsWith("nextFullMoon: ")).toBe(true);
+	});
+});
+
 describe("the observance guards name the function that was called", () => {
 	const from = Temporal.PlainDate.from("2026-01-01");
 	const CONFIG = "TCT_INVALID_OBSERVANCE_CONFIG";
