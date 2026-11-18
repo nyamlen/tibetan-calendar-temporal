@@ -803,8 +803,7 @@ keep it that way.
 | GitHub/npm org | `nyamlen` |
 | Repository | `github.com/nyamlen/tibetan-calendar-temporal` |
 
-**Scoping policy.** The flagship engine stays unscoped — unscoped names rank better in npm
-search, and discoverability is this package's job.
+**Why unscoped.** Unscoped names rank better in npm search, and discoverability is this package's job.
 
 <details>
 <summary><strong>Why the name says "Tibetan" when Bhutan and Mongolia have their own calendars</strong></summary>
