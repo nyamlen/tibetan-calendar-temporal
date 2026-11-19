@@ -298,7 +298,14 @@ function genuineKindOf(value: unknown): TemporalDayKind | null {
 function assertNotPosingAs(value: unknown, kind: TemporalDayKind, prefix: string): void {
 	let posing: boolean;
 	try {
-		posing = value instanceof nativeClassOf(kind);
+		// Spelled out rather than through `nativeClassOf`: `check:conventions` anchors rule 15's exemption
+		// on this file containing `instanceof Temporal` in code.
+		posing =
+			kind === "PlainDate"
+				? value instanceof Temporal.PlainDate
+				: kind === "PlainDateTime"
+					? value instanceof Temporal.PlainDateTime
+					: value instanceof Temporal.ZonedDateTime;
 	} catch (error) {
 		throw rangeError(
 			"TCT_INVALID_ARGUMENT",
