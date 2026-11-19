@@ -6,14 +6,17 @@ status: accepted
 # Validation lives at the public boundary, and the observance span is capped
 
 **Decision:** every exported function validates its own input — integrality, range, and config
-shape — and everything under `src/computation/` assumes that work is already done. `getObservances`
+shape — and the internals under `src/computation/` assume that work is already done. The exception
+is `src/computation/conversion.ts`, which is itself a boundary file: it holds root exports
+(`isoToTibetan`, `tibetanToIso`, `losarFor` and others) and the boundary homes `asWesternDay`,
+`monthCountFor` and `julianDayOfFields`, so its guards are not redundant. `getObservances`
 additionally refuses spans wider than 10 years.
 
 ## Add a guard when you add a public function
 
-The boundary is **the whole exported surface**, which is eleven functions on the root and three on
-`./observances`: `tibetanToIso`, `losarFor`, `isoToTibetan`, `tibetanDateExists`, `tibetanWeekday`,
-`isoFromJulianDay`, `julianDayFromIso`, `formatTibetanDate`, `getObservances`, `observancesOn`.
+The boundary is **the whole exported surface**: every runtime export of the three barrels, which
+`test/hostile-inputs.test.ts` enumerates and holds to never escaping uncoded. The list is not
+repeated here, because a copy is what went stale before (see below).
 Below it, nothing re-checks, and nothing should — duplicating the guards on the hot path costs real
 time in the multi-century sweeps and gives nothing back. Where an internal caller needs an unguarded
 version, give it its own name rather than skipping the guard on the exported one:

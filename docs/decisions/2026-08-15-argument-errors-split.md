@@ -35,18 +35,13 @@ split, implemented by hand and depending on a subtle ordering to stay correct. G
 failures their own code makes the ordering irrelevant: `TCT_INVALID_ARGUMENT` is simply absent from
 the allowlist.
 
-## The duplicated guards stay, for a different reason
+## The duplicated guards are gone
 
-They were expected to delete once the ordering stopped mattering. They do not, and the reason is
-worth recording so nobody deletes them believing the split made them dead.
-
-`tibetanToIso` names *itself* in its guards. Remove the copies from `tibetanDateExists` and a caller
-who wrote `tibetanDateExists(plainDate)` is told about `tibetanToIso`, a function they never called
-— against [2026-08-12-error-codes-not-classes.md](2026-08-12-error-codes-not-classes.md)'s
-requirement that a message echo the call that was made.
-
-So the guards now exist for the **message**, not the behaviour, and the comment at the call site
-says so. Deleting them would not break the predicate; it would degrade the error.
+The hand-hoisted copies have since been replaced: `tibetanDateExists` calls
+`assertTibetanShape("tibetanDateExists", input, "date")` once, outside its `try`. A shape refusal
+therefore names the function the caller called, as
+[2026-08-12-error-codes-not-classes.md](2026-08-12-error-codes-not-classes.md) requires, and
+`TCT_INVALID_ARGUMENT` never reaches the allowlist.
 
 ## What is deliberately *not* split
 
@@ -68,7 +63,8 @@ grammar was satisfied and the failure really is about a value.
 - **Adding `TCT_INVALID_ARGUMENT` to `tibetanDateExists`'s allowlist** to make the predicate total.
   It is on the throwing side for the same reason `TCT_OUTSIDE_EXACT_RANGE` is: `false` would be a
   claim about the calendar in answer to a question about the caller's code.
-- **Deleting the duplicated guards in `tibetanDateExists`** as redundant. See above.
+- **Moving `tibetanDateExists`' shape check inside its `try`.** It would then depend on the
+  allowlist's contents to stay a throw, and the message would still name the right call only by luck.
 - **Promoting either to a `TypeError`.** [2026-08-12-error-codes-not-classes.md](2026-08-12-error-codes-not-classes.md)
   types by kind of failure, not by severity: `RangeError` for anything wrong with the caller's
   input, plain `Error` only for what is not about the call. A wrong-kind argument is still the

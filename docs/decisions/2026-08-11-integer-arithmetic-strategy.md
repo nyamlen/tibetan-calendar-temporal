@@ -7,7 +7,10 @@ status: accepted
 
 **Decision:** every quantity is held as an integer scaled by one common denominator `D`, and `D`
 is **derived from the tradition's own constants**, never hardcoded. Plain `number` is exact
-throughout — no `bigint`, no floats, and no general rational type with gcd normalisation.
+throughout — no floats, no general rational type with gcd normalisation, and no `bigint` in any
+calendar quantity or signature. `bigint` appears only in one-time config checks (the validator's and
+`deriveScaling`'s overflow guards), which run once per config and return nothing the arithmetic
+carries.
 
 ## Why this denominator
 
@@ -56,7 +59,9 @@ Against `Number.MAX_SAFE_INTEGER` ≈ 9.0 × 10¹⁵. Tsurphu's margin is thin b
 5.9 × 10⁶ is roughly the year 11,000 — so `number` remains correct for any date either tradition
 is meaningfully applied to. The bound is asserted by a per-tradition test rather than assumed.
 
-Do not switch to `bigint` for safety. It is slower and it spreads through every signature. If a
+Do not switch the arithmetic to `bigint` for safety. It is slower and it spreads through every
+signature; the overflow guards may use it because they run once per config and hand back nothing but
+a refusal or a pass. If a
 future tradition ever did exceed the bound, the cheaper fix is to split each quantity into whole
 days plus a fractional numerator below `D`, which caps every intermediate near 10¹³ regardless of
 `D` — not to change the numeric type.

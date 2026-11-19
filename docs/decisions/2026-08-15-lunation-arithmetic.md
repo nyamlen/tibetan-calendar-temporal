@@ -80,22 +80,18 @@ month entirely, losing thirty days; searching a single year by lunation returns 
 lets them keep thinking in labels. Teaching only works on people who read; a correct `addMonths`
 works regardless, and the spike shows what the unreading consumer ships.
 
-## The three `addMonths` shapes that stay rejected
+## `addMonths` stays month in, month out; the date step is a separate export
 
-A future request will ask for one of these by name. Each was considered and each is refused:
+`addMonths` takes a month and returns a month, and stays that way: month in, month out is total
+precisely because it never places a day number.
 
-- **Date in, date out.** One line instead of two, but it must decide what "the 8th of next month"
-  means when the 8th is skipped in the destination — a few percent of calls — and that decision
-  becomes permanent contract.
-- **A `skippedDay: 'preceding' | 'omit'` parameter.** That choice is a **convention**, and
-  [2026-11-11-observance-model.md](2026-11-11-observance-model.md) exists to keep conventions in
-  injected config rather than in the engine.
-- **Anything returning a date from a month step.** Same problem as the first, arrived at from a
-  different direction.
-
-Month in, month out is total precisely because it never places a day number. "The 8th of next month"
-is then a composition over machinery that already exists, and its partiality is the partiality the
-package already documents:
+A date step ships beside it as `addMonthsToDate(date, months, { overflow?, tradition? })`. It was
+first refused here as "date in, date out", on the ground that the tradition gives no answer for "the
+8th of next month" when the 8th is skipped. That was reversed on evidence, recorded in
+[2026-08-12-public-surface.md](2026-08-12-public-surface.md): `Temporal` answers the same question
+with a default clamp and a `reject` opt-out, and the package already ships `"preceding"` as its own
+answer to the analogous case. `overflow: "constrain" | "reject"` borrows `Temporal`'s vocabulary for
+those two answers. The composition over `addMonths` still works for a caller who wants neither:
 
 ```js
 const m = addMonths(date, 1);
@@ -103,10 +99,21 @@ tibetanDateExists({ ...m, day: 8 });   // the non-throwing route
 tibetanToIso({ ...m, day: 8 });        // throws SkippedDayError, as it already does
 ```
 
+What stays rejected:
+
+- **A `skippedDay: 'preceding' | 'omit'` parameter** on either function. Which way a skipped
+  *observance* falls is a **convention**, and
+  [2026-11-11-observance-model.md](2026-11-11-observance-model.md) exists to keep conventions in
+  injected config rather than in the engine. `overflow` is not that option: it chooses between
+  clamping and refusing, as `Temporal` does, and names no tradition's convention.
+- **A date returned from `addMonths` itself.** A second, partial return shape on the total function
+  would make every caller handle a case only date callers have.
+
 ## What this stops a contributor doing
 
-- **Adding a date-in/date-out `addMonths`** as a convenience, or a `skippedDay` option to the
-  existing one. Both re-open a convention the tradition does not settle.
+- **Making `addMonths` return a date**, or adding a `skippedDay` option to it or to
+  `addMonthsToDate`. The date step exists, as its own export, and the convention a skipped
+  observance follows belongs in an `ObservanceConfig`.
 - **Deriving month arithmetic from month numbers** anywhere in `src/`. `trueMonthCount` /
   `monthFromCount` are an inverse pair for this reason and `getObservances` already walks months
   that way.

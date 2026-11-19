@@ -47,6 +47,17 @@ authored one, when an identifier already keys it: `LunarMansion` carries `index`
 `sanskritName`. The evidence is in
 [names/mansion-and-trigram-sourcing.md](../names/mansion-and-trigram-sourcing.md).
 
+**Amended 2026-11-19, two clarifications.** Decided by Andreas after the adversarial review.
+
+- **`TraditionConfig.name` is a display label, not a name keyed by language.** It holds whatever form
+  the config's author chooses (`"Phugpa"`, `"Bhutanese (Henning a₂)"`) and is used in messages to say
+  which tradition refused. "Phugpa" is a Tibetan word, so `englishName` would be false, and the field
+  carries no sourcing. It is the one bare `name` this rule allows; a sourced `tibetanName` can be
+  added beside it later without breaking a config.
+- **A composed name is a kind of authored name.** An English name joined from dictionary glosses, each
+  re-checked by a verifier — `"restorative"` from *gso ba* "to restore" and *thub pa* "to be able" — is
+  authored, and its docblock keeps the word "composed" because that says how it was authored.
+
 ## What a contributor would otherwise do
 
 **Add a field called `name`.** It reads naturally and it is what `Rabjung` had. It is wrong once a
