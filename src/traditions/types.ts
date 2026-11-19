@@ -70,7 +70,14 @@ export interface TraditionConfig {
 	/** Stable machine identifier, e.g. `"phugpa"`. */
 	readonly id: string;
 
-	/** Human-readable name, e.g. `"Phugpa"`. */
+	/**
+	 * A display label, e.g. `"Phugpa"`, in whatever form the config's author chooses.
+	 *
+	 * @remarks
+	 * Used in error messages to say which tradition refused. It is not a shipped name keyed by
+	 * language, so it carries no `englishName` or `tibetanName` and no sourcing; see
+	 * [the names record](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/decisions/2026-09-13-names-keyed-by-language.md).
+	 */
 	readonly name: string;
 
 	/**

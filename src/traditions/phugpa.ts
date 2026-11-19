@@ -163,6 +163,17 @@ export const PHUGPA: TraditionConfig = deepFreeze({
  * 1027–1091 CE, so the rate is not uniform. He gives 10 February 2001 and 10 May 2006 as recent
  * divergence dates, and 19 November 2025 as the next.
  *
+ * What it is checked against, with the windows in
+ * [`docs/testing.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/testing.md):
+ *
+ * - **Rabten's sojong days**, the one external positive check: the observance's dates, not every
+ *   day's number.
+ * - **Janson's divergence dates**, which are reproduced, but come from the same paper the
+ *   arithmetic does, so they are not external.
+ * - **Two negative controls**: Lotsawa House's calculator and FPMT's calendar side with
+ *   {@link PHUGPA} on the divergence dates they cover, and the suites assert that this config
+ *   disagrees with them there.
+ *
  * @see `docs/how-it-is-calculated.md` for what `a₂` is and why a difference of one part in 105,840
  * moves a date at all.
  */

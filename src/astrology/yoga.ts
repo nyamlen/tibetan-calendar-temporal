@@ -44,7 +44,8 @@ export interface YogaAuspiciousness {
 	 * The four are sourced at three strengths, and the difference is stated rather than hidden:
 	 *
 	 * - `"good"` and `"bad"` are printed word for word for the Tibetan: Jäschke p. 496 s.v. *bzang po*,
-	 *   p. 126 s.v. *ngan pa*.
+	 *   and p. 126 s.v. *ngan pa*, the adjective whose stem is the shipped *ngan*; bare *ngan* he
+	 *   glosses "evil, mischief, misfortune".
 	 * - `"worst"` is printed for its Sanskrit equivalent: Das p. 564 gives *adhama* among the Sanskrit
 	 *   for *tha chad*, and Monier-Williams p. 19 glosses *adhama* "lowest, vilest, worst". Jäschke's own
 	 *   "very bad" (p. 226) is the rejected alternative.

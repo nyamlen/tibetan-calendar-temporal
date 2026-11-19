@@ -336,7 +336,8 @@ describe("the elemental yoga against FPMT's day-quality codes", () => {
 	});
 
 	it("validates what the export returns, not only the internals", () => {
-		// The 97.6% is measured on `mansionNumber`, which needs internal inputs to report a position.
+		// The mansion figure is measured on `mansionNumber`, which needs internal inputs to report a
+		// position.
 		// `lunarMansionFor` is what a consumer calls, so it must return the same mansion on every day
 		// measured — or the published figure describes a function nobody can reach.
 		const bad = yogaDays
@@ -364,7 +365,7 @@ describe("the elemental yoga against FPMT's day-quality codes", () => {
  * ten rows (`test/astrology/yoga.test.ts`), but it is a separate claim over a table, not a check on
  * any day. What makes it a
  * real check rather than a tautology is that it reads **FPMT's own two letters** and not our mansion
- * arithmetic: the 2.4% mansion residual cannot reach it, so a disagreement here is a disagreement
+ * arithmetic: the mansion residual cannot reach it, so a disagreement here is a disagreement
  * about the table and nothing else.
  *
  * Four days disagree, and all four are **single-day prefix flips**: each names a pair that FPMT
@@ -447,9 +448,10 @@ describe("the full and new moons against FPMT's moon icons, 2022-2026", () => {
 
 	it("differs by a day only on the new moon of February 2025, where day 30 is skipped", () => {
 		// The engine's new moon ends lunar day 30, which is skipped, so it falls in the day numbered
-		// 12/29. FPMT's icon is on the next day, 1/1. The only skipped-30 new moon in January 2022 to
-		// October 2026, so one case cannot say whether it is a convention or a slip. Catalogued, not
-		// fitted; the full moon of 2026-12-23, on a skipped 15, is the next case.
+		// 12/29. FPMT's icon is on the next day, 1/1. The only skipped-30 new moon in the window, so
+		// one case cannot say whether it is a convention or a slip. Catalogued, not fitted. The full
+		// moon of 2026-12-23, on a skipped 15 (the day numbered 11/14), is inside the window and
+		// agrees: FPMT's icon is on the engine's day.
 		expect(moons.unmatchedEngineMoons).toEqual([{ iso: "2025-02-27", kind: "new" }]);
 		expect(moons.unmatchedIcons).toEqual([{ iso: "2025-02-28", kind: "new" }]);
 		const [engine, icon] = [isoToTibetan(iso("2025-02-27")), isoToTibetan(iso("2025-02-28"))];
