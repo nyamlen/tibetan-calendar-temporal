@@ -444,7 +444,7 @@ function buildDate(
 	julianDay: number,
 ): TibetanDate {
 	const isoDate = isoFromJulianDayUnchecked(julianDay);
-	return {
+	return Object.freeze({
 		year: royalEraFromYear(year),
 		yearStartsIn: year,
 		month,
@@ -482,7 +482,7 @@ function buildDate(
 		),
 		// The month count this date was located by, carried out rather than made rediscoverable.
 		lunation: monthCount,
-	};
+	});
 }
 
 /**

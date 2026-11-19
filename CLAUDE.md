@@ -174,7 +174,7 @@ Before explaining a residual by a formula, check whether the source uses the sam
 - **Pure stateless functions**, measured by what a **caller** can observe. Memoising is allowed
   (`scalingFor`, the config validators, `monthsFor`); do not delete a cache for offending the word
   "stateless". A cache must **key on the config, not just the year**; **never hand out shared mutable
-  state** (return fresh arrays of frozen elements — every `TibetanMonth` is frozen by `describeMonth`);
+  state** (return fresh arrays of frozen elements — every `TibetanMonth` is frozen by `describeMonth`, every `TibetanDate` by `buildDate`);
   and **be bounded** (`monthsFor` keeps 64 years per config, LRU, pinned by identity in
   `test/months.test.ts`).
 - **Tradition constants are injected** via `TraditionConfig`, never hardcoded. v1 ships `PHUGPA`,

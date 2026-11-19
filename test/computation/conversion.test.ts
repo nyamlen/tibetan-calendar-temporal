@@ -1,5 +1,6 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
+import { attributesFor } from "../../src/astrology/index.js";
 import {
 	firstDayOfMonth,
 	lastDayOfMonth,
@@ -20,9 +21,23 @@ import { meanDate } from "../../src/computation/mean-astronomy.js";
 import { deriveScaling } from "../../src/computation/scaling.js";
 import { rabjungFor, yearNameFor } from "../../src/cycles.js";
 import type { TibetanCalendarErrorCode } from "../../src/errors.js";
+import { datesFor } from "../../src/months.js";
+import {
+	addDays,
+	addMonthsToDate,
+	nextFullMoon,
+	nextNewMoon,
+	resolveDate,
+} from "../../src/navigation.js";
+import {
+	EXAMPLE_OBSERVANCES,
+	getObservances,
+	nextObservance,
+	observancesOn,
+} from "../../src/observances/index.js";
 import { BHUTAN, BHUTAN_HENNING } from "../../src/traditions/bhutan.js";
 import { PHUGPA, PHUGPA_HENNING } from "../../src/traditions/phugpa.js";
-import { SkippedDayError } from "../../src/types.js";
+import { SkippedDayError, type TibetanDate } from "../../src/types.js";
 import { LOSAR_DATES } from "../fixtures/losar.js";
 
 const scaled = deriveScaling(PHUGPA);
@@ -881,5 +896,41 @@ describe("tibetanToIso bounds the day it returns, not only the mean date", () =>
 		}
 		expect(returned).toBeGreaterThan(0);
 		expect(bad).toEqual([]);
+	});
+});
+
+describe("a returned TibetanDate is frozen", () => {
+	it("every export returning a TibetanDate returns a frozen one", () => {
+		const from = iso("2026-03-01");
+		const date = isoToTibetan(from);
+		const fields = { year: date.year, month: date.month, day: date.day };
+		const candidates: [string, TibetanDate][] = [
+			["isoToTibetan", date],
+			["resolveDate", resolveDate(fields)],
+			["addDays", addDays(fields, 3)],
+			["addDays by 0", addDays(fields, 0)],
+			["addMonthsToDate", addMonthsToDate(fields, 1, { overflow: "constrain" })],
+			["nextFullMoon", nextFullMoon(from)],
+			["nextNewMoon", nextNewMoon(from)],
+			["losarFor", losarFor(2153)],
+			["attributesFor(...).date", attributesFor(from).date],
+		];
+		datesFor({ year: 2153, month: 1 }).forEach((d, i) => {
+			candidates.push([`datesFor[${i}]`, d]);
+		});
+		observancesOn(iso("2026-03-03"), EXAMPLE_OBSERVANCES).forEach((o, i) => {
+			candidates.push([`observancesOn[${i}].date`, o.date]);
+		});
+		const next = nextObservance(from, "tara", EXAMPLE_OBSERVANCES);
+		if (next !== null) candidates.push(["nextObservance.date", next.date]);
+		getObservances(iso("2026-01-01"), iso("2026-12-31"), EXAMPLE_OBSERVANCES).forEach((o, i) => {
+			candidates.push([`getObservances[${i}].date`, o.date]);
+			if (o.period !== undefined) {
+				candidates.push([`getObservances[${i}].period.first`, o.period.first]);
+				candidates.push([`getObservances[${i}].period.last`, o.period.last]);
+			}
+		});
+		expect(candidates.length).toBeGreaterThan(50);
+		expect(candidates.filter(([, d]) => !Object.isFrozen(d)).map(([name]) => name)).toEqual([]);
 	});
 });
