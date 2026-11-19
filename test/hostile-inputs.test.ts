@@ -693,6 +693,31 @@ describe("a consumer config whose arithmetic outruns Temporal", () => {
 		expect(wrong).toEqual([]);
 	});
 
+	it("answers or refuses with the code at the negative edge, which is one day inside Temporal's", () => {
+		// The clamp leaves 4.9 million days of slack at the positive end and one at the negative.
+		const first = Temporal.PlainDate.from("-271821-04-20");
+		expect(julianDayFromIso(first)).toBe(-97_559_412);
+		const date = isoToTibetan(first, COARSE);
+		const uncoded: string[] = [];
+		for (let year = date.year - 1; year <= date.year + 1; year++) {
+			for (let month = 1; month <= 12; month++) {
+				for (const [name, run] of [
+					["datesFor", () => datesFor({ year, month }, COARSE)],
+					["daysInMonth", () => daysInMonth({ year, month }, COARSE)],
+					["resolveMonth", () => resolveMonth({ year, month }, COARSE)],
+				] as [string, () => unknown][]) {
+					const error = thrownBy(run);
+					if (error !== undefined && error.code !== OUTSIDE)
+						uncoded.push(`${name} ${year}/${month}: ${error.message}`);
+				}
+			}
+			const error = thrownBy(() => monthsFor(year, COARSE));
+			if (error !== undefined && error.code !== OUTSIDE)
+				uncoded.push(`monthsFor ${year}: ${error.message}`);
+		}
+		expect(uncoded).toEqual([]);
+	});
+
 	it("refuses the first month past the last representable one in every month export", () => {
 		// Bisect for the last year whose months all convert.
 		const converts = (year: number): boolean => {

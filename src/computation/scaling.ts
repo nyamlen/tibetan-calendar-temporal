@@ -163,9 +163,10 @@ function scaleMeanMotion(motion: MeanMotion, alsoDivides = 1): ScaledMeanMotion 
 	};
 }
 
-// `Temporal.PlainDate` spans epoch days −100,000,000 to +100,000,000 (ISO −271821-04-19 to
-// +275760-09-13). The Unix epoch is JD 2,440,588, so that is JD −97,559,412 to 102,440,588. The bound
-// takes the smaller magnitude so the exact range stays symmetric about zero, which
+// `Temporal.PlainDate` spans epoch days −100,000,001 to +100,000,000 (ISO −271821-04-19 to
+// +275760-09-13; one day wider than `Instant` at the start). The Unix epoch is JD 2,440,588, so that is
+// JD −97,559,413 to 102,440,588. The bound is 97,559,412, one day inside the negative end, so the
+// exact range stays symmetric about zero, which
 // `assertExactJulianDay` and `nextObservance`'s walk both assume. A consumer config with small
 // denominators would otherwise have a safe-integer bound past Temporal's, and a day inside it would
 // throw Temporal's uncoded `RangeError` (adversarial review X1.1). No shipped config reaches it.

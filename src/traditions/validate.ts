@@ -585,7 +585,8 @@ export function assertCommonDenominatorExact(
 		// exact: BigInt, and a gcd divides both its arguments.
 		common = (common / bigGcd(common, d)) * d;
 	}
-	// A range of at least one day is what `exactToJulianDay = floor(MAX_SAFE / common)` needs.
+	// A range of at least one day is what `exactToJulianDay = min(floor(MAX_SAFE / common), Temporal's
+	// bound)` needs.
 	if (common > BigInt(Number.MAX_SAFE_INTEGER)) {
 		throw invalid(
 			tradition,
