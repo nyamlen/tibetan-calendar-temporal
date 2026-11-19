@@ -179,10 +179,11 @@ export function toNativePlainDate(
 		// slot through the intrinsic `calendarId` getter, then copy with `Temporal.PlainDate.from`,
 		// which takes a genuine `PlainDateTime`'s day and a `ZonedDateTime`'s wall-clock day from
 		// their slots and keeps the calendar, so the ISO check reads the true one.
-		const constructor = kind === "PlainDateTime" ? Temporal.PlainDateTime : Temporal.ZonedDateTime;
+		const dateTimeClass =
+			kind === "PlainDateTime" ? Temporal.PlainDateTime : Temporal.ZonedDateTime;
 		let isNativeDateTime: boolean;
 		try {
-			isNativeDateTime = value instanceof constructor;
+			isNativeDateTime = value instanceof dateTimeClass;
 		} catch (error) {
 			throw rangeError(
 				"TCT_INVALID_ARGUMENT",
@@ -193,7 +194,7 @@ export function toNativePlainDate(
 		}
 		if (isNativeDateTime) {
 			const intrinsicCalendarId = assertInternal(
-				Object.getOwnPropertyDescriptor(constructor.prototype, "calendarId")?.get,
+				Object.getOwnPropertyDescriptor(dateTimeClass.prototype, "calendarId")?.get,
 				`Temporal.${kind}.prototype has no calendarId getter`,
 			);
 			try {
