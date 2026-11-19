@@ -267,6 +267,9 @@ mansion as this engine on **all 1,821 days** and disagree with FPMT on exactly t
 the engine's own lineage, so it proves the implementation rather than the calendar — but it does
 locate the difference. Measured 2026-09-14 for 2022–2025 and 2026-11-08 for 2026, where Henning's
 file spells one mansion *gro zhin* and the engine *gro bzhin*: the same mansion.
+Re-measured over all five years on 2026-11-19 by the harness in
+[`scripts/evidence/henning-mansions/`](../scripts/evidence/henning-mansions/README.md), which reruns
+the comparison from Henning's pages and exits non-zero if either figure moves.
 
 **And the 37 are one-sided.** 28 sit in the last 15% of the moon's mansion, and on 27 of those FPMT's
 element is the *next* mansion's; one sits at the start of a mansion; eight are mid-mansion. FPMT's

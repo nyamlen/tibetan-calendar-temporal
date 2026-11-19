@@ -196,7 +196,9 @@ Stating this is the point of the page.
   test suite, give the same mansion as this engine on all 1,821 of those days and disagree with FPMT
   on the same ones, so the difference is on FPMT's side: its moon runs slightly ahead, mostly on days
   late in a mansion, and far more often in 2025 than in any other year.
-  No cause is established, and **eight days in five years fit no pattern at all**. Yoga
+  No cause is established, and **eight days in five years fit no pattern at all**.
+  [The Henning comparison](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/scripts/evidence/henning-mansions/README.md)
+  is in the repository and can be rerun. Yoga
   **favorability** is FPMT's convention, and agrees with their printed prefixes on 99.8% of the 1,825
   days whose code can be read.
   A Tibetan dictionary, the *tshig mdzod chen mo*, states the same element pair for each of the ten

@@ -386,6 +386,9 @@ print each day's mansion and its element pair. Their mansion equals this engine'
 days**, and they disagree with FPMT on exactly the same 35. Henning is this engine's lineage — the
 same computation Janson describes — so this is not corroboration of the calendar. It **locates** the
 difference: it is not in this implementation.
+The comparison is now a rerunnable harness,
+[`scripts/evidence/henning-mansions/`](../scripts/evidence/henning-mansions/README.md); its current
+figures are in [testing.md](testing.md).
 
 **What the 35 look like.** The moon sits in the last 15% of its mansion on 28 of them, and on 27 of
 those FPMT's element is the *next* mansion's. One sits in the first 15%; six are mid-mansion. Where the

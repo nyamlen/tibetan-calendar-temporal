@@ -1,0 +1,44 @@
+[
+	{
+		"url": "http://www.kalacakra.org/calendar/tdata/pl_2021.txt",
+		"status": 200,
+		"bytes": 57030,
+		"sha256": "72d8dfe6165b46a7baf8828028a48624ac8d1f573e018ecddc79a244a630cbb8"
+	},
+	{
+		"url": "http://www.kalacakra.org/calendar/tdata/pl_2022.txt",
+		"status": 200,
+		"bytes": 52715,
+		"sha256": "8b78fca05bce5fdf75432ac1bad7130cf9d1ef97616f71116bc4f00980f3a81b"
+	},
+	{
+		"url": "http://www.kalacakra.org/calendar/tdata/pl_2023.txt",
+		"status": 200,
+		"bytes": 52521,
+		"sha256": "902e93b6efa71cd674f6eba90557176fb2683220964cc7d63283c20012a0d5bf"
+	},
+	{
+		"url": "http://www.kalacakra.org/calendar/tdata/pl_2024.txt",
+		"status": 200,
+		"bytes": 57073,
+		"sha256": "c1567352d40552c33611d3a3aebdd914ccda88a9faa68e554cd089cdf3dd11f5"
+	},
+	{
+		"url": "http://www.kalacakra.org/calendar/tdata/pl_2025.txt",
+		"status": 200,
+		"bytes": 52732,
+		"sha256": "197f6f36b2e9a51468c17019c513a99562a5c5bcf91f4bb682e5152544e2050e"
+	},
+	{
+		"url": "http://www.kalacakra.org/calendar/tdata/pl_2026.txt",
+		"status": 200,
+		"bytes": 52640,
+		"sha256": "97b623866b58611609cbfb6e107e34bb4689ac0ce57df4140e30c9a65ee22ab8"
+	},
+	{
+		"url": "http://www.kalacakra.org/calendar/tdata/pl_2027.txt",
+		"status": 200,
+		"bytes": 57101,
+		"sha256": "854f891a54a65ce55cad7d7d24da50ed18ceee594c7c2f687f33eae4a5634857"
+	}
+]

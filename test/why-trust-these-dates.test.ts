@@ -792,8 +792,9 @@ const CLAIMS: readonly Claim[] = [
 			count(mansionDays.length),
 			FPMT_WINDOW.first.year,
 			FPMT_WINDOW.last.year,
-			// The Henning comparison ran once, outside the suite, over exactly these days. Extending
-			// FPMT's data moves this figure, and the sentence must then be re-measured, not re-typed.
+			// The Henning comparison runs outside the suite, over exactly these days, in
+			// scripts/evidence/henning-mansions/compare.mjs. Extending FPMT's data moves this figure,
+			// and the sentence must then be re-measured with that harness, not re-typed.
 			count(mansionDays.length),
 		],
 	},
