@@ -20,6 +20,9 @@
 // inside `scaleMeanMotion`, which names neither the field nor the config, and a `moonTab` of the
 // wrong length reaches an interpolation that indexes past its end.
 
+// A value-import cycle: `computation/scaling.ts` imports this file back. It is safe only while every reference
+// across it sits inside a function body; a module-level use of either side's exports would hit a
+// TDZ `ReferenceError` whose appearance depends on which barrel loads first. See the matching comment there.
 import { deriveScaling } from "../computation/scaling.js";
 import {
 	assertKnownKeys,

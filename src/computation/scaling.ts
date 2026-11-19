@@ -21,6 +21,11 @@
 
 import { rangeError } from "../errors.js";
 import type { MeanMotion, Rational, TraditionConfig } from "../traditions/types.js";
+// A value-import cycle: `traditions/validate.ts` imports this file back. It is safe only while every reference
+// across it sits inside a function body; a module-level use of either side's exports would hit a
+// TDZ `ReferenceError` whose appearance depends on which barrel loads first. It stays because the validator
+// runs `deriveScaling` so a config cannot pass one export and fail another, and `scalingFor` needs
+// the validated copy.
 import {
 	assertCommonDenominatorExact,
 	assertDerivable,

@@ -29,6 +29,10 @@ import {
 	type TibetanCalendarErrorCode,
 	thrownDetail,
 } from "./errors.js";
+// A value-import cycle: `format.ts` imports this file back. It is safe only while every reference
+// across it sits inside a function body; a module-level use of either side's exports would hit a
+// TDZ `ReferenceError` whose appearance depends on which barrel loads first. It stays because `SkippedDayError`'s
+// message formats the requested date the one way the package formats dates.
 import { formatTibetanDate } from "./format.js";
 import { temporalKindOf, temporalTypeNameOf } from "./temporal-kind.js";
 
