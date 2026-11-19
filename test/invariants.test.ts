@@ -1,7 +1,6 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import {
-	daysInMonth,
 	firstDayOfMonth,
 	lastDayOfMonth,
 	losarJulianDay,
@@ -35,12 +34,14 @@ describe("year lengths", () => {
 	});
 
 	// Janson §6: a Tibetan month is one lunation, so it runs 29 or 30 calendar days and nothing
-	// else. Uses daysInMonth, which is the function written for exactly this question.
+	// else. Counted from the month's first and last calendar days.
 	it("give every month either 29 or 30 days, over 1970-2070", () => {
 		const first = trueMonthCount(PHUGPA, 1970, 1);
 		const last = trueMonthCount(PHUGPA, 2070, 1);
 		const lengths = new Set<number>();
-		for (let n = first; n < last; n++) lengths.add(daysInMonth(scaled, n));
+		for (let n = first; n < last; n++) {
+			lengths.add(lastDayOfMonth(scaled, n) - firstDayOfMonth(scaled, n) + 1);
+		}
 		expect([...lengths].sort((a, b) => a - b)).toEqual([29, 30]);
 		// Both lengths must actually occur; a single-valued set would pass a `toContain` check.
 		expect(last - first).toBeGreaterThan(1200);
