@@ -652,6 +652,49 @@ const X: readonly Row[] = [
 			),
 		must: ["fixture provenance", "test/fixtures/henning-six-seasons.ts"],
 	},
+	// Three blind spots the adversarial review found (X1.4, X1.5, claim-3.5), one row per rule. They
+	// sit here rather than in R because R holds one row per rule number.
+	{
+		id: "R18b",
+		what: "a `/* c8 ignore */` line inside a docblock, which TypeScript ships as docblock text",
+		apply: (tree) =>
+			tree.append(
+				"src/freeze.ts",
+				["", "/**", "/* c8 ignore next */", "export const zzSwallowed = 1;", ""].join("\n"),
+			),
+		must: ["a docblock holds no stray opener or // line", "src/freeze.ts:", "c8 ignore next"],
+	},
+	{
+		id: "R19b",
+		what: "a docblock naming an unshipped document as `./docs/…`",
+		apply: (tree) =>
+			tree.append(
+				"src/freeze.ts",
+				[
+					"",
+					"/**",
+					" * Returns one. See ./docs/traditions.md.",
+					" */",
+					"export const zzMutantR19b = 1;",
+					"",
+				].join("\n"),
+			),
+		must: [
+			"a docblock names an unshipped document only by absolute URL",
+			"src/freeze.ts:",
+			"`docs/traditions.md`",
+		],
+	},
+	{
+		id: "R10b",
+		what: "a tradition config exported under an alias no validation suite imports",
+		apply: (tree) =>
+			tree.append(
+				"src/index.ts",
+				'export { PHUGPA as PHUGPA_ALIAS } from "./traditions/phugpa.js";\n',
+			),
+		must: ["exported configs are validated", "`PHUGPA_ALIAS`, which no suite"],
+	},
 ];
 
 const ROWS: readonly Row[] = [...Object.values(R), ...X];
