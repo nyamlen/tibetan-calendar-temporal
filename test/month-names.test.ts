@@ -367,3 +367,34 @@ describe("what a call hands out", () => {
 		expect(namesOf(1).fourSeasons.month1LateWinter.season).toBe("winter");
 	});
 });
+
+describe("key order", () => {
+	it("every monthNamesFor entry prints its keys in the declared order", () => {
+		const FOUR = ["season", "part", "tibetanName"];
+		const SIX = ["season", "part", "tibetanName", "sanskritName"];
+		const mismatches: string[] = [];
+		for (const tradition of [PHUGPA, BHUTAN]) {
+			for (const month of MONTHS) {
+				const names = namesOf(month, tradition);
+				const entries: [string, object | null, string[]][] = [
+					...Object.entries(names.fourSeasons).map(
+						([key, entry]) =>
+							[`fourSeasons.${key}`, entry, FOUR] as [string, object | null, string[]],
+					),
+					...Object.entries(names.sixSeasons).map(
+						([key, entry]) =>
+							[`sixSeasons.${key}`, entry, SIX] as [string, object | null, string[]],
+					),
+				];
+				for (const [key, entry, expected] of entries) {
+					if (entry === null) continue;
+					const actual = Object.keys(entry);
+					if (actual.join() !== expected.join()) {
+						mismatches.push(`${tradition.id} month ${month} ${key}: ${actual.join(", ")}`);
+					}
+				}
+			}
+		}
+		expect(mismatches).toEqual([]);
+	});
+});
