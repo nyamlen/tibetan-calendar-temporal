@@ -277,15 +277,16 @@ const R: Record<number, Row> = {
 		// body copied is `assertSafeYear`'s, which is one of the two real duplicates this rule was
 		// built from on 2026-09-23 — and the smaller one, so it also exercises the length floor. Its
 		// body grew a lazy subject and a suffix on 2026-09-24, and this copy follows it: a copy of the
-		// old body has no twin left in src/ and would make the row fail for the wrong reason.
+		// old body has no twin left in src/ and would make the row fail for the wrong reason. On
+		// 2026-11-19 that body moved into `assertSafeIntegerArgument`, so the copy is now of that.
 		apply: (tree) =>
 			tree.edit(
 				"src/months.ts",
 				(source) =>
-					`${source}\nfunction assertSafeYearCopy(\n\tsubject: string | (() => string),\n\tyear: unknown,\n\tsuffix = "",\n\tcode: TibetanCalendarErrorCode = "TCT_FIELD_OUT_OF_RANGE",\n): asserts year is number {\n\tif (!Number.isSafeInteger(year)) {\n\t\tthrow rangeError(\n\t\t\tcode,\n\t\t\t\`\${typeof subject === "string" ? subject : subject()}: year must be a safe integer, \` +\n\t\t\t\t\`received \${describe(year)}\${suffix}\`,\n\t\t);\n\t}\n}\n`,
+					`${source}\nfunction assertSafeIntegerArgumentCopy(\n\tsubject: string | (() => string),\n\tnoun: string,\n\tvalue: unknown,\n\tsuffix = "",\n\tcode: TibetanCalendarErrorCode = "TCT_FIELD_OUT_OF_RANGE",\n): asserts value is number {\n\tif (!Number.isSafeInteger(value)) {\n\t\tthrow rangeError(\n\t\t\tcode,\n\t\t\t\`\${typeof subject === "string" ? subject : subject()}: \${noun} must be a safe integer, \` +\n\t\t\t\t\`received \${describe(value)}\${suffix}\`,\n\t\t);\n\t}\n}\n`,
 				"the end of src/months.ts",
 			),
-		must: ["no two functions in src/ share a body", "assertSafeYearCopy"],
+		must: ["no two functions in src/ share a body", "assertSafeIntegerArgumentCopy"],
 	},
 	15: {
 		id: "R15",
@@ -539,8 +540,8 @@ const X: readonly Row[] = [
 				"src/temporal-kind.ts",
 				(source) =>
 					source.replace(
-						"\t\tisNative = value instanceof Temporal.PlainDate;\n",
-						"\t\tisNative = value === undefined;\n",
+						'\t\tposing =\n\t\t\tkind === "PlainDate"\n\t\t\t\t? value instanceof Temporal.PlainDate\n\t\t\t\t: kind === "PlainDateTime"\n\t\t\t\t\t? value instanceof Temporal.PlainDateTime\n\t\t\t\t\t: value instanceof Temporal.ZonedDateTime;\n',
+						"\t\tposing = value === undefined;\n",
 					),
 				"the one identity check in src/temporal-kind.ts",
 			),

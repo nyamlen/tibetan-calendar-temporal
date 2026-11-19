@@ -23,7 +23,26 @@ const filesContaining = (needle: RegExp): string[] =>
 
 describe("one home for each guard and table", () => {
 	it("writes the year guard's message in src/errors.ts only", () => {
-		expect(filesContaining(/year must be a safe integer/)).toEqual(["errors.ts"]);
+		// The year guard is assertSafeIntegerArgument with the noun "year"; its full text is pinned below.
+		expect(
+			filesContaining(/year must be a safe integer|\$\{noun\} must be a safe integer/),
+		).toEqual(["errors.ts"]);
+	});
+
+	it("writes the non-empty-string guard's message in src/errors.ts only", () => {
+		expect(filesContaining(/must be a non-empty string, received/)).toEqual(["errors.ts"]);
+	});
+
+	it("writes the Tibetan weekday guard's message in src/types.ts only", () => {
+		expect(filesContaining(/0 is Saturday/)).toEqual(["types.ts"]);
+	});
+
+	it("leaves no hand-rolled safe-integer argument guard outside assertSafeIntegerArgument", () => {
+		expect(
+			filesContaining(
+				/Number\.isSafeInteger\((julianDay|value)\)\) \{\n\t\tthrow rangeError\(\n\t\t\t"TCT_FIELD_OUT_OF_RANGE"/,
+			),
+		).toEqual([]);
 	});
 
 	it("declares the twelve-animal order once", () => {

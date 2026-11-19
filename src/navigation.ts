@@ -41,7 +41,13 @@ import {
 import { julianDayOfLunarDay } from "./computation/corrections.js";
 import { royalEraFromYear } from "./computation/epoch.js";
 import { scalingFor } from "./computation/scaling.js";
-import { assertQueryOptions, codedError, describe, rangeError } from "./errors.js";
+import {
+	assertQueryOptions,
+	assertSafeIntegerArgument,
+	codedError,
+	describe,
+	rangeError,
+} from "./errors.js";
 import { describeMonth } from "./months.js";
 import { PHUGPA } from "./traditions/phugpa.js";
 import type { TraditionConfig, TraditionOptions } from "./traditions/types.js";
@@ -51,13 +57,12 @@ import { assertTibetanRanges, assertTibetanShape, SkippedDayError } from "./type
 
 /** Validates a count argument — `months`, `days`, or a `lunation`. */
 function assertCount(subject: string, name: string, value: number): void {
-	if (!Number.isSafeInteger(value)) {
-		throw rangeError(
-			"TCT_FIELD_OUT_OF_RANGE",
-			`${subject}: ${name} must be a safe integer, received ${describe(value)}. ` +
-				"Counting whole months or days, a fraction names nothing.",
-		);
-	}
+	assertSafeIntegerArgument(
+		subject,
+		name,
+		value,
+		". Counting whole months or days, a fraction names nothing.",
+	);
 }
 
 /**

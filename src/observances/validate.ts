@@ -19,9 +19,11 @@
 
 import {
 	assertKnownKeys,
+	assertNonEmptyString as assertNonEmptyStringWithCode,
 	assertSafeYear,
 	describe,
 	isPlainObject,
+	isRecord,
 	rangeError,
 	validatedPrivateCopy,
 } from "../errors.js";
@@ -117,17 +119,9 @@ const SETTINGS_BY_FORM: Record<ObservanceWhen["type"], readonly FormSetting[]> =
 /** Days in each Gregorian month in a leap year, the most any year gives it. */
 const WESTERN_MONTH_LENGTHS = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
-/** Returns whether a value is a non-null object that is not an array. */
-// An array is an object, so it must be refused by name where a record belongs: `[t].flatMap(f)`
-// hands an array to a parameter nobody meant to be one.
-export function isRecord(value: unknown): value is Record<string, unknown> {
-	return value !== null && typeof value === "object" && !Array.isArray(value);
-}
-
-export function assertNonEmptyString(value: unknown, subject: string): void {
-	if (typeof value !== "string" || value === "") {
-		throw rangeError(CODE, `${subject} must be a non-empty string, received ${describe(value)}`);
-	}
+/** The observance validator's non-empty-string check, refusing with its config code. */
+export function assertNonEmptyString(value: unknown, subject: string): asserts value is string {
+	assertNonEmptyStringWithCode(value, subject, CODE);
 }
 
 /** Rejects a **required** field that is not one of its documented values, `undefined` included. */

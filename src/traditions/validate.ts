@@ -21,7 +21,14 @@
 // wrong length reaches an interpolation that indexes past its end.
 
 import { deriveScaling } from "../computation/scaling.js";
-import { assertKnownKeys, describe, rangeError, validatedPrivateCopy } from "../errors.js";
+import {
+	assertKnownKeys,
+	assertNonEmptyString,
+	describe,
+	isRecord,
+	rangeError,
+	validatedPrivateCopy,
+} from "../errors.js";
 import type {
 	MeanMotion,
 	Rational,
@@ -74,13 +81,18 @@ const NINE_NUMBERS_KEYS = keysOf<TraditionNineNumbers>({ months: true });
 
 const CODE = "TCT_INVALID_TRADITION_CONFIG";
 
+const malformed = (tradition: TraditionConfig): string =>
+	`TraditionConfig ${typeof tradition?.id === "string" ? `"${tradition.id}"` : "<unnamed>"} is malformed`;
+
+const HOW_TO_BUILD =
+	". A tradition is built by spreading a shipped config and replacing whole fields — " +
+	"`{ ...PHUGPA, lunarAnomaly: { ... } }` — never by supplying a partial one; see " +
+	"docs/architecture.md on adding a tradition";
+
 function invalid(tradition: TraditionConfig, detail: string): Error {
-	const id = typeof tradition?.id === "string" ? `"${tradition.id}"` : "<unnamed>";
 	return rangeError(
 		"TCT_INVALID_TRADITION_CONFIG",
-		`TraditionConfig ${id} is malformed: ${detail}. A tradition is built by spreading a shipped ` +
-			"config and replacing whole fields — `{ ...PHUGPA, lunarAnomaly: { ... } }` — never by " +
-			"supplying a partial one; see docs/architecture.md on adding a tradition",
+		`${malformed(tradition)}: ${detail}${HOW_TO_BUILD}`,
 	);
 }
 
@@ -95,7 +107,7 @@ function assertRational(
 	path: string,
 	value: Rational | undefined,
 ): void {
-	if (value === null || typeof value !== "object") {
+	if (!isRecord(value)) {
 		throw invalid(tradition, `${path} must be a { num, den } object, received ${describe(value)}`);
 	}
 	if (!Number.isSafeInteger(value.num)) {
@@ -117,7 +129,7 @@ function assertMeanMotion(
 	value: MeanMotion | undefined,
 	alsoDivides = 1,
 ): void {
-	if (value === null || typeof value !== "object") {
+	if (!isRecord(value)) {
 		throw invalid(
 			tradition,
 			`${path} must be a { perMonth, perDay, atEpoch } object, received ${describe(value)}`,
@@ -355,7 +367,8 @@ function assertLeapMonthPosition(tradition: TraditionConfig): void {
 function assertNaming(tradition: TraditionConfig): void {
 	const naming = tradition.naming;
 	if (naming === undefined) return;
-	if (typeof naming !== "object" || naming === null) {
+	// `as unknown` so the guard refuses without narrowing `naming` away from its declared type.
+	if (!isRecord(naming as unknown)) {
 		throw invalid(tradition, `naming must be an object when present, received ${describe(naming)}`);
 	}
 	// Before the known-key check, which would otherwise answer a retired name with a bare list of keys.
@@ -404,7 +417,7 @@ function assertMonthAnimals(
 	animals: TraditionMonthAnimals | undefined,
 ): void {
 	if (animals === undefined) return;
-	if (typeof animals !== "object" || animals === null) {
+	if (!isRecord(animals)) {
 		throw invalid(
 			tradition,
 			`naming.monthAnimals must be an object when present, received ${describe(animals)}. Omit ` +
@@ -444,7 +457,7 @@ function assertNineNumbers(
 	numbers: TraditionNineNumbers | undefined,
 ): void {
 	if (numbers === undefined) return;
-	if (typeof numbers !== "object" || numbers === null) {
+	if (!isRecord(numbers)) {
 		throw invalid(
 			tradition,
 			`naming.nineNumbers must be an object when present, received ${describe(numbers)}`,
@@ -459,12 +472,6 @@ function assertNineNumbers(
 				`${describe(months)}. Only Tsurphu calendars number their months, so omitting it means ` +
 				'"unnumbered" — which is a sourced fact, not an absence',
 		);
-	}
-}
-
-function assertNonEmptyString(tradition: TraditionConfig, path: string, value: string | undefined) {
-	if (typeof value !== "string" || value === "") {
-		throw invalid(tradition, `${path} must be a non-empty string, received ${describe(value)}`);
 	}
 }
 
@@ -523,7 +530,7 @@ function assertValid(tradition: TraditionConfig): void {
 }
 
 function assertShape(tradition: TraditionConfig): void {
-	if (tradition === null || typeof tradition !== "object") {
+	if (!isRecord(tradition)) {
 		throw rangeError(
 			"TCT_INVALID_TRADITION_CONFIG",
 			`TraditionConfig must be an object, received ${describe(tradition)}. Pass PHUGPA, ` +
@@ -543,8 +550,8 @@ function assertShape(tradition: TraditionConfig): void {
 		);
 	}
 
-	assertNonEmptyString(tradition, "id", tradition.id);
-	assertNonEmptyString(tradition, "name", tradition.name);
+	assertNonEmptyString(tradition.id, `${malformed(tradition)}: id`, CODE, HOW_TO_BUILD);
+	assertNonEmptyString(tradition.name, `${malformed(tradition)}: name`, CODE, HOW_TO_BUILD);
 	assertKnownKeys(tradition, CONFIG_KEYS, "TraditionConfig", CODE);
 	assertInteger(tradition, "epochYear", tradition.epochYear);
 	assertInteger(tradition, "epochMonth", tradition.epochMonth);

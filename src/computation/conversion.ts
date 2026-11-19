@@ -12,6 +12,7 @@
  */
 
 import {
+	assertSafeIntegerArgument,
 	assertSafeYear,
 	codedError,
 	describe,
@@ -285,13 +286,12 @@ export function isoFromJulianDay(
 ): Temporal.PlainDate {
 	// Before the number: a bare number has no shape, so the tradition comes first.
 	const scaled = scalingFor(tradition);
-	if (!Number.isSafeInteger(julianDay)) {
-		throw rangeError(
-			"TCT_FIELD_OUT_OF_RANGE",
-			`isoFromJulianDay: julianDay must be a safe integer, received ${describe(julianDay)}. A Julian day ` +
-				"number counts whole days, so a fraction names nothing — there is no time of day in it",
-		);
-	}
+	assertSafeIntegerArgument(
+		"isoFromJulianDay",
+		"julianDay",
+		julianDay,
+		". A Julian day number counts whole days, so a fraction names nothing — there is no time of day in it",
+	);
 	assertExactJulianDay(scaled, julianDay, () => `isoFromJulianDay(${julianDay})`);
 	return isoFromJulianDayUnchecked(julianDay);
 }
@@ -409,12 +409,7 @@ export function tibetanWeekday(julianDay: number): TibetanWeekday {
 	// with no other signal, and every plausible consumer feeds that straight into a lookup table of
 	// weekday names — so `tibetanWeekday(1.5)` returning `3.5` is an out-of-bounds index at best and
 	// a blank cell in a rendered calendar at worst. `NaN` in gave `NaN` out; a string gave `NaN` too.
-	if (!Number.isSafeInteger(julianDay)) {
-		throw rangeError(
-			"TCT_FIELD_OUT_OF_RANGE",
-			`tibetanWeekday: julianDay must be a safe integer, received ${describe(julianDay)}`,
-		);
-	}
+	assertSafeIntegerArgument("tibetanWeekday", "julianDay", julianDay);
 	return tibetanWeekdayUnchecked(julianDay);
 }
 

@@ -225,14 +225,27 @@ export type TibetanWeekday = number & { readonly __tibetanWeekday: unique symbol
  * ```
  */
 export function asTibetanWeekday(value: number): TibetanWeekday {
-	if (!Number.isInteger(value) || value < 0 || value > 6) {
+	assertTibetanWeekday("asTibetanWeekday", value);
+	return value;
+}
+
+/**
+ * Refuses a value that is not a Tibetan weekday number, an integer 0–6.
+ *
+ * @param subject - The export, which opens the message.
+ * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE`.
+ */
+export function assertTibetanWeekday(
+	subject: string,
+	value: unknown,
+): asserts value is TibetanWeekday {
+	if (!Number.isInteger(value) || (value as number) < 0 || (value as number) > 6) {
 		throw rangeError(
 			"TCT_FIELD_OUT_OF_RANGE",
-			`asTibetanWeekday: expected an integer 0-6, received ${describe(value)}. This is the Tibetan ` +
+			`${subject}: expected an integer 0-6, received ${describe(value)}. This is the Tibetan ` +
 				"numbering — 0 is Saturday — not the ISO dayOfWeek, which runs 1-7 from Monday",
 		);
 	}
-	return value as TibetanWeekday;
 }
 
 // Name objects are shared rather than copied: a `TibetanDate` holds a pointer, so building a year

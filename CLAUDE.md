@@ -155,8 +155,10 @@ Before explaining a residual by a formula, check whether the source uses the sam
 - **Boundary and guard code has one named home; a new subsystem must not write its own.** Copies drift
   (shipping messages that misdescribe their own function) or are borrowed (an export reporting errors
   under another's name, pinned by `test/error-subjects.test.ts`). The homes: `assertSafeYear`,
-  `assertQueryOptions`, `assertKnownKeys`, `readingCallersObject`, `validatedPrivateCopy` and
-  `describe` in `src/errors.ts`; `assertTibetanShape` and `assertTibetanRanges` in `src/types.ts`;
+  `assertSafeIntegerArgument`, `assertNonEmptyString`, `isRecord`, `assertQueryOptions`,
+  `assertKnownKeys`, `readingCallersObject`, `validatedPrivateCopy` and `describe` in
+  `src/errors.ts`; `assertTibetanShape`, `assertTibetanRanges` and `assertTibetanWeekday` in
+  `src/types.ts`;
   `asWesternDay`, `monthCountFor` and `julianDayOfFields` in `src/computation/conversion.ts`;
   `boundedMonth` in `src/months.ts`. Rule 14 catches copy-paste, not re-implementation, so at review
   ask: **which boundary helpers did you write, and did one already exist?**

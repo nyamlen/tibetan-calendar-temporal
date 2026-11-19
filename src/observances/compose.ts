@@ -9,6 +9,7 @@
 import {
 	assertKnownKeys,
 	describe,
+	isRecord,
 	rangeError,
 	readingCallersObject,
 	validatedPrivateCopy,
@@ -26,7 +27,6 @@ import {
 	CODE,
 	DOUBLED_DAY_CHOICES,
 	ensureValidated,
-	isRecord,
 	LEAP_MONTH_CHOICES,
 	looksLikeTradition,
 	SKIPPED_DAY_CHOICES,
