@@ -99,7 +99,7 @@ const JULIAN_DAY_AT_UNIX_EPOCH = 2_440_588;
  * or a date in another calendar.
  */
 export function julianDayFromIso(date: Temporal.PlainDate): number {
-	return julianDayFromIsoUnchecked(asPlainDate(date));
+	return julianDayFromIsoUnchecked(asPlainDate(date, "julianDayFromIso(date)"));
 }
 
 // The engine's own dates are already plain ISO `Temporal.PlainDate`s, built by it or normalised by
@@ -711,7 +711,7 @@ export function isoToTibetan(
 	// reports a doubly-bad call in.
 	// Normalised once here rather than relying on julianDayFromIso alone, so the error message below
 	// quotes the date the caller meant rather than whatever they passed.
-	const plain = asPlainDate(date);
+	const plain = asPlainDate(date, "isoToTibetan(date)");
 	const scaled = scalingFor(tradition);
 	const target = julianDayFromIsoUnchecked(plain);
 	assertExactJulianDay(scaled, target, () => plain.toString());

@@ -18,6 +18,7 @@ import {
 	hasLeapMonth,
 	isoFromJulianDay,
 	isoToTibetan,
+	julianDayFromIso,
 	leapMonthNumberFor,
 	losarFor,
 	lunationFromMonth,
@@ -756,6 +757,16 @@ describe("a Western date's refusal opens with the caller's name", () => {
 		const error = thrownBy(call);
 		expect(error?.code).toBe("TCT_INVALID_ARGUMENT");
 		expect(error?.message.startsWith("getObservances(from): ")).toBe(true);
+	});
+
+	it.each([
+		["isoToTibetan", (value: unknown) => isoToTibetan(value as never)],
+		["julianDayFromIso", (value: unknown) => julianDayFromIso(value as never)],
+	] as const)("%s names itself and its argument", (name, call) => {
+		const wrong = [["junk"], [hebrew], ["2007-01-01[u-ca=hebrew]"]]
+			.map(([value]) => thrownBy(() => call(value))?.message ?? "no throw")
+			.filter((message) => !message.startsWith(`${name}(date): `));
+		expect(wrong).toEqual([]);
 	});
 
 	it("nextFullMoon, given a string Temporal cannot read", () => {

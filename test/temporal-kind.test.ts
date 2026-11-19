@@ -263,7 +263,7 @@ describe("non-ISO calendars", () => {
 		const call = () => isoToTibetan(`${ISO}[u-ca=hebrew]` as never);
 		expect(codeOf(call)).toBe("TCT_INVALID_ARGUMENT");
 		expect(thrownBy(call)?.message).toMatch(
-			/^received a Temporal\.PlainDate in the hebrew calendar/,
+			/^isoToTibetan\(date\): received a Temporal\.PlainDate in the hebrew calendar/,
 		);
 	});
 

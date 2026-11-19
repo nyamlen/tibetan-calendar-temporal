@@ -775,7 +775,7 @@ export interface TibetanMonth {
  *
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `value` is any `Temporal` instance.
  */
-export function rejectTemporalInstance(
+function rejectTemporalInstance(
 	functionName: string,
 	value: unknown,
 	shape: "month" | "date" = "date",
@@ -851,7 +851,7 @@ function rejectNonObject(functionName: string, value: unknown): asserts value is
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `value` is not an object, or `isLeapMonth`
  * or `isLeapDay` is present and not a boolean.
  */
-export function rejectInvalidLeapFlags(
+function rejectInvalidLeapFlags(
 	functionName: string,
 	value: { isLeapMonth?: unknown; isLeapDay?: unknown } | null | undefined,
 ): void {
@@ -899,7 +899,7 @@ export type RequiredDateField = "year" | "month" | "day";
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` if a listed field is absent, nullish or not
  * a number.
  */
-export function rejectMissingFields(
+function rejectMissingFields(
 	functionName: string,
 	value: { year?: unknown; month?: unknown; day?: unknown },
 	fields: readonly RequiredDateField[],

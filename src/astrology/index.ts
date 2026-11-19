@@ -73,7 +73,7 @@ import { type LunarDayAttributes, lunarDayAttributes } from "./lunar-day.js";
 import { mansionElement } from "./mansion-elements.js";
 import { mansionNames } from "./mansion-names.js";
 import { MANSION_COUNT, mansionNumber } from "./mansions.js";
-import { type MonthAttributes, monthAttributes } from "./month.js";
+import { type MonthAttributes, monthAttributes, monthAttributesAreSourced } from "./month.js";
 import type { DayAttributes, LunarMansion } from "./types.js";
 import { type YearAttributes, yearAttributes } from "./year.js";
 import { type ElementalYoga, yogaForMansion } from "./yoga.js";
@@ -387,7 +387,7 @@ export function attributesFor(
 	// attributes are sourced instead of catching the refusal, so only the unsourced attributes
 	// become a null, and every other error — a malformed config, a date out of range — still
 	// propagates.
-	const sourced = tradition.naming?.monthAnimals !== undefined;
+	const sourced = monthAttributesAreSourced(tradition);
 	// Computed once and shared with the yoga, so the composition cannot report one mansion and a
 	// yoga derived from another.
 	const lunarMansion = lunarMansionOf(resolved, tradition);

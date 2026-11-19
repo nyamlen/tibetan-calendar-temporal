@@ -551,7 +551,9 @@ export function addMonthsToDate(
 	}
 
 	// Day 1 itself can be the one skipped number (2154 M08), so there is no lower day to fall to.
-	// Day 2 is then the nearest, and a month cannot skip both: it carries at least 29 of its 30.
+	// Day 2 is then the nearest, and a month never lacks two adjacent day numbers: a skip needs a
+	// lunar day wholly inside one calendar day, and two in a row would need two lunar days under 24
+	// hours together, where none is shorter than about 21.5 hours (Janson §6).
 	// Where day 2 is doubled (2104 M01) it is the month's first calendar day, its leap half.
 	try {
 		return resolveDate(
@@ -570,7 +572,7 @@ export function addMonthsToDate(
 	throw codedError(
 		"TCT_INTERNAL",
 		`addMonthsToDate: ${target.year}-${target.monthCode} carries neither day 1 nor day 2. ` +
-			"A month carries at least 29 of its 30 numbers, so this cannot happen for a sound tradition",
+			"A month never lacks two adjacent day numbers, so this cannot happen for a sound tradition",
 	);
 }
 
