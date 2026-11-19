@@ -153,6 +153,9 @@ Three further consequences follow, and each of them is load-bearing rather than 
 - **Immutability.** `Date` is mutable, so handing one out means handing out something a caller can
   alter under everybody else. `PlainDate` cannot be modified, which is what lets this library share
   frozen name objects across a whole year of dates rather than copying them.
+  Every `TibetanDate` the library returns is frozen too, so one result cannot be changed through
+  another: assigning to a field throws in strict mode. To change one, spread it, as in
+  `{ ...date, day: 9 }`.
 - **Correct arithmetic.** `date.add({ days: 1 })` means the next calendar day. The `Date` idiom —
   adding 86,400,000 milliseconds — is wrong twice a year in any zone with daylight saving, and the
   failure is a one-day calendar error, which is the only kind that matters here.

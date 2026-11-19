@@ -191,7 +191,7 @@ Stating this is the point of the page.
   and the honest version is longer. The cycles — the year's five elements, the month's and lunar
   day's labels, the calendar day's — are closed forms checked against Janson's own printed tables,
   which catches a transcription or formula error and is **not** external corroboration. The **lunar
-  mansion** needs real astronomy and agrees with FPMT's published codes on **98.0%** of the 1,821 days
+  mansion** needs real astronomy and agrees, for Phugpa, with FPMT's published codes on **98.0%** of the 1,821 days
   in 2022–2026 whose code can name one. Henning's published daily calendars, compared outside the
   test suite, give the same mansion as this engine on all 1,821 of those days and disagree with FPMT
   on the same ones, so the difference is on FPMT's side: its moon runs slightly ahead, mostly on days

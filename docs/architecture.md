@@ -12,7 +12,7 @@ For the testing approach, see [testing.md](testing.md). For build sequencing, se
 - **Temporal-native** — use `Temporal.PlainDate` for date representation. No legacy `Date` objects anywhere. Temporal is a **finished (stage 4) TC39 proposal**, expected in ES2027 — [tc39/proposals lists it under finished proposals](https://github.com/tc39/proposals/blob/main/finished-proposals.md), with 2027 in the expected-publication column. It was described here as "ES2026 standard" until 2026-08-23, which was wrong. Why Temporal rather than `Date` is argued in [guide.md](guide.md#why-temporalplaindate-and-never-date).
 - **Zero runtime dependencies** — Temporal is a language built-in. The engine depends on nothing.
 - **Integer arithmetic only** — all Phugpa calendar math uses integer division with fixed denominators. No floating point. This ensures deterministic, cross-platform-identical results.
-- **Tradition-agnostic architecture** — astronomical constants are injected via a `TraditionConfig` type, not hardcoded. v1 ships only `PHUGPA` config, but the algorithm supports future addition of Tsurphu (Karma Kagyu) via a different config set.
+- **Tradition-agnostic architecture** — astronomical constants are injected via a `TraditionConfig` type, not hardcoded. v1 ships four configs — `PHUGPA`, `PHUGPA_HENNING`, `BHUTAN` and `BHUTAN_HENNING` — and the algorithm supports adding Tsurphu (Karma Kagyu) and the Mongolian version as further configs.
 - **ESM-only** — `"type": "module"` in package.json. No dual CJS/ESM builds needed (Node.js 26+ can `require()` ESM).
 - **Stateless pure functions** — same input always gives same output, no side effects. Enables memoization and web worker offloading by consumers.
 
@@ -75,7 +75,9 @@ import { getObservances } from 'tibetan-calendar-temporal/observances';
 - Pure functions, work everywhere
 - Accept and return Temporal types or plain objects
 
-The surface has four tiers: conversion, months, the string form, and Julian-day interoperability.
+The root surface is grouped as the README's API section heads it: conversion, months, navigation,
+year names, month names, formatting, interoperability, tradition configs, errors and types; the
+`./observances` and `./astrology` subpaths are sections of their own.
 What earns a place on it is decided by
 [decisions/2026-08-12-public-surface.md](decisions/2026-08-12-public-surface.md), and pinned by
 `test/public-api.test.ts`.
@@ -83,8 +85,9 @@ What earns a place on it is decided by
 The month tier splits along a line worth knowing. `monthsFor` and `daysInMonth` compute month
 boundaries, so they evaluate `true_date` and are bounded by the tradition's exact range;
 `hasLeapMonth`, `leapMonthNumberFor` and `monthsInYear` are closed forms over the year alone, cost a
-handful of integer operations, and stay exact for any safe integer year — including years the
-first two refuse.
+handful of integer operations, and stay exact far past that range — including years the first two
+refuse — up to the bound `leapYearLimit` derives from the config (about 3.7 × 10¹⁴ for the shipped
+configs), past which they refuse with `TCT_OUTSIDE_EXACT_RANGE`.
 
 ### No Temporal Calendar Protocol adapter
 
@@ -114,7 +117,8 @@ tibetan-calendar-temporal/
 │   ├── traditions/
 │   │   ├── types.ts                # TraditionConfig type
 │   │   ├── validate.ts             # validatedTradition — shape check and frozen copy at the boundary
-│   │   └── phugpa.ts               # Phugpa constants (epoch, tables)
+│   │   ├── phugpa.ts               # PHUGPA and PHUGPA_HENNING (epoch, tables)
+│   │   └── bhutan.ts               # BHUTAN and BHUTAN_HENNING
 │   ├── computation/
 │   │   ├── arithmetic.ts           # floorDiv, ceilDiv, mod, amod, gcd, lcm, scaleTo (§2)
 │   │   ├── scaling.ts              # derives each tradition's exact-integer denominators
@@ -122,7 +126,7 @@ tibetan-calendar-temporal/
 │   │   ├── mean-astronomy.ts       # Mean date, mean sun, lunar anomaly (§7)
 │   │   ├── corrections.ts          # moon_tab / sun_tab, true date (§7)
 │   │   ├── calendar.ts             # True month count, leap months, day rule (§5-6)
-│   │   └── conversion.ts           # ISO ↔ Tibetan bidirectional, weekday (§8-9)
+│   │   └── conversion.ts           # ISO ↔ Tibetan bidirectional, weekday (§8-9) — a boundary file
 │   ├── observances/
 │   │   ├── index.ts                # getObservances, observancesOn, and the barrel (Layer 4)
 │   │   ├── types.ts                # the shapes below: ObservanceRule, ObservanceConfig, ObservanceLayer, Observance
@@ -142,8 +146,10 @@ tibetan-calendar-temporal/
 │   │   ├── calendar-day.ts         # congruences on the Julian day; Tsurphu's number unmodelled
 │   │   ├── mansions.ts             # trueSun, moonCalendarDay, mansionNumber — the astronomy
 │   │   ├── mansion-elements.ts     # HENNING's 28 reduced to Janson's 27, with the drop asserted
+│   │   ├── mansion-names.ts        # the 27 mansions' Tibetan and Sanskrit names
 │   │   └── yoga.ts                 # the ten pairings; names Henning's, favorability FPMT's, grading a dictionary's
-│   ├── errors.ts                   # Error codes, and the constructors that attach them
+│   ├── errors.ts                   # Error codes, the constructors that attach them, the boundary homes
+│   ├── freeze.ts                   # deepFreeze — how the shipped configs are frozen
 │   ├── format.ts                   # formatTibetanDate, monthCodeOf — the canonical string form
 │   ├── parse.ts                    # parseTibetanDate — its inverse
 │   ├── months.ts                   # monthsFor, datesFor, daysInMonth, the three closed-form scalars
@@ -153,7 +159,7 @@ tibetan-calendar-temporal/
 │   ├── cycles.ts                   # the cyclic names: year, rabjung, weekday, element, gender, animal
 │   ├── cycle-tables.ts             # the element and animal orderings Janson's tables index, and their one-based reader (internal)
 │   ├── names.ts                    # the frozen name vocabulary — internal; cycles.ts, epoch.ts,
-│   │                               #   conversion.ts all read it
+│   │                               #   conversion.ts and the astrology modules read it
 │   ├── rabjung-names.ts            # the 60 rabjung names, Tibetan only — a weaker
 │   │                               #   evidence tier than names.ts, so its own module
 │   └── types.ts                    # TibetanDate, TibetanMonth, their field shapes, SkippedDayError
@@ -230,19 +236,19 @@ interface MeanMotion {
 }
 
 interface TraditionConfig {
-  id: string;                          // 'phugpa'
-  name: string;                        // 'Phugpa'
-  epochYear: number;                   // Y0 — 806, in Janson's Y numbering
-  epochMonth: number;                  // M0 — 3 by tradition
-  intercalationIndexAtEpoch: number;   // beta* — 61; beta and gamma* derive from it
-  leapIndexThreshold: number;          // 48 Phugpa, 0 Tsurphu, 46 Mongolian, 57 Bhutanese
-  leapMonthPosition: 'before'|'after'; // 'after' for Bhutan alone
-  meanDate: MeanMotion;
-  meanSun: MeanMotion;
-  lunarAnomaly: MeanMotion;
-  moonTab: readonly number[];          // 8 values, extended by symmetry to period 28
-  sunTab: readonly number[];           // 4 values, extended to period 12
-  naming?: TraditionNaming;            // Naming only, never the date
+  readonly id: string;                          // 'phugpa'
+  readonly name: string;                        // 'Phugpa' — a display label, not a name keyed by language
+  readonly epochYear: number;                   // Y0 — 806, in Janson's Y numbering
+  readonly epochMonth: number;                  // M0 — 3 by tradition
+  readonly intercalationIndexAtEpoch: number;   // beta* — 61; beta and gamma* derive from it
+  readonly leapIndexThreshold: number;          // 48 Phugpa, 0 Tsurphu, 46 Mongolian, 57 Bhutanese
+  readonly leapMonthPosition: 'before'|'after'; // 'after' for Bhutan alone
+  readonly meanDate: MeanMotion;
+  readonly meanSun: MeanMotion;
+  readonly lunarAnomaly: MeanMotion;
+  readonly moonTab: readonly number[];          // 8 values, extended by symmetry to period 28
+  readonly sunTab: readonly number[];           // 4 values, extended to period 12
+  readonly naming?: TraditionNaming;            // Naming only, never the date
 }
 
 interface TraditionNaming {
@@ -260,23 +266,23 @@ interface TraditionNineNumbers {
   months?: "unnumbered" | "descending"; // Default "unnumbered"; "descending" is Tsurphu's
 }
 
-interface TibetanDate {
-  year: number;           // Royal era, 127 BC epoch (e.g. 2153)
-  yearStartsIn: number;   // Janson's Y — Gregorian year this Tibetan year begins in (2026)
-  month: number;          // Month number (1-12); a leap month repeats the following month's, except
+interface TibetanDate {             // every returned date is frozen; spread to change one
+  readonly year: number;           // Royal era, 127 BC epoch (e.g. 2153)
+  readonly yearStartsIn: number;   // Janson's Y — Gregorian year this Tibetan year begins in (2026)
+  readonly month: number;          // Month number (1-12); a leap month repeats the following month's, except
                           // under Bhutan, where it repeats the preceding one
-  monthCode: string;      // "M06" or "M06L" for leap month
-  isLeapMonth: boolean;
-  day: number;            // Tibetan day number (1-30)
-  isDoubledDay: boolean;  // true on BOTH days sharing this number
-  isLeapDay: boolean;     // true only on the first of a doubled pair (almanacs: "Extra")
-  isFullMoon: boolean;    // Do NOT test day === 15; when 15 is skipped the full moon is on 14
-  isNewMoon: boolean;     // Likewise not day === 30
-  isoDate: Temporal.PlainDate;
-  dayOfWeek: number;      // 1=Mon, 7=Sun (ISO standard)
-  tibetanWeekday: TibetanWeekday;  // 0=Sat..6=Fri — BRANDED, so dayOfWeek cannot be passed for it
-  weekdayName: TibetanWeekdayName; // The one name a date cannot regenerate: it needs the config
-  lunation: number;       // Unbroken month count; the date's month as a single sortable integer
+  readonly monthCode: string;      // "M06" or "M06L" for leap month
+  readonly isLeapMonth: boolean;
+  readonly day: number;            // Tibetan day number (1-30)
+  readonly isDoubledDay: boolean;  // true on BOTH days sharing this number
+  readonly isLeapDay: boolean;     // true only on the first of a doubled pair (almanacs: "Extra")
+  readonly isFullMoon: boolean;    // Do NOT test day === 15; when 15 is skipped the full moon is on 14
+  readonly isNewMoon: boolean;     // Likewise not day === 30
+  readonly isoDate: Temporal.PlainDate;
+  readonly dayOfWeek: number;      // 1=Mon, 7=Sun (ISO standard)
+  readonly tibetanWeekday: TibetanWeekday;  // 0=Sat..6=Fri — BRANDED, so dayOfWeek cannot be passed for it
+  readonly weekdayName: TibetanWeekdayName; // The one name a date cannot regenerate: it needs the config
+  readonly lunation: number;       // Unbroken month count; the date's month as a single sortable integer
 }
 
 interface TibetanMonth {
@@ -351,6 +357,45 @@ interface TibetanYearName {
   elementName: TibetanName; // ཤིང *shing* for wood, མེ *me* for fire
   genderName: TibetanName;  // ཕོ *pho* for male, མོ *mo* for female
   animalName: TibetanName;  // རྟ *rta* for horse, སྟག *stag* for tiger
+}
+
+interface TibetanName {
+  tibetan: string;   // Tibetan script, no final tsheg
+  wylie: string;     // Extended Wylie
+  phonetic: string;  // THL Simplified Phonetic
+}
+
+interface SanskritName {
+  iast: string;        // IAST with full diacritics
+  devanagari: string;  // transliterated from the IAST by a verifier, never typed
+}
+
+type TibetanElement = 'wood' | 'fire' | 'earth' | 'iron' | 'water';
+type TibetanAnimal = 'mouse' | 'ox' | 'tiger' | 'rabbit' | 'dragon' | 'snake'
+                   | 'horse' | 'sheep' | 'monkey' | 'bird' | 'dog' | 'pig';
+type TibetanGender = 'male' | 'female';
+type TibetanWeekday = number & { readonly __tibetanWeekday: unique symbol };   // 0=Sat..6=Fri, branded
+type TibetanTrigram = 'fire' | 'earth' | 'iron' | 'sky' | 'water' | 'mountain' | 'wood' | 'wind';
+type TibetanCalendarErrorCode =   // what each means: the README's error table
+  | 'TCT_FIELD_OUT_OF_RANGE' | 'TCT_INVALID_ARGUMENT' | 'TCT_NO_SUCH_LEAP_MONTH' | 'TCT_SKIPPED_DAY'
+  | 'TCT_OUTSIDE_EXACT_RANGE' | 'TCT_INVALID_TRADITION_CONFIG' | 'TCT_INVALID_OBSERVANCE_CONFIG'
+  | 'TCT_SPAN_TOO_WIDE' | 'TCT_ATTRIBUTE_NOT_SOURCED' | 'TCT_MISSING_TEMPORAL' | 'TCT_INTERNAL';
+type TibetanPlanet = 'saturn' | 'sun' | 'moon' | 'mars' | 'mercury' | 'jupiter' | 'venus';
+type TibetanWeekdayElement = 'earth' | 'fire' | 'water' | 'wind';
+
+interface TibetanWeekdayName extends TibetanName {
+  planet: TibetanPlanet;            // shifted with the name by weekdayOffset
+  element: TibetanWeekdayElement;   // the day's astrological element; `wind` is possible
+}
+
+interface TraditionOptions {
+  readonly tradition?: TraditionConfig;   // defaults to PHUGPA
+}
+
+type MonthOverflow = 'constrain' | 'reject';   // Temporal's own option name and values
+
+interface AddMonthsToDateOptions extends TraditionOptions {
+  overflow?: MonthOverflow;   // defaults to 'constrain'
 }
 
 interface TibetanMonthDay {
@@ -637,8 +682,10 @@ input; without it, a doubled date is ambiguous.
 **Public entry points validate; internals assume validated input.**
 The boundary is the exported surface — `tibetanToIso`, `losarFor`, `isoToTibetan`, `getObservances`
 and `observancesOn`.
-Everything under `src/computation/` below that line may assume its arguments are already integers in
-range, and is free not to re-check.
+The internals under `src/computation/` below that line may assume their arguments are already
+integers in range, and are free not to re-check. `computation/conversion.ts` is the exception: it
+holds root exports and the boundary homes `asWesternDay`, `monthCountFor` and `julianDayOfFields`, so
+its guards are the boundary, not redundant copies.
 
 Add a guard when you add a public function.
 The engine's determinism rests entirely on integer arithmetic, and that premise was previously

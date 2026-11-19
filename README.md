@@ -64,7 +64,7 @@ see [why you can trust these dates](docs/why-trust-these-dates.md).
 | **The hard cases, handled** | Leap months, doubled days and skipped days — the three things that make this calendar a calculation rather than a lookup. Roughly one of each every couple of months |
 | **Month grids** | A year's months in calendar order with their boundaries, and one entry per calendar day of a month, so a grid needs no arithmetic of its own |
 | **A full almanac row** | Fifteen fields per date: royal-era year, month code, day, true full and new moon, ISO and Tibetan weekday with its planet and element. The element–animal year name and the rabjung cycle position are properties of the *year*, so they are closed-form lookups rather than one value repeated on all 354 days |
-| **Names in three renderings** | Tibetan script, Wylie, and THL Simplified phonetics for every weekday, element, gender, animal and rabjung year — each verified against five independent sources before it shipped |
+| **Names in three renderings** | Tibetan script, Wylie, and THL Simplified phonetics (with eleven recorded corrections) for every weekday, element, gender, animal and rabjung year — each checked by machine against independent sources before it shipped |
 | **Observances** | The great holy days and the monthly cycle, as configurable rules. Each result says *how* it landed on its day, so a display can show the almanac's footnote instead of presenting a moved date as an exact one |
 | **Astrological attributes** | What kind of day it is, not just which day: the year's five elements, the month's and lunar day's labels, the calendar day's own, and the elemental yoga — which needs the moon's real position, not a cycle. A separate subpath, sourced piece by piece |
 | **Four traditions** | Phugpa and Bhutanese, each in two parameterisations. Constants and rules are injected as data, so a further tradition is a config object rather than a code change |
@@ -686,7 +686,7 @@ a `code`, which is what to branch on rather than the type:
 
 | `error.code` | Thrown by | Meaning |
 |---|---|---|
-| `TCT_SKIPPED_DAY` | `tibetanToIso` | The date is well-formed but no calendar day carries its number. Not a bug in your code — see [Errors and validation](#errors-and-validation) |
+| `TCT_SKIPPED_DAY` | `tibetanToIso`, `resolveDate`, `addDays`, `daysBetween`, `addMonthsToDate` | The date is well-formed but no calendar day carries its number. Not a bug in your code — see [Errors and validation](#errors-and-validation) |
 | `TCT_FIELD_OUT_OF_RANGE` | every function taking a date, a year or a Julian day | A year, month, day or Julian day is a number but not an integer, or is outside 1–12 / 1–30; a bare-number argument such as `yearNameFor`'s that is not a number at all gets this code too, but a field of a date or month object that is absent or not a number is `TCT_INVALID_ARGUMENT`. The argument was the right kind of thing and one of its numbers was wrong — so this is the one to surface to a user |
 | `TCT_INVALID_ARGUMENT` | the same functions, plus `parseTibetanDate`, and `nextObservance` for a `ruleId` that is not a string or names no rule | The argument is the wrong *kind* of thing, so nothing in it is a field out of a range: a `Temporal.PlainDate` where a Tibetan date is expected, a bare `{ year, month, day }` where a Western date is expected, a non-boolean `isLeapMonth`/`isLeapDay`, `null`/`undefined`, a string outside `parseTibetanDate`'s grammar, an options bag that is not an object, cannot be read, or carries a key it does not have, a date's or month's field that cannot be read because your getter or `Proxy` trap threw, or an element passed to `elementalYoga` that is not one of the four. A bug in the calling code rather than bad data |
 | `TCT_NO_SUCH_LEAP_MONTH` | every function taking a Tibetan month's or date's **fields**, except `tibetanDateExists`, which answers `false`, and the two formatters | `isLeapMonth: true` for a month with no leap twin that year |
@@ -769,7 +769,7 @@ day be named at all.
 ## Internationalisation
 
 **What ships:** the *Tibetan* name of a thing — Tibetan script, Wylie, and THL Simplified Phonetic
-Transcription — on `weekdayName`, and on `elementName` / `genderName` / `animalName` under the
+Transcription (with eleven recorded corrections) — on `weekdayName`, and on `elementName` / `genderName` / `animalName` under the
 `TibetanYearName` that `yearNameFor` returns; and on every member of `monthNamesFor`'s result
 except `indianMonth`, which is the Indian month's Sanskrit name and has no Tibetan of its own.
 
@@ -780,9 +780,10 @@ stable key your own i18n layer maps from — `TibetanElement`, `TibetanGender`, 
 Western weekday names need nothing from this package: the Tibetan week is the same seven-day cycle,
 so `date.isoDate.toLocaleString('fr', { weekday: 'long' })` covers every locale CLDR carries.
 
-Every Tibetan string was verified before it was written down — two independent EWTS implementations
-must agree on the script, it must read back as the same Wylie, and Wiktionary must carry an entry at
-exactly that title. That check earns its keep: Janson gives Saturday as `spen ma` in his
+Every Tibetan string was verified before it was written down: two independent EWTS implementations
+must agree on the script, it must read back as the same Wylie, and a dictionary must carry it —
+Wiktionary at exactly that title for the weekday, element, gender and animal names, other
+dictionaries for the rest (see the sourcing records). That check earns its keep: Janson gives Saturday as `spen ma` in his
 day-of-week table and `spen pa` in his Bhutan appendix, and this package ships `spen pa`. See
 [docs/names/vocabulary.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/vocabulary.md).
 

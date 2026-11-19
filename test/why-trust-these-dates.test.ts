@@ -786,7 +786,7 @@ const CLAIMS: readonly Claim[] = [
 	{
 		what: "the mansion figure, its days, and the Henning comparison tied to them",
 		pattern:
-			/agrees with FPMT's published codes on \*\*([\d.]+)%\*\* of the ([\d,]+) days in (\d+)–(\d+) whose code can name one\. Henning's published daily calendars, compared outside the test suite, give the same mansion as this engine on all ([\d,]+) of those days/,
+			/agrees, for Phugpa, with FPMT's published codes on \*\*([\d.]+)%\*\* of the ([\d,]+) days in (\d+)–(\d+) whose code can name one\. Henning's published daily calendars, compared outside the test suite, give the same mansion as this engine on all ([\d,]+) of those days/,
 		expected: () => [
 			pct(mansionDays.length - mansionDisagreements().length, mansionDays.length),
 			count(mansionDays.length),

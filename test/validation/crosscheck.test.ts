@@ -12,7 +12,7 @@ const iso = (s: string) => Temporal.PlainDate.from(s);
 // Tier 2. The Losar table proves the engine agrees with Janson; this proves it agrees with an
 // independent implementation of the same tradition, day by day, including everything Losar never
 // touches -- doubled days, leap months, and every ordinary day in between.
-describe("Lotsawa House Phugpa calculator, 2023-2027", () => {
+describe("Lotsawa House Phugpa calculator, 2023-02-21 to 2028-02-25", () => {
 	it("agrees on every day", () => {
 		expect(mismatchesIn(LOTSAWA_DATES)).toEqual([]);
 	});

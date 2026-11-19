@@ -9,8 +9,10 @@ trust the dates. Three tiers, all run in CI.
 test/
 ├── computation/          # named for a src/computation module, or <module>-<concept>
 ├── observances/          # named for a src/observances module — index.ts is the engine
+├── astrology/            # named for a src/astrology module
 ├── validation/           # Tier 2, cross-checks against external sources
 ├── fixtures/             # generated — from Janson, and from external implementations
+├── support/              # shared helpers; the only files under test/ that export
 ├── invariants.test.ts    # year lengths, safe-integer bound, §13 period
 ├── regression.test.ts    # Tier 3, named instances of each edge case
 ├── navigation.test.ts    # arithmetic, the coordinate, the phases — and the naive versions
@@ -22,6 +24,8 @@ test/
 ├── public-api.test.ts    # the export surface, pinned
 ├── readme.test.ts        # every example the README states
 ├── smoke.test.ts         # Temporal reachable as a global
+├── …                     # the other root suites: one per root src module, or one cross-cutting
+│                         #   concept — 29 root suites in all, counted 2026-11-19
 └── check-conventions.mutations.ts  # npm run test:conventions only — not part of npm test
 ```
 
@@ -55,7 +59,7 @@ is the same question the validation block asks from the other side. One subject 
 `computation/scaling`, so it is named for the concept and lives at the root.
 
 Moving it does not weaken the export gate: every shipped config is imported by other suites in
-`test/validation/` — `PHUGPA` by four of them, `PHUGPA_HENNING` by three — so the rule that ties an
+`test/validation/` — `PHUGPA` by five of them, `PHUGPA_HENNING` by four (counted 2026-11-19) — so the rule that ties an
 exported config to external evidence still holds without it.
 
 **`index` is a valid module name, deliberately.** `src/observances/index.ts` carries the engine
@@ -148,7 +152,7 @@ sources and assert the engine matches.
 
 | Source | URL | What it provides | Status |
 |--------|-----|-----------------|--------|
-| **Lotsawa House Phugpa Calculator** | <https://www.lotsawahouse.org/Static/tools/phugpa.html> | Whole-year day-by-day grid, marking skipped (`*`) and doubled (`+`) dates | **In use** — `crosscheck-lotsawa.ts`, 1,831 days, 2023–2027 |
+| **Lotsawa House Phugpa Calculator** | <https://www.lotsawahouse.org/Static/tools/phugpa.html> | Whole-year day-by-day grid, marking skipped (`*`) and doubled (`+`) dates | **In use** — `crosscheck-lotsawa.ts`, 1,831 days, 21 February 2023 – 25 February 2028 |
 | **christian-steinert TibetanBuddhistPracticeDates** | <https://practicedates.christian-steinert.de> | JSON API `/dates/YYYYMMDD-YYYYMMDD` giving day numbers plus doubled and leap-month flags | **In use** — `crosscheck-steinert.ts`, 1,461 days, 2024–2027 |
 | **FPMT Dharma Practice Dates** | <https://fpmt.org/media/resources/dharma-dates/> | Practice days prepared from the Men-Tsee-Khang almanac — the authoritative Gelug reference | Practice days only; see the note on what it cannot settle |
 | **eszthoff/tibetan-date-calculator** | <https://www.npmjs.com/package/tibetan-date-calculator> | TypeScript, Phugpa, implements Janson — installed outside the repo and executed, never read | **In use** — `crosscheck-eszthoff.ts`, 1,826 days, 2023–2027 |
@@ -244,7 +248,8 @@ becomes 1927–2046 at one day per year, plus the epoch itself, plus that window
 
 **The astrological attributes have a third window, narrower than either, and confusing them is a
 live trap.** Dates are validated from 1 January 2022 to 25 February 2028 and observances only
-2022–2026; the attribute layer is
+2022–2026, except sojong, which Rabten's schedule also checks from 2000 to 2100
+([below](#rabten-choelings-sojong-schedule)); the attribute layer is
 narrower still.
 
 | Check | Range | Source | What it settles |
@@ -260,7 +265,7 @@ narrower still.
 **That 98.0% is a characterised figure, not a tolerance.** 1,784 of 1,821 days agree — a **2.0%**
 residual. Over 2022–2025 alone it was 2.4%, 1,424 of 1,459, re-measured 2026-09-12 rather than carried
 over: the plan's working figure of 3.9% predated both the doubled-day rule and a leap-month fix in the
-cross-check itself, and two files had inherited it. **All 31 doubled-first days now agree**, where before the doubled-day rule 19 of them did not.
+cross-check itself, and two files had inherited it. **All 38 doubled-first days in 2022–2026 agree.**
 
 **The residual is FPMT's, not this arithmetic's.** Henning's daily Phugpa calendars give the same
 mansion as this engine on **all 1,821 days** and disagree with FPMT on exactly the same 37. That is
@@ -305,7 +310,7 @@ for a Dragon month, which is what he says a Dragon month opens with, from a form
 independently of that sentence.
 
 **Quote the right window.** A claim about a Tibetan date has just over six years behind it, about an observance
-five, and about a mansion five *for Phugpa alone* — Bhutan's attributes have no external check at all.
+five (sojong a century, against Rabten's schedule), and about a mansion five *for Phugpa alone* — Bhutan's attributes have no external check at all.
 Of the rows above, the three **cycle** rows are Janson against Janson and are not external
 corroboration; only the **mansion** and the **yoga's favorability** have an outside witness over
 days, and that witness is FPMT in both cases. The yoga table's pairs and grading also have the *tshig
@@ -388,8 +393,8 @@ is 2000 to 2100 only.
 It establishes that the rule reproduces one source's schedule.
 The rule is **inferred, not sourced**: Rabten states no method, and its lineage is unknown, so agreement
 with it says nothing about whether the rule is the tradition's.
-FPMT's calendar departs from the rule for one run, 2022-04-30 to 2022-12-22 (17 of its 99 sojongs in
-2022-2025), which the form does not express; see
+FPMT's calendar departs from the rule for one run, 2022-04-30 to 2022-12-22 (17 of its 124 sojongs in
+2022–2026), which the form does not express; see
 [validation-sources.md](validation-sources.md#rabten-choelings-calendar-hennings-lunar-anomaly-value-method-unstated).
 The "Sojong 14" label is not reported on results, and is not compared here.
 

@@ -49,7 +49,8 @@ Do not argue it from licence: neither repo has a `LICENSE` file, but `tibetan-da
 declares `"license": "MIT"` in `package.json`, which is a grant.
 
 Permitted: running those libraries locally and comparing *computed dates* (facts) against ours, and
-reading their public README for API ideas. Not permitted: copying algorithms, variable names or code
+reading their public metadata — the README (for API ideas), npm registry metadata and the published
+tarball's file listing, none of which is source. Not permitted: copying algorithms, variable names or code
 structure, forking either, or referencing their internal decisions.
 
 **Never add one of them as a devDependency.** A dependency is read by tooling, diffed in review and
@@ -137,6 +138,7 @@ never quote one from this file. Three windows must not be confused:
 - **Dates** — the union of the external sources.
 - **Observances, and full and new moons** — narrower: only `fpmt-observances.ts` carries labels and
   moon icons. Moon agreement is with FPMT's icons, whose own source is unrecorded; count moons, not icons.
+  Sojong is the exception: Rabten's schedule checks it over a wider window of its own.
 - **`./astrology` attributes** — neither. The cycles are checked only against Janson's own tables (not
   external corroboration); the lunar mansion and yoga favourability are checked for Phugpa only, with their own agreement figures
   and an unexplained residual; the yoga grading's membership is inferred from list order. Never call
