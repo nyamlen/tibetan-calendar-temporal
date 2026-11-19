@@ -681,6 +681,50 @@ describe("composeObservances names itself, not the validator", () => {
 		expect(error?.code).toBe("TCT_INVALID_OBSERVANCE_CONFIG");
 		expect(error?.message).toMatch(opening("composeObservances(layer"));
 	});
+
+	// A fault inside a rule or name the layer supplies surfaces only when the composed candidate is
+	// validated, and it is still the layer's: X1.6.
+	const monthlyWhen = { type: "monthly", days: [10] };
+	const throwingWhen = Object.defineProperty({ id: "new", englishName: "New" }, "when", {
+		enumerable: true,
+		get() {
+			throw new Error("trap");
+		},
+	});
+	const candidateRows = [
+		[
+			"an add rule whose when is a Proxy",
+			{
+				id: "l",
+				englishName: "L",
+				add: [{ id: "new", englishName: "New", when: new Proxy(monthlyWhen, {}) }],
+			},
+		],
+		["an add rule whose when getter throws", { id: "l", englishName: "L", add: [throwingWhen] }],
+		[
+			"a layer tibetanName given as a Proxy",
+			{
+				id: "l",
+				englishName: "L",
+				tibetanName: new Proxy({ tibetan: "ཀ", wylie: "ka", phonetic: "ka" }, {}),
+			},
+		],
+	] as const;
+	it.each(candidateRows)("%s", (_label, layer) => {
+		const error = thrownBy(() => composeObservances(EXAMPLE_OBSERVANCES, layer as never));
+		expect(error?.code).toBe("TCT_INVALID_OBSERVANCE_CONFIG");
+		expect(error?.message).toMatch(opening("composeObservances(layer"));
+	});
+
+	it("still names the base for a fault in the base", () => {
+		const base = {
+			...EXAMPLE_OBSERVANCES,
+			rules: [new Proxy({ ...EXAMPLE_OBSERVANCES.rules[0] }, {})],
+		};
+		const error = thrownBy(() => composeObservances(base as never, { id: "l", englishName: "L" }));
+		expect(error?.code).toBe("TCT_INVALID_OBSERVANCE_CONFIG");
+		expect(error?.message).toMatch(opening("composeObservances(base)"));
+	});
 });
 
 describe("nextObservance names itself, not getObservances", () => {

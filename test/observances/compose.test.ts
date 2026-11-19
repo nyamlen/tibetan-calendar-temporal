@@ -814,3 +814,27 @@ describe("composeObservances: a Proxy standing for a whole rule or level", () =>
 		expect(error?.code).toBe(INVALID);
 	});
 });
+
+describe("composeObservances reads its layer once, afresh", () => {
+	const taraOf = (config: ObservanceConfig) => config.rules.find((rule) => rule.id === "tara");
+
+	it("a conventions array edited between composes is read afresh", () => {
+		const conventions: { id: string; doubledDay: string }[] = [{ id: "tara", doubledDay: "first" }];
+		const layer = { id: "l", englishName: "L", conventions } as unknown as ObservanceLayer;
+		expect(taraOf(composeObservances(EXAMPLE_OBSERVANCES, layer))?.doubledDay).toBe("first");
+		(conventions[0] as { doubledDay: string }).doubledDay = "second";
+		expect(taraOf(composeObservances(EXAMPLE_OBSERVANCES, layer))?.doubledDay).toBe("second");
+		(conventions[0] as { doubledDay: string }).doubledDay = "bogus";
+		expect(thrownBy(() => composeObservances(EXAMPLE_OBSERVANCES, layer))?.code).toBe(INVALID);
+	});
+
+	it("gives the composed config the id it validated, when the id getter changes its answer", () => {
+		const answers = ["first", "second", "third", "fourth"];
+		const layer = Object.defineProperty({ englishName: "L" }, "id", {
+			enumerable: true,
+			get: () => answers.shift() ?? "later",
+		}) as unknown as ObservanceLayer;
+		const composed = composeObservances(EXAMPLE_OBSERVANCES, layer);
+		expect(composed.id).toBe("first");
+	});
+});

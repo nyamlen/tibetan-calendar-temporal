@@ -38,14 +38,23 @@ const SIGNATURES = {
 	observancesOn: "observancesOn(date, config, tradition)",
 	nextObservance: "nextObservance(from, ruleId, config, tradition)",
 	composeObservances: "composeObservances(base, layer)",
+	// The config `composeObservances` builds from its layer: a fault there is the layer's.
+	composeObservancesLayer: "composeObservances(base, layer)",
 } as const;
 
-/** An export that takes an `ObservanceConfig`. */
+/** An export that takes an `ObservanceConfig`, or the layer `composeObservances` validates. */
 export type ObservanceCaller = keyof typeof SIGNATURES;
 
-/** The argument a caller wrote the config as: `composeObservances` calls it `base`. */
-const configArgument = (caller: ObservanceCaller): string =>
-	`${caller}(${caller === "composeObservances" ? "base" : "config"})`;
+/** The argument a refusal names: the config, or `composeObservances`' base or layer. */
+const ARGUMENTS: Record<ObservanceCaller, string> = {
+	getObservances: "getObservances(config)",
+	observancesOn: "observancesOn(config)",
+	nextObservance: "nextObservance(config)",
+	composeObservances: "composeObservances(base)",
+	composeObservancesLayer: "composeObservances(layer)",
+};
+
+const configArgument = (caller: ObservanceCaller): string => ARGUMENTS[caller];
 
 export const DOUBLED_DAY_CHOICES = ["first", "second", "both"];
 export const SKIPPED_DAY_CHOICES = ["preceding", "following", "omit"];
@@ -465,7 +474,7 @@ function assertNotAnotherShape(config: Record<string, unknown>, caller: Observan
 			CODE,
 			`${subject}: expected an ObservanceConfig, received what looks like a TraditionConfig or a ` +
 				"{ tradition } bag. " +
-				(caller === "composeObservances"
+				(caller === "composeObservances" || caller === "composeObservancesLayer"
 					? `${signature} takes no tradition: pass an ObservanceConfig as the base`
 					: `A tradition is a separate parameter, not the config, as in ${signature}`),
 		);
