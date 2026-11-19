@@ -110,6 +110,9 @@ export interface ScaledTradition {
 	 * (about 5.9 × 10⁶). Both are far beyond any date the calendar is meaningfully applied to —
 	 * today's JD is about 2.46 × 10⁶ — but the smaller is thin enough to be worth asserting rather
 	 * than assuming.
+	 *
+	 * Never more than 97,559,412, the nearer end of Temporal's own range, so every Julian day inside
+	 * the bound names a `Temporal.PlainDate`. No shipped config reaches that cap.
 	 */
 	exactToJulianDay: number;
 
@@ -159,6 +162,14 @@ function scaleMeanMotion(motion: MeanMotion, alsoDivides = 1): ScaledMeanMotion 
 		atEpoch: scaleTo(atEpoch.num, atEpoch.den, den),
 	};
 }
+
+// `Temporal.PlainDate` spans epoch days −100,000,000 to +100,000,000 (ISO −271821-04-19 to
+// +275760-09-13). The Unix epoch is JD 2,440,588, so that is JD −97,559,412 to 102,440,588. The bound
+// takes the smaller magnitude so the exact range stays symmetric about zero, which
+// `assertExactJulianDay` and `nextObservance`'s walk both assume. A consumer config with small
+// denominators would otherwise have a safe-integer bound past Temporal's, and a day inside it would
+// throw Temporal's uncoded `RangeError` (adversarial review X1.1). No shipped config reaches it.
+const TEMPORAL_JULIAN_DAY_BOUND = 97_559_412;
 
 /**
  * Computes the exact-integer working representation of a tradition.
@@ -238,8 +249,12 @@ export function deriveScaling(tradition: TraditionConfig): ScaledTradition {
 
 	assertDerivable(tradition, searchHalfWidth);
 
-	// exact: a safe-integer quotient floored to a bound, not a calendar quantity.
-	const exactToJulianDay = Math.floor(Number.MAX_SAFE_INTEGER / commonDenominator);
+	// exact: a safe-integer quotient floored to a bound, not a calendar quantity, then clamped to
+	// Temporal's range so every day inside the bound converts.
+	const exactToJulianDay = Math.min(
+		Math.floor(Number.MAX_SAFE_INTEGER / commonDenominator),
+		TEMPORAL_JULIAN_DAY_BOUND,
+	);
 	assertArgumentsFit(tradition, exactToJulianDay, meanDate, [
 		{ motion: lunarAnomaly, factor: moonTabArgFactor, name: "lunarAnomaly" },
 		{ motion: meanSun, factor: sunTabArgFactor, name: "meanSun" },

@@ -272,8 +272,8 @@ export function asWesternDay(
  * of the tradition rather than of the package, so this takes a config and defaults it like every
  * other entry point: the arithmetic stays exact from about ISO year −245,737 to 236,312 under
  * `PHUGPA` and `BHUTAN`, and only from about −20,781 to 11,356 under `PHUGPA_HENNING` and
- * `BHUTAN_HENNING`, whose common denominator is fifteen times larger. All four lie inside
- * Temporal's own range.
+ * `BHUTAN_HENNING`, whose common denominator is fifteen times larger. For any tradition the range
+ * ends inside Temporal's own, so a day this accepts always converts.
  *
  * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `julianDay` is not a safe integer,
  * `TCT_OUTSIDE_EXACT_RANGE` if it lies past where the tradition's arithmetic stays exact, or
@@ -357,22 +357,16 @@ export function assertExactJulianDay(
 }
 
 /**
- * The exactness bound as an ISO year, parenthesised, or `""` when it has none.
+ * The exactness bound as an ISO year, parenthesised.
  *
  * @remarks
  * A raw Julian day in the tens of millions is not a number anyone can act on. The ISO year is, and
  * it is what makes the `PHUGPA_HENNING` limit legible as "about year 11,356" rather than as
- * `5868816`. A bound may fall outside `Temporal.PlainDate`'s own range, ISO years −271,821 to
- * 275,760, so this degrades to nothing rather than throwing a second error while reporting the
- * first. No shipped tradition's does.
+ * `5868816`. The bound never passes `Temporal.PlainDate`'s own range — `deriveScaling` clamps it —
+ * so the conversion cannot throw.
  */
 function describeBound(signedBound: number): string {
-	try {
-		return ` (about ISO year ${isoFromJulianDayUnchecked(signedBound).year})`;
-		/* c8 ignore next 3 -- only reachable for a tradition whose bound exceeds Temporal's range */
-	} catch {
-		return "";
-	}
+	return ` (about ISO year ${isoFromJulianDayUnchecked(signedBound).year})`;
 }
 
 /**

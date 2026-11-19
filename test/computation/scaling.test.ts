@@ -4,6 +4,7 @@ import { deriveScaling } from "../../src/computation/scaling.js";
 import { BHUTAN, BHUTAN_HENNING } from "../../src/traditions/bhutan.js";
 import { PHUGPA, PHUGPA_HENNING } from "../../src/traditions/phugpa.js";
 import type { TraditionConfig } from "../../src/traditions/types.js";
+import { COARSE } from "../support/coarse-tradition.js";
 
 // Janson App. A.2. Tsurphu shares Phugpa's mean motions but has different epoch values, and
 // theirs carry denominators Phugpa's do not. Only the fields that affect scaling are given —
@@ -119,3 +120,22 @@ describe("deriveScaling for the four shipped configs", () => {
 function gcdOf(a: number, b: number): number {
 	return b === 0 ? a : gcdOf(b, a % b);
 }
+
+describe("the exact range never passes Temporal's", () => {
+	it("clamps a coarse consumer config to Temporal's smaller end", () => {
+		expect(deriveScaling(COARSE).exactToJulianDay).toBe(97_559_412);
+		expect(
+			Math.floor(Number.MAX_SAFE_INTEGER / deriveScaling(COARSE).commonDenominator),
+		).toBeGreaterThan(97_559_412);
+	});
+
+	it("leaves the four shipped configs' bounds where the safe-integer limit puts them", () => {
+		const moved = [PHUGPA, PHUGPA_HENNING, BHUTAN, BHUTAN_HENNING]
+			.map((tradition) => deriveScaling(tradition))
+			.filter(
+				(s) => s.exactToJulianDay !== Math.floor(Number.MAX_SAFE_INTEGER / s.commonDenominator),
+			)
+			.map((s) => s.tradition.id);
+		expect(moved).toEqual([]);
+	});
+});
