@@ -138,8 +138,10 @@ export function assertTemporalPresent(): void {
  * afterwards.
  * A `PlainDateTime` or `ZonedDateTime` from this realm, a subclass's included, is copied the same
  * way, so the day is the one on its own wall clock, with no time-zone conversion, and an overridden
- * `toPlainDate` is never called. A `PlainDateTime` or `ZonedDateTime` from a second implementation is
- * narrowed with its own `toPlainDate()`. Any other instance — a second implementation's `PlainDate`
+ * `toPlainDate` is never called. A genuine instance is recognised by its internal slots before its
+ * brand is trusted, so one whose `Symbol.toStringTag` names another kind is refused. A
+ * `PlainDateTime` or `ZonedDateTime` from a second implementation is narrowed with its own
+ * `toPlainDate()`. Any other instance — a second implementation's `PlainDate`
  * — is normalised through `Temporal.PlainDate.from(String(value))`, its own ISO-8601 serialisation,
  * so a disguised object is accepted only if its string form is an ISO calendar day.
  *
@@ -150,8 +152,8 @@ export function assertTemporalPresent(): void {
  * @throws A `TCT_MISSING_TEMPORAL` error if the global `Temporal` has been removed since import.
  * @throws A `TCT_INVALID_ARGUMENT` error if the value cannot be read as an ISO calendar day: a
  * non-ISO calendar, an object whose brand names a kind it is not (no `toPlainDate`, or one that
- * throws), a prototype that cannot be read, an object created from a Temporal prototype or a
- * Proxy around a `PlainDate`, `PlainDateTime` or `ZonedDateTime`, or a string form that is not a
+ * throws), a genuine instance branded as another kind, a prototype that cannot be read, an object
+ * created from a Temporal prototype or a Proxy that reports one, or a string form that is not a
  * calendar day. Each message opens with
  * `subject` when one is given.
  */
@@ -172,53 +174,40 @@ export function toNativePlainDate(
 ): Temporal.PlainDate {
 	assertTemporalPresent();
 	const prefix = subject === undefined ? "" : `${subject}: `;
-	if (kind !== "PlainDate") {
-		// A native instance is read from its slots, never through `toPlainDate`: a subclass can
-		// override that method to answer for another day, or a non-ISO day as ISO, and a forwarding
-		// Proxy's `toPlainDate` is caller code. The order is the `PlainDate` branch's below: prove the
-		// slot through the intrinsic `calendarId` getter, then copy with `Temporal.PlainDate.from`,
-		// which takes a genuine `PlainDateTime`'s day and a `ZonedDateTime`'s wall-clock day from
-		// their slots and keeps the calendar, so the ISO check reads the true one.
-		const dateTimeClass =
-			kind === "PlainDateTime" ? Temporal.PlainDateTime : Temporal.ZonedDateTime;
-		let isNativeDateTime: boolean;
-		try {
-			isNativeDateTime = value instanceof dateTimeClass;
-		} catch (error) {
+	// Asked before the brand is trusted: the tag is the caller's to set, so a subclass that rewrites
+	// it would otherwise steer itself onto a path that calls its own `toPlainDate` or `toString`.
+	const genuine = genuineKindOf(value);
+	if (genuine !== null) {
+		if (genuine !== kind) {
 			throw rangeError(
 				"TCT_INVALID_ARGUMENT",
-				`${prefix}received a value branded Temporal.${kind} whose prototype cannot be read: ` +
-					`${describe(value)} (${thrownDetail(error)})`,
-				error,
+				`${prefix}received a value branded Temporal.${kind} that is a Temporal.${genuine}, so its ` +
+					`brand cannot be trusted: ${describe(value)}. Pass the date itself.`,
 			);
 		}
-		if (isNativeDateTime) {
-			const intrinsicCalendarId = assertInternal(
-				Object.getOwnPropertyDescriptor(dateTimeClass.prototype, "calendarId")?.get,
-				`Temporal.${kind}.prototype has no calendarId getter`,
-			);
-			try {
-				intrinsicCalendarId.call(value);
-			} catch (error) {
-				throw rangeError(
-					"TCT_INVALID_ARGUMENT",
-					`${prefix}received a value that passes as a Temporal.${kind} but is not itself one — an ` +
-						"object created from its prototype, or a Proxy around one — so it cannot name a " +
-						`calendar day: ${describe(value)}. Pass the date itself.`,
-					error,
-				);
-			}
-			return assertIsoCalendar(
-				Temporal.PlainDate.from(value as Temporal.PlainDateTime | Temporal.ZonedDateTime),
-				subject,
-			);
-		}
-		// Not this realm's instance — a second implementation's, or a spoofed brand.
-		// Guarded, because the brand is spoofable and the narrowing call is not. An object carrying
-		// `Temporal.ZonedDateTime` and nothing else threw an **uncoded** `TypeError: value.toPlainDate
-		// is not a function` — at the one boundary whose stated job is to convert uncoded TypeErrors
-		// into coded errors, and on the exact branch the spoofing argument above rests on. A
-		// `toPlainDate` that throws on its own escaped the same way.
+		// A genuine instance, whatever its prototype says. `Temporal.PlainDate.from` copies it from its
+		// slots — a `PlainDateTime`'s day, a `ZonedDateTime`'s wall-clock day — and keeps the calendar,
+		// so nothing a subclass overrides is read and the ISO check reads the true calendar. The copy is
+		// what the engine reads, so a subclass's `year` or `since` never is.
+		return assertIsoCalendar(
+			Temporal.PlainDate.from(
+				value as Temporal.PlainDate | Temporal.PlainDateTime | Temporal.ZonedDateTime,
+			),
+			subject,
+		);
+	}
+	// No slot of this realm's Temporal. Something that still reports this realm's prototype —
+	// `Object.create(Temporal.PlainDate.prototype)`, or a Proxy around a real date, which `instanceof`
+	// accepts through its trap — is refused: `Temporal.PlainDate.from` reads a forwarding Proxy's
+	// *fields*, and a Tishrei date's fields read as ISO 5785-01-03.
+	assertNotPosingAs(value, kind, prefix);
+	if (kind !== "PlainDate") {
+		// A second implementation's instance, or a spoofed brand. Guarded, because the brand is
+		// spoofable and the narrowing call is not. An object carrying `Temporal.ZonedDateTime` and
+		// nothing else threw an **uncoded** `TypeError: value.toPlainDate is not a function` — at the
+		// one boundary whose stated job is to convert uncoded TypeErrors into coded errors, and on the
+		// exact branch the spoofing argument above rests on. A `toPlainDate` that throws on its own
+		// escaped the same way.
 		let narrow: unknown;
 		try {
 			narrow = (value as { toPlainDate?: unknown }).toPlainDate;
@@ -250,48 +239,6 @@ export function toNativePlainDate(
 		}
 		return toNativePlainDate(narrowed, "PlainDate", subject);
 	}
-	// `instanceof` walks the prototype chain, which a Proxy answers with its own trap, so it is guarded
-	// like every other read of the caller's value.
-	let isNative: boolean;
-	try {
-		isNative = value instanceof Temporal.PlainDate;
-	} catch (error) {
-		throw rangeError(
-			"TCT_INVALID_ARGUMENT",
-			`${prefix}received a value branded Temporal.${kind} whose prototype cannot be read: ` +
-				`${describe(value)} (${thrownDetail(error)})`,
-			error,
-		);
-	}
-	if (isNative) {
-		const native = value as Temporal.PlainDate;
-		// The calendar is read through the intrinsic getter, never `native.calendarId`: a subclass can
-		// override that getter to claim ISO. The intrinsic one reads the date's own slot and throws for
-		// anything without one — `Object.create(Temporal.PlainDate.prototype)`, which `instanceof`
-		// accepts, and a Proxy around a real date. The order matters: `Temporal.PlainDate.from` copies a
-		// genuine date from its slots, but on a forwarding Proxy it reads the *fields*, and a Tishrei
-		// date's fields read as ISO 5785-01-03. Only after the slot read has proved a genuine date is it
-		// copied, and the copy is what the engine reads, so a subclass's `year` or `since` never is.
-		// The copy keeps the calendar, so the ISO check on it reads the true one.
-		// Read here rather than at module scope: touching `Temporal` at import would pre-empt the
-		// import-time guard's message about a missing `Temporal`.
-		const intrinsicCalendarId = assertInternal(
-			Object.getOwnPropertyDescriptor(Temporal.PlainDate.prototype, "calendarId")?.get,
-			"Temporal.PlainDate.prototype has no calendarId getter",
-		);
-		try {
-			intrinsicCalendarId.call(native);
-		} catch (error) {
-			throw rangeError(
-				"TCT_INVALID_ARGUMENT",
-				`${prefix}received a value that passes as a Temporal.PlainDate but is not itself one — an ` +
-					"object created from its prototype, or a Proxy around one — so it cannot name a " +
-					`calendar day: ${describe(value)}. Pass the date itself.`,
-				error,
-			);
-		}
-		return assertIsoCalendar(Temporal.PlainDate.from(native), subject);
-	}
 	let normalised: Temporal.PlainDate;
 	try {
 		normalised = Temporal.PlainDate.from(String(value));
@@ -304,6 +251,70 @@ export function toNativePlainDate(
 		);
 	}
 	return assertIsoCalendar(normalised, subject);
+}
+
+/** This realm's constructor for a day kind, read at call time (see {@link genuineKindOf}). */
+function nativeClassOf(
+	kind: TemporalDayKind,
+): typeof Temporal.PlainDate | typeof Temporal.PlainDateTime | typeof Temporal.ZonedDateTime {
+	if (kind === "PlainDate") return Temporal.PlainDate;
+	return kind === "PlainDateTime" ? Temporal.PlainDateTime : Temporal.ZonedDateTime;
+}
+
+/**
+ * Which of this realm's three day types `value` genuinely is, by its slots, or `null`.
+ *
+ * @remarks
+ * Each type's intrinsic `calendarId` getter reads the receiver's own internal slot and throws for
+ * anything without one: a subclass's instance has it whatever its prototype or tag says, and a Proxy
+ * or an object created from a prototype does not. No code of the caller's runs.
+ */
+// Read at call time rather than at module scope: touching `Temporal` at import would pre-empt the
+// import-time guard's message about a missing `Temporal`.
+function genuineKindOf(value: unknown): TemporalDayKind | null {
+	if (value === null || typeof value !== "object") return null;
+	for (const kind of DAY_KINDS as ReadonlySet<TemporalDayKind>) {
+		const getter = assertInternal(
+			Object.getOwnPropertyDescriptor(nativeClassOf(kind).prototype, "calendarId")?.get,
+			`Temporal.${kind}.prototype has no calendarId getter`,
+		);
+		try {
+			getter.call(value);
+			return kind;
+		} catch {
+			// Not this kind; try the next.
+		}
+	}
+	return null;
+}
+
+/**
+ * Refuses a value without a slot that still reports this realm's prototype for `kind`.
+ *
+ * @remarks
+ * `instanceof` walks the prototype chain, which a Proxy answers with its own trap, so it is guarded
+ * like every other read of the caller's value.
+ */
+function assertNotPosingAs(value: unknown, kind: TemporalDayKind, prefix: string): void {
+	let posing: boolean;
+	try {
+		posing = value instanceof nativeClassOf(kind);
+	} catch (error) {
+		throw rangeError(
+			"TCT_INVALID_ARGUMENT",
+			`${prefix}received a value branded Temporal.${kind} whose prototype cannot be read: ` +
+				`${describe(value)} (${thrownDetail(error)})`,
+			error,
+		);
+	}
+	if (posing) {
+		throw rangeError(
+			"TCT_INVALID_ARGUMENT",
+			`${prefix}received a value that passes as a Temporal.${kind} but is not itself one — an ` +
+				"object created from its prototype, or a Proxy around one — so it cannot name a " +
+				`calendar day: ${describe(value)}. Pass the date itself.`,
+		);
+	}
 }
 
 /**

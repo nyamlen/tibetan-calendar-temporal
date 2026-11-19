@@ -451,6 +451,43 @@ describe("a native PlainDateTime or ZonedDateTime is read from its slots", () =>
 		expect(codeOf(() => toTibetan(forwardingProxy(hebrew)))).toBe("TCT_INVALID_ARGUMENT");
 	});
 
+	// The brand picks the branch, so a subclass that also rewrites its tag must not reach a path
+	// that runs its own code. Adversarial-review gate, 2026-11-19.
+	it("refuses a PlainDateTime subclass tagged as a ZonedDateTime", () => {
+		class Retagged extends Temporal.PlainDateTime {
+			override toPlainDate(): Temporal.PlainDate {
+				return Temporal.PlainDate.from("2000-01-01");
+			}
+		}
+		Object.defineProperty(Retagged.prototype, Symbol.toStringTag, {
+			value: "Temporal.ZonedDateTime",
+		});
+		const error = thrownBy(() => toTibetan(new Retagged(2027, 1, 15)));
+		expect(error?.code).toBe("TCT_INVALID_ARGUMENT");
+	});
+
+	it("refuses a PlainDate subclass tagged as a PlainDateTime", () => {
+		class Retagged extends Temporal.PlainDate {
+			toPlainDate(): Temporal.PlainDate {
+				return Temporal.PlainDate.from("2000-01-01");
+			}
+		}
+		Object.defineProperty(Retagged.prototype, Symbol.toStringTag, {
+			value: "Temporal.PlainDateTime",
+		});
+		expect(codeOf(() => toTibetan(new Retagged(2027, 1, 15)))).toBe("TCT_INVALID_ARGUMENT");
+	});
+
+	it("refuses a PlainDateTime subclass tagged as a PlainDate", () => {
+		class Retagged extends Temporal.PlainDateTime {
+			override toString(): string {
+				return "2000-01-01";
+			}
+		}
+		Object.defineProperty(Retagged.prototype, Symbol.toStringTag, { value: "Temporal.PlainDate" });
+		expect(codeOf(() => toTibetan(new Retagged(2027, 1, 15)))).toBe("TCT_INVALID_ARGUMENT");
+	});
+
 	it("takes a ZonedDateTime's wall-clock day, not its UTC day", () => {
 		const evening = Temporal.ZonedDateTime.from("2027-01-15T23:30[America/Los_Angeles]");
 		expect(fieldsOf(toTibetan(evening))).toEqual(expected);
