@@ -136,11 +136,12 @@ export function assertTemporalPresent(): void {
  * A `PlainDate` from this realm's `Temporal`, a subclass's instance included, is returned as a fresh
  * `Temporal.PlainDate` copied from the date itself, so nothing a subclass overrides is read
  * afterwards.
- * A `PlainDateTime` or
- * `ZonedDateTime` is narrowed with its own `toPlainDate()`, so the day is the one on its own wall
- * clock, with no time-zone conversion. Any other instance — a second implementation's — is
- * normalised through `Temporal.PlainDate.from(String(value))`, its own ISO-8601 serialisation, so a
- * disguised object is accepted only if its string form is an ISO calendar day.
+ * A `PlainDateTime` or `ZonedDateTime` from this realm, a subclass's included, is copied the same
+ * way, so the day is the one on its own wall clock, with no time-zone conversion, and an overridden
+ * `toPlainDate` is never called. A `PlainDateTime` or `ZonedDateTime` from a second implementation is
+ * narrowed with its own `toPlainDate()`. Any other instance — a second implementation's `PlainDate`
+ * — is normalised through `Temporal.PlainDate.from(String(value))`, its own ISO-8601 serialisation,
+ * so a disguised object is accepted only if its string form is an ISO calendar day.
  *
  * **Non-ISO calendars are refused, not converted**: the arithmetic here is defined on ISO days, and
  * `.withCalendar("iso8601")` preserves the day exactly, so the refusal costs a caller one call and
@@ -149,8 +150,9 @@ export function assertTemporalPresent(): void {
  * @throws A `TCT_MISSING_TEMPORAL` error if the global `Temporal` has been removed since import.
  * @throws A `TCT_INVALID_ARGUMENT` error if the value cannot be read as an ISO calendar day: a
  * non-ISO calendar, an object whose brand names a kind it is not (no `toPlainDate`, or one that
- * throws), a prototype that cannot be read, `Object.create(Temporal.PlainDate.prototype)` or a
- * Proxy around a `PlainDate`, or a string form that is not a calendar day. Each message opens with
+ * throws), a prototype that cannot be read, an object created from a Temporal prototype or a
+ * Proxy around a `PlainDate`, `PlainDateTime` or `ZonedDateTime`, or a string form that is not a
+ * calendar day. Each message opens with
  * `subject` when one is given.
  */
 // The string form is the one every implementation must produce and this one must read. Two
@@ -171,6 +173,46 @@ export function toNativePlainDate(
 	assertTemporalPresent();
 	const prefix = subject === undefined ? "" : `${subject}: `;
 	if (kind !== "PlainDate") {
+		// A native instance is read from its slots, never through `toPlainDate`: a subclass can
+		// override that method to answer for another day, or a non-ISO day as ISO, and a forwarding
+		// Proxy's `toPlainDate` is caller code. The order is the `PlainDate` branch's below: prove the
+		// slot through the intrinsic `calendarId` getter, then copy with `Temporal.PlainDate.from`,
+		// which takes a genuine `PlainDateTime`'s day and a `ZonedDateTime`'s wall-clock day from
+		// their slots and keeps the calendar, so the ISO check reads the true one.
+		const constructor = kind === "PlainDateTime" ? Temporal.PlainDateTime : Temporal.ZonedDateTime;
+		let isNativeDateTime: boolean;
+		try {
+			isNativeDateTime = value instanceof constructor;
+		} catch (error) {
+			throw rangeError(
+				"TCT_INVALID_ARGUMENT",
+				`${prefix}received a value branded Temporal.${kind} whose prototype cannot be read: ` +
+					`${describe(value)} (${thrownDetail(error)})`,
+				error,
+			);
+		}
+		if (isNativeDateTime) {
+			const intrinsicCalendarId = assertInternal(
+				Object.getOwnPropertyDescriptor(constructor.prototype, "calendarId")?.get,
+				`Temporal.${kind}.prototype has no calendarId getter`,
+			);
+			try {
+				intrinsicCalendarId.call(value);
+			} catch (error) {
+				throw rangeError(
+					"TCT_INVALID_ARGUMENT",
+					`${prefix}received a value that passes as a Temporal.${kind} but is not itself one — an ` +
+						"object created from its prototype, or a Proxy around one — so it cannot name a " +
+						`calendar day: ${describe(value)}. Pass the date itself.`,
+					error,
+				);
+			}
+			return assertIsoCalendar(
+				Temporal.PlainDate.from(value as Temporal.PlainDateTime | Temporal.ZonedDateTime),
+				subject,
+			);
+		}
+		// Not this realm's instance — a second implementation's, or a spoofed brand.
 		// Guarded, because the brand is spoofable and the narrowing call is not. An object carrying
 		// `Temporal.ZonedDateTime` and nothing else threw an **uncoded** `TypeError: value.toPlainDate
 		// is not a function` — at the one boundary whose stated job is to convert uncoded TypeErrors
