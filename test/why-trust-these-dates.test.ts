@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import * as astrology from "../src/astrology/index.js";
 import { isoToTibetan } from "../src/computation/conversion.js";
+import { royalEraFromYear } from "../src/computation/epoch.js";
 import * as root from "../src/index.js";
 import * as observances from "../src/observances/index.js";
 import { BHUTAN, BHUTAN_HENNING } from "../src/traditions/bhutan.js";
@@ -188,6 +189,17 @@ const ROUNDED_TOTAL =
 		: { lead: "More than", figure: count(Math.floor(TOTAL_ROWS / 1000) * 1000) };
 
 const LOSAR_WINDOW = windowOf(LOSAR_DATES.map((row) => ({ iso: row.losar })));
+
+// The both-eras rule: a window states the Tibetan years it spans, the year holding its first day to
+// the year holding its last. A year-only CE window spans 1 January of its first year to 31 December
+// of its last; a window of Janson's Y years converts each end to the royal era.
+const tibetanYears = (
+	first: Temporal.PlainDate,
+	last: Temporal.PlainDate,
+	tradition = root.PHUGPA,
+) => [isoToTibetan(first, tradition).year, isoToTibetan(last, tradition).year];
+const wholeYears = (firstYear: number, lastYear: number, tradition = root.PHUGPA) =>
+	tibetanYears(plain(`${firstYear}-01-01`), plain(`${lastYear}-12-31`), tradition);
 const FPMT_WINDOW = windowOf(FPMT_OBSERVANCES);
 const RABTEN_WINDOW = windowOf(RABTEN_SOJONG);
 
@@ -331,25 +343,39 @@ const CLAIMS: readonly Claim[] = [
 	{
 		what: "the summary table's Royal Government row",
 		pattern:
-			/\| Royal Government of Bhutan days, (\d+)–(\d+) \| (\d+) \| an independent almanac \|/,
-		expected: () => [RGOB_WINDOW.first.year, RGOB_WINDOW.last.year, RGOB_DAYS.length],
+			/\| Royal Government of Bhutan days, (\d+)–(\d+) CE \(Tibetan (\d+)–(\d+)\) \| (\d+) \| an independent almanac \|/,
+		expected: () => [
+			RGOB_WINDOW.first.year,
+			RGOB_WINDOW.last.year,
+			...wholeYears(RGOB_WINDOW.first.year, RGOB_WINDOW.last.year, BHUTAN),
+			RGOB_DAYS.length,
+		],
 	},
 	{
 		what: "the summary table's Losar row",
-		pattern: /\| Losar, (\d+)–(\d+) \| (\d+) \| Janson \|/,
-		expected: () => [LOSAR_WINDOW.first.year, LOSAR_WINDOW.last.year, LOSAR_DATES.length],
+		pattern: /\| Losar, (\d+)–(\d+) CE \(Tibetan (\d+)–(\d+)\) \| (\d+) \| Janson \|/,
+		expected: () => [
+			LOSAR_WINDOW.first.year,
+			LOSAR_WINDOW.last.year,
+			...tibetanYears(LOSAR_WINDOW.first, LOSAR_WINDOW.last),
+			LOSAR_DATES.length,
+		],
 	},
 	{
 		what: "the summary table's leap-month row, and the years resting on Janson's unprinted rows",
 		pattern:
-			/\| Leap months across (\w+) traditions, (\d+)–(\d+) \| (\d+) \| Janson \(for (\d+)–(\d+), Janson's own values from his published source files, which he left out of the printed paper\) \|/,
+			/\| Leap months across (\w+) traditions, (\d+)–(\d+) CE \(Tibetan (\d+)–(\d+)\) \| (\d+) \| Janson \(for (\d+)–(\d+) CE, Tibetan (\d+)–(\d+), Janson's own values from his published source files, which he left out of the printed paper\) \|/,
 		expected: () => [
 			word(VERSIONS.length),
 			CROSS_VERSION_LEAP[0]?.year ?? "",
 			CROSS_VERSION_LEAP.at(-1)?.year ?? "",
+			royalEraFromYear(CROSS_VERSION_LEAP[0]?.year ?? Number.NaN),
+			royalEraFromYear(CROSS_VERSION_LEAP.at(-1)?.year ?? Number.NaN),
 			LEAP_ROWS,
 			Math.min(...LEAP_COMMENTED),
 			Math.max(...LEAP_COMMENTED),
+			royalEraFromYear(Math.min(...LEAP_COMMENTED)),
+			royalEraFromYear(Math.max(...LEAP_COMMENTED)),
 		],
 	},
 	{
@@ -362,7 +388,7 @@ const CLAIMS: readonly Claim[] = [
 	{
 		what: "the Phugpa rows as comparisons: sources, overlap, union",
 		pattern:
-			/The ([\d,]+) Phugpa rows are \*\*comparisons, not distinct days\*\*: the (\w+) sources overlap only in part — all (\w+) cover the same days only from (.+?) to (.+?) — and between them they cover \*\*([\d,]+) distinct days\*\*, every day from (.+?) to (.+?)\. /,
+			/The ([\d,]+) Phugpa rows are \*\*comparisons, not distinct days\*\*: the (\w+) sources overlap only in part — all (\w+) cover the same days only from (.+?) to (.+?) — and between them they cover \*\*([\d,]+) distinct days\*\*, every day from (.+?) to (.+?) \(Tibetan (\d+)–(\d+)\)\. /,
 		expected: () => [
 			count(PHUGPA_ROWS),
 			word(PHUGPA_SOURCES.length),
@@ -372,6 +398,7 @@ const CLAIMS: readonly Claim[] = [
 			count(UNION.size),
 			long(UNION_WINDOW.first),
 			long(UNION_WINDOW.last),
+			...tibetanYears(UNION_WINDOW.first, UNION_WINDOW.last),
 		],
 	},
 	{
@@ -405,11 +432,12 @@ const CLAIMS: readonly Claim[] = [
 	{
 		what: "the useful summary",
 		pattern:
-			/It is: \*\*(\w+) independent Phugpa sources which between them cover every day from (.+?) to (.+?), (just over \w+ years) of Bhutanese dates against one lineage plus (\S+) government-published days, and (\d+) years of Losar against Janson\.\*\*/,
+			/It is: \*\*(\w+) independent Phugpa sources which between them cover every day from (.+?) to (.+?) \(Tibetan (\d+)–(\d+)\), (just over \w+ years) of Bhutanese dates against one lineage plus (\S+) government-published days, and (\d+) years of Losar against Janson\.\*\*/,
 		expected: () => [
 			word(PHUGPA_SOURCES.length),
 			long(UNION_WINDOW.first),
 			long(UNION_WINDOW.last),
+			...tibetanYears(UNION_WINDOW.first, UNION_WINDOW.last),
 			justOver(bhutanStart, trustedEnd),
 			word(RGOB_DAYS.length),
 			LOSAR_DATES.length,
@@ -420,11 +448,12 @@ const CLAIMS: readonly Claim[] = [
 	{
 		what: "the Phugpa section's opening: sources, union window, implementations",
 		pattern:
-			/Checked \*\*day by day against (\w+) independent sources, which between them cover every day from (.+?) to (.+?)\*\* — FPMT's own published monthly calendars and (\w+) independent implementations\./,
+			/Checked \*\*day by day against (\w+) independent sources, which between them cover every day from (.+?) to (.+?) \(Tibetan (\d+)–(\d+)\)\*\* — FPMT's own published monthly calendars and (\w+) independent implementations\./,
 		expected: () => [
 			word(PHUGPA_SOURCES.length),
 			long(UNION_WINDOW.first),
 			long(UNION_WINDOW.last),
+			...tibetanYears(UNION_WINDOW.first, UNION_WINDOW.last),
 			word(IMPLEMENTATIONS.length),
 		],
 	},
@@ -497,10 +526,11 @@ const CLAIMS: readonly Claim[] = [
 	{
 		what: "Losar",
 		pattern:
-			/\*\*Losar, (\d+)–(\d+)\*\* — Janson prints the Tibetan New Year for (\d+) consecutive years\. The engine reproduces all (\d+)\./,
+			/\*\*Losar, (\d+)–(\d+) CE \(Tibetan (\d+)–(\d+)\)\*\* — Janson prints the Tibetan New Year for (\d+) consecutive years\. The engine reproduces all (\d+)\./,
 		expected: () => [
 			LOSAR_WINDOW.first.year,
 			LOSAR_WINDOW.last.year,
+			...tibetanYears(LOSAR_WINDOW.first, LOSAR_WINDOW.last),
 			LOSAR_DATES.length,
 			LOSAR_DATES.length,
 		],
@@ -508,9 +538,10 @@ const CLAIMS: readonly Claim[] = [
 	{
 		what: "the epoch",
 		pattern:
-			/\*\*The epoch year, (\d+)\*\* — the founding constants match his to (\w+) decimal places\./,
+			/\*\*The epoch year, (\d+) CE \(Tibetan (\d+)\)\*\* — the founding constants match his to (\w+) decimal places\./,
 		expected: () => [
 			JANSON_EPOCH.julianCalendarDate.split(" ").at(-1) ?? "",
+			royalEraFromYear(Number(JANSON_EPOCH.julianCalendarDate.split(" ").at(-1))),
 			word(
 				Math.max(
 					...[JANSON_EPOCH.meanDate, JANSON_EPOCH.meanSun, JANSON_EPOCH.lunarAnomaly].map(
@@ -523,7 +554,7 @@ const CLAIMS: readonly Claim[] = [
 	{
 		what: "the a₂ divergences before 1927",
 		pattern:
-			/\*\*(\d+)–(\d+)\*\* — Janson's own computer search found (\d+) places where two defensible values of one lunar constant give different dates in what he calls the first (\d+)-year cycle\. The engine reproduces all (\d+), and his counts for the twentieth and twenty-first centuries too\. This is the only external check on calendar output before (\d+)\./,
+			/\*\*(\d+)–(\d+) CE \(Tibetan (\d+)–(\d+)\)\*\* — Janson's own computer search found (\d+) places where two defensible values of one lunar constant give different dates in what he calls the first (\d+)-year cycle\. The engine reproduces all (\d+), and his counts for the twentieth and twenty-first centuries too\. This is the only external check on calendar output before (\d+)\./,
 		expected: () => {
 			const early = A2_DIVERGENCE_COUNTS.find((row) => row.from < 1900);
 			const modern = [1900, 2000].every((from) =>
@@ -533,6 +564,8 @@ const CLAIMS: readonly Claim[] = [
 			return [
 				early.from,
 				early.to,
+				royalEraFromYear(early.from),
+				royalEraFromYear(early.to),
 				early.count,
 				early.to - early.from + 1,
 				early.count,
@@ -550,11 +583,12 @@ const CLAIMS: readonly Claim[] = [
 	{
 		what: "the Royal Government days and what they contain",
 		pattern:
-			/\*\*(\S+) days of the Royal Government of Bhutan's own published calendar\*\* for (\d+)–(\d+), including (\w+) skipped days, (\w+) doubled days and Losar\./,
+			/\*\*(\S+) days of the Royal Government of Bhutan's own published calendar\*\* for (\d+)–(\d+) CE \(Tibetan (\d+)–(\d+)\), including (\w+) skipped days, (\w+) doubled days and Losar\./,
 		expected: () => [
 			word(RGOB_DAYS.length),
 			RGOB_WINDOW.first.year,
 			RGOB_WINDOW.last.year,
+			...wholeYears(RGOB_WINDOW.first.year, RGOB_WINDOW.last.year, BHUTAN),
 			word(RGOB_FEATURES.skipped),
 			word(RGOB_FEATURES.doubled),
 		],
@@ -620,8 +654,13 @@ const CLAIMS: readonly Claim[] = [
 	// Observances
 	{
 		what: "the observance window",
-		pattern: /\*\*FPMT's own published monthly calendars for (\d+)–(\d+)\*\*/,
-		expected: () => [FPMT_WINDOW.first.year, FPMT_WINDOW.last.year],
+		pattern:
+			/\*\*FPMT's own published monthly calendars for (\d+)–(\d+) CE \(Tibetan (\d+)–(\d+)\)\*\*/,
+		expected: () => [
+			FPMT_WINDOW.first.year,
+			FPMT_WINDOW.last.year,
+			...tibetanYears(FPMT_WINDOW.first, FPMT_WINDOW.last),
+		],
 	},
 	{
 		what: "how far the example's monthly rules follow FPMT's labels",
@@ -662,10 +701,12 @@ const CLAIMS: readonly Claim[] = [
 	{
 		what: "the Tsurphu and Mongolian leap-month window",
 		pattern:
-			/leap months are checked against Janson for (\d+)–(\d+) \(for (\d+)–(\d+), Janson's own values from his published source files/,
+			/leap months are checked against Janson for (\d+)–(\d+) CE, Tibetan (\d+)–(\d+) \(for (\d+)–(\d+), Janson's own values from his published source files/,
 		expected: () => [
 			CROSS_VERSION_LEAP[0]?.year ?? "",
 			CROSS_VERSION_LEAP.at(-1)?.year ?? "",
+			royalEraFromYear(CROSS_VERSION_LEAP[0]?.year ?? Number.NaN),
+			royalEraFromYear(CROSS_VERSION_LEAP.at(-1)?.year ?? Number.NaN),
 			Math.min(...LEAP_COMMENTED),
 			Math.max(...LEAP_COMMENTED),
 		],
@@ -721,7 +762,7 @@ const CLAIMS: readonly Claim[] = [
 	},
 	{
 		what: "the next date deciding the Bhutanese a₂ fork",
-		pattern: /have passed or lie decades ahead; the next is in (\d+)\./,
+		pattern: /have passed or lie decades ahead; the next is in (\d+) CE\./,
 		expected: () => [
 			a2ForkDivergences(trustedEnd.add({ days: 1 }), plain("2100-12-31"), 1)[0]?.slice(0, 4) ?? "",
 		],
@@ -786,12 +827,13 @@ const CLAIMS: readonly Claim[] = [
 	{
 		what: "the mansion figure, its days, and the Henning comparison tied to them",
 		pattern:
-			/agrees, for Phugpa, with FPMT's published codes on \*\*([\d.]+)%\*\* of the ([\d,]+) days in (\d+)–(\d+) whose code can name one\. Henning's published daily calendars, compared outside the test suite, give the same mansion as this engine on all ([\d,]+) of those days/,
+			/agrees, for Phugpa, with FPMT's published codes on \*\*([\d.]+)%\*\* of the ([\d,]+) days in (\d+)–(\d+) CE \(Tibetan (\d+)–(\d+)\) whose code can name one\. Henning's published daily calendars, compared outside the test suite, give the same mansion as this engine on all ([\d,]+) of those days/,
 		expected: () => [
 			pct(mansionDays.length - mansionDisagreements().length, mansionDays.length),
 			count(mansionDays.length),
 			FPMT_WINDOW.first.year,
 			FPMT_WINDOW.last.year,
+			...tibetanYears(FPMT_WINDOW.first, FPMT_WINDOW.last),
 			// The Henning comparison runs outside the suite, over exactly these days, in
 			// scripts/evidence/henning-mansions/compare.mjs. Extending FPMT's data moves this figure,
 			// and the sentence must then be re-measured with that harness, not re-typed.
@@ -1077,21 +1119,39 @@ describe("why-trust-these-dates claims", () => {
 	 */
 	describe("docs/testing.md states the same windows", () => {
 		it.each(PHUGPA_SOURCES.map((s) => [s.name, s] as const))("%s", (_name, s) => {
-			const row = new RegExp(`^\\| ${s.name} \\| (.+?) – (.+?), ([\\d,]+) days \\|`, "m").exec(
-				testingDocument,
-			);
+			const row = new RegExp(
+				`^\\| ${s.name} \\| (.+?) – (.+?) \\(Tibetan (\\d+)–(\\d+)\\), ([\\d,]+) days \\|`,
+				"m",
+			).exec(testingDocument);
 			const w = windowOf(s.rows);
-			expect(row?.slice(1)).toEqual([short(w.first), short(w.last), count(s.rows.length)]);
+			expect(row?.slice(1)).toEqual([
+				short(w.first),
+				short(w.last),
+				...tibetanYears(w.first, w.last).map(String),
+				count(s.rows.length),
+			]);
 		});
 
 		it("the union and the Bhutanese window", () => {
-			const union = /^\| Cross-check fixtures, day by day \| (.+?) – (.+?), between them \|/m.exec(
-				testingDocument,
-			);
-			const bhutan = /^\| `BHUTAN_HENNING`, day by day \| (.+?) – (.+?) \|/m.exec(testingDocument);
+			const union =
+				/^\| Cross-check fixtures, day by day \| (.+?) – (.+?) \(Tibetan (\d+)–(\d+)\), between them \|/m.exec(
+					testingDocument,
+				);
+			const bhutan =
+				/^\| `BHUTAN_HENNING`, day by day \| (.+?) – (.+?) \(Tibetan (\d+)–(\d+)\) \|/m.exec(
+					testingDocument,
+				);
 			expect([union?.slice(1), bhutan?.slice(1)]).toEqual([
-				[short(UNION_WINDOW.first), short(UNION_WINDOW.last)],
-				[short(bhutanStart), short(trustedEnd)],
+				[
+					short(UNION_WINDOW.first),
+					short(UNION_WINDOW.last),
+					...tibetanYears(UNION_WINDOW.first, UNION_WINDOW.last).map(String),
+				],
+				[
+					short(bhutanStart),
+					short(trustedEnd),
+					...tibetanYears(bhutanStart, trustedEnd, BHUTAN_HENNING).map(String),
+				],
 			]);
 		});
 	});

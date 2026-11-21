@@ -152,10 +152,10 @@ sources and assert the engine matches.
 
 | Source | URL | What it provides | Status |
 |--------|-----|-----------------|--------|
-| **Lotsawa House Phugpa Calculator** | <https://www.lotsawahouse.org/Static/tools/phugpa.html> | Whole-year day-by-day grid, marking skipped (`*`) and doubled (`+`) dates | **In use** — `crosscheck-lotsawa.ts`, 1,831 days, 21 February 2023 – 25 February 2028 |
-| **christian-steinert TibetanBuddhistPracticeDates** | <https://practicedates.christian-steinert.de> | JSON API `/dates/YYYYMMDD-YYYYMMDD` giving day numbers plus doubled and leap-month flags | **In use** — `crosscheck-steinert.ts`, 1,461 days, 2024–2027 |
+| **Lotsawa House Phugpa Calculator** | <https://www.lotsawahouse.org/Static/tools/phugpa.html> | Whole-year day-by-day grid, marking skipped (`*`) and doubled (`+`) dates | **In use** — `crosscheck-lotsawa.ts`, 1,831 days, 21 February 2023 – 25 February 2028 (Tibetan 2150–2154) |
+| **christian-steinert TibetanBuddhistPracticeDates** | <https://practicedates.christian-steinert.de> | JSON API `/dates/YYYYMMDD-YYYYMMDD` giving day numbers plus doubled and leap-month flags | **In use** — `crosscheck-steinert.ts`, 1,461 days, 2024–2027 CE (Tibetan 2150–2154) |
 | **FPMT Dharma Practice Dates** | <https://fpmt.org/media/resources/dharma-dates/> | Practice days prepared from the Men-Tsee-Khang almanac — the authoritative Gelug reference | Practice days only; see the note on what it cannot settle |
-| **eszthoff/tibetan-date-calculator** | <https://www.npmjs.com/package/tibetan-date-calculator> | TypeScript, Phugpa, implements Janson — installed outside the repo and executed, never read | **In use** — `crosscheck-eszthoff.ts`, 1,826 days, 2023–2027 |
+| **eszthoff/tibetan-date-calculator** | <https://www.npmjs.com/package/tibetan-date-calculator> | TypeScript, Phugpa, implements Janson — installed outside the repo and executed, never read | **In use** — `crosscheck-eszthoff.ts`, 1,826 days, 2023–2027 CE (Tibetan 2149–2154) |
 | **lscalendars/tibcalendar** | <https://github.com/lscalendars/tibcalendar> | C library, reference implementation for Tibetan calendrical calculations | **Deferred.** A fourth implementation of the same paper, needing a C toolchain, adding no independent tradition line |
 
 > **Clean-room note.** Running these to compare *outputs* is permitted — dates are facts, not
@@ -193,15 +193,15 @@ what this project cannot yet safely transcribe for them.
 
 | | Window | Result |
 |---|---|---|
-| Phugpa, Tsurphu, Mongolian, Bhutanese | **2000–2020**, the years Janson prints | All four reproduced exactly, 21 years |
-| The same four | **2021–2030**, present only in his LaTeX comments | All four reproduced exactly, 10 years |
+| Phugpa, Tsurphu, Mongolian, Bhutanese | **2000–2020 CE (Tibetan 2127–2147)**, the years Janson prints | All four reproduced exactly, 21 years |
+| The same four | **2021–2030 CE (Tibetan 2148–2157)**, present only in his LaTeX comments | All four reproduced exactly, 10 years |
 
 The second tier is kept separate on purpose: those rows are Janson's own computed values but are
 not in the rendered paper, so a claim resting on them must say so and must never be described as
 published.
 
 **What this establishes:** which month number is the leap month, and in which years, for all four
-versions across 2000–2030. It also reproduces from first principles his prose statement that
+versions across 2000–2030 CE (Tibetan 2127–2157). It also reproduces from first principles his prose statement that
 Tsurphu and the Mongolian version share leap months — from two configs differing in *both* β\* and
 threshold, which is a stronger check than reading one column.
 
@@ -221,10 +221,10 @@ number, everywhere else before. That shifts day-level dates and the true month c
 
 | Source | Range | Agreement |
 |--------|-------|-----------|
-| Lotsawa House | 21 Feb 2023 – 25 Feb 2028, 1,831 days | **all** |
-| eszthoff | 1 Jan 2023 – 31 Dec 2027, 1,826 days | **all** |
-| christian-steinert | 1 Jan 2024 – 31 Dec 2027, 1,461 days | 1,438 — see below |
-| FPMT monthly calendars | 1 Jan 2022 – 31 Dec 2026, 1,826 days | 1,823 — see below |
+| Lotsawa House | 21 Feb 2023 – 25 Feb 2028 (Tibetan 2150–2154), 1,831 days | **all** |
+| eszthoff | 1 Jan 2023 – 31 Dec 2027 (Tibetan 2149–2154), 1,826 days | **all** |
+| christian-steinert | 1 Jan 2024 – 31 Dec 2027 (Tibetan 2150–2154), 1,461 days | 1,438 — see below |
+| FPMT monthly calendars | 1 Jan 2022 – 31 Dec 2026 (Tibetan 2148–2153), 1,826 days | 1,823 — see below |
 
 Two of the three implementations agree with the engine on every single day, including every
 doubled date, both leap months, and every skipped-date gap. The fourth source is not an
@@ -232,23 +232,24 @@ implementation at all — see below.
 
 #### What that does and does not cover
 
-Day-by-day external agreement spans **1 January 2022 to 25 February 2028**, just over six years —
+Day-by-day external agreement spans **1 January 2022 to 25 February 2028 (Tibetan 2148–2154)**, just over six years —
 the union of the four sources' windows, each of which is narrower; the table above gives each.
 Add Janson's Losar table and the epoch-era worked values and the *externally checked* evidence
-becomes 1927–2046 at one day per year, plus the epoch itself, plus that window in full.
+becomes 1927–2046 CE (Tibetan 2054–2173) at one day per year, plus the epoch itself, plus that window in full.
 
 | Check | Range | Source |
 |-------|-------|--------|
-| Cross-check fixtures, day by day | 1 Jan 2022 – 25 Feb 2028, between them | three implementations + FPMT |
-| Full and new moons, day by day | 1 Jan 2022 – 31 Dec 2026 | FPMT's moon icons — see [below](#fpmts-moon-icons) |
-| Losar table, one day per year | 1927–2046 | Janson |
+| Cross-check fixtures, day by day | 1 Jan 2022 – 25 Feb 2028 (Tibetan 2148–2154), between them | three implementations + FPMT |
+| Full and new moons, day by day | 1 Jan 2022 – 31 Dec 2026 (Tibetan 2148–2153) | FPMT's moon icons — see [below](#fpmts-moon-icons) |
+| Losar table, one day per year | 1927–2046 CE (Tibetan 2054–2173) | Janson |
 | Epoch constants to six decimals | 806 | Janson |
 | `a₂` divergence dates | 2001, 2006, 2025 | Janson |
-| `a₂` divergence counts | 1027–1091, 1900–1999, 2000–2099 | Janson |
+| `a₂` divergence counts | 1027–1091, 1900–1999, 2000–2099 CE (Tibetan 1154–1218, 2027–2126, 2127–2226) | Janson |
 
 **The astrological attributes have a third window, narrower than either, and confusing them is a
-live trap.** Dates are validated from 1 January 2022 to 25 February 2028 and observances only
-2022–2026, except sojong, which Rabten's schedule also checks from 2000 to 2100
+live trap.** Dates are validated from 1 January 2022 to 25 February 2028 (Tibetan 2148–2154) and observances only
+2022–2026 CE (Tibetan 2148–2153), except sojong, which Rabten's schedule also checks from 2000 to 2100 CE
+(Tibetan 2127–2227)
 ([below](#rabten-choelings-sojong-schedule)); the attribute layer is
 narrower still.
 
@@ -256,21 +257,21 @@ narrower still.
 |-------|-------|--------|-----------------|
 | Year and calendar-day attributes | all 60 cycle positions | Janson's own Table 60e | transcription and formula error — **not** external corroboration, since he computed it from the same formulas |
 | Month attributes: animal, gender | all 12 months, Phugpa **and** Tsurphu | Janson's own month-animal table | the same: transcription and formula error, not corroboration |
-| Month attributes: element | 1900–2100, both element rules | Janson's **prose**, there being no printed table | that the Tiger month takes the son of the year's element, that each element runs two months, and that Phugpa restarts annually where Tsurphu does not |
+| Month attributes: element | 1900–2100 CE (Tibetan 2027–2227), both element rules | Janson's **prose**, there being no printed table | that the Tiger month takes the son of the year's element, that each element runs two months, and that Phugpa restarts annually where Tsurphu does not |
 | Lunar-day attributes | every day of every month | Janson's **prose** | the opening animal of odd and even months, and the opening trigram and number he names for each month animal |
-| Lunar mansion, day by day | 2022–2026, Phugpa only | FPMT's day-quality codes | the mansion arithmetic, at **98.0%** — see below |
-| Yoga favorability, day by day | 2022–2026, Phugpa only: the yoga is refused under the Bhutanese configs | FPMT's `FD-`/`UD-` prefixes | the favorability table, at **99.8%** — it reads FPMT's own pair letters, so the mansion residual cannot reach it, and the four disagreements are days FPMT contradicts itself on |
+| Lunar mansion, day by day | 2022–2026 CE (Tibetan 2148–2153), Phugpa only | FPMT's day-quality codes | the mansion arithmetic, at **98.0%** — see below |
+| Yoga favorability, day by day | 2022–2026 CE (Tibetan 2148–2153), Phugpa only: the yoga is refused under the Bhutanese configs | FPMT's `FD-`/`UD-` prefixes | the favorability table, at **99.8%** — it reads FPMT's own pair letters, so the mansion residual cannot reach it, and the four disagreements are days FPMT contradicts itself on |
 | Yoga element pairs and grading | the ten rows; no window | the *tshig mdzod chen mo*'s `'phrod sbyor`, through `verify:month-and-yoga-names` | that Henning's ten pairs are the dictionary's, and that `auspiciousness` is its grading — **membership read by list order**, since it states group sizes only. `test/astrology/yoga.test.ts` pins that good + restorative are exactly the favorable six |
 
 **That 98.0% is a characterised figure, not a tolerance.** 1,784 of 1,821 days agree — a **2.0%**
-residual. Over 2022–2025 alone it was 2.4%, 1,424 of 1,459, re-measured 2026-09-12 rather than carried
+residual. Over 2022–2025 CE (Tibetan 2148–2152) alone it was 2.4%, 1,424 of 1,459, re-measured 2026-09-12 rather than carried
 over: the plan's working figure of 3.9% predated both the doubled-day rule and a leap-month fix in the
-cross-check itself, and two files had inherited it. **All 38 doubled-first days in 2022–2026 agree.**
+cross-check itself, and two files had inherited it. **All 38 doubled-first days in 2022–2026 CE (Tibetan 2148–2153) agree.**
 
 **The residual is FPMT's, not this arithmetic's.** Henning's daily Phugpa calendars give the same
 mansion as this engine on **all 1,821 days** and disagree with FPMT on exactly the same 37. That is
 the engine's own lineage, so it proves the implementation rather than the calendar — but it does
-locate the difference. Measured 2026-09-14 for 2022–2025 and 2026-11-08 for 2026, where Henning's
+locate the difference. Measured 2026-09-14 for 2022–2025 CE (Tibetan 2148–2152) and 2026-11-08 for 2026 CE (Tibetan 2152–2153), where Henning's
 file spells one mansion *gro zhin* and the engine *gro bzhin*: the same mansion.
 Re-measured over all five years on 2026-11-19 by the harness in
 [`scripts/evidence/henning-mansions/`](../scripts/evidence/henning-mansions/README.md), which reruns
@@ -321,11 +322,11 @@ Those are all **Phugpa**. Bhutan has a window of its own, and a wider one:
 
 | Check | Range | Source |
 |-------|-------|--------|
-| `BHUTAN_HENNING`, day by day | 1 Jan 2000 – 2 Apr 2030 | Henning's software, via `test/fixtures/bhutan.ts` |
-| Month sequence, at one unique offset | 1 Jan 2000 – 2 Apr 2030 | the same, reduced to months |
-| Leap months | 2000–2030 | Janson's four-version table — a separate lineage |
-| Losar 2003 | 2003 | Janson's Bhutan appendix |
-| `BHUTAN`, twenty-five days | 2025-2026 | **the Royal Government of Bhutan's own calendar**, via `test/fixtures/rgob.ts` |
+| `BHUTAN_HENNING`, day by day | 1 Jan 2000 – 2 Apr 2030 (Tibetan 2126–2157) | Henning's software, via `test/fixtures/bhutan.ts` |
+| Month sequence, at one unique offset | 1 Jan 2000 – 2 Apr 2030 (Tibetan 2126–2157) | the same, reduced to months |
+| Leap months | 2000–2030 CE (Tibetan 2127–2157) | Janson's four-version table — a separate lineage |
+| Losar 2003 | 2003 CE (Tibetan 2130) | Janson's Bhutan appendix |
+| `BHUTAN`, twenty-five days | 2025–2026 CE (Tibetan 2151–2153) | **the Royal Government of Bhutan's own calendar**, via `test/fixtures/rgob.ts` |
 
 The day-by-day row compares 11,050 days.
 Three things to keep straight about that window. It ends on **2 April 2030**, not at the end of 2030,
@@ -354,10 +355,10 @@ Losar table.
 The three divergence dates were already cited in the note above; they are now extracted
 mechanically and asserted rather than quoted.
 
-The 1027–1091 count is the only external check on *calendar output* before 1927, and it is a real
+The 1027–1091 CE (Tibetan 1154–1218) count is the only external check on *calendar output* before 1927 CE, and it is a real
 one: Janson's computer search found 16 divergence events in the first 65-year cycle, where
 `a₂ = 1/28` and Henning's `a₂` give different Tibetan dates, and the engine reproduces all 16 —
-along with his 9 in 1900–1999 and 8 in 2000–2099.
+along with his 9 in 1900–1999 and 8 in 2000–2099 CE (Tibetan 2027–2126 and 2127–2226).
 Because the package ships both values, this is falsifiable without either being privileged, and
 Janson notes the occurrences are irregular, so the three counts are not a single fact restated.
 
@@ -374,7 +375,7 @@ arithmetic — and those can only catch an inconsistency, never a shared misread
 the ISO date round-trips: well-formedness, not correctness.
 
 This is a known and accepted limit, not an oversight. The cheapest way to narrow it further is more
-worked values from Janson outside 1927–2046, extracted rather than transcribed.
+worked values from Janson outside 1927–2046 CE (Tibetan 2054–2173), extracted rather than transcribed.
 
 ### Rabten Choeling's sojong schedule
 
@@ -394,7 +395,7 @@ It establishes that the rule reproduces one source's schedule.
 The rule is **inferred, not sourced**: Rabten states no method, and its lineage is unknown, so agreement
 with it says nothing about whether the rule is the tradition's.
 FPMT's calendar departs from the rule for one run, 2022-04-30 to 2022-12-22 (17 of its 124 sojongs in
-2022–2026), which the form does not express; see
+2022–2026 CE, Tibetan 2148–2153), which the form does not express; see
 [validation-sources.md](validation-sources.md#rabten-choelings-calendar-hennings-lunar-anomaly-value-method-unstated).
 The "Sojong 14" label is not reported on results, and is not compared here.
 
@@ -630,7 +631,7 @@ non-device configurations above, plus Node under `temporal-polyfill/full/shim` a
 `@js-temporal/polyfill` 0.5.1, set as the global before the import. Versions: `temporal-polyfill`
 1.0.5, Playwright 1.63.0. Three further comparisons, all in Node:
 
-- **The date window, day by day.** From 1 January 2022 to 25 February 2028, `isoToTibetan`,
+- **The date window, day by day.** From 1 January 2022 to 25 February 2028 (Tibetan 2148–2154), `isoToTibetan`,
   `attributesFor` and `observancesOn` under all four shipped configs, hashed: identical under native
   `Temporal` and the three polyfill builds. The window's only month with a skipped 15 is 2153-M11, and
   the script refuses to report unless it is in the compared set.
