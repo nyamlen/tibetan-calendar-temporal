@@ -27,7 +27,8 @@
  *   the destructured form is caught. **X11** proves the error-table half of Rule 16, which R16 does
  *   not reach. **X12** proves Rule 4's public-docblock scope, widened the same day, and **X13** that
  *   the scope reads past a `//` between a docblock and its declaration. **X14** and **X15** prove
- *   Rule 17's `@example` block starts only at its tag and ends only at a known TSDoc tag.
+ *   Rule 17's `@example` block starts only at its tag and ends only at a known TSDoc tag. **X16**
+ *   proves Rule 10 skips a type-only part before reading its `as` alias.
  *
  * ## Why a copy of the working tree, and not a worktree or the checkout itself
  *
@@ -407,6 +408,25 @@ const rule = (number: number): Row => {
 };
 
 const X: readonly Row[] = [
+	{
+		id: "X16",
+		what: "a type-only export aliased to a config-shaped name, beside a value alias that is one",
+		// Rule 10 split `A as B` before skipping type-only parts, so `type X as Y_CAPS` reached the
+		// check as the config `Y_CAPS`. The value alias makes the row exit 1 and proves the rule still
+		// reads aliases; the type alias must not be reported.
+		apply: (tree) =>
+			tree.append(
+				"src/index.ts",
+				[
+					"",
+					'export { type TraditionConfig as ZZ_TYPE_X16 } from "./traditions/types.js";',
+					'export { PHUGPA as ZZ_VALUE_X16 } from "./traditions/phugpa.js";',
+					"",
+				].join("\n"),
+			),
+		must: ["exported configs are validated", "exports the tradition config `ZZ_VALUE_X16`"],
+		mustNot: ["exports the tradition config `ZZ_TYPE_X16`"],
+	},
 	{
 		id: "X15",
 		what: "an unknown @-word inside an @example, which must not end the block",
