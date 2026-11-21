@@ -5,10 +5,11 @@ status: accepted
 
 # Tibetan-date and Western-date inputs refuse each other's shape
 
-**Decision:** the Tibetan-date entry points — `tibetanToIso`, `tibetanDateExists`,
-`formatTibetanDate`, `daysInMonth` — refuse a `Temporal.PlainDate`, `PlainDateTime` or
-`ZonedDateTime` at runtime, via `rejectTemporalInstance`, and refuse an `isLeapMonth` or
-`isLeapDay` that is present but not a `boolean`, via `rejectInvalidLeapFlags`. The Western-date
+**Decision:** every Tibetan-date entry point — `tibetanToIso`, `tibetanDateExists`,
+`formatTibetanDate`, `daysInMonth` and every later one — refuses a `Temporal.PlainDate`,
+`PlainDateTime` or `ZonedDateTime` at runtime, and an `isLeapMonth` or `isLeapDay` that is present
+but not a `boolean`, by calling `assertTibetanShape`, the one home for the Tibetan-date shape. Its
+helpers `rejectTemporalInstance` and `rejectInvalidLeapFlags` are private to `src/types.ts`. The Western-date
 entry point, `asPlainDate`, refuses a bare `{ year, month, day }` object. `calendarId?: never` on
 `TibetanDateFields` and `TibetanMonthFields` makes the first refusal a compile-time error too, not
 only a runtime one.
@@ -86,8 +87,9 @@ class it is invoked on says which calendar is meant.
   than restoring the general widening.
 - Do not delete `calendarId?: never` from either input type as unused — its value is entirely at
   compile time.
-- A new Tibetan-date entry point calls `rejectTemporalInstance` and `rejectInvalidLeapFlags` before
-  any field validation, in the same style as the four existing ones. See
+- A new Tibetan-date entry point calls `assertTibetanShape` before any field validation, and never
+  the `reject*` helpers directly: they are private, and calling one on the caller's object would read
+  its fields a second time, outside the read-once snapshot. See
   [2026-08-12-input-validation-boundary.md](2026-08-12-input-validation-boundary.md) for the
   general rule that every exported function guards its own input; this record is the specific
   policy for the Temporal/Tibetan shape collision within that rule.

@@ -51,9 +51,9 @@ otherwise.
   year-numbering record both said.
 
 **Phase 2 outcome.** The engine now validates against three independent implementations and
-against the almanac, day by day across 1 January 2022 to 25 February 2028 between them — see
-[testing.md](testing.md#what-that-does-and-does-not-cover) for what that window does and does not
-establish. Four things came out differently from the plan:
+against the almanac, day by day — see
+[testing.md](testing.md#what-that-does-and-does-not-cover) for the window and what it does and does
+not establish. Four things came out differently from the plan:
 
 - **The `a₂` fork was settled from the paper, not from a purchased almanac.** Janson states that
   calendars use `1/28` "for example in the almanac", and his bibliography resolves that to the
@@ -501,7 +501,7 @@ that its first step is still open.
   *yongdzin* by the nasal policy, and *lo-ngen*, which is no nasal-rule case but a reading ruling.
   *senchang*, *nyönden*, *kündzin*, *künden* and the season months stand as THL gives them, and
   *dongngen* is a plain join left as THL gives it.
-- [x] **Small findings parked by the pre-1.0.0 reviews — one list, each with a decision.**
+- [ ] **Small findings parked by the pre-1.0.0 reviews — one list, each with a decision.**
   The code review (2026-11-15), the phonetics-by-word reviews (2026-11-15) and the docblock audit
   (2026-11-17) each found small defects they did not fix on their own branch.
   Every one is here, marked **fix** (done in one cleanup batch after the navigator build and before
@@ -604,6 +604,34 @@ that its first step is still open.
   - **Accepted** (Andreas, 2026-11-17) — consistent on a careful read: `src/astrology/types.ts` cites Henning's
     Appendix I, whose index column starts at 0, beside his web list, where Abhijit is the 23rd entry.
   - **Accepted** (Andreas, 2026-11-17) — cosmetic: row X13 sits before X12 in `test/check-conventions.mutations.ts`.
+
+  *From the adversarial-review fixes branch* — its Task 4 gate (2026-11-19) and its whole-branch review
+  (2026-11-21), both Opus. Each decision below is **proposed by the session and awaits Andreas' ruling**,
+  which is why this item is unticked:
+  - **Fix** — `TCT_OUTSIDE_EXACT_RANGE`'s message says the tradition's "arithmetic stays exact" even for a
+    consumer config whose bound is Temporal's range, not exactness (`assertExactJulianDay`,
+    `src/computation/conversion.ts`). Message text only; say "or where Temporal can name the day" when
+    the bound was clamped.
+  - **Fix, wording for Andreas** — S10's approved sentence in `scripts/fetch-eszthoff-fixtures.mjs` (and
+    so `test/fixtures/crosscheck-eszthoff.ts`) says eszthoff's almanac value is "inferred from where its
+    dates diverge from this engine's", but it agrees with the engine on every day. The evidence is its
+    agreement on the dates where the two increments diverge (2025-11-19). Needs a regeneration from a
+    scratch directory.
+  - **Fix** — the both-eras convention is stated only in a `//` in `test/why-trust-these-dates.test.ts`:
+    windows of Janson's Y map as +127, windows of days to the Tibetan year holding each end. Say so once
+    in each window document; give `docs/testing.md`'s epoch row its Tibetan year (933); use one form,
+    "CE (Tibetan …)", in why-trust's Tsurphu sentence.
+  - **Fix** — `docs/guide.md`'s "The cost in time" says a year's observances take "about 2 ms"; the README
+    says 2–3 ms from the same re-record (every-form 2.01 ms, `EXAMPLE_OBSERVANCES` 2.57 ms).
+  - **Fix** — `scripts/evidence/henning-mansions/`: the README's Git Bash block uses an undefined
+    `$SCRATCH`; the README says the manifest's size and status are compared, but `check-recording.mjs`
+    compares the SHA-256 only; and `check-recording.mjs` has no usage guard for a missing directory.
+  - **Fix** — `check:conventions` rule 10 splits `A as B` before skipping a type-only part, so
+    `export { type X as Y_CAPS } from "./traditions/…"` would be checked as a config. Nothing triggers it
+    today; skip a part that starts with the `type` keyword first, with a mutation row.
+  - **Fix** — `docs/decisions/2026-08-16-exported-means-validated.md` says `PHUGPA_HENNING`'s leap months
+    are validated "as Phugpa's". True by construction (only `lunarAnomaly` differs), but untested on the
+    export; add it to the export test in `test/validation/cross-version-leap.test.ts`.
 - [x] **Composable/additive `ObservanceConfig`s — decide before 1.0.0, not after.** Today, a
       consumer combining several institutions' rule sets (e.g. `DEFAULT_OBSERVANCES` plus a `TEACHERS` and a
       `TANTRA` config) hand-rolls
@@ -1649,14 +1677,17 @@ nothing and reports success.
       code-review fixes branch.
       **Status 2026-11-16:** both merged to `main` (`51c7c03`) — the cache is an LRU of 64 years per
       config, and both CI actions are pinned to commit SHAs.
-      Still open: `/security-review` on the release branch's diff. State the honest scope first, or the pass will invent findings: zero
-      runtime dependencies, no I/O, no network, no filesystem access, no user-supplied strings
-      reaching anything but integer arithmetic. The real attack surface is **supply chain and
-      release**, most of it already itemised under Publishing — provenance, the lockfile, token
-      expiry, the `repository.url` match. **Command:** `/security-review` is **diff-shaped** (it
-      reviews pending changes on the current branch), so for a standing audit use
-      `/sc:sc-analyze . --focus security --depth deep`, and run `/security-review` on the release
-      branch's diff as the second, narrower pass
+      The 2026-11-15 pass covered release configuration and denial of service, and ruled hostile
+      input to the library out of scope.
+      **Still open, amended 2026-11-19 (adversarial review, coverage decision 1): the second pass is
+      a vulnerability review of the package**, not of the release configuration. Its subject is the
+      diff from `34b8ab4` to the tip of the adversarial-review fixes branch over `src/`, read for:
+      unbounded time or memory reachable from an export, a skipped guard, a value rendered without
+      `describe`, shared mutable state handed out, and caller code run during a read; plus
+      `npm audit` of the devDependency tree, which CI and the generators run. **Command:**
+      `/security-review` is **diff-shaped**, so run it on that range
+      (`git diff 34b8ab4..<fixes-branch tip> -- src/`), with the scope above stated first or the pass
+      will invent findings: zero runtime dependencies, no I/O, no network, no filesystem access.
 - [ ] **Full adversarial review.** Not a code review with a harsher tone: the subject is the
       **claims**, not the code. Every load-bearing assertion this repository makes about itself —
       the validation windows and what they actually cover, "exported means validated", the
@@ -1666,10 +1697,27 @@ nothing and reports success.
       adversarial agents (`superpowers:dispatching-parallel-agents`) with one claim-set each, plus
       `/sc:sc-spec-panel` over the decision records; `/code-review ultra` from the release branch is
       the multi-agent code-shaped half of it. The check that matters: a claim nobody can restate
-      from primary evidence is a claim to soften before 1.0.0, not to defend
+      from primary evidence is a claim to soften before 1.0.0, not to defend.
+      **Run 2026-11-18 to 2026-11-19** (steps 1 and 2: code shards X1/X2/L1–L4 and claim-sets 1–7;
+      triage and every ruling in the plans directory's `adversarial-review-2026-11/TRIAGE.md`).
+      Every finding has a decision. The fixes are the `adversarial-review-fixes` branch: a frozen
+      `TibetanDate`, `PlainDateTime`/`ZonedDateTime` read from their slots, the exact range clamped
+      to Temporal's, the guard homes, three `check:conventions` blind spots, the Henning evidence
+      harness, nine decision records, and the approved softening of the documents.
+      Three behaviour changes give no error (a write to a returned, now frozen, `TibetanDate` is
+      ignored in non-strict code; a `PlainDateTime` or `ZonedDateTime` subclass is read from its slots;
+      six-season month names list `part` second). They need no release note: they landed before 1.0.0,
+      so no released version behaved otherwise.
+      Tick this after that branch merges; the maintainability shards M1–M6 and P1 run separately on the merged
+      `main`.
 
 **Publishing**
 
+- [ ] **Keep a `CHANGELOG.md` from 1.0.0.** Andreas, 2026-11-21: the first entry is 1.0.0 itself, and
+      nothing that changed before it is recorded, because no released version behaved otherwise. From
+      1.0.0 on, an entry for every release states each change a consumer can see, with a behaviour
+      change that raises no error flagged as such. Decide where it ships (`package.json#files`) and
+      whether `check-pack` asserts it, in the same commit that adds it.
 - [ ] Publish from **GitHub Actions with npm provenance**, not locally — provenance ties each
       released version to the commit that built it, which reinforces the clean-room record
 - [x] Grant the `nyamlen:developers` team read-write on the package — done 2026-08-11, verified

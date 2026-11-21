@@ -29,6 +29,10 @@ import {
 	type TibetanCalendarErrorCode,
 	thrownDetail,
 } from "./errors.js";
+// A value-import cycle: `format.ts` imports this file back. It is safe only while every reference
+// across it sits inside a function body; a module-level use of either side's exports would hit a
+// TDZ `ReferenceError` whose appearance depends on which barrel loads first. It stays because `SkippedDayError`'s
+// message formats the requested date the one way the package formats dates.
 import { formatTibetanDate } from "./format.js";
 import { temporalKindOf, temporalTypeNameOf } from "./temporal-kind.js";
 
@@ -225,14 +229,27 @@ export type TibetanWeekday = number & { readonly __tibetanWeekday: unique symbol
  * ```
  */
 export function asTibetanWeekday(value: number): TibetanWeekday {
-	if (!Number.isInteger(value) || value < 0 || value > 6) {
+	assertTibetanWeekday("asTibetanWeekday", value);
+	return value;
+}
+
+/**
+ * Refuses a value that is not a Tibetan weekday number, an integer 0–6.
+ *
+ * @param subject - The export, which opens the message.
+ * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE`.
+ */
+export function assertTibetanWeekday(
+	subject: string,
+	value: unknown,
+): asserts value is TibetanWeekday {
+	if (!Number.isInteger(value) || (value as number) < 0 || (value as number) > 6) {
 		throw rangeError(
 			"TCT_FIELD_OUT_OF_RANGE",
-			`asTibetanWeekday: expected an integer 0-6, received ${describe(value)}. This is the Tibetan ` +
+			`${subject}: expected an integer 0-6, received ${describe(value)}. This is the Tibetan ` +
 				"numbering — 0 is Saturday — not the ISO dayOfWeek, which runs 1-7 from Monday",
 		);
 	}
-	return value as TibetanWeekday;
 }
 
 // Name objects are shared rather than copied: a `TibetanDate` holds a pointer, so building a year
@@ -365,6 +382,8 @@ export interface TibetanWeekdayName extends TibetanName {
  * day carries — can never be represented here; that is why there is no `isSkippedDay` field.
  * See {@link SkippedDayError}.
  *
+ * A returned date is frozen, so assigning to one of its fields throws in strict mode.
+ *
  * Do not format this by hand as `` `${year}-${month}-${day}` ``. That produces a well-formed
  * ISO-looking string which is not an ISO date, and which silently loses leap-month and
  * doubled-day information. Use the package's formatting function.
@@ -396,7 +415,7 @@ export interface TibetanDate {
 	 * time — `yearNameFor(year)` gives the element–animal name, which is the culturally correct
 	 * label for such dates.
 	 */
-	year: number;
+	readonly year: number;
 
 	/**
 	 * Janson's *Y*: the Gregorian year in which this Tibetan year begins, in the present era.
@@ -412,7 +431,7 @@ export interface TibetanDate {
 	 * December of the previous Gregorian year, and `yearStartsIn` is then that year plus one: the
 	 * last Phugpa Losar in December is 31 December CE 718, in Tibetan 846.
 	 */
-	yearStartsIn: number;
+	readonly yearStartsIn: number;
 
 	/**
 	 * Month number, 1–12.
@@ -425,7 +444,7 @@ export interface TibetanDate {
 	 * Which of the pair is the leap month is the tradition's to say — first under Phugpa, second
 	 * under the Bhutanese version. Do not assume an order here.
 	 */
-	month: number;
+	readonly month: number;
 
 	/**
 	 * The month as a Temporal-style code: `"M01"` through `"M12"`, with an `L` suffix for a leap
@@ -435,10 +454,10 @@ export interface TibetanDate {
 	 * Unlike {@link TibetanDate.month} this is unique within a year, which makes it the safe key
 	 * for grouping or sorting.
 	 */
-	monthCode: string;
+	readonly monthCode: string;
 
 	/** Whether this is the leap month of the two sharing this number — not necessarily the first. */
-	isLeapMonth: boolean;
+	readonly isLeapMonth: boolean;
 
 	/**
 	 * Day number within the month, 1–30.
@@ -447,7 +466,7 @@ export interface TibetanDate {
 	 * Numbered by the lunar day current at the calendar day's start, so the sequence is not
 	 * always contiguous: a number may be skipped, or carried by two consecutive calendar days.
 	 */
-	day: number;
+	readonly day: number;
 
 	/**
 	 * Whether this day's number is shared with an adjacent calendar day.
@@ -456,7 +475,7 @@ export interface TibetanDate {
 	 * `true` on **both** days of the pair. To distinguish them, use
 	 * {@link TibetanDate.isLeapDay} or the differing {@link TibetanDate.dayOfWeek}.
 	 */
-	isDoubledDay: boolean;
+	readonly isDoubledDay: boolean;
 
 	/**
 	 * Whether this is the **first** day of a doubled pair — the one almanacs mark "Extra".
@@ -478,7 +497,7 @@ export interface TibetanDate {
 	 * where other observances are usually not kept in a leap month at all. That is a separate axis
 	 * from which half of a doubled day an observance falls on, and conflating the two is easy.
 	 */
-	isLeapDay: boolean;
+	readonly isLeapDay: boolean;
 
 	/**
 	 * Whether the true full moon falls in this calendar day.
@@ -495,7 +514,7 @@ export interface TibetanDate {
 	 * Janson notes the true elongation differs from the astronomical value by about 2°, roughly
 	 * four hours, so this usually — but not always — agrees with the astronomical full moon.
 	 */
-	isFullMoon: boolean;
+	readonly isFullMoon: boolean;
 
 	/**
 	 * Whether the true new moon falls in this calendar day.
@@ -506,7 +525,7 @@ export interface TibetanDate {
 	 * wrong when 30 is skipped, and when 30 is doubled the new moon falls in the **second** of the
 	 * pair, not the leap day.
 	 */
-	isNewMoon: boolean;
+	readonly isNewMoon: boolean;
 
 	/**
 	 * The corresponding Western calendar day.
@@ -518,7 +537,7 @@ export interface TibetanDate {
 	 * 1 March 1500 to 28 February 1700 (so in 1582), by fewer days earlier, by none in the third
 	 * century CE, and by more from March 1700.
 	 */
-	isoDate: Temporal.PlainDate;
+	readonly isoDate: Temporal.PlainDate;
 
 	/**
 	 * ISO day of week: 1 = Monday through 7 = Sunday.
@@ -530,7 +549,7 @@ export interface TibetanDate {
 	 * would be invisible in most tests. For the Tibetan numbering see {@link
 	 * TibetanDate.tibetanWeekday}.
 	 */
-	dayOfWeek: number;
+	readonly dayOfWeek: number;
 
 	// Computed here from the Julian day the conversion already holds. It is flat rather than grouped
 	// because it is a date component; the name groups under `*Name` — see `weekdayName`.
@@ -556,7 +575,7 @@ export interface TibetanDate {
 	 * Field and function carry one name: this is exactly `tibetanWeekday(julianDayFromIso(isoDate))`.
 	 * For its name see {@link TibetanDate.weekdayName}.
 	 */
-	tibetanWeekday: TibetanWeekday;
+	readonly tibetanWeekday: TibetanWeekday;
 
 	/**
 	 * The Tibetan name of {@link TibetanDate.tibetanWeekday} — script, Wylie, phonetics, and the
@@ -581,7 +600,7 @@ export interface TibetanDate {
 	 * This package ships the Tibetan name and no translations; see the README's
 	 * Internationalisation section for why, and for how to localise the rest.
 	 */
-	weekdayName: TibetanWeekdayName;
+	readonly weekdayName: TibetanWeekdayName;
 
 	/**
 	 * The lunation this date falls in — the same integer {@link TibetanMonth.lunation} carries.
@@ -595,7 +614,7 @@ export interface TibetanDate {
 	 * Zero is the tradition's epoch, so values are large, and negative before it. It is a coordinate,
 	 * not a month number.
 	 */
-	lunation: number;
+	readonly lunation: number;
 }
 
 /**
@@ -760,7 +779,7 @@ export interface TibetanMonth {
  *
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `value` is any `Temporal` instance.
  */
-export function rejectTemporalInstance(
+function rejectTemporalInstance(
 	functionName: string,
 	value: unknown,
 	shape: "month" | "date" = "date",
@@ -836,7 +855,7 @@ function rejectNonObject(functionName: string, value: unknown): asserts value is
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `value` is not an object, or `isLeapMonth`
  * or `isLeapDay` is present and not a boolean.
  */
-export function rejectInvalidLeapFlags(
+function rejectInvalidLeapFlags(
 	functionName: string,
 	value: { isLeapMonth?: unknown; isLeapDay?: unknown } | null | undefined,
 ): void {
@@ -884,7 +903,7 @@ export type RequiredDateField = "year" | "month" | "day";
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` if a listed field is absent, nullish or not
  * a number.
  */
-export function rejectMissingFields(
+function rejectMissingFields(
 	functionName: string,
 	value: { year?: unknown; month?: unknown; day?: unknown },
 	fields: readonly RequiredDateField[],

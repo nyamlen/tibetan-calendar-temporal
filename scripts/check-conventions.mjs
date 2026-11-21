@@ -519,19 +519,18 @@ const docblockDates = (source) => {
 };
 
 /**
- * Rule 18 — the lines a docblock swallows: a `//` line, or a second `/**`, before the closer.
+ * Rule 18 — the lines a docblock swallows: a `//` line, or a second `/**` or `/*`, before the closer.
  *
- * A line inside a docblock begins with its ` *` gutter, so one that begins `//` or `/**` is a
+ * A line inside a docblock begins with its ` *` gutter, so one that begins `//` or `/*` is a
  * stray opener's neighbour: the `/**` above it opened a block, and TypeScript ships everything up to
- * the next closer as that block's text. `{ line }` is 1-based.
+ * the next closer as that block's text. A `c8 ignore` comment under a lone opener is the second
+ * case, and its own closer is what ends the block. `{ line }` is 1-based.
  */
 const docblockSwallows = (source) =>
 	docblocksOf(source).flatMap(({ start, lines }) =>
 		lines
 			.map((raw, offset) => ({ line: start + offset + 1, text: raw.trimStart(), offset }))
-			.filter(
-				({ text, offset }) => offset > 0 && (text.startsWith("//") || text.startsWith("/**")),
-			),
+			.filter(({ text, offset }) => offset > 0 && (text.startsWith("//") || text.startsWith("/*"))),
 	);
 
 const REPOSITORY_BLOB = "https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/";
@@ -551,7 +550,7 @@ const docblockDocPaths = (source, shipped) => {
 	for (const { start, lines } of docblocksOf(source)) {
 		lines.forEach((raw, offset) => {
 			for (const match of raw.matchAll(
-				/(https?:\/\/[^\s)\]>`]+)|(?<![\w/.:-])((?:\.\.\/)*(?:[\w-]+\/)*[\w-][\w.-]*\.md)\b/g,
+				/(https?:\/\/[^\s)\]>`]+)|(?<![\w/.:-])((?:\.\/)?(?:\.\.\/)*(?:[\w-]+\/)*[\w-][\w.-]*\.md)\b/g,
 			)) {
 				const [whole, url, relative] = match;
 				const at = { line: start + offset + 1, text: raw.trim() };
@@ -563,7 +562,7 @@ const docblockDocPaths = (source, shipped) => {
 					if (own && shipped.has(own[1])) out.push({ ...at, path: own[1] });
 					continue;
 				}
-				const path = relative.replace(/^(\.\.\/)+/, "");
+				const path = relative.replace(/^\.\//, "").replace(/^(\.\.\/)+/, "");
 				if (shipped.has(path)) continue;
 				// The label may be a code span, `[`docs/x.md`](…)`, which keeps a dated filename out of
 				// Rule 17's reach.
@@ -1862,7 +1861,14 @@ function rule10() {
 	}
 
 	for (const [, names] of read("src/index.ts").matchAll(CONFIG_EXPORT)) {
-		for (const name of names.split(",").map((part) => part.trim())) {
+		// `A as B` exports the name `B`, which is the name a suite must import.
+		for (const name of names.split(",").map(
+			(part) =>
+				part
+					.trim()
+					.split(/\s+as\s+/)
+					.at(-1) ?? "",
+		)) {
 			// Type-only exports carry no dates and nothing to validate.
 			if (name === "" || name.startsWith("type ") || !/^[A-Z][A-Z0-9_]*$/.test(name)) continue;
 			if (!validationImports.has(name)) {

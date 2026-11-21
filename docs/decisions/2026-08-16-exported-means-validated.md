@@ -32,8 +32,9 @@ calendar that is quietly incorrect — the failure this package exists to preven
 | Tradition | Expressible | Leap months validated | Dates validated | Exported |
 |---|---|---|---|---|
 | Phugpa | yes | yes | yes — day by day, four sources; window in [testing.md](../testing.md) | **yes** |
+| Phugpa, `PHUGPA_HENNING` | yes | yes, as Phugpa's | observance level only — Rabten's sojong days, the one external positive check; Janson's divergence dates are reproduced but not external; Lotsawa House and FPMT are negative controls; window in [testing.md](../testing.md) | **yes** |
 | Bhutanese, `BHUTAN_HENNING` | yes | yes — Janson's table | yes — day by day over Henning's data; window in [testing.md](../testing.md) | **yes** |
-| Bhutanese, `BHUTAN` | yes | yes — Janson's table | sample only — 25 days of the Royal Government's calendar, no sweep; window in [testing.md](../testing.md) | **yes** |
+| Bhutanese, `BHUTAN` | yes | yes — Janson's table, tested on the export (`test/validation/cross-version-leap.test.ts`) | sample only — 25 days of the Royal Government's calendar, no sweep; window in [testing.md](../testing.md) | **yes** |
 | Tsurphu | yes | yes — Janson's table | **no** | no |
 | Mongolian | yes | yes — Janson's table | **no** | no |
 

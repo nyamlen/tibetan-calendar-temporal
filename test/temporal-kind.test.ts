@@ -263,7 +263,7 @@ describe("non-ISO calendars", () => {
 		const call = () => isoToTibetan(`${ISO}[u-ca=hebrew]` as never);
 		expect(codeOf(call)).toBe("TCT_INVALID_ARGUMENT");
 		expect(thrownBy(call)?.message).toMatch(
-			/^received a Temporal\.PlainDate in the hebrew calendar/,
+			/^isoToTibetan\(date\): received a Temporal\.PlainDate in the hebrew calendar/,
 		);
 	});
 
@@ -373,6 +373,124 @@ describe("a native subclass is read from its slots", () => {
 		const error = thrownBy(() => isoToTibetan(forwardingProxy(NATIVE)));
 		expect(error?.code).toBe("TCT_INVALID_ARGUMENT");
 		expect(error?.message).toContain("a Proxy around one");
+	});
+});
+
+describe("a native PlainDateTime or ZonedDateTime is read from its slots", () => {
+	const fieldsOf = (d: ReturnType<typeof isoToTibetan>) => [
+		d.year,
+		d.monthCode,
+		d.day,
+		d.isoDate.toString(),
+	];
+	// The parameter is typed PlainDate; the other two kinds are accepted at runtime.
+	const toTibetan = (value: unknown) => isoToTibetan(value as never);
+	const expected = fieldsOf(toTibetan(Temporal.PlainDate.from("2027-01-15")));
+	const forwardingProxy = <T extends object>(target: T): T =>
+		new Proxy(target, {
+			get: (inner, key) => {
+				const value = Reflect.get(inner, key, inner);
+				return typeof value === "function" ? value.bind(inner) : value;
+			},
+		});
+
+	it("answers for a PlainDateTime subclass, not for its overridden toPlainDate", () => {
+		class LyingPDT extends Temporal.PlainDateTime {
+			override toPlainDate(): Temporal.PlainDate {
+				return Temporal.PlainDate.from("2000-01-01");
+			}
+		}
+		expect(fieldsOf(toTibetan(new LyingPDT(2027, 1, 15)))).toEqual(expected);
+		expect(expected.slice(0, 3)).toEqual([2153, "M12", 8]);
+	});
+
+	it("answers for a ZonedDateTime subclass, not for its overridden toPlainDate", () => {
+		class LyingZDT extends Temporal.ZonedDateTime {
+			override toPlainDate(): Temporal.PlainDate {
+				return Temporal.PlainDate.from("2000-01-01");
+			}
+		}
+		const zoned = Temporal.ZonedDateTime.from("2027-01-15T12:00[UTC]");
+		expect(fieldsOf(toTibetan(new LyingZDT(zoned.epochNanoseconds, "UTC")))).toEqual(expected);
+	});
+
+	it("refuses a Hebrew PlainDateTime whose toPlainDate claims ISO", () => {
+		class LyingCalendarPDT extends Temporal.PlainDateTime {
+			override toPlainDate(): Temporal.PlainDate {
+				return super.toPlainDate().withCalendar("iso8601");
+			}
+		}
+		const value = new LyingCalendarPDT(2027, 1, 15, 0, 0, 0, 0, 0, 0, "hebrew");
+		expect(codeOf(() => toTibetan(value))).toBe("TCT_INVALID_ARGUMENT");
+	});
+
+	it("refuses a forwarding Proxy around an ISO PlainDateTime, naming it as a Proxy", () => {
+		const error = thrownBy(() =>
+			toTibetan(forwardingProxy(Temporal.PlainDateTime.from("2027-01-15T12:00"))),
+		);
+		expect(error?.code).toBe("TCT_INVALID_ARGUMENT");
+		expect(error?.message).toContain("a Proxy around one");
+	});
+
+	it("refuses a forwarding Proxy around a ZonedDateTime, naming it as a Proxy", () => {
+		const error = thrownBy(() =>
+			toTibetan(forwardingProxy(Temporal.ZonedDateTime.from("2027-01-15T12:00[UTC]"))),
+		);
+		expect(error?.code).toBe("TCT_INVALID_ARGUMENT");
+		expect(error?.message).toContain("a Proxy around one");
+	});
+
+	it("refuses an object created from PlainDateTime's prototype", () => {
+		expect(codeOf(() => toTibetan(Object.create(Temporal.PlainDateTime.prototype)))).toBe(
+			"TCT_INVALID_ARGUMENT",
+		);
+	});
+
+	it("refuses a forwarding Proxy around a Hebrew PlainDateTime", () => {
+		const hebrew = Temporal.PlainDateTime.from("2027-01-15T12:00").withCalendar("hebrew");
+		expect(codeOf(() => toTibetan(forwardingProxy(hebrew)))).toBe("TCT_INVALID_ARGUMENT");
+	});
+
+	// The brand picks the branch, so a subclass that also rewrites its tag must not reach a path
+	// that runs its own code. Adversarial-review gate, 2026-11-19.
+	it("refuses a PlainDateTime subclass tagged as a ZonedDateTime", () => {
+		class Retagged extends Temporal.PlainDateTime {
+			override toPlainDate(): Temporal.PlainDate {
+				return Temporal.PlainDate.from("2000-01-01");
+			}
+		}
+		Object.defineProperty(Retagged.prototype, Symbol.toStringTag, {
+			value: "Temporal.ZonedDateTime",
+		});
+		const error = thrownBy(() => toTibetan(new Retagged(2027, 1, 15)));
+		expect(error?.code).toBe("TCT_INVALID_ARGUMENT");
+	});
+
+	it("refuses a PlainDate subclass tagged as a PlainDateTime", () => {
+		class Retagged extends Temporal.PlainDate {
+			toPlainDate(): Temporal.PlainDate {
+				return Temporal.PlainDate.from("2000-01-01");
+			}
+		}
+		Object.defineProperty(Retagged.prototype, Symbol.toStringTag, {
+			value: "Temporal.PlainDateTime",
+		});
+		expect(codeOf(() => toTibetan(new Retagged(2027, 1, 15)))).toBe("TCT_INVALID_ARGUMENT");
+	});
+
+	it("refuses a PlainDateTime subclass tagged as a PlainDate", () => {
+		class Retagged extends Temporal.PlainDateTime {
+			override toString(): string {
+				return "2000-01-01";
+			}
+		}
+		Object.defineProperty(Retagged.prototype, Symbol.toStringTag, { value: "Temporal.PlainDate" });
+		expect(codeOf(() => toTibetan(new Retagged(2027, 1, 15)))).toBe("TCT_INVALID_ARGUMENT");
+	});
+
+	it("takes a ZonedDateTime's wall-clock day, not its UTC day", () => {
+		const evening = Temporal.ZonedDateTime.from("2027-01-15T23:30[America/Los_Angeles]");
+		expect(fieldsOf(toTibetan(evening))).toEqual(expected);
 	});
 });
 

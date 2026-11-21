@@ -92,9 +92,13 @@ exception for it.
   answering 8 and then 31 passed validation as 8 and was computed on as 31, a confident wrong date.
   A month reads `isLeapDay` only to refuse a non-boolean one, and drops it.
 - **A Western date, an options bag, and a resolved `TibetanDate`'s `isoDate`.** The brand read
-  (`Symbol.toStringTag`), the `isoDate` read, a foreign instance's `toPlainDate` property and call
-  and `toString`, the `instanceof` check against `Temporal.PlainDate` (which a Proxy answers with its
-  `getPrototypeOf` trap) and the options bag's own keys are each read inside a guard.
+  (`Symbol.toStringTag`), the `isoDate` read, the intrinsic `calendarId` getters that recognise a
+  genuine instance of this realm's three day types by its slots, the `instanceof` checks against
+  them (which a Proxy answers with its `getPrototypeOf` trap) and the options bag's own keys are each
+  read inside a guard. A genuine instance is then copied from its slots, so its own `toPlainDate`,
+  `toString` or getters are never called. Only a value with no such slot — a second
+  implementation's instance, or a spoofed brand — has its `toPlainDate` property, its call and its
+  `toString` read, each inside a guard.
 - **The code is `TCT_INVALID_ARGUMENT`, never `TCT_FIELD_OUT_OF_RANGE`**, for a throwing read of a
   date's fields. The range code is on `tibetanDateExists`'s allowlist and would turn a caller's
   throwing getter into "that date does not exist"; `tibetanDateExists` rethrows this one.

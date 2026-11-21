@@ -5,13 +5,12 @@ import {
 	intercalationIndex,
 	isLeapYear,
 	leapMonthOfYear,
-	leapYearsBetween,
 	monthFromCount,
-	monthsInYear,
 	sharesNumberWithLeapMonth,
 	solarMonthsSinceEpoch,
 	trueMonthCount,
 } from "../../src/computation/calendar.js";
+import { monthsInYear } from "../../src/months.js";
 import { lunationFromMonth } from "../../src/navigation.js";
 import { BHUTAN, BHUTAN_HENNING } from "../../src/traditions/bhutan.js";
 import { PHUGPA, PHUGPA_HENNING } from "../../src/traditions/phugpa.js";
@@ -72,7 +71,8 @@ describe("trueMonthCount", () => {
 					if (sharesNumberWithLeapMonth(P, y, m)) inOrder.push(trueMonthCount(P, y, m, true));
 					inOrder.push(trueMonthCount(P, y, m, false));
 				}
-				expect(inOrder.length).toBe(monthsInYear(P, y));
+				// The public monthsInYear takes the royal-era year, Janson's Y + 127.
+				expect(inOrder.length).toBe(monthsInYear(y + 127, P));
 				for (let i = 1; i < inOrder.length; i++) {
 					expect(inOrder[i]).toBe((inOrder[i - 1] ?? 0) + 1);
 				}
@@ -169,7 +169,7 @@ describe("the two leap-year formulations agree", () => {
 	it("gives 12 or 13 months per year", () => {
 		fc.assert(
 			fc.property(years, (y) => {
-				expect([12, 13]).toContain(monthsInYear(P, y));
+				expect([12, 13]).toContain(monthsInYear(y + 127, P));
 			}),
 		);
 	});
@@ -181,7 +181,10 @@ describe("leap month spacing", () => {
 	it("puts exactly 24 leap years in every 65-year window", () => {
 		fc.assert(
 			fc.property(years, (y) => {
-				expect(leapYearsBetween(P, y, y + 64)).toBe(24);
+				const leapYears = Array.from({ length: 65 }, (_, i) => isLeapYear(P, y + i)).filter(
+					Boolean,
+				);
+				expect(leapYears.length).toBe(24);
 			}),
 		);
 	});

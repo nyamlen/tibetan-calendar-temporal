@@ -3,7 +3,7 @@
  *
  * @remarks
  * Moved here from `test/validation/fpmt-observances.test.ts` on 2026-09-18, so that the shipped
- * page's 97.6%, 99.7%, per-year residuals and six unexplained days are measured by the computation
+ * page's mansion and favorability figures, per-year residuals and unexplained days are measured by the computation
  * the validation suite pins rather than by a second one. What each measured figure means is recorded
  * at the tests, which stay in that suite.
  */
@@ -71,11 +71,12 @@ export const yogaDays = FPMT_OBSERVANCES.flatMap((row) => {
  * of the pair, so that the other is forced on the mansion.
  *
  * @remarks
- * One day with a code is not among them, 2024-09-12, printed `UD-EW` on a wind weekday — not one of
- * the ten yogas at all. Until 2026-09-18 it was counted in the denominator and so as a mansion
- * *agreement*, by accident, which put the mansion over 1,460 days while every document said 1,459.
- * Its prefix is still a readable favorability claim, so {@link favorabilityDays} keeps it: each check
- * is measured over exactly the days that can bear on it.
+ * Four days with a readable code are not among them, because their pair does not contain the
+ * weekday's element: 2024-09-12 (`UD-EW` on a wind weekday, not one of the ten yogas at all),
+ * 2026-04-22 and 2026-04-29 (`UD-EF` on water weekdays) and 2026-04-23 (`UD-EF` on a wind weekday).
+ * Until 2026-09-18 the first was counted in the denominator and so as a mansion *agreement*, by
+ * accident. Their prefixes are still readable favorability claims, so {@link favorabilityDays} keeps
+ * them: each check is measured over exactly the days that can bear on it.
  */
 export const mansionDays = yogaDays.filter((day) => day.pair.includes(day.weekday));
 

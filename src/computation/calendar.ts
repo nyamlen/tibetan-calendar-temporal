@@ -452,30 +452,6 @@ export function leapMonthOfYear(tradition: TraditionConfig, year: number): numbe
 }
 
 /**
- * Returns the number of leap years — equivalently leap months — from `firstYear` to `lastYear`
- * inclusive.
- *
- * @remarks
- * `⌊(24(Y₂+1) + γ*)/65⌋ − ⌊(24·Y₁ + γ*)/65⌋`, for `firstYear ≤ lastYear`. Useful as an independent
- * check on the leap-year rule: over any 65 consecutive years it is exactly 24.
- */
-export function leapYearsBetween(
-	tradition: TraditionConfig,
-	firstYear: number,
-	lastYear: number,
-): number {
-	const g = gammaStar(tradition);
-	return floorDiv(24 * (lastYear + 1) + g, 65) - floorDiv(24 * firstYear + g, 65);
-}
-
-/**
- * Returns the number of months in the Tibetan year `Y` — 12, or 13 in a leap year.
- */
-export function monthsInYear(tradition: TraditionConfig, year: number): number {
-	return isLeapYear(tradition, year) ? 13 : 12;
-}
-
-/**
  * How a lunar day's number appears in the calendar — Janson §6.
  *
  * @remarks
@@ -578,13 +554,6 @@ export function lastDayOfMonth(scaled: ScaledTradition, monthCount: number): num
  */
 export function firstDayOfMonth(scaled: ScaledTradition, monthCount: number): number {
 	return lastDayOfMonth(scaled, monthCount - 1) + 1;
-}
-
-/**
- * The number of calendar days in true month `n` — always 29 or 30.
- */
-export function daysInMonth(scaled: ScaledTradition, monthCount: number): number {
-	return lastDayOfMonth(scaled, monthCount) - lastDayOfMonth(scaled, monthCount - 1);
 }
 
 /**

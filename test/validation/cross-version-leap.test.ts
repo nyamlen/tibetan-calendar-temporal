@@ -25,6 +25,7 @@
 
 import { describe, expect, it } from "vitest";
 import { sharesNumberWithLeapMonth } from "../../src/computation/calendar.js";
+import { BHUTAN } from "../../src/traditions/bhutan.js";
 import { PHUGPA } from "../../src/traditions/phugpa.js";
 import type { TraditionConfig } from "../../src/traditions/types.js";
 import { CROSS_VERSION_LEAP } from "../fixtures/cross-version-leap.js";
@@ -78,6 +79,18 @@ describe("against the years Janson leaves commented in the source (2021-2030)", 
 			}
 		});
 	}
+});
+
+describe("the exported BHUTAN, not only the hand-built Bhutanese row", () => {
+	// VERSION_CONFIGS.bhutanese is PHUGPA with three fields replaced; the shipped BHUTAN is its own
+	// config. The leap-month claim made for the export has to be tested on the export.
+	it("the exported BHUTAN's leap months match Janson's Bhutanese column", () => {
+		const wrong = CROSS_VERSION_LEAP.filter(
+			(row) => leapMonthOf(BHUTAN, row.year) !== row.bhutanese,
+		).map((row) => `${row.year}: Janson ${row.bhutanese}, BHUTAN ${leapMonthOf(BHUTAN, row.year)}`);
+		expect(CROSS_VERSION_LEAP).toHaveLength(31);
+		expect(wrong).toEqual([]);
+	});
 });
 
 describe("what the agreement does and does not establish", () => {

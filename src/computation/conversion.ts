@@ -12,6 +12,7 @@
  */
 
 import {
+	assertSafeIntegerArgument,
 	assertSafeYear,
 	codedError,
 	describe,
@@ -98,7 +99,7 @@ const JULIAN_DAY_AT_UNIX_EPOCH = 2_440_588;
  * or a date in another calendar.
  */
 export function julianDayFromIso(date: Temporal.PlainDate): number {
-	return julianDayFromIsoUnchecked(asPlainDate(date));
+	return julianDayFromIsoUnchecked(asPlainDate(date, "julianDayFromIso(date)"));
 }
 
 // The engine's own dates are already plain ISO `Temporal.PlainDate`s, built by it or normalised by
@@ -272,8 +273,8 @@ export function asWesternDay(
  * of the tradition rather than of the package, so this takes a config and defaults it like every
  * other entry point: the arithmetic stays exact from about ISO year −245,737 to 236,312 under
  * `PHUGPA` and `BHUTAN`, and only from about −20,781 to 11,356 under `PHUGPA_HENNING` and
- * `BHUTAN_HENNING`, whose common denominator is fifteen times larger. All four lie inside
- * Temporal's own range.
+ * `BHUTAN_HENNING`, whose common denominator is fifteen times larger. For any tradition the range
+ * ends inside Temporal's own, so a day this accepts always converts.
  *
  * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `julianDay` is not a safe integer,
  * `TCT_OUTSIDE_EXACT_RANGE` if it lies past where the tradition's arithmetic stays exact, or
@@ -285,13 +286,12 @@ export function isoFromJulianDay(
 ): Temporal.PlainDate {
 	// Before the number: a bare number has no shape, so the tradition comes first.
 	const scaled = scalingFor(tradition);
-	if (!Number.isSafeInteger(julianDay)) {
-		throw rangeError(
-			"TCT_FIELD_OUT_OF_RANGE",
-			`isoFromJulianDay: julianDay must be a safe integer, received ${describe(julianDay)}. A Julian day ` +
-				"number counts whole days, so a fraction names nothing — there is no time of day in it",
-		);
-	}
+	assertSafeIntegerArgument(
+		"isoFromJulianDay",
+		"julianDay",
+		julianDay,
+		". A Julian day number counts whole days, so a fraction names nothing — there is no time of day in it",
+	);
 	assertExactJulianDay(scaled, julianDay, () => `isoFromJulianDay(${julianDay})`);
 	return isoFromJulianDayUnchecked(julianDay);
 }
@@ -357,22 +357,16 @@ export function assertExactJulianDay(
 }
 
 /**
- * The exactness bound as an ISO year, parenthesised, or `""` when it has none.
+ * The exactness bound as an ISO year, parenthesised.
  *
  * @remarks
  * A raw Julian day in the tens of millions is not a number anyone can act on. The ISO year is, and
  * it is what makes the `PHUGPA_HENNING` limit legible as "about year 11,356" rather than as
- * `5868816`. A bound may fall outside `Temporal.PlainDate`'s own range, ISO years −271,821 to
- * 275,760, so this degrades to nothing rather than throwing a second error while reporting the
- * first. No shipped tradition's does.
+ * `5868816`. The bound never passes `Temporal.PlainDate`'s own range — `deriveScaling` clamps it —
+ * so the conversion cannot throw.
  */
 function describeBound(signedBound: number): string {
-	try {
-		return ` (about ISO year ${isoFromJulianDayUnchecked(signedBound).year})`;
-		/* c8 ignore next 3 -- only reachable for a tradition whose bound exceeds Temporal's range */
-	} catch {
-		return "";
-	}
+	return ` (about ISO year ${isoFromJulianDayUnchecked(signedBound).year})`;
 }
 
 /**
@@ -415,12 +409,7 @@ export function tibetanWeekday(julianDay: number): TibetanWeekday {
 	// with no other signal, and every plausible consumer feeds that straight into a lookup table of
 	// weekday names — so `tibetanWeekday(1.5)` returning `3.5` is an out-of-bounds index at best and
 	// a blank cell in a rendered calendar at worst. `NaN` in gave `NaN` out; a string gave `NaN` too.
-	if (!Number.isSafeInteger(julianDay)) {
-		throw rangeError(
-			"TCT_FIELD_OUT_OF_RANGE",
-			`tibetanWeekday: julianDay must be a safe integer, received ${describe(julianDay)}`,
-		);
-	}
+	assertSafeIntegerArgument("tibetanWeekday", "julianDay", julianDay);
 	return tibetanWeekdayUnchecked(julianDay);
 }
 
@@ -444,7 +433,7 @@ function buildDate(
 	julianDay: number,
 ): TibetanDate {
 	const isoDate = isoFromJulianDayUnchecked(julianDay);
-	return {
+	return Object.freeze({
 		year: royalEraFromYear(year),
 		yearStartsIn: year,
 		month,
@@ -482,7 +471,7 @@ function buildDate(
 		),
 		// The month count this date was located by, carried out rather than made rediscoverable.
 		lunation: monthCount,
-	};
+	});
 }
 
 /**
@@ -722,7 +711,7 @@ export function isoToTibetan(
 	// reports a doubly-bad call in.
 	// Normalised once here rather than relying on julianDayFromIso alone, so the error message below
 	// quotes the date the caller meant rather than whatever they passed.
-	const plain = asPlainDate(date);
+	const plain = asPlainDate(date, "isoToTibetan(date)");
 	const scaled = scalingFor(tradition);
 	const target = julianDayFromIsoUnchecked(plain);
 	assertExactJulianDay(scaled, target, () => plain.toString());

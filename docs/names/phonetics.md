@@ -143,6 +143,6 @@ It repeats the three rules' shapes, so a fourth rule added by THL would go unsee
 
 ## What this does not claim
 
-- That the phonetics are a rendering of spoken Lhasa Tibetan: they are THL Simplified Phonetic Transcription, which is a published standard and not the house rendering used in prose.
+- That the phonetics are a rendering of spoken Lhasa Tibetan: they are THL Simplified Phonetic Transcription, a published standard, except the eleven corrections recorded below, and not the house rendering used in prose.
 - That a boundary or a correction is **sourced**: each is Andreas' ruling, recorded with its date, and the gate shows only that every word exists.
 - That THL's code has no other rule that changes a syllable by the one beside it: three were read.

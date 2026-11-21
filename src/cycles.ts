@@ -21,12 +21,13 @@
 // century rather than throwing.
 
 import { rabjungFromRoyalEra, yearNameFromRoyalEra } from "./computation/epoch.js";
-import { assertSafeYear, describe, rangeError } from "./errors.js";
+import { assertSafeYear } from "./errors.js";
 import { weekdayNameWithOffset } from "./names.js";
 import { PHUGPA } from "./traditions/phugpa.js";
 import type { TraditionConfig } from "./traditions/types.js";
 import { validatedTradition } from "./traditions/validate.js";
 import type { Rabjung, TibetanWeekday, TibetanWeekdayName, TibetanYearName } from "./types.js";
+import { assertTibetanWeekday } from "./types.js";
 
 // A safe-integer check and nothing else, deliberately: the naming functions reduce the year modulo
 // their cycle before the offset is subtracted (see `yearNameFromRoyalEra`), so every safe integer
@@ -150,12 +151,6 @@ export function weekdayNameFor(
 ): TibetanWeekdayName {
 	// Before the weekday: a bare number has no shape, so the tradition comes first.
 	tradition = validatedTradition(tradition);
-	if (!Number.isInteger(weekday) || weekday < 0 || weekday > 6) {
-		throw rangeError(
-			"TCT_FIELD_OUT_OF_RANGE",
-			`weekdayNameFor: weekday must be an integer in 0…6, received ${describe(weekday)}. ` +
-				"This is the Tibetan numbering — 0 is Saturday — not the ISO dayOfWeek",
-		);
-	}
+	assertTibetanWeekday("weekdayNameFor", weekday);
 	return weekdayNameWithOffset(weekday, tradition.naming?.weekdayOffset ?? 0);
 }

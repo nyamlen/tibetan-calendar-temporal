@@ -23,6 +23,8 @@ cost rather than as a best case.
 
 ## Results
 
+**Superseded by the re-record of 2026-11-18 below; quote that.**
+
 | Case | Mean | Ops/sec | Note |
 |---|---|---|---|
 | `isoToTibetan`, one date | 0.0136 ms | 73,709 | ±4.96% over 36,855 samples |
@@ -33,6 +35,8 @@ cost rather than as a best case.
 | `getObservances`, one year | 1.41 ms | 711 | the realistic case |
 
 ## What these confirm, and what they corrected
+
+**Superseded by the re-record of 2026-11-18 below; quote that.**
 
 **The `monthsFor` cache is confirmed.** `CLAUDE.md` argues the memoisation earns its keep because a
 repeated year drops from "~180 µs to under 1 µs". Measured: 118 µs cold, 0.2 µs warm. The cold
@@ -54,6 +58,8 @@ whether the cap costs 190 ms or 270 ms. What was wrong was the number, not the r
 the machine above, or a full year of days in under 6 ms.
 
 ## The `formula` form, 2026-11-11
+
+**Superseded by the re-record of 2026-11-18 below; quote that.**
 
 A second machine, so these figures are **not comparable** with the table above.
 
@@ -78,6 +84,8 @@ first version converted every calendar day (`isoToTibetan`) and took 988 ms here
 
 ## The 10-year cap, 2026-11-11
 
+**Superseded by the re-record of 2026-11-18 below; quote that.**
+
 Same machine as the `formula` section above (Intel Core Ultra 7 365, Windows 11 Pro 10.0.26300,
 Node v26.11.1, Vitest 4.1.10, `vitest bench --run`), run with nothing else running.
 `MAX_SPAN_YEARS` is now 10, so the 200-year rows above describe the cap as it was.
@@ -98,6 +106,8 @@ The 10-year worst case is under the year-view budget, and every view is well ins
 
 ## The `counted` form, 2026-11-11
 
+**Superseded by the re-record of 2026-11-18 below; quote that.**
+
 Same machine and harness as the 10-year cap section (Intel Core Ultra 7 365, Windows 11 Pro
 10.0.26300, Node v26.11.1, Vitest 4.1.10, `vitest bench --run`), run with nothing else running.
 The rule is Rabten-shaped: anchor 1/15, 15 waxing, 14 and 15 waning, `exclude` 1/1. A counted rule
@@ -116,6 +126,8 @@ the counted rule.
 Every view is well inside its budget, and no cache is needed for the form.
 
 ## `nextObservance`, 2026-11-11
+
+**Superseded by the re-record of 2026-11-18 below; quote that.**
 
 Same machine and harness as the 10-year cap section (Intel Core Ultra 7 365, Windows 11 Pro
 10.0.26300, Node v26.11.1, Vitest 4.1.10, `vitest bench --run`), run with nothing else running.
@@ -194,6 +206,8 @@ superseded.
 
 ## The `PlainDate` copy, 2026-11-18
 
+**Superseded by the re-record of 2026-11-18 below; quote that.**
+
 A Western date is now copied into a plain `Temporal.PlainDate` before the engine reads it, so a
 subclass's overridden `since` or `year` cannot answer for it.
 Measured on the 2026-11-14 harness above (same machine, Node v26.11.1, Vitest 4.1.12), each column
@@ -265,7 +279,10 @@ The whole file was run once, and each mean is that run's.
 | `nextObservance`, `null` after the full 10-year horizon | 0.058 to 0.085 ms | 100 ms | |
 
 Every view is inside its budget by at least a factor of twelve. The README quotes the single-date,
-month-grid and year-view figures from this table.
+month-grid and year-view figures from this table, the year as "2–3 ms" because the every-form row
+is 2.01 ms and `EXAMPLE_OBSERVANCES` 2.57 ms.
+The "one year of days" row includes one `PlainDate.add` per iteration, so it measures the loop as
+well as the conversions.
 
 ## What is deliberately not here
 

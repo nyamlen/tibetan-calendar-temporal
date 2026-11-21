@@ -19,9 +19,11 @@
 
 import {
 	assertKnownKeys,
+	assertNonEmptyString as assertNonEmptyStringWithCode,
 	assertSafeYear,
 	describe,
 	isPlainObject,
+	isRecord,
 	rangeError,
 	validatedPrivateCopy,
 } from "../errors.js";
@@ -38,14 +40,23 @@ const SIGNATURES = {
 	observancesOn: "observancesOn(date, config, tradition)",
 	nextObservance: "nextObservance(from, ruleId, config, tradition)",
 	composeObservances: "composeObservances(base, layer)",
+	// The config `composeObservances` builds from its layer: a fault there is the layer's.
+	composeObservancesLayer: "composeObservances(base, layer)",
 } as const;
 
-/** An export that takes an `ObservanceConfig`. */
+/** An export that takes an `ObservanceConfig`, or the layer `composeObservances` validates. */
 export type ObservanceCaller = keyof typeof SIGNATURES;
 
-/** The argument a caller wrote the config as: `composeObservances` calls it `base`. */
-const configArgument = (caller: ObservanceCaller): string =>
-	`${caller}(${caller === "composeObservances" ? "base" : "config"})`;
+/** The argument a refusal names: the config, or `composeObservances`' base or layer. */
+const ARGUMENTS: Record<ObservanceCaller, string> = {
+	getObservances: "getObservances(config)",
+	observancesOn: "observancesOn(config)",
+	nextObservance: "nextObservance(config)",
+	composeObservances: "composeObservances(base)",
+	composeObservancesLayer: "composeObservances(layer)",
+};
+
+const configArgument = (caller: ObservanceCaller): string => ARGUMENTS[caller];
 
 export const DOUBLED_DAY_CHOICES = ["first", "second", "both"];
 export const SKIPPED_DAY_CHOICES = ["preceding", "following", "omit"];
@@ -108,17 +119,9 @@ const SETTINGS_BY_FORM: Record<ObservanceWhen["type"], readonly FormSetting[]> =
 /** Days in each Gregorian month in a leap year, the most any year gives it. */
 const WESTERN_MONTH_LENGTHS = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
-/** Returns whether a value is a non-null object that is not an array. */
-// An array is an object, so it must be refused by name where a record belongs: `[t].flatMap(f)`
-// hands an array to a parameter nobody meant to be one.
-export function isRecord(value: unknown): value is Record<string, unknown> {
-	return value !== null && typeof value === "object" && !Array.isArray(value);
-}
-
-export function assertNonEmptyString(value: unknown, subject: string): void {
-	if (typeof value !== "string" || value === "") {
-		throw rangeError(CODE, `${subject} must be a non-empty string, received ${describe(value)}`);
-	}
+/** The observance validator's non-empty-string check, refusing with its config code. */
+export function assertNonEmptyString(value: unknown, subject: string): asserts value is string {
+	assertNonEmptyStringWithCode(value, subject, CODE);
 }
 
 /** Rejects a **required** field that is not one of its documented values, `undefined` included. */
@@ -465,7 +468,7 @@ function assertNotAnotherShape(config: Record<string, unknown>, caller: Observan
 			CODE,
 			`${subject}: expected an ObservanceConfig, received what looks like a TraditionConfig or a ` +
 				"{ tradition } bag. " +
-				(caller === "composeObservances"
+				(caller === "composeObservances" || caller === "composeObservancesLayer"
 					? `${signature} takes no tradition: pass an ObservanceConfig as the base`
 					: `A tradition is a separate parameter, not the config, as in ${signature}`),
 		);

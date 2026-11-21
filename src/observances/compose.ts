@@ -9,6 +9,7 @@
 import {
 	assertKnownKeys,
 	describe,
+	isRecord,
 	rangeError,
 	readingCallersObject,
 	validatedPrivateCopy,
@@ -26,7 +27,6 @@ import {
 	CODE,
 	DOUBLED_DAY_CHOICES,
 	ensureValidated,
-	isRecord,
 	LEAP_MONTH_CHOICES,
 	looksLikeTradition,
 	SKIPPED_DAY_CHOICES,
@@ -78,15 +78,14 @@ function conventionsOf(id: string, item: Record<string, unknown>, label: string)
 	return given;
 }
 
-const conventionsCopies = new WeakMap<object, object>();
-
 /**
  * The `conventions` entries as `{ id, given }`, read from a validated private copy of the array.
  */
 // A `conventions` entry, unlike a `replace` or `add` rule, never reaches the candidate the validator
 // copies, so it is copied here: the copy refuses a Proxy (even one with no traps) as every other part
 // of a config does, keeps own enumerable data only, and is the only thing applied, so a getter
-// answering differently later reaches the result only as a value the checks have seen.
+// answering differently later reaches the result only as a value the checks have seen. The cache is
+// fresh per call, so an array the caller edits between composes is read and validated again.
 function conventionsFrom(value: unknown, label: string): { id: string; given: Conventions }[] {
 	if (value === undefined) return [];
 	const entries = (list: unknown) =>
@@ -95,7 +94,7 @@ function conventionsFrom(value: unknown, label: string): { id: string; given: Co
 			given: conventionsOf(id, item as Record<string, unknown>, label),
 		}));
 	const copy = validatedPrivateCopy(value as object, {
-		cache: conventionsCopies,
+		cache: new WeakMap(),
 		code: CODE,
 		what: `${label}: conventions`,
 		isCandidate: (candidate) => Array.isArray(candidate),
@@ -242,7 +241,7 @@ export function composeObservances(
 	// The validated copy is private and deeply frozen, and none of it is shared with a caller's input,
 	// which is why `candidate` need not be copied again: its rules and levels are the base's and the
 	// layer's own objects until the validator clones them.
-	return ensureValidated(candidate, "composeObservances");
+	return ensureValidated(candidate, "composeObservancesLayer");
 }
 
 /** The unvalidated config `layer` makes of `base`, refusing a malformed layer. */
@@ -258,23 +257,39 @@ function candidateFrom(base: ObservanceConfig, layer: ObservanceLayer): Observan
 				"{ id, englishName } with the differences to make, such as add, remove or replace",
 		);
 	}
-	// The id first, so the unknown-key refusal below can name the layer it is in.
-	assertNonEmptyString(layer.id, `${SUBJECT}: id`);
-	const label = `composeObservances(layer "${layer.id}")`;
+	// Every field is read once, so the value checked is the value used: a getter can answer
+	// differently the second time. The id first, so the unknown-key refusal below can name the layer.
+	const id = layer.id;
+	assertNonEmptyString(id, `${SUBJECT}: id`);
+	const label = `composeObservances(layer "${id}")`;
 	assertKnownKeys(layer, LAYER_KEYS, label, CODE);
-	assertNonEmptyString(layer.englishName, `${label}: englishName`);
-	assertOptionalTibetanName(layer.tibetanName, `${label}: tibetanName`);
-	assertOptionalChoice(layer.doubledDay, DOUBLED_DAY_CHOICES, `${label}: doubledDay`);
-	assertOptionalChoice(layer.skippedDay, SKIPPED_DAY_CHOICES, `${label}: skippedDay`);
-	assertOptionalChoice(layer.leapMonth, LEAP_MONTH_CHOICES, `${label}: leapMonth`);
+	const {
+		englishName,
+		tibetanName,
+		doubledDay,
+		skippedDay,
+		leapMonth,
+		remove: removeField,
+		replace: replaceField,
+		add: addField,
+		conventions: conventionsField,
+		removeLevels: removeLevelsField,
+		replaceLevels: replaceLevelsField,
+		addLevels: addLevelsField,
+	} = layer;
+	assertNonEmptyString(englishName, `${label}: englishName`);
+	assertOptionalTibetanName(tibetanName, `${label}: tibetanName`);
+	assertOptionalChoice(doubledDay, DOUBLED_DAY_CHOICES, `${label}: doubledDay`);
+	assertOptionalChoice(skippedDay, SKIPPED_DAY_CHOICES, `${label}: skippedDay`);
+	assertOptionalChoice(leapMonth, LEAP_MONTH_CHOICES, `${label}: leapMonth`);
 
-	const remove = idList(layer.remove, "remove");
-	const replace = idsOf(layer.replace, "replace");
-	const add = idsOf(layer.add, "add");
-	const conventions = conventionsFrom(layer.conventions, label);
-	const removeLevels = idList(layer.removeLevels, "removeLevels");
-	const replaceLevels = idsOf(layer.replaceLevels, "replaceLevels");
-	const addLevels = idsOf(layer.addLevels, "addLevels");
+	const remove = idList(removeField, "remove");
+	const replace = idsOf(replaceField, "replace");
+	const add = idsOf(addField, "add");
+	const conventions = conventionsFrom(conventionsField, label);
+	const removeLevels = idList(removeLevelsField, "removeLevels");
+	const replaceLevels = idsOf(replaceLevelsField, "replaceLevels");
+	const addLevels = idsOf(addLevelsField, "addLevels");
 	assertNoRepeats(
 		[
 			["remove", remove],
@@ -398,12 +413,12 @@ function candidateFrom(base: ObservanceConfig, layer: ObservanceLayer): Observan
 	// Validated before it is copied: `structuredClone` throws an uncoded error on a function or a
 	// Symbol, and only a value the validator has accepted is safe to hand it.
 	return {
-		id: layer.id,
-		englishName: layer.englishName,
-		...(layer.tibetanName === undefined ? {} : { tibetanName: layer.tibetanName }),
-		doubledDay: layer.doubledDay === undefined ? base.doubledDay : layer.doubledDay,
-		skippedDay: layer.skippedDay === undefined ? base.skippedDay : layer.skippedDay,
-		leapMonth: layer.leapMonth === undefined ? base.leapMonth : layer.leapMonth,
+		id: id as string,
+		englishName: englishName as string,
+		...(tibetanName === undefined ? {} : { tibetanName }),
+		doubledDay: doubledDay === undefined ? base.doubledDay : doubledDay,
+		skippedDay: skippedDay === undefined ? base.skippedDay : skippedDay,
+		leapMonth: leapMonth === undefined ? base.leapMonth : leapMonth,
 		...(levels === undefined ? {} : { levels }),
 		rules,
 	};

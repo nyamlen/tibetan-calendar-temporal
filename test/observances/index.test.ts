@@ -2092,3 +2092,18 @@ describe("an observance config's private copy", () => {
 		expect(error?.cause).toBeInstanceOf(TypeError);
 	});
 });
+
+describe("an observance's date is its own", () => {
+	it("one observance's date cannot be changed through another", () => {
+		const [first] = getObservances(
+			Temporal.PlainDate.from("2026-01-01"),
+			Temporal.PlainDate.from("2026-01-31"),
+			EXAMPLE_OBSERVANCES,
+		);
+		expect(first).toBeDefined();
+		expect(() => {
+			// @ts-expect-error -- TibetanDate's fields are readonly; this probes the runtime freeze.
+			(first as Observance).date.isFullMoon = !(first as Observance).date.isFullMoon;
+		}).toThrow(TypeError);
+	});
+});

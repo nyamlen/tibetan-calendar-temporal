@@ -78,8 +78,10 @@ const asIso = (text) => {
 		return process.exit(1);
 	}
 };
-const fromDate = asIso(process.argv[2] ?? "2000-01-01");
-const toDate = asIso(process.argv[3] ?? "2030-04-02");
+const DEFAULT_FROM = "2000-01-01";
+const DEFAULT_TO = "2030-04-02";
+const fromDate = asIso(process.argv[2] ?? DEFAULT_FROM);
+const toDate = asIso(process.argv[3] ?? DEFAULT_TO);
 if (Temporal.PlainDate.compare(fromDate, toDate) > 0) {
 	console.error(usage);
 	process.exit(1);
@@ -308,12 +310,31 @@ const jansonLastYear = Math.max(...jansonYears);
 const sourceStart = all[0].iso;
 const sourceEnd = all.at(-1).iso;
 
-const windowEndNote =
-	firstDefectAfter === undefined
-		? "The source has no unpaired leap month after the window, so its end is the one asked for, and the"
-		: `A leap month ${firstDefectAfter.entry.month} begins ${firstDefectAfter.entry.iso}, straight after
+// The header's two window paragraphs describe the default window, which is the only one the
+// repository runs: it spans Janson's table and stops the day before the 2030 defect. Any other window
+// is the caller's choice, and its header says so rather than repeating claims about Janson's table
+// and a defect that need not hold for it (adversarial review L4.1).
+const isDefaultWindow = fromDate.toString() === DEFAULT_FROM && toDate.toString() === DEFAULT_TO;
+
+const windowSpanNote = isDefaultWindow
+	? `The window matches the years Janson's own four-version leap-month table covers, so the two
+ * sources — which share no lineage — check each other. The generating script asserts that
+ * agreement, along with continuity, and the one-day weekday shift on every row.`
+	: `The window, ${fromDate} to ${toDate}, was chosen by the caller. The generating script asserts
+ * Janson's leap months for the years of his table inside it, along with continuity, and the one-day
+ * weekday shift on every row.`;
+
+const windowEndNote = isDefaultWindow
+	? `**The window ends where the source goes wrong.** ${
+			firstDefectAfter === undefined
+				? "The source has no unpaired leap month after the window, so its end is the one asked for, and the"
+				: `A leap month ${firstDefectAfter.entry.month} begins ${firstDefectAfter.entry.iso}, straight after
  * the leap month 1 Janson lists, giving that year two consecutive leap months and no regular month
- * 2 at all; the source's leap flag runs one month too long. The window stops the day before, and the`;
+ * 2 at all; the source's leap flag runs one month too long. The window stops the day before, and the`
+		}
+ * generating script's check 5 refuses a later end.`
+	: // What lies past a caller's window is recorded in BHUTAN_FIRST_UNPAIRED_LEAP_AFTER_END below.
+		`**The window ends on ${toDate}, chosen by the caller.**`;
 
 const doubled = window.filter((r, i) => i > 0 && window[i - 1].day === r.day).length;
 const skipped = window.filter((r, i) => i > 0 && r.day === window[i - 1].day + 2).length;
@@ -333,9 +354,7 @@ writeFileSync(
  * appendix. Dates are facts rather than copyrightable expression, which is what makes them usable
  * here; nothing else from that package is.
  *
- * The window matches the years Janson's own four-version leap-month table covers, so the two
- * sources — which share no lineage — check each other. The generating script asserts that
- * agreement, along with continuity, and the one-day weekday shift on every row.
+ * ${windowSpanNote}
  *
  * **A disagreement this fixture does not resolve.** Janson records that Bhutan's *government
  * calendar* gives New Year 2003 as 3 March with day 1 of month 1 repeated, while his own
@@ -349,8 +368,7 @@ writeFileSync(
  * \`TraditionConfig.leapMonthPosition: "after"\` and reproduces the month sequence here — see
  * \`test/validation/bhutan.test.ts\`, which is what settles the convention.
  *
- * **The window ends where the source goes wrong.** ${windowEndNote}
- * generating script's check 5 refuses a later end.
+ * ${windowEndNote}
  */
 
 /** First Gregorian day of the window; rows run consecutively from here, one per day. */

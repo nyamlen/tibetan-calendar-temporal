@@ -51,6 +51,7 @@ import {
 	nextObservance,
 	observancesOn,
 } from "../src/observances/index.js";
+import { COARSE } from "./support/coarse-tradition.js";
 import { thrownBy } from "./support/thrown.js";
 
 // Part B of the tradition-parameter plan, 2026-09-24. The README promises that every failure
@@ -658,5 +659,101 @@ describe('a message tells 10n, the string "10" and the number 10 apart', () => {
 		expect(string).toContain('"10"');
 		expect(bigint).not.toMatch(/\(10\)|received 10(?!n)/);
 		expect(string).not.toMatch(/\(10\)|received 10\b/);
+	});
+});
+
+describe("a consumer config whose arithmetic outruns Temporal", () => {
+	const OUTSIDE = "TCT_OUTSIDE_EXACT_RANGE";
+	const far = { year: 300_000, month: 1, day: 1 };
+
+	it("refuses with the exact-range code wherever Temporal would have thrown uncoded", () => {
+		const calls: [string, () => unknown][] = [
+			["isoFromJulianDay", () => isoFromJulianDay(2e8, COARSE)],
+			["losarFor", () => losarFor(300_000, COARSE)],
+			["monthsFor", () => monthsFor(300_000, COARSE)],
+			["resolveDate", () => resolveDate(far, COARSE)],
+			["tibetanToIso", () => tibetanToIso(far, COARSE)],
+			["monthFromLunation", () => monthFromLunation(4e6, COARSE)],
+			["addDays", () => addDays({ year: 2153, month: 1, day: 1 }, 1e8, COARSE)],
+			[
+				"nextObservance",
+				() =>
+					nextObservance(
+						Temporal.PlainDate.from("+275755-01-01"),
+						"tara",
+						EXAMPLE_OBSERVANCES,
+						COARSE,
+					),
+			],
+			["tibetanDateExists", () => tibetanDateExists(far, COARSE)],
+		];
+		const wrong = calls
+			.map(([name, run]) => [name, thrownBy(run)?.code ?? "no coded throw"] as const)
+			.filter(([, code]) => code !== OUTSIDE);
+		expect(wrong).toEqual([]);
+	});
+
+	it("answers or refuses with the code at the negative edge, which is one day inside Temporal's", () => {
+		// The clamp leaves 4.9 million days of slack at the positive end and one at the negative.
+		const first = Temporal.PlainDate.from("-271821-04-20");
+		expect(julianDayFromIso(first)).toBe(-97_559_412);
+		const date = isoToTibetan(first, COARSE);
+		const uncoded: string[] = [];
+		for (let year = date.year - 1; year <= date.year + 1; year++) {
+			for (let month = 1; month <= 12; month++) {
+				for (const [name, run] of [
+					["datesFor", () => datesFor({ year, month }, COARSE)],
+					["daysInMonth", () => daysInMonth({ year, month }, COARSE)],
+					["resolveMonth", () => resolveMonth({ year, month }, COARSE)],
+				] as [string, () => unknown][]) {
+					const error = thrownBy(run);
+					if (error !== undefined && error.code !== OUTSIDE)
+						uncoded.push(`${name} ${year}/${month}: ${error.message}`);
+				}
+			}
+			const error = thrownBy(() => monthsFor(year, COARSE));
+			if (error !== undefined && error.code !== OUTSIDE)
+				uncoded.push(`monthsFor ${year}: ${error.message}`);
+		}
+		expect(uncoded).toEqual([]);
+	});
+
+	it("refuses the first month past the last representable one in every month export", () => {
+		// Bisect for the last year whose months all convert.
+		const converts = (year: number): boolean => {
+			try {
+				monthsFor(year, COARSE);
+				return true;
+			} catch {
+				return false;
+			}
+		};
+		let low = 2153;
+		let high = 400_000;
+		expect(converts(low)).toBe(true);
+		expect(converts(high)).toBe(false);
+		while (high - low > 1) {
+			const mid = Math.floor((low + high) / 2);
+			if (converts(mid)) low = mid;
+			else high = mid;
+		}
+		expect(monthsFor(low, COARSE).length).toBeGreaterThan(0);
+		// The first month of the failing year that daysInMonth cannot answer for.
+		const firstPastMonth = [...Array(12).keys()]
+			.map((i) => i + 1)
+			.find((month) => thrownBy(() => daysInMonth({ year: high, month }, COARSE)) !== undefined);
+		expect(firstPastMonth).toBeDefined();
+		const firstPast = { year: high, month: firstPastMonth as number };
+		const wrong = (
+			[
+				["datesFor", () => datesFor(firstPast, COARSE)],
+				["daysInMonth", () => daysInMonth(firstPast, COARSE)],
+				["resolveMonth", () => resolveMonth(firstPast, COARSE)],
+				["monthsFor", () => monthsFor(high, COARSE)],
+			] as [string, () => unknown][]
+		)
+			.map(([name, run]) => [name, thrownBy(run)?.code ?? "no coded throw"] as const)
+			.filter(([, code]) => code !== OUTSIDE);
+		expect(wrong).toEqual([]);
 	});
 });

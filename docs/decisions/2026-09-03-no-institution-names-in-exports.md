@@ -7,7 +7,8 @@ status: accepted
 
 **Decision:** An export name states what a thing *is* — its shape, its role in the API — never who
 published the convention it encodes.
-Provenance goes in a `source` field and the docblock.
+Provenance goes in the docblock and the documentation; no exported shape carries a `source` field
+(`ObservanceRule.source` was removed, and the validators refuse the key).
 `GELUG` became `DEFAULT_OBSERVANCES`, and then `EXAMPLE_OBSERVANCES` ([2026-11-11-observance-model.md](2026-11-11-observance-model.md)).
 
 This is a breaking change to the `./observances` surface, taken because the package is

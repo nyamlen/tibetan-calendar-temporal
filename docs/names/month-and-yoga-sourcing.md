@@ -1,6 +1,6 @@
 # Sourcing the month names, the season names and the elemental yogas
 
-**Status: authored, and partly ahead of the code.**
+**Status: authored; every decision below ships and is held against the fixture.**
 It records the evidence and the decisions for three sets of names, and was written before the verifier that enforces them, so that the verifier was built from a record rather than from memory.
 That verifier is now [scripts/verify-month-and-yoga-names.mjs](../../scripts/verify-month-and-yoga-names.mjs), and its output is `test/fixtures/month-names.ts` and `test/fixtures/yoga-names.ts`.
 **The yoga names ship** — corrected, with Tibetan script and Devanāgarī — and `ELEMENTAL_YOGAS` is held against the fixture.

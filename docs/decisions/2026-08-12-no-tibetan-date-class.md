@@ -6,8 +6,11 @@ status: accepted
 # No Temporal-shaped `TibetanDate` class
 
 **Decision:** the package ships free functions only. There is no `TibetanDate` class with
-`add` / `until` / `with`, and no day-arithmetic helpers either. This answers the question deferred
-twice — at the start of Phase 1 and again into Phase 3 — rather than deferring it a third time.
+`add` / `until` / `with`; day and month arithmetic ship as free functions instead (`addDays`,
+`daysBetween`, `addMonths`, `addMonthsToDate`, `monthsBetween`, `nextFullMoon`, `nextNewMoon`), and a
+`TibetanDate` is a frozen plain object. This answers the question deferred twice — at the start of
+Phase 1 and again into Phase 3 — rather than deferring it a third time.
+The amendments below record how the arithmetic arrived without reopening the class ruling.
 
 ## Why the deferral ended here
 
@@ -45,10 +48,15 @@ the rule as *"same input, same output, no side effects — measured by what a **
 observe"*, which an immutable class returning new instances satisfies completely.
 `Temporal.PlainDate` is itself such a class. Two arguments stand in its place:
 
-- **Plain objects serialise and class instances do not.** `TibetanDate` is 15 plain fields, so
-  `JSON.stringify`, structured clone, a worker boundary and a React or Redux store all work
-  without a revival step. This project treats serialisation as first-class enough to have reshaped
-  the type for it, taking a year of dates from 293,009 bytes to 126,629.
+- **Plain objects serialise more simply than class instances.** `TibetanDate` is 15 plain fields,
+  so `JSON.stringify` and a React or Redux store take it as it is. One field needs reviving: JSON
+  turns `isoDate` into its ISO string, read back with `Temporal.PlainDate.from`. Structured clone,
+  and so a worker boundary, refuses the `Temporal.PlainDate` in `isoDate` (`DataCloneError`, checked
+  2026-11-21), so a date crosses one as JSON. A class would add a revival step for every field,
+  not one. This project treats serialisation as first-class enough to have reshaped the type for
+  it, taking a year of dates from 293,009 bytes to 126,629.
+  Every returned date is frozen (since 2026-11-19), so a result one caller holds cannot be changed
+  through another's; a caller who wants a changed copy spreads it.
 - **A class ships whole under tree-shaking.** A consumer converting one date pays for the month
   grid, the navigation tier and the name tables; free functions drop what is unused.
 
@@ -84,8 +92,7 @@ And the decisive argument is not merely intact but strengthened by what shipped.
 "a class implementing only the defined subset is worse than none" — and `addMonths` returning a
 **month** is precisely a refusal to implement `add({ months })` in Temporal's shape, because
 returning a *date* would require answering the skipped-day question the design declines. So a
-Temporal-shaped class remains unimplementable in full, on top of
-[CLAUDE.md](../../CLAUDE.md)'s non-negotiable "pure stateless functions".
+Temporal-shaped class remains unimplementable in full.
 
 Say this plainly, because **a root surface of this size is where the next reviewer reaches for a
 class.** The answer is not "we never got round to it"; it is that the shape cannot be honoured and
@@ -133,5 +140,5 @@ reviewer finds it ruled-on-or-open rather than assuming this record settled it.
   a class carrying only the honourable subset is worse than no class.
 - `Temporal.PlainDate` remains the only date object the package returns.
 - The free-function arithmetic is settled by
-  [2026-08-15-lunation-arithmetic.md](2026-08-15-lunation-arithmetic.md), which also lists the three
-  `addMonths` shapes that stay rejected. A request for one of them meets that record, not this one.
+  [2026-08-15-lunation-arithmetic.md](2026-08-15-lunation-arithmetic.md), which also lists what
+  stays rejected about `addMonths`. A request for one of those meets that record, not this one.

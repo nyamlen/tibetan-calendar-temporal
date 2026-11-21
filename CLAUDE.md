@@ -49,7 +49,8 @@ Do not argue it from licence: neither repo has a `LICENSE` file, but `tibetan-da
 declares `"license": "MIT"` in `package.json`, which is a grant.
 
 Permitted: running those libraries locally and comparing *computed dates* (facts) against ours, and
-reading their public README for API ideas. Not permitted: copying algorithms, variable names or code
+reading their public metadata — the README (for API ideas), npm registry metadata and the published
+tarball's file listing, none of which is source. Not permitted: copying algorithms, variable names or code
 structure, forking either, or referencing their internal decisions.
 
 **Never add one of them as a devDependency.** A dependency is read by tooling, diffed in review and
@@ -137,6 +138,7 @@ never quote one from this file. Three windows must not be confused:
 - **Dates** — the union of the external sources.
 - **Observances, and full and new moons** — narrower: only `fpmt-observances.ts` carries labels and
   moon icons. Moon agreement is with FPMT's icons, whose own source is unrecorded; count moons, not icons.
+  Sojong is the exception: Rabten's schedule checks it over a wider window of its own.
 - **`./astrology` attributes** — neither. The cycles are checked only against Janson's own tables (not
   external corroboration); the lunar mansion and yoga favourability are checked for Phugpa only, with their own agreement figures
   and an unexplained residual; the yoga grading's membership is inferred from list order. Never call
@@ -155,8 +157,10 @@ Before explaining a residual by a formula, check whether the source uses the sam
 - **Boundary and guard code has one named home; a new subsystem must not write its own.** Copies drift
   (shipping messages that misdescribe their own function) or are borrowed (an export reporting errors
   under another's name, pinned by `test/error-subjects.test.ts`). The homes: `assertSafeYear`,
-  `assertQueryOptions`, `assertKnownKeys`, `readingCallersObject`, `validatedPrivateCopy` and
-  `describe` in `src/errors.ts`; `assertTibetanShape` and `assertTibetanRanges` in `src/types.ts`;
+  `assertSafeIntegerArgument`, `assertNonEmptyString`, `isRecord`, `assertQueryOptions`,
+  `assertKnownKeys`, `readingCallersObject`, `validatedPrivateCopy` and `describe` in
+  `src/errors.ts`; `assertTibetanShape`, `assertTibetanRanges` and `assertTibetanWeekday` in
+  `src/types.ts`;
   `asWesternDay`, `monthCountFor` and `julianDayOfFields` in `src/computation/conversion.ts`;
   `boundedMonth` in `src/months.ts`. Rule 14 catches copy-paste, not re-implementation, so at review
   ask: **which boundary helpers did you write, and did one already exist?**
@@ -174,7 +178,7 @@ Before explaining a residual by a formula, check whether the source uses the sam
 - **Pure stateless functions**, measured by what a **caller** can observe. Memoising is allowed
   (`scalingFor`, the config validators, `monthsFor`); do not delete a cache for offending the word
   "stateless". A cache must **key on the config, not just the year**; **never hand out shared mutable
-  state** (return fresh arrays of frozen elements — every `TibetanMonth` is frozen by `describeMonth`);
+  state** (return fresh arrays of frozen elements — every `TibetanMonth` is frozen by `describeMonth`, every `TibetanDate` by `buildDate`);
   and **be bounded** (`monthsFor` keeps 64 years per config, LRU, pinned by identity in
   `test/months.test.ts`).
 - **Tradition constants are injected** via `TraditionConfig`, never hardcoded. v1 ships `PHUGPA`,

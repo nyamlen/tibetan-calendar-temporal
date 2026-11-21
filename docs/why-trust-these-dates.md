@@ -45,9 +45,9 @@ the shape of it matters more than the size:
 |---|---|---|
 | Bhutanese days, 1 Jan 2000 – 2 Apr 2030 | 11,050 | one lineage (Henning's software) |
 | Phugpa days, 1 Jan 2022 – 25 Feb 2028 | 6,944 | **four independent sources** |
-| Royal Government of Bhutan days, 2025–2026 | 25 | an independent almanac |
-| Losar, 1927–2046 | 120 | Janson |
-| Leap months across four traditions, 2000–2030 | 124 | Janson (for 2021–2030, Janson's own values from his published source files, which he left out of the printed paper) |
+| Royal Government of Bhutan days, 2025–2026 CE (Tibetan 2151–2153) | 25 | an independent almanac |
+| Losar, 1927–2046 CE (Tibetan 2054–2173) | 120 | Janson |
+| Leap months across four traditions, 2000–2030 CE (Tibetan 2127–2157) | 124 | Janson (for 2021–2030 CE, Tibetan 2148–2157, Janson's own values from his published source files, which he left out of the printed paper) |
 | Astrological attributes | see below | Janson's tables, and FPMT for the mansion and the yoga |
 
 **Two honest qualifications, and they are the reason the table is here rather than a headline
@@ -55,7 +55,7 @@ number.**
 
 The 6,944 Phugpa rows are **comparisons, not distinct days**: the four sources overlap only in part
 — all four cover the same days only from 1 January 2024 to 31 December 2026 — and between them they
-cover **2,247 distinct days**, every day from 1 January 2022 to 25 February 2028.
+cover **2,247 distinct days**, every day from 1 January 2022 to 25 February 2028 (Tibetan 2148–2154).
 Four independent sources agreeing on the same day is much stronger evidence than one source checked
 on four times as many days, which is exactly why the number is presented this way round.
 
@@ -68,14 +68,14 @@ The twenty-five Royal Government rows are the only genuinely independent check o
 numbers, and twenty-five is what it is.
 
 So the useful summary is not "18,000 days verified". It is: **four independent Phugpa sources which
-between them cover every day from 1 January 2022 to 25 February 2028, just over thirty years of
+between them cover every day from 1 January 2022 to 25 February 2028 (Tibetan 2148–2154), just over thirty years of
 Bhutanese dates against one lineage plus twenty-five government-published days, and 120 years of
 Losar against Janson.**
 
 ### The Tibetan (Phugpa) calendar
 
 Checked **day by day against four independent sources, which between them cover every day from
-1 January 2022 to 25 February 2028** — FPMT's own published monthly calendars and three independent
+1 January 2022 to 25 February 2028 (Tibetan 2148–2154)** — FPMT's own published monthly calendars and three independent
 implementations.
 Each source covers its own window, and a claim resting on one of them should quote that source's:
 
@@ -103,10 +103,10 @@ doubled date, both leap months and every skipped date.
 
 Outside that window of just over six years the evidence is thinner and differently shaped:
 
-- **Losar, 1927–2046** — Janson prints the Tibetan New Year for 120 consecutive years. The engine
+- **Losar, 1927–2046 CE (Tibetan 2054–2173)** — Janson prints the Tibetan New Year for 120 consecutive years. The engine
   reproduces all 120.
-- **The epoch year, 806** — the founding constants match his to six decimal places.
-- **1027–1091** — Janson's own computer search found 16 places where two defensible values of one
+- **The epoch year, 806 CE (Tibetan 933)** — the founding constants match his to six decimal places.
+- **1027–1091 CE (Tibetan 1154–1218)** — Janson's own computer search found 16 places where two defensible values of one
   lunar constant give different dates in what he calls the first 65-year cycle.
   The engine reproduces all 16, and his counts for the twentieth and twenty-first centuries too.
   This is the only external check on calendar output before 1927.
@@ -127,7 +127,7 @@ than with the almanac behind it.
 
 Checked **day by day from 1 January 2000 to 2 April 2030** against calendar data descending from
 Edward Henning's Bhutanese calendar software, and separately against **twenty-five days of the Royal
-Government of Bhutan's own published calendar** for 2025–2026, including three skipped days, two
+Government of Bhutan's own published calendar** for 2025–2026 CE (Tibetan 2151–2153), including three skipped days, two
 doubled days and Losar.
 
 | Source | What it is | First day | Last day | Days | Agree |
@@ -148,7 +148,7 @@ Three qualifications, all of which matter:
 ### Observances
 
 `EXAMPLE_OBSERVANCES`, the example configuration, is checked against **FPMT's own published
-monthly calendars for 2022–2026** — not merely against FPMT's guidance page, but against the
+monthly calendars for 2022–2026 CE (Tibetan 2148–2153)** — not merely against FPMT's guidance page, but against the
 calendars themselves, day by day, under FPMT's labels.
 The monthly rules — the Medicine Buddha, Tara, tsog and protector days — agree with every printed
 label on all but two days of that window, both of them days where FPMT's day number is not the
@@ -165,7 +165,7 @@ The fire puja is a formula, and it agrees with FPMT's labels on 1,786 of 1,826 d
 Stating this is the point of the page.
 
 - **Tsurphu and the Mongolian calendar are not shipped.** The engine can express both, and their
-  leap months are checked against Janson for 2000–2030 (for 2021–2030, Janson's own values from his
+  leap months are checked against Janson for 2000–2030 CE, Tibetan 2127–2157 (for 2021–2030, Janson's own values from his
   published source files, which he left out of the printed paper).
   But no Tsurphu or Mongolian *date* has ever been checked against a real almanac, so neither is
   offered. The rule the project holds itself to
@@ -179,7 +179,7 @@ Stating this is the point of the page.
   2024-12-08. The reasoning is set out in full at
   [testing.md, where FPMT's calendars differ](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/testing.md#where-fpmts-calendars-differ).
 - **One Bhutanese constant cannot be settled** by any source available today. The dates that would
-  decide it have passed or lie decades ahead; the next is in 2047.
+  decide it have passed or lie decades ahead; the next is in 2047 CE.
 - **Observances are not validated for Bhutan.** Asking for FPMT's observances on a Bhutanese
   calendar will produce output, and nothing establishes that output is right. Treat it as out of
   scope.
@@ -191,12 +191,14 @@ Stating this is the point of the page.
   and the honest version is longer. The cycles — the year's five elements, the month's and lunar
   day's labels, the calendar day's — are closed forms checked against Janson's own printed tables,
   which catches a transcription or formula error and is **not** external corroboration. The **lunar
-  mansion** needs real astronomy and agrees with FPMT's published codes on **98.0%** of the 1,821 days
-  in 2022–2026 whose code can name one. Henning's published daily calendars, compared outside the
+  mansion** needs real astronomy and agrees, for Phugpa, with FPMT's published codes on **98.0%** of the 1,821 days
+  in 2022–2026 CE (Tibetan 2148–2153) whose code can name one. Henning's published daily calendars, compared outside the
   test suite, give the same mansion as this engine on all 1,821 of those days and disagree with FPMT
   on the same ones, so the difference is on FPMT's side: its moon runs slightly ahead, mostly on days
   late in a mansion, and far more often in 2025 than in any other year.
-  No cause is established, and **eight days in five years fit no pattern at all**. Yoga
+  No cause is established, and **eight days in five years fit no pattern at all**.
+  [The Henning comparison](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/scripts/evidence/henning-mansions/README.md)
+  is in the repository and can be rerun. Yoga
   **favorability** is FPMT's convention, and agrees with their printed prefixes on 99.8% of the 1,825
   days whose code can be read.
   A Tibetan dictionary, the *tshig mdzod chen mo*, states the same element pair for each of the ten

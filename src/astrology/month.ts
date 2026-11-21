@@ -18,7 +18,7 @@
 
 import { amod, ceilDiv, floorDiv } from "../computation/arithmetic.js";
 import { ANIMALS, ELEMENTS, oneBasedAt } from "../cycle-tables.js";
-import { rangeError } from "../errors.js";
+import { assertInternal, rangeError } from "../errors.js";
 import { monthsAfterTigerMonth } from "../month-names.js";
 import { animalNameOf, elementNameOf, genderNameOf } from "../names.js";
 import type { TraditionConfig, TraditionMonthAnimals } from "../traditions/types.js";
@@ -71,14 +71,27 @@ function unsourced(tradition: TraditionConfig): never {
 }
 
 /**
+ * Whether the tradition's month attributes are sourced: whether it carries a month-animal block.
+ *
+ * @remarks
+ * The one test both refusals here and `attributesFor`'s `null` read, so the two cannot disagree.
+ */
+export function monthAttributesAreSourced(tradition: TraditionConfig): boolean {
+	return tradition.naming?.monthAnimals !== undefined;
+}
+
+/**
  * Returns the month-animal block, or refuses naming the tradition that lacks one.
  *
  * @throws RangeError with code `TCT_ATTRIBUTE_NOT_SOURCED` if the tradition has no sourced month
  * attributes — the Bhutanese configs, today.
  */
 function monthAnimals(tradition: TraditionConfig): TraditionMonthAnimals {
-	const animals = tradition.naming?.monthAnimals;
-	return animals === undefined ? unsourced(tradition) : animals;
+	if (!monthAttributesAreSourced(tradition)) unsourced(tradition);
+	return assertInternal(
+		tradition.naming?.monthAnimals,
+		"a sourced tradition has naming.monthAnimals",
+	);
 }
 
 /**
@@ -94,8 +107,9 @@ function monthAnimals(tradition: TraditionConfig): TraditionMonthAnimals {
 // One definition, so the month and lunar-day attributes cannot drift apart, and it reads the Tiger
 // month through `monthsAfterTigerMonth`, which the root's `monthNamesFor` uses too.
 export function monthAnimalNumber(tradition: TraditionConfig, month: number): number {
-	const steps = monthsAfterTigerMonth(tradition, month);
-	return amod((steps === null ? unsourced(tradition) : steps) + TIGER, 12);
+	if (!monthAttributesAreSourced(tradition)) unsourced(tradition);
+	const steps = monthsAfterTigerMonth(tradition, month) ?? undefined;
+	return amod(assertInternal(steps, "a sourced tradition has a Tiger month") + TIGER, 12);
 }
 
 /**

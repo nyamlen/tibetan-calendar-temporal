@@ -12,7 +12,7 @@ const iso = (s: string) => Temporal.PlainDate.from(s);
 // Tier 2. The Losar table proves the engine agrees with Janson; this proves it agrees with an
 // independent implementation of the same tradition, day by day, including everything Losar never
 // touches -- doubled days, leap months, and every ordinary day in between.
-describe("Lotsawa House Phugpa calculator, 2023-2027", () => {
+describe("Lotsawa House Phugpa calculator, 2023-02-21 to 2028-02-25", () => {
 	it("agrees on every day", () => {
 		expect(mismatchesIn(LOTSAWA_DATES)).toEqual([]);
 	});
@@ -83,8 +83,30 @@ describe("eszthoff/tibetan-date-calculator, 2023-2027", () => {
 describe("christian-steinert, 2024-2027", () => {
 	const mismatches = mismatchesIn(STEINERT_DATES);
 
-	it("agrees on the overwhelming majority of days", () => {
-		expect(mismatches.length / STEINERT_DATES.length).toBeLessThan(0.05);
+	it("christian-steinert differs on exactly 23 days, each one higher, each at a skipped date, Lotsawa siding with the engine", () => {
+		expect(STEINERT_DATES).toHaveLength(1461);
+		expect(mismatches).toHaveLength(23);
+		const lotsawa = new Map(LOTSAWA_DATES.map((row) => [row.iso, row]));
+		const unexpected = mismatches.flatMap(({ expected, actual }) => {
+			const problems: string[] = [];
+			if (expected.day !== actual.day + 1) problems.push("Steinert is not exactly one higher");
+			// The engine skips the number Steinert gives this day.
+			const date = isoToTibetan(iso(actual.iso));
+			const steinertNumber = {
+				year: date.year,
+				month: date.month,
+				isLeapMonth: date.isLeapMonth,
+				day: actual.day + 1,
+			};
+			if (tibetanDateExists(steinertNumber))
+				problems.push("Steinert's number is not skipped by the engine");
+			const witness = lotsawa.get(actual.iso);
+			if (witness === undefined) problems.push("Lotsawa House has no row");
+			else if (JSON.stringify(resolve(witness)) !== JSON.stringify(actual))
+				problems.push("Lotsawa House differs from the engine");
+			return problems.map((problem) => `${actual.iso}: ${problem}`);
+		});
+		expect(unexpected).toEqual([]);
 	});
 
 	it("differs only in the day number, never the month or the leap-month flag", () => {

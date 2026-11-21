@@ -279,6 +279,69 @@ export function isPlainObject(value: unknown): boolean {
 }
 
 /**
+ * Returns whether a value is a non-null object that is not an array.
+ *
+ * @remarks
+ * Looser than {@link isPlainObject}, which also refuses a class instance and reads the prototype:
+ * this is the validators' test for "a record belongs here", where a frozen shipped config, a spread
+ * of one and a `naming` block with a null prototype must all pass.
+ */
+// An array is an object, so it must be refused by name where a record belongs: `[t].flatMap(f)`
+// hands an array to a parameter nobody meant to be one.
+export function isRecord(value: unknown): value is Record<string, unknown> {
+	return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+/**
+ * Refuses a value that is not a non-empty string.
+ *
+ * @param subject - Opens the message: the field, prefixed as the validator names its config.
+ * @param code - The validator's config code.
+ * @param suffix - Appended to the message.
+ * @throws A `RangeError` with `code`.
+ */
+export function assertNonEmptyString(
+	value: unknown,
+	subject: string,
+	code: TibetanCalendarErrorCode,
+	suffix = "",
+): asserts value is string {
+	if (typeof value !== "string" || value === "") {
+		throw rangeError(
+			code,
+			`${subject} must be a non-empty string, received ${describe(value)}${suffix}`,
+		);
+	}
+}
+
+/**
+ * Refuses an argument that is not a safe integer, naming the export and the argument.
+ *
+ * @param subject - Names the call in the message; a thunk is called only on the throw.
+ * @param noun - The argument's name: `year`, `julianDay`, `months`.
+ * @param suffix - Appended to the message: the caller's hint, kept with the caller.
+ * @param code - The code the refusal carries.
+ * @throws A `RangeError` with `code`, `TCT_FIELD_OUT_OF_RANGE` by default.
+ */
+// One predicate rather than bounds checks alone, since `NaN` satisfies no comparison and would reach
+// the arithmetic.
+export function assertSafeIntegerArgument(
+	subject: string | (() => string),
+	noun: string,
+	value: unknown,
+	suffix = "",
+	code: TibetanCalendarErrorCode = "TCT_FIELD_OUT_OF_RANGE",
+): asserts value is number {
+	if (!Number.isSafeInteger(value)) {
+		throw rangeError(
+			code,
+			`${typeof subject === "string" ? subject : subject()}: ${noun} must be a safe integer, ` +
+				`received ${describe(value)}${suffix}`,
+		);
+	}
+}
+
+/**
  * Refuses any own enumerable string key of `value` that is not in `allowed`, naming it.
  *
  * @remarks
@@ -542,8 +605,7 @@ export function thrownDetail(error: unknown): string {
  *
  * @throws A `RangeError` with `code` if `year` is not a safe integer.
  */
-// One predicate rather than bounds checks alone, since `NaN` satisfies no comparison and would reach
-// the arithmetic. No guard can catch the royal-era confusion: 2026 is a perfectly valid royal-era year
+// No guard can catch the royal-era confusion: 2026 is a perfectly valid royal-era year
 // (1899 CE), so the conversion returns a well-formed date 127 years away; that is a documentation
 // problem, handled in the README. One copy lives here because the two copies that once existed had
 // different docblocks, so each carried half the reasoning, and `suffix` is how `assertTibetanRanges`'
@@ -554,11 +616,5 @@ export function assertSafeYear(
 	suffix = "",
 	code: TibetanCalendarErrorCode = "TCT_FIELD_OUT_OF_RANGE",
 ): asserts year is number {
-	if (!Number.isSafeInteger(year)) {
-		throw rangeError(
-			code,
-			`${typeof subject === "string" ? subject : subject()}: year must be a safe integer, ` +
-				`received ${describe(year)}${suffix}`,
-		);
-	}
+	assertSafeIntegerArgument(subject, "year", year, suffix, code);
 }

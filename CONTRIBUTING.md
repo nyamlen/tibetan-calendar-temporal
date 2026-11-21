@@ -27,7 +27,8 @@ available academic work.
 
 - Run those libraries locally and compare *computed outputs* — dates are facts, not
   copyrightable expression
-- Read their public README for API design inspiration
+- Read their public metadata — the README for API design inspiration, npm registry metadata, and the
+  published tarball's file listing — none of which is source
 - Compare your computed dates against theirs for validation
 
 **You MUST NOT:**

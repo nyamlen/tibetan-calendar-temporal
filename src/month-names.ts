@@ -290,10 +290,15 @@ const SIX_SEASONS: readonly Omit<SixSeasonMonthName, "part">[] = freeze([
 
 /** The two halves of each six-season season, precomputed so a call hands out only frozen leaves. */
 const SIX_SEASON_MONTHS: readonly SixSeasonMonthName[] = freeze(
-	SIX_SEASONS.flatMap((season) => [
-		{ ...season, part: "early" as const },
-		{ ...season, part: "late" as const },
-	]),
+	// Built field by field, not spread, so the keys print in the interface's order.
+	SIX_SEASONS.flatMap((s) =>
+		(["early", "late"] as const).map((part) => ({
+			season: s.season,
+			part,
+			tibetanName: s.tibetanName,
+			sanskritName: s.sanskritName,
+		})),
+	),
 );
 
 const at = <T>(table: readonly T[], index: number, what: string): T =>

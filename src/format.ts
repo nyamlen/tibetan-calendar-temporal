@@ -4,6 +4,9 @@
  * @packageDocumentation
  */
 
+// A value-import cycle: `types.ts` imports this file back. It is safe only while every reference
+// across it sits inside a function body; a module-level use of either side's exports would hit a
+// TDZ `ReferenceError` whose appearance depends on which barrel loads first. See the matching comment there.
 import {
 	assertTibetanRanges,
 	assertTibetanShape,

@@ -85,12 +85,12 @@ replaced diacritics with their absence while appearing to strengthen the provena
 
 | Source | Lineage | Format | Coverage | Settles |
 |---|---|---|---|---|
-| `crosscheck-lotsawa.ts` | independent impl. | HTML grid | 1,831 days, 21 Feb 2023 – 25 Feb 2028 | day numbers, doubled/skipped marks |
-| `crosscheck-steinert.ts` | independent impl. | JSON API | 1,461 days, 1 Jan 2024 – 31 Dec 2027 | day numbers, doubled + leap-month flags |
-| `crosscheck-eszthoff.ts` | independent impl. | npm package, run not read | 1,826 days, 1 Jan 2023 – 31 Dec 2027 | day numbers |
-| `fpmt-observances.ts` | **almanac** (Men-Tsee-Khang) | HTML tables | 1,826 days, 2022–2026 | day numbers — the source that settled `a₂`; since 2026-09-12 also the **lunar mansion**, via the day-quality codes; since 2026-09-19 the **full and new moons**, via its moon icons, whose own lineage is unknown — see [below](#fpmts-moon-icons-lineage-unknown) |
+| `crosscheck-lotsawa.ts` | independent impl. | HTML grid | day by day; window in [testing.md](testing.md#what-that-does-and-does-not-cover) | day numbers, doubled/skipped marks |
+| `crosscheck-steinert.ts` | independent impl. | JSON API | day by day; window in [testing.md](testing.md#what-that-does-and-does-not-cover) | day numbers, doubled + leap-month flags |
+| `crosscheck-eszthoff.ts` | independent impl. | npm package, run not read | day by day; window in [testing.md](testing.md#what-that-does-and-does-not-cover) | day numbers |
+| `fpmt-observances.ts` | **almanac** (Men-Tsee-Khang) | HTML tables | day by day; window in [testing.md](testing.md#what-that-does-and-does-not-cover) | day numbers — the source that settled `a₂`; since 2026-09-12 also the **lunar mansion**, via the day-quality codes; since 2026-09-19 the **full and new moons**, via its moon icons, whose own lineage is unknown — see [below](#fpmts-moon-icons-lineage-unknown) |
 | `fpmt-holy-days.ts` | almanac, via prose | hand-curated | selected days | observance placement only |
-| `losar.ts`, `janson-epoch.ts`, `sixty-year-cycle.ts` | Janson | LaTeX, generated | 1927–2046 Losar; epoch | month count, leap rule, year naming |
+| `losar.ts`, `janson-epoch.ts`, `sixty-year-cycle.ts` | Janson | LaTeX, generated | one Losar per year, and the epoch; window in [testing.md](testing.md#what-that-does-and-does-not-cover) | month count, leap rule, year naming |
 
 **`a₂` is settled for Phugpa: `1/28`.** Three lines of evidence, in
 [decisions/2026-08-12-lunar-anomaly-a2-default.md](decisions/2026-08-12-lunar-anomaly-a2-default.md).
@@ -386,6 +386,9 @@ print each day's mansion and its element pair. Their mansion equals this engine'
 days**, and they disagree with FPMT on exactly the same 35. Henning is this engine's lineage — the
 same computation Janson describes — so this is not corroboration of the calendar. It **locates** the
 difference: it is not in this implementation.
+The comparison is now a rerunnable harness,
+[`scripts/evidence/henning-mansions/`](../scripts/evidence/henning-mansions/README.md); its current
+figures are in [testing.md](testing.md).
 
 **What the 35 look like.** The moon sits in the last 15% of its mansion on 28 of them, and on 27 of
 those FPMT's element is the *next* mansion's. One sits in the first 15%; six are mid-mansion. Where the

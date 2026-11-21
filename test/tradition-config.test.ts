@@ -880,3 +880,42 @@ describe("a mean motion whose denominators cannot be scaled exactly", () => {
 		expect(isoToTibetan(day, t)).toEqual({ ...isoToTibetan(day, PHUGPA) });
 	});
 });
+
+describe("an array where the tradition validator expects a record", () => {
+	const INVALID = "TCT_INVALID_TRADITION_CONFIG";
+	const codeFor = (tradition: unknown) =>
+		thrownBy(() => monthsInYear(2153, tradition as TraditionConfig))?.code;
+
+	it.each([
+		["naming given as an array", { ...PHUGPA, naming: [] }],
+		["the whole config as an array", Object.assign([], PHUGPA)],
+		[
+			"naming.nineNumbers given as an array",
+			{ ...PHUGPA, naming: { ...PHUGPA.naming, nineNumbers: [] } },
+		],
+		[
+			"naming.monthAnimals given as an array",
+			{ ...PHUGPA, naming: { ...PHUGPA.naming, monthAnimals: [] } },
+		],
+		["a rational given as an array", { ...PHUGPA, meanSun: { ...PHUGPA.meanSun, perDay: [] } }],
+	])("refuses %s", (_label, tradition) => {
+		expect(codeFor(tradition)).toBe(INVALID);
+	});
+
+	it.each([
+		["PHUGPA", PHUGPA],
+		["PHUGPA_HENNING", PHUGPA_HENNING],
+		["BHUTAN", BHUTAN],
+		["BHUTAN_HENNING", BHUTAN_HENNING],
+		["a spread of PHUGPA", { ...PHUGPA }],
+		[
+			"a naming block with a null prototype",
+			{ ...PHUGPA, naming: Object.assign(Object.create(null), PHUGPA.naming) },
+		],
+		["structuredClone(PHUGPA)", structuredClone(PHUGPA)],
+		["a JSON round trip of PHUGPA", JSON.parse(JSON.stringify(PHUGPA))],
+		["a JSON round trip of BHUTAN", JSON.parse(JSON.stringify(BHUTAN))],
+	])("accepts %s", (_label, tradition) => {
+		expect(monthsInYear(2153, tradition as TraditionConfig)).toBeGreaterThanOrEqual(12);
+	});
+});
