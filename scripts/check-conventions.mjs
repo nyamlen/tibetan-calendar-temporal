@@ -522,8 +522,9 @@ const docblockDates = (source) => {
  * Rule 18 — the lines a docblock swallows: a `//` line, or a second `/**` or `/*`, before the closer.
  *
  * A line inside a docblock begins with its ` *` gutter, so one that begins `//` or `/*` is a
- * stray opener's neighbour (a `/* c8 ignore next */ ` under a lone `; /**` closes the block itself): the `/**` above it opened a block, and TypeScript ships everything up to
- * the next closer as that block's text. `{ line }` is 1-based.
+ * stray opener's neighbour: the `/**` above it opened a block, and TypeScript ships everything up to
+ * the next closer as that block's text. A `c8 ignore` comment under a lone opener is the second
+ * case, and its own closer is what ends the block. `{ line }` is 1-based.
  */
 const docblockSwallows = (source) =>
 	docblocksOf(source).flatMap(({ start, lines }) =>

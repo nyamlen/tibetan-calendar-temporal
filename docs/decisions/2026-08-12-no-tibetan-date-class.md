@@ -48,10 +48,13 @@ the rule as *"same input, same output, no side effects — measured by what a **
 observe"*, which an immutable class returning new instances satisfies completely.
 `Temporal.PlainDate` is itself such a class. Two arguments stand in its place:
 
-- **Plain objects serialise and class instances do not.** `TibetanDate` is 15 plain fields, so
-  `JSON.stringify`, structured clone, a worker boundary and a React or Redux store all work
-  without a revival step. This project treats serialisation as first-class enough to have reshaped
-  the type for it, taking a year of dates from 293,009 bytes to 126,629.
+- **Plain objects serialise more simply than class instances.** `TibetanDate` is 15 plain fields,
+  so `JSON.stringify` and a React or Redux store take it as it is. One field needs reviving: JSON
+  turns `isoDate` into its ISO string, read back with `Temporal.PlainDate.from`. Structured clone,
+  and so a worker boundary, refuses the `Temporal.PlainDate` in `isoDate` (`DataCloneError`, checked
+  2026-11-21), so a date crosses one as JSON. A class would add a revival step for every field,
+  not one. This project treats serialisation as first-class enough to have reshaped the type for
+  it, taking a year of dates from 293,009 bytes to 126,629.
   Every returned date is frozen (since 2026-11-19), so a result one caller holds cannot be changed
   through another's; a caller who wants a changed copy spreads it.
 - **A class ships whole under tree-shaking.** A consumer converting one date pays for the month

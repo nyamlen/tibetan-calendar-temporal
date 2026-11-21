@@ -501,7 +501,7 @@ that its first step is still open.
   *yongdzin* by the nasal policy, and *lo-ngen*, which is no nasal-rule case but a reading ruling.
   *senchang*, *nyönden*, *kündzin*, *künden* and the season months stand as THL gives them, and
   *dongngen* is a plain join left as THL gives it.
-- [x] **Small findings parked by the pre-1.0.0 reviews — one list, each with a decision.**
+- [ ] **Small findings parked by the pre-1.0.0 reviews — one list, each with a decision.**
   The code review (2026-11-15), the phonetics-by-word reviews (2026-11-15) and the docblock audit
   (2026-11-17) each found small defects they did not fix on their own branch.
   Every one is here, marked **fix** (done in one cleanup batch after the navigator build and before
@@ -604,6 +604,34 @@ that its first step is still open.
   - **Accepted** (Andreas, 2026-11-17) — consistent on a careful read: `src/astrology/types.ts` cites Henning's
     Appendix I, whose index column starts at 0, beside his web list, where Abhijit is the 23rd entry.
   - **Accepted** (Andreas, 2026-11-17) — cosmetic: row X13 sits before X12 in `test/check-conventions.mutations.ts`.
+
+  *From the adversarial-review fixes branch* — its Task 4 gate (2026-11-19) and its whole-branch review
+  (2026-11-21), both Opus. Each decision below is **proposed by the session and awaits Andreas' ruling**,
+  which is why this item is unticked:
+  - **Fix** — `TCT_OUTSIDE_EXACT_RANGE`'s message says the tradition's "arithmetic stays exact" even for a
+    consumer config whose bound is Temporal's range, not exactness (`assertExactJulianDay`,
+    `src/computation/conversion.ts`). Message text only; say "or where Temporal can name the day" when
+    the bound was clamped.
+  - **Fix, wording for Andreas** — S10's approved sentence in `scripts/fetch-eszthoff-fixtures.mjs` (and
+    so `test/fixtures/crosscheck-eszthoff.ts`) says eszthoff's almanac value is "inferred from where its
+    dates diverge from this engine's", but it agrees with the engine on every day. The evidence is its
+    agreement on the dates where the two increments diverge (2025-11-19). Needs a regeneration from a
+    scratch directory.
+  - **Fix** — the both-eras convention is stated only in a `//` in `test/why-trust-these-dates.test.ts`:
+    windows of Janson's Y map as +127, windows of days to the Tibetan year holding each end. Say so once
+    in each window document; give `docs/testing.md`'s epoch row its Tibetan year (933); use one form,
+    "CE (Tibetan …)", in why-trust's Tsurphu sentence.
+  - **Fix** — `docs/guide.md`'s "The cost in time" says a year's observances take "about 2 ms"; the README
+    says 2–3 ms from the same re-record (every-form 2.01 ms, `EXAMPLE_OBSERVANCES` 2.57 ms).
+  - **Fix** — `scripts/evidence/henning-mansions/`: the README's Git Bash block uses an undefined
+    `$SCRATCH`; the README says the manifest's size and status are compared, but `check-recording.mjs`
+    compares the SHA-256 only; and `check-recording.mjs` has no usage guard for a missing directory.
+  - **Fix** — `check:conventions` rule 10 splits `A as B` before skipping a type-only part, so
+    `export { type X as Y_CAPS } from "./traditions/…"` would be checked as a config. Nothing triggers it
+    today; skip a part that starts with the `type` keyword first, with a mutation row.
+  - **Fix** — `docs/decisions/2026-08-16-exported-means-validated.md` says `PHUGPA_HENNING`'s leap months
+    are validated "as Phugpa's". True by construction (only `lunarAnomaly` differs), but untested on the
+    export; add it to the export test in `test/validation/cross-version-leap.test.ts`.
 - [x] **Composable/additive `ObservanceConfig`s — decide before 1.0.0, not after.** Today, a
       consumer combining several institutions' rule sets (e.g. `DEFAULT_OBSERVANCES` plus a `TEACHERS` and a
       `TANTRA` config) hand-rolls
@@ -1675,7 +1703,12 @@ nothing and reports success.
       Every finding has a decision. The fixes are the `adversarial-review-fixes` branch: a frozen
       `TibetanDate`, `PlainDateTime`/`ZonedDateTime` read from their slots, the exact range clamped
       to Temporal's, the guard homes, three `check:conventions` blind spots, the Henning evidence
-      harness, nine decision records, and the approved softening of the documents. Tick this after
+      harness, nine decision records, and the approved softening of the documents.
+      **Three behaviour changes give no error, all intended, and belong in the release notes:** a
+      write to a returned (now frozen) `TibetanDate` is silently ignored in non-strict code; a
+      `PlainDateTime` or `ZonedDateTime` subclass whose `toPlainDate` shifts the day is now read from
+      its slots, so it gets its own day; and six-season month names list `part` second, so a consumer
+      of `Object.keys` order sees a new order. Tick this after
       that branch merges; the maintainability shards M1–M6 and P1 run separately on the merged
       `main`.
 
