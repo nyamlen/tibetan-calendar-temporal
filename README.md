@@ -69,7 +69,7 @@ see [why you can trust these dates](docs/why-trust-these-dates.md).
 | **Astrological attributes** | What kind of day it is, not just which day: the year's five elements, the month's and lunar day's labels, the calendar day's own, and the elemental yoga — which needs the moon's real position, not a cycle. A separate subpath, sourced piece by piece |
 | **Four traditions** | Phugpa and Bhutanese, each in two parameterisations. Constants and rules are injected as data, so a further tradition is a config object rather than a code change |
 | **Date arithmetic** | Add days or months, count between two dates, find the next true full or new moon, and reduce a month to one sortable integer for a database key |
-| **Fast, and computed rather than looked up** | No date tables, no network, nothing asynchronous: every answer is integer arithmetic done on the spot, identical on every platform. On a 2026 laptop a conversion takes about 7 µs, a month grid about 0.14 ms and a year of observances about 2 ms, so it can run in a render path — [measured, with the machine](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/bench/RESULTS.md#re-recorded-2026-11-18) |
+| **Fast, and computed rather than looked up** | No date tables, no network, nothing asynchronous: every answer is integer arithmetic done on the spot, identical on every platform. On a 2026 laptop a conversion takes about 7 µs, a month grid about 0.14 ms and a year of observances in 2–3 ms, so it can run in a render path — [measured, with the machine](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/bench/RESULTS.md#re-recorded-2026-11-18) |
 
 Everything is a pure function over plain objects. No classes, no instances, no hidden state.
 
