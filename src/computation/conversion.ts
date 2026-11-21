@@ -349,6 +349,7 @@ export function assertExactJulianDay(
 		const bound = below ? -scaled.exactToJulianDay : scaled.exactToJulianDay;
 		// `deriveScaling` clamps the safe-integer bound to Temporal's range; when it did, exactness is
 		// not what refused the day.
+		// exact: the same floored quotient `deriveScaling` takes, compared with its result, not used.
 		const clamped =
 			scaled.exactToJulianDay < Math.floor(Number.MAX_SAFE_INTEGER / scaled.commonDenominator);
 		throw rangeError(
