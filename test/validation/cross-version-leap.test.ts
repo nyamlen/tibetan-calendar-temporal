@@ -25,8 +25,8 @@
 
 import { describe, expect, it } from "vitest";
 import { sharesNumberWithLeapMonth } from "../../src/computation/calendar.js";
-import { BHUTAN } from "../../src/traditions/bhutan.js";
-import { PHUGPA } from "../../src/traditions/phugpa.js";
+import { BHUTAN, BHUTAN_HENNING } from "../../src/traditions/bhutan.js";
+import { PHUGPA, PHUGPA_HENNING } from "../../src/traditions/phugpa.js";
 import type { TraditionConfig } from "../../src/traditions/types.js";
 import { CROSS_VERSION_LEAP } from "../fixtures/cross-version-leap.js";
 import { VERSION_CONFIGS as CONFIGS, VERSIONS } from "../support/versions.js";
@@ -89,6 +89,23 @@ describe("the exported BHUTAN, not only the hand-built Bhutanese row", () => {
 			(row) => leapMonthOf(BHUTAN, row.year) !== row.bhutanese,
 		).map((row) => `${row.year}: Janson ${row.bhutanese}, BHUTAN ${leapMonthOf(BHUTAN, row.year)}`);
 		expect(CROSS_VERSION_LEAP).toHaveLength(31);
+		expect(wrong).toEqual([]);
+	});
+
+	// The exported-means-validated record says the two Henning variants' leap months are validated,
+	// PHUGPA_HENNING's "as Phugpa's". True by construction, since only the lunar anomaly differs and
+	// leap months depend on nothing astronomical; held here on the exports so a change to either
+	// config's leap fields is caught.
+	it("the exported Henning variants' leap months match Janson's columns", () => {
+		const cases: readonly (readonly [TraditionConfig, "phugpa" | "bhutanese"])[] = [
+			[PHUGPA_HENNING, "phugpa"],
+			[BHUTAN_HENNING, "bhutanese"],
+		];
+		const wrong = cases.flatMap(([config, column]) =>
+			CROSS_VERSION_LEAP.filter((row) => leapMonthOf(config, row.year) !== row[column]).map(
+				(row) => `${config.id} ${row.year}`,
+			),
+		);
 		expect(wrong).toEqual([]);
 	});
 });
