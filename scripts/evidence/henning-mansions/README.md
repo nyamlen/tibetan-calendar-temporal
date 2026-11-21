@@ -9,7 +9,7 @@ Until then the comparison had run once, in a session scratchpad, and nothing in 
   It fetches over http because the site's HTTPS certificate is wrong.
 - `recorded-manifest.json` holds the URL, status, size and SHA-256 of each page of the recording behind the result below.
   **The pages themselves are not kept**: they are Henning's, and can be re-fetched.
-- `check-recording.mjs <dir>` compares a directory of recorded pages with the manifest (`--write` rewrites the manifest).
+- `check-recording.mjs <dir>` compares a directory of recorded pages with the manifest, by status, size and SHA-256 (`--write` rewrites the manifest).
 - `compare.mjs <dir>` runs the comparison and exits non-zero unless every expectation holds.
   It imports the built `dist/` and `test/fixtures/fpmt-observances.ts`.
 - Nothing a run prints is kept.
@@ -22,6 +22,7 @@ Git Bash:
 
 ```sh
 npm run build
+SCRATCH="$(mktemp -d)"
 node scripts/evidence/henning-mansions/fetch.mjs "$SCRATCH/henning"
 node scripts/evidence/henning-mansions/check-recording.mjs "$SCRATCH/henning"
 node scripts/evidence/henning-mansions/compare.mjs "$SCRATCH/henning"

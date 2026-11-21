@@ -940,7 +940,7 @@ Measured on a 2026 laptop ([the harness and every figure](https://github.com/nya
 | Build a whole year of grids | about 1.7 ms |
 | Ask for a day's observances | about 0.4 ms |
 | Ask for a month's observances | about 0.5 ms |
-| Ask for a year's observances | about 2 ms |
+| Ask for a year's observances | 2–3 ms |
 
 Three behaviours are worth designing around.
 

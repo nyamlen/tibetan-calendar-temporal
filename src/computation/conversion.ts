@@ -347,10 +347,16 @@ export function assertExactJulianDay(
 	if (!(Math.abs(julianDay) <= scaled.exactToJulianDay)) {
 		const below = julianDay < 0;
 		const bound = below ? -scaled.exactToJulianDay : scaled.exactToJulianDay;
+		// `deriveScaling` clamps the safe-integer bound to Temporal's range; when it did, exactness is
+		// not what refused the day.
+		// exact: the same floored quotient `deriveScaling` takes, compared with its result, not used.
+		const clamped =
+			scaled.exactToJulianDay < Math.floor(Number.MAX_SAFE_INTEGER / scaled.commonDenominator);
 		throw rangeError(
 			"TCT_OUTSIDE_EXACT_RANGE",
 			`${subject()} is outside the range where the ${scaled.tradition.name} tradition's arithmetic ` +
-				`stays exact: JD must be ${below ? "at least" : "at most"} ${bound}` +
+				`stays exact${clamped ? " and Temporal can name the day" : ""}: ` +
+				`JD must be ${below ? "at least" : "at most"} ${bound}` +
 				`${describeBound(bound)}, received ${julianDay}`,
 		);
 	}

@@ -1,11 +1,16 @@
 // node check-recording.mjs <recorded-dir>          compare a recording with recorded-manifest.json
 // node check-recording.mjs <recorded-dir> --write  write the manifest from a recording
 import { createHash } from "node:crypto";
-import { readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const dir = process.argv[2];
+if (dir === undefined || !existsSync(dir) || !statSync(dir).isDirectory()) {
+	console.error("usage: node check-recording.mjs <recorded-dir> [--write]");
+	if (dir !== undefined) console.error(`not a directory: ${dir}`);
+	process.exit(2);
+}
 const manifestPath = join(dirname(fileURLToPath(import.meta.url)), "recorded-manifest.json");
 const entries = readdirSync(dir)
 	.filter((f) => f.endsWith(".json"))
@@ -30,7 +35,8 @@ if (process.argv[3] === "--write") {
 	for (const m of manifest) {
 		const e = have.get(m.url);
 		if (e === undefined) problems.push(`missing: ${m.url}`);
-		else if (e.sha256 !== m.sha256) problems.push(`changed: ${m.url}`);
+		else if (e.sha256 !== m.sha256 || e.bytes !== m.bytes || e.status !== m.status)
+			problems.push(`changed: ${m.url}`);
 	}
 	for (const e of entries)
 		if (!manifest.some((m) => m.url === e.url)) problems.push(`not in manifest: ${e.url}`);

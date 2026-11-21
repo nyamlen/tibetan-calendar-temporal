@@ -1861,16 +1861,15 @@ function rule10() {
 	}
 
 	for (const [, names] of read("src/index.ts").matchAll(CONFIG_EXPORT)) {
+		// Type-only exports carry no dates and nothing to validate. Skip them before splitting `as`, or
+		// `type X as Y_CAPS` would reach the check as the config name `Y_CAPS`.
+		const valueParts = names
+			.split(",")
+			.map((part) => part.trim())
+			.filter((part) => !/^type\s/.test(part));
 		// `A as B` exports the name `B`, which is the name a suite must import.
-		for (const name of names.split(",").map(
-			(part) =>
-				part
-					.trim()
-					.split(/\s+as\s+/)
-					.at(-1) ?? "",
-		)) {
-			// Type-only exports carry no dates and nothing to validate.
-			if (name === "" || name.startsWith("type ") || !/^[A-Z][A-Z0-9_]*$/.test(name)) continue;
+		for (const name of valueParts.map((part) => part.split(/\s+as\s+/).at(-1) ?? "")) {
+			if (name === "" || !/^[A-Z][A-Z0-9_]*$/.test(name)) continue;
 			if (!validationImports.has(name)) {
 				fail(
 					"exported configs are validated",

@@ -718,6 +718,13 @@ describe("a consumer config whose arithmetic outruns Temporal", () => {
 		expect(uncoded).toEqual([]);
 	});
 
+	it("names Temporal in the refusal only when the clamp, not exactness, set the bound", () => {
+		expect(thrownBy(() => isoFromJulianDay(97_559_413, COARSE))?.message).toContain(
+			"and Temporal can name the day",
+		);
+		expect(thrownBy(() => isoFromJulianDay(97_559_413))?.message).not.toContain("Temporal");
+	});
+
 	it("refuses the first month past the last representable one in every month export", () => {
 		// Bisect for the last year whose months all convert.
 		const converts = (year: number): boolean => {
