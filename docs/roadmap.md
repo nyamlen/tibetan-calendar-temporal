@@ -501,7 +501,7 @@ that its first step is still open.
   *yongdzin* by the nasal policy, and *lo-ngen*, which is no nasal-rule case but a reading ruling.
   *senchang*, *nyönden*, *kündzin*, *künden* and the season months stand as THL gives them, and
   *dongngen* is a plain join left as THL gives it.
-- [ ] **Small findings parked by the pre-1.0.0 reviews — one list, each with a decision.**
+- [x] **Small findings parked by the pre-1.0.0 reviews — one list, each with a decision.**
   The code review (2026-11-15), the phonetics-by-word reviews (2026-11-15) and the docblock audit
   (2026-11-17) each found small defects they did not fix on their own branch.
   Every one is here, marked **fix** (done in one cleanup batch after the navigator build and before
@@ -606,32 +606,40 @@ that its first step is still open.
   - **Accepted** (Andreas, 2026-11-17) — cosmetic: row X13 sits before X12 in `test/check-conventions.mutations.ts`.
 
   *From the adversarial-review fixes branch* — its Task 4 gate (2026-11-19) and its whole-branch review
-  (2026-11-21), both Opus. Each decision below is **proposed by the session and awaits Andreas' ruling**,
-  which is why this item is unticked:
-  - **Fix** — `TCT_OUTSIDE_EXACT_RANGE`'s message says the tradition's "arithmetic stays exact" even for a
+  (2026-11-21), both Opus. Andreas ruled Fix on all seven on 2026-11-21, with option A for S10's wording;
+  all seven were done on branch `parked-findings-2026-11-21`:
+  - **Fix** (Andreas, 2026-11-21) — `TCT_OUTSIDE_EXACT_RANGE`'s message says the tradition's "arithmetic stays exact" even for a
     consumer config whose bound is Temporal's range, not exactness (`assertExactJulianDay`,
     `src/computation/conversion.ts`). Message text only; say "or where Temporal can name the day" when
     the bound was clamped.
-  - **Fix, wording for Andreas** — S10's approved sentence in `scripts/fetch-eszthoff-fixtures.mjs` (and
+    **Done in `86d1a69` and `f8f73a0`**, as "and Temporal can name the day": the range is where both hold.
+  - **Fix** (Andreas, 2026-11-21) — S10's approved sentence in `scripts/fetch-eszthoff-fixtures.mjs` (and
     so `test/fixtures/crosscheck-eszthoff.ts`) says eszthoff's almanac value is "inferred from where its
     dates diverge from this engine's", but it agrees with the engine on every day. The evidence is its
     agreement on the dates where the two increments diverge (2025-11-19). Needs a regeneration from a
     scratch directory.
-  - **Fix** — the both-eras convention is stated only in a `//` in `test/why-trust-these-dates.test.ts`:
+    **Done in `e01f74f`**: "inferred from its agreement with this engine on 2025-11-19, a day where the two
+    values give different calendars"; the regenerated rows were byte-identical.
+  - **Fix** (Andreas, 2026-11-21) — the both-eras convention is stated only in a `//` in `test/why-trust-these-dates.test.ts`:
     windows of Janson's Y map as +127, windows of days to the Tibetan year holding each end. Say so once
     in each window document; give `docs/testing.md`'s epoch row its Tibetan year (933); use one form,
     "CE (Tibetan …)", in why-trust's Tsurphu sentence.
-  - **Fix** — `docs/guide.md`'s "The cost in time" says a year's observances take "about 2 ms"; the README
+    **Done in `4804043`**, with every other window on both pages brought to the rule so the statement is true.
+  - **Fix** (Andreas, 2026-11-21) — `docs/guide.md`'s "The cost in time" says a year's observances take "about 2 ms"; the README
     says 2–3 ms from the same re-record (every-form 2.01 ms, `EXAMPLE_OBSERVANCES` 2.57 ms).
-  - **Fix** — `scripts/evidence/henning-mansions/`: the README's Git Bash block uses an undefined
+    **Done in `e6da811`**: the guide says 2–3 ms.
+  - **Fix** (Andreas, 2026-11-21) — `scripts/evidence/henning-mansions/`: the README's Git Bash block uses an undefined
     `$SCRATCH`; the README says the manifest's size and status are compared, but `check-recording.mjs`
     compares the SHA-256 only; and `check-recording.mjs` has no usage guard for a missing directory.
-  - **Fix** — `check:conventions` rule 10 splits `A as B` before skipping a type-only part, so
+    **Done in `dbd1f2e`**: the script now compares all three fields, as the README says.
+  - **Fix** (Andreas, 2026-11-21) — `check:conventions` rule 10 splits `A as B` before skipping a type-only part, so
     `export { type X as Y_CAPS } from "./traditions/…"` would be checked as a config. Nothing triggers it
     today; skip a part that starts with the `type` keyword first, with a mutation row.
-  - **Fix** — `docs/decisions/2026-08-16-exported-means-validated.md` says `PHUGPA_HENNING`'s leap months
+    **Done in `d88dc56`**, row X16.
+  - **Fix** (Andreas, 2026-11-21) — `docs/decisions/2026-08-16-exported-means-validated.md` says `PHUGPA_HENNING`'s leap months
     are validated "as Phugpa's". True by construction (only `lunarAnomaly` differs), but untested on the
     export; add it to the export test in `test/validation/cross-version-leap.test.ts`.
+    **Done in `6e67c56`**, for `BHUTAN_HENNING` as well, which had the same gap under the same record.
 - [x] **Composable/additive `ObservanceConfig`s — decide before 1.0.0, not after.** Today, a
       consumer combining several institutions' rule sets (e.g. `DEFAULT_OBSERVANCES` plus a `TEACHERS` and a
       `TANTRA` config) hand-rolls
