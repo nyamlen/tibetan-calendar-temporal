@@ -1649,14 +1649,17 @@ nothing and reports success.
       code-review fixes branch.
       **Status 2026-11-16:** both merged to `main` (`51c7c03`) — the cache is an LRU of 64 years per
       config, and both CI actions are pinned to commit SHAs.
-      Still open: `/security-review` on the release branch's diff. State the honest scope first, or the pass will invent findings: zero
-      runtime dependencies, no I/O, no network, no filesystem access, no user-supplied strings
-      reaching anything but integer arithmetic. The real attack surface is **supply chain and
-      release**, most of it already itemised under Publishing — provenance, the lockfile, token
-      expiry, the `repository.url` match. **Command:** `/security-review` is **diff-shaped** (it
-      reviews pending changes on the current branch), so for a standing audit use
-      `/sc:sc-analyze . --focus security --depth deep`, and run `/security-review` on the release
-      branch's diff as the second, narrower pass
+      The 2026-11-15 pass covered release configuration and denial of service, and ruled hostile
+      input to the library out of scope.
+      **Still open, amended 2026-11-19 (adversarial review, coverage decision 1): the second pass is
+      a vulnerability review of the package**, not of the release configuration. Its subject is the
+      diff from `34b8ab4` to the tip of the adversarial-review fixes branch over `src/`, read for:
+      unbounded time or memory reachable from an export, a skipped guard, a value rendered without
+      `describe`, shared mutable state handed out, and caller code run during a read; plus
+      `npm audit` of the devDependency tree, which CI and the generators run. **Command:**
+      `/security-review` is **diff-shaped**, so run it on that range
+      (`git diff 34b8ab4..<fixes-branch tip> -- src/`), with the scope above stated first or the pass
+      will invent findings: zero runtime dependencies, no I/O, no network, no filesystem access.
 - [ ] **Full adversarial review.** Not a code review with a harsher tone: the subject is the
       **claims**, not the code. Every load-bearing assertion this repository makes about itself —
       the validation windows and what they actually cover, "exported means validated", the
@@ -1666,7 +1669,15 @@ nothing and reports success.
       adversarial agents (`superpowers:dispatching-parallel-agents`) with one claim-set each, plus
       `/sc:sc-spec-panel` over the decision records; `/code-review ultra` from the release branch is
       the multi-agent code-shaped half of it. The check that matters: a claim nobody can restate
-      from primary evidence is a claim to soften before 1.0.0, not to defend
+      from primary evidence is a claim to soften before 1.0.0, not to defend.
+      **Run 2026-11-18 to 2026-11-19** (steps 1 and 2: code shards X1/X2/L1–L4 and claim-sets 1–7;
+      triage and every ruling in the plans directory's `adversarial-review-2026-11/TRIAGE.md`).
+      Every finding has a decision. The fixes are the `adversarial-review-fixes` branch: a frozen
+      `TibetanDate`, `PlainDateTime`/`ZonedDateTime` read from their slots, the exact range clamped
+      to Temporal's, the guard homes, three `check:conventions` blind spots, the Henning evidence
+      harness, nine decision records, and the approved softening of the documents. Tick this after
+      that branch merges; the maintainability shards M1–M6 and P1 run separately on the merged
+      `main`.
 
 **Publishing**
 

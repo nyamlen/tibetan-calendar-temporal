@@ -102,12 +102,14 @@ so. Accepting these remains open and would be purely additive.
 
 ## Three policies, one predicate
 
-The predicate returns a **kind** and not a boolean, because `asPlainDate` must know whether to call
-`.toPlainDate()` and the entry points accept different subsets. Written on top of it:
+The predicate returns a **kind** and not a boolean, because the entry points accept different subsets,
+and a value from a second implementation is narrowed by its kind's `.toPlainDate()` (a genuine
+instance of this realm's three types is recognised by its slots first and copied, never asked).
+Written on top of it:
 
 | Policy | Where |
 |---|---|
-| Refuse a Temporal value where a Tibetan date is expected | `rejectTemporalInstance` |
+| Refuse a Temporal value where a Tibetan date is expected | `assertTibetanShape` (its private `rejectTemporalInstance`) |
 | Normalise a Western-date input to `PlainDate` | `asPlainDate` |
 | Discriminate the `PlainDate \| TibetanDate` union | `asWesternDay` |
 
