@@ -190,7 +190,8 @@ const ROUNDED_TOTAL =
 
 const LOSAR_WINDOW = windowOf(LOSAR_DATES.map((row) => ({ iso: row.losar })));
 
-// The both-eras rule: a window states the Tibetan years it spans, the year holding its first day to
+// The both-eras rule, stated on this page and in docs/testing.md's Tier 2 and asserted as the first
+// claim below: a window states the Tibetan years it spans, the year holding its first day to
 // the year holding its last. A year-only CE window spans 1 January of its first year to 31 December
 // of its last; a window of Janson's Y years converts each end to the royal era.
 const tibetanYears = (
@@ -313,6 +314,16 @@ interface Claim {
 }
 
 const CLAIMS: readonly Claim[] = [
+	// What has been checked, and over what years
+	{
+		what: "the both-eras rule, as the page states it",
+		pattern:
+			/a window of whole Western years runs from (\d+) January of its first year to (\d+) December of its last; a window of Janson's years converts each end to the royal era, which is the CE year plus (\d+)\./,
+		expected: () => {
+			const [first, last] = [plain("2000-01-01"), plain("2000-12-31")];
+			return [first.day, last.day, royalEraFromYear(2000) - 2000];
+		},
+	},
 	// How much has actually been checked
 	{
 		what: "the total, rounded",
@@ -327,15 +338,22 @@ const CLAIMS: readonly Claim[] = [
 	{
 		what: "the summary table's Bhutanese row",
 		pattern:
-			/\| Bhutanese days, (.+?) – (.+?) \| ([\d,]+) \| one lineage \(Henning's software\) \|/,
-		expected: () => [short(bhutanStart), short(trustedEnd), count(TRUSTED_DAYS)],
+			/\| Bhutanese days, (.+?) – (.+?) \(Tibetan (\d+)–(\d+)\) \| ([\d,]+) \| one lineage \(Henning's software\) \|/,
+		expected: () => [
+			short(bhutanStart),
+			short(trustedEnd),
+			...tibetanYears(bhutanStart, trustedEnd, BHUTAN_HENNING),
+			count(TRUSTED_DAYS),
+		],
 	},
 	{
 		what: "the summary table's Phugpa row",
-		pattern: /\| Phugpa days, (.+?) – (.+?) \| ([\d,]+) \| \*\*(\w+) independent sources\*\* \|/,
+		pattern:
+			/\| Phugpa days, (.+?) – (.+?) \(Tibetan (\d+)–(\d+)\) \| ([\d,]+) \| \*\*(\w+) independent sources\*\* \|/,
 		expected: () => [
 			short(UNION_WINDOW.first),
 			short(UNION_WINDOW.last),
+			...tibetanYears(UNION_WINDOW.first, UNION_WINDOW.last),
 			count(PHUGPA_ROWS),
 			word(PHUGPA_SOURCES.length),
 		],
@@ -701,7 +719,7 @@ const CLAIMS: readonly Claim[] = [
 	{
 		what: "the Tsurphu and Mongolian leap-month window",
 		pattern:
-			/leap months are checked against Janson for (\d+)–(\d+) CE, Tibetan (\d+)–(\d+) \(for (\d+)–(\d+), Janson's own values from his published source files/,
+			/leap months are checked against Janson for (\d+)–(\d+) CE \(Tibetan (\d+)–(\d+)\), using for (\d+)–(\d+) CE \(Tibetan (\d+)–(\d+)\)\s+Janson's own values from his published source files/,
 		expected: () => [
 			CROSS_VERSION_LEAP[0]?.year ?? "",
 			CROSS_VERSION_LEAP.at(-1)?.year ?? "",
@@ -709,6 +727,8 @@ const CLAIMS: readonly Claim[] = [
 			royalEraFromYear(CROSS_VERSION_LEAP.at(-1)?.year ?? Number.NaN),
 			Math.min(...LEAP_COMMENTED),
 			Math.max(...LEAP_COMMENTED),
+			royalEraFromYear(Math.min(...LEAP_COMMENTED)),
+			royalEraFromYear(Math.max(...LEAP_COMMENTED)),
 		],
 	},
 	{

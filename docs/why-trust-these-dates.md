@@ -35,6 +35,9 @@ The single most important thing on this page is that **every claim of agreement 
 range of years it covers.**
 Agreement quoted without its window is not evidence; it is advertising.
 
+Each window is given in the Common Era and in the Tibetan royal era.
+A window of days names the Tibetan years holding its first and last day; a window of whole Western years runs from 1 January of its first year to 31 December of its last; a window of Janson's years converts each end to the royal era, which is the CE year plus 127.
+
 ### How much has actually been checked
 
 More than **18,000 rows** of published calendar data are committed to this repository and compared
@@ -43,8 +46,8 @@ the shape of it matters more than the size:
 
 | What | Rows | Against |
 |---|---|---|
-| Bhutanese days, 1 Jan 2000 – 2 Apr 2030 | 11,050 | one lineage (Henning's software) |
-| Phugpa days, 1 Jan 2022 – 25 Feb 2028 | 6,944 | **four independent sources** |
+| Bhutanese days, 1 Jan 2000 – 2 Apr 2030 (Tibetan 2126–2157) | 11,050 | one lineage (Henning's software) |
+| Phugpa days, 1 Jan 2022 – 25 Feb 2028 (Tibetan 2148–2154) | 6,944 | **four independent sources** |
 | Royal Government of Bhutan days, 2025–2026 CE (Tibetan 2151–2153) | 25 | an independent almanac |
 | Losar, 1927–2046 CE (Tibetan 2054–2173) | 120 | Janson |
 | Leap months across four traditions, 2000–2030 CE (Tibetan 2127–2157) | 124 | Janson (for 2021–2030 CE, Tibetan 2148–2157, Janson's own values from his published source files, which he left out of the printed paper) |
@@ -165,8 +168,8 @@ The fire puja is a formula, and it agrees with FPMT's labels on 1,786 of 1,826 d
 Stating this is the point of the page.
 
 - **Tsurphu and the Mongolian calendar are not shipped.** The engine can express both, and their
-  leap months are checked against Janson for 2000–2030 CE, Tibetan 2127–2157 (for 2021–2030, Janson's own values from his
-  published source files, which he left out of the printed paper).
+  leap months are checked against Janson for 2000–2030 CE (Tibetan 2127–2157), using for 2021–2030 CE (Tibetan 2148–2157)
+  Janson's own values from his published source files, which he left out of the printed paper.
   But no Tsurphu or Mongolian *date* has ever been checked against a real almanac, so neither is
   offered. The rule the project holds itself to
   is that a calendar is published only once its dates have been tiled against an external calendar
