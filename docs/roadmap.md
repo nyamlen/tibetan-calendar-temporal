@@ -1704,16 +1704,20 @@ nothing and reports success.
       `TibetanDate`, `PlainDateTime`/`ZonedDateTime` read from their slots, the exact range clamped
       to Temporal's, the guard homes, three `check:conventions` blind spots, the Henning evidence
       harness, nine decision records, and the approved softening of the documents.
-      **Three behaviour changes give no error, all intended, and belong in the release notes:** a
-      write to a returned (now frozen) `TibetanDate` is silently ignored in non-strict code; a
-      `PlainDateTime` or `ZonedDateTime` subclass whose `toPlainDate` shifts the day is now read from
-      its slots, so it gets its own day; and six-season month names list `part` second, so a consumer
-      of `Object.keys` order sees a new order. Tick this after
-      that branch merges; the maintainability shards M1–M6 and P1 run separately on the merged
+      Three behaviour changes give no error (a write to a returned, now frozen, `TibetanDate` is
+      ignored in non-strict code; a `PlainDateTime` or `ZonedDateTime` subclass is read from its slots;
+      six-season month names list `part` second). They need no release note: they landed before 1.0.0,
+      so no released version behaved otherwise.
+      Tick this after that branch merges; the maintainability shards M1–M6 and P1 run separately on the merged
       `main`.
 
 **Publishing**
 
+- [ ] **Keep a `CHANGELOG.md` from 1.0.0.** Andreas, 2026-11-21: the first entry is 1.0.0 itself, and
+      nothing that changed before it is recorded, because no released version behaved otherwise. From
+      1.0.0 on, an entry for every release states each change a consumer can see, with a behaviour
+      change that raises no error flagged as such. Decide where it ships (`package.json#files`) and
+      whether `check-pack` asserts it, in the same commit that adds it.
 - [ ] Publish from **GitHub Actions with npm provenance**, not locally — provenance ties each
       released version to the commit that built it, which reinforces the clean-room record
 - [x] Grant the `nyamlen:developers` team read-write on the package — done 2026-08-11, verified
