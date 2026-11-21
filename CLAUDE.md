@@ -174,7 +174,9 @@ Before explaining a residual by a formula, check whether the source uses the sam
   first is wrong too, because `from` reads a forwarding Proxy's *fields*. Pinned in
   `test/temporal-kind.test.ts`.
 - **Identity checks against `Temporal` live only in `src/temporal-kind.ts`** (rule 15). The rule
-  catches the idiom, not every alias — a ratchet, not a proof.
+  catches the idiom, not every alias — a ratchet, not a proof. That file must keep a literal
+  `instanceof Temporal.<Type>` in code, which the checker's self-test anchors on; routing every check
+  through a helper makes `check:conventions` refuse to run.
 - **Pure stateless functions**, measured by what a **caller** can observe. Memoising is allowed
   (`scalingFor`, the config validators, `monthsFor`); do not delete a cache for offending the word
   "stateless". A cache must **key on the config, not just the year**; **never hand out shared mutable
@@ -333,8 +335,10 @@ Node's erase-only type stripping (`erasableSyntaxOnly` catches violations at typ
   covers is in [docs/coding-standards.md](docs/coding-standards.md). When you add a rule here, check
   whether the script can hold it, and write the failing case first.
 - **`test:conventions`** is the only proof `check:conventions` still reports: one mutation row per
-  rule, after an unmutated control. Not in `npm test`; run it when you touch the checker. "Mutation
-  target not found" means a commit moved the row's text — repoint the row. A new rule needs a new row. It lives at `test/` root, not `scripts/`, because Rule 7 accepts a fixture any script names, and the harness names `fixtures/bhutan.js`.
+  rule, after an unmutated control. Not in `npm test`; run it when you touch the checker **or a file
+  a row mutates** (`src/temporal-kind.ts`, the guards in `src/errors.ts`), because a row whose target
+  moved fails only here. "Mutation target not found" means a commit moved the row's text — repoint
+  the row. A new rule needs a new row. It lives at `test/` root, not `scripts/`, because Rule 7 accepts a fixture any script names, and the harness names `fixtures/bhutan.js`.
 - **`lint:md`** does not check semantic line breaks.
 - **`check:publish` and `test:pack` are the only checks that see the published package.** `test:pack`
   packs without building (proving `prepack`), installs outside the repo and asserts values through all

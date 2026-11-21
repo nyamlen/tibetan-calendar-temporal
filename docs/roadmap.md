@@ -1708,8 +1708,11 @@ nothing and reports success.
       ignored in non-strict code; a `PlainDateTime` or `ZonedDateTime` subclass is read from its slots;
       six-season month names list `part` second). They need no release note: they landed before 1.0.0,
       so no released version behaved otherwise.
-      Tick this after that branch merges; the maintainability shards M1–M6 and P1 run separately on the merged
-      `main`.
+      **Merged to `main` 2026-11-21 as `5bd5d1e`.** Not ticked: the maintainability shards M1–M6
+      (Opus) and P1 (`scripts/check-pack.mjs`, `scripts/check-pack-consumer.mjs`, Sonnet) are part of
+      this review's coverage and have not run; they review the merged `main` on a branch of their own.
+      The seven findings the fixes branch's reviews parked are in the "Small findings parked by the
+      pre-1.0.0 reviews" item above.
 
 **Publishing**
 
