@@ -33,6 +33,7 @@ import {
 	monthsInYear,
 	nextFullMoon,
 	nextNewMoon,
+	PHUGPA,
 	parseTibetanDate,
 	parseTibetanMonth,
 	rabjungFor,
@@ -761,6 +762,65 @@ describe("a consumer config whose arithmetic outruns Temporal", () => {
 		)
 			.map(([name, run]) => [name, thrownBy(run)?.code ?? "no coded throw"] as const)
 			.filter(([, code]) => code !== OUTSIDE);
+		expect(wrong).toEqual([]);
+	});
+});
+
+describe("a typed array where a config holds a plain object", () => {
+	// `structuredClone` keeps a typed array's elements and drops the keys assigned onto it, and
+	// `Object.freeze` throws on a non-empty one, so the freeze of the private copy has to be guarded
+	// like the clone. Expando keys make the original pass the first validation.
+	const typed = (fields: object) => Object.assign(new Uint8Array(1), fields);
+	const MOTIONS = ["meanDate", "meanSun", "lunarAnomaly"] as const;
+	const PARTS = ["perMonth", "perDay", "atEpoch"] as const;
+
+	it("is refused with the config code in every rational and mean motion", () => {
+		const calls: [string, () => unknown][] = MOTIONS.flatMap((motion) => [
+			[motion, () => isoToTibetan(ISO, v({ ...PHUGPA, id: "t", [motion]: typed(PHUGPA[motion]) }))],
+			...PARTS.map((part): [string, () => unknown] => [
+				`${motion}.${part}`,
+				() =>
+					isoToTibetan(
+						ISO,
+						v({
+							...PHUGPA,
+							id: "t",
+							[motion]: { ...PHUGPA[motion], [part]: typed(PHUGPA[motion][part]) },
+						}),
+					),
+			]),
+		]);
+		const wrong = calls
+			.map(([name, run]) => [name, thrownBy(run)?.code ?? "no coded throw"] as const)
+			.filter(([, code]) => code !== "TCT_INVALID_TRADITION_CONFIG");
+		expect(wrong).toEqual([]);
+	});
+
+	it("is refused with a code in an observance rule", () => {
+		const calls: [string, () => unknown][] = [
+			["when", () => getObservances(ISO, ISO, withWhen(typed({ type: "monthly", days: [8] })))],
+			[
+				"annual dates entry",
+				() =>
+					getObservances(
+						ISO,
+						ISO,
+						withWhen({ type: "annual", dates: [typed({ month: 1, day: 1 })] }),
+					),
+			],
+			[
+				"rule",
+				() =>
+					getObservances(
+						ISO,
+						ISO,
+						v({ ...EXAMPLE_OBSERVANCES, rules: [typed(EXAMPLE_OBSERVANCES.rules[0] ?? {})] }),
+					),
+			],
+		];
+		const wrong = calls
+			.map(([name, run]) => [name, thrownBy(run)?.code ?? "no coded throw"] as const)
+			.filter(([, code]) => !code.startsWith("TCT_"));
 		expect(wrong).toEqual([]);
 	});
 });

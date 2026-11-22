@@ -538,7 +538,7 @@ export interface PrivateCopySpec<T extends object> {
 	readonly isCandidate: (value: unknown) => boolean;
 	/** Throws a coded error for a value that is not a valid config; runs on the caller's object, then on the copy. */
 	readonly validate: (value: T) => void;
-	/** The message for a config `structuredClone` refuses. Runs inside the guarded read. */
+	/** The message for a config `structuredClone` refuses or whose copy cannot be frozen. Runs inside the guarded read. */
 	readonly uncopyable: (value: T) => string;
 }
 
@@ -551,7 +551,8 @@ export interface PrivateCopySpec<T extends object> {
  * copy is validated again as a new object, since a getter, an inherited field or a non-enumerable one
  * answers differently once cloned, and the cache records it only after that: a refused config is never
  * cached, and a copy maps to itself so passing one back is a hit. A value `structuredClone` refuses
- * (a function or a Symbol in it) is refused with `spec.code` and the message `spec.uncopyable` gives.
+ * (a function or a Symbol in it), or a copy that cannot be frozen (a non-empty typed array in it), is
+ * refused with `spec.code` and the message `spec.uncopyable` gives.
  *
  * @throws A `RangeError` with `spec.code` for a config that fails validation, cannot be copied, or
  * cannot be read; an error built by `rangeError` or `codedError` inside `spec.validate` passes through
@@ -568,18 +569,25 @@ export function validatedPrivateCopy<T extends object>(config: T, spec: PrivateC
 	);
 	if (hit !== undefined) return hit;
 	readingCallersObject(code, what, () => validate(config));
-	const copy = deepFreeze(
-		readingCallersObject(code, what, () => {
-			try {
-				return structuredClone(config);
-			} catch (error) {
-				if (error instanceof Error && error.name === "DataCloneError") {
-					throw rangeError(code, uncopyable(config));
-				}
-				throw error;
+	const copy = readingCallersObject(code, what, () => {
+		let clone: T;
+		try {
+			clone = structuredClone(config);
+		} catch (error) {
+			if (error instanceof Error && error.name === "DataCloneError") {
+				throw rangeError(code, uncopyable(config));
 			}
-		}),
-	);
+			throw error;
+		}
+		// The clone is plain data, so the freeze runs no caller code; it throws only on a non-empty
+		// typed array, which the clone keeps and the first validation passed by its expando keys.
+		try {
+			return deepFreeze(clone);
+		} catch (error) {
+			if (error instanceof TypeError) throw rangeError(code, uncopyable(config));
+			throw error;
+		}
+	});
 	validate(copy);
 	cache.set(config, copy);
 	cache.set(copy, copy);
