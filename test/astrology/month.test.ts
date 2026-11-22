@@ -284,3 +284,38 @@ describe("a tradition whose month attributes are unsourced refuses", () => {
 		expect(message).toContain("calendar-day");
 	});
 });
+
+describe("the month element is Janson's formula for every Tiger month", () => {
+	// M6.4: the element now reads the Tiger month through monthsAfterTigerMonth, like the animal. This
+	// pins it to the docblock's formulas for every Tiger month 1-12 and both element rules, including
+	// combinations no shipped config uses (a consumer config may), so the rewrite changes no answer.
+	const floor = (a: number, b: number) => Math.floor(a / b);
+	const ceil = (a: number, b: number) => Math.ceil(a / b);
+	const amod5 = (n: number) => ((((n - 1) % 5) + 5) % 5) + 1;
+	const janson = (rule: "son-of-year" | "continuous", t: number, y: number, m: number) =>
+		rule === "continuous"
+			? amod5(y - 2 + floor(m - t, 2))
+			: m >= t
+				? amod5(ceil(y, 2) + floor(m - t, 2))
+				: amod5(ceil(y - 1, 2) + floor(m + 12 - t, 2));
+
+	it("matches over Tiger months 1-12, both rules, every month, years 1990-2010", () => {
+		const wrong: string[] = [];
+		for (const elementRule of ["son-of-year", "continuous"] as const) {
+			for (let tigerMonth = 1; tigerMonth <= 12; tigerMonth++) {
+				const config = {
+					...PHUGPA,
+					naming: { ...PHUGPA.naming, monthAnimals: { tigerMonth, elementRule } },
+				};
+				for (let year = 1990; year <= 2010; year++) {
+					for (let month = 1; month <= 12; month++) {
+						const got = monthElementNumber(config, year, month);
+						const want = janson(elementRule, tigerMonth, year, month);
+						if (got !== want) wrong.push(`${elementRule} T${tigerMonth} ${year}/${month}: ${got}`);
+					}
+				}
+			}
+		}
+		expect(wrong).toEqual([]);
+	});
+});

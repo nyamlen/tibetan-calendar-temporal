@@ -141,7 +141,16 @@ export function monthElementNumber(
 	year: number,
 	month: number,
 ): number {
-	const { tigerMonth, elementRule } = monthAnimals(tradition);
+	const { elementRule } = monthAnimals(tradition);
+	// The Tiger month is read only through `monthsAfterTigerMonth`, the definition the month animal
+	// and `monthNamesFor` share. `steps` is `mod(month − tigerMonth, 12)`, so it is `month − tigerMonth`
+	// exactly when `month ≥ tigerMonth` — which `steps < month` decides — and `month + 12 − tigerMonth`
+	// otherwise.
+	const steps = assertInternal(
+		monthsAfterTigerMonth(tradition, month) ?? undefined,
+		"a sourced tradition has a Tiger month",
+	);
+	const opensThisYear = steps < month;
 
 	// The two-arm split is not a year-boundary special case. Phugpa's Tiger month is month 11 of the
 	// *preceding* Gregorian year, so months 1–10 belong to a run that started last year and months
@@ -150,13 +159,13 @@ export function monthElementNumber(
 	// The year's power element is `⌈(Y−3)/2⌉`. The son of year `Y`'s is `⌈(Y−1)/2⌉`, which starts
 	// the run that opened in month 11 of the year before; the son of year `Y + 1`'s is `⌈Y/2⌉`,
 	// which starts the run opening in month 11 of year `Y`.
-	const stepsFromTiger = (offset: number) => floorDiv(month - tigerMonth + offset, 2);
-
-	if (elementRule === "continuous") return amod(year - 2 + stepsFromTiger(0), 5);
-
-	return month >= tigerMonth
-		? amod(ceilDiv(year, 2) + stepsFromTiger(0), 5)
-		: amod(ceilDiv(year - 1, 2) + stepsFromTiger(12), 5);
+	//
+	// The continuous arm's `⌊(M − tigerMonth)/2⌋` is `⌊steps/2⌋ − 6` before the Tiger month, where
+	// `M − tigerMonth = steps − 12`; written so, it gives the same answer for every Tiger month.
+	if (elementRule === "continuous") {
+		return amod(year - 2 + floorDiv(steps, 2) - (opensThisYear ? 0 : 6), 5);
+	}
+	return amod((opensThisYear ? ceilDiv(year, 2) : ceilDiv(year - 1, 2)) + floorDiv(steps, 2), 5);
 }
 
 /**

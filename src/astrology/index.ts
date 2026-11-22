@@ -76,7 +76,7 @@ import { MANSION_COUNT, mansionNumber } from "./mansions.js";
 import { type MonthAttributes, monthAttributes, monthAttributesAreSourced } from "./month.js";
 import type { DayAttributes, LunarMansion } from "./types.js";
 import { type YearAttributes, yearAttributes } from "./year.js";
-import { type ElementalYoga, yogaForMansion } from "./yoga.js";
+import { type ElementalYoga, elementalYoga } from "./yoga.js";
 
 export type { CalendarDayAttributes, TibetanTrigram } from "./calendar-day.js";
 export type { LunarDayAttributes } from "./lunar-day.js";
@@ -396,7 +396,7 @@ export function attributesFor(
 		calendarDay: calendarDayAttributes(julianDayFromIsoUnchecked(resolved.isoDate)),
 		lunarMansion,
 		yoga: yogaIsSourced(tradition)
-			? yogaForMansion(weekdayElementOf(resolved), lunarMansion.index)
+			? elementalYoga(weekdayElementOf(resolved), lunarMansion.element)
 			: null,
 	};
 }
@@ -422,7 +422,7 @@ function yogaOf(resolved: TibetanDate, tradition: TraditionConfig): ElementalYog
 				"source. The lunar mansion, and the year and calendar-day attributes, still answer",
 		);
 	}
-	return yogaForMansion(weekdayElementOf(resolved), lunarMansionOf(resolved, tradition).index);
+	return elementalYoga(weekdayElementOf(resolved), lunarMansionOf(resolved, tradition).element);
 }
 
 /** The mansion of an already-resolved date, shared by the compositions and the primitive. */
