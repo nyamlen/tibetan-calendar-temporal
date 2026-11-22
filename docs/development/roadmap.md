@@ -863,7 +863,15 @@ nothing and reports success.
   refusal is honest in the meantime. The API-shape half of this question is **not** here — it sits
   in the Pre-v1.0.0 checklist, because it freezes at 1.0.0.
 
-- **An interactive almanac page, not a prose docs site.** A prose documentation site would duplicate
+- **An interactive almanac page, not a prose docs site — this is the `nyamlen` website** (Andreas,
+  2026-11-22), the next client after 1.0.0, built against the published package. Besides the almanac
+  it carries a page comparing this package with the other implementations and a page on why its
+  dates can be trusted. Those two draw on `docs/other-implementations.md` and
+  `docs/why-trust-these-dates.md` rather than restating them: only `why-trust-these-dates.md` and
+  `docs/development/testing.md` may quote a validation window, so a trust page renders or links that
+  document, never a hand-copied figure. The reasoning below still governs the almanac itself.
+
+  A prose documentation site would duplicate
   [guide.md](../guide.md), and its examples would sit outside the assertion machinery that makes the
   README's trustworthy — `test/readme.test.ts` and `test/guide.test.ts` assert every example those
   documents state, and a hand-written site would assert none. That is the failure this repository is
