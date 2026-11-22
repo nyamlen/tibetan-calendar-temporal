@@ -339,8 +339,8 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
 
 **GitHub settings**
 
-- [ ] Set **repository topics** to match `package.json#keywords` — `tibetan`, `calendar`,
-      `temporal`, `phugpa`, `buddhist`, `lunisolar`, `tibetan-calendar`, `losar`, `bhutanese`,
+- [x] Set **repository topics** to match `package.json#keywords` — `tibetan`, `calendar`,
+      `temporal`, `phugpa`, `buddhist`, `lunisolar`, `lunisolar-calendar`, `tibetan-calendar`, `losar`, `bhutanese`,
       `dzongkha`, `mongolian`, `tsurphu`, `kalacakra`, `rabjung`. Topics drive GitHub search and the topic
       pages, a discovery channel entirely separate from npm, and cost one settings change. The
       keyword list carries the Bhutanese and Mongolian scope that the package *name* deliberately
