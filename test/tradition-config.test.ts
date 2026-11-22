@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { elementalYogaFor } from "../src/astrology/index.js";
+import { attributesFor, elementalYogaFor, lunarMansionFor } from "../src/astrology/index.js";
 import { isoToTibetan, losarFor, tibetanToIso } from "../src/computation/conversion.js";
 import { moonEquation, sunEquation } from "../src/computation/corrections.js";
 import { deriveScaling } from "../src/computation/scaling.js";
@@ -825,6 +825,19 @@ describe("a mean motion whose denominators cannot be scaled exactly", () => {
 			meanSun: motionOver(OVER),
 			moonTab: [1],
 		}),
+		// The common denominator is about 3.1 · 10¹³: safe on its own, but the lunar mansion multiplies
+		// it by 27 twice, past 2⁵³, so the mansion could not be computed exactly. Refused at validation
+		// rather than by an internal error from lunarMansionFor (Andreas, 2026-11-22).
+		"a meanDate whose common denominator leaves the lunar mansion inexact": broken({
+			id: "mansion-inexact",
+			meanDate: {
+				...PHUGPA.meanDate,
+				atEpoch: {
+					num: PHUGPA.meanDate.atEpoch.num * 300_007 + 1,
+					den: PHUGPA.meanDate.atEpoch.den * 300_007,
+				},
+			},
+		}),
 		"a meanSun whose motions are scalable but whose common denominator is not": broken({
 			id: "within",
 			meanSun: motionOver(WITHIN),
@@ -847,6 +860,8 @@ describe("a mean motion whose denominators cannot be scaled exactly", () => {
 		weekdayNameFor: (t) => weekdayNameFor(asTibetanWeekday(1), t),
 		lunationFromMonth: (t) => lunationFromMonth({ year: 2153, month: 6 }, t),
 		monthsBetween: (t) => monthsBetween({ year: 2153, month: 1 }, { year: 2153, month: 6 }, t),
+		lunarMansionFor: (t) => lunarMansionFor(iso("2026-08-12"), t),
+		attributesFor: (t) => attributesFor(iso("2026-08-12"), t),
 	};
 
 	it.each(Object.keys(underivable))("every export refuses %s with the config code", (label) => {

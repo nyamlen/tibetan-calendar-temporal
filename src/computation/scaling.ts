@@ -29,10 +29,12 @@ import {
 	assertArgumentsFit,
 	assertCommonDenominatorExact,
 	assertDerivable,
+	assertMansionExact,
 	assertMeanMotionExact,
 	validatedTradition,
 } from "../traditions/validate.js";
 import { ceilDiv, gcd, lcm, scaleTo } from "./arithmetic.js";
+import { mansionDenominatorParts } from "./corrections.js";
 
 /** A {@link MeanMotion} with each coefficient expressed as an integer over a shared denominator. */
 export interface ScaledMeanMotion {
@@ -203,9 +205,10 @@ const TEMPORAL_JULIAN_DAY_BOUND = 97_559_412;
  *
  * @param tradition - A config that has passed validation.
  * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG` if a mean motion cannot be put over
- * one safe-integer denominator, if the common denominator is not a safe integer, if the correction
- * tables imply a search window wider than the engine accepts (30 lunar days), or if a table argument
- * could leave the exactly representable integers within the exact range.
+ * one safe-integer denominator, if the common denominator is not a safe integer or is too large for
+ * the lunar mansion to be computed exactly, if the correction tables imply a search window wider than
+ * the engine accepts (30 lunar days), or if a table argument could leave the exactly representable
+ * integers within the exact range.
  *
  * @example
  * ```ts
@@ -252,6 +255,9 @@ export function deriveScaling(tradition: TraditionConfig): ScaledTradition {
 	const parts = [meanDate.den, moonEquationDen, sunEquationDen];
 	assertCommonDenominatorExact(tradition, parts);
 	const commonDenominator = parts.reduce(lcm);
+	// The lunar mansion multiplies the common denominator by 27 twice; refused here, so a config
+	// that passes validation never meets an internal error in `./astrology`.
+	assertMansionExact(tradition, mansionDenominatorParts({ sunTabArgDen, commonDenominator }));
 
 	// The correction bound, in lunar days, from this tradition's own tables. The bound is a function
 	// of the injected correction tables, so writing `3` at the search loop would hardcode a Phugpa

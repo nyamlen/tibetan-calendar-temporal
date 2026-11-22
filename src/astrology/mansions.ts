@@ -26,12 +26,17 @@
  */
 
 import { floorDiv, lcm, mod, scaleTo } from "../computation/arithmetic.js";
-import { trueDate, trueSun, trueSunDenominator } from "../computation/corrections.js";
+import {
+	MANSION_COUNT,
+	mansionDenominatorParts,
+	trueDate,
+	trueSun,
+	trueSunDenominator,
+} from "../computation/corrections.js";
 import type { ScaledTradition } from "../computation/scaling.js";
 import { assertInternal } from "../errors.js";
 
-/** How many mansions the ecliptic is divided into. */
-export const MANSION_COUNT = 27;
+export { MANSION_COUNT };
 
 /**
  * Returns the denominator on which {@link moonCalendarDay} is an exact integer.
@@ -43,7 +48,7 @@ export const MANSION_COUNT = 27;
  * `BHUTAN_HENNING`.
  */
 export function mansionDenominator(scaled: ScaledTradition): number {
-	return lcm(lcm(trueSunDenominator(scaled), 30), scaled.commonDenominator * MANSION_COUNT);
+	return mansionDenominatorParts(scaled).reduce(lcm);
 }
 
 /**
@@ -144,8 +149,9 @@ export function mansionNumber(
 ): number {
 	const denominator = mansionDenominator(scaled);
 
-	// Asserted rather than trusted: the product below is the largest intermediate in this module,
-	// and it is the one that would silently lose exactness if a tradition's constants grew.
+	// Asserted rather than trusted: the product below is the largest intermediate in this module.
+	// A config for which it is not a safe integer is refused at validation (`assertMansionExact`,
+	// from `deriveScaling`), so reaching this guard is an engine fault.
 	assertInternal(
 		Number.isSafeInteger(denominator * MANSION_COUNT) || undefined,
 		`mansionNumber: ${denominator} · ${MANSION_COUNT} exceeds the safe-integer range, so the ` +

@@ -188,12 +188,31 @@ export function trueDate(scaled: ScaledTradition, day: number, monthCount: numbe
  * the four shipped configs, which equals `meanSun.den · 135` there, since `sunTabArgDen` is
  * `meanSun.den / 12` in all four.
  */
-export function trueSunDenominator(scaled: ScaledTradition): number {
+export function trueSunDenominator(scaled: Pick<ScaledTradition, "sunTabArgDen">): number {
 	// Derived from the config rather than written as a literal, for the reason `scaleTo` gives: a
 	// constant baked in makes another tradition silently unrepresentable. `meanSun.den · 135` is a
 	// property of the shipped configs rather than a rule, so `trueSun` scales through `scaleTo`,
 	// which refuses inexactness instead of assuming it away.
 	return scaled.sunTabArgDen * 27 * 60;
+}
+
+/** How many mansions the ecliptic is divided into. */
+export const MANSION_COUNT = 27;
+
+/**
+ * The three denominators the lunar mansion's moon longitude is put over, whose `lcm` is the mansion
+ * denominator: `true_sun`'s ({@link trueSunDenominator}), the lunar day's 30, and
+ * `FRAC(true_date)/27` over `commonDenominator · 27`.
+ *
+ * @remarks
+ * Here rather than in `astrology/mansions.ts` because the tradition validator checks, through
+ * `deriveScaling`, that the mansion stays exact for a config, and the core does not import
+ * `./astrology`. `mansionDenominator` there takes their `lcm`.
+ */
+export function mansionDenominatorParts(
+	scaled: Pick<ScaledTradition, "sunTabArgDen" | "commonDenominator">,
+): readonly number[] {
+	return [trueSunDenominator(scaled), 30, scaled.commonDenominator * MANSION_COUNT];
 }
 
 /**

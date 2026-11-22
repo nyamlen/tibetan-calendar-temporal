@@ -148,9 +148,24 @@ const ASSERTED = [".", "./observances", "./astrology"];
 const manifest = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
 const declared = Object.keys(manifest.exports ?? {});
 for (const subpath of declared) {
-	for (const [condition, target] of Object.entries(manifest.exports[subpath])) {
+	const entry = manifest.exports[subpath];
+	// Only `{ condition: "path" }` entries are walked: a string entry or a nested condition object
+	// would be misread (a string iterates by character), so it is refused with what to do instead.
+	const flat =
+		entry !== null &&
+		typeof entry === "object" &&
+		!Array.isArray(entry) &&
+		Object.values(entry).every((target) => typeof target === "string");
+	if (!flat) {
 		check(
-			typeof target === "string" && existsSync(join(root, target)),
+			false,
+			`exports["${subpath}"] is not a flat { condition: "path" } object, which is all this consumer checks; extend scripts/check-pack-consumer.mjs to walk it`,
+		);
+		continue;
+	}
+	for (const [condition, target] of Object.entries(entry)) {
+		check(
+			existsSync(join(root, target)),
 			`exports["${subpath}"].${condition} points at ${target}, which is not in the tarball`,
 		);
 	}

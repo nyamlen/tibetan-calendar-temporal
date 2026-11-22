@@ -23,6 +23,7 @@
 // A value-import cycle: `computation/scaling.ts` imports this file back. It is safe only while every reference
 // across it sits inside a function body; a module-level use of either side's exports would hit a
 // TDZ `ReferenceError` whose appearance depends on which barrel loads first. See the matching comment there.
+import { MANSION_COUNT } from "../computation/corrections.js";
 import { deriveScaling, type ScaledMeanMotion } from "../computation/scaling.js";
 import {
 	assertKnownKeys,
@@ -539,8 +540,9 @@ export function validatedTradition(tradition: TraditionConfig): TraditionConfig 
  * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG`.
  */
 // A config must not pass one export and fail another, and the derived checks — the four called from
-// `deriveScaling`: `assertMeanMotionExact`, `assertCommonDenominatorExact`, `assertDerivable` and
-// `assertArgumentsFit` — would otherwise run only on the exports that reach `scalingFor`. Deriving here, on the caller's object and then on the copy,
+// `deriveScaling`: `assertMeanMotionExact`, `assertCommonDenominatorExact`, `assertMansionExact`,
+// `assertDerivable` and `assertArgumentsFit` — would otherwise run only on the exports that reach
+// `scalingFor`. Deriving here, on the caller's object and then on the copy,
 // refuses a config that cannot be derived on its first call to anything; `scalingFor` derives the
 // copy once more and memoises it.
 function assertValid(tradition: TraditionConfig): void {
@@ -618,6 +620,34 @@ export function assertCommonDenominatorExact(
 			tradition,
 			`the common denominator of its mean motions and correction tables is ${common}, beyond ` +
 				"2^53 - 1, so no Julian day can be computed exactly. Shrink the denominators of meanDate, " +
+				"meanSun and lunarAnomaly",
+		);
+	}
+}
+
+/**
+ * Refuses a tradition for which the lunar mansion cannot be computed exactly: the `lcm` of
+ * `parts` (the mansion denominator) times 27 must be a safe integer.
+ *
+ * @remarks
+ * Called from `deriveScaling` with `mansionDenominatorParts`. Refusing here, for every export, keeps
+ * a validated config from meeting an internal error in `./astrology`; such a config's dates would
+ * compute, but no shipped config is within four orders of magnitude of the bound.
+ *
+ * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG`.
+ */
+export function assertMansionExact(tradition: TraditionConfig, parts: readonly number[]): void {
+	let common = 1n;
+	for (const part of parts) {
+		const d = BigInt(part);
+		// exact: BigInt, and a gcd divides both its arguments.
+		common = (common / bigGcd(common, d)) * d;
+	}
+	if (common * BigInt(MANSION_COUNT) > BigInt(Number.MAX_SAFE_INTEGER)) {
+		throw invalid(
+			tradition,
+			`its common denominator is so large that the lunar mansion, which multiplies it by ` +
+				`${MANSION_COUNT} twice, cannot be computed exactly. Shrink the denominators of meanDate, ` +
 				"meanSun and lunarAnomaly",
 		);
 	}
