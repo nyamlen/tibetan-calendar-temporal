@@ -47,6 +47,7 @@ import {
 	nextObservance,
 	observancesOn,
 } from "../src/observances/index.js";
+import { assertTibetanRanges, assertTibetanShape } from "../src/types.js";
 import { thrownBy } from "./support/thrown.js";
 
 // The property under test: **an error names the function the caller called**, and for a two-argument
@@ -800,6 +801,47 @@ describe("a Western date's refusal opens with the caller's name", () => {
 // name through them. A shared message that named another function's signature sent a caller to read
 // the wrong docblock: a TraditionConfig given to `composeObservances`, which takes no tradition, was
 // told to use `getObservances(from, to, config, tradition)`.
+describe("a Tibetan date's refusal names its caller and the right remedy", () => {
+	const revoked = (() => {
+		const { proxy, revoke } = Proxy.revocable({}, {});
+		revoke();
+		return proxy;
+	})();
+
+	// M2.2: the unreadable-type refusal was the one assertTibetanShape message without the caller.
+	it.each([
+		["tibetanToIso: ", () => tibetanToIso(revoked as never)],
+		["formatTibetanMonth: ", () => formatTibetanMonth(revoked as never)],
+	] as const)("a value whose type cannot be read opens with %s", (prefix, call) => {
+		const error = thrownBy(call);
+		expect(error?.code).toBe("TCT_INVALID_ARGUMENT");
+		expect(error?.message.startsWith(prefix)).toBe(true);
+	});
+
+	// M2.3: resolveDate is a direct swap for isoToTibetan, not a "convert first" export.
+	it("tells a resolveDate caller holding a Western date to call isoToTibetan instead", () => {
+		const error = thrownBy(() => resolveDate(Temporal.PlainDate.from("2027-01-15") as never));
+		expect(error?.code).toBe("TCT_INVALID_ARGUMENT");
+		expect(error?.message).toContain("Did you mean isoToTibetan(date)?");
+	});
+
+	// M2.1: the non-object refusal said "date" for a month too.
+	it("calls a month a month when refusing a non-object", () => {
+		const error = thrownBy(() => formatTibetanMonth(null as never));
+		expect(error?.code).toBe("TCT_INVALID_ARGUMENT");
+		expect(error?.message).toContain("naming a Tibetan month");
+	});
+
+	// M2.4: a month snapshot range-checked as a date compiled, and its missing day was refused as out
+	// of range, which tibetanDateExists swallows.
+	it("makes a month snapshot range-checked as a date a COMPILE error", () => {
+		const month = assertTibetanShape("x", { year: 2153, month: 1 }, "month", "convert");
+		// @ts-expect-error a month snapshot is not a date snapshot. tsc errors on an UNUSED
+		// directive, so this line fails `npm run typecheck` if the overloads are lost.
+		expect(() => assertTibetanRanges("x", month, "date")).toThrow();
+	});
+});
+
 describe("the observance guards name the function that was called", () => {
 	const from = Temporal.PlainDate.from("2026-01-01");
 	const CONFIG = "TCT_INVALID_OBSERVANCE_CONFIG";

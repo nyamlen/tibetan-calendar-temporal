@@ -18,9 +18,9 @@ import {
  * Formats a month as a Temporal-style code: `"M01"`…`"M12"`, with `L` appended for a leap month.
  *
  * @remarks
- * The **sole** producer of this substring, deliberately: three things render a month this way —
- * `TibetanDate.monthCode`, `TibetanMonth.monthCode` and `formatTibetanDate` — and a second
- * definition is how two of them would come to disagree.
+ * The **sole** producer of this substring, deliberately: four things render a month this way —
+ * `TibetanDate.monthCode`, `TibetanMonth.monthCode`, `formatTibetanDate` and `formatTibetanMonth` —
+ * and a second definition is how two of them would come to disagree.
  *
  * Not exported from the package barrel. Being in this file does not make it API; `src/index.ts`
  * decides that.
@@ -87,7 +87,7 @@ export function formatTibetanDate(date: TibetanDateFields): string {
 	// Both guards exist because a plausible-but-wrong string is the failure worth preventing:
 	// without them `{}` gives "undefined-undefined-undefined", and `{ isLeapMonth: 1, isLeapDay: "x" }`
 	// a confident " (leap)" suffix from a truthy string.
-	const fields = assertTibetanShape("formatTibetanDate", date, "date");
+	const fields = assertTibetanShape("formatTibetanDate", date, "date", "convert");
 	assertTibetanRanges("formatTibetanDate", fields, "date", {
 		hint: "Pass a value returned by isoToTibetan, losarFor or parseTibetanDate",
 	});
@@ -126,7 +126,7 @@ export function formatTibetanDate(date: TibetanDateFields): string {
  * ```
  */
 export function formatTibetanMonth(month: TibetanMonthFields): string {
-	const fields = assertTibetanShape("formatTibetanMonth", month, "month");
+	const fields = assertTibetanShape("formatTibetanMonth", month, "month", "convert");
 	assertTibetanRanges("formatTibetanMonth", fields, "month", {
 		hint: "Pass a value returned by monthsFor or resolveMonth",
 	});

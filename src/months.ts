@@ -86,9 +86,11 @@ function closedFormYear(
  * Validates a month-tier argument and locates its month, bounded at both ends by the exact range.
  *
  * @remarks
- * The whole guard for every function that answers about one month — `resolveMonth`, `daysInMonth`
- * and `datesFor` here, and `monthNamesFor`, `monthAttributesFor` and `lunarDayAttributesFor`, so
- * each reports errors under its own name. Not exported from the package barrel.
+ * The whole guard for every function that answers about one month given as fields —
+ * `resolveMonth`, `daysInMonth` and `datesFor` here, and `monthNamesFor`, `monthAttributesFor` and
+ * `lunarDayAttributesFor`, so each reports errors under its own name. The navigation functions that
+ * locate a month by its count instead (`addMonths`, `monthFromLunation`, `addMonthsToDate`) share
+ * only its last step, {@link boundedMonthDays}. Not exported from the package barrel.
  *
  * The order is the shape, the tradition, the ranges, the leap twin, the exact range — the order every
  * export taking a Tibetan month or date follows.
@@ -111,10 +113,42 @@ export function boundedMonth(
 	first: number;
 	last: number;
 } {
-	const fields = assertTibetanShape(functionName, month, shape);
-	const scaled = scalingFor(tradition);
-	const subject = assertTibetanRanges(functionName, fields, shape);
+	// Branched on `shape` so each guard is called with a literal and the overloads can tell a month
+	// snapshot from a date's; each branch keeps the order shape, then tradition, then range.
+	let fields: TibetanMonthSnapshot | TibetanDateSnapshot;
+	let scaled: ScaledTradition;
+	let subject: () => string;
+	if (shape === "month") {
+		const snapshot = assertTibetanShape(functionName, month, "month", "convert");
+		scaled = scalingFor(tradition);
+		subject = assertTibetanRanges(functionName, snapshot, "month");
+		fields = snapshot;
+	} else {
+		const snapshot = assertTibetanShape(functionName, month, "date", "convert");
+		scaled = scalingFor(tradition);
+		subject = assertTibetanRanges(functionName, snapshot, "date");
+		fields = snapshot;
+	}
 	const monthCount = monthCountFor(subject, scaled.tradition, fields);
+	const { first, last } = boundedMonthDays(scaled, monthCount, subject);
+	return { fields, scaled, monthCount, first, last };
+}
+
+/**
+ * The first and last Julian days of a month, refused unless both lie inside the tradition's exact
+ * range.
+ *
+ * @remarks
+ * The one statement of the rule that a month is in range only if both its ends are, shared by
+ * {@link boundedMonth} and the navigation functions that locate a month by its count.
+ *
+ * @throws RangeError with code `TCT_OUTSIDE_EXACT_RANGE` if either day lies outside the exact range.
+ */
+export function boundedMonthDays(
+	scaled: ScaledTradition,
+	monthCount: number,
+	subject: () => string,
+): { first: number; last: number } {
 	const first = firstDayOfMonth(scaled, monthCount);
 	const last = lastDayOfMonth(scaled, monthCount);
 	// Both ends, because the first day comes from the previous month's last, which nothing else
@@ -124,7 +158,7 @@ export function boundedMonth(
 	// past the last.
 	assertExactJulianDay(scaled, first, subject);
 	assertExactJulianDay(scaled, last, subject);
-	return { fields, scaled, monthCount, first, last };
+	return { first, last };
 }
 
 /**
@@ -156,17 +190,18 @@ const MONTH_CACHE_YEARS = 64;
  * @remarks
  * `year` is the **royal era**, matching the published shape, so callers holding Janson's *Y*
  * convert first. The month count is carried out as {@link TibetanMonth.lunation} rather than
- * recomputed, since it is the value this function was located by.
+ * recomputed, since it is the value this function was located by, and `days` are the month's first
+ * and last Julian days, which every caller has already computed.
  */
 export function describeMonth(
-	scaled: ScaledTradition,
 	monthCount: number,
 	year: number,
 	month: number,
 	isLeapMonth: boolean,
+	days: { first: number; last: number },
 ): TibetanMonth {
-	const firstJulianDay = firstDayOfMonth(scaled, monthCount);
-	const lastJulianDay = lastDayOfMonth(scaled, monthCount);
+	const firstJulianDay = days.first;
+	const lastJulianDay = days.last;
 	return deepFreeze({
 		year,
 		lunation: monthCount,
@@ -255,14 +290,15 @@ export function monthsFor(year: number, tradition: TraditionConfig = PHUGPA): Ti
 		// unconditionally would put a Bhutanese year's pair the wrong way round — and `lunation` would
 		// then decrease across a boundary a consumer is entitled to walk forwards.
 		const twin = sharesNumberWithLeapMonth(tradition, y, month);
-		const leap = () =>
-			months.push(
-				describeMonth(scaled, trueMonthCount(tradition, y, month, true), year, month, true),
-			);
+		// Unbounded here: the whole year was bounded against its two ends above.
+		const entry = (isLeap: boolean) => {
+			const count = trueMonthCount(tradition, y, month, isLeap);
+			const days = { first: firstDayOfMonth(scaled, count), last: lastDayOfMonth(scaled, count) };
+			return describeMonth(count, year, month, isLeap, days);
+		};
+		const leap = () => months.push(entry(true));
 		if (twin && leapFirst) leap();
-		months.push(
-			describeMonth(scaled, trueMonthCount(tradition, y, month, false), year, month, false),
-		);
+		months.push(entry(false));
 		if (twin && !leapFirst) leap();
 	}
 
@@ -318,8 +354,16 @@ export function resolveMonth(
 	month: TibetanMonthFields,
 	tradition: TraditionConfig = PHUGPA,
 ): TibetanMonth {
-	const { fields, scaled, monthCount } = boundedMonth("resolveMonth", month, "month", tradition);
-	return describeMonth(scaled, monthCount, fields.year, fields.month, fields.isLeapMonth ?? false);
+	const { fields, monthCount, first, last } = boundedMonth(
+		"resolveMonth",
+		month,
+		"month",
+		tradition,
+	);
+	return describeMonth(monthCount, fields.year, fields.month, fields.isLeapMonth ?? false, {
+		first,
+		last,
+	});
 }
 /**
  * Returns how many **calendar days** a Tibetan month spans: 29 or 30.

@@ -24,10 +24,22 @@ import {
 	describe,
 	isPlainObject,
 	isRecord,
+	keysOf,
 	rangeError,
 	validatedPrivateCopy,
 } from "../errors.js";
-import type { FormulaName, ObservanceConfig, ObservanceRule, ObservanceWhen } from "./types.js";
+import type { TibetanName } from "../types.js";
+import type {
+	DoubledDayChoice,
+	FormulaName,
+	LeapMonthChoice,
+	ObservanceConfig,
+	ObservanceLevel,
+	ObservanceRule,
+	ObservanceWhen,
+	SkippedDayChoice,
+	TibetanMonthDay,
+} from "./types.js";
 
 export const CODE = "TCT_INVALID_OBSERVANCE_CONFIG";
 
@@ -35,66 +47,110 @@ export const CODE = "TCT_INVALID_OBSERVANCE_CONFIG";
  * The exports that take an `ObservanceConfig`, each with its own signature, so a refusal names the
  * function the caller called and never another's.
  */
-const SIGNATURES = {
-	getObservances: "getObservances(from, to, config, tradition)",
-	observancesOn: "observancesOn(date, config, tradition)",
-	nextObservance: "nextObservance(from, ruleId, config, tradition)",
-	composeObservances: "composeObservances(base, layer)",
-	// The config `composeObservances` builds from its layer: a fault there is the layer's.
-	composeObservancesLayer: "composeObservances(base, layer)",
-} as const;
-
-/** An export that takes an `ObservanceConfig`, or the layer `composeObservances` validates. */
-export type ObservanceCaller = keyof typeof SIGNATURES;
-
 /** The argument a refusal names: the config, or `composeObservances`' base or layer. */
-const ARGUMENTS: Record<ObservanceCaller, string> = {
+const ARGUMENTS = {
 	getObservances: "getObservances(config)",
 	observancesOn: "observancesOn(config)",
 	nextObservance: "nextObservance(config)",
 	composeObservances: "composeObservances(base)",
+	// The config `composeObservances` builds from its layer: a fault there is the layer's.
 	composeObservancesLayer: "composeObservances(layer)",
+} as const;
+
+/** An export that takes an `ObservanceConfig`, or the layer `composeObservances` validates. */
+export type ObservanceCaller = keyof typeof ARGUMENTS;
+
+// No entry for the layer: its shape refusals live in `candidateFrom` (`compose.ts`), and the config
+// built from it can reach none of the arms that quote a signature.
+const SIGNATURES: Record<Exclude<ObservanceCaller, "composeObservancesLayer">, string> = {
+	getObservances: "getObservances(from, to, config, tradition)",
+	observancesOn: "observancesOn(date, config, tradition)",
+	nextObservance: "nextObservance(from, ruleId, config, tradition)",
+	composeObservances: "composeObservances(base, layer)",
 };
 
 const configArgument = (caller: ObservanceCaller): string => ARGUMENTS[caller];
 
-export const DOUBLED_DAY_CHOICES = ["first", "second", "both"];
-export const SKIPPED_DAY_CHOICES = ["preceding", "following", "omit"];
-export const LEAP_MONTH_CHOICES = ["leap", "regular", "both"];
+// Every list below is tied to the type it mirrors: a key list is `keysOf` a record over the type's
+// keys, and a choice list is the keys of a record `satisfies Record<Choice, true>`, so a field or a
+// choice added to `./types.ts` without being added here fails to compile instead of being refused at
+// runtime. Order is kept as written, which is the order a refusal lists them in.
+export const DOUBLED_DAY_CHOICES = Object.keys({
+	first: true,
+	second: true,
+	both: true,
+} satisfies Record<DoubledDayChoice, true>);
+export const SKIPPED_DAY_CHOICES = Object.keys({
+	preceding: true,
+	following: true,
+	omit: true,
+} satisfies Record<SkippedDayChoice, true>);
+export const LEAP_MONTH_CHOICES = Object.keys({
+	leap: true,
+	regular: true,
+	both: true,
+} satisfies Record<LeapMonthChoice, true>);
 
-const CONFIG_KEYS = [
-	"id",
-	"englishName",
-	"tibetanName",
-	"doubledDay",
-	"skippedDay",
-	"leapMonth",
-	"levels",
-	"rules",
-];
-const RULE_KEYS = [
-	"id",
-	"englishName",
-	"tibetanName",
-	"level",
-	"tags",
-	"when",
-	"doubledDay",
-	"skippedDay",
-	"leapMonth",
-];
-const LEVEL_KEYS = ["id", "englishName", "tibetanName"];
-const MONTHLY_KEYS = ["type", "days"];
-const YEAR_KEYS = ["fromYear", "untilYear", "ageFromYear"] as const;
-const ANNUAL_KEYS = ["type", "dates", ...YEAR_KEYS];
-const WESTERN_KEYS = ["type", "month", "day", ...YEAR_KEYS];
-const PERIOD_KEYS = ["type", "first", "last"];
-const FORMULA_KEYS = ["type", "formula"];
-const COUNTED_KEYS = ["type", "anchor", "waxingDays", "waningDays", "exclude"];
-const WANING_KEYS = ["oddMonth", "evenMonth"];
-const FORMULA_NAMES: readonly FormulaName[] = ["lunarDayPlusWeekdayMod4"];
-const DATE_KEYS = ["month", "day"];
-const TIBETAN_NAME_KEYS = ["tibetan", "wylie", "phonetic"];
+type Form<T extends ObservanceWhen["type"]> = Extract<ObservanceWhen, { type: T }>;
+
+const CONFIG_KEYS = keysOf<ObservanceConfig>({
+	id: true,
+	englishName: true,
+	tibetanName: true,
+	doubledDay: true,
+	skippedDay: true,
+	leapMonth: true,
+	levels: true,
+	rules: true,
+});
+const RULE_KEYS = keysOf<ObservanceRule>({
+	id: true,
+	englishName: true,
+	tibetanName: true,
+	level: true,
+	tags: true,
+	when: true,
+	doubledDay: true,
+	skippedDay: true,
+	leapMonth: true,
+});
+const LEVEL_KEYS = keysOf<ObservanceLevel>({ id: true, englishName: true, tibetanName: true });
+const MONTHLY_KEYS = keysOf<Form<"monthly">>({ type: true, days: true });
+// A deliberate subset: the year window and age fields `annual` and `western` share, which
+// `assertYearFields` walks. Checked against both forms' keys.
+const YEAR_KEYS = ["fromYear", "untilYear", "ageFromYear"] as const satisfies readonly (keyof Form<
+	"annual" | "western"
+>)[];
+const ANNUAL_KEYS = keysOf<Form<"annual">>({
+	type: true,
+	dates: true,
+	fromYear: true,
+	untilYear: true,
+	ageFromYear: true,
+});
+const WESTERN_KEYS = keysOf<Form<"western">>({
+	type: true,
+	month: true,
+	day: true,
+	fromYear: true,
+	untilYear: true,
+	ageFromYear: true,
+});
+const PERIOD_KEYS = keysOf<Form<"period">>({ type: true, first: true, last: true });
+const FORMULA_KEYS = keysOf<Form<"formula">>({ type: true, formula: true });
+const COUNTED_KEYS = keysOf<Form<"counted">>({
+	type: true,
+	anchor: true,
+	waxingDays: true,
+	waningDays: true,
+	exclude: true,
+});
+const WANING_KEYS = keysOf<Form<"counted">["waningDays"]>({ oddMonth: true, evenMonth: true });
+const FORMULA_NAMES = Object.keys({
+	lunarDayPlusWeekdayMod4: true,
+} satisfies Record<FormulaName, true>);
+const DATE_KEYS = keysOf<TibetanMonthDay>({ month: true, day: true });
+const TIBETAN_NAME_KEYS = keysOf<TibetanName>({ tibetan: true, wylie: true, phonetic: true });
 
 type FormSetting = "doubledDay" | "skippedDay" | "leapMonth";
 
@@ -359,9 +415,12 @@ function assertWhen(when: unknown, subject: string): void {
 		}
 		return;
 	}
+	// The forms are listed from `SETTINGS_BY_FORM`, whose keys the compiler holds to the union, so a
+	// new form is named here without anyone remembering to.
+	const forms = Object.keys(SETTINGS_BY_FORM).map((form) => `"${form}"`);
 	throw rangeError(
 		CODE,
-		`${subject}: when.type must be "monthly", "annual", "period", "western", "formula" or "counted", received ${describe(when.type)}. ` +
+		`${subject}: when.type must be ${forms.slice(0, -1).join(", ")} or ${forms.at(-1)}, received ${describe(when.type)}. ` +
 			"A config written for a newer release may use a form this release does not know: " +
 			"the config is refused as a whole, so remove the rules with an unknown form before querying",
 	);
@@ -454,6 +513,10 @@ export function looksLikeTradition(value: Record<string, unknown>): boolean {
 // because the guard is shared and a message naming another function's signature sends the caller to
 // the wrong place.
 function assertNotAnotherShape(config: Record<string, unknown>, caller: ObservanceCaller): void {
+	// The layer's own shape refusals live in `candidateFrom` (`compose.ts`), which refuses a layer that
+	// is not an object or looks like a tradition before building this config; the config it builds is
+	// a plain object with a string `id`, so none of the arms below can fire for it.
+	if (caller === "composeObservancesLayer") return;
 	const subject = configArgument(caller);
 	const signature = SIGNATURES[caller];
 	if (config.id === undefined && "config" in config) {
@@ -468,7 +531,7 @@ function assertNotAnotherShape(config: Record<string, unknown>, caller: Observan
 			CODE,
 			`${subject}: expected an ObservanceConfig, received what looks like a TraditionConfig or a ` +
 				"{ tradition } bag. " +
-				(caller === "composeObservances" || caller === "composeObservancesLayer"
+				(caller === "composeObservances"
 					? `${signature} takes no tradition: pass an ObservanceConfig as the base`
 					: `A tradition is a separate parameter, not the config, as in ${signature}`),
 		);

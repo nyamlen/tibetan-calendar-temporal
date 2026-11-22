@@ -33,7 +33,10 @@ import { MANSION_COUNT } from "./mansions.js";
 // exists for the weekday half of the same pairing. The source site is HTTP-only (its certificate is
 // for another domain) and its author died in 2016, which is why `docs/almanac-sources.md` keeps a
 // Wayback snapshot.
-const HENNING_28: readonly { readonly name: string; readonly element: TibetanWeekdayElement }[] = [
+export const HENNING_28: readonly {
+	readonly name: string;
+	readonly element: TibetanWeekdayElement;
+}[] = [
 	{ name: "Aśvinī", element: "wind" },
 	{ name: "Bharaṇī", element: "fire" },
 	{ name: "Kṛittikā", element: "fire" },

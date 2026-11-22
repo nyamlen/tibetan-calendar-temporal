@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { MANSION_ELEMENTS, mansionElement } from "../../src/astrology/mansion-elements.js";
 import { MANSION_COUNT, mansionNumber } from "../../src/astrology/mansions.js";
-import { ELEMENTAL_YOGAS, elementalYoga, yogaForMansion } from "../../src/astrology/yoga.js";
+import { ELEMENTAL_YOGAS, elementalYoga } from "../../src/astrology/yoga.js";
 import { trueMonthCount } from "../../src/computation/calendar.js";
 import { isoToTibetan } from "../../src/computation/conversion.js";
 import { yearFromRoyalEra } from "../../src/computation/epoch.js";
@@ -197,7 +197,7 @@ describe("a yoga from a mansion number", () => {
 	it("answers for every one of the 27 mansions", () => {
 		const bad: string[] = [];
 		for (let index = 0; index < MANSION_COUNT; index++) {
-			const yoga = yogaForMansion("fire", index);
+			const yoga = elementalYoga("fire", mansionElement(index));
 			if (!yoga.sanskritName.iast) bad.push(`mansion ${index}`);
 			if (!yoga.elements.includes(mansionElement(index))) bad.push(`mansion ${index}: element`);
 		}
@@ -239,7 +239,10 @@ describe("the two halves of a doubled day", () => {
 				date.isLeapMonth,
 			);
 			const weekday = weekdayNameFor(date.tibetanWeekday, PHUGPA).element;
-			return yogaForMansion(weekday, mansionNumber(scaled, date.day, monthCount, date.isLeapDay));
+			return elementalYoga(
+				weekday,
+				mansionElement(mansionNumber(scaled, date.day, monthCount, date.isLeapDay)),
+			);
 		};
 
 		// The weekday element alone already differs, since the Julian days are consecutive.

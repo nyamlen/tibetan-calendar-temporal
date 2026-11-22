@@ -125,7 +125,24 @@ export function getObservances(
 	// "omitted".
 	let resolvedTradition = tradition === undefined ? PHUGPA : tradition;
 	resolvedTradition = validatedTradition(resolvedTradition);
+	return observancesBetween(from, to, config, resolvedTradition);
+}
 
+/**
+ * The query itself, after its caller's guards: the empty-range answer, the span cap and the walk.
+ *
+ * @remarks
+ * Internal. Preconditions: `from` and `to` are this package's own copies (`asPlainDate`), `config`
+ * is validated (`ensureValidated`) and `tradition` is validated. {@link getObservances} and
+ * {@link observancesOn} each run their own guards, so a refusal names the function called, and then
+ * share this, so a single day is copied once.
+ */
+function observancesBetween(
+	from: Temporal.PlainDate,
+	to: Temporal.PlainDate,
+	config: ObservanceConfig,
+	resolvedTradition: TraditionConfig,
+): Observance[] {
 	if (Temporal.PlainDate.compare(from, to) > 0) return [];
 
 	// Compared as year numbers rather than elapsed days, which is how the docblock reads and what
@@ -199,9 +216,10 @@ export function observancesOn(
 	config: ObservanceConfig,
 	tradition?: TraditionConfig,
 ): Observance[] {
-	// Checked here as well, in `getObservances`' order, so a refusal of the date or the config names
-	// `observancesOn`; both are then answered from the memo when `getObservances` repeats them.
+	// The same guards as `getObservances`, in its order, so a refusal names `observancesOn`; then the
+	// shared query, so the day is copied once rather than again as both ends of a range.
 	const day = asPlainDate(date, "observancesOn(date)");
 	config = ensureValidated(config, "observancesOn");
-	return getObservances(day, day, config, tradition);
+	const resolvedTradition = validatedTradition(tradition === undefined ? PHUGPA : tradition);
+	return observancesBetween(day, day, config, resolvedTradition);
 }

@@ -57,7 +57,10 @@ function precedence(resolution: ObservanceResolution): number {
 /** A function from a Julian day to its Tibetan date, remembering what it has converted. */
 export type TibetanDateOfDay = (julianDay: number) => TibetanDate;
 
-/** Returns a fresh memo over `isoToTibetan` for one tradition, shared by the rules of one query. */
+/**
+ * Returns a fresh memo over `tibetanFromJulianDay`, the unguarded Julian-day conversion, for one
+ * tradition, shared by the rules of one query.
+ */
 // One per query rather than module state: a 15th carries several rules, so a query over many rules
 // shares one memo, and nothing outlives the call.
 export function tibetanDateMemo(scaled: ScaledTradition): TibetanDateOfDay {
@@ -90,7 +93,7 @@ export function occurrencesOfRule(
 	lastJd: number,
 	config: ObservanceConfig,
 	scaled: ScaledTradition,
-	tibetanDateOf: TibetanDateOfDay = tibetanDateMemo(scaled),
+	tibetanDateOf: TibetanDateOfDay,
 ): Observance[] {
 	const tradition = scaled.tradition;
 	const when = rule.when;
@@ -125,8 +128,11 @@ export function occurrencesOfRule(
 		for (const hit of westernOccurrences(when, firstYear, lastYear)) claim(hit);
 	} else {
 		// Walk months linearly by true month count, which needs no special case for leap months —
-		// that is exactly what trueMonthCount and monthFromCount are an inverse pair for. Start a
-		// month early and end a month late so a rule shifted off a skipped date cannot be missed.
+		// that is exactly what trueMonthCount and monthFromCount are an inverse pair for. The walk
+		// covers the Tibetan years holding the range's ends and reaches past them: for every form but
+		// `counted`, from the last month of the year before to month 2 of the year after; `counted`
+		// walks from the month before month 1 of the year before to the month after the last month of
+		// the year after. The reasons are in the comments below.
 		const startYear = yearFromRoyalEra(tibetanDateOf(firstJd).year);
 		const endYear = yearFromRoyalEra(tibetanDateOf(lastJd).year);
 		// A counted rule needs the anchors on both sides of the range, up to a year each way: the
@@ -139,11 +145,11 @@ export function occurrencesOfRule(
 		// `leapMonthPosition: "before"` a year that opens with a leap month 1 has that month just
 		// before month 1, and a 12/30 shifted onto Losar lies one month further back.
 		const firstMonth = counted
-			? trueMonthCount(tradition, startYear - 1, 1) - 1
+			? trueMonthCount(tradition, startYear - 1, 1, false) - 1
 			: lastMonthCountOfYear(tradition, startYear - 1);
 		const lastMonth = counted
 			? lastMonthCountOfYear(tradition, endYear + 1) + 1
-			: trueMonthCount(tradition, endYear + 1, 1) + 1;
+			: trueMonthCount(tradition, endYear + 1, 1, false) + 1;
 
 		const anchors: CountedAnchor[] = [];
 		const excluded = new Set<number>();
@@ -206,34 +212,44 @@ export function occurrencesOfRule(
 	const results: Observance[] = [];
 	for (const hit of [...held.values()].sort((a, b) => a.julianDay - b.julianDay)) {
 		const date = tibetanDateOf(hit.julianDay);
-		if (when.type === "monthly" || when.type === "formula" || when.type === "counted") {
-			results.push({ date, rule, resolution: hit.resolution });
-			continue;
+		// Exhaustive: a form added to `ObservanceWhen` without a case here fails to compile at the
+		// `never` below, rather than reaching an internal error at run time.
+		switch (when.type) {
+			case "monthly":
+			case "formula":
+			case "counted":
+				results.push({ date, rule, resolution: hit.resolution });
+				break;
+			case "period":
+				/* c8 ignore next */
+				if (hit.span === undefined)
+					throw codedError("TCT_INTERNAL", "a period day carries no span");
+				results.push({
+					date,
+					rule,
+					resolution: hit.resolution,
+					period: {
+						first: tibetanDateOf(hit.span.first),
+						last: tibetanDateOf(hit.span.last),
+					},
+				});
+				break;
+			case "annual":
+			case "western": {
+				const age = when.ageFromYear === undefined ? -1 : windowYear(hit) - when.ageFromYear;
+				results.push(
+					age < 0
+						? { date, rule, resolution: hit.resolution }
+						: { date, rule, resolution: hit.resolution, age },
+				);
+				break;
+			}
+			/* c8 ignore next 3 */
+			default: {
+				const unhandled: never = when;
+				throw codedError("TCT_INTERNAL", `unhandled when type ${JSON.stringify(unhandled)}`);
+			}
 		}
-		if (when.type === "period") {
-			/* c8 ignore next */
-			if (hit.span === undefined) throw codedError("TCT_INTERNAL", "a period day carries no span");
-			results.push({
-				date,
-				rule,
-				resolution: hit.resolution,
-				period: {
-					first: tibetanDateOf(hit.span.first),
-					last: tibetanDateOf(hit.span.last),
-				},
-			});
-			continue;
-		}
-		/* c8 ignore next */
-		if (when.type !== "annual" && when.type !== "western") {
-			throw codedError("TCT_INTERNAL", `unhandled when type ${JSON.stringify(when)}`);
-		}
-		const age = when.ageFromYear === undefined ? -1 : windowYear(hit) - when.ageFromYear;
-		results.push(
-			age < 0
-				? { date, rule, resolution: hit.resolution }
-				: { date, rule, resolution: hit.resolution, age },
-		);
 	}
 	return results;
 }

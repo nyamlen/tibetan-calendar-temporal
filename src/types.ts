@@ -775,25 +775,29 @@ export interface TibetanMonth {
  *
  * @param functionName - The export the caller called, named in the message.
  * @param shape - Whether the caller expected a month or a date, which sets the remedy the message
- * suggests.
+ * suggests for a non-date Temporal type.
+ * @param remedy - `"swap"` for an export whose argument `isoToTibetan` would itself produce, so the
+ * message suggests calling `isoToTibetan` instead; `"convert"` for one that takes a Tibetan date as
+ * input, so the message suggests converting first.
  *
  * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `value` is any `Temporal` instance.
  */
 function rejectTemporalInstance(
 	functionName: string,
 	value: unknown,
-	shape: "month" | "date" = "date",
+	shape: "month" | "date",
+	remedy: "swap" | "convert",
 ): void {
 	// Kind, not identity. `instanceof` asked whether the value came from *this* realm's Temporal, so
 	// a `PlainDate` from a second implementation sailed past this guard and was then read
 	// structurally for year/month/day — which a PlainDate has — turning ISO 2024-07-09 into a
 	// confident royal-era answer 127 years out. See `temporal-kind.ts`.
-	const typeName = temporalTypeNameOf(value);
+	const typeName = temporalTypeNameOf(value, functionName);
 	if (typeName === null) return;
 	// A type that names no calendar day — `PlainYearMonth` above all, whose numeric `year` and
 	// `month` read as a Tibetan month — is refused by its brand all the same, but is not told it
 	// holds a Western day.
-	if (temporalKindOf(value) === null) {
+	if (temporalKindOf(value, functionName) === null) {
 		throw rangeError(
 			"TCT_INVALID_ARGUMENT",
 			`${functionName}: received a Temporal.${typeName}, which is not a Tibetan date or month. ` +
@@ -802,11 +806,12 @@ function rejectTemporalInstance(
 					: "Pass { year, month, day } fields, or a resolved TibetanDate."),
 		);
 	}
-	// tibetanToIso and tibetanDateExists take a Tibetan date and can be swapped directly for
-	// isoToTibetan; formatTibetanDate and daysInMonth take a Tibetan date but do not produce
-	// one, so the fix is "convert first", not "call this instead".
+	// The caller declares the remedy: an export whose argument `isoToTibetan` would itself have
+	// produced (`tibetanToIso`, `tibetanDateExists`, `resolveDate`) is swapped for it; every other
+	// export takes the Tibetan date as input, so the fix is to convert first. Declared rather than
+	// inferred from the label, so a new export must choose and a rename cannot change the advice.
 	const suggestion =
-		functionName === "tibetanToIso" || functionName === "tibetanDateExists"
+		remedy === "swap"
 			? "Did you mean isoToTibetan(date)?"
 			: "Convert it first with isoToTibetan(date).";
 	throw rangeError(
@@ -818,14 +823,18 @@ function rejectTemporalInstance(
 
 /**
  * Rejects a value that is not an object where a Tibetan date or month belongs, before any field of it
- * is read. Reached through {@link assertTibetanShape} and {@link rejectInvalidLeapFlags}, so the
- * message and the code are one policy.
+ * is read. Reached only through {@link assertTibetanShape}, so the message and the code are one
+ * policy.
  */
-function rejectNonObject(functionName: string, value: unknown): asserts value is object {
+function rejectNonObject(
+	functionName: string,
+	value: unknown,
+	shape: "month" | "date",
+): asserts value is object {
 	if (value === null || typeof value !== "object") {
 		throw rangeError(
 			"TCT_INVALID_ARGUMENT",
-			`${functionName}: expected an object naming a Tibetan date, received ${describe(value)}`,
+			`${functionName}: expected an object naming a Tibetan ${shape}, received ${describe(value)}`,
 		);
 	}
 }
@@ -843,23 +852,20 @@ function rejectNonObject(functionName: string, value: unknown): asserts value is
  * `undefined` is deliberately still accepted here: the fields are optional and default to
  * `false`, and this check only narrows their *type* when present, not their *presence*.
  *
- * Also the null/non-object guard: `null`, `undefined` and any other non-object are refused here
- * with a coded error rather than left to an uncoded native `TypeError` on a field read.
- *
  * Reached through {@link assertTibetanShape}, like {@link rejectTemporalInstance} and for the same
- * reason: one policy for the message and the code. Both throws are
- * `TCT_INVALID_ARGUMENT` — a non-boolean flag and a non-object are wrong *kinds* of argument, not
- * numbers out of a range — which is what keeps them off `tibetanDateExists`'s allowlist and so
- * thrown out to the caller rather than reported as a date that does not exist.
+ * reason: one policy for the message and the code. It reads the snapshot `assertTibetanShape` has
+ * already taken, so the non-object case was refused before it, by {@link rejectNonObject}. The throw
+ * is `TCT_INVALID_ARGUMENT` — a non-boolean flag is the wrong *kind* of argument, not a number out
+ * of a range — which is what keeps it off `tibetanDateExists`'s allowlist and so thrown out to the
+ * caller rather than reported as a date that does not exist.
  *
- * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `value` is not an object, or `isLeapMonth`
- * or `isLeapDay` is present and not a boolean.
+ * @throws RangeError with code `TCT_INVALID_ARGUMENT` if `isLeapMonth` or `isLeapDay` is present
+ * and not a boolean.
  */
 function rejectInvalidLeapFlags(
 	functionName: string,
-	value: { isLeapMonth?: unknown; isLeapDay?: unknown } | null | undefined,
+	value: { isLeapMonth?: unknown; isLeapDay?: unknown },
 ): void {
-	rejectNonObject(functionName, value);
 	for (const field of ["isLeapMonth", "isLeapDay"] as const) {
 		const flag = value[field];
 		if (flag !== undefined && typeof flag !== "boolean") {
@@ -875,7 +881,7 @@ function rejectInvalidLeapFlags(
 }
 
 /** The fields {@link rejectMissingFields} can be asked about — the required ones of the two field types. */
-export type RequiredDateField = "year" | "month" | "day";
+type RequiredDateField = "year" | "month" | "day";
 
 // Mirrors `rejectInvalidLeapFlags`: one policy for the message and the code in one place rather
 // than the same guard written out at each entry point that needs it. The check belongs here, not
@@ -1015,9 +1021,10 @@ export function assertTibetanShape<S extends "month" | "date">(
 	label: string,
 	value: unknown,
 	shape: S,
+	remedy: "swap" | "convert",
 ): S extends "month" ? TibetanMonthSnapshot : TibetanDateSnapshot {
-	rejectTemporalInstance(label, value, shape);
-	rejectNonObject(label, value);
+	rejectTemporalInstance(label, value, shape, remedy);
+	rejectNonObject(label, value, shape);
 	const snapshot = readFieldsOnce(label, value, shape === "month" ? MONTH_READS : DATE_READS);
 	rejectInvalidLeapFlags(label, snapshot);
 	rejectMissingFields(label, snapshot, shape === "month" ? MONTH_FIELDS : DATE_FIELDS);
@@ -1054,6 +1061,20 @@ export function assertTibetanShape<S extends "month" | "date">(
  * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if the year is not a safe integer, the month
  * is not an integer 1–12, or, for a date, the day is not an integer 1–30.
  */
+export function assertTibetanRanges(
+	functionName: string,
+	value: TibetanMonthSnapshot,
+	shape: "month",
+	options?: { parameter?: string; hint?: string },
+): () => string;
+export function assertTibetanRanges(
+	functionName: string,
+	value: TibetanDateSnapshot,
+	shape: "date",
+	options?: { parameter?: string; hint?: string },
+): () => string;
+// No overload takes the union: a month snapshot range-checked as a date would read an absent day
+// and refuse it as out of range, which `tibetanDateExists` swallows as `false`.
 export function assertTibetanRanges(
 	functionName: string,
 	value: TibetanMonthSnapshot | TibetanDateSnapshot,

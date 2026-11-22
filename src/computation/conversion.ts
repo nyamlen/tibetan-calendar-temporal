@@ -22,7 +22,7 @@ import {
 	thrownDetail,
 } from "../errors.js";
 import { monthCodeOf } from "../format.js";
-import { weekdayNameWithOffset } from "../names.js";
+import { weekdayNameWithOffset, weekdayOffsetOf } from "../names.js";
 import {
 	assertIsoCalendar,
 	assertTemporalPresent,
@@ -143,12 +143,12 @@ export function julianDayFromIsoUnchecked(plain: Temporal.PlainDate): number {
  * resolved `TibetanDate`, a `Temporal` type that names no calendar day (`Instant`, `PlainTime` and
  * the rest), a string Temporal cannot read, and a date in a calendar other than ISO.
  */
-export function asPlainDate(date: Temporal.PlainDate, subject?: string): Temporal.PlainDate {
+export function asPlainDate(date: Temporal.PlainDate, subject: string): Temporal.PlainDate {
 	// Declared as `unknown` from here: the parameter's own type says `Temporal.PlainDate`, which is
 	// the guarantee a TypeScript caller gets, but this function's job past this line is to accept
 	// runtime input that does not honour it and either normalise or reject it.
 	const raw: unknown = date;
-	const prefix = subject === undefined ? "" : `${subject}: `;
+	const prefix = `${subject}: `;
 	// Kind, not identity: a `PlainDate` from a second Temporal implementation is a Western date and
 	// is normalised into this realm, rather than refused for having been built elsewhere. See
 	// `temporal-kind.ts`, which is the only file in `src/` that asks `instanceof Temporal`.
@@ -473,7 +473,7 @@ function buildDate(
 		// tradition — Bhutan names its weekdays one planet ahead — and this is where the config is.
 		weekdayName: weekdayNameWithOffset(
 			tibetanWeekdayUnchecked(julianDay),
-			scaled.tradition.naming?.weekdayOffset ?? 0,
+			weekdayOffsetOf(scaled.tradition),
 		),
 		// The month count this date was located by, carried out rather than made rediscoverable.
 		lunation: monthCount,
@@ -513,7 +513,7 @@ export function tibetanToIso(
 	input: TibetanDateFields,
 	tradition: TraditionConfig = PHUGPA,
 ): Temporal.PlainDate {
-	const fields = assertTibetanShape("tibetanToIso", input, "date");
+	const fields = assertTibetanShape("tibetanToIso", input, "date", "swap");
 	// The tradition between the shape and the range, the order tibetanDateExists depends on.
 	tradition = scalingFor(tradition).tradition;
 	const subject = assertTibetanRanges("tibetanToIso", fields, "date");
@@ -603,8 +603,8 @@ export function julianDayOfFields(
 	if (classification.kind === "skipped") throw new SkippedDayError(date);
 	const julianDay =
 		classification.kind === "doubled" && (date.isLeapDay ?? false)
-			? (classification.leapJulianDay as number)
-			: (classification.julianDay as number);
+			? classification.leapJulianDay
+			: classification.julianDay;
 	// The mean date above is within 0.6 days of the true date (for all four shipped configs, whose
 	// tables are shared), so the day returned can lie just past the bound the mean date passed,
 	// where `isoToTibetan` refuses it.
@@ -663,7 +663,7 @@ export function tibetanDateExists(
 	// are checked outside the `try`, so a Temporal instance or a broken config throws rather than
 	// answering `false`; the range is checked inside it, and only after the tradition — checked
 	// first, a range error would be swallowed and a broken config reported as a missing date.
-	const fields = assertTibetanShape("tibetanDateExists", input, "date");
+	const fields = assertTibetanShape("tibetanDateExists", input, "date", "swap");
 	tradition = scalingFor(tradition).tradition;
 	try {
 		julianDayOfFields(assertTibetanRanges("tibetanDateExists", fields, "date"), tradition, fields);
@@ -715,8 +715,8 @@ export function isoToTibetan(
 ): TibetanDate {
 	// The shape, then the tradition, then the range: the one order every other Western-date export
 	// reports a doubly-bad call in.
-	// Normalised once here rather than relying on julianDayFromIso alone, so the error message below
-	// quotes the date the caller meant rather than whatever they passed.
+	// Normalised once here, so the error message below quotes the date the caller meant rather than
+	// whatever they passed.
 	const plain = asPlainDate(date, "isoToTibetan(date)");
 	const scaled = scalingFor(tradition);
 	const target = julianDayFromIsoUnchecked(plain);
@@ -742,7 +742,8 @@ export function tibetanFromJulianDay(julianDay: number, tradition: TraditionConf
 	return tibetanAtJulianDay(scaled, julianDay);
 }
 
-// The search itself, shared by the two entry points above, each of which has range-checked `target`.
+// The search itself, shared by the two entry points above. Precondition: each caller has bounded
+// `target` with `assertExactJulianDay`, which is what keeps `target · den` a safe integer below.
 function tibetanAtJulianDay(scaled: ScaledTradition, target: number): TibetanDate {
 	const tradition = scaled.tradition;
 
@@ -750,8 +751,8 @@ function tibetanAtJulianDay(scaled: ScaledTradition, target: number): TibetanDat
 	const { den, perDay, atEpoch } = scaled.meanDate;
 	// exact: this is a *search seed*, not a result. The loop below walks ±searchHalfWidth around it
 	// and every candidate is then tested with integer-only arithmetic, so a seed off by one changes
-	// which candidate is found first and nothing else. `assertExactJulianDay` above has already
-	// bounded `target · den` inside the safe range.
+	// which candidate is found first and nothing else. Each caller has bounded `target` with
+	// `assertExactJulianDay`, so `target · den` is safe.
 	const estimate = Math.round((target * den - atEpoch) / perDay);
 
 	// The window is `searchHalfWidth`, derived from the tradition's own tables rather than written

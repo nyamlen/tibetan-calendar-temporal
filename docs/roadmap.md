@@ -145,7 +145,7 @@ covered:
 
 | Risk | Retired by |
 |------|-----------|
-| Does the published artifact work — installs, resolves through `exports`, all three subpaths import? | Largely `scripts/check-pack.mjs`, in CI |
+| Does the published artifact work — installs, resolves through `exports`, every exported subpath imports? | Largely `scripts/check-pack.mjs`, in CI |
 | **Is the API shape right?** | Nothing yet. Only code that has to *make decisions* surfaces it |
 
 The second is the one 1.0.0 freezes permanently, and no test in this repository can see it: every
@@ -640,6 +640,24 @@ that its first step is still open.
     are validated "as Phugpa's". True by construction (only `lunarAnomaly` differs), but untested on the
     export; add it to the export test in `test/validation/cross-version-leap.test.ts`.
     **Done in `6e67c56`**, for `BHUTAN_HENNING` as well, which had the same gap under the same record.
+
+  *From the maintainability-fixes branch's whole-branch review* (Opus, 2026-11-22). Andreas ruled on
+  both on 2026-11-22, choosing between alternatives set out with their trade-offs:
+  - **Fix: refuse at validation** (Andreas, 2026-11-22; the alternatives were refusing only in the
+    mansion functions, which breaks the rule that a config must not pass one export and fail another,
+    and documenting the limit). A consumer `TraditionConfig` whose common denominator exceeds about
+    1.2 · 10¹³ — the mansion multiplies it by 27 twice, past 2⁵³ — passed validation and then got
+    `TCT_INTERNAL` from `lunarMansionFor` and `attributesFor`, through `mansionNumber`'s guard.
+    Pre-existing, but an internal code must not be reachable from a validated config. **Done on the
+    `maintainability-fixes` branch**: `assertMansionExact`, a derived check run from `deriveScaling`,
+    refuses such a config with `TCT_INVALID_TRADITION_CONFIG` from every export; the mansion's
+    denominator parts and `MANSION_COUNT` moved to `computation/corrections.ts` so the core does not
+    import `./astrology`. No shipped config is within four orders of magnitude of the bound.
+  - **Fix: refuse a non-flat entry with an instruction** (Andreas, 2026-11-22; the alternatives were
+    leaving it, and walking every shape the `exports` map allows). `scripts/check-pack-consumer.mjs`
+    assumed every `exports` entry is a flat `{ condition: "path" }` object, so a string entry was
+    iterated character by character and a nested condition read as `[object Object]`. **Done on the
+    same branch**: such an entry is refused with a message saying to extend the script.
 - [x] **Composable/additive `ObservanceConfig`s — decide before 1.0.0, not after.** Today, a
       consumer combining several institutions' rule sets (e.g. `DEFAULT_OBSERVANCES` plus a `TEACHERS` and a
       `TANTRA` config) hand-rolls
@@ -972,8 +990,8 @@ that its first step is still open.
       [decisions/2026-08-23-readme-is-the-landing-page.md](decisions/2026-08-23-readme-is-the-landing-page.md).
 
       **Adding `docs/astrology.md` to `package.json#files` would fail `test:pack` today**, and it is
-      four changes rather than one: add it to `files`; add it to `scripts/check-pack.mjs`, which
-      hardcodes its own `shippedDocs` list; convert its repo-only relative links to absolute URLs —
+      three changes rather than one (`scripts/check-pack.mjs` takes its list from `files` since the
+      maintainability fixes): add it to `files`; convert its repo-only relative links to absolute URLs —
       **six of its seven**, since only [how-it-is-calculated.md](how-it-is-calculated.md) is in the
       tarball; and delete the "Repo-only" banner the document currently carries. `check-pack` throws
       on a shipped doc that links outside the tarball, which is what makes this a hard failure rather
@@ -1696,7 +1714,7 @@ nothing and reports success.
       `/security-review` is **diff-shaped**, so run it on that range
       (`git diff 34b8ab4..<fixes-branch tip> -- src/`), with the scope above stated first or the pass
       will invent findings: zero runtime dependencies, no I/O, no network, no filesystem access.
-- [ ] **Full adversarial review.** Not a code review with a harsher tone: the subject is the
+- [x] **Full adversarial review.** Not a code review with a harsher tone: the subject is the
       **claims**, not the code. Every load-bearing assertion this repository makes about itself —
       the validation windows and what they actually cover, "exported means validated", the
       zero-dependency claim through the lockfile and the published `.d.ts`, the clean-room evidence,
@@ -1716,11 +1734,17 @@ nothing and reports success.
       ignored in non-strict code; a `PlainDateTime` or `ZonedDateTime` subclass is read from its slots;
       six-season month names list `part` second). They need no release note: they landed before 1.0.0,
       so no released version behaved otherwise.
-      **Merged to `main` 2026-11-21 as `5bd5d1e`.** Not ticked: the maintainability shards M1–M6
-      (Opus) and P1 (`scripts/check-pack.mjs`, `scripts/check-pack-consumer.mjs`, Sonnet) are part of
-      this review's coverage and have not run; they review the merged `main` on a branch of their own.
-      The seven findings the fixes branch's reviews parked are in the "Small findings parked by the
-      pre-1.0.0 reviews" item above.
+      **Merged to `main` 2026-11-21 as `5bd5d1e`.** The seven findings the fixes branch's reviews parked
+      are in the "Small findings parked by the pre-1.0.0 reviews" item above, all fixed (merged as
+      `eac11ed`).
+      **The maintainability pass ran 2026-11-21 to 2026-11-22** over the merged `main` (`eac11ed`): six
+      Opus shards M1–M6 over every file of `src/`, and one Sonnet agent, P1, over
+      `scripts/check-pack.mjs` and `scripts/check-pack-consumer.mjs`. Their 37 distinct findings —
+      second copies of a rule, lists not tied to their types, defaulted parameters that hid a
+      forgotten argument, stale comments, and release gates that passed on a broken package — were
+      all ruled fix by Andreas and fixed on the `maintainability-fixes` branch, with no change to the
+      public surface or to any computed date. The findings and the plan are in the plans directory
+      (`adversarial-review-2026-11/`, `maintainability-fixes.md`).
 
 **Publishing**
 
@@ -1767,7 +1791,7 @@ nothing and reports success.
 
 - [x] **Packaging is verified in CI.** `check:publish` runs `publint` and `attw --pack . --profile
       esm-only`; `test:pack` packs the tarball, installs it into a scratch directory outside the
-      repository, and imports all three subpaths as a consumer would. The gap they close is structural
+      repository, and imports every subpath its `exports` map declares as a consumer would. The gap they close is structural
       rather than incidental: every other test imports from `src/`, so nothing else in the suite
       can see a broken `exports` map, a file missing from `files`, or a `dist/` layout that does
       not match what `exports` points at. Those fail only for a consumer, after publishing.

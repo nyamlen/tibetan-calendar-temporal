@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { elementalYogaFor } from "../src/astrology/index.js";
+import { attributesFor, elementalYogaFor, lunarMansionFor } from "../src/astrology/index.js";
 import { isoToTibetan, losarFor, tibetanToIso } from "../src/computation/conversion.js";
 import { moonEquation, sunEquation } from "../src/computation/corrections.js";
 import { deriveScaling } from "../src/computation/scaling.js";
@@ -814,6 +814,30 @@ describe("a mean motion whose denominators cannot be scaled exactly", () => {
 	// A config that cannot be derived is refused by every export on its first call, not by whichever
 	// reaches the scaling first: it must not pass one export and fail another.
 	const underivable: Record<string, TraditionConfig> = {
+		"an odd meanSun denominator the factor of 4 carries out of the safe range": broken({
+			id: "over",
+			meanSun: motionOver(OVER),
+		}),
+		// Two defects: the mean-motion lcm check runs in the scaling, after the shape checks, so the
+		// table's refusal wins; the code is the same either way, which is the contract.
+		"that meanSun and a malformed moonTab together": broken({
+			id: "two-defects",
+			meanSun: motionOver(OVER),
+			moonTab: [1],
+		}),
+		// The common denominator is about 3.1 · 10¹³: safe on its own, but the lunar mansion multiplies
+		// it by 27 twice, past 2⁵³, so the mansion could not be computed exactly. Refused at validation
+		// rather than by an internal error from lunarMansionFor (Andreas, 2026-11-22).
+		"a meanDate whose common denominator leaves the lunar mansion inexact": broken({
+			id: "mansion-inexact",
+			meanDate: {
+				...PHUGPA.meanDate,
+				atEpoch: {
+					num: PHUGPA.meanDate.atEpoch.num * 300_007 + 1,
+					den: PHUGPA.meanDate.atEpoch.den * 300_007,
+				},
+			},
+		}),
 		"a meanSun whose motions are scalable but whose common denominator is not": broken({
 			id: "within",
 			meanSun: motionOver(WITHIN),
@@ -836,6 +860,8 @@ describe("a mean motion whose denominators cannot be scaled exactly", () => {
 		weekdayNameFor: (t) => weekdayNameFor(asTibetanWeekday(1), t),
 		lunationFromMonth: (t) => lunationFromMonth({ year: 2153, month: 6 }, t),
 		monthsBetween: (t) => monthsBetween({ year: 2153, month: 1 }, { year: 2153, month: 6 }, t),
+		lunarMansionFor: (t) => lunarMansionFor(iso("2026-08-12"), t),
+		attributesFor: (t) => attributesFor(iso("2026-08-12"), t),
 	};
 
 	it.each(Object.keys(underivable))("every export refuses %s with the config code", (label) => {
@@ -847,6 +873,25 @@ describe("a mean motion whose denominators cannot be scaled exactly", () => {
 			if (code !== "TCT_INVALID_TRADITION_CONFIG") wrong.push(`${name}: ${code}`);
 		}
 		expect(wrong).toEqual([]);
+	});
+
+	it("refuses a table argument that could leave the safe integers, pointing at the guide", () => {
+		// The lunar anomaly's epoch numerator alone nearly fills the safe range, so its correction-table
+		// argument cannot stay exact across the supported range.
+		const error = thrownBy(() =>
+			validatedTradition(
+				broken({
+					id: "huge-epoch",
+					lunarAnomaly: {
+						...PHUGPA.lunarAnomaly,
+						atEpoch: { num: Number.MAX_SAFE_INTEGER - 1, den: PHUGPA.lunarAnomaly.atEpoch.den },
+					},
+				}),
+			),
+		);
+		expect(error?.code).toBe("TCT_INVALID_TRADITION_CONFIG");
+		expect(error?.message).toMatch(/lunarAnomaly's coefficients are so large/);
+		expect(error?.message).toMatch(/Two kinds of config/);
 	});
 
 	it("names the config and the quantity at validation", () => {

@@ -21,8 +21,8 @@
 // century rather than throwing.
 
 import { rabjungFromRoyalEra, yearNameFromRoyalEra } from "./computation/epoch.js";
-import { assertSafeYear } from "./errors.js";
-import { weekdayNameWithOffset } from "./names.js";
+import { assertSafeYear, ROYAL_ERA_HINT } from "./errors.js";
+import { weekdayNameWithOffset, weekdayOffsetOf } from "./names.js";
 import { PHUGPA } from "./traditions/phugpa.js";
 import type { TraditionConfig } from "./traditions/types.js";
 import { validatedTradition } from "./traditions/validate.js";
@@ -32,8 +32,6 @@ import { assertTibetanWeekday } from "./types.js";
 // A safe-integer check and nothing else, deliberately: the naming functions reduce the year modulo
 // their cycle before the offset is subtracted (see `yearNameFromRoyalEra`), so every safe integer
 // has an exact answer and they need no tradition and no wider bound.
-const ROYAL_ERA_HINT =
-	". Years here are the royal era, matching TibetanDate.year — 2153, not 2026.";
 
 /**
  * Returns the element–animal name of a Tibetan year.
@@ -152,5 +150,5 @@ export function weekdayNameFor(
 	// Before the weekday: a bare number has no shape, so the tradition comes first.
 	tradition = validatedTradition(tradition);
 	assertTibetanWeekday("weekdayNameFor", weekday);
-	return weekdayNameWithOffset(weekday, tradition.naming?.weekdayOffset ?? 0);
+	return weekdayNameWithOffset(weekday, weekdayOffsetOf(tradition));
 }

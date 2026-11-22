@@ -26,7 +26,6 @@
 import { assertInternal, describe, rangeError } from "../errors.js";
 import { deepFreeze } from "../freeze.js";
 import type { SanskritName, TibetanName, TibetanWeekdayElement } from "../types.js";
-import { mansionElement } from "./mansion-elements.js";
 
 /**
  * One of the four groups the *tshig mdzod chen mo* grades the ten yogas into.
@@ -328,20 +327,4 @@ export function elementalYoga(
 		`elementalYoga: ${weekdayElement} + ${mansion} is not one of the ten pairings, which cannot ` +
 			"happen for two of the four Indian elements",
 	);
-}
-
-/**
- * Returns the yoga of the calendar day in lunar mansion `mansionIndex`, whose weekday element is
- * `weekdayElement`.
- *
- * @remarks
- * A thin composition over {@link elementalYoga} and `mansionElement`, kept here so that a caller
- * holding a mansion **number** — which is what `mansionNumber` returns — does not have to know that
- * the element table is Henning's and lives in its own module.
- */
-export function yogaForMansion(
-	weekdayElement: TibetanWeekdayElement,
-	mansionIndex: number,
-): ElementalYoga {
-	return elementalYoga(weekdayElement, mansionElement(mansionIndex));
 }

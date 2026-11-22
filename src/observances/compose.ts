@@ -10,6 +10,7 @@ import {
 	assertKnownKeys,
 	describe,
 	isRecord,
+	keysOf,
 	rangeError,
 	readingCallersObject,
 	validatedPrivateCopy,
@@ -34,23 +35,30 @@ import {
 
 const SUBJECT = "composeObservances(layer)";
 
-const LAYER_KEYS = [
-	"id",
-	"englishName",
-	"tibetanName",
-	"remove",
-	"replace",
-	"add",
-	"removeLevels",
-	"replaceLevels",
-	"addLevels",
-	"conventions",
-	"doubledDay",
-	"skippedDay",
-	"leapMonth",
-];
+// Tied to `ObservanceLayer` and its `conventions` entry by `keysOf`: a layer field added to the type
+// without being added here fails to compile.
+const LAYER_KEYS = keysOf<ObservanceLayer>({
+	id: true,
+	englishName: true,
+	tibetanName: true,
+	remove: true,
+	replace: true,
+	add: true,
+	removeLevels: true,
+	replaceLevels: true,
+	addLevels: true,
+	conventions: true,
+	doubledDay: true,
+	skippedDay: true,
+	leapMonth: true,
+});
 
-const CONVENTION_KEYS = ["id", "doubledDay", "skippedDay", "leapMonth"];
+const CONVENTION_KEYS = keysOf<NonNullable<ObservanceLayer["conventions"]>[number]>({
+	id: true,
+	doubledDay: true,
+	skippedDay: true,
+	leapMonth: true,
+});
 
 /** The conventions one `conventions` entry gives, those left `undefined` omitted. */
 type Conventions = Partial<Pick<ObservanceRule, "doubledDay" | "skippedDay" | "leapMonth">>;
@@ -410,16 +418,27 @@ function candidateFrom(base: ObservanceConfig, layer: ObservanceLayer): Observan
 					...addLevels.map(({ item }) => item as ObservanceLevel),
 				];
 
-	// Validated before it is copied: `structuredClone` throws an uncoded error on a function or a
-	// Symbol, and only a value the validator has accepted is safe to hand it.
-	return {
+	// Every key of `ObservanceConfig` must be given a value here, `undefined` included, so a field
+	// added to `ObservanceConfig` without a decision about how a layer composes it fails to compile
+	// rather than being silently dropped from the result. The mapped type is over
+	// `Required<ObservanceConfig>` rather than written with `-?`, which under
+	// `exactOptionalPropertyTypes` would strip the `| undefined` too. The values are the locals read
+	// once above.
+	const composed: { [K in keyof Required<ObservanceConfig>]: ObservanceConfig[K] | undefined } = {
 		id: id as string,
 		englishName: englishName as string,
-		...(tibetanName === undefined ? {} : { tibetanName }),
+		tibetanName,
 		doubledDay: doubledDay === undefined ? base.doubledDay : doubledDay,
 		skippedDay: skippedDay === undefined ? base.skippedDay : skippedDay,
 		leapMonth: leapMonth === undefined ? base.leapMonth : leapMonth,
-		...(levels === undefined ? {} : { levels }),
+		levels,
 		rules,
 	};
+	// Validated before it is copied: `structuredClone` throws an uncoded error on a function or a
+	// Symbol, and only a value the validator has accepted is safe to hand it. An `undefined` field is
+	// left out, as a config written by hand would leave it, so the result is key for key what it was.
+	// The cast only forgets which keys were dropped: each value kept is the one `composed` typed.
+	return Object.fromEntries(
+		Object.entries(composed).filter(([, value]) => value !== undefined),
+	) as unknown as ObservanceConfig;
 }

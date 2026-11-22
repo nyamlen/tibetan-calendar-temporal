@@ -45,9 +45,9 @@ export const yogaDays = FPMT_OBSERVANCES.flatMap((row) => {
 		.map((letter) => ELEMENT_LETTERS[letter]);
 	if (pair.some((element) => element === undefined)) return [];
 
-	// `isLeapMonth` is not optional here. `trueMonthCount` defaults it to false, and a leap month
-	// shares its number with a regular twin — so omitting it silently reads the twin's month and
-	// was worth 22 spurious failures, all in leap month 6 of 2024, before this was caught.
+	// `isLeapMonth`, not `false`: a leap month shares its number with a regular twin, so passing
+	// `false` for a resolved date silently reads the twin's month, which was worth 22 spurious
+	// failures, all in leap month 6 of 2024, when `trueMonthCount` still defaulted the flag.
 	const monthCount = trueMonthCount(
 		PHUGPA,
 		yearFromRoyalEra(date.year),

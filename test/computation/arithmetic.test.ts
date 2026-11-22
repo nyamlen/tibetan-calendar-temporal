@@ -9,6 +9,7 @@ import {
 	mod,
 	scaleTo,
 } from "../../src/computation/arithmetic.js";
+import { thrownBy } from "../support/thrown.js";
 
 // Janson §2 defines mod, amod, floor and ceiling, and warns twice that implementations
 // break on negative operands. Every test here that uses a negative operand is guarding
@@ -180,8 +181,11 @@ describe("scaleTo", () => {
 		expect(scaleTo(-1, 4, 24)).toBe(-6);
 	});
 
-	it("refuses a denominator it cannot represent exactly", () => {
-		expect(() => scaleTo(1, 7, 12)).toThrow(RangeError);
+	// M1.3: every denominator reaching scaleTo divides by construction, and a config's are refused
+	// earlier, so a refusal here is an engine fault, not a malformed config.
+	it("reports a denominator it cannot represent exactly as an internal fault", () => {
+		expect(thrownBy(() => scaleTo(1, 7, 12))?.code).toBe("TCT_INTERNAL");
+		expect(thrownBy(() => scaleTo(1, 0, 12))?.code).toBe("TCT_INTERNAL");
 	});
 
 	it("is exact: scaling then dividing recovers the value", () => {

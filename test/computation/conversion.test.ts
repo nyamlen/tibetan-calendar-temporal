@@ -221,8 +221,8 @@ describe("full moon and new moon", () => {
 	// 5s default while `npm test` passed. CI runs test and not coverage, which is why it went
 	// unnoticed.
 	it("puts exactly one of each in every month over 200 years", () => {
-		const first = trueMonthCount(PHUGPA, 1900, 1);
-		const last = trueMonthCount(PHUGPA, 2100, 1);
+		const first = trueMonthCount(PHUGPA, 1900, 1, false);
+		const last = trueMonthCount(PHUGPA, 2100, 1, false);
 		const wrong: string[] = [];
 		for (let n = first; n < last; n++) {
 			const month = monthFromCount(PHUGPA, n);

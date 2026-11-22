@@ -13,21 +13,22 @@
  * intercalation index both feed negative values through these operations for dates
  * before the epoch, where a sign error produces a plausible calendar that is wrong.
  *
- * The divisor and modulus guards throw `TCT_INTERNAL` plain `Error`s, and {@link scaleTo}'s
- * denominator guards throw `TCT_INVALID_TRADITION_CONFIG` `RangeError`s. No function here checks
+ * Every guard here throws a `TCT_INTERNAL` plain `Error`: each is an invariant the engine proves for
+ * itself. No function here checks
  * that an operand is an integer, and none checks that a result stays within the safe-integer range.
  *
  * @packageDocumentation
  */
 
-import { codedError, rangeError } from "../errors.js";
+import { codedError } from "../errors.js";
 
-// Every `throw` here goes through `codedError` or `rangeError` rather than a bare construction, so
-// each carries the `code` a consumer branches on. The distinction between the two is load-bearing
-// and not cosmetic: the divisor and modulus guards are invariants this engine proves for itself,
-// so they are `TCT_INTERNAL` plain `Error`s that `tibetanDateExists` must not swallow; `scaleTo`'s
-// denominator guards are reached with a **caller-supplied** denominator through `deriveScaling`,
-// so they are `TCT_INVALID_TRADITION_CONFIG` `RangeError`s like every other input problem.
+// Every `throw` here goes through `codedError` rather than a bare construction, so
+// each carries the `code` a consumer branches on. Every guard here is an invariant this engine
+// proves for itself, so each is a `TCT_INTERNAL` plain `Error` that `tibetanDateExists` must not
+// swallow. That includes `scaleTo`'s: a config's denominators are refused before they reach it, by
+// `assertMeanMotionExact` and `assertCommonDenominatorExact` from `deriveScaling`, and every
+// `scaleTo` call divides by construction (onto an lcm that includes its source), so reaching one of
+// its guards is an engine fault, not a malformed config.
 
 /**
  * Floor division — the largest integer `q` with `q * divisor <= dividend`.
@@ -161,8 +162,9 @@ export function lcm(a: number, b: number): number {
  * @param den - Denominator of the source rational; must be positive and must divide
  * `commonDenominator`.
  * @param commonDenominator - The scaling denominator, typically derived per tradition.
- * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG` if `den` is not positive, or does
- * not divide `commonDenominator`, which would make the result inexact.
+ * @throws Error with code `TCT_INTERNAL` if `den` is not positive, or does not divide
+ * `commonDenominator`, which would make the result inexact. Neither is reachable from a validated
+ * config.
  *
  * @example
  * ```ts
@@ -171,18 +173,13 @@ export function lcm(a: number, b: number): number {
  */
 export function scaleTo(num: number, den: number, commonDenominator: number): number {
 	// A constant baked in here would make a further tradition unrepresentable, and silently. The
-	// guards carry a config code rather than an internal one because every denominator reaching
-	// here came from a `TraditionConfig`: `deriveScaling` is on the public path through
-	// `scalingFor`, so a bad one is genuinely reachable from a config the shape validator accepted.
+	// guards are internal: see the comment at the top of this module.
 	if (den <= 0) {
-		throw rangeError(
-			"TCT_INVALID_TRADITION_CONFIG",
-			`scaleTo: denominator must be positive, received ${den}`,
-		);
+		throw codedError("TCT_INTERNAL", `scaleTo: denominator must be positive, received ${den}`);
 	}
 	if (commonDenominator % den !== 0) {
-		throw rangeError(
-			"TCT_INVALID_TRADITION_CONFIG",
+		throw codedError(
+			"TCT_INTERNAL",
 			`scaleTo: ${den} does not divide ${commonDenominator}; the result would be inexact`,
 		);
 	}

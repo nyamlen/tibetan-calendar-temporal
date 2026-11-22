@@ -2,8 +2,11 @@
  * How each form of {@link ObservanceWhen} lands on calendar days.
  *
  * @remarks
- * Internal. `occurrencesInMonth` is the one dispatch on `when.type`; a further form is a further
- * case here and a further arm of the validator, and nothing in the query changes.
+ * Internal. `when.type` is dispatched in two places: `occurrencesInMonth` here, for the forms found
+ * month by month, and `occurrencesOfRule` in `occurrences.ts`, which finds `western` and `counted`
+ * itself and assembles every form's result. `next.ts` also keys `FIRST_CHUNK_DAYS` by form. A
+ * further form is a case in each, plus an arm of the validator; the result assembly's exhaustive
+ * `switch` and the keyed tables make the compiler ask for all but the first.
  */
 
 import { mod } from "../computation/arithmetic.js";
@@ -22,11 +25,31 @@ import { codedError } from "../errors.js";
 import type { TraditionConfig } from "../traditions/types.js";
 import { formulaHolds } from "./formulas.js";
 import type {
+	LeapMonthChoice,
 	ObservanceConfig,
 	ObservanceResolution,
 	ObservanceRule,
 	ObservanceWhen,
 } from "./types.js";
+
+/**
+ * A rule's own convention where it sets one, else the config's: the one statement of how a rule's
+ * setting overrides its config's default.
+ */
+export function conventionOf<K extends keyof Conventions>(
+	rule: ObservanceRule,
+	config: ObservanceConfig,
+	key: K,
+): Conventions[K] {
+	// Viewed as the partial of the config's three conventions, the rule's field and the config's
+	// index the same type, so no cast is needed.
+	const own: Partial<Conventions> = rule;
+	const value = own[key];
+	return value === undefined ? config[key] : value;
+}
+
+/** The three conventions a rule may override. */
+type Conventions = Pick<ObservanceConfig, "doubledDay" | "skippedDay" | "leapMonth">;
 
 /** The Julian day a rule occupies, with how it was arrived at. */
 export interface Occurrence {
@@ -53,16 +76,16 @@ function resolveInMonth(
 	const classification = classifyDay(scaled, day, monthCount);
 
 	if (classification.kind === "normal")
-		return [{ julianDay: classification.julianDay as number, resolution: "exact" }];
+		return [{ julianDay: classification.julianDay, resolution: "exact" }];
 
 	if (classification.kind === "doubled") {
-		const choice = rule.doubledDay === undefined ? config.doubledDay : rule.doubledDay;
+		const choice = conventionOf(rule, config, "doubledDay");
 		const first = {
-			julianDay: classification.leapJulianDay as number,
+			julianDay: classification.leapJulianDay,
 			resolution: "firstOfDoubled" as const,
 		};
 		const second = {
-			julianDay: classification.julianDay as number,
+			julianDay: classification.julianDay,
 			resolution: "secondOfDoubled" as const,
 		};
 		// Explicit rather than positional. `return [first, second]` as a bare fall-through meant any
@@ -78,7 +101,7 @@ function resolveInMonth(
 	}
 
 	// Skipped: no calendar day carries this number.
-	const skipped = rule.skippedDay === undefined ? config.skippedDay : rule.skippedDay;
+	const skipped = conventionOf(rule, config, "skippedDay");
 	if (skipped === "omit") return [];
 	if (skipped === "preceding") return [precedingDay(scaled, monthCount, day)];
 	if (skipped === "following") return [followingDay(scaled, monthCount, day)];
@@ -100,10 +123,9 @@ function precedingDay(scaled: ScaledTradition, monthCount: number, day: number):
 	if (day === 1)
 		return { julianDay: firstDayOfMonth(scaled, monthCount) - 1, resolution: "dayBeforeSkipped" };
 	const before = classifyDay(scaled, day - 1, monthCount);
-	const julianDay = before.julianDay ?? before.leapJulianDay;
 	/* c8 ignore next */
-	if (julianDay === undefined) throw codedError("TCT_INTERNAL", `no day carries ${day - 1}`);
-	return { julianDay, resolution: "dayBeforeSkipped" };
+	if (before.kind === "skipped") throw codedError("TCT_INTERNAL", `no day carries ${day - 1}`);
+	return { julianDay: before.julianDay, resolution: "dayBeforeSkipped" };
 }
 
 /**
@@ -119,10 +141,10 @@ function precedingDay(scaled: ScaledTradition, monthCount: number, day: number):
 function followingDay(scaled: ScaledTradition, monthCount: number, day: number): Occurrence {
 	if (day === 1)
 		return { julianDay: firstDayOfMonth(scaled, monthCount), resolution: "dayAfterSkipped" };
-	const carrying = classifyDay(scaled, day - 1, monthCount).julianDay;
+	const carrying = classifyDay(scaled, day - 1, monthCount);
 	/* c8 ignore next */
-	if (carrying === undefined) throw codedError("TCT_INTERNAL", `no day carries ${day - 1}`);
-	return { julianDay: carrying + 1, resolution: "dayAfterSkipped" };
+	if (carrying.kind === "skipped") throw codedError("TCT_INTERNAL", `no day carries ${day - 1}`);
+	return { julianDay: carrying.julianDay + 1, resolution: "dayAfterSkipped" };
 }
 
 /** Whether an annual rule applies to this month, given the leap-month convention. */
@@ -139,7 +161,7 @@ function appliesToMonth(
 	// Explicit rather than positional, for the same reason as resolveInMonth's branches: `"regular"`
 	// was the fall-through, so a missing `leapMonth` put an annual observance in the regular month
 	// with no error — one month off what FPMT prints for the 2024 Chokhor Duchen.
-	const choice = rule.leapMonth === undefined ? config.leapMonth : rule.leapMonth;
+	const choice = conventionOf(rule, config, "leapMonth");
 	if (choice === "both") return true;
 	if (choice === "leap") return month.isLeap;
 	if (choice === "regular") return !month.isLeap;
@@ -157,7 +179,7 @@ function appliesToMonth(
  */
 function periodEndpointCount(
 	scaled: ScaledTradition,
-	choice: string,
+	choice: LeapMonthChoice,
 	year: number,
 	month: number,
 	end: "first" | "last",
@@ -192,7 +214,7 @@ function periodOccurrences(
 	year: number,
 	when: Extract<ObservanceWhen, { type: "period" }>,
 ): Occurrence[] {
-	const choice = rule.leapMonth === undefined ? config.leapMonth : rule.leapMonth;
+	const choice = conventionOf(rule, config, "leapMonth");
 	const start = periodEndpointCount(scaled, choice, year, when.first.month, "first");
 	if (monthCount !== start) return [];
 	const end = periodEndpointCount(scaled, choice, year, when.last.month, "last");
@@ -204,8 +226,8 @@ function periodOccurrences(
 		for (let day = lowest; day <= highest; day++) {
 			const found = classifyDay(scaled, day, count);
 			if (found.kind === "skipped") continue;
-			if (found.kind === "doubled") days.push(found.leapJulianDay as number);
-			days.push(found.julianDay as number);
+			if (found.kind === "doubled") days.push(found.leapJulianDay);
+			days.push(found.julianDay);
 		}
 	}
 	const first = days[0];
@@ -237,8 +259,8 @@ function formulaOccurrences(
 		if (classification.kind === "skipped") continue;
 		const days =
 			classification.kind === "doubled"
-				? [classification.leapJulianDay as number, classification.julianDay as number]
-				: [classification.julianDay as number];
+				? [classification.leapJulianDay, classification.julianDay]
+				: [classification.julianDay];
 		for (const julianDay of days) {
 			if (formulaHolds(when.formula, day, mod(julianDay + 1, 7))) {
 				found.push({ julianDay, resolution: "exact" });

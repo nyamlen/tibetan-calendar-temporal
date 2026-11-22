@@ -32,18 +32,20 @@ import {
 	readdirSync,
 	readFileSync,
 	rmSync,
+	statSync,
 	writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { linkProblems, shippedDocsOf } from "./shipped-links.ts";
 
 const scripts = dirname(fileURLToPath(import.meta.url));
 const repo = resolve(scripts, "..");
 const scratch = mkdtempSync(join(tmpdir(), "tct-pack-"));
 
-const exec = (command, args, cwd, shell = false) =>
-	execFileSync(command, args, { cwd, encoding: "utf8", shell, stdio: ["ignore", "pipe", "pipe"] });
+const exec = (command, args, cwd) =>
+	execFileSync(command, args, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
 
 const runNode = (args, cwd) => exec(process.execPath, args, cwd);
 
@@ -55,13 +57,22 @@ const runNode = (args, cwd) => exec(process.execPath, args, cwd);
  * `npm-cli.js` — so this executes as plain Node, with no shell. That matters on Windows, where
  * `npm` is a `.cmd` shim that `execFileSync` refuses to spawn without one, and where `shell: true`
  * additionally raises DEP0190 and would split `process.execPath` on the space in "Program Files".
- * The fallback covers being invoked directly rather than via `npm run`.
+ * Invoked directly rather than via `npm run`, it runs the `npm-cli.js` that ships beside the Node
+ * binary on Windows, still through Node and still with no shell; elsewhere `npm` is an executable.
  */
 const runNpm = (args, cwd) => {
 	const cli = process.env.npm_execpath;
 	if (cli?.endsWith(".js")) return runNode([cli, ...args], cwd);
-	const npm = process.platform === "win32" ? "npm.cmd" : "npm";
-	return exec(npm, args, cwd, process.platform === "win32");
+	if (process.platform === "win32") {
+		const bundled = join(dirname(process.execPath), "node_modules", "npm", "bin", "npm-cli.js");
+		if (!existsSync(bundled)) {
+			throw new Error(
+				`no npm-cli.js beside ${process.execPath}; run this through npm run test:pack`,
+			);
+		}
+		return runNode([bundled, ...args], cwd);
+	}
+	return exec("npm", args, cwd);
 };
 
 try {
@@ -118,12 +129,9 @@ try {
 	// the rule its own siblings were held to, and had accumulated ten dead targets: architecture.md,
 	// testing.md, roadmap.md, CONTRIBUTING.md and six more, every one of them fine on npmjs.com and
 	// broken in an editor. Found by a consumer spike on 2026-08-25, not by this script.
-	const shippedDocs = [
-		"README.md",
-		"docs/guide.md",
-		"docs/why-trust-these-dates.md",
-		"docs/how-it-is-calculated.md",
-	];
+	//
+	// The list is `package.json#files`' Markdown entries, not a second hand-kept list: a document
+	// added to `files` is checked without anyone remembering this script.
 	const installed = join(scratch, "node_modules", "tibetan-calendar-temporal");
 	// The opposite mistake, found by the polyfill probe on 2026-09-23: a shipped document linking a
 	// file that ships by absolute GitHub URL. why-trust-these-dates.md filed how-it-is-calculated.md
@@ -144,21 +152,27 @@ try {
 	const blob = `${repoUrl}/blob/main/`;
 	const ships = (path) =>
 		files.some((entry) => path === entry || path.startsWith(`${entry.replace(/\/$/, "")}/`));
+	const exists = (path) => {
+		const full = join(installed, path);
+		if (!existsSync(full)) return null;
+		return statSync(full).isDirectory() ? "dir" : "file";
+	};
+	const shippedDocs = shippedDocsOf(files);
+	const problems = [];
+	let blobLinks = 0;
 	for (const doc of shippedDocs) {
 		const text = readFileSync(join(installed, doc), "utf8");
-		for (const [, path] of text.matchAll(/\]\((https?:\/\/[^)#\s]+)/g)) {
-			if (path.startsWith(blob) && ships(path.slice(blob.length))) {
-				throw new Error(
-					`${doc} links to ${path} by absolute URL, but ${path.slice(blob.length)} ships in the tarball — link it relatively`,
-				);
-			}
-		}
-		for (const [, target] of text.matchAll(/\]\((?!https?:)([^)#]+)/g)) {
-			const resolved = resolve(dirname(join(installed, doc)), target);
-			if (!existsSync(resolved)) {
-				throw new Error(`${doc} links to ${target}, which is not in the tarball`);
-			}
-		}
+		problems.push(...linkProblems(doc, text, exists, blob, ships));
+		blobLinks += text.split(blob).length - 1;
+	}
+	if (problems.length > 0) throw new Error(problems.join("\n"));
+	// The absolute-URL check compares against a prefix derived from `package.json#repository`; if the
+	// repository moved and the documents did not (or the reverse), it would compare nothing and pass.
+	// The README links repo-only files by absolute URL, so some link must carry the prefix.
+	if (blobLinks === 0) {
+		throw new Error(
+			`no shipped document links to ${blob}: package.json#repository and the documents' URLs disagree, so the absolute-URL check would compare nothing`,
+		);
 	}
 	console.log(`Shipped docs present, with resolving relative links: ${shippedDocs.join(", ")}`);
 
@@ -167,7 +181,9 @@ try {
 	// `exports` map rather than through this repository.
 	process.stdout.write(runNode(["consumer.mjs"], scratch));
 
-	console.log("\nThe packed tarball imports and computes correctly through all three subpaths.");
+	console.log(
+		"\nThe packed tarball imports and computes correctly through every subpath its exports map declares.",
+	);
 } catch (error) {
 	if (error.stdout) process.stdout.write(error.stdout);
 	if (error.stderr) process.stderr.write(error.stderr);
