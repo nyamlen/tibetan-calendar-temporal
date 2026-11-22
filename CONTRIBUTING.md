@@ -215,7 +215,8 @@ A release is published by [`.github/workflows/release.yml`](.github/workflows/re
 2. Tag that commit `v<version>` and push the tag.
    Check the commit before pushing: the tag ruleset forbids moving or deleting a `v*` tag, so a wrong tag can be fixed only by disabling the ruleset.
 3. The workflow runs the full CI matrix on the tagged commit, refuses a tag that does not match `package.json#version` or a commit not on `main`, and then waits for approval in the `npm` environment.
-4. Approve the deployment; the job publishes through npm's trusted publishing, with no stored token.
+4. Approve the deployment on GitHub. The job stages the version through npm's trusted publishing, with no stored token; nothing is public yet.
+5. Approve the staged version on npm with your passkey: `npm stage list`, then `npm stage approve <stage-id>`. Only then is it published. The command waits at `Press ENTER to open in the browser…` until you authenticate.
 
 ## Licence
 

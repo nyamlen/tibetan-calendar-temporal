@@ -274,7 +274,10 @@ The release is next.
 
 - [ ] **Configure npm trusted publishing** for this package on npmjs.com, naming this repository,
       `release.yml` and the environment `npm`; npm does not check the entry when it is saved, and
-      an entry expires unless its first publish succeeds within two days, so create it just before tagging. It publishes over OIDC with **no stored token**, and generates provenance
+      an entry expires unless its first publish succeeds within two days, so create it just before tagging.
+      **Leave "Allow npm publish" and "Allow npm dist-tag" unticked**, as npm recommends: the
+      entry then allows only `npm stage publish`, which `release.yml` runs, and a staged version is
+      published only when approved on npm with the maintainer's passkey. It publishes over OIDC with **no stored token**, and generates provenance
       automatically — but only for a **public** repository and package, so the repository goes
       public before the first publish (see Repository below). It needs npm ≥ 11.5.1 and Node ≥ 22.14.
       Decided 2026-11-15, replacing a stored granular token: the security review found that item
@@ -292,10 +295,10 @@ The release is next.
       the job that publishes; and a **protected environment or protected tags**, because with trusted
       publishing anyone who can push a release tag can publish.
       Written 2026-11-22: it runs `ci.yml` on the tagged commit, refuses a tag that does not match
-      `package.json#version` or a commit not on `main`, and publishes from the environment `npm`.
-      **Open until that environment exists** (Settings → Environments → `npm`: Andreas as required
-      reviewer, deployment tags `v*` only) and the trusted-publisher entry names it. The procedure is
-      in CONTRIBUTING.md, "Releasing"
+      `package.json#version` or a commit not on `main`, and stages the version from the environment
+      `npm` with `npm stage publish`. The environment exists (created by Andreas 2026-11-22, read back
+      through the API: Andreas as required reviewer, administrator bypass off, deployment tags `v*`
+      only). **Open until its first publish succeeds.** The procedure is in CONTRIBUTING.md, "Releasing"
 
 - [ ] Confirm `repository.url` still matches the building repo. Provenance attestation fails if
       they disagree — currently correct, but it would have broken had the repo not been
@@ -337,7 +340,7 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
 
 - [ ] Set **repository topics** to match `package.json#keywords` — `tibetan`, `calendar`,
       `temporal`, `phugpa`, `buddhist`, `lunisolar`, `losar`, `bhutanese`, `dzongkha`, `mongolian`,
-      `tsagaan-sar`, `tsurphu`, `kalacakra`, `rabjung`. Topics drive GitHub search and the topic
+      `tsurphu`, `kalacakra`, `rabjung`. Topics drive GitHub search and the topic
       pages, a discovery channel entirely separate from npm, and cost one settings change. The
       keyword list carries the Bhutanese and Mongolian scope that the package *name* deliberately
       does not — see
@@ -1019,6 +1022,15 @@ nothing and reports success.
   4. **Observances are a separate question.** Buryat Hurals are their own calendar of holy days,
      not `EXAMPLE_OBSERVANCES`, whose conventions are FPMT's; that belongs to the `./observances` work, not to the
      config.
+  5. **Discovery, in the release that exports the config** (Andreas, 2026-11-22), not before, so the
+     package does not invite the users it cannot yet serve:
+     - add the keyword `zurkhai` and its Mongolian spelling to `package.json#keywords`. зурхай is the
+       Cyrillic spelling; a spelling in the traditional Mongolian script is a name string, so it needs
+       a source, and npm's search has to be shown to find it (measured 2026-11-22: Cyrillic keywords
+       are found, Tibetan-script ones return unrelated packages). *Zurkhai* is also the name of the app
+       cited in 3, which the keyword will match as well;
+     - restore `tsagaan-sar` to the keywords and to the GitHub topics, removed for 1.0.0 because the
+       package cannot yet date Tsagaan Sar by the Mongolian rules.
 
   **Measured 2026-09-24:** between 2020 and 2033 the two versions give a day a different month label
   on 1,122 of 5,114 days, in five stretches of about seven months — the next from 9 March to 29
