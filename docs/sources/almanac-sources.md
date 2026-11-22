@@ -435,7 +435,7 @@ carried the observance label.
 
 Its lineage is unresolved and is tracked in [roadmap.md](../development/roadmap.md).
 Its App Store metadata, rate-limited on both attempts on 2026-09-10, was read on 2026-09-24 and is
-recorded in [other-implementations.md](other-implementations.md).
+recorded in [other-implementations.md](../other-implementations.md).
 
 ## Open questions
 

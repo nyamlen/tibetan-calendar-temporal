@@ -61,4 +61,4 @@ citations point at still exist.
 Whether documentation ships to npm is a separate question, settled by `package.json#files`:
 `docs/guide.md` and `docs/why-trust-these-dates.md` do, so that condensing the README costs a
 consumer nothing structurally rather than because the condensation was done carefully.
-`docs/sources/other-implementations.md` and every contributor document do not.
+`docs/other-implementations.md` and every contributor document do not.

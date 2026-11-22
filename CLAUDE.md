@@ -22,7 +22,7 @@ The incident behind a rule belongs in its commit message or decision record, not
   validation reports its window there, not in `why-trust-these-dates.md`
 - **Observances**: [docs/observances.md](docs/observances.md) — not shipped. Levels are declared by
   the config, there is no `kind`; its practice knowledge is marked as Andreas' and unsourced — keep it marked
-- Other implementations: [docs/sources/other-implementations.md](docs/sources/other-implementations.md) — public
+- Other implementations: [docs/other-implementations.md](docs/other-implementations.md) — public
   metadata only, **no competitor source is ever read**
 - Testing strategy and every validation window: [docs/development/testing.md](docs/development/testing.md)
 - **Every source checked against, and its lineage**: [docs/sources/validation-sources.md](docs/sources/validation-sources.md)
@@ -337,7 +337,8 @@ Node's erase-only type stripping (`erasableSyntaxOnly` catches violations at typ
 - **`check:publish` and `test:pack` are the only checks that see the published package.** `test:pack`
   packs without building (proving `prepack`), installs outside the repo and asserts values through all
   three subpaths. `attw` runs `--profile esm-only`: do not add `main` to green a row.
-- **`check:links`** validates relative links and fragments; fix inbound links in the same commit.
+- **`check:links`** validates relative links and fragments, and this repository's own `blob/main` URLs
+  offline; fix inbound links in the same commit.
   **Never put an em dash in a heading you link to** — this checker's slug and GitHub's differ for it.
 
 **Seven release-time commands are outside CI**: `coverage`, `bench`, and the five `verify:*` name

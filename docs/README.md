@@ -12,6 +12,7 @@ The first three ship to npm with the package.
 - [how-it-is-calculated.md](how-it-is-calculated.md) — how the calendar works, for readers new to it
 - [astrology.md](astrology.md) — what an almanac prints about a day besides its date, and how favourable the day is held to be
 - [observances.md](observances.md) — which practice days a calendar marks, and how it decides them
+- [other-implementations.md](other-implementations.md) — the other software that computes Tibetan dates, and when to use it instead; from public metadata only
 
 ## Developing the engine
 
@@ -29,6 +30,5 @@ How to contribute, including the clean-room constraint, is in [CONTRIBUTING.md](
 - [sources/traditions.md](sources/traditions.md) — what differs between traditions, and two traps in the sources
 - [sources/almanac-sources.md](sources/almanac-sources.md) — where the observance and day-attribute data comes from
 - [sources/fpmt-calendar.md](sources/fpmt-calendar.md) — what FPMT's calendar prints, and how it is dated
-- [sources/other-implementations.md](sources/other-implementations.md) — the other software that computes Tibetan dates, from public metadata only
 - [names/](names/) — the provenance of every name string, and how the name verifiers work
 - [decisions/](decisions/) — decision records: constraints a contributor would otherwise break

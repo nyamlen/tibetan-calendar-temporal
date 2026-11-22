@@ -210,7 +210,7 @@ Decisions deliberately deferred during setup, each with the reason it was deferr
 Work through this before publishing v1.0.0; several are one-way doors once published.
 
 Ticked items are one line each.
-Their full text as it stood before the cleanup of 2026-11-22 is `git show 7e72472:docs/development/roadmap.md`; what a decision still constrains lives in [decisions/](../decisions/).
+Their full text as it stood before the cleanup of 2026-11-22 is `git show 7e72472:docs/roadmap.md`; what a decision still constrains lives in [decisions/](../decisions/).
 
 ### The pre-release gate
 
@@ -472,7 +472,7 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
   (2026-11-17), the adversarial-review fixes branch (2026-11-21) and the maintainability-fixes
   branch (2026-11-22) each parked small findings; Andreas ruled on every one.
   **Every Fix entry is done** (merged as `1417e1b`, `eac11ed` and `e79731e`); the fix text and
-  each fix's commit are in the pre-cleanup roadmap, `git show 7e72472:docs/development/roadmap.md`.
+  each fix's commit are in the pre-cleanup roadmap, `git show 7e72472:docs/roadmap.md`.
   A later review that parks a finding adds it here and unticks this item until it is decided
   and, if marked fix, done. Limits of throwaway plan tooling that never ships are not tracked.
 
@@ -527,7 +527,7 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
       [decisions/2026-09-12-absent-naming-members-refuse.md](../decisions/2026-09-12-absent-naming-members-refuse.md)
 
 - [x] **Read Zurkhai's App Store metadata and complete its
-      [other-implementations.md](../sources/other-implementations.md) entry.** Done 2026-09-24, through
+      [other-implementations.md](../other-implementations.md) entry.** Done 2026-09-24, through
       Apple's lookup API: seller Nikolai Tsyrenov, first released 27 May 2026, version 1.5. The
       description names two printed Buryat almanacs, recorded as a lead under the open lineage
       item, not as its answer.
@@ -546,12 +546,12 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
       added 365 rows for 2026. The mansion residual came back to 2 in 2026, and the Henning
       comparison over 2026 agrees on all 362 counted days. Windows:
       [testing.md](testing.md); FPMT: [fpmt-calendar.md](../sources/fpmt-calendar.md).
-- [x] **`docs/sources/other-implementations.md`** — a survey of the other software that computes Tibetan
+- [x] **`docs/other-implementations.md`** — a survey of the other software that computes Tibetan
       dates, framed as "when to use which" rather than as a comparison. Every claim from public
       metadata, with an access date; no competitor source read
 - [x] **Ship the two consumer documents to npm** — `package.json#files` gains `docs/guide.md` and
       `docs/why-trust-these-dates.md`, so condensing the README costs a consumer nothing
-      structurally. `docs/sources/other-implementations.md` and every contributor document stay repo-only
+      structurally. `docs/other-implementations.md` and every contributor document stay repo-only
 - [x] **A benchmark, outside CI.** `npm run bench` joins `coverage`, `verify:names` and
       `verify:rabjung-names` as a release-time check that gates nothing. It exists because two
       numbers were already load-bearing and unmeasured: the `getObservances` span cap, which

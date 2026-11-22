@@ -119,6 +119,9 @@ exist, and a `#fragment` must match a heading. Docs here cross-reference heavily
 or deleted file breaks inbound links silently; the check exists because that has happened.
 External URLs are deliberately not checked, since reaching the validation sources in
 [docs/development/testing.md](docs/development/testing.md) from CI would only make the build flaky.
+The exception is this repository's own `blob/main` URLs, in Markdown and in source, which are
+resolved offline against the repository: shipped documents and docblocks use them, and every
+published tarball freezes them.
 
 It lists candidates with `git ls-files --cached --others --exclude-standard`, not a directory walk —
 `--others --exclude-standard` covers a brand-new file that has not been `git add`-ed yet, while

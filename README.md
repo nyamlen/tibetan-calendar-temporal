@@ -118,7 +118,7 @@ differs from a published almanac and why, and which questions no available sourc
 Henning's software computes a full astrological almanac — planets and eclipses included — which this
 package does not attempt, and
 `@hnw/date-tibetan` is the shortest route to a Mongolian date. **[When to use which
-→](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/sources/other-implementations.md)**
+→](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/other-implementations.md)**
 
 ## Requirements
 
@@ -834,7 +834,8 @@ install.
 | [docs/how-it-is-calculated.md](docs/how-it-is-calculated.md) | **Start here if the calendar is new to you.** What a lunisolar calendar has to solve, leap months, why days are doubled and skipped, and what `a₂` is |
 | [docs/guide.md](docs/guide.md) | The long-form companion to this file: the calendar's hard cases, where a day begins, working with the two configs, and running it outside Node 26 |
 | [docs/why-trust-these-dates.md](docs/why-trust-these-dates.md) | What has been validated, against what, and over which years — and what has not. Written for a non-programmer |
-| [docs/sources/other-implementations.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/sources/other-implementations.md) | The other software that computes Tibetan dates, and when to use it instead |
+| [docs/README.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/README.md) | Every document, grouped by who reads it |
+| [docs/other-implementations.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/other-implementations.md) | The other software that computes Tibetan dates, and when to use it instead |
 | [docs/development/architecture.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/development/architecture.md) | Layered model, API design, package structure, core types, tooling |
 | [docs/development/testing.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/development/testing.md) | Three-tier testing strategy and validation sources |
 | [docs/sources/validation-sources.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/sources/validation-sources.md) | Every source checked against, its **lineage**, what it settles, and what has been tried and rejected |

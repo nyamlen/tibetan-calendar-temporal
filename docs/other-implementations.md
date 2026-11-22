@@ -6,7 +6,7 @@ that someone choosing a library can choose correctly — including choosing some
 **Nothing here rests on reading anyone's source code.** Every claim comes from the project's own
 README, its npm registry metadata, its published tarball's file listing, or its public web pages.
 That is partly the same evidence discipline
-[validation-sources.md](validation-sources.md) applies to calendar data, and partly a constraint
+[validation-sources.md](sources/validation-sources.md) applies to calendar data, and partly a constraint
 this project works under: it is a clean-room implementation of Janson's paper, and reading a
 competing implementation would compromise that.
 
@@ -46,7 +46,7 @@ observance layer, and states no range over which its output has been checked aga
 
 **A note on our relationship to it.** This project runs `tibetan-date-calculator` to generate one of
 its cross-check fixtures, and it is one of the four sources this engine is checked against day by
-day — see [why you can trust these dates](../why-trust-these-dates.md) for the window that covers.
+day — see [why you can trust these dates](why-trust-these-dates.md) for the window that covers.
 Computed dates are facts rather than copyrightable expression, which is what makes that comparison
 legitimate while reading the code is not.
 
@@ -145,9 +145,9 @@ almanacs (Yampilov-Galsanov "Zurkhai-3", Atsagatsky Datsan publications)."* It s
 that verification. That is honest about the problem and says little about the answer. This package's whole claim is the opposite trade:
 fewer features, and a stated window for every one of them.
 
-Its attribute layer is recorded in [almanac-sources.md](almanac-sources.md) as a comparison target
+Its attribute layer is recorded in [almanac-sources.md](sources/almanac-sources.md) as a comparison target
 for the deferred `./astrology` work. It is deliberately **not** in
-[validation-sources.md](validation-sources.md): the almanacs named in its App Store listing are what
+[validation-sources.md](sources/validation-sources.md): the almanacs named in its App Store listing are what
 it was checked *against*, not how it computes, so there is still no way to tell whether it descends
 from Henning, and agreement from within a lineage already represented is not evidence.
 
@@ -173,7 +173,7 @@ value is used — where this package takes a tradition and an observance convent
 It computes with Henning's `a₂`, so on eight days between 2001 and 2099 its Tibetan date differs from
 `PHUGPA`'s by one, including 19 November 2025, where FPMT's printed calendar agrees with `PHUGPA`. The
 measurement, and why it is not corroboration, is in
-[validation-sources.md](validation-sources.md#rabten-choelings-calendar-hennings-lunar-anomaly-value-method-unstated).
+[validation-sources.md](sources/validation-sources.md#rabten-choelings-calendar-hennings-lunar-anomaly-value-method-unstated).
 
 ## API shape, compared — added 2026-08-26
 
@@ -272,4 +272,4 @@ is a fraction of Henning's: attributes, the mansion and the yoga, with no planet
 What it does offer that the others do not is an observance layer whose conventions are configuration
 rather than assumption, tradition constants injected as data rather than hardcoded, and — the part
 that matters most — a statement, for every claim it makes, of the range of years over which that
-claim has been checked. See [why you can trust these dates](../why-trust-these-dates.md).
+claim has been checked. See [why you can trust these dates](why-trust-these-dates.md).

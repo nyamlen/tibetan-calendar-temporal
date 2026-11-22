@@ -137,6 +137,19 @@ const sources = execFileSync(
 )
 	.split("\n")
 	.filter((file) => file && !ABSOLUTE_EXEMPT.has(file));
+// GitHub serves what is committed, so a URL must name a tracked (or about-to-be-added) path; an
+// ignored file such as dist/index.js exists on disk here and is a 404 there.
+const listed = execFileSync("git", ["ls-files", "--cached", "--others", "--exclude-standard"], {
+	cwd: root,
+	encoding: "utf8",
+})
+	.split("\n")
+	.filter(Boolean);
+const listedFiles = new Set(listed);
+const isListed = (path) => {
+	const bare = path.replace(/\/$/, "");
+	return listedFiles.has(bare) || listed.some((file) => file.startsWith(`${bare}/`));
+};
 let absoluteLinks = 0;
 
 for (const file of sources) {
@@ -149,9 +162,9 @@ for (const file of sources) {
 		absoluteLinks++;
 		const line = source.slice(0, match.index).split("\n").length;
 		const resolved = resolve(root, path);
-		if (!existsSync(resolved)) {
+		if (!existsSync(resolved) || !isListed(path)) {
 			failures.push(
-				`${file}:${line}  ${match[0]}  -> no such file or directory in this repository`,
+				`${file}:${line}  ${match[0]}  -> no such tracked file or directory in this repository`,
 			);
 			continue;
 		}
