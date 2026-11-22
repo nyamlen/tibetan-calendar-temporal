@@ -180,7 +180,10 @@ What belongs in the public repo:
 - `README.md` — install, usage, API overview, supported traditions
 - `CONTRIBUTING.md` — this file
 - `LICENSE`, `CLAUDE.md`
-- `docs/` — architecture, testing, roadmap, decision records, generated API reference
+- `docs/` — grouped by reader, and indexed in [docs/README.md](docs/README.md): consumer documents at
+  the top, contributor documents (architecture, coding standards, testing, roadmap) in
+  `docs/development/`, sources and provenance in `docs/sources/`, `docs/names/` and the decision records
+  in `docs/decisions/`
 - `src/`, `test/`
 - `scripts/` — the fixture generators, and the link checker CI runs. Each generator is committed
   with the fixture it produces; that pairing is the provenance record

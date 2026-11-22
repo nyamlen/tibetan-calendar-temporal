@@ -6,6 +6,8 @@ dependencies, built on Temporal.
 This file states each rule and why it exists, with at most one example.
 The incident behind a rule belongs in its commit message or decision record, not here.
 
+- **Every document, grouped by reader**: [docs/README.md](docs/README.md) — consumer documents at the
+  top of `docs/`, contributor documents in `docs/development/`, provenance in `docs/sources/`
 - Every rule, and **what fails when you break it**: [docs/development/coding-standards.md](docs/development/coding-standards.md) —
   the enforcement map. This file says *why* a rule exists; that one says whether a machine catches it
 - **How the calendar works**: [docs/how-it-is-calculated.md](docs/how-it-is-calculated.md) — read it
