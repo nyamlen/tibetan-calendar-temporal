@@ -86,6 +86,11 @@ The once-only rule is strict on purpose: removing a rule and adding it back woul
 `EXAMPLE_OBSERVANCES`, `id: "example"`, `englishName: "Example practice calendar"`; its docblock states that its doubled-day and leap-month conventions are FPMT's and that Kopan answers the doubled day the other way.
 FPMT's complete set, Lama Thubten Yeshe's anniversary among it, is a configuration in the test suite, where its agreement with FPMT's calendars is measured.
 
+**Eclipses are the front end's responsibility: not computed, no shipped table, no dating.**
+Three options were weighed and all three rejected: modern astronomy, Janson's Rahu, and a finite table.
+Janson's Rahu is a curiosity under Beyond v1 in the roadmap, not a deferred plan for FPMT's eclipses.
+What a front end needs to know was measured and is in [docs/fpmt-calendar.md](../fpmt-calendar.md): FPMT dates eclipses by UTC despite its own guidance to observe by the date in India, and it prints eclipses invisible from Asia.
+
 **The three observance functions take the same dates, and `nextObservance` does not take a resolved `TibetanDate`.**
 `getObservances`, `observancesOn` and `nextObservance` normalise their dates through `asPlainDate`, which accepts a `Temporal` instance or an ISO string and never a `TibetanDate`.
 `nextFullMoon` and `nextNewMoon` accept one because chaining their own result was the reason to widen them ([public-surface.md](2026-08-12-public-surface.md)); each observance result carries `isoDate`, so a chain passes `result.date.isoDate`.

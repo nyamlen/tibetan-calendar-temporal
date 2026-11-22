@@ -652,11 +652,11 @@ real devices. `docs/guide.md` gives consumers the recipe for forcing it.
 
 ### What the polyfill runs do not establish
 
-- **The real devices ran `5c954b3`**, not today's tarball. Repeating them against the release tarball
-  is on the pre-1.0.0 checklist.
+- **The real devices ran `5c954b3`**, not today's tarball, and will not be re-run before 1.0.0
+  (decided 2026-11-22).
 - **macOS Safari 26 has never been run.** The Mac ran 17.6.
 - **The iOS version is unconfirmed.** The device reported Safari 26.6, but Safari 26 freezes the OS
-  version in its user agent, which said iOS 18.7. The re-run reads it from the device's Settings.
+  version in its user agent, which said iOS 18.7. A re-run would read it from the device's Settings.
 
 ## Contract tests
 

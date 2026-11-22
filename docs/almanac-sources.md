@@ -330,7 +330,6 @@ Sojong remains wanted; it needs a different or corrected source.
 The notes' last line says so: "there is math that can be learned as to why there are 14 or 15 days between the Sojongs".
 Read that way, the rule reproduces 95 of the 98 intervals between FPMT's 99 sojongs of 2022–2025 (the other three are 2022-03-02 to 2022-03-18, 2022-04-16 to 2022-04-30 and 2022-12-22 to 2023-01-07): every waxing fortnight is 15 days, a waning one is 14 at the end of an odd month and 15 at the end of an even one, and the 2024 leap month 6 counts as even.
 The one unsourced piece is where the occasional extra day goes, which a 354-day scheme needs to stay with the moon; it was put to Ven. Thubten Chöying on 2026-09-19.
-The full account is under the boundary item in [roadmap.md](roadmap.md).
 The instruction this section used to end with — not to re-test without new material — was wrong: the material was already in hand.
 
 **Superseded 2026-09-27: there is no extra day, only an anchor.**
@@ -447,7 +446,8 @@ recorded in [other-implementations.md](other-implementations.md).
   Answering either needs the computed attribute layer, not another page of the website.
   **Measured 2026-09-19:** Fire puja matches (Tibetan day + weekday, Sunday 0) mod 4 ∈ {1, 2},
   the Indian *agnivāsa* rule, on 97.5% of 1,461 days, and NWR behaves as a month-and-day table;
-  both still need a source. See the boundary item in [roadmap.md](roadmap.md).
+  both still need a source.
+  The fire puja is tracked under "Awaiting a Tibetan teacher" in [roadmap.md](roadmap.md).
 - **What GCH means** — answered 2026-09-19: FPMT's key defines it as "Good for cutting hair".
 - **NCH and the hair-cutting table disagree in scope**, as above.
 - **What keeps sojong's count with the moon.** The 2026-08-28 candidate holds as a count of days.

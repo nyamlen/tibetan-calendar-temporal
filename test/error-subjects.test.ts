@@ -527,7 +527,7 @@ describe("which error a doubly-bad call reports", () => {
 
 	// One order everywhere: the shape, then the tradition, then the range. Until 2026-11-15 the
 	// navigators and five astrology exports checked the tradition first ("order A"); Andreas ruled for
-	// this order, and the roadmap item on the attribute bound records why.
+	// this order, and docs/decisions/2026-11-15-attribute-functions-share-the-exact-range.md records why.
 	it.each([
 		["tibetanToIso", (v: never) => tibetanToIso(v, brokenTradition), date13],
 		["daysInMonth", (v: never) => daysInMonth(v, brokenTradition), month13],
