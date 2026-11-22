@@ -36,8 +36,8 @@ describe("year lengths", () => {
 	// Janson §6: a Tibetan month is one lunation, so it runs 29 or 30 calendar days and nothing
 	// else. Counted from the month's first and last calendar days.
 	it("give every month either 29 or 30 days, over 1970-2070", () => {
-		const first = trueMonthCount(PHUGPA, 1970, 1);
-		const last = trueMonthCount(PHUGPA, 2070, 1);
+		const first = trueMonthCount(PHUGPA, 1970, 1, false);
+		const last = trueMonthCount(PHUGPA, 2070, 1, false);
 		const lengths = new Set<number>();
 		for (let n = first; n < last; n++) {
 			lengths.add(lastDayOfMonth(scaled, n) - firstDayOfMonth(scaled, n) + 1);
@@ -114,7 +114,7 @@ describe("epoch sign guard", () => {
 				fc.integer({ min: 807, max: 5000 }),
 				fc.integer({ min: 1, max: 12 }),
 				(year, month) => {
-					expect(trueMonthCount(PHUGPA, year, month)).toBeGreaterThanOrEqual(0);
+					expect(trueMonthCount(PHUGPA, year, month, false)).toBeGreaterThanOrEqual(0);
 				},
 			),
 		);
@@ -123,7 +123,7 @@ describe("epoch sign guard", () => {
 	it("still computes correctly where the count does go negative", () => {
 		// Before the epoch the arithmetic must not break — this is what floorDiv and mod are
 		// for. The result is meaningless historically but must be internally consistent.
-		expect(trueMonthCount(PHUGPA, 700, 1)).toBeLessThan(0);
+		expect(trueMonthCount(PHUGPA, 700, 1, false)).toBeLessThan(0);
 		const date = isoToTibetan(Temporal.PlainDate.from("0700-06-15"));
 		expect(date.month).toBeGreaterThanOrEqual(1);
 		expect(date.month).toBeLessThanOrEqual(12);
@@ -198,8 +198,8 @@ describe("formatTibetanDate", () => {
 // this property is what proves the guard does not drop a case.
 describe("moon phases", () => {
 	it("puts exactly one full moon and one new moon in every month over 1970-2070", () => {
-		const first = trueMonthCount(PHUGPA, 1970, 1);
-		const last = trueMonthCount(PHUGPA, 2070, 1);
+		const first = trueMonthCount(PHUGPA, 1970, 1, false);
+		const last = trueMonthCount(PHUGPA, 2070, 1, false);
 		const wrong: string[] = [];
 
 		for (let n = first; n < last; n++) {

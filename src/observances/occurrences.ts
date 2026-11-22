@@ -139,11 +139,11 @@ export function occurrencesOfRule(
 		// `leapMonthPosition: "before"` a year that opens with a leap month 1 has that month just
 		// before month 1, and a 12/30 shifted onto Losar lies one month further back.
 		const firstMonth = counted
-			? trueMonthCount(tradition, startYear - 1, 1) - 1
+			? trueMonthCount(tradition, startYear - 1, 1, false) - 1
 			: lastMonthCountOfYear(tradition, startYear - 1);
 		const lastMonth = counted
 			? lastMonthCountOfYear(tradition, endYear + 1) + 1
-			: trueMonthCount(tradition, endYear + 1, 1) + 1;
+			: trueMonthCount(tradition, endYear + 1, 1, false) + 1;
 
 		const anchors: CountedAnchor[] = [];
 		const excluded = new Set<number>();

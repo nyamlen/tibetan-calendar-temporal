@@ -19,7 +19,7 @@ const scaled = scalingFor(PHUGPA);
 /** The true month count for the month an ISO date falls in, and that date's lunar day. */
 const resolve = (iso: string) => {
 	const date = isoToTibetan(Temporal.PlainDate.from(iso), PHUGPA);
-	const month = trueMonthCount(PHUGPA, yearFromRoyalEra(date.year), date.month);
+	const month = trueMonthCount(PHUGPA, yearFromRoyalEra(date.year), date.month, date.isLeapMonth);
 	return { day: date.day, monthCount: month, jd: julianDayFromIso(date.isoDate) };
 };
 

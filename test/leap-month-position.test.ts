@@ -165,8 +165,8 @@ describe("which side of its twin a leap month falls on", () => {
 		for (let year = YEARS.from; year <= YEARS.to; year++) {
 			for (let month = 1; month <= 12; month++) {
 				if (sharesNumberWithLeapMonth(PHUGPA, year, month)) continue;
-				const before = trueMonthCount(PHUGPA, year, month);
-				const after = trueMonthCount(MIRRORED, year, month);
+				const before = trueMonthCount(PHUGPA, year, month, false);
+				const after = trueMonthCount(MIRRORED, year, month, false);
 				if (before !== after) bad.push(`${year}/${month}: ${before} vs ${after}`);
 			}
 		}

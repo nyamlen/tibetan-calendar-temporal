@@ -57,8 +57,8 @@ describe("trueMonthCount", () => {
 	// Janson Remark 10: for Phugpa at E806, β* = 61 ≥ 48, so the month with true month count 0
 	// is month 2 of 806, not the nominal epoch month 3.
 	it("puts count 0 at month 2 of 806, as Janson's remark on the epoch requires", () => {
-		expect(trueMonthCount(P, 806, 2)).toBe(0);
-		expect(trueMonthCount(P, 806, 3)).toBe(1);
+		expect(trueMonthCount(P, 806, 2, false)).toBe(0);
+		expect(trueMonthCount(P, 806, 3, false)).toBe(1);
 	});
 
 	it("increases by exactly one per calendar month, leap months included", () => {
@@ -101,9 +101,9 @@ describe("trueMonthCount", () => {
 	});
 
 	it("turns non-negative exactly at the epoch month, month 2 of 806", () => {
-		expect(trueMonthCount(P, 806, 1)).toBe(-1);
-		expect(trueMonthCount(P, 806, 2)).toBe(0);
-		expect(trueMonthCount(P, 806, 3)).toBe(1);
+		expect(trueMonthCount(P, 806, 1, false)).toBe(-1);
+		expect(trueMonthCount(P, 806, 2, false)).toBe(0);
+		expect(trueMonthCount(P, 806, 3, false)).toBe(1);
 	});
 });
 

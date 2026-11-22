@@ -145,7 +145,7 @@ const same = (a: Block[], b: Block[]) =>
 
 // The window opens on 2000-01-01, inside the Tibetan year that began in 1999. Searching two years
 // either side of that is generous and still narrow enough that a match is meaningful.
-const SEARCH_CENTRE = trueMonthCount(BHUTAN_RULES, 1999, 1);
+const SEARCH_CENTRE = trueMonthCount(BHUTAN_RULES, 1999, 1, false);
 const SEARCH_RADIUS = 30;
 
 function matchingOffsets(): number[] {
@@ -231,7 +231,7 @@ describe("the engine reproduces it", () => {
 		// Ties the match to the year numbering rather than leaving it a bare integer. The first row is
 		// day 25 of month 11, in the Tibetan year that began in 1999.
 		const [offset] = matchingOffsets();
-		expect(offset).toBe(trueMonthCount(BHUTAN_RULES, 1999, 11));
+		expect(offset).toBe(trueMonthCount(BHUTAN_RULES, 1999, 11, false));
 	});
 
 	it("agrees on every month, reported together rather than one at a time", () => {

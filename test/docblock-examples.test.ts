@@ -202,13 +202,13 @@ describe("docblock examples", () => {
 		});
 
 		it("trueMonthCount is zero at the epoch month and states what isLeap does without a twin", () => {
-			expect(trueMonthCount(PHUGPA, 806, 2)).toBe(0);
-			expect(trueMonthCount(BHUTAN, 1754, 3)).toBe(0);
+			expect(trueMonthCount(PHUGPA, 806, 2, false)).toBe(0);
+			expect(trueMonthCount(BHUTAN, 1754, 3, false)).toBe(0);
 			// 2026 month 3 has no twin under either config.
 			expect(sharesNumberWithLeapMonth(PHUGPA, 2026, 3)).toBe(false);
 			expect(sharesNumberWithLeapMonth(BHUTAN, 2026, 3)).toBe(false);
-			expect(trueMonthCount(PHUGPA, 2026, 3, true)).toBe(trueMonthCount(PHUGPA, 2026, 2));
-			expect(trueMonthCount(BHUTAN, 2026, 3, true)).toBe(trueMonthCount(BHUTAN, 2026, 3));
+			expect(trueMonthCount(PHUGPA, 2026, 3, true)).toBe(trueMonthCount(PHUGPA, 2026, 2, false));
+			expect(trueMonthCount(BHUTAN, 2026, 3, true)).toBe(trueMonthCount(BHUTAN, 2026, 3, false));
 		});
 	});
 

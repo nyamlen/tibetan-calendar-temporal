@@ -53,16 +53,16 @@ function resolveInMonth(
 	const classification = classifyDay(scaled, day, monthCount);
 
 	if (classification.kind === "normal")
-		return [{ julianDay: classification.julianDay as number, resolution: "exact" }];
+		return [{ julianDay: classification.julianDay, resolution: "exact" }];
 
 	if (classification.kind === "doubled") {
 		const choice = rule.doubledDay === undefined ? config.doubledDay : rule.doubledDay;
 		const first = {
-			julianDay: classification.leapJulianDay as number,
+			julianDay: classification.leapJulianDay,
 			resolution: "firstOfDoubled" as const,
 		};
 		const second = {
-			julianDay: classification.julianDay as number,
+			julianDay: classification.julianDay,
 			resolution: "secondOfDoubled" as const,
 		};
 		// Explicit rather than positional. `return [first, second]` as a bare fall-through meant any
@@ -100,10 +100,9 @@ function precedingDay(scaled: ScaledTradition, monthCount: number, day: number):
 	if (day === 1)
 		return { julianDay: firstDayOfMonth(scaled, monthCount) - 1, resolution: "dayBeforeSkipped" };
 	const before = classifyDay(scaled, day - 1, monthCount);
-	const julianDay = before.julianDay ?? before.leapJulianDay;
 	/* c8 ignore next */
-	if (julianDay === undefined) throw codedError("TCT_INTERNAL", `no day carries ${day - 1}`);
-	return { julianDay, resolution: "dayBeforeSkipped" };
+	if (before.kind === "skipped") throw codedError("TCT_INTERNAL", `no day carries ${day - 1}`);
+	return { julianDay: before.julianDay, resolution: "dayBeforeSkipped" };
 }
 
 /**
@@ -119,10 +118,10 @@ function precedingDay(scaled: ScaledTradition, monthCount: number, day: number):
 function followingDay(scaled: ScaledTradition, monthCount: number, day: number): Occurrence {
 	if (day === 1)
 		return { julianDay: firstDayOfMonth(scaled, monthCount), resolution: "dayAfterSkipped" };
-	const carrying = classifyDay(scaled, day - 1, monthCount).julianDay;
+	const carrying = classifyDay(scaled, day - 1, monthCount);
 	/* c8 ignore next */
-	if (carrying === undefined) throw codedError("TCT_INTERNAL", `no day carries ${day - 1}`);
-	return { julianDay: carrying + 1, resolution: "dayAfterSkipped" };
+	if (carrying.kind === "skipped") throw codedError("TCT_INTERNAL", `no day carries ${day - 1}`);
+	return { julianDay: carrying.julianDay + 1, resolution: "dayAfterSkipped" };
 }
 
 /** Whether an annual rule applies to this month, given the leap-month convention. */
@@ -204,8 +203,8 @@ function periodOccurrences(
 		for (let day = lowest; day <= highest; day++) {
 			const found = classifyDay(scaled, day, count);
 			if (found.kind === "skipped") continue;
-			if (found.kind === "doubled") days.push(found.leapJulianDay as number);
-			days.push(found.julianDay as number);
+			if (found.kind === "doubled") days.push(found.leapJulianDay);
+			days.push(found.julianDay);
 		}
 	}
 	const first = days[0];
@@ -237,8 +236,8 @@ function formulaOccurrences(
 		if (classification.kind === "skipped") continue;
 		const days =
 			classification.kind === "doubled"
-				? [classification.leapJulianDay as number, classification.julianDay as number]
-				: [classification.julianDay as number];
+				? [classification.leapJulianDay, classification.julianDay]
+				: [classification.julianDay];
 		for (const julianDay of days) {
 			if (formulaHolds(when.formula, day, mod(julianDay + 1, 7))) {
 				found.push({ julianDay, resolution: "exact" });

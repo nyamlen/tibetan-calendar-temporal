@@ -317,11 +317,6 @@ export function sharesNumberWithLeapMonth(
  * regular month **only when it has a twin**; an untwinned month keeps `rounded` under both
  * positions.
  *
- * **Omit `isLeap` for a date in a leap month and nothing throws:** it defaults to `false`, so a
- * caller deriving a count from a resolved date — `trueMonthCount(config, year, date.month)` — gets
- * the *regular twin*'s count, a real count for the wrong month. A `TibetanDate` carries
- * `isLeapMonth`; pass it.
- *
  * @param isLeap - `true` for the leap month of a pair. For a month with no twin, `true` gives the
  * previous month's count under `"before"` and changes nothing under `"after"`; use
  * {@link sharesNumberWithLeapMonth} to check first.
@@ -330,7 +325,7 @@ export function trueMonthCount(
 	tradition: TraditionConfig,
 	year: number,
 	month: number,
-	isLeap = false,
+	isLeap: boolean,
 ): number {
 	const solarMonths = solarMonthsSinceEpoch(tradition, year, month);
 	const rounded = floorDiv(
@@ -474,23 +469,27 @@ export type DayKind =
 	 */
 	| "doubled";
 
-/** The calendar-day outcome for one lunar day. */
-export interface DayClassification {
-	kind: DayKind;
-	/**
-	 * The Julian day number carrying this date, or `undefined` when skipped.
-	 *
-	 * @remarks
-	 * For a doubled date this is the **second** of the two days — the ordinary one. The first is
-	 * {@link DayClassification.leapJulianDay}.
-	 */
-	julianDay: number | undefined;
-	/**
-	 * For a doubled date, the Julian day number of the first of the pair — the leap day almanacs
-	 * mark "Extra". `undefined` otherwise.
-	 */
-	leapJulianDay: number | undefined;
-}
+/**
+ * The calendar-day outcome for one lunar day, discriminated on `kind`, so a reader narrows on the kind
+ * before it can read a Julian day and a skipped day has none to read.
+ */
+export type DayClassification =
+	| {
+			kind: "normal";
+			/** The Julian day number carrying this date. */
+			julianDay: number;
+	  }
+	| {
+			kind: "doubled";
+			/**
+			 * The **second** of the two days carrying this date — the ordinary one. The first is
+			 * `leapJulianDay`.
+			 */
+			julianDay: number;
+			/** The first of the pair — the leap day almanacs mark "Extra". */
+			leapJulianDay: number;
+	  }
+	| { kind: "skipped" };
 
 /**
  * Classifies lunar day `d` of true month `n` as normal, skipped or doubled.
@@ -522,12 +521,12 @@ export function classifyDay(
 			: julianDayOfLunarDay(scaled, day - 1, monthCount);
 
 	if (julianDay === previous) {
-		return { kind: "skipped", julianDay: undefined, leapJulianDay: undefined };
+		return { kind: "skipped" };
 	}
 	if (julianDay - previous >= 2) {
 		return { kind: "doubled", julianDay, leapJulianDay: julianDay - 1 };
 	}
-	return { kind: "normal", julianDay, leapJulianDay: undefined };
+	return { kind: "normal", julianDay };
 }
 
 /**

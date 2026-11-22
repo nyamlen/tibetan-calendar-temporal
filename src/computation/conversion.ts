@@ -603,8 +603,8 @@ export function julianDayOfFields(
 	if (classification.kind === "skipped") throw new SkippedDayError(date);
 	const julianDay =
 		classification.kind === "doubled" && (date.isLeapDay ?? false)
-			? (classification.leapJulianDay as number)
-			: (classification.julianDay as number);
+			? classification.leapJulianDay
+			: classification.julianDay;
 	// The mean date above is within 0.6 days of the true date (for all four shipped configs, whose
 	// tables are shared), so the day returned can lie just past the bound the mean date passed,
 	// where `isoToTibetan` refuses it.
