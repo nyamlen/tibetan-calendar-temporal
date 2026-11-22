@@ -325,8 +325,8 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
       publishing keeps working, since it does not use a token. Done by Andreas on 2026-11-22, just
       before the first publish, which went through regardless
 
-- [ ] **After 1.0.0 ships**, `npm deprecate tibetan-calendar-temporal@0.0.1 "placeholder; use
-      1.0.0"`. One command, and it puts a warning in front of anyone who pinned the placeholder.
+- [x] **After 1.0.0 ships**, `npm deprecate tibetan-calendar-temporal@0.0.1 "placeholder; use
+      1.0.0"`. Done by Andreas on 2026-11-22; `npm view` shows the message. One command, and it puts a warning in front of anyone who pinned the placeholder.
       Pointless before there is a version to point them at, which is why it is sequenced here
       rather than with the other publishing setup
 
