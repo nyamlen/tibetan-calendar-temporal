@@ -45,8 +45,7 @@ The incident behind a rule belongs in its commit message or decision record, not
 or `eszthoff/tibetan-calendar-temporal`.** The reason is **evidence, not licence risk**: the commit
 history is this project's proof of independent derivation from Janson, worth exactly as much as the
 claim that nobody here has read the alternative. Reading it cannot be undone or disproved.
-Do not argue it from licence: neither repo has a `LICENSE` file, but `tibetan-date-calculator`
-declares `"license": "MIT"` in `package.json`, which is a grant.
+Do not argue it from licence: `tibetan-date-calculator` declares MIT, which is a grant.
 
 Permitted: running those libraries locally and comparing *computed dates* (facts) against ours, and
 reading their public metadata — the README (for API ideas), npm registry metadata and the published
@@ -66,8 +65,7 @@ the opposite: batch edits into meaningful units.
 
 Implement the calendar arithmetic — epochs, mean motions, correction tables, leap-month and
 skipped-day rules — solely from Svante Janson, "Tibetan Calendar Mathematics" (arXiv:1401.6285).
-A second source there means reconciling two formulas for one number, which is how the `a₂` fork and
-the mixed-radix traps happened. The rule does **not** govern shipped **data**: observance rules cite
+A second source there means reconciling two formulas for one number. The rule does **not** govern shipped **data**: observance rules cite
 FPMT, names cite Wiktionary, THL, CLDR, Csoma, Monier-Williams and wisdomlib, and Henning's
 lunar-mansion element table is an ordinary citation chain, since Janson cites Henning for it.
 Do not confuse this rule with the clean-room constraint, which is about two named implementations.
@@ -89,15 +87,12 @@ one. When a question looks unanswerable, grep the comments.
 numbers, and equation numbers exist only at render time. Write "§5, the inverse problem" or quote the
 constant's mixed-radix form (`m₁ = 29;31,50,0,480 ⟨60,60,6,707⟩`) — both are greppable.
 
-**Janson is not always self-consistent, and not always independent.** His day-of-week table and his
-Bhutan appendix disagree on Saturday (`spen ma`/`spen pa`), so for **names** a single Janson table is
-not sufficient — the name verifiers require independent checks. His sixty-year table is "taken from
-`\cite{Henning}`", so it and Henning are one witness; the independent one is Csoma de Kőrös (1834),
-§233. Check a source's lineage, not its title-page date. Corrections live in the verifiers as
-self-invalidating data; never patch a name by editing `src/names.ts`.
-His mixed-radix notation distinguishes an integer part by **semicolon** from a leading **comma**
-(use his six-decimal column as the guard), and his four-version epoch table is **one mean lunar month**
-from a `TraditionConfig`'s epoch — both in [docs/traditions.md](docs/traditions.md).
+**Janson is not always self-consistent, and not always independent**, so for **names** a single
+Janson table is not sufficient: the name verifiers require independent checks, and a source's
+lineage decides whether it is one (his sixty-year table is Henning's, so the two are one witness).
+Corrections live in the verifiers as self-invalidating data; never patch a name by editing
+`src/names.ts`. Two notation traps, the semicolon-versus-comma mixed radix and the epoch table one
+mean lunar month off a `TraditionConfig`'s, are in [docs/traditions.md](docs/traditions.md).
 
 ### Fixtures are generated, not transcribed
 
@@ -105,8 +100,7 @@ Every fixture in `test/fixtures/` comes from a script in `scripts/` — the Jans
 `extract-janson-fixtures.mjs` (which parses the LaTeX), the `crosscheck-*.ts` data, `bhutan.ts` and
 `fpmt-observances.ts` from their `fetch-*` scripts, the name fixtures from the five name verifiers.
 Re-run the script; never edit the output. Hand-copying is how a one-day error reaches the primary
-correctness gate. Parse a source's markup, never a summarised rendering — a summarising fetch misread
-FPMT's `Tibetan Months 9-11` caption as two months.
+correctness gate. Parse a source's markup, never a summarised rendering.
 
 **Three exceptions are hand-curated**, and the test is narrow: the authority publishes **nothing
 usable to parse**, so a generator could only wrap a lossy reading. "Inconvenient to parse" is not the
@@ -116,9 +110,8 @@ the only non-Henning Bhutanese source, its numerals **read by a human on purpose
 Each file's header holds its justification. **Do not regenerate, extend from a machine reading, or
 delete any of them.**
 
-`test/fixtures/crosscheck-row.ts` declares only types, so it has no provenance to check;
-`check:conventions` tests this **before** the generator lookup, or it would pass by coincidence.
-Do not widen that category to a file declaring a `const`. It stays in `test/fixtures/` because
+`test/fixtures/crosscheck-row.ts` declares only types, so it is exempt from provenance; do not widen
+that exemption to a file declaring a `const`. It stays in `test/fixtures/` because
 **every file there imports only from `test/fixtures/`** — that closure makes "fixtures do not depend
 on the engine" true by inspection, and
 [docs/decisions/2026-08-16-exported-means-validated.md](docs/decisions/2026-08-16-exported-means-validated.md)
@@ -214,14 +207,14 @@ Before explaining a residual by a formula, check whether the source uses the sam
 - `test/public-api.test.ts` pins runtime names and kinds; a failure means the surface changed — decide
   whether that was intended. `test/docblock-examples.test.ts` asserts every valued `@example`, **is
   maintained by hand and nothing checks it is complete**: add the `expect` in the same commit as the example.
-- **Types and signatures are invisible to those suites.** Rules 13 and 16 hold barrels against the
-  README's lists ([docs/coding-standards.md](docs/coding-standards.md)); each barrel declares the README
-  heading its section opens with, and the rules refuse to guess if one is missing or out of order.
-  **A type declared in a barrel's body is invisible to them** — they read `export type { … } from`
-  blocks — so declare types in a module and re-export them (`DayAttributes` lives in
-  `src/astrology/types.ts`). Prose describing a type's fields is unguarded. Removing or renaming a type needs a hand sweep of `docs/architecture.md`,
-  `docs/guide.md` and docblocks (re-count the shapes with `grep -c '^interface ' docs/architecture.md`). **`docs/architecture.md`'s shapes are complete — every field**; adding
-  a field to an exported type includes its shape there.
+- **Types and signatures are invisible to those suites.** Rules 13 and 16 hold the barrels against
+  the README's lists ([docs/coding-standards.md](docs/coding-standards.md)), but **a type declared in a
+  barrel's body is invisible to them**, so declare types in a module and re-export them
+  (`DayAttributes` lives in `src/astrology/types.ts`). Prose describing a type's fields is unguarded:
+  removing or renaming a type needs a hand sweep of `docs/architecture.md`, `docs/guide.md` and
+  docblocks (re-count the shapes with `grep -c '^interface ' docs/architecture.md`).
+  **`docs/architecture.md`'s shapes are complete — every field**; adding a field to an exported type
+  includes its shape there.
 - **Before changing a signature, count the call sites that actually break and put the number in the
   commit message.** The compiler finds them only after you have decided the change was small.
   A figure written here before the work is an estimate; re-measure it when the work lands.
@@ -232,10 +225,8 @@ Before explaining a residual by a formula, check whether the source uses the sam
   later is free, narrowing never is.
 - **A `TraditionConfig` is exported only once its dates are checked against an external calendar**,
   and its docblock says what that check was (a day-by-day tiling vs a sample). A suite in
-  `test/validation/` must **import** it — rule 10, which matches only `export … from "./traditions/…"`
-  in `src/index.ts`. It does not see `ObservanceConfig` or the `./observances` and `./astrology` barrels;
-  their runtime exports (`EXAMPLE_OBSERVANCES`, `ELEMENTAL_YOGAS`, `LUNAR_MANSIONS`) are held by
-  `test/public-api.test.ts` and rule 16. Expressing a tradition, validating its leap months and
+  `test/validation/` must **import** it (rule 10; its reach is in
+  [docs/coding-standards.md](docs/coding-standards.md)). Expressing a tradition, validating its leap months and
   validating its dates are three claims: Tsurphu and Mongolian stay unexported. Self-consistency is not
   a substitute.
   [docs/decisions/2026-08-16-exported-means-validated.md](docs/decisions/2026-08-16-exported-means-validated.md).
@@ -252,9 +243,8 @@ Before explaining a residual by a formula, check whether the source uses the sam
   stated in many places: find them by the export's **name**, never by a phrase.
   [docs/decisions/2026-08-12-error-codes-not-classes.md](docs/decisions/2026-08-12-error-codes-not-classes.md).
 - `TCT_FIELD_OUT_OF_RANGE`: a **number** is wrong. `TCT_INVALID_ARGUMENT`: the argument is the wrong
-  **kind of thing**; a new shape check uses this one. The exception is deliberate: a bare-number
-  argument that is not a number keeps the range code (`tibetanWeekday(null)`), and only a field of a
-  date or month object, or a shape, gets the argument code ("What is deliberately *not* split").
+  **kind of thing**; a new shape check uses this one. A bare-number argument that is not a number
+  deliberately keeps the range code (`tibetanWeekday(null)`):
   [docs/decisions/2026-08-15-argument-errors-split.md](docs/decisions/2026-08-15-argument-errors-split.md).
   `TCT_ATTRIBUTE_NOT_SOURCED`: the input is fine and **no source gives the answer** — off the allowlist,
   reached by a tradition with no `naming.monthAnimals` (month and lunar-day attributes) or a nonzero
@@ -288,8 +278,8 @@ after 1.0.0. A consumer cannot be asked to know which entry point a function is 
 boundary: an internal caller that skips a guard uses a separate name (`isoFromJulianDayUnchecked`,
 `julianDayFromIsoUnchecked`, `tibetanFromJulianDay`). **Engine loops never call the public
 `isoToTibetan` or `julianDayFromIso` on a date or Julian day they built**: each such call copies the
-day again, which cost 10–17% across the observance benches; `test/temporal-kind.test.ts` counts
-the copies.
+day again, which cost 10–17% across the observance benches (`bench/RESULTS.md`, "The `PlainDate`
+copy"); `test/temporal-kind.test.ts` counts the copies.
 **A closed-union parameter still needs its guard** — JavaScript callers exist. Render an unchecked value
 through `describe`, never a bare `${}`. `test/hostile-inputs.test.ts` holds every export to never
 escaping uncoded; probe with **one throwing trap at a time**.
@@ -348,11 +338,9 @@ Node's erase-only type stripping (`erasableSyntaxOnly` catches violations at typ
 - **`check:links`** validates relative links and fragments; fix inbound links in the same commit.
   **Never put an em dash in a heading you link to** — this checker's slug and GitHub's differ for it.
 
-**Seven release-time commands are outside CI**: `coverage`, `bench`, and the five name verifiers
-(`verify:names`, `verify:rabjung-names`, `verify:month-and-yoga-names`,
-`verify:mansion-and-trigram-names`, `verify:observance-names`). The verifiers need the network and
-converters installed outside the repo; their committed fixtures are what gate a push. **Run them one
-at a time** (THL answers parallel runs with 503s), **run Biome on their output after every run**, and
+**Seven release-time commands are outside CI**: `coverage`, `bench`, and the five `verify:*` name
+verifiers ([docs/coding-standards.md](docs/coding-standards.md) lists them). The verifiers' committed
+fixtures are what gate a push. **Run them one at a time** (THL answers parallel runs with 503s), **run Biome on their output after every run**, and
 restore a fixture that differs only by its date stamp. Details: [docs/names/verifiers.md](docs/names/verifiers.md).
 
 - **`coverage`** is ungated, and slow tests can pass `test` and time out under it: give any
@@ -363,7 +351,7 @@ restore a fixture that differs only by its date stamp. Details: [docs/names/veri
   harness** in `bench/RESULTS.md`. **The README, the guide's "The cost in time" and `getObservances`'
   docblock quote the latest re-record**: a re-record updates all three. Compare by alternating twice —
   before, after, before, after — and read adjacent runs: drift on a busy machine runs one way, so a
-  single before/after/before still reads it as a cost (two `main` runs here once differed by 24%). No regression threshold, not in CI. `package.json#files` excludes `bench/`; `tsconfig.json` and
+  single before/after/before still reads it as a cost. No regression threshold, not in CI. `package.json#files` excludes `bench/`; `tsconfig.json` and
   `biome.json` include it deliberately.
 
 ## Documents
@@ -387,8 +375,8 @@ restore a fixture that differs only by its date stamp. Details: [docs/names/veri
 ## Conventions
 
 **No exported identifier names an institution.** A name states what a thing *is*; provenance goes in
-the docblock and docs. `GELUG` overclaimed: it was FPMT's convention, and Kopan, also Gelug, prints the
-opposite `doubledDay`. `EXAMPLE_OBSERVANCES` has `id: "example"`, asserted by
+the docblock and docs (the observance example was once exported as `GELUG`, though Kopan, also
+Gelug, prints the opposite `doubledDay`). `EXAMPLE_OBSERVANCES` has `id: "example"`, asserted by
 `test/public-api.test.ts`. This is distinct from `PHUGPA`/`BHUTAN`, which name a falsifiable
 calendrical system Janson describes.
 [docs/decisions/2026-09-03-no-institution-names-in-exports.md](docs/decisions/2026-09-03-no-institution-names-in-exports.md).
