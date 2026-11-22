@@ -18,7 +18,7 @@
  * @remarks
  * **Hand-curated, not generated** — the exception to this directory's rule, because FPMT
  * publishes these in prose announcements with no API or machine-readable feed. Three things keep
- * the risk that `docs/testing.md` warns about in check: the list is short enough to check by eye,
+ * the risk that `docs/development/testing.md` warns about in check: the list is short enough to check by eye,
  * every row carries the URL it came from, and every row was independently confirmed against
  * three separate implementations before being written down. Rows whose source could not be named
  * were left out rather than filled in from memory.

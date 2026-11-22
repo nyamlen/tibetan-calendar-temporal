@@ -2,7 +2,7 @@
 
 How to prove that a check, a harness, a probe or a document suite measures what it claims.
 Each rule here was learned from a check in this repository that passed while measuring nothing.
-[CLAUDE.md](../CLAUDE.md) holds the project's rules; this page holds the method for working on `scripts/`, `test/` and the shipped documents' suites.
+[CLAUDE.md](../../CLAUDE.md) holds the project's rules; this page holds the method for working on `scripts/`, `test/` and the shipped documents' suites.
 
 ## Mutation and controls
 
@@ -202,7 +202,7 @@ phonetics run. Committed with the phonetics, that line is attributed to a change
 
 **That applies to a throwaway check just as much as to a generator, which is easy to forget because
 a one-off script feels too small to need proving.** An ad-hoc comparison of every shape block in
-`docs/architecture.md` against `src/` reported three drifted types —
+`docs/development/architecture.md` against `src/` reported three drifted types —
 `TraditionConfig`, `ObservanceRule`, `ObservanceConfig` — and all three were **false**: the field
 extractor did not skip `readonly`, so it read those interfaces as having no fields at all. The two
 *real* drifts it found were real, which is what makes this the dangerous shape of error — a
@@ -269,7 +269,7 @@ a doubled-flag mismatch behind "agrees on every day". Moving a comparison into `
 refactor to prove by mutation in **both** suites that call it.
 
 **A guard comparing two documents is no guard if they share an error.** Anchor every figure to data,
-and treat document-against-document agreement as a secondary check. `docs/testing.md` carried the
+and treat document-against-document agreement as a secondary check. `docs/development/testing.md` carried the
 same window errors as the page it was meant to check — Lotsawa House's window given in rounded years
 that the fixture's own first and last rows contradict — so equality between them would have passed.
 This is the lineage rule applied to the project's own documents.
@@ -287,7 +287,7 @@ measured over the same days.** The lunar mansion's agreement is over the days wh
 force a mansion element; yoga favorability's is over a slightly larger set, because a few codes name
 no yoga consistent with their weekday but are still favorability claims. The two sets happen to give
 the same rounded favorability figure; keep naming the set regardless. The figures and both day counts
-are in `docs/testing.md` and `docs/why-trust-these-dates.md`.
+are in `docs/development/testing.md` and `docs/why-trust-these-dates.md`.
 
 **Prose windows are as exact as the table beside them; only durations are rounded.** A window written
 as a span of whole years, or as "early" in a year, cannot be checked by the reader the page is written

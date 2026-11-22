@@ -46,7 +46,7 @@ observance layer, and states no range over which its output has been checked aga
 
 **A note on our relationship to it.** This project runs `tibetan-date-calculator` to generate one of
 its cross-check fixtures, and it is one of the four sources this engine is checked against day by
-day — see [why you can trust these dates](why-trust-these-dates.md) for the window that covers.
+day — see [why you can trust these dates](../why-trust-these-dates.md) for the window that covers.
 Computed dates are facts rather than copyrightable expression, which is what makes that comparison
 legitimate while reading the code is not.
 
@@ -272,4 +272,4 @@ is a fraction of Henning's: attributes, the mansion and the yoga, with no planet
 What it does offer that the others do not is an observance layer whose conventions are configuration
 rather than assumption, tradition constants injected as data rather than hardcoded, and — the part
 that matters most — a statement, for every claim it makes, of the range of years over which that
-claim has been checked. See [why you can trust these dates](why-trust-these-dates.md).
+claim has been checked. See [why you can trust these dates](../why-trust-these-dates.md).

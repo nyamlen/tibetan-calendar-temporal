@@ -4,7 +4,7 @@
 It records the evidence and the decisions for two sets of names that `./astrology` carries, written before the verifier so that the verifier was built from a record rather than from memory.
 That verifier is [scripts/verify-mansion-and-trigram-names.mjs](../../scripts/verify-mansion-and-trigram-names.mjs), and its output is `test/fixtures/mansion-names.ts` and `test/fixtures/trigram-names.ts`.
 `TibetanTrigram` is Janson's English words with the Tibetan on `tibetanNames.trigram`, and `LunarMansion` is `{ index, tibetanName, sanskritName, element }`; the suite holds both tables against the fixtures.
-It follows [month-and-yoga-sourcing.md](month-and-yoga-sourcing.md), whose source table, lineage cautions and page-reading method apply here unchanged, and the rule both inherit from [validation-sources.md](../validation-sources.md): **agreement is only evidence if the source did not reach its answer the way we did.**
+It follows [month-and-yoga-sourcing.md](month-and-yoga-sourcing.md), whose source table, lineage cautions and page-reading method apply here unchanged, and the rule both inherit from [validation-sources.md](../sources/validation-sources.md): **agreement is only evidence if the source did not reach its answer the way we did.**
 
 The two sets:
 

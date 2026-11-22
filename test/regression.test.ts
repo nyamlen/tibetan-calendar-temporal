@@ -15,7 +15,7 @@ const iso = (s: string) => Temporal.PlainDate.from(s);
 describe("skipped dates, by name", () => {
 	// Lotsawa House prints `28 | Thu | Feb 8` then `30 * | Fri | Feb 9`. Janson §6: when two lunar
 	// days end on one calendar day, that day takes the name of the *first*, so 29 is skipped.
-	// christian-steinert numbers this day 29 instead — see docs/testing.md.
+	// christian-steinert numbers this day 29 instead — see docs/development/testing.md.
 	it("skips 29 of month 12 in the Tibetan year beginning 2023", () => {
 		const year = isoToTibetan(iso("2024-02-08")).year;
 		expect(isoToTibetan(iso("2024-02-07")).day).toBe(27);
@@ -97,7 +97,7 @@ describe("leap months, by name", () => {
 
 describe("month and year boundaries", () => {
 	// Losar 2026 is 18 February per Janson's table. The day before must be the last day of the
-	// previous year's month 12 -- an off-by-one here is exactly the error docs/testing.md records
+	// previous year's month 12 -- an off-by-one here is exactly the error docs/development/testing.md records
 	// an early draft making, when it dated Losar 2026 to 17 February.
 	it("puts the day before Losar 2026 at the end of the preceding year", () => {
 		const losar = isoToTibetan(iso("2026-02-18"));

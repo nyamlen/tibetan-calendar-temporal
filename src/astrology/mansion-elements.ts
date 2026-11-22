@@ -10,7 +10,7 @@
  *
  * Source: Edward Henning, "Symbolic details of the Kālacakra calendar",
  * `http://www.kalacakra.org/calendar/symlst.htm`, last updated 3 February 2010, accessed
- * `2026-09-10`; [`docs/almanac-sources.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/almanac-sources.md) carries a Wayback
+ * `2026-09-10`; [`docs/sources/almanac-sources.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/sources/almanac-sources.md) carries a Wayback
  * snapshot beside the live URL.
  *
  * **The elements are the Indian four, not the Chinese five.** Earth, fire, water and *wind* —
@@ -31,7 +31,7 @@ import { MANSION_COUNT } from "./mansions.js";
 // This table is Henning's and not Janson's, and that distinction is the reason this module is
 // separate from the mansion names. The element type is `TibetanWeekdayElement`, which already
 // exists for the weekday half of the same pairing. The source site is HTTP-only (its certificate is
-// for another domain) and its author died in 2016, which is why `docs/almanac-sources.md` keeps a
+// for another domain) and its author died in 2016, which is why `docs/sources/almanac-sources.md` keeps a
 // Wayback snapshot.
 export const HENNING_28: readonly {
 	readonly name: string;

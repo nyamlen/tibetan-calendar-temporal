@@ -11,7 +11,7 @@ import {
  * Janson computed these tables from the same formulas the engine will implement, so agreement
  * catches a **transcription error or a misread formula** — which is most of the risk in a layer of
  * closed forms. It cannot catch a shared misreading of the paper, and it is therefore *not*
- * external corroboration in the sense `docs/validation-sources.md` uses. The external witness for
+ * external corroboration in the sense `docs/sources/validation-sources.md` uses. The external witness for
  * the attribute layer is FPMT's day-quality codes, and it covers the yoga only.
  *
  * Until the attribute functions exist, this suite holds the fixture to the structure Janson states

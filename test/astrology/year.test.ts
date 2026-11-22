@@ -8,7 +8,7 @@ import { JANSON_YEAR_ELEMENTS } from "../fixtures/janson-attributes.js";
  *
  * He computed T60e from the same formulas implemented here, so agreement catches a transcription
  * error or a misread formula — which is nearly all of the risk in a layer of closed forms. It is
- * not external corroboration, and `docs/testing.md` says so.
+ * not external corroboration, and `docs/development/testing.md` says so.
  */
 
 /** The Gregorian year sitting at a given position of the Chinese sixty-year cycle. */

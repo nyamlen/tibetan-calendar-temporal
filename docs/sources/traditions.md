@@ -6,7 +6,7 @@
 `PHUGPA_HENNING`, `BHUTAN` and `BHUTAN_HENNING` are exported because each is checked.
 `PHUGPA`, `PHUGPA_HENNING` and `BHUTAN_HENNING` have been tiled day by day;
 `BHUTAN` has not, and rests on twenty-five days of the Royal Government's own calendar — see
-[the decision record](decisions/2026-08-16-exported-means-validated.md). Tsurphu and the
+[the decision record](../decisions/2026-08-16-exported-means-validated.md). Tsurphu and the
 Mongolian version are documented here and *not* exported, and the difference is evidence rather than
 effort: their leap months are validated against Janson, their dates against nothing. That is the
 rule, not an accident of what got written first — see "Why there are no drop-in configs here".
@@ -21,7 +21,7 @@ constant, both had been hardcoded to Phugpa's, and neither would have announced 
 
 ## The claim that was wrong
 
-`docs/roadmap.md` said for three phases that Tsurphu "differs solely in the constants". It does not.
+`docs/development/roadmap.md` said for three phases that Tsurphu "differs solely in the constants". It does not.
 Janson states a **different leap-month rule for each version**:
 
 | Tradition | Leap month when the intercalation index is | Janson's β\* at that version's epoch | `leapMonthPosition` |
@@ -218,7 +218,7 @@ carried.
 
 `scripts/fetch-bhutan-fixtures.mjs` carries a fifth check requiring every leap month in the emitted
 window to be paired with a regular month of the same number immediately before it.
-The fixture ends the day before the defect (its extent is in [testing.md](testing.md)), and `test/validation/bhutan.test.ts` pins
+The fixture ends the day before the defect (its extent is in [testing.md](../development/testing.md)), and `test/validation/bhutan.test.ts` pins
 that end, so a regenerated fixture that reached the defect fails there.
 The check read a field the rows do not have until 2026-11-16, so its pairing half had never fired;
 `scripts/evidence/bhutan-fixtures/` proves it now does.
@@ -237,7 +237,7 @@ Henning's computed calendars**, across all four versions at once — not between
 `BHUTAN` therefore keeps the rounded value, exactly as `PHUGPA` does, and `BHUTAN_HENNING` carries
 the exact one. They differ on **three days of the swept window** — 2001-12-10, 2004-04-10 and 2020-04-23 —
 against the nominal one in 4,100 Janson gives for Tibet; the window and its day count are in
-[testing.md](testing.md).
+[testing.md](../development/testing.md).
 
 **Which side the validation data sits on, stated plainly.** The only day-by-day Bhutanese calendar
 available descends from Henning's own software, so it follows Henning's `a₂` and validates

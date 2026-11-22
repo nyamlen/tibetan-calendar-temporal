@@ -7,7 +7,7 @@ Written for someone building a practice calendar: the reader who has a date alre
 **Status: built (2026-11-14).**
 The `tibetan-calendar-temporal/observances` subpath ships the model this document describes, on the branch that becomes 1.0.0; its open points are listed at the end.
 Like [astrology.md](astrology.md), it explains the *system* and deliberately states **no API examples**: signatures belong in the README and [guide.md](guide.md), which ship and have their values asserted.
-What FPMT's own calendar prints, practice by practice, is in [fpmt-calendar.md](fpmt-calendar.md).
+What FPMT's own calendar prints, practice by practice, is in [fpmt-calendar.md](sources/fpmt-calendar.md).
 
 **Repo-only.** Not in `package.json#files`, so its relative links need not resolve inside the tarball.
 
@@ -40,7 +40,7 @@ Every practice day found in the calendars examined so far is fixed in one of six
 - **A counted schedule.** Vow renewal (*poṣadha* पोषध; གསོ་སྦྱོང *sojong*) is not a date number: it is counted in alternating fortnights of fourteen and fifteen days from an anchor each year, so it does not follow any one date number.
   The counted reading reproduces Rabten Choeling's published schedule; its anchor and Losar rule are inferred from that schedule, not sourced.
 - **A test applied to each day.** Whether a day suits a fire offering (*homa* होम; སྦྱིན་སྲེག *jinsek*) is decided by the day's date number and weekday together.
-  The rule is Lama Zopa Rinpoche's advice as published by FPMT; [fpmt-calendar.md](fpmt-calendar.md) and the design notes record how closely FPMT's printed days follow it.
+  The rule is Lama Zopa Rinpoche's advice as published by FPMT; [fpmt-calendar.md](sources/fpmt-calendar.md) and the design notes record how closely FPMT's printed days follow it.
 - **A Western date.** Birthdays and passings of living or recent teachers, which communities keep by the Western calendar — H.H. the Dalai Lama's birthday on 6 July.
   Such an anniversary begins in a stated year: a passing anniversary must not appear in the years before the passing.
   The shipped example carries none, because a living teacher's birthday changes when they pass; the guide shows one as a worked example.
@@ -156,7 +156,7 @@ The example's docblock says the same, and `src/observances/example-observances.t
 **Where the example's names differ from FPMT's.**
 FPMT's Vajrayogini page calls both the 10th and the 25th "dakini days", while the example names the 10th "Heruka Day" and the 25th "Ḍākinī Day".
 The day numbers agree and only the naming differs; the two names are kept by decision, and no FPMT page fetched uses the name "Heruka Day".
-[fpmt-calendar.md](fpmt-calendar.md#fpmts-prose-guidance-against-the-nineteen-rules) records the page and the read.
+[fpmt-calendar.md](sources/fpmt-calendar.md#fpmts-prose-guidance-against-the-nineteen-rules) records the page and the read.
 
 Left out of the example: Lama Thubten Yeshe's anniversary, which belongs to FPMT as its founder and is kept in the test suite's FPMT configuration with the rest of FPMT's own set; Western-dated birthdays; Precepts and Naga puja, whose rules are not known; and eclipses, which are a front end's to date.
 
@@ -169,7 +169,7 @@ An authored level is not arbitrary — each has a reason — but a reader cannot
 
 ## Tsok, the protector puja, and what a calendar label means
 
-FPMT's calendars label every 10th and 25th "Tsog" and every 29th "Protector puja", and never say which practice is meant ([the counts](fpmt-calendar.md#the-labels-mark-a-date-not-a-practice)).
+FPMT's calendars label every 10th and 25th "Tsog" and every 29th "Protector puja", and never say which practice is meant ([the counts](sources/fpmt-calendar.md#the-labels-mark-a-date-not-a-practice)).
 The labels name a **date that several practices share**, not a practice.
 
 What follows is practice knowledge stated by Andreas on 2026-11-10; no published source in this repository confirms it, and it is recorded so the example's choices can be checked against it.

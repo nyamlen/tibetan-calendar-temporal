@@ -167,7 +167,7 @@ describe("README usage examples", () => {
 });
 
 // The "Observances" section. Every date printed in a README comment is asserted here, because a
-// worked example that drifts is worse than none -- see docs/testing.md on the contract suites.
+// worked example that drifts is worse than none -- see docs/development/testing.md on the contract suites.
 describe("README observance examples", () => {
 	it("lists the four great days of 2026 as documented", () => {
 		const duchen = getObservances(iso("2026-01-01"), iso("2026-12-31"), EXAMPLE_OBSERVANCES).filter(

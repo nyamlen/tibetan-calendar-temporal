@@ -17,7 +17,7 @@ So the comment syntax already decides who reads a sentence, and the rule only ma
 It is the [Google TypeScript Style Guide](https://google.github.io/styleguide/tsguide.html)'s rule, under *JSDoc versus comments*: "Use `/** JSDoc */` comments for documentation, i.e. comments a user of the code should read", and "Use `// line comments` for implementation comments, i.e. comments that only concern the implementation of the code itself."
 [Google's code-review guide](https://google.github.io/eng-practices/review/reviewer/looking-for.html) draws the same line: documentation of a function should "express the purpose of a piece of code, how it should be used, and how it behaves when used", and a comment holds "the reasoning behind a decision".
 
-This is the industry convention, and nothing in `CLAUDE.md` or `docs/coding-standards.md` ever said otherwise: both treat a docblock as contract, which is the same view from the other side.
+This is the industry convention, and nothing in `CLAUDE.md` or `docs/development/coding-standards.md` ever said otherwise: both treat a docblock as contract, which is the same view from the other side.
 What departed from it was **practice**.
 Docblocks drifted into carrying the project's reasoning and its dates into a consumer's editor, because a docblock was the nearest place to write something down.
 `monthNamesFor`'s `@throws` said "since 2026-09-24, when the tradition became positional", and `boundedMonth`'s remarks recorded that its callers "used to borrow `daysInMonth`'s" guard.
@@ -42,7 +42,7 @@ The story of how the source was found does not, and moves out.
 
 ## What enforces it
 
-Review, the docblock audit in `docs/roadmap.md` that applied the rule to every docblock in `src/` in one pass, and three `check:conventions` guards.
+Review, the docblock audit in `docs/development/roadmap.md` that applied the rule to every docblock in `src/` in one pass, and three `check:conventions` guards.
 Each was written failing-case first, in the `npm run test:conventions` mutation suite.
 Of the three, only Rule 17's message states where its reach ends, as a ratchet; the reach of Rules 4 and 18 is stated in this record, below.
 

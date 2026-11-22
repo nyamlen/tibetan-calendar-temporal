@@ -27,7 +27,7 @@ When this engine agrees with another implementation, the agreement means somethi
 did not arrive at their answer the same way.
 Two programs descended from the same source agreeing tells you nothing at all — a point the project
 takes seriously enough to organise its sources around, in
-[validation sources](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/validation-sources.md#lineage-is-the-thing-that-matters).
+[validation sources](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/sources/validation-sources.md#lineage-is-the-thing-that-matters).
 
 ## What has been checked, and over what years
 
@@ -115,7 +115,7 @@ Outside that window of just over six years the evidence is thinner and different
   This is the only external check on calendar output before 1927.
 
 The precise statement of what that does and does not establish is at
-[testing.md, what that does and does not cover](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/testing.md#what-that-does-and-does-not-cover).
+[testing.md, what that does and does not cover](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/development/testing.md#what-that-does-and-does-not-cover).
 
 **Full and new moons** are checked against the moon icons FPMT prints on its monthly calendars, from
 1 January 2022 to 31 December 2026.
@@ -180,7 +180,7 @@ Stating this is the point of the page.
   our own arithmetic, as far as the three other implementations reach: none of them has data for
   2022-12-03, Lotsawa House and eszthoff side with the engine on 2023-11-09, and all three do on
   2024-12-08. The reasoning is set out in full at
-  [testing.md, where FPMT's calendars differ](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/testing.md#where-fpmts-calendars-differ).
+  [testing.md, where FPMT's calendars differ](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/development/testing.md#where-fpmts-calendars-differ).
 - **One Bhutanese constant cannot be settled** by any source available today. The dates that would
   decide it have passed or lie decades ahead; the next is in 2047 CE.
 - **Observances are not validated for Bhutan.** Asking for FPMT's observances on a Bhutanese
@@ -239,7 +239,7 @@ including day by day across the whole Phugpa window above. Safari on a real Mac 
 agreed too, before the most recent change to how the engine recognises a date; repeating that on the
 release is an open item. This shows that the implementations agree, not that the dates are right,
 which is what the rest of this page is for. The runs, versions and dates are in the
-[testing strategy](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/testing.md#under-a-polyfill).
+[testing strategy](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/development/testing.md#under-a-polyfill).
 
 ## How to cite this
 
@@ -252,6 +252,6 @@ can be checked.
 
 Links marked with a full address point into the project's repository on GitHub and are not included
 in the published package: the contributor-facing
-[testing strategy](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/testing.md),
-[validation sources](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/validation-sources.md) and
-[traditions](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/traditions.md).
+[testing strategy](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/development/testing.md),
+[validation sources](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/sources/validation-sources.md) and
+[traditions](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/sources/traditions.md).

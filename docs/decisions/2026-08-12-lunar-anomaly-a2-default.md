@@ -53,7 +53,7 @@ Both follow `1/28`.
 
 ## What this corrects
 
-`docs/testing.md` previously asserted that "Christian Steinert and Lotsawa House descend from
+`docs/development/testing.md` previously asserted that "Christian Steinert and Lotsawa House descend from
 Henning's line". That is **wrong**, and it was load-bearing: it justified a warning that the
 validation sources straddle the fork and that a mixed fixture set would fail in ways resembling
 arithmetic bugs. They do not straddle it. Both agree with the almanac and with each other, so
@@ -99,7 +99,7 @@ calendar could not settle the question; that was true of the prose announcements
 
 Three residual divergences survive under `1/28`, which is to say FPMT's published calendar is not
 exactly Phugpa under either value. They are catalogued in
-[testing.md](../testing.md#where-fpmts-calendars-differ) with the four explanations that were
+[testing.md](../development/testing.md#where-fpmts-calendars-differ) with the four explanations that were
 tested and ruled out, and they do not bear on this decision: `1/28` is closer on every measure.
 
 ## Consequences
@@ -130,5 +130,5 @@ tested and ruled out, and they do not bear on this decision: `1/28` is closer on
   Deleting it would hide the fork rather than resolve it: the three divergence dates would still be
   there, and a user whose source disagreed on one day in 4,100 would have no way to find out why.
   `BHUTAN_HENNING` additionally carries the whole day-by-day Bhutan tiling (its window is in
-  `docs/testing.md`), since that fixture
+  `docs/development/testing.md`), since that fixture
   descends from Henning — removing the variants would delete the main Bhutanese gate.

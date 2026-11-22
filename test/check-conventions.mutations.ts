@@ -180,7 +180,8 @@ const R: Record<number, Row> = {
 	6: {
 		id: "R6",
 		what: "a dead path in the enforcement map",
-		apply: (tree) => tree.append("docs/coding-standards.md", "\n`docs/zz-no-such-file.md`\n"),
+		apply: (tree) =>
+			tree.append("docs/development/coding-standards.md", "\n`docs/zz-no-such-file.md`\n"),
 		must: ["enforcement map stays live", "docs/zz-no-such-file.md"],
 	},
 	7: {
@@ -693,7 +694,7 @@ const X: readonly Row[] = [
 				[
 					"",
 					"/**",
-					" * Returns one. See ./docs/traditions.md.",
+					" * Returns one. See ./docs/sources/traditions.md.",
 					" */",
 					"export const zzMutantR19b = 1;",
 					"",
@@ -702,7 +703,7 @@ const X: readonly Row[] = [
 		must: [
 			"a docblock names an unshipped document only by absolute URL",
 			"src/freeze.ts:",
-			"`docs/traditions.md`",
+			"`docs/sources/traditions.md`",
 		],
 	},
 	{

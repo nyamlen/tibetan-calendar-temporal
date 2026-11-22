@@ -164,7 +164,7 @@ export const PHUGPA: TraditionConfig = deepFreeze({
  * divergence dates, and 19 November 2025 as the next.
  *
  * What it is checked against, with the windows in
- * [`docs/testing.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/testing.md):
+ * [`docs/development/testing.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/development/testing.md):
  *
  * - **Rabten's sojong days**, the one external positive check: the observance's dates, not every
  *   day's number.

@@ -8,7 +8,7 @@ This file covers the other half of an almanac — which days carry an observance
 a day is held to have — because those are **conventions and citations rather than falsifiable
 arithmetic**, and the evidence for them is weighed differently.
 
-Read [roadmap.md](roadmap.md)'s Pre-v1.0.0 checklist for what is *decided*; this file records what
+Read [roadmap.md](../development/roadmap.md)'s Pre-v1.0.0 checklist for what is *decided*; this file records what
 is *known*, and how well.
 
 **Repo-only.** Not in `package.json#files`, so its relative links need not resolve inside the
@@ -42,7 +42,7 @@ undifferentiated "FPMT says" citation.
 | [fpmt.org/media/resources/dharma-dates/dates-explained/](https://fpmt.org/media/resources/dharma-dates/dates-explained/) | Web page, full explanations | 2026-08-28 |
 | [cutting_hair_advice_lzr08.pdf](https://fpmt.org/wp-content/uploads/teachers/zopa/advice/pdf/cutting_hair_advice_lzr08.pdf) | FPMT-published PDF, translated text with colophon | 2026-08-28 |
 | "Tibetan Calendar calculation of Sojong" | Unpublished personal notes from an oral teaching, held outside this repo | Supplied privately, 2026-08-28 |
-| Svante Janson, "Tibetan Calendar Mathematics" (arXiv:1401.6285), Appendix E | The engine's own source, read from the LaTeX per the clean-room rule in [../CLAUDE.md](../CLAUDE.md), never PDF-extracted | 2026-08-28 |
+| Svante Janson, "Tibetan Calendar Mathematics" (arXiv:1401.6285), Appendix E | The engine's own source, read from the LaTeX per the clean-room rule in [../CLAUDE.md](../../CLAUDE.md), never PDF-extracted | 2026-08-28 |
 | [zurkhai.app](https://zurkhai.app/) | Third-party consumer app and website, public pages only — **a comparison target, never a source**; see [Zurkhai](#zurkhai-a-second-witness-to-the-attribute-layer) | 2026-09-10 |
 | [kalacakra.org/calendar/symlst.htm](http://www.kalacakra.org/calendar/symlst.htm) ([2021 snapshot](https://web.archive.org/web/20210515040534/http://kalacakra.org/calendar/symlst.htm)) | Edward Henning's own website, "Symbolic details of the Kālacakra calendar", last updated 3 February 2010 — the reference tables Janson cites his 2007 book for, published free by their author | 2026-09-10 |
 
@@ -140,7 +140,7 @@ cited to Henning.
 Henning is independently published scholarship this repository already cites elsewhere, and Janson
 offers no competing version of that table — he states he does not derive it.
 That is an ordinary citation chain, not two sources disagreeing about one number.
-See [../CLAUDE.md](../CLAUDE.md), where the sole-source rule is now scoped to the arithmetic
+See [../CLAUDE.md](../../CLAUDE.md), where the sole-source rule is now scoped to the arithmetic
 explicitly for this reason.
 The real cost is narrower: the table has to be transcribed from a second work, with its own
 provenance recorded, before FD-\*/UD-\* can ship.
@@ -150,12 +150,12 @@ Henning published them himself at
 [kalacakra.org/calendar/symlst.htm](http://www.kalacakra.org/calendar/symlst.htm): the
 mansion-to-element list, explicitly "from the Indian system — this is different in the Chinese
 tradition", and the ten elemental yogas with their Tibetan, Sanskrit and English names.
-The ten are reproduced in [astrology.md](astrology.md), which is the reader-facing account of the
+The ten are reproduced in [astrology.md](../astrology.md), which is the reader-facing account of the
 whole attribute layer.
 **Favorability is in neither Janson nor Henning** — Henning gives names and senses, not a verdict —
 so FPMT remains the witness for which pairs are favorable, exactly as it already is for the
 observance rules. Since 2026-09-14 the *tshig mdzod chen mo* also grades the ten, in four groups rather
-than two, and ships beside FPMT's binary as `auspiciousness`; see [astrology.md](astrology.md).
+than two, and ships beside FPMT's binary as `auspiciousness`; see [astrology.md](../astrology.md).
 
 Three traps in that page, all of which would produce a plausible wrong answer:
 
@@ -284,7 +284,7 @@ None of the following appears anywhere on fpmt.org.
 | **Elemental yoga (= FPMT's FD-\*/UD-\*)** | One of 10 favorable or unfavorable pairings | Partially — the mansion-to-element table and the yoga names are Henning's |
 
 This attribute system is the scope of the planned `./astrology` subpath; see
-[roadmap.md](roadmap.md)'s Pre-v1.0.0 checklist.
+[roadmap.md](../development/roadmap.md)'s Pre-v1.0.0 checklist.
 **Janson's Appendix D ("Planets") is deliberately excluded** from it — planetary longitudes are
 continuous, iterative astronomy serving muhurta-style timing work, a different undertaking with its
 own validation burden, recorded under Beyond v1.
@@ -305,7 +305,7 @@ An oral teaching supplied on 2026-08-28 gave, for the first time, a *rule* rathe
 - The reason given for 14 versus 15: a lunar day is not a solar day, which is the same difference
   the doubled and skipped day mechanism already models.
 
-**Run against the seven-row divergence table in [roadmap.md](roadmap.md) on 2026-09-04, it fails.**
+**Run against the seven-row divergence table in [roadmap.md](../development/roadmap.md) on 2026-09-04, it fails.**
 `isoToTibetan` was used to resolve each date, and the rule was tested under three readings of "which
 month":
 
@@ -433,7 +433,7 @@ Checked 2026-09-10, prompted by a secondhand claim that Tara puja fell on 16 Dec
 existing cross-check fixtures say the same thing, and this was the only one of the four that also
 carried the observance label.
 
-Its lineage is unresolved and is tracked in [roadmap.md](roadmap.md).
+Its lineage is unresolved and is tracked in [roadmap.md](../development/roadmap.md).
 Its App Store metadata, rate-limited on both attempts on 2026-09-10, was read on 2026-09-24 and is
 recorded in [other-implementations.md](other-implementations.md).
 
@@ -447,7 +447,7 @@ recorded in [other-implementations.md](other-implementations.md).
   **Measured 2026-09-19:** Fire puja matches (Tibetan day + weekday, Sunday 0) mod 4 ∈ {1, 2},
   the Indian *agnivāsa* rule, on 97.5% of 1,461 days, and NWR behaves as a month-and-day table;
   both still need a source.
-  The fire puja is tracked under "Awaiting a Tibetan teacher" in [roadmap.md](roadmap.md).
+  The fire puja is tracked under "Awaiting a Tibetan teacher" in [roadmap.md](../development/roadmap.md).
 - **What GCH means** — answered 2026-09-19: FPMT's key defines it as "Good for cutting hair".
 - **NCH and the hair-cutting table disagree in scope**, as above.
 - **What keeps sojong's count with the moon.** The 2026-08-28 candidate holds as a count of days.
@@ -483,7 +483,7 @@ recorded in [other-implementations.md](other-implementations.md).
   `test/support/versions.ts`, which carries Phugpa's astronomy — so the month is the evidence and a
   day number here can be off by one or two.
 - **Tibetan-script sourcing here is deliberately thin.**
-  Only *sojong* carries a script rendering, taken from [../CLAUDE.md](../CLAUDE.md), which sources
+  Only *sojong* carries a script rendering, taken from [../CLAUDE.md](../../CLAUDE.md), which sources
   it independently.
   Every other Tibetan term is left in English or in the phonetic spelling its source used, rather
   than attaching a rendering this document cannot verify — this repository's rule that a single

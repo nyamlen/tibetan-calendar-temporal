@@ -16,7 +16,7 @@ It deliberately states **no API examples** — no function names, no call signat
 division of labour rather than a wait: the consumer account lives in
 [guide.md](guide.md#what-kind-of-day-it-is) and the signatures in the README, both of which ship to
 npm and have their values asserted. **This file deliberately does not ship** (decided 2026-09-12, in
-[roadmap.md](roadmap.md)): it is the account of the system and its sourcing, reached from the README
+[roadmap.md](development/roadmap.md)): it is the account of the system and its sourcing, reached from the README
 by absolute URL, and keeping it repo-only is what lets it stay free of contract examples.
 
 **Worked examples of the system are a different thing and are included**, below.
@@ -245,7 +245,7 @@ The grading agrees with FPMT's favorable six on all ten without either being der
 stand for earth, water, fire and air — air being wind.
 That correspondence was found from Janson in August 2026 and independently confirmed in September
 against Henning and against FPMT's own published calendars; the evidence is in
-[almanac-sources.md](almanac-sources.md).
+[almanac-sources.md](sources/almanac-sources.md).
 
 ## Three worked examples
 
@@ -304,7 +304,7 @@ It serves *muhūrta* मुहूर्त-style work — timing an activity by 
 narrower need than "what kind of day is this", and it carries its own accuracy-validation burden
 against a modern ephemeris.
 It is a project comparable in size to the existing sun-and-moon machinery, and it is recorded under
-Beyond v1 in [roadmap.md](roadmap.md).
+Beyond v1 in [roadmap.md](development/roadmap.md).
 
 **Prescriptive guidance.**
 The layer reports what an almanac attributes to a day.
@@ -324,7 +324,7 @@ Janson gives month-animal lists for Phugpa and Tsurphu and **none for Bhutan**, 
 A search for a published Bhutanese month attribution found nothing usable.
 The Royal Government's calendars, read page by page, print no month animal, and Henning's Bhutanese
 calendar files apply Phugpa's rules through code shared with his Tibetan program, so they are his
-default rather than Bhutanese evidence — see [validation-sources.md](validation-sources.md), under "Bhutan's month attributes".
+default rather than Bhutanese evidence — see [validation-sources.md](sources/validation-sources.md), under "Bhutan's month attributes".
 An independent Bhutanese source is required.
 
 Until it is sourced, the behaviour is to **refuse rather than guess**: Bhutan gets the year

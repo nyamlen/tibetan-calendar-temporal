@@ -23,7 +23,7 @@ One rule for the whole block, zero configuration for the common case, and no new
 It is wrong, and the counter-example is already in this repository.
 
 **Janson states that Mongolia uses Tsurphu's rules for month animal, gender and element**, and
-[../traditions.md](../traditions.md) carries worked Tsurphu and Mongolian configs as data.
+[../sources/traditions.md](../sources/traditions.md) carries worked Tsurphu and Mongolian configs as data.
 So under a Phugpa default, promoting either of those to a real config yields Phugpa's month
 attributes — silently, with nothing about the output looking wrong.
 
@@ -73,7 +73,7 @@ A config spread from a shipped one is unaffected, because a spread copies `namin
 
 What it buys is reversibility.
 If Bhutan's month attributes are ever sourced — see the Beyond v1 entry in
-[../roadmap.md](../roadmap.md) — `monthAttributesFor` changing from throwing to returning is a
+[../development/roadmap.md](../development/roadmap.md) — `monthAttributesFor` changing from throwing to returning is a
 **widening**: non-breaking, and consumer code catching the error still compiles.
 The honest answer is therefore also the one that keeps every door open, which is the same asymmetry
 that governs the `TibetanWeekday` brand and the `nextFullMoon` narrowing.

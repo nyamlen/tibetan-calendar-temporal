@@ -11,13 +11,13 @@
   "MD060": false,
 
   // Bold labels used as sub-headings — `**Package**`, `**Publishing**` — group the
-  // pre-v1.0.0 checklist in roadmap.md. Promoting them to real headings would put
+  // pre-v1.0.0 checklist in docs/development/roadmap.md. Promoting them to real headings would put
   // internal checklist sections in every table of contents.
   "MD036": false,
 
   // Adjacent blockquotes separated by a blank line. The docs use `>` callouts heavily and
   // two consecutive ones — a clean-room note followed by a settled-fork note, in
-  // docs/testing.md — are distinct notes, not one quote with a hole in it. GitHub renders
+  // docs/development/testing.md — are distinct notes, not one quote with a hole in it. GitHub renders
   // them as two. The rule guards against parsers that merge them; ours does not.
   "MD028": false,
 

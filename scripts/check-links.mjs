@@ -2,7 +2,7 @@
 // Validates every internal markdown link in the repo against the filesystem: relative
 // paths must resolve to a real file or directory, and #fragments must match a heading.
 //
-// External URLs are deliberately NOT checked. The validation sources in docs/testing.md
+// External URLs are deliberately NOT checked. The validation sources in docs/development/testing.md
 // point at fpmt.org, lotsawahouse.org and arxiv.org; reaching them from CI would make the
 // build flaky and rate-limited in exchange for catching link rot we cannot fix anyway.
 // The exception is this repository's own `blob/main` URLs, in Markdown and in source: they are

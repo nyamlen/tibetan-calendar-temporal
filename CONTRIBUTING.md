@@ -67,7 +67,7 @@ incremental derivation; only their individual CI status is deferred to the merge
 
 ## Development environment
 
-The project-wide coding rules are in [docs/coding-standards.md](docs/coding-standards.md), which
+The project-wide coding rules are in [docs/development/coding-standards.md](docs/development/coding-standards.md), which
 also states, for each rule, whether a machine will catch a violation or whether it depends on
 somebody noticing. Read the enforcement column before assuming CI has your back.
 
@@ -112,13 +112,13 @@ its `exports` map declares the way a consumer would, asserting a real computed v
 
 `attw` runs under `--profile esm-only`, which ignores its `node10` and `node16-cjs` rows. Both are
 the deliberate design — no `main` field, no CJS build — not defects. Do not add a `main` field to
-turn a row green; see [docs/roadmap.md](docs/roadmap.md).
+turn a row green; see [docs/development/roadmap.md](docs/development/roadmap.md).
 
 `npm run check:links` validates every relative link in the markdown — the target file must
 exist, and a `#fragment` must match a heading. Docs here cross-reference heavily, so a renamed
 or deleted file breaks inbound links silently; the check exists because that has happened.
 External URLs are deliberately not checked, since reaching the validation sources in
-[docs/testing.md](docs/testing.md) from CI would only make the build flaky.
+[docs/development/testing.md](docs/development/testing.md) from CI would only make the build flaky.
 
 It lists candidates with `git ls-files --cached --others --exclude-standard`, not a directory walk —
 `--others --exclude-standard` covers a brand-new file that has not been `git add`-ed yet, while
@@ -129,13 +129,13 @@ should genuinely skip belongs in `.gitignore`, not in an untracked-but-uncommitt
 asserted in `test/readme.test.ts`, and the package's export surface is pinned in
 `test/public-api.test.ts` against the API table the README publishes. Change a README example or
 add an `export`, and update the matching test in the same commit — otherwise CI fails, which is
-the point. See [docs/testing.md](docs/testing.md#contract-tests).
+the point. See [docs/development/testing.md](docs/development/testing.md#contract-tests).
 
 ## Implementing from the paper
 
 Every formula comes from Svante Janson, *Tibetan Calendar Mathematics*
 ([arXiv:1401.6285](https://arxiv.org/abs/1401.6285)). The source layout mirrors its sections —
-see [docs/architecture.md](docs/architecture.md).
+see [docs/development/architecture.md](docs/development/architecture.md).
 
 Two rules that are easy to violate accidentally:
 
@@ -171,7 +171,7 @@ published almanac or an [FPMT dharma dates](https://fpmt.org/media/resources/dha
 Data traceable to a recognised authority is worth far more than data from an unattributed
 calculator.
 
-Full strategy and the list of validation sources: [docs/testing.md](docs/testing.md).
+Full strategy and the list of validation sources: [docs/development/testing.md](docs/development/testing.md).
 
 ## Repository contents
 

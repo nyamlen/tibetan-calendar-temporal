@@ -12,7 +12,7 @@
  * Bhutanese calendar. What is checked here is the **month sequence** — which numbers appear in what
  * order, and which member of a repeated pair is the leap one. That needs no astronomical constant,
  * so it runs long before Bhutan's `m₀`, `s₀` and `a₀` are reconciled. Day-level tiling waits on
- * those; see `docs/traditions.md`.
+ * those; see `docs/sources/traditions.md`.
  *
  * **This is the test that settles `leapMonthPosition: "after"`, and the round trip is not.**
  * `trueMonthCount` and `monthFromCount` mirrored *consistently but wrongly* invert each other

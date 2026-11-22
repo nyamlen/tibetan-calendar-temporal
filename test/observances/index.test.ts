@@ -27,7 +27,7 @@ const iso = (s: string) => Temporal.PlainDate.from(s);
 const CONFIG_CODE = "TCT_INVALID_OBSERVANCE_CONFIG";
 
 describe("observance resolution", () => {
-	// The row docs/testing.md calls the fixture's most informative: a leap month and a doubled day
+	// The row docs/development/testing.md calls the fixture's most informative: a leap month and a doubled day
 	// at once, from an almanac-line source, and the case FPMT itself published two dates for.
 	it("puts the 2024 Chokhor Duchen on 10 July by default, the second of the doubled pair", () => {
 		const found = observancesOn(iso("2024-07-10"), EXAMPLE_OBSERVANCES).filter(
@@ -1763,7 +1763,7 @@ describe("the counted form", () => {
 		);
 
 		// SYNTHETIC. No real schedule makes the count land on the first real day of a year whose month 1
-		// day 1 is skipped (measured over 1447-2500 CE in all four shipped traditions: docs/testing.md),
+		// day 1 is skipped (measured over 1447-2500 CE in all four shipped traditions: docs/development/testing.md),
 		// so this exercises the exclusion path through the public API with a valid but non-Rabten step:
 		// evenMonth 13 in place of Rabten's 15. Tibetan 2000 (1873 CE) skips its day 1, so its first
 		// real day, numbered 2, is 1873-02-28.

@@ -3,7 +3,7 @@
  *
  * @remarks
  * `sharesNumberWithLeapMonth` tested `index === 48 || index === 49` and `trueMonthCount` added a literal `17`
- * until 2026-08-16. Both are Phugpa's, and `docs/roadmap.md` claimed for three phases that Tsurphu
+ * until 2026-08-16. Both are Phugpa's, and `docs/development/roadmap.md` claimed for three phases that Tsurphu
  * "differs solely in these values" — meaning the constants — which Janson contradicts: he states a
  * different leap rule for each version.
  *

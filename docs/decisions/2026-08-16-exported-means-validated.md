@@ -14,7 +14,7 @@ published days is still exported, but its docblock says it is a sample, names th
 config that holds the sweep. `BHUTAN_HENNING` has the sweep, day by day against Henning's lineage in
 `test/validation/bhutan.test.ts`. `BHUTAN` has 25 government-published days in
 `test/validation/rgob.test.ts` and no sweep, and is exported on that. Windows live in
-`docs/testing.md`.
+`docs/development/testing.md`.
 
 ## Why this is a separate rule from the public-surface record
 
@@ -31,10 +31,10 @@ calendar that is quietly incorrect — the failure this package exists to preven
 
 | Tradition | Expressible | Leap months validated | Dates validated | Exported |
 |---|---|---|---|---|
-| Phugpa | yes | yes | yes — day by day, four sources; window in [testing.md](../testing.md) | **yes** |
-| Phugpa, `PHUGPA_HENNING` | yes | yes, as Phugpa's | observance level only — Rabten's sojong days, the one external positive check; Janson's divergence dates are reproduced but not external; Lotsawa House and FPMT are negative controls; window in [testing.md](../testing.md) | **yes** |
-| Bhutanese, `BHUTAN_HENNING` | yes | yes — Janson's table | yes — day by day over Henning's data; window in [testing.md](../testing.md) | **yes** |
-| Bhutanese, `BHUTAN` | yes | yes — Janson's table, tested on the export (`test/validation/cross-version-leap.test.ts`) | sample only — 25 days of the Royal Government's calendar, no sweep; window in [testing.md](../testing.md) | **yes** |
+| Phugpa | yes | yes | yes — day by day, four sources; window in [testing.md](../development/testing.md) | **yes** |
+| Phugpa, `PHUGPA_HENNING` | yes | yes, as Phugpa's | observance level only — Rabten's sojong days, the one external positive check; Janson's divergence dates are reproduced but not external; Lotsawa House and FPMT are negative controls; window in [testing.md](../development/testing.md) | **yes** |
+| Bhutanese, `BHUTAN_HENNING` | yes | yes — Janson's table | yes — day by day over Henning's data; window in [testing.md](../development/testing.md) | **yes** |
+| Bhutanese, `BHUTAN` | yes | yes — Janson's table, tested on the export (`test/validation/cross-version-leap.test.ts`) | sample only — 25 days of the Royal Government's calendar, no sweep; window in [testing.md](../development/testing.md) | **yes** |
 | Tsurphu | yes | yes — Janson's table | **no** | no |
 | Mongolian | yes | yes — Janson's table | **no** | no |
 
@@ -42,14 +42,14 @@ Tsurphu and the Mongolian version are fully expressible and their leap months ar
 Janson. They are still not exported, and that gap is the rule doing its work rather than unfinished
 business: nothing checks a Tsurphu *date* against anything.
 
-`docs/traditions.md` carries worked constants for both, as data. A contributor may use them; the
+`docs/sources/traditions.md` carries worked constants for both, as data. A contributor may use them; the
 package does not vouch for them.
 
 ## What this stops a contributor doing
 
-- Exporting `TSURPHU` because the config in `docs/traditions.md` "obviously works". Its leap months
+- Exporting `TSURPHU` because the config in `docs/sources/traditions.md` "obviously works". Its leap months
   do. Its dates are unchecked, and `m₀`, `s₀` and `a₀` for that version still need the epoch-offset
-  reconciliation `docs/traditions.md` describes.
+  reconciliation `docs/sources/traditions.md` describes.
 - Treating self-consistency as validation. A round trip proves the arithmetic inverts itself; it
   cannot detect a shared misreading of the paper. This bit during the Bhutan work — the inverse-pair
   round trip passed under a labelling that was consistently wrong, and only external data settled it.
@@ -63,5 +63,5 @@ suite in `test/validation/`. That is a weaker statement than the rule — a test
 config without validating much — but it is the part a machine can see, and it fails loudly on the
 mistake the rule is actually about: adding an export without adding evidence.
 
-The window each config is validated over belongs in `docs/testing.md`, and citing agreement without
+The window each config is validated over belongs in `docs/development/testing.md`, and citing agreement without
 citing the window is what that file exists to prevent.

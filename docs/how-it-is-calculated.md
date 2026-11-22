@@ -213,8 +213,8 @@ But it is real, and if you compare two Tibetan calendars from different sources 
 disagree on one date in a decade, `a₂` is very likely why.
 
 **Which value is right depends on whose calendar you want**, which is why this package ships both and
-defaults to almanac practice. See [traditions.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/traditions.md) for what is established about each,
-and [validation-sources.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/validation-sources.md) for the evidence and its limits.
+defaults to almanac practice. See [traditions.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/sources/traditions.md) for what is established about each,
+and [validation-sources.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/sources/validation-sources.md) for the evidence and its limits.
 
 ## Where traditions differ, in summary
 

@@ -54,7 +54,7 @@ import { VERSIONS } from "./support/versions.js";
  *   compared with a value **computed** from the fixtures and the engine.
  * - **Measure with the validation suites' own predicates**, from `test/support/`. A second definition
  *   of "agrees" would make the page and the suite two claims under one word.
- * - **Anchor windows to data.** `docs/testing.md` is checked as well, but second: two documents that
+ * - **Anchor windows to data.** `docs/development/testing.md` is checked as well, but second: two documents that
  *   share an error agree with each other.
  * - **Nothing numeric escapes classification.** Every digit and every number word on the page must lie
  *   inside a claim — asserted, or listed as not assertable with its reason — so a figure added later
@@ -66,7 +66,10 @@ import { VERSIONS } from "./support/versions.js";
 
 const document = readFileSync(new URL("../docs/why-trust-these-dates.md", import.meta.url), "utf8");
 const text = document.replace(/\s+/g, " ");
-const testingDocument = readFileSync(new URL("../docs/testing.md", import.meta.url), "utf8");
+const testingDocument = readFileSync(
+	new URL("../docs/development/testing.md", import.meta.url),
+	"utf8",
+);
 
 // ---- formatting, in the page's own conventions ----------------------------------------------------
 
@@ -190,7 +193,7 @@ const ROUNDED_TOTAL =
 
 const LOSAR_WINDOW = windowOf(LOSAR_DATES.map((row) => ({ iso: row.losar })));
 
-// The both-eras rule, stated on this page and in docs/testing.md's Tier 2 and asserted as the first
+// The both-eras rule, stated on this page and in docs/development/testing.md's Tier 2 and asserted as the first
 // claim below: a window states the Tibetan years it spans, the year holding its first day to
 // the year holding its last. A year-only CE window spans 1 January of its first year to 31 December
 // of its last; a window of Janson's Y years converts each end to the royal era.
@@ -773,7 +776,7 @@ const CLAIMS: readonly Claim[] = [
 	{
 		what: "the four explanations",
 		pattern: /Four explanations were tested and every one ruled out/,
-		notAssertable: "history of an investigation, recorded in docs/testing.md",
+		notAssertable: "history of an investigation, recorded in docs/development/testing.md",
 	},
 	{
 		what: "the unsettled Bhutanese constant",
@@ -805,7 +808,7 @@ const CLAIMS: readonly Claim[] = [
 	},
 	{
 		// Counted as moons, measured by the validation suite's own predicate. The icons FPMT adds on
-		// the first half of some doubled dates are recorded in docs/testing.md, not here (Andreas,
+		// the first half of some doubled dates are recorded in docs/development/testing.md, not here (Andreas,
 		// 2026-09-19), so "FPMT marks" is icons less those twins.
 		what: "the moon agreement, its window, and the one moon a day apart",
 		pattern:
@@ -920,7 +923,7 @@ const CLAIMS: readonly Claim[] = [
 		what: "the polyfill builds compared",
 		pattern: /under the built-in `Temporal` and under three\s+polyfill builds/,
 		notAssertable:
-			"a count of the implementations a run used, recorded with its versions in docs/testing.md",
+			"a count of the implementations a run used, recorded with its versions in docs/development/testing.md",
 	},
 	{
 		what: "the count of design decisions",
@@ -1134,10 +1137,10 @@ describe("why-trust-these-dates claims", () => {
 
 	/**
 	 * Second, and deliberately so. Every window above is anchored to its fixture; this checks only that
-	 * `docs/testing.md`, the one other document allowed to state a window, says the same. Two documents
+	 * `docs/development/testing.md`, the one other document allowed to state a window, says the same. Two documents
 	 * sharing an error would pass this and fail the anchors, which is why it is not the anchor.
 	 */
-	describe("docs/testing.md states the same windows", () => {
+	describe("docs/development/testing.md states the same windows", () => {
 		it.each(PHUGPA_SOURCES.map((s) => [s.name, s] as const))("%s", (_name, s) => {
 			const row = new RegExp(
 				`^\\| ${s.name} \\| (.+?) – (.+?) \\(Tibetan (\\d+)–(\\d+)\\), ([\\d,]+) days \\|`,

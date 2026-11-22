@@ -1,7 +1,7 @@
 # Validation sources
 
 **What data this project checks itself against, where each source comes from, and what each one can
-and cannot settle.** New to the calendar? Read [how-it-is-calculated.md](how-it-is-calculated.md)
+and cannot settle.** New to the calendar? Read [how-it-is-calculated.md](../how-it-is-calculated.md)
 first — this file assumes leap months, doubled and skipped days, and `a₂`.
 
 This exists because the same three mistakes kept recurring, all of them made in a single session on
@@ -36,7 +36,7 @@ on 2026-08-24, when the question was whether anything corroborated the Sanskrit 
 What does is **Csoma de Kőrös, *A Grammar of the Tibetan Language* (Calcutta 1834)**, printed 65 years
 before Monier-Williams and 90 before Sewell, and reached from the Tibetan side rather than the Indic
 one. He is a fifth lineage, and the names work is where he is used — see
-[names/rabjung-sourcing.md](names/rabjung-sourcing.md). Access: archive.org item
+[names/rabjung-sourcing.md](../names/rabjung-sourcing.md). Access: archive.org item
 `korosi-csoma-a-grammar-of-the-tibetan-language-in-english-1834`, plates read 2026-08-24.
 
 ### A citation is not a lineage — check that the source says what it is cited for
@@ -85,15 +85,15 @@ replaced diacritics with their absence while appearing to strengthen the provena
 
 | Source | Lineage | Format | Coverage | Settles |
 |---|---|---|---|---|
-| `crosscheck-lotsawa.ts` | independent impl. | HTML grid | day by day; window in [testing.md](testing.md#what-that-does-and-does-not-cover) | day numbers, doubled/skipped marks |
-| `crosscheck-steinert.ts` | independent impl. | JSON API | day by day; window in [testing.md](testing.md#what-that-does-and-does-not-cover) | day numbers, doubled + leap-month flags |
-| `crosscheck-eszthoff.ts` | independent impl. | npm package, run not read | day by day; window in [testing.md](testing.md#what-that-does-and-does-not-cover) | day numbers |
-| `fpmt-observances.ts` | **almanac** (Men-Tsee-Khang) | HTML tables | day by day; window in [testing.md](testing.md#what-that-does-and-does-not-cover) | day numbers — the source that settled `a₂`; since 2026-09-12 also the **lunar mansion**, via the day-quality codes; since 2026-09-19 the **full and new moons**, via its moon icons, whose own lineage is unknown — see [below](#fpmts-moon-icons-lineage-unknown) |
+| `crosscheck-lotsawa.ts` | independent impl. | HTML grid | day by day; window in [testing.md](../development/testing.md#what-that-does-and-does-not-cover) | day numbers, doubled/skipped marks |
+| `crosscheck-steinert.ts` | independent impl. | JSON API | day by day; window in [testing.md](../development/testing.md#what-that-does-and-does-not-cover) | day numbers, doubled + leap-month flags |
+| `crosscheck-eszthoff.ts` | independent impl. | npm package, run not read | day by day; window in [testing.md](../development/testing.md#what-that-does-and-does-not-cover) | day numbers |
+| `fpmt-observances.ts` | **almanac** (Men-Tsee-Khang) | HTML tables | day by day; window in [testing.md](../development/testing.md#what-that-does-and-does-not-cover) | day numbers — the source that settled `a₂`; since 2026-09-12 also the **lunar mansion**, via the day-quality codes; since 2026-09-19 the **full and new moons**, via its moon icons, whose own lineage is unknown — see [below](#fpmts-moon-icons-lineage-unknown) |
 | `fpmt-holy-days.ts` | almanac, via prose | hand-curated | selected days | observance placement only |
-| `losar.ts`, `janson-epoch.ts`, `sixty-year-cycle.ts` | Janson | LaTeX, generated | one Losar per year, and the epoch; window in [testing.md](testing.md#what-that-does-and-does-not-cover) | month count, leap rule, year naming |
+| `losar.ts`, `janson-epoch.ts`, `sixty-year-cycle.ts` | Janson | LaTeX, generated | one Losar per year, and the epoch; window in [testing.md](../development/testing.md#what-that-does-and-does-not-cover) | month count, leap rule, year naming |
 
 **`a₂` is settled for Phugpa: `1/28`.** Three lines of evidence, in
-[decisions/2026-08-12-lunar-anomaly-a2-default.md](decisions/2026-08-12-lunar-anomaly-a2-default.md).
+[decisions/2026-08-12-lunar-anomaly-a2-default.md](../decisions/2026-08-12-lunar-anomaly-a2-default.md).
 Janson states the almanac uses it, citing the *Tibetan Annual Almanac 2013*; Lotsawa House and
 christian-steinert both follow it on all three divergence dates; and FPMT's monthly grids side with it
 day by day.
@@ -120,14 +120,14 @@ That suggests the icons are computed the Tibetan way, and that February 2025 —
 new moon in the window — may be the one place they are not. Nothing here has timed a moon
 astronomically, so treat this as a direction for the next check, not a finding.
 
-Until it is settled, the agreement figures in [testing.md](testing.md) are agreement **with FPMT's
+Until it is settled, the agreement figures in [testing.md](../development/testing.md) are agreement **with FPMT's
 icons**, not with the almanac.
 
 ## Bhutan
 
 | Source | Lineage | Format | Coverage | Settles |
 |---|---|---|---|---|
-| `bhutan.ts` | **Henning** | SQL tuples via a WordPress plugin | a day-by-day sweep of the whole file, window in [testing.md](testing.md) | day numbers, months, leap months |
+| `bhutan.ts` | **Henning** | SQL tuples via a WordPress plugin | a day-by-day sweep of the whole file, window in [testing.md](../development/testing.md) | day numbers, months, leap months |
 | `rgob.ts` | **almanac** (Ministry of Home Affairs) | scanned PDF, hand-read | 25 government-published days, no day-by-day sweep | day numbers, 3 skipped + 2 doubled days, Losar |
 | `cross-version-leap.ts` | Janson | LaTeX, generated | 2000–2030 | leap-month numbers and years |
 
@@ -265,7 +265,7 @@ dates.
 
 **A candidate day-level source, and why it does not close the gate on its own.** That same library
 reproduces Janson's Mongolian leap months for **all 12** of the years in
-[cross-version-leap.ts](../test/fixtures/cross-version-leap.ts) where he gives a value, so it is a
+[cross-version-leap.ts](../../test/fixtures/cross-version-leap.ts) where he gives a value, so it is a
 faithful implementation and a fixture could be generated from it exactly as
 `crosscheck-eszthoff.ts` is. But it is **the same lineage as this engine** — both derive from
 Janson — so agreement would establish that the arithmetic is implemented correctly, not that the
@@ -276,7 +276,7 @@ So the realistic route to exporting a Mongolian config is: tile against `@hnw/da
 day for the arithmetic, **and** find a Mongolian equivalent of `rgob.ts` — a run of officially
 published Tsagaan Sar dates would be the obvious candidate, being the Mongolian fact that is
 actually published. One without the other does not meet the bar
-[decisions/2026-08-16-exported-means-validated.md](decisions/2026-08-16-exported-means-validated.md)
+[decisions/2026-08-16-exported-means-validated.md](../decisions/2026-08-16-exported-means-validated.md)
 sets.
 
 ## Sources tried and rejected
@@ -289,7 +289,7 @@ Checked 2026-08-23. The site's own About page states that its "Bhutanese Calenda
 Open Source Bhutanese Calendar" — Henning's software. It is a PHP site rendering **data**, not an
 application running a calendar library: the only scripts it loads are jQuery and its own stylesheet.
 
-So it is the **same lineage** as [bhutan.ts](../test/fixtures/bhutan.ts), which reaches Henning
+So it is the **same lineage** as [bhutan.ts](../../test/fixtures/bhutan.ts), which reaches Henning
 through the `wp-plugins/bhutanese-calendar` mirror, and adds no independent evidence about Bhutanese
 day numbers. `rgob.ts` remains the only non-Henning check. Worth recording because a site with its
 own domain and no visible attribution looks like a second source until its About page is read.
@@ -300,7 +300,7 @@ own domain and no visible attribution looks like a second source until its About
 | zhemgang.gov.bt | HTTP 403, a WordPress security block, unchanged with a browser user-agent. Not retried further. |
 | MoHA calendars before 2025 | Do not exist online. The Ministry publishes 2025 and 2026 only; filenames differ between years (`Calendar_2025.pdf`, `calender-2026.pdf`), so guessing URL patterns fails. The Wayback Machine holds only the 2026 PDF and has no MoHA snapshots for 2019–2021. 2001 and 2004 predate the site. |
 | `lscalendars/tibcalendar` | Deferred, not rejected. A fourth implementation of the same paper, needing a C toolchain, adding no independent lineage. |
-| Rangjung Yeshe Wiki (`rywiki.tsadra.org`) | **The site is unavailable; the dictionary is not.** Corrected 2026-08-25 — the same corpus is published as Wylie-keyed data elsewhere, so "settled unavailable" was a fact about this route and not about the source. See [names/rabjung-sourcing.md](names/rabjung-sourcing.md). As for this site: Behind a Cloudflare interstitial returning 403 to any programmatic request, with a declared User-Agent or a browser one alike. An earlier note calling it "machine-fetchable" was wrong. Do not work around the challenge; it is a deliberate access decision by the site. |
+| Rangjung Yeshe Wiki (`rywiki.tsadra.org`) | **The site is unavailable; the dictionary is not.** Corrected 2026-08-25 — the same corpus is published as Wylie-keyed data elsewhere, so "settled unavailable" was a fact about this route and not about the source. See [names/rabjung-sourcing.md](../names/rabjung-sourcing.md). As for this site: Behind a Cloudflare interstitial returning 403 to any programmatic request, with a declared User-Agent or a browser one alike. An earlier note calling it "machine-fetchable" was wrong. Do not work around the challenge; it is a deliberate access decision by the site. |
 | BDRC etext search (`ldspdi.bdrc.io`) | **A live lead, unrealised.** Full-text search over open-access Unicode Tibetan etexts, filtered in the query to `AccessOpen`/`StatusReleased`. `Etexts_count` works — ten chunks contain two rabjung names distinctive enough that co-occurrence implies a list of the sixty, so a machine-readable Tibetan witness very likely exists. `Etexts_chunks` returned parameter metadata and no rows for every pagination spelling tried. The next step is that one API call, not another search. |
 | THL (`thlib.org`) as a *witness* | Reachable and un-blocked, but the dictionary is a React SPA with no server-rendered endpoint, the legacy `translate.php` ignores query parameters, and the Mandala backend returns bot-interstitial `202`s. Its **phonetics converter** remains fully usable and is what `verify:names` and `verify:rabjung-names` depend on. |
 | Sanskrit meanings from Sewell & Fleet | **Not there.** He prints the sixty saṃvatsaras as bare names against Kaliyuga years and fractional day-counts. No meaning column, and every occurrence of "translation" in the book refers to translating Siddhānta texts. It is a book about *computing* which saṃvatsara a year falls in. |
@@ -345,7 +345,7 @@ almanac — which is unknown. The rule is fitted to Rabten, not sourced from it.
 
 Its sojong days are now a generated fixture, `test/fixtures/rabten-sojong.ts`, and
 `test/validation/rabten-sojong.test.ts` holds the `counted` form to them; the window is in
-[testing.md](testing.md#rabten-choelings-sojong-schedule).
+[testing.md](../development/testing.md#rabten-choelings-sojong-schedule).
 The generator found that the page marks today's day with an extra attribute after its label, which a
 pattern ending at the label's closing quote silently skips.
 
@@ -360,7 +360,7 @@ not looking.
 |---|---|
 | BhutanWiki, *Bhutanese Astrology* and *Bhutanese Astrology and Divination* | Cover the 12-animal/5-element **year** cycle and the *kartsi*/*nagtsi* split. Say nothing about month attribution, and cite nothing that does. |
 | General Bhutan calendar and tourism pages | The same year-cycle material, less carefully. No month attribution anywhere. |
-| The Royal Government's calendars, 2025 and 2026 (the PDFs [rgob.ts](../test/fixtures/rgob.ts) cites) | **No month animal printed.** Checked 2026-09-13. Every month header read — two pages of 2025 by eye, one page of 2026 from the extracted page image — follows one template: the year's name and the span of Tibetan dates the Gregorian month covers. |
+| The Royal Government's calendars, 2025 and 2026 (the PDFs [rgob.ts](../../test/fixtures/rgob.ts) cites) | **No month animal printed.** Checked 2026-09-13. Every month header read — two pages of 2025 by eye, one page of 2026 from the extracted page image — follows one template: the year's name and the span of Tibetan dates the Gregorian month covers. |
 | Henning's Bhutanese calendar files (`kalacakra.org/calendar/tdata/bh_YYYY.txt`) | **Agree with Phugpa's month rules, and are not Bhutanese evidence.** Checked 2026-09-13: 332 month headers across 27 years, 12 of them leap months, all match Janson's Phugpa animal, gender and element rules, and two negative controls (the Tsurphu animal, a shifted element) each fail as they should. But the program that writes them applies those rules with no Bhutan-specific branch, beside a comment reading `HAVE NOT CHECKED THAT THIS WORKS FOR TSHUR LUGS` — which only makes sense in code written for the Tibetan versions — while code that *is* Bhutan-specific elsewhere in the same file is marked `FOR BHUTAN ONLY`. So the files show Henning's default carried over, not what a Bhutanese almanac prints. His C source (`calendar/tcb1111.zip`) was read for that provenance question only. |
 
 **An earlier version of this section said the answer "probably exists in a document we hold"**, behind
@@ -373,7 +373,7 @@ puts the Tiger at month 1 where Phugpa puts it at month 11. His published text s
 months are "numbered, as in Tibet" and that names "exist as in Tibet", which does not say which Tibet.
 An independent Bhutanese source is required, and Henning's software is not one.
 
-The consequence is recorded in [astrology.md](astrology.md) — Bhutan refuses the month and lunar-day
+The consequence is recorded in [astrology.md](../astrology.md) — Bhutan refuses the month and lunar-day
 attributes with a coded error rather than inheriting Phugpa's.
 
 ### The lunar-mansion residual — where it is, and five explanations that fail
@@ -387,8 +387,8 @@ days**, and they disagree with FPMT on exactly the same 35. Henning is this engi
 same computation Janson describes — so this is not corroboration of the calendar. It **locates** the
 difference: it is not in this implementation.
 The comparison is now a rerunnable harness,
-[`scripts/evidence/henning-mansions/`](../scripts/evidence/henning-mansions/README.md); its current
-figures are in [testing.md](testing.md).
+[`scripts/evidence/henning-mansions/`](../../scripts/evidence/henning-mansions/README.md); its current
+figures are in [testing.md](../development/testing.md).
 
 **What the 35 look like.** The moon sits in the last 15% of its mansion on 28 of them, and on 27 of
 those FPMT's element is the *next* mansion's. One sits in the first 15%; six are mid-mansion. Where the
@@ -443,5 +443,5 @@ language rather than about our code.
 - **Look at the whole document.** Twelve of sixteen pages were the actual almanac.
 - **Prefer irregularities.** A run of ordinary consecutive days agrees under almost any epoch error.
   One doubled day is worth a month of ordinary ones.
-- **Cite the window.** Agreement without its range is the thing [testing.md](testing.md) exists to
+- **Cite the window.** Agreement without its range is the thing [testing.md](../development/testing.md) exists to
   prevent.

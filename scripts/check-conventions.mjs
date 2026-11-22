@@ -1615,12 +1615,12 @@ function rule5() {
 // ---------------------------------------------------------------------------------------
 // Rule 6 — the enforcement map stays live
 //
-// docs/coding-standards.md maps every rule to the command that fails when it is broken. That
+// docs/development/coding-standards.md maps every rule to the command that fails when it is broken. That
 // is only worth having if the commands and paths it names still exist, so the map checks
 // itself. Without this it would drift exactly the way the prose version it replaced would.
 // ---------------------------------------------------------------------------------------
 function rule6() {
-	const MAP = "docs/coding-standards.md";
+	const MAP = "docs/development/coding-standards.md";
 	if (existsSync(resolve(root, MAP))) {
 		const source = read(MAP);
 		const scripts = new Set(Object.keys(manifest.scripts ?? {}));
@@ -1775,7 +1775,7 @@ function rule9() {
 	// It had already cost something. `src/observances/` had nowhere to put a module suite, so
 	// `observances.test.ts` sat in test/validation/ with its subject recorded in a comment as the
 	// observance *engine* and a hand-written exemption stopping Rule 9 firing on it. That exemption is
-	// gone, and so is the file's misplacement — see docs/testing.md.
+	// gone, and so is the file's misplacement — see docs/development/testing.md.
 	//
 	// Deriving the mirrors keeps every existing outcome and adds no licence: test/bench/ is still
 	// rejected, because there is no src/bench/, which is the reason CLAUDE.md gives for refusing it —
@@ -1797,7 +1797,7 @@ function rule9() {
 		fail(
 			"validation suites are named for their fixtures",
 			`test/${directory}/`,
-			`is neither test/validation/, nor infrastructure (${[...INFRASTRUCTURE_DIRECTORIES].join(", ")}), nor a mirror of a directory under src/ (${[...mirroredDirectories].join(", ")}). A suite validating the engine against an external source belongs in test/validation/, named for the fixture it validates; a suite whose subject is a module belongs in the directory mirroring that module's own. A third home means one of those two questions was not answered — see docs/testing.md.`,
+			`is neither test/validation/, nor infrastructure (${[...INFRASTRUCTURE_DIRECTORIES].join(", ")}), nor a mirror of a directory under src/ (${[...mirroredDirectories].join(", ")}). A suite validating the engine against an external source belongs in test/validation/, named for the fixture it validates; a suite whose subject is a module belongs in the directory mirroring that module's own. A third home means one of those two questions was not answered — see docs/development/testing.md.`,
 		);
 	}
 
@@ -1874,7 +1874,7 @@ function rule10() {
 				fail(
 					"exported configs are validated",
 					"src/index.ts",
-					`exports the tradition config \`${name}\`, which no suite in test/validation/ imports. Exporting a config asserts its dates are that tradition's real dates, which self-consistency cannot establish — a round trip proves the arithmetic inverts itself and cannot catch a shared misreading of the paper. Tile it against an external calendar day by day, record the window in docs/testing.md, and keep it in docs/traditions.md as data until then. Naming it in a comment or a describe title does not count, and a namespace import is not matched.`,
+					`exports the tradition config \`${name}\`, which no suite in test/validation/ imports. Exporting a config asserts its dates are that tradition's real dates, which self-consistency cannot establish — a round trip proves the arithmetic inverts itself and cannot catch a shared misreading of the paper. Tile it against an external calendar day by day, record the window in docs/development/testing.md, and keep it in docs/sources/traditions.md as data until then. Naming it in a comment or a describe title does not count, and a namespace import is not matched.`,
 				);
 			}
 		}
@@ -1884,7 +1884,7 @@ function rule10() {
 // ---------------------------------------------------------------------------------------
 // Rule 11 — a suite in test/computation/ is named for a src/computation/ module
 //
-// docs/testing.md states the directory is "one suite per src/computation module", and seven of
+// docs/development/testing.md states the directory is "one suite per src/computation module", and seven of
 // nine files honoured it while two were named for a *concept* instead — leap-index-threshold and
 // leap-month-position, neither of which is a module. A concept name in a module-parity directory
 // is the same false promise Rule 9 catches one directory over: it tells a reader the file's
@@ -1924,7 +1924,7 @@ function rule11() {
 			fail(
 				"module suites are named for their module",
 				file,
-				`is not named for any module in src/${directory}/ (${modules.join(", ")}). Name it for the module it tests, optionally narrowed — calendar-leap-index-threshold.test.ts is a calendar.ts suite about one rule. If its subject spans several modules it is not a module suite: move it to test/ root, where invariants.test.ts and regression.test.ts already live. See docs/testing.md.`,
+				`is not named for any module in src/${directory}/ (${modules.join(", ")}). Name it for the module it tests, optionally narrowed — calendar-leap-index-threshold.test.ts is a calendar.ts suite about one rule. If its subject spans several modules it is not a module suite: move it to test/ root, where invariants.test.ts and regression.test.ts already live. See docs/development/testing.md.`,
 			);
 		}
 	}
@@ -1987,7 +1987,7 @@ function rule13() {
 				fail(
 					RULE,
 					barrel.file,
-					`exports ${missing.map((n) => `\`${n}\``).join(", ")}, which README.md's list for ${barrel.label} does not document. Removing or renaming a type breaks no test — sweep README.md, docs/architecture.md, docs/guide.md and any docblock naming it.`,
+					`exports ${missing.map((n) => `\`${n}\``).join(", ")}, which README.md's list for ${barrel.label} does not document. Removing or renaming a type breaks no test — sweep README.md, docs/development/architecture.md, docs/guide.md and any docblock naming it.`,
 				);
 			}
 			if (extra.length > 0) {
@@ -2278,7 +2278,7 @@ function report() {
 		}
 		console.error("");
 	}
-	console.error("Every rule above is documented in docs/coding-standards.md.\n");
+	console.error("Every rule above is documented in docs/development/coding-standards.md.\n");
 }
 
 try {

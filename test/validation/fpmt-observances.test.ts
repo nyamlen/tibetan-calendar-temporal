@@ -89,7 +89,7 @@ const FIRE_PUJA_MISSES: readonly string[] = FIRE_PUJA_RESIDUALS.map((r) => r.sli
  * - **Day number.** FPMT's printed day number differs from the engine's on three days, and a label tied
  *   to a day number inherits it: 2022-12-03 is FPMT's 10th and the engine's 11th, and 2024-12-08
  *   FPMT's 7th and the engine's 8th, so the engine misses the Tsog and puts the 8th's two pujas a day
- *   early. 2023-11-09 produces no residual. `docs/testing.md` records the three days.
+ *   early. 2023-11-09 produces no residual. `docs/development/testing.md` records the three days.
  * - **Sojong.** FPMT's 17 sojongs from 2022-04-30 to 2022-12-22 each fall one day before the engine's
  *   17, 2022-05-01 to 2022-12-23, which follow Rabten Choeling's counted schedule. FPMT agrees with the
  *   engine on every other sojong, 2026 included. Unexplained: a slip, or a rule the form lacks.
@@ -151,7 +151,7 @@ const RESIDUALS: readonly string[] = [
 
 // Tier 2. The engine's rules are checked against the calendars FPMT actually publishes, which is
 // what makes them a tested claim rather than a transcription -- the failure mode CLAUDE.md
-// records for an early draft of docs/testing.md, which put Losar 2026 a day out.
+// records for an early draft of docs/development/testing.md, which put Losar 2026 a day out.
 
 describe("the example's rules against FPMT's published calendars, under FPMT's labels", () => {
 	// The comparison is `fpmtLabelComparison`'s, shared with the shipped page's suite, and its window is
@@ -274,7 +274,7 @@ describe("the example's rules against FPMT's published calendars, under FPMT's l
  *
  * **Not Janson's approximation.** `moon_calendar_day` treats the moon as circling in 27 days, but
  * Janson gives that as the almanac's own method, and Henning uses it too, so it cannot separate an
- * almanac from this engine. Also ruled out, 2026-09-14, recorded in `docs/validation-sources.md`: the
+ * almanac from this engine. Also ruled out, 2026-09-14, recorded in `docs/sources/validation-sources.md`: the
  * karaṇa moon longitude almanacs also print, a constant offset, a later time of day, and the other
  * value of `a₂`.
  *
@@ -374,7 +374,7 @@ describe("the elemental yoga against FPMT's day-quality codes", () => {
  * a row's favorability backwards would disagree on *every* day carrying that pair, not on one.
  *
  * Three of the four were found by this suite on 2026-09-12 and are new:
- * [almanac-sources.md](../../docs/almanac-sources.md) already recorded 2024-09-12 among four errors
+ * [almanac-sources.md](../../docs/sources/almanac-sources.md) already recorded 2024-09-12 among four errors
  * found by a different check, over a different window.
  */
 
@@ -390,7 +390,7 @@ describe("the yoga's favorability against FPMT's published prefixes", () => {
 			// water + wind is *pratikūla*, unfavorable, printed UD-WA on a hundred and sixty others.
 			"2024-03-18 FD-WA",
 			// earth + water is *yauvana*, favorable, printed FD-EW on nearly two hundred others. The
-			// one of the four already recorded in docs/almanac-sources.md.
+			// one of the four already recorded in docs/sources/almanac-sources.md.
 			"2024-09-12 UD-EW",
 		]);
 	});

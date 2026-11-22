@@ -21,16 +21,16 @@ validation sources in Phase 2 are listed in [testing.md](testing.md).
 turned up two stale entries. tsup was dropped for plain `tsc`, and TypeScript 7 replaced
 TypeScript 5.x because it is the first release to ship `lib.esnext.temporal.d.ts`, which lets
 the package expose `Temporal` in its public types with no dependency. Both recorded in
-[decisions/2026-08-11-build-tooling.md](decisions/2026-08-11-build-tooling.md).
+[decisions/2026-08-11-build-tooling.md](../decisions/2026-08-11-build-tooling.md).
 
 **Decided at the start of Phase 1, answered in Phase 3.** The dropped Temporal calendar adapter
 gets no replacement: there is no Temporal-shaped `TibetanDate` class. The question was deferred so
 a real consumer could settle it, and the observance engine settled it by walking months with
 `trueMonthCount` and needing no date arithmetic at all. See
-[decisions/2026-08-12-no-tibetan-date-class.md](decisions/2026-08-12-no-tibetan-date-class.md).
+[decisions/2026-08-12-no-tibetan-date-class.md](../decisions/2026-08-12-no-tibetan-date-class.md).
 
 **Also settled before Phase 1 began:** `year` is the royal-era numbering
-([decisions/2026-08-11-year-numbering.md](decisions/2026-08-11-year-numbering.md)); `isSkippedDay`
+([decisions/2026-08-11-year-numbering.md](../decisions/2026-08-11-year-numbering.md)); `isSkippedDay`
 is dropped from `TibetanDate` and `isLeapDay` added; the epoch stays E806 so that `n ≥ 0` for all
 dates after 806 CE. All three correct [architecture.md](architecture.md), which had specified
 otherwise.
@@ -59,8 +59,8 @@ not establish. Four things came out differently from the plan:
   calendars use `1/28` "for example in the almanac", and his bibliography resolves that to the
   Men-Tsee-Khang *Tibetan Annual Almanac 2013* — he had already done the check. The default was
   already `1/28` and did not change, but it is now evidenced.
-  [decisions/2026-08-12-lunar-anomaly-a2-default.md](decisions/2026-08-12-lunar-anomaly-a2-default.md).
-- **The validation sources do not straddle the fork.** `docs/testing.md` claimed Lotsawa House
+  [decisions/2026-08-12-lunar-anomaly-a2-default.md](../decisions/2026-08-12-lunar-anomaly-a2-default.md).
+- **The validation sources do not straddle the fork.** `docs/development/testing.md` claimed Lotsawa House
   and christian-steinert descend from Henning's line; both were checked against Janson's three
   divergence dates and both follow `1/28`. The claim was never tested and was wrong.
 - **Practice-day lists cannot settle the fork, and neither can Losar.** The 11 divergences in
@@ -150,7 +150,7 @@ Four blind clients ran against packed tarballs, working from the tarball's READM
 | Smoke client | 2026-08-22 | Six documentation fixes, 2026-08-23; no API change |
 | Second client | 2026-08-25 | `90a38ee`, `864f88e`, `6ae4b7e`, `6e5f30d`, `6c5be94` (26 August), `aef049f`, `b47c853` (27 August) |
 | Spike 3 | 2026-08-27 | Closed the API surface review; the six names added the day before drew no friction |
-| Browser client: polyfill probe | 2026-09-23, against `5c954b3`, re-run against `48cf255` | `012468a`..`48cf255`, `d719dba`..`44c222b`; see `docs/testing.md`, *Under a polyfill* |
+| Browser client: polyfill probe | 2026-09-23, against `5c954b3`, re-run against `48cf255` | `012468a`..`48cf255`, `d719dba`..`44c222b`; see `docs/development/testing.md`, *Under a polyfill* |
 | Browser client: navigator | 2026-11-17, against `61847df` | `8ebf6ea`, `2f9aa85`, `c361f33`, `2ccf9da`, `8bd0356`, `7b8f7fc`, `0d60ef5`, `46938af`, `1d24a74` |
 
 A verdict pass on 2026-09-22 answered the remaining rows against a packed tarball and fixed the three claims still live in `fcfb4cd` and `409fc09`.
@@ -210,7 +210,7 @@ Decisions deliberately deferred during setup, each with the reason it was deferr
 Work through this before publishing v1.0.0; several are one-way doors once published.
 
 Ticked items are one line each.
-Their full text as it stood before the cleanup of 2026-11-22 is `git show 7e72472:docs/roadmap.md`; what a decision still constrains lives in [decisions/](decisions/).
+Their full text as it stood before the cleanup of 2026-11-22 is `git show 7e72472:docs/development/roadmap.md`; what a decision still constrains lives in [decisions/](../decisions/).
 
 ### The pre-release gate
 
@@ -236,19 +236,19 @@ The release follows the restructure.
 
 - [ ] **Analyse `docs/` for a folder structure, and do it before 1.0.0 fixes the links.** The folder
       is flat and mixes three audiences: the two consumer documents that ship to npm
-      ([guide.md](guide.md), [why-trust-these-dates.md](why-trust-these-dates.md)), contributor
+      ([guide.md](../guide.md), [why-trust-these-dates.md](../why-trust-these-dates.md)), contributor
       documents ([coding-standards.md](coding-standards.md), [testing.md](testing.md)), and
-      source-and-provenance documents ([validation-sources.md](validation-sources.md),
-      [traditions.md](traditions.md), [other-implementations.md](other-implementations.md),
-      [names/](names/), [decisions/](decisions/)). Open questions to settle, not assume: where
-      [how-it-is-calculated.md](how-it-is-calculated.md) goes — it is read by consumers *and* by
+      source-and-provenance documents ([validation-sources.md](../sources/validation-sources.md),
+      [traditions.md](../sources/traditions.md), [other-implementations.md](../sources/other-implementations.md),
+      [names/](../names/), [decisions/](../decisions/)). Open questions to settle, not assume: where
+      [how-it-is-calculated.md](../how-it-is-calculated.md) goes — it is read by consumers *and* by
       anyone touching the arithmetic, which is the argument for leaving it at the top level rather
       than filing it under either audience; and whether a `docs/contributing/` folder earns itself
       when `CONTRIBUTING.md` stays at the repo root and would then point sideways into it.
       Three things make the move cheap now and expensive later: `package.json#files` names the two
       shipped documents **by path**, so a move is a tarball-layout change; npm's rewriting of the
       README's relative links is still unconfirmed (item above); and `scripts/check-conventions.mjs`
-      hardcodes `docs/coding-standards.md` and `docs/decisions/*.md`, while rule 12's template
+      hardcodes `docs/development/coding-standards.md` and `docs/decisions/*.md`, while rule 12's template
       pattern is deliberately path-shaped — a move must keep `check:links` and `check:conventions`
       green **in the same commit**, and CLAUDE.md's own links must move with it
 
@@ -387,7 +387,7 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
       pages, a discovery channel entirely separate from npm, and cost one settings change. The
       keyword list carries the Bhutanese and Mongolian scope that the package *name* deliberately
       does not — see
-      [2026-08-16-package-name-and-tradition-scope.md](decisions/2026-08-16-package-name-and-tradition-scope.md)
+      [2026-08-16-package-name-and-tradition-scope.md](../decisions/2026-08-16-package-name-and-tradition-scope.md)
 
 - [ ] Enable **branch protection** on `main`: require CI to pass, and block force-pushes.
       Force-push protection matters here specifically — the commit history is the clean-room
@@ -407,8 +407,8 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
 - [ ] **Establish Zurkhai's calculation lineage, or record that it cannot be established.** Its
       public pages state "the Phugpa school" and name no scholar, almanac edition or repository, so
       there is no way to tell whether it descends from Henning — which is why it sits in
-      [almanac-sources.md](almanac-sources.md) as a comparison target rather than in
-      [validation-sources.md](validation-sources.md) as a cross-check. Its December 2026 dates agree
+      [almanac-sources.md](../sources/almanac-sources.md) as a comparison target rather than in
+      [validation-sources.md](../sources/validation-sources.md) as a cross-check. Its December 2026 dates agree
       with ours where checked, including a skipped 15th, but agreement from inside a lineage already
       represented is not evidence. **A negative result is a result**: if the lineage cannot be
       established from public material, write that down in `validation-sources.md`'s tried-and-rejected
@@ -417,7 +417,7 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
       verified against — Yampilov-Galsanov's "Zurkhai-3" and Atsagatsky Datsan publications — which
       says what it was checked against, not how it computes, and a Buryat almanac may follow the
       Mongolian version Janson distinguishes from Phugpa. Details in
-      [almanac-sources.md](almanac-sources.md)'s open questions.
+      [almanac-sources.md](../sources/almanac-sources.md)'s open questions.
       **A second lead, 2026-09-24:** the iOS app's list of Hurals puts four 2027 festivals in the
       months the **Mongolian** version numbers them, a month from Phugpa's, in a stretch where the two
       disagree; three other Hurals fit neither version. Evidence for New Genden against the site's
@@ -425,8 +425,8 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
 
 - [ ] **Sojong, what is not sourced — still open.** Four statements are what the repository records,
       and each is checked against
-      [almanac-sources.md](almanac-sources.md#sojong-a-counted-schedule-once-falsified-by-a-misreading)
-      and [fpmt-calendar.md](fpmt-calendar.md):
+      [almanac-sources.md](../sources/almanac-sources.md#sojong-a-counted-schedule-once-falsified-by-a-misreading)
+      and [fpmt-calendar.md](../sources/fpmt-calendar.md):
       - **Sourced: the count of days between sojongs.** An oral teaching, recorded in unpublished
         personal notes held outside the repository and supplied on 2026-08-28, states that waxing
         sojongs are 15 and that waning ones are 14 at the end of an odd month and 15 at the end of an
@@ -452,7 +452,7 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
       - **Where gaye falls, and whether it replaces a sojong.** As the question stood when the rule
         model was scoped: if gaye falls on a sojong, its date comes from the sojong count, and whether
         a rule may refer to another decides on the answer. Three accounts disagree.
-        - **The oral teaching** in [almanac-sources.md](almanac-sources.md) says 24 sojongs occur in a
+        - **The oral teaching** in [almanac-sources.md](../sources/almanac-sources.md) says 24 sojongs occur in a
           normal year and one is replaced by gaye, the end-of-rains-retreat observance.
         - **Ven. Thubten Chöying**, asked on 2026-09-19 (question 1c, recorded as sent in the project's
           correspondence), replied on 2026-09-30: "For the Gaye question, I searched online and found
@@ -485,17 +485,17 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
         additive, and forbidding them after allowing them would not be. It decides on the gaye answer, which is not yet settled.
       - **The several-days form for Precepts and Naga puja.** One rule listing several days or dates,
         so Precepts' monthly days or Naga puja's table is one rule with one name. Their rules are not
-        known, so both are excluded from the example ([observances.md](observances.md)). What FPMT
+        known, so both are excluded from the example ([observances.md](../observances.md)). What FPMT
         prints is measured under the observance-layer item above: Precepts is days 8, 15, 30 plus the
         Buddha days, 213 of 213 in 2022–2025, and Naga puja is a fixed month-and-day table with three
         irregular cells.
       - **How the fire-puja count treats a doubled or skipped day.** Lama Zopa Rinpoche's advice tells
-        the reader to check, and does not explain ([observances.md](observances.md)); a question for a
+        the reader to check, and does not explain ([observances.md](../observances.md)); a question for a
         Tibetan teacher or scholar. The example's `lunarDayPlusWeekdayMod4` formula agrees with FPMT's
         labels on most days and misses a few dozen, listed in
         `test/validation/fpmt-observances.test.ts`.
       - **Established Tibetan headings for the three levels**, if centres use any
-        ([observances.md](observances.md)).
+        ([observances.md](../observances.md)).
 
 - [ ] **At app launch:** add a proxied `www` CNAME on `nyamlen.app` plus a redirect to the
       apex. The canonical host is `nyamlen.app` without www, but `www.nyamlen.app` currently
@@ -510,28 +510,28 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
 - [x] **Year-level naming came off `TibetanDate`.** Done 2026-08-24, a breaking change taken
       before 1.0.0: `rabjungFor(date.year)` and `yearNameFor(date.year)` replace the fields, and
       a serialised year fell from 293,009 to 126,629 bytes.
-      [decisions/2026-08-24-year-naming-off-the-date.md](decisions/2026-08-24-year-naming-off-the-date.md)
+      [decisions/2026-08-24-year-naming-off-the-date.md](../decisions/2026-08-24-year-naming-off-the-date.md)
 - [x] **Make every shipped name follow the names-keyed-by-language rule.** Done: the 2026-09-14
       survey's items for `./astrology` landed 2026-09-15 (trigrams as Janson's English words,
       `tibetanNames` on every attribute block, `tibetanName` and `sanskritName` on `LunarMansion`),
       the month-names rulings 2026-09-17 and the `indianMonth` sibling 2026-09-18. The
       `./observances` items moved to the observance-layer decision. Rule:
-      [decisions/2026-09-13-names-keyed-by-language.md](decisions/2026-09-13-names-keyed-by-language.md);
-      evidence: [names/mansion-and-trigram-sourcing.md](names/mansion-and-trigram-sourcing.md) and
-      [names/month-and-yoga-sourcing.md](names/month-and-yoga-sourcing.md#the-indian-month-names).
+      [decisions/2026-09-13-names-keyed-by-language.md](../decisions/2026-09-13-names-keyed-by-language.md);
+      evidence: [names/mansion-and-trigram-sourcing.md](../names/mansion-and-trigram-sourcing.md) and
+      [names/month-and-yoga-sourcing.md](../names/month-and-yoga-sourcing.md#the-indian-month-names).
 - [x] **Join phonetics by word, surface-wide, through THL's word-separated mode.** Decided by
   Andreas 2026-11-11; **done 2026-11-15**, merged to `main` as `05077b9`. Every shipped
   multi-syllable `phonetic` is THL's "Words separated by" output, with longer names split by
   the boundaries Andreas ruled in `scripts/word-boundaries.data.json` and the 28 names meeting a
   nasal rule held in `scripts/nasal-rulings.data.json`. Eleven phonetics are Andreas' corrections
   of THL, carried as self-invalidating data beside THL's value. Rule and reasoning:
-  [decisions/2026-11-15-phonetics-by-word.md](decisions/2026-11-15-phonetics-by-word.md).
+  [decisions/2026-11-15-phonetics-by-word.md](../decisions/2026-11-15-phonetics-by-word.md).
 - [x] **Small findings parked by the pre-1.0.0 reviews — one list, each with a decision.**
   The code review (2026-11-15), the phonetics-by-word reviews (2026-11-15), the docblock audit
   (2026-11-17), the adversarial-review fixes branch (2026-11-21) and the maintainability-fixes
   branch (2026-11-22) each parked small findings; Andreas ruled on every one.
   **Every Fix entry is done** (merged as `1417e1b`, `eac11ed` and `e79731e`); the fix text and
-  each fix's commit are in the pre-cleanup roadmap, `git show 7e72472:docs/roadmap.md`.
+  each fix's commit are in the pre-cleanup roadmap, `git show 7e72472:docs/development/roadmap.md`.
   A later review that parks a finding adds it here and unticks this item until it is decided
   and, if marked fix, done. Limits of throwaway plan tooling that never ships are not tracked.
 
@@ -570,22 +570,22 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
       configuration differs from another by a layer, validated and frozen, with no silent drop of
       a convention field. The names in the original entry (`DEFAULT_OBSERVANCES`, `ObservanceKind`,
       `composeObservances({ from, omit, extra })`) are superseded:
-      [decisions/2026-11-11-observance-model.md](decisions/2026-11-11-observance-model.md).
+      [decisions/2026-11-11-observance-model.md](../decisions/2026-11-11-observance-model.md).
 - [x] **New subpath `./astrology`, computing Janson's Appendix E's calculations.** Placement,
       scope and naming decided 2026-09-03; built 2026-09-12. It is a subpath of this package, not
       a sibling package and not `nyamlen`, because the sole-source rule does not require a second
       package. Nine runtime names by 2026-09-18, including `lunarMansionFor` (exposed 2026-09-14)
       and the frozen `LUNAR_MANSIONS` table; the raw mansion tables stay internal. The mansion
       agrees with FPMT on 97.6% of 1,459 days with a characterised residual, and every other
-      attribute check is Janson against Janson — see `docs/testing.md`. Appendix D (planets) is out
-      of scope, as Beyond v1 records. Account: [astrology.md](astrology.md).
+      attribute check is Janson against Janson — see `docs/development/testing.md`. Appendix D (planets) is out
+      of scope, as Beyond v1 records. Account: [astrology.md](../astrology.md).
 
 - [x] **Decide what `./astrology` does for Bhutan's month and lunar-day attributes.** Decided
       2026-09-12: refuse with `TCT_ATTRIBUTE_NOT_SOURCED` rather than fall back to Phugpa's list.
-      [decisions/2026-09-12-absent-naming-members-refuse.md](decisions/2026-09-12-absent-naming-members-refuse.md)
+      [decisions/2026-09-12-absent-naming-members-refuse.md](../decisions/2026-09-12-absent-naming-members-refuse.md)
 
 - [x] **Read Zurkhai's App Store metadata and complete its
-      [other-implementations.md](other-implementations.md) entry.** Done 2026-09-24, through
+      [other-implementations.md](../sources/other-implementations.md) entry.** Done 2026-09-24, through
       Apple's lookup API: seller Nikolai Tsyrenov, first released 27 May 2026, version 1.5. The
       description names two printed Buryat almanacs, recorded as a lead under the open lineage
       item, not as its answer.
@@ -595,7 +595,7 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
 - [x] **Split the README into a landing page and a guide.** Done 2026-08-23. The README carries the
       pitch, install line and one runnable example in its first 40 rendered lines; `docs/guide.md`
       takes the long-form material in three sections. Constraint recorded in
-      [decisions/2026-08-23-readme-is-the-landing-page.md](decisions/2026-08-23-readme-is-the-landing-page.md)
+      [decisions/2026-08-23-readme-is-the-landing-page.md](../decisions/2026-08-23-readme-is-the-landing-page.md)
 - [x] **`docs/why-trust-these-dates.md`** — the reader-facing account of what has been validated and
       over which years, written for a non-programmer. It is the only document besides
       [testing.md](testing.md) permitted to quote a validation window; everything else links to it
@@ -603,13 +603,13 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
       2026-11-08: the generator reproduced the committed 2022–2025 fixture byte-for-byte, then
       added 365 rows for 2026. The mansion residual came back to 2 in 2026, and the Henning
       comparison over 2026 agrees on all 362 counted days. Windows:
-      [testing.md](testing.md); FPMT: [fpmt-calendar.md](fpmt-calendar.md).
-- [x] **`docs/other-implementations.md`** — a survey of the other software that computes Tibetan
+      [testing.md](testing.md); FPMT: [fpmt-calendar.md](../sources/fpmt-calendar.md).
+- [x] **`docs/sources/other-implementations.md`** — a survey of the other software that computes Tibetan
       dates, framed as "when to use which" rather than as a comparison. Every claim from public
       metadata, with an access date; no competitor source read
 - [x] **Ship the two consumer documents to npm** — `package.json#files` gains `docs/guide.md` and
       `docs/why-trust-these-dates.md`, so condensing the README costs a consumer nothing
-      structurally. `docs/other-implementations.md` and every contributor document stay repo-only
+      structurally. `docs/sources/other-implementations.md` and every contributor document stay repo-only
 - [x] **A benchmark, outside CI.** `npm run bench` joins `coverage`, `verify:names` and
       `verify:rabjung-names` as a release-time check that gates nothing. It exists because two
       numbers were already load-bearing and unmeasured: the `getObservances` span cap, which
@@ -645,11 +645,11 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
       calendrical software the Julian day is the domain interchange representation, and the
       helpers are the extension point; the altitude complaint was a documentation problem, fixed
       by grouping them under "Interoperability" in the README.
-      [decisions/2026-08-12-public-surface.md](decisions/2026-08-12-public-surface.md)
+      [decisions/2026-08-12-public-surface.md](../decisions/2026-08-12-public-surface.md)
 
 - [x] **Export month enumeration** — done 2026-08-13, as five names: `monthsFor`, `daysInMonth`,
       `hasLeapMonth`, `leapMonthNumberFor` and `monthsInYear`.
-      [decisions/2026-08-12-public-surface.md](decisions/2026-08-12-public-surface.md)
+      [decisions/2026-08-12-public-surface.md](../decisions/2026-08-12-public-surface.md)
 
 - [x] **Add `parseTibetanDate`, the counterpart to `formatTibetanDate`** — done 2026-08-13. It
       returns `TibetanDateFields`, not a resolved date, and takes no config, because a
@@ -664,7 +664,7 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
 - [x] **Audit and correct all 629 docblocks against actual behaviour.** Merged to `main` on
       2026-11-17 (`2d0dbbf`): every docblock in `src/` checked against the code, comments only,
       guarded since by `check:conventions` rules 17 and 18 and rule 4's `//` skip.
-      [decisions/2026-11-15-docblocks-are-for-callers.md](decisions/2026-11-15-docblocks-are-for-callers.md)
+      [decisions/2026-11-15-docblocks-are-for-callers.md](../decisions/2026-11-15-docblocks-are-for-callers.md)
 
 - [x] **Three refusal messages that misdescribe their own check** — found by the docblock
       audit and fixed in `61c4d80` (the `MANSION_ELEMENTS` assertion, the `meanDate` refusal, and
@@ -672,11 +672,11 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
 
 - [x] **Decided: `name` is a required field on `Rabjung`**, free at `0.0.1` and breaking after
       1.0.0.
-      [decisions/2026-08-21-rabjung-names-carry-both.md](decisions/2026-08-21-rabjung-names-carry-both.md)
+      [decisions/2026-08-21-rabjung-names-carry-both.md](../decisions/2026-08-21-rabjung-names-carry-both.md)
 - [x] **The rabjung name shape — settled 2026-08-25: "neither list".** `Rabjung` carries the
       Tibetan name only, because the cycle has two Sanskrit lists that differ at 16, 17, 18, 20
       and 34, and any type pairing one of them with the Tibetan name misnames 8% of years.
-      [decisions/2026-08-25-rabjung-ships-the-tibetan-name-only.md](decisions/2026-08-25-rabjung-ships-the-tibetan-name-only.md)
+      [decisions/2026-08-25-rabjung-ships-the-tibetan-name-only.md](../decisions/2026-08-25-rabjung-ships-the-tibetan-name-only.md)
 
 **Review passes**
 
@@ -688,25 +688,25 @@ nothing and reports success.
 
 - [x] **Full API surface review** — closed 2026-08-27, when spike 3 ran uncontaminated against a
       tarball packed from the finished branch. The six names added on 2026-08-26 drew zero
-      friction. [decisions/2026-08-12-public-surface.md](decisions/2026-08-12-public-surface.md)
+      friction. [decisions/2026-08-12-public-surface.md](../decisions/2026-08-12-public-surface.md)
 - [x] **Decide what belongs in this package's general observance layer versus what stays
       FPMT-specific.** Closed 2026-11-14 on the `observances-1.0` branch. The package ships
       `EXAMPLE_OBSERVANCES` (nineteen rules under three levels the config declares, `id:
       "example"`); FPMT's complete set is a configuration in the test suite, held to FPMT's
-      calendars for 2022–2026 ([fpmt-calendar.md](fpmt-calendar.md)); eclipses are the front
+      calendars for 2022–2026 ([fpmt-calendar.md](../sources/fpmt-calendar.md)); eclipses are the front
       end's responsibility. The rule list is in the README and the basis of each level and name in
-      [observances.md](observances.md). Reasoning, the sojong history and the superseded
+      [observances.md](../observances.md). Reasoning, the sojong history and the superseded
       2026-08-12 policy record:
-      [decisions/2026-11-11-observance-model.md](decisions/2026-11-11-observance-model.md) and
-      [almanac-sources.md](almanac-sources.md#sojong-a-counted-schedule-once-falsified-by-a-misreading).
+      [decisions/2026-11-11-observance-model.md](../decisions/2026-11-11-observance-model.md) and
+      [almanac-sources.md](../sources/almanac-sources.md#sojong-a-counted-schedule-once-falsified-by-a-misreading).
 - [x] **Sojong, built and validated** — done 2026-11-14 on the `observances-1.0` branch: the
       `counted` rule form, `scripts/fetch-rabten-sojong.mjs` and `test/fixtures/rabten-sojong.ts`
       (every sojong Rabten Choeling's calendar prints, 2000–2100). Inferred, not sourced; history
       and limits in
-      [almanac-sources.md](almanac-sources.md#sojong-a-counted-schedule-once-falsified-by-a-misreading).
+      [almanac-sources.md](../sources/almanac-sources.md#sojong-a-counted-schedule-once-falsified-by-a-misreading).
 - [x] **Confirm each example rule against FPMT's current guidance — read 2026-11-14,** and
       recorded rule by rule in
-      [fpmt-calendar.md](fpmt-calendar.md#fpmts-prose-guidance-against-the-nineteen-rules).
+      [fpmt-calendar.md](../sources/fpmt-calendar.md#fpmts-prose-guidance-against-the-nineteen-rules).
       Seven rules found no prose guidance; that is a result, tracked for the fire puja under
       "Awaiting a Tibetan teacher" below.
 - [x] **Record FPMT's second line of codes and its moon icons in the fixture.** Done
@@ -768,7 +768,7 @@ nothing and reports success.
       unreadable-brand message asserting a cause it had not measured (`bf34781`).
 - [x] **Pass a `TraditionConfig` one way, under one name.** Done 2026-09-24 in
       `807ec71`–`3876e3e`, breaking for seven functions and free while nothing is published.
-      [decisions/2026-09-24-how-a-tradition-is-passed.md](decisions/2026-09-24-how-a-tradition-is-passed.md)
+      [decisions/2026-09-24-how-a-tradition-is-passed.md](../decisions/2026-09-24-how-a-tradition-is-passed.md)
 - [x] **Sites that put a value into a message without `describe`, and inputs that escape
       uncoded.** Done 2026-09-24: `describe` and `isPlainObject` never throw, fourteen sites render
       through `describe`, and `elementalYoga` gained a guard. `test/hostile-inputs.test.ts` holds
@@ -776,7 +776,7 @@ nothing and reports success.
 - [x] **A throw from the caller's own code while the engine reads a config or a fields object**
       is now coded. Decided 2026-11-16 by Andreas (option 3), overtaking the 2026-09-24 decision
       that such an error may escape.
-      [decisions/2026-08-12-error-codes-not-classes.md](decisions/2026-08-12-error-codes-not-classes.md)
+      [decisions/2026-08-12-error-codes-not-classes.md](../decisions/2026-08-12-error-codes-not-classes.md)
 - [x] **The Tibetan date-field guard is written six times.** Done 2026-09-24 in `5b64142`,
       `eb2f73a`, `12e2e21`, `beb24e1` and `ae39e72`: `assertTibetanShape`, `assertTibetanRanges`,
       `monthCountFor`, `julianDayOfFields` and `boundedMonth` are the guard homes listed in
@@ -787,7 +787,7 @@ nothing and reports success.
       three refusal orders be unified?** Decided 2026-11-15 by Andreas and implemented the same
       day: the bound stays, and the order is shape, then tradition, then range (bare-number exports
       check the tradition first, 2026-11-18).
-      [decisions/2026-11-15-attribute-functions-share-the-exact-range.md](decisions/2026-11-15-attribute-functions-share-the-exact-range.md)
+      [decisions/2026-11-15-attribute-functions-share-the-exact-range.md](../decisions/2026-11-15-attribute-functions-share-the-exact-range.md)
 - [x] **Decide whether `check:conventions` rule 4 should distinguish an exported `{@link}` target
       from a module-local one.** Decided 2026-09-23: reject, scoped to docblocks that ship (those
       of a barrel-exported declaration). Eleven links fixed in `23347bb`; row X12 proves it.
@@ -846,7 +846,7 @@ nothing and reports success.
 
   So a Tibetan eclipse computation would answer "which eclipses a traditional almanac predicts",
   which is not what FPMT prints: FPMT prints astronomical eclipses, dated by UTC (see
-  [fpmt-calendar.md](fpmt-calendar.md#eclipses)), and those come from a modern ephemeris, which this
+  [fpmt-calendar.md](../sources/fpmt-calendar.md#eclipses)), and those come from a modern ephemeris, which this
   package will not include. A front end that shows eclipses sources them itself.
   The measurement used the engine's own true Sun and Janson's Rahu, with the month count converted
   from the engine's E806 epoch to E1927 (`β = 55`, month 3 of 1927). A one-month error in that
@@ -862,7 +862,7 @@ nothing and reports success.
   contested**: Janson's own LaTeX comment beside the colour table cites "Henning p. 167 and 177 for
   different colours", and under this project's rule a convention with two defensible answers belongs in
   injected config or nowhere, not in a fixed export. The directions look uncontested and could ship
-  alone; nobody has asked for them. [astrology.md](astrology.md) says the colours and directions are not
+  alone; nobody has asked for them. [astrology.md](../astrology.md) says the colours and directions are not
   in the output, so a reader of its cycle table does not go looking for them.
 
 - **The almanac's twenty-seven astronomical yogas and eleven karaṇas.** Janson's main text, "Further
@@ -873,7 +873,7 @@ nothing and reports success.
   Both would be additive. The only check available today is Henning's daily calendars, which print both
   but are this engine's own lineage, as for the mansion — so shipping either would add a claim
   with less behind it than anything `./astrology` ships now. Until 2026-09-18
-  [why-trust-these-dates.md](why-trust-these-dates.md) filed karaṇa under Appendix D, which is wrong.
+  [why-trust-these-dates.md](../why-trust-these-dates.md) filed karaṇa under Appendix D, which is wrong.
 
 - **"Some special days": the sun entering a sign, the definition points and their midpoints.** Janson's
   section on the days the mean sun enters each sign, and on the definition points (སྒང *gang*) and
@@ -884,7 +884,7 @@ nothing and reports success.
   Tsurphu and none for Bhutan, so `./astrology` refuses that attribute for a tradition this package
   otherwise exports and validates day by day. A search on 2026-09-10 found nothing usable —
   BhutanWiki and the general Bhutan calendar pages cover only the *year* cycle — and the negative
-  result is recorded in [validation-sources.md](validation-sources.md) so it is not re-walked.
+  result is recorded in [validation-sources.md](../sources/validation-sources.md) so it is not re-walked.
 
   **It is a deferral rather than a dead end, and the reason is specific.** The source that would
   settle it is the Royal Government's *lo-tho*, which this repository already holds and already
@@ -896,7 +896,7 @@ nothing and reports success.
   in the Pre-v1.0.0 checklist, because it freezes at 1.0.0.
 
 - **An interactive almanac page, not a prose docs site.** A prose documentation site would duplicate
-  [guide.md](guide.md), and its examples would sit outside the assertion machinery that makes the
+  [guide.md](../guide.md), and its examples would sit outside the assertion machinery that makes the
   README's trustworthy — `test/readme.test.ts` and `test/guide.test.ts` assert every example those
   documents state, and a hand-written site would assert none. That is the failure this repository is
   organised against, so a docs site is not the thing to build.
@@ -917,7 +917,7 @@ nothing and reports success.
   `TibetanName` at every position — script, Wylie, phonetics. **Neither** of the cycle's two Sanskrit
   lists ships, because they carry different names at 16, 17, 18, 20 and 34 and a type pairing either
   with the Tibetan name would misname 8% of years silently
-  ([decisions/2026-08-25-rabjung-ships-the-tibetan-name-only.md](decisions/2026-08-25-rabjung-ships-the-tibetan-name-only.md),
+  ([decisions/2026-08-25-rabjung-ships-the-tibetan-name-only.md](../decisions/2026-08-25-rabjung-ships-the-tibetan-name-only.md),
   which also records the shape both lists would take if they return). The Monier-Williams glosses and
   Csoma's columns stay sourced and regenerated in `test/fixtures/rabjung-names.ts` and
   `docs/names/rabjung.md`. `tibetanName` (`name` until 2026-09-13) is a **required** field, decided against the completed table.
@@ -925,9 +925,9 @@ nothing and reports success.
   Additive, so not a breaking change. See
   [architecture.md](architecture.md#why-rabjungtibetanname-carries-the-tibetan-name-and-neither-sanskrit-list)
   for the shape and what it does and does not promise,
-  [names/rabjung-sourcing.md](names/rabjung-sourcing.md) for the sourcing hunt — every source tried,
+  [names/rabjung-sourcing.md](../names/rabjung-sourcing.md) for the sourcing hunt — every source tried,
   the dead ends with their evidence, and the findings that changed the method — and
-  [decisions/2026-08-21-rabjung-names-carry-both.md](decisions/2026-08-21-rabjung-names-carry-both.md)
+  [decisions/2026-08-21-rabjung-names-carry-both.md](../decisions/2026-08-21-rabjung-names-carry-both.md)
   for the design decisions and their trade-offs, including why `meaning` is one field rather than
   two despite the fixture distinguishing a verbatim quote from a composed one.
 
@@ -960,7 +960,7 @@ nothing and reports success.
 
   That is now `TraditionConfig.leapIndexThreshold`, and `β` and the true-month rounding rule are
   derived from it rather than written as literals. So the algorithm *does* now support Tsurphu and
-  the Mongolian version, and worked configs for both are in [traditions.md](traditions.md) — as
+  the Mongolian version, and worked configs for both are in [traditions.md](../sources/traditions.md) — as
   data, not exports, because expressing a tradition and validating it are different claims.
 
   **A concrete route for the Mongolian version, scoped 2026-08-23** — now tracked in its own entry,
@@ -972,14 +972,14 @@ nothing and reports success.
   **plus** twenty-five government-published days, and Mongolian needs the same shape — published
   Tsagaan Sar dates being the obvious second source. Testing it also showed the 1997 decree does
   *not* diverge from computation, which is the obstacle
-  [validation-sources.md](validation-sources.md) had recorded; the details are there.
+  [validation-sources.md](../sources/validation-sources.md) had recorded; the details are there.
 
   **Bhutan's leap-month position closed on 2026-08-16**, as `TraditionConfig.leapMonthPosition`. It
   numbers a leap month from the **preceding** month where every other version numbers it from the
   following one, so its leap month falls *after* the regular month sharing its number. The engine's
   month sequence is validated against `test/fixtures/bhutan.ts` at exactly one offset over 375
   months, with the position flipped back to `"before"` matching at none — see
-  [traditions.md](traditions.md) for the full account.
+  [traditions.md](../sources/traditions.md) for the full account.
 
   **Two estimates in this entry were wrong, and the shape of the error is the lesson.** It called the
   work "a convention threaded through four functions". Two of those four were right, one was a rename
@@ -1004,7 +1004,7 @@ nothing and reports success.
   false. `BHUTAN` and `BHUTAN_HENNING` are both exported and deeply frozen, and `BHUTAN_HENNING` is
   validated day by day against Bhutanese calendar data, where `BHUTAN` is checked
   against twenty-five government-published days only — see
-  [../src/traditions/bhutan.ts](../src/traditions/bhutan.ts) and
+  [../src/traditions/bhutan.ts](../../src/traditions/bhutan.ts) and
   [testing.md](testing.md) for the window.
 
   The reconciliation the entry was waiting on turned out not to be needed. It assumed Bhutan's
@@ -1024,7 +1024,7 @@ nothing and reports success.
   A third turned up when the engine was finally held to the data: the source carries **one leap
   month Janson does not list**, at 2030-04-03, because the upstream leaves its leap flag set a month
   too long. The generator has a fifth check for it, and the fixture now ends the day before (its
-  extent is in `docs/testing.md`); asking the generator for a later end refuses to write.
+  extent is in `docs/development/testing.md`); asking the generator for a later end refuses to write.
 
 - **Mongolian tradition** (New Genden) via its own `TraditionConfig`. Added as its own entry on
   2026-09-24, at Andreas' request; its route was first scoped inside the Tsurphu entry above, which
@@ -1038,11 +1038,11 @@ nothing and reports success.
   and nothing about day numbers. That is why nothing is exported.
 
   **What exporting needs**, under
-  [decisions/2026-08-16-exported-means-validated.md](decisions/2026-08-16-exported-means-validated.md):
+  [decisions/2026-08-16-exported-means-validated.md](../decisions/2026-08-16-exported-means-validated.md):
 
   1. **Its own astronomy.** `m₀`, `s₀` and `a₀` exist only in Janson's four-version comparison
      table, which is stated one mean lunar month from the epoch a config uses — the trap
-     [traditions.md](traditions.md) records. Bhutan escaped it because its appendix gives the epoch
+     [traditions.md](../sources/traditions.md) records. Bhutan escaped it because its appendix gives the epoch
      directly; Mongolia does not.
   2. **Its naming.** Janson says Mongolia follows the Chinese rules for the month's animal, gender
      and element, as Tsurphu does, but not Tsurphu's nine month numbers. Whether the weekday names
@@ -1055,7 +1055,7 @@ nothing and reports success.
      Zurkhai's App Store listing names (Yampilov-Galsanov's "Zurkhai-3" and Atsagatsky Datsan
      publications); and Zurkhai's own Hural list, whose 2027 dates follow Mongolian month
      numbering — months only, lineage unknown, and three of its Hurals fit neither version. See
-     [almanac-sources.md](almanac-sources.md)'s Zurkhai lineage question.
+     [almanac-sources.md](../sources/almanac-sources.md)'s Zurkhai lineage question.
   4. **Observances are a separate question.** Buryat Hurals are their own calendar of holy days,
      not `EXAMPLE_OBSERVANCES`, whose conventions are FPMT's; that belongs to the `./observances` work, not to the
      config.
@@ -1069,9 +1069,9 @@ nothing and reports success.
   of its open questions. `addDays`, `daysBetween`, `addMonths`, `monthsBetween`,
   `lunationFromMonth`, `monthFromLunation`, `nextFullMoon` and `nextNewMoon` are free functions on
   the root export; no `TibetanDate` class, so
-  [decisions/2026-08-12-no-tibetan-date-class.md](decisions/2026-08-12-no-tibetan-date-class.md)
+  [decisions/2026-08-12-no-tibetan-date-class.md](../decisions/2026-08-12-no-tibetan-date-class.md)
   stands. The reasoning is in
-  [decisions/2026-08-15-lunation-arithmetic.md](decisions/2026-08-15-lunation-arithmetic.md).
+  [decisions/2026-08-15-lunation-arithmetic.md](../decisions/2026-08-15-lunation-arithmetic.md).
 
   - *What "add one month" means across a leap month* — none of skip, land or refuse. A Tibetan month
     is a lunation, so one month after M05 of 2151 is M06L, which is what the calendar counts.
@@ -1089,7 +1089,7 @@ nothing and reports success.
   Düchen. That is correct and matches FPMT's published date, but a consumer laying out the regular
   month sees a blank month with nothing to explain it, and `Observance` carries no field naming the
   twin. Behaviour must not change —
-  [decisions/2026-11-11-observance-model.md](decisions/2026-11-11-observance-model.md) keeps this
+  [decisions/2026-11-11-observance-model.md](../decisions/2026-11-11-observance-model.md) keeps this
   in injected config — so any fix is additive shape, not logic.
 
 - **`Observance.rule.kind` reads worse than `o.kind`** — **moot since 2026-11-11**: the rebuild dropped
@@ -1100,17 +1100,17 @@ nothing and reports success.
   `weekdayNameFor` is exported. (`elementNameFor`, `genderNameFor` and `animalNameFor` were exported
   too until 2026-08-25, when they came off the surface and out of `cycles.ts` — never argued for,
   and reachable as `yearNameFor(year).elementName`. See
-  [decisions/2026-08-12-public-surface.md](decisions/2026-08-12-public-surface.md).) Each name is
+  [decisions/2026-08-12-public-surface.md](../decisions/2026-08-12-public-surface.md).) Each name is
   Tibetan script, Wylie and THL Simplified phonetics — no English field, because the string unions
   already carry the English identity and are the i18n contract. See
-  [decisions/2026-08-16-names-are-data-not-locales.md](decisions/2026-08-16-names-are-data-not-locales.md).
+  [decisions/2026-08-16-names-are-data-not-locales.md](../decisions/2026-08-16-names-are-data-not-locales.md).
 
   The three open questions this entry used to list are answered there: a **structured object**, not a
   locale parameter; **three renderings**, with IAST reserved for the Sanskrit side of the rabjung
   names; and **no `formatTibetanDate` mode**, because its round trip with `parseTibetanDate` is an
   identity that must not acquire one.
 
-  Provenance is machine-checked rather than trusted — [names/vocabulary.md](names/vocabulary.md). Janson
+  Provenance is machine-checked rather than trusted — [names/vocabulary.md](../names/vocabulary.md). Janson
   turned out **not to be self-consistent** here: Saturday is `spen ma` in his day-of-week table and
   `spen pa` in his Bhutan appendix, and the wrong one had been sitting in a shipped docblock. That
   is why the harness exists.
@@ -1122,8 +1122,8 @@ nothing and reports success.
   anchored on the Tiger month depends on a tradition, through the month-animal rule the config already
   carries. The shape therefore returns every system and chooses none, which needs no seasonal
   member in `naming` at all, and that is what shipped: see
-  [decisions/2026-09-14-month-names-return-every-system.md](decisions/2026-09-14-month-names-return-every-system.md).
-  The evidence for the names is in [names/month-and-yoga-sourcing.md](names/month-and-yoga-sourcing.md),
+  [decisions/2026-09-14-month-names-return-every-system.md](../decisions/2026-09-14-month-names-return-every-system.md).
+  The evidence for the names is in [names/month-and-yoga-sourcing.md](../names/month-and-yoga-sourcing.md),
   and `npm run verify:month-and-yoga-names` is the verifier that enforces it.
 
 - **Closed 2026-09-23.** The polyfill path was spiked before the freeze, as this entry asked: the
@@ -1150,7 +1150,7 @@ nothing and reports success.
 
 - **iCalendar (ICS) export — declined.** `getObservances` returns plain objects; a consumer maps
   them to whatever format they need. Per
-  [decisions/2026-08-12-public-surface.md](decisions/2026-08-12-public-surface.md), a name is
+  [decisions/2026-08-12-public-surface.md](../decisions/2026-08-12-public-surface.md), a name is
   exposed when the consumer-side workaround is wrong or impossible, and stays internal when it
   merely costs a loop — an ICS export is a loop, not a wrong-or-impossible workaround, and it would
   mean owning RFC 5545 escaping, `VTIMEZONE` and folding, none of which is calendrical. An

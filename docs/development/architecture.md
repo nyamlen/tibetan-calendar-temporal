@@ -2,14 +2,14 @@
 
 How `tibetan-calendar-temporal` is built and why.
 
-For what it is and why it exists, see the [README](../README.md).
+For what it is and why it exists, see the [README](../../README.md).
 For the testing approach, see [testing.md](testing.md). For build sequencing, see
 [roadmap.md](roadmap.md).
 
 ## Key Constraints
 
-- **Clean-room implementation** — do NOT reference or copy code from `eszthoff/tibetan-date-calculator`. The commit history is this project's evidence of independent derivation, and reading an alternative implementation cannot be undone or disproved afterwards. Implement directly from Janson's paper. Full rules in [CONTRIBUTING.md](../CONTRIBUTING.md).
-- **Temporal-native** — use `Temporal.PlainDate` for date representation. No legacy `Date` objects anywhere. Temporal is a **finished (stage 4) TC39 proposal**, expected in ES2027 — [tc39/proposals lists it under finished proposals](https://github.com/tc39/proposals/blob/main/finished-proposals.md), with 2027 in the expected-publication column. It was described here as "ES2026 standard" until 2026-08-23, which was wrong. Why Temporal rather than `Date` is argued in [guide.md](guide.md#why-temporalplaindate-and-never-date).
+- **Clean-room implementation** — do NOT reference or copy code from `eszthoff/tibetan-date-calculator`. The commit history is this project's evidence of independent derivation, and reading an alternative implementation cannot be undone or disproved afterwards. Implement directly from Janson's paper. Full rules in [CONTRIBUTING.md](../../CONTRIBUTING.md).
+- **Temporal-native** — use `Temporal.PlainDate` for date representation. No legacy `Date` objects anywhere. Temporal is a **finished (stage 4) TC39 proposal**, expected in ES2027 — [tc39/proposals lists it under finished proposals](https://github.com/tc39/proposals/blob/main/finished-proposals.md), with 2027 in the expected-publication column. It was described here as "ES2026 standard" until 2026-08-23, which was wrong. Why Temporal rather than `Date` is argued in [guide.md](../guide.md#why-temporalplaindate-and-never-date).
 - **Zero runtime dependencies** — Temporal is a language built-in. The engine depends on nothing.
 - **Integer arithmetic only** — all Phugpa calendar math uses integer division with fixed denominators. No floating point. This ensures deterministic, cross-platform-identical results.
 - **Tradition-agnostic architecture** — astronomical constants are injected via a `TraditionConfig` type, not hardcoded. v1 ships four configs — `PHUGPA`, `PHUGPA_HENNING`, `BHUTAN` and `BHUTAN_HENNING` — and the algorithm supports adding Tsurphu (Karma Kagyu) and the Mongolian version as further configs.
@@ -23,7 +23,7 @@ For the testing approach, see [testing.md](testing.md). For build sequencing, se
 - PDF: <https://www2.math.uu.se/~svantejs/papers/calendars/tibet.pdf>
 - arXiv: <https://arxiv.org/abs/1401.6285v1>
 
-**Read the LaTeX source, not the PDF** — see the rule in [CLAUDE.md](../CLAUDE.md). `pdftotext`
+**Read the LaTeX source, not the PDF** — see the rule in [CLAUDE.md](../../CLAUDE.md). `pdftotext`
 drops floor/ceiling brackets, inequalities and Greek constants, and has already produced three
 wrong formulas here.
 
@@ -79,7 +79,7 @@ The root surface is grouped as the README's API section heads it: conversion, mo
 year names, month names, formatting, interoperability, tradition configs, errors and types; the
 `./observances` and `./astrology` subpaths are sections of their own.
 What earns a place on it is decided by
-[decisions/2026-08-12-public-surface.md](decisions/2026-08-12-public-surface.md), and pinned by
+[decisions/2026-08-12-public-surface.md](../decisions/2026-08-12-public-surface.md), and pinned by
 `test/public-api.test.ts`.
 
 The month tier splits along a line worth knowing. `monthsFor` and `daysInMonth` compute month
@@ -96,13 +96,13 @@ Temporal's calendar protocol. **That is not implementable.** Temporal removed us
 calendars before shipping: `Temporal.Calendar` does not exist, and `calendar:` accepts only
 built-in CLDR identifiers, which do not include `tibetan`.
 
-See [decisions/2026-08-11-temporal-custom-calendars.md](decisions/2026-08-11-temporal-custom-calendars.md).
+See [decisions/2026-08-11-temporal-custom-calendars.md](../decisions/2026-08-11-temporal-custom-calendars.md).
 
 Whether anything replaced it — most likely a Temporal-shaped `TibetanDate` class offering
 `add` / `until` / `with` — was deferred to Phase 3 so that a real consumer could answer it.
 **Phase 3 answered it: no.** The observance engine is month-indexed, walking `trueMonthCount`
 rather than doing date arithmetic, and needed none of it. See
-[decisions/2026-08-12-no-tibetan-date-class.md](decisions/2026-08-12-no-tibetan-date-class.md).
+[decisions/2026-08-12-no-tibetan-date-class.md](../decisions/2026-08-12-no-tibetan-date-class.md).
 
 This does not affect the package's Temporal-native claim. The engine speaks
 `Temporal.PlainDate` throughout; it simply is not a registered calendar.
@@ -180,7 +180,7 @@ in the phase that fills them rather than as empty stubs.
 Constants are held as exact `Rational`s and scaled onto a common denominator derived per
 tradition by `scaling.ts` — never hardcoded, because the denominator is not the same for every
 tradition. See
-[decisions/2026-08-11-integer-arithmetic-strategy.md](decisions/2026-08-11-integer-arithmetic-strategy.md).
+[decisions/2026-08-11-integer-arithmetic-strategy.md](../decisions/2026-08-11-integer-arithmetic-strategy.md).
 
 ## Subpath Exports (package.json)
 
@@ -203,20 +203,20 @@ when its directory came to exist — an export pointing at a file the build cann
 `npm run test:pack` imports all three as a consumer would.
 
 The split is not packaging convenience. `./observances` holds conventions that published sources
-disagree about, and the root does not. See [decisions/2026-11-11-observance-model.md](decisions/2026-11-11-observance-model.md).
+disagree about, and the root does not. See [decisions/2026-11-11-observance-model.md](../decisions/2026-11-11-observance-model.md).
 
 What separates the root from `./astrology` is **what a thing is for**, not how it is sourced. The
 root says *which* year, month or day something is — its date and its names — and `./astrology` what
 that year, month or day carries. `monthNamesFor` is on the root on that reasoning, parallel to
 `yearNameFor` against `yearAttributesFor`, although its six-season list is Henning's and its season
 terms come from dictionaries rather than Janson; that provenance lives in its docblock and in
-[names/month-and-yoga-sourcing.md](names/month-and-yoga-sourcing.md) rather than in the import line.
+[names/month-and-yoga-sourcing.md](../names/month-and-yoga-sourcing.md) rather than in the import line.
 
 `./astrology` does still carry a sourcing boundary worth keeping visible. Its pieces do not carry equal weight: Janson gives every cycle and the mansion arithmetic,
 Henning gives the element each mansion carries and the ten yoga names — which Janson cites and does
 not derive — and **favorability is in neither**, FPMT being its witness, with the *tshig mdzod chen
 mo* a second witness for the yoga pairs and the source of their four-way grading. A subpath keeps that
-boundary visible at the import line. See [astrology.md](astrology.md).
+boundary visible at the import line. See [astrology.md](../astrology.md).
 
 ## Core Types
 
@@ -561,7 +561,7 @@ interface LunarMansion {
 ### Why `year` is the royal era
 
 `year` is the 127 BC epoch numbering that almanacs print, not Janson's *Y*. See
-[decisions/2026-08-11-year-numbering.md](decisions/2026-08-11-year-numbering.md) — the engine
+[decisions/2026-08-11-year-numbering.md](../decisions/2026-08-11-year-numbering.md) — the engine
 computes in *Y* internally and converts only at the public boundary. Do not "correct" `year` to
 match the paper.
 
@@ -580,7 +580,7 @@ Settled at the start of Phase 1. The rule is two-axis:
 Grouping everything — `year.number`, `month.code`, `day.isLeap` — was rejected. It is more
 uniform, but `d.month` as an object where `PlainDate.month` is a number generates silent
 failures: `d.month === 11` is quietly false and `${d.month}` renders `[object Object]`. That is
-the same failure class the [year numbering decision](decisions/2026-08-11-year-numbering.md)
+the same failure class the [year numbering decision](../decisions/2026-08-11-year-numbering.md)
 exists to eliminate.
 
 ### Why year-level naming is not on `TibetanDate`
@@ -593,12 +593,12 @@ Both cycles name a **year**, so on a date they are one value repeated across all
 `tigerEarlySpring`, the tradition), so a date repeating them thirty times would cost bytes and buy
 nothing. And there are five of them per month — one per naming system — which is five fields no single
 `monthName` could hold without choosing a system. See
-[decisions/2026-09-14-month-names-return-every-system.md](decisions/2026-09-14-month-names-return-every-system.md).
+[decisions/2026-09-14-month-names-return-every-system.md](../decisions/2026-09-14-month-names-return-every-system.md).
 
 `weekdayName` stays on the date, and the line is not arbitrary: it is the only name a date cannot
 regenerate from itself, because `weekdayNameFor` takes a `TraditionConfig` and a serialised date
 carries none. See
-[decisions/2026-08-24-year-naming-off-the-date.md](decisions/2026-08-24-year-naming-off-the-date.md).
+[decisions/2026-08-24-year-naming-off-the-date.md](../decisions/2026-08-24-year-naming-off-the-date.md).
 
 ### Why `rabjung` is separate from `yearName`
 
@@ -630,11 +630,11 @@ stands against *kun ldan*, all-endowed, which renders *sarvapati*.
 `rabjung.tibetanName` therefore exposes **neither**: a type pairing one list with the Tibetan name would be
 naming something the Tibetan does not render at five of every sixty positions, and the only defence
 would be a docblock the reader has to have read. Both lists stay tabulated in
-[names/rabjung.md](names/rabjung.md), with [names/rabjung-sourcing.md](names/rabjung-sourcing.md) for
+[names/rabjung.md](../names/rabjung.md), with [names/rabjung-sourcing.md](../names/rabjung-sourcing.md) for
 how they were arrived at. The decision, and the shape they would take if they ever return, is
-[decisions/2026-08-25-rabjung-ships-the-tibetan-name-only.md](decisions/2026-08-25-rabjung-ships-the-tibetan-name-only.md),
+[decisions/2026-08-25-rabjung-ships-the-tibetan-name-only.md](../decisions/2026-08-25-rabjung-ships-the-tibetan-name-only.md),
 which supersedes
-[decisions/2026-08-21-rabjung-names-carry-both.md](decisions/2026-08-21-rabjung-names-carry-both.md).
+[decisions/2026-08-21-rabjung-names-carry-both.md](../decisions/2026-08-21-rabjung-names-carry-both.md).
 
 This section used to be titled "why the 60 rabjung names are not included," and recorded three
 reasons for deferring them. Two turned out to be wrong, and the third was resolved by sourcing work
@@ -702,12 +702,12 @@ Seven rules follow from that:
   the value, and a `PlainDate` from a second Temporal implementation — a bundled polyfill, two
   copies in `node_modules`, an iframe — fails it. That was 27 exports wrong in two directions:
   17 read a foreign Western date as a Tibetan one and answered, 10 refused a genuine Western
-  date. See [decisions/2026-09-23-brand-not-identity.md](decisions/2026-09-23-brand-not-identity.md).
+  date. See [decisions/2026-09-23-brand-not-identity.md](../decisions/2026-09-23-brand-not-identity.md).
 - **Integrality is checked before range.** `Number.isSafeInteger` for years, which covers fractions,
   `NaN`, the infinities and 2⁵³ overflow in one predicate; `Number.isInteger` for fields whose
   bounds already confine them.
 - **Out-of-exact-range is its own error.** Past
-  [`ScaledTradition.exactToJulianDay`](../src/computation/scaling.ts) the arithmetic degrades
+  [`ScaledTradition.exactToJulianDay`](../../src/computation/scaling.ts) the arithmetic degrades
   silently, and a degraded `true_date` misclassifies the day — so overflow surfaced as
   `SkippedDayError`, a confident calendrical claim about a date that was never computed. A caller's
   correct response to `SkippedDayError` is "fine, that date does not exist"; to this it is "my input
@@ -726,7 +726,7 @@ Seven rules follow from that:
   bargain `scalingFor` makes, whose cache keeps serving stale but consistent constants: without the
   copy the engine re-read the caller's object on every call, unvalidated.
   `ObservanceConfig` is checked and copied by `ensureValidated` (`src/observances/validate.ts`),
-  `TraditionConfig` by [`validatedTradition`](../src/traditions/validate.ts), which every entry point
+  `TraditionConfig` by [`validatedTradition`](../../src/traditions/validate.ts), which every entry point
   and `scalingFor` read the tradition through. Both check **shape, not astronomy**, and both refuse
   a key they do not have; `TraditionConfig` also refuses the values its arithmetic cannot take
   (`m₁ ≠ 30·m₂`, a table whose first entry is not zero, an intercalation index outside 0…64).
@@ -735,13 +735,13 @@ Seven rules follow from that:
   instance where a Tibetan date belongs, a non-boolean leap flag, `null`. They are handled
   differently by a consumer (bad data to show a user, against a bug in their own code), and only the
   first is on the allowlist above. See
-  [decisions/2026-08-15-argument-errors-split.md](decisions/2026-08-15-argument-errors-split.md).
+  [decisions/2026-08-15-argument-errors-split.md](../decisions/2026-08-15-argument-errors-split.md).
 - **Every error carries a code**, and `SkippedDayError` is the only error class — including a throw
   from the caller's own getter or `Proxy` trap while an argument is read, which is refused with a code
   and kept as `cause`, as the README states. Construct through
-  `rangeError`/`codedError` in [`src/errors.ts`](../src/errors.ts) rather than with a bare
+  `rangeError`/`codedError` in [`src/errors.ts`](../../src/errors.ts) rather than with a bare
   `new RangeError`, so the code is never omitted. Codes are contract; message text is not. See
-  [decisions/2026-08-12-error-codes-not-classes.md](decisions/2026-08-12-error-codes-not-classes.md).
+  [decisions/2026-08-12-error-codes-not-classes.md](../decisions/2026-08-12-error-codes-not-classes.md).
 
 ## The day boundary
 
@@ -754,7 +754,7 @@ part of why results are deterministic and need no location.
 There is therefore no daybreak field on `TraditionConfig` — nothing would read it — and no
 instant-to-date helper, because such a helper must choose between local and Tibetan-meridian
 daybreak and practice is not uniform. See
-[decisions/2026-08-15-daybreak-not-modelled.md](decisions/2026-08-15-daybreak-not-modelled.md).
+[decisions/2026-08-15-daybreak-not-modelled.md](../decisions/2026-08-15-daybreak-not-modelled.md).
 
 ## Tooling
 
@@ -770,7 +770,7 @@ daybreak and practice is not uniform. See
 
 There is no bundler. `tsc` alone emits the ESM output and declarations, which keeps `dist/`
 mirroring `src/` — the structure the `./observances` subpath export depends on. Reasoning:
-[decisions/2026-08-11-build-tooling.md](decisions/2026-08-11-build-tooling.md).
+[decisions/2026-08-11-build-tooling.md](../decisions/2026-08-11-build-tooling.md).
 
 ### Temporal types
 
