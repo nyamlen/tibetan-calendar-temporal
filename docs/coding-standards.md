@@ -120,6 +120,7 @@ A rule with a command beside it will stop a push. A rule marked **review** will 
 | Rule | Enforced by | Why |
 |---|---|---|
 | Relative links and `#fragments` resolve | `npm run check:links` | Docs here cross-reference heavily, so a rename breaks inbound links silently |
+| This repository's own `blob/main` URLs and their `#fragments` resolve, in Markdown and in `.ts`, `.mjs` and `.jsonc` files | `npm run check:links` | Shipped documents and docblocks link repo-only files by absolute URL, and every published tarball freezes those paths; nothing else checks them |
 | Markdown structure | `npm run lint:md` | Rule exclusions and their reasoning live in `.markdownlint.jsonc` |
 | **Semantic line breaks** — one sentence or clause per line | **review** | Markdownlint has no rule for this, and `MD013` is switched off precisely because it fights the convention. Diffs stay limited to the sentence that changed |
 | Decision records: `YYYY-MM-DD-slug.md`, front matter of only `date` and `status`, one H1, a bold `**Decision:**` line before any reasoning | `npm run check:conventions` | A `title` key duplicates the H1 and makes markdownlint read two titles |

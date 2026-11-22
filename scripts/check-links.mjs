@@ -5,6 +5,8 @@
 // External URLs are deliberately NOT checked. The validation sources in docs/testing.md
 // point at fpmt.org, lotsawahouse.org and arxiv.org; reaching them from CI would make the
 // build flaky and rate-limited in exchange for catching link rot we cannot fix anyway.
+// The exception is this repository's own `blob/main` URLs, in Markdown and in source: they are
+// checked against the working tree, offline, because every published tarball freezes them.
 //
 // Zero dependencies, by the same logic as the engine itself.
 
@@ -115,6 +117,62 @@ for (const file of files) {
 	}
 }
 
+// This repository's own `blob/main` URLs are internal links written absolutely: a shipped
+// document or a docblock must link a repo-only file that way, so every published tarball freezes
+// the path. Nothing else checks them — the loop above skips every scheme, and check-pack only
+// refuses such a URL to a file that ships — so a moved document would leave them dead with CI green.
+const { repository } = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
+const repositoryUrl = String(repository?.url ?? repository ?? "")
+	.replace(/^git\+/, "")
+	.replace(/\.git$/, "");
+const BLOB = `${repositoryUrl}/blob/main/`;
+const escaped = BLOB.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const ABSOLUTE = new RegExp(`${escaped}([^\\s)\\]\`"'<>#]*)(?:#([^\\s)\\]\`"'<>]*))?`, "g");
+// The mutation harness plants a deliberately dead URL as a fixture for check-conventions.
+const ABSOLUTE_EXEMPT = new Set(["test/check-conventions.mutations.ts"]);
+const sources = execFileSync(
+	"git",
+	["ls-files", "--cached", "--others", "--exclude-standard", "*.md", "*.ts", "*.mjs", "*.jsonc"],
+	{ cwd: root, encoding: "utf8" },
+)
+	.split("\n")
+	.filter((file) => file && !ABSOLUTE_EXEMPT.has(file));
+let absoluteLinks = 0;
+
+for (const file of sources) {
+	const raw = readFileSync(resolve(root, file), "utf8");
+	const source = file.endsWith(".md") ? stripFences(raw) : raw;
+	for (const match of source.matchAll(ABSOLUTE)) {
+		// A bare prefix is a constant naming the repository, not a link; a sentence may end on the URL.
+		const path = decode(match[1]).replace(/[.,;:]+$/, "");
+		if (path === "") continue;
+		absoluteLinks++;
+		const line = source.slice(0, match.index).split("\n").length;
+		const resolved = resolve(root, path);
+		if (!existsSync(resolved)) {
+			failures.push(
+				`${file}:${line}  ${match[0]}  -> no such file or directory in this repository`,
+			);
+			continue;
+		}
+		const fragment =
+			match[2] &&
+			decode(match[2])
+				.replace(/[.,;:]+$/, "")
+				.replace(INVISIBLE, "");
+		if (fragment && resolved.endsWith(".md") && !slugsFor(resolved).has(fragment)) {
+			failures.push(`${file}:${line}  ${match[0]}  -> no heading matches #${fragment}`);
+		}
+	}
+}
+
+// If package.json#repository and the documents disagree, the pattern matches nothing and passes.
+if (absoluteLinks === 0) {
+	failures.push(
+		`no file links to ${BLOB}: package.json#repository and the documents' URLs disagree`,
+	);
+}
+
 if (failures.length > 0) {
 	console.error(`Broken markdown links (${failures.length}):\n`);
 	for (const failure of failures) console.error(`  ${failure}`);
@@ -122,4 +180,6 @@ if (failures.length > 0) {
 	process.exit(1);
 }
 
-console.log(`All internal markdown links resolve (${files.length} files checked).`);
+console.log(
+	`All internal markdown links resolve (${files.length} files checked, ${absoluteLinks} absolute links to this repository in ${sources.length} files).`,
+);
