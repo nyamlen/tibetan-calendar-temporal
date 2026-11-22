@@ -2,7 +2,7 @@
 
 The documents are grouped by who reads them.
 The project's landing page is the [README](../README.md) at the repository root.
-How to report a vulnerability is in [SECURITY.md](../SECURITY.md), also at the root.
+How to report a vulnerability is in [SECURITY.md](../SECURITY.md), and what changed in each release in [CHANGELOG.md](../CHANGELOG.md), both also at the root.
 
 ## Using the library
 

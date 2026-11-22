@@ -260,7 +260,7 @@ The release is next.
       GitHub's private vulnerability reporting, which is switched on, and which versions receive fixes.
       Done 2026-11-22: fixes go to the latest release only; a wrong date is an issue, not a vulnerability
 
-- [ ] **Keep a `CHANGELOG.md` from 1.0.0.** Andreas, 2026-11-21: the first entry is 1.0.0 itself, and
+- [x] **Keep a `CHANGELOG.md` from 1.0.0.** Andreas, 2026-11-21: the first entry is 1.0.0 itself, and
       nothing that changed before it is recorded, because no released version behaved otherwise. From
       1.0.0 on, an entry for every release states each change a consumer can see, with a behaviour
       change that raises no error flagged as such. It does **not** ship (Andreas, 2026-11-22): it

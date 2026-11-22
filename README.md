@@ -1,15 +1,5 @@
 # tibetan-calendar-temporal
 
-> ## ⚠️ Not yet released
->
-> **The version on npm does not work.** `0.0.1`, the only one published, exports nothing but a status
-> string; it exists to reserve the name while the engine is built.
->
-> **This repository does.** The API below is implemented and tested — every example in this file is
-> asserted by the test suite — and a tarball packed from this source (`npm pack`) contains it, though
-> its `package.json` still says `0.0.1`. It is **not yet published**. Do not depend on the npm package
-> until v1.0.0.
-
 Compute Tibetan calendar dates in JavaScript — leap months, doubled and skipped days, moon phases,
 year names and observances — for almanac applications, practice calendars, and anything that has to
 show a Tibetan date and be right about it.

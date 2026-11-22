@@ -194,7 +194,7 @@ measurement, and why it is not corroboration, is in
 
 ## What this package does not claim
 
-It is the newest of the implementations here and, at the time of writing, unreleased — so it has no track record,
+It is the newest of the implementations here, first released as 1.0.0 in 2026 — so it has no track record,
 no users, and none of the incidental robustness that comes from years of people finding edge cases
 in public. It requires Node 26 or a polyfill, which none of the others do. And its astrological layer
 is a fraction of Henning's: attributes, the mansion and the yoga, with no planets and no eclipses.
