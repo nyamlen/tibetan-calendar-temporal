@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
 	assertQueryOptions,
 	describe as describeValue,
+	keysOf,
 	type PrivateCopySpec,
 	rangeError,
 	validatedPrivateCopy,
@@ -295,5 +296,22 @@ describe("validatedPrivateCopy", () => {
 		expect(thrownBy(() => validatedPrivateCopy(config, options))?.message).toBe("bad n");
 		expect(options.cache.has(config)).toBe(false);
 		expect(thrownBy(() => validatedPrivateCopy(config, options))?.message).toBe("bad n");
+	});
+});
+
+describe("keysOf", () => {
+	// M5.1: the observance validator's key lists are built with keysOf so a field added to a type
+	// without being added to its list fails to compile.
+	it("lists the keys in the order written", () => {
+		expect(keysOf<{ type: string; days: number[] }>({ type: true, days: true })).toEqual([
+			"type",
+			"days",
+		]);
+	});
+
+	it("makes a key list missing a field a COMPILE error", () => {
+		// @ts-expect-error `days` is missing. tsc errors on an UNUSED directive, so this line fails
+		// `npm run typecheck` if keysOf stops requiring every key.
+		expect(keysOf<{ type: string; days: number[] }>({ type: true })).toEqual(["type"]);
 	});
 });

@@ -2107,3 +2107,23 @@ describe("an observance's date is its own", () => {
 		}).toThrow(TypeError);
 	});
 });
+
+describe("an unknown when.type", () => {
+	// M5.4: the refusal listed the forms in a literal beside the SETTINGS_BY_FORM table, which the
+	// compiler keeps complete; a seventh form would have been missing from the list.
+	it("is refused with every form named", () => {
+		const config = {
+			id: "x",
+			englishName: "x",
+			doubledDay: "first",
+			skippedDay: "following",
+			leapMonth: "regular",
+			rules: [{ id: "r", englishName: "r", when: { type: "lunar" } }],
+		};
+		const error = thrownBy(() => ensureValidated(config as never, "getObservances"));
+		expect(error?.code).toBe("TCT_INVALID_OBSERVANCE_CONFIG");
+		for (const form of ["monthly", "annual", "period", "western", "formula", "counted"]) {
+			expect(error?.message).toContain(`"${form}"`);
+		}
+	});
+});

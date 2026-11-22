@@ -29,6 +29,7 @@ import {
 	assertNonEmptyString,
 	describe,
 	isRecord,
+	keysOf,
 	rangeError,
 	validatedPrivateCopy,
 } from "../errors.js";
@@ -53,11 +54,6 @@ const MEAN_MOTIONS = ["meanDate", "meanSun", "lunarAnomaly"] as const;
 
 /** The three coefficients each mean motion carries — Janson's `x₁`, `x₂`, `x₀`. */
 const COEFFICIENTS = ["perMonth", "perDay", "atEpoch"] as const;
-
-// Each list is a `Record` over the interface's own keys, so adding a field to the type without
-// adding it here is a compile error rather than a config that refuses a legitimate key.
-const keysOf = <T extends object>(keys: Record<keyof T, true>): readonly string[] =>
-	Object.keys(keys);
 
 const CONFIG_KEYS = keysOf<TraditionConfig>({
 	id: true,

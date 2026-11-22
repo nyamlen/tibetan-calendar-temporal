@@ -346,6 +346,17 @@ export function assertSafeIntegerArgument(
 }
 
 /**
+ * The keys of a `Record` over `T`'s own keys, as the list {@link assertKnownKeys} takes.
+ *
+ * @remarks
+ * Written as a record rather than an array so that adding a field to `T` without adding it here is a
+ * compile error, rather than a config that refuses a legitimate key. Insertion order is kept, so a
+ * refusal lists the keys in the order they are written.
+ */
+export const keysOf = <T extends object>(keys: Record<keyof T, true>): readonly string[] =>
+	Object.keys(keys);
+
+/**
  * Refuses any own enumerable string key of `value` that is not in `allowed`, naming it.
  *
  * @remarks
