@@ -444,12 +444,6 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
       - **Established Tibetan headings for the three levels**, if centres use any
         ([observances.md](../observances.md)).
 
-- [ ] **At app launch:** add a proxied `www` CNAME on `nyamlen.app` plus a redirect to the
-      apex. The canonical host is `nyamlen.app` without www, but `www.nyamlen.app` currently
-      does not resolve at all, so anyone typing it dead-ends
-
-- [ ] Decide whether to register `nyamlen.org` and `nyamlen.dev` (both free as of 2026-08-11)
-
 ### Done, by subject
 
 **API shape**
