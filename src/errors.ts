@@ -264,11 +264,15 @@ export function describe(value: unknown): string {
  * Total: a value whose prototype cannot be read (a Proxy whose trap throws, a revoked one) is not
  * plain. The date guards append a paragraph explaining why a bare fields object is refused only when
  * this is true, so a class instance or an array is named by {@link describe} and nothing more.
+ *
+ * It also decides a refusal: the observance validator refuses a config with no `id` that is not a
+ * plain object (`observances/validate.ts`), so a change to what counts as plain here is a change to
+ * which configs `getObservances` and its siblings refuse.
  */
 export function isPlainObject(value: unknown): boolean {
 	if (value === null || typeof value !== "object") return false;
-	// Total, like {@link describe}, because both guards call it while building a message they have
-	// already decided to throw: a Proxy whose `getPrototypeOf` trap throws otherwise escaped uncoded
+	// Total, like {@link describe}, because the date guards call it while building a message they
+	// have already decided to throw, and the observance validator calls it to decide one: a Proxy whose `getPrototypeOf` trap throws otherwise escaped uncoded
 	// from eleven exports, found by review on 2026-09-24. Such a value is not a bare fields object.
 	try {
 		const prototype = Object.getPrototypeOf(value);

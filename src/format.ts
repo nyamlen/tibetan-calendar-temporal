@@ -18,9 +18,9 @@ import {
  * Formats a month as a Temporal-style code: `"M01"`…`"M12"`, with `L` appended for a leap month.
  *
  * @remarks
- * The **sole** producer of this substring, deliberately: three things render a month this way —
- * `TibetanDate.monthCode`, `TibetanMonth.monthCode` and `formatTibetanDate` — and a second
- * definition is how two of them would come to disagree.
+ * The **sole** producer of this substring, deliberately: four things render a month this way —
+ * `TibetanDate.monthCode`, `TibetanMonth.monthCode`, `formatTibetanDate` and `formatTibetanMonth` —
+ * and a second definition is how two of them would come to disagree.
  *
  * Not exported from the package barrel. Being in this file does not make it API; `src/index.ts`
  * decides that.

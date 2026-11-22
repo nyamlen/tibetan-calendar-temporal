@@ -25,7 +25,29 @@ import type { TibetanDateFields, TibetanMonthFields } from "./types.js";
 // tightened. And the failure this package spends most effort preventing is the plausible-but-wrong
 // string, so accepting "2153-12-08" — which is not this format, and *is* a well-formed ISO date
 // naming a different day — would be the parser's version of that mistake.
-const CANONICAL = /^(0|-?[1-9]\d*)-M(0[1-9]|1[0-2])(L?)-(0[1-9]|[12]\d|30)( \(leap\))?$/;
+// The year and month-code groups are written once and shared with `CANONICAL_MONTH`, so the two
+// parsers cannot drift apart: `parseTibetanMonth(formatTibetanMonth(parseTibetanDate(s)))` holds
+// for every string the date parser accepts.
+const YEAR = String.raw`(0|-?[1-9]\d*)`;
+const MONTH_CODE = "M(0[1-9]|1[0-2])(L?)";
+const CANONICAL = new RegExp(String.raw`^${YEAR}-${MONTH_CODE}-(0[1-9]|[12]\d|30)( \(leap\))?$`);
+
+/**
+ * The year of a canonical string, refused unless it is a safe integer.
+ *
+ * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if the year is outside the safe-integer
+ * range.
+ */
+function parsedYear(digits: string | undefined, text: string, functionName: string): number {
+	const year = Number(digits);
+	if (!Number.isSafeInteger(year)) {
+		throw rangeError(
+			"TCT_FIELD_OUT_OF_RANGE",
+			`${functionName}: ${JSON.stringify(text)} names a year outside the safe-integer range`,
+		);
+	}
+	return year;
+}
 
 /**
  * Parses the canonical string form of a Tibetan date.
@@ -97,13 +119,7 @@ export function parseTibetanDate(text: string): TibetanDateFields {
 
 	// Non-null throughout: every group but the two optional ones is required by the pattern, and
 	// the optional ones are read via the match's own truthiness rather than captured text.
-	const year = Number(match[1]);
-	if (!Number.isSafeInteger(year)) {
-		throw rangeError(
-			"TCT_FIELD_OUT_OF_RANGE",
-			`parseTibetanDate: ${JSON.stringify(text)} names a year outside the safe-integer range`,
-		);
-	}
+	const year = parsedYear(match[1], text, "parseTibetanDate");
 
 	return {
 		year,
@@ -123,7 +139,7 @@ export function parseTibetanDate(text: string): TibetanDateFields {
 // Strict for the same reasons as `CANONICAL`: a parser loosens without breaking anyone and tightens
 // by breaking everyone, and "2151-06" is a plausible-but-wrong string this must refuse rather than
 // guess at.
-const CANONICAL_MONTH = /^(0|-?[1-9]\d*)-M(0[1-9]|1[0-2])(L?)$/;
+const CANONICAL_MONTH = new RegExp(`^${YEAR}-${MONTH_CODE}$`);
 
 /**
  * Parses the canonical string form of a Tibetan month.
@@ -171,13 +187,7 @@ export function parseTibetanMonth(text: string): TibetanMonthFields {
 		);
 	}
 
-	const year = Number(match[1]);
-	if (!Number.isSafeInteger(year)) {
-		throw rangeError(
-			"TCT_FIELD_OUT_OF_RANGE",
-			`parseTibetanMonth: ${JSON.stringify(text)} names a year outside the safe-integer range`,
-		);
-	}
+	const year = parsedYear(match[1], text, "parseTibetanMonth");
 
 	return { year, month: Number(match[2]), isLeapMonth: match[3] === "L" };
 }

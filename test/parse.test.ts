@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { isoToTibetan, tibetanToIso } from "../src/computation/conversion.js";
-import { formatTibetanDate } from "../src/format.js";
-import { parseTibetanDate } from "../src/parse.js";
+import { formatTibetanDate, formatTibetanMonth } from "../src/format.js";
+import { parseTibetanDate, parseTibetanMonth } from "../src/parse.js";
 import { SkippedDayError } from "../src/types.js";
 
 const iso = (s: string) => Temporal.PlainDate.from(s);
@@ -171,5 +171,22 @@ describe("round trip", () => {
 		expect(first.replace(" (leap)", "")).toBe(second);
 		expect(tibetanToIso(parseTibetanDate(first)).toString()).toBe("2025-11-19");
 		expect(tibetanToIso(parseTibetanDate(second)).toString()).toBe("2025-11-20");
+	});
+});
+
+describe("the date and month grammars agree", () => {
+	// M2.5: the two canonical patterns were written out separately, so a change to the month group in
+	// one would let a string through one parser and not the other.
+	it("round-trips every month code from a date string through the month parser", () => {
+		const codes = [...Array(12).keys()].flatMap((i) => {
+			const code = `M${String(i + 1).padStart(2, "0")}`;
+			return [code, `${code}L`];
+		});
+		const broken = codes.filter((code) => {
+			const date = parseTibetanDate(`2153-${code}-01`);
+			const month = parseTibetanMonth(formatTibetanMonth(date));
+			return month.month !== date.month || month.isLeapMonth !== date.isLeapMonth;
+		});
+		expect(broken).toEqual([]);
 	});
 });
