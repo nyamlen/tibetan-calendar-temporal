@@ -265,53 +265,6 @@ The release follows the restructure.
 - [ ] Make the repository **public** — **before the first 1.0.0 publish**, since npm generates
       provenance automatically only for a public repository and package
 
-- [ ] **Resolve the citation trail into `nyamlen` before going public.** Raised 2026-09-20. This
-      roadmap cited `nyamlen/spikes/calendar-smoke/` and `nyamlen/spikes/calendar-nav/` **by path**,
-      `decisions/2026-08-12-public-surface.md` cites two of that repository's tarballs, and the
-      verdict ledger that closes the client gate lives at `nyamlen/spikes/VERDICTS.md`. **Three of
-      those citations — the two client sections and the ledger — were restated on 2026-09-22** and no
-      longer name a path. **Two remain, and they are blocked rather than deferred**: the briefs at
-      `nyamlen/spikes/polyfill-probe/` and `nyamlen/spikes/example-site/` are **working pointers to
-      spikes that have not run**, not evidence, and they become evidence citations the moment those
-      spikes produce their lists. Restating them before then would be restating them twice. **`nyamlen`
-      is private indefinitely** — decided 2026-09-20 — so at 1.0.0 this public document would cite
-      evidence nobody can open, for the one claim whose whole point is that it is checkable.
-
-      **Decided 2026-09-22 (Andreas): option 3 — restate the claims here without the paths.** The
-      other three were: publish the spikes and the ledger separately; open `nyamlen` after an audit
-      of what else is in it; and a fourth proposed and declined the same day, moving the friction
-      lists and the ledger into this repository. Both of the publishing options stay **available**,
-      which is the point of taking this one: restating is reversible and publishing is not, so
-      option 1 remains open if the pitch ever needs the consumer's own prose.
-
-      **What makes it cheap, stated accurately.** The gate's substance is already in *this*
-      repository's public history: `90a38ee`, `864f88e`, `6ae4b7e`, `6e5f30d`, `6c5be94`, `aef049f`
-      and `fcfb4cd` each describe in their bodies the findings they answer. A reader can open every
-      one. So the claim becomes checkable without the private repository, and the friction lists are
-      named as **provenance** rather than offered as citations — a path that promises nothing is
-      honest; a path that promises evidence nobody can open is this item's defect.
-
-      **That was true on the day this item was raised, and the first draft of this entry claimed
-      otherwise** — that the commits had only now made the record public. They are from 26–27
-      August, three weeks earlier. What changed on 2026-09-22 is that they were **mapped** to the
-      findings, nobody having cross-checked the log before. The option was always this cheap and
-      nobody knew, which is the same error the verdict pass had just finished documenting: an
-      unrecorded fact read as an absent one. Corrected here rather than left standing, because a
-      decision resting on a false "this only became possible" invites re-litigation when someone
-      checks the dates.
-
-      **Scope: seven citations, all in this file**, two of them this item, which goes when the work
-      lands. No shipped document names a private path — `package.json#files` ships `README.md`,
-      `docs/guide.md`, `docs/how-it-is-calculated.md` and `docs/why-trust-these-dates.md`, and none
-      of the four cites one. Measured 2026-09-22.
-
-      **Do it in the pre-1.0.0 pass, not before**: the navigator's half of the fourth friction list
-      added its citations on 2026-11-18, and restating twice is waste. Each row verdicted on 2026-09-22 also cites an engine commit from
-      inside the private repository, which is why the two publishing options grow more expensive
-      with time while this one does not The tarballs are a
-      separate matter — they are deliberately untracked, so those two citations name commits that
-      resolve in **this** repository and are reproducible with `npm pack`
-
 - [ ] **Keep a `CHANGELOG.md` from 1.0.0.** Andreas, 2026-11-21: the first entry is 1.0.0 itself, and
       nothing that changed before it is recorded, because no released version behaved otherwise. From
       1.0.0 on, an entry for every release states each change a consumer can see, with a behaviour
@@ -575,8 +528,9 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
       scope and naming decided 2026-09-03; built 2026-09-12. It is a subpath of this package, not
       a sibling package and not `nyamlen`, because the sole-source rule does not require a second
       package. Nine runtime names by 2026-09-18, including `lunarMansionFor` (exposed 2026-09-14)
-      and the frozen `LUNAR_MANSIONS` table; the raw mansion tables stay internal. The mansion
-      agrees with FPMT on 97.6% of 1,459 days with a characterised residual, and every other
+      and the frozen `LUNAR_MANSIONS` table; the raw mansion tables stay internal. The mansion's
+      agreement with FPMT and its unexplained residual are stated in
+      [why-trust-these-dates.md](../why-trust-these-dates.md); every other
       attribute check is Janson against Janson — see `docs/development/testing.md`. Appendix D (planets) is out
       of scope, as Beyond v1 records. Account: [astrology.md](../astrology.md).
 

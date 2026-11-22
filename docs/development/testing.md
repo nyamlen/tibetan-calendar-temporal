@@ -613,7 +613,7 @@ Not a tier and not in CI: two runs by hand, recorded here with their dates and c
 the engine gives the same answers whichever `Temporal` it runs on. Whether those answers are right is
 the rest of this document.
 
-Both runs used the probe in the nyamlen repository, `spikes/polyfill-probe/`. The probe exercises
+Both runs used a probe kept in a private repository. The probe exercises
 every export over Tibetan month 2151-M06L, the leap month 6 of 2151, from 6 July to 4 August 2024:
 its grid, its days' attributes and observances, the date numbers it lacks, and the argument
 handling. Its output is one JSON dump per configuration, compared by hash.

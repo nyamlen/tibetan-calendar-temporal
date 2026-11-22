@@ -116,7 +116,7 @@ type-checking. `docs/guide.md` **prints a working `tsconfig.json`** instead of d
 a clean consumer before shipping it.
 
 **The status in a tracking document describes the tracker, not the thing tracked**, and the two get
-confused in the direction that invents work. `nyamlen/spikes/VERDICTS.md` once listed eighteen
+confused in the direction that invents work. The private verdict ledger that closed the client gate once listed eighteen
 rows as `open` — meaning *nobody has written a verdict here* — and was restated as *the API has not
 survived contact with a consumer*, when sixteen had been answered by commits naming the finding
 numbers in their bodies. **An unrecorded fact is not an absent one**: cross-check this repository's
