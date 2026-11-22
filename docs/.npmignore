@@ -1,0 +1,4 @@
+# npm packs a README from every directory that ships a file, whatever package.json#files says.
+# This one is the contributor index; its links point outside the package. scripts/check-pack.mjs
+# fails if any unlisted Markdown reaches the tarball.
+README.md

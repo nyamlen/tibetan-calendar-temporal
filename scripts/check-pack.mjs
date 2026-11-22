@@ -158,6 +158,20 @@ try {
 		return statSync(full).isDirectory() ? "dir" : "file";
 	};
 	const shippedDocs = shippedDocsOf(files);
+	// `files` is not the whole list: npm also packs a README from any directory that ships another
+	// file, and a `!` entry in `files` does not stop it. `docs/README.md`, the contributor index,
+	// shipped that way with links to files outside the package. So the tarball's own Markdown
+	// must be exactly `files`' Markdown entries.
+	const packedDocs = readdirSync(installed, { recursive: true })
+		.map((path) => String(path).replaceAll("\\", "/"))
+		.filter((path) => path.endsWith(".md"))
+		.sort();
+	const unlisted = packedDocs.filter((path) => !shippedDocs.includes(path));
+	if (unlisted.length > 0) {
+		throw new Error(
+			`the tarball ships Markdown that package.json#files does not list: ${unlisted.join(", ")}. Exclude it with an .npmignore in its directory, or add it to files`,
+		);
+	}
 	const problems = [];
 	let blobLinks = 0;
 	for (const doc of shippedDocs) {
