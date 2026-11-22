@@ -795,6 +795,19 @@ Implemented from Svante Janson, *Tibetan Calendar Mathematics*
 with any existing implementation — see [CONTRIBUTING.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/CONTRIBUTING.md) for the rules that
 keep it that way.
 
+**How it was built.** I, Andreas Bothner, am a software architect, and I built this package with
+Claude Code, Anthropic's AI coding assistant: it wrote the code, tests and documentation under my
+direction and review, and the design decisions are mine. That changes where trust has to come from,
+not how much is needed. The calendar arithmetic is taken from Janson's paper alone, and the dates are
+checked against independent published calendars over stated ranges of years — see
+[why you can trust these dates](docs/why-trust-these-dates.md). Before 1.0.0 the code went through a
+source code review, two security reviews, an adversarial review, a maintainability review and an
+audit of every documentation comment, each by sessions that had not written the code under review,
+and through blind builds by clients working from a packed tarball alone. The clean-room rule binds
+the assistant as it binds any contributor: no session read another implementation's source. What a
+model saw in training cannot be ruled out, so the evidence of independent derivation is the commit
+history itself, where the arithmetic is built up step by step from the paper's sections.
+
 ## Project identity
 
 | Thing | Name |
