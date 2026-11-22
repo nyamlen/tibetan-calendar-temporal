@@ -333,7 +333,9 @@ Node's erase-only type stripping (`erasableSyntaxOnly` catches violations at typ
 
 - **`check:conventions`** enforces the rules lint, typecheck and the suite cannot see; what each rule
   covers is in [docs/coding-standards.md](docs/coding-standards.md). When you add a rule here, check
-  whether the script can hold it, and write the failing case first.
+  whether the script can hold it, and write the failing case first. **Judge it by its exit code**:
+  its last line can be blank on failure. Rule 14 reads each overload signature as a function, so
+  overloads sharing one implementation trip it — write one generic function instead.
 - **`test:conventions`** is the only proof `check:conventions` still reports: one mutation row per
   rule, after an unmutated control. Not in `npm test`; run it when you touch the checker **or a file
   a row mutates** (`src/temporal-kind.ts`, the guards in `src/errors.ts`), because a row whose target
@@ -359,8 +361,9 @@ restore a fixture that differs only by its date stamp. Details: [docs/names/veri
 - **`bench`** lives in `bench/`, not `test/`: a directory under `test/` must mirror one under `src/`
   (plus `validation`, `fixtures`, `support`). **A performance number may be quoted only with its
   harness** in `bench/RESULTS.md`. **The README, the guide's "The cost in time" and `getObservances`'
-  docblock quote the latest re-record**: a re-record updates all three. Compare a before and after
-  with a second before run, so drift between runs is not read as a cost. No regression threshold, not in CI. `package.json#files` excludes `bench/`; `tsconfig.json` and
+  docblock quote the latest re-record**: a re-record updates all three. Compare by alternating twice —
+  before, after, before, after — and read adjacent runs: drift on a busy machine runs one way, so a
+  single before/after/before still reads it as a cost (two `main` runs here once differed by 24%). No regression threshold, not in CI. `package.json#files` excludes `bench/`; `tsconfig.json` and
   `biome.json` include it deliberately.
 
 ## Documents
@@ -409,6 +412,13 @@ a path-liveness check over this file (it drifts in counts and rule descriptions,
 **A docblock is written for the caller; reasoning goes in a `//` comment.** `tsc` ships `/** */` and
 drops `//`. Move proofs and traps to `//`, never delete them; dates go in commit messages.
 [docs/decisions/2026-11-15-docblocks-are-for-callers.md](docs/decisions/2026-11-15-docblocks-are-for-callers.md).
+**Insert a new declaration above its neighbour's docblock, never between a docblock and its
+declaration**: the docblock then documents the wrong export in the shipped `.d.ts`, and no check
+catches it. Read the emitted `.d.ts` when in doubt.
+
+**A type test is an `@ts-expect-error` on the line before the call**, so typecheck fails if the error
+disappears; no continuation line of its comment may itself begin with `@ts-expect-error`, which `tsc`
+reads as a second, unused directive.
 
 **Test files must not export**; shared helpers go in `test/support/`. Importing a test file re-runs
 its tests inside the importer.
