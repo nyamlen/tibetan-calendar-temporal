@@ -23,7 +23,7 @@
 // A value-import cycle: `computation/scaling.ts` imports this file back. It is safe only while every reference
 // across it sits inside a function body; a module-level use of either side's exports would hit a
 // TDZ `ReferenceError` whose appearance depends on which barrel loads first. See the matching comment there.
-import { deriveScaling } from "../computation/scaling.js";
+import { deriveScaling, type ScaledMeanMotion } from "../computation/scaling.js";
 import {
 	assertKnownKeys,
 	assertNonEmptyString,
@@ -87,10 +87,12 @@ const CODE = "TCT_INVALID_TRADITION_CONFIG";
 const malformed = (tradition: TraditionConfig): string =>
 	`TraditionConfig ${typeof tradition?.id === "string" ? `"${tradition.id}"` : "<unnamed>"} is malformed`;
 
+// Points at docs/guide.md's heading "Two kinds of config", which ships; a rename of that heading
+// must be followed here (message strings are invisible to check:links).
 const HOW_TO_BUILD =
 	". A tradition is built by spreading a shipped config and replacing whole fields — " +
 	"`{ ...PHUGPA, lunarAnomaly: { ... } }` — never by supplying a partial one; see " +
-	"docs/architecture.md on adding a tradition";
+	'"Two kinds of config" in docs/guide.md';
 
 function invalid(tradition: TraditionConfig, detail: string): Error {
 	return rangeError(
@@ -130,7 +132,6 @@ function assertMeanMotion(
 	tradition: TraditionConfig,
 	path: string,
 	value: MeanMotion | undefined,
-	alsoDivides = 1,
 ): void {
 	if (!isRecord(value)) {
 		throw invalid(
@@ -141,6 +142,25 @@ function assertMeanMotion(
 	for (const coefficient of COEFFICIENTS) {
 		assertRational(tradition, `${path}.${coefficient}`, value[coefficient]);
 	}
+}
+
+/**
+ * Refuses a mean motion whose coefficients cannot be put over one safe-integer denominator that
+ * `alsoDivides` also divides.
+ *
+ * @remarks
+ * Called from `deriveScaling` immediately before it scales the motion, with the same `alsoDivides`
+ * the scaling uses, so the lcm checked here is the lcm the scaling computes. Precondition: the
+ * shape checks have run, so every coefficient is a rational of safe integers.
+ *
+ * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG`, naming the motion.
+ */
+export function assertMeanMotionExact(
+	tradition: TraditionConfig,
+	path: (typeof MEAN_MOTIONS)[number],
+	alsoDivides: number,
+): void {
+	const value = tradition[path];
 	// The coefficients are put over the lcm of their reduced denominators and of `alsoDivides`, and
 	// `lcm` multiplies in doubles: past 2^53 it rounds, and the failure surfaces late from `scaleTo`
 	// naming neither this field nor the config. `alsoDivides` is 4 for `meanSun`, whose solar anomaly
@@ -522,9 +542,9 @@ export function validatedTradition(tradition: TraditionConfig): TraditionConfig 
  *
  * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG`.
  */
-// A config must not pass one export and fail another, and the derived checks — `assertDerivable`
-// and `assertCommonDenominatorExact`, called from `deriveScaling` — would otherwise run only on the
-// exports that reach `scalingFor`. Deriving here, on the caller's object and then on the copy,
+// A config must not pass one export and fail another, and the derived checks — the four called from
+// `deriveScaling`: `assertMeanMotionExact`, `assertCommonDenominatorExact`, `assertDerivable` and
+// `assertArgumentsFit` — would otherwise run only on the exports that reach `scalingFor`. Deriving here, on the caller's object and then on the copy,
 // refuses a config that cannot be derived on its first call to anything; `scalingFor` derives the
 // copy once more and memoises it.
 function assertValid(tradition: TraditionConfig): void {
@@ -564,7 +584,7 @@ function assertShape(tradition: TraditionConfig): void {
 	assertNaming(tradition);
 
 	for (const motion of MEAN_MOTIONS) {
-		assertMeanMotion(tradition, motion, tradition[motion], motion === "meanSun" ? 4 : 1);
+		assertMeanMotion(tradition, motion, tradition[motion]);
 	}
 	assertMeanDateRelation(tradition);
 
@@ -646,3 +666,51 @@ export function assertDerivable(tradition: TraditionConfig, searchHalfWidth: num
  * describes no lunisolar calendar and is a typo in a table.
  */
 const MAX_SEARCH_HALF_WIDTH = 30;
+
+/**
+ * Refuses a config whose table-argument numerators could leave the safe-integer range.
+ *
+ * @remarks
+ * Called from `deriveScaling` once the exact range is derived. Checks the lunar anomaly's and the
+ * mean sun's argument numerators over the exact range of Julian days, `exactToJulianDay` either
+ * side of zero.
+ *
+ * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG`, naming the coefficient set.
+ */
+export function assertArgumentsFit(
+	tradition: TraditionConfig,
+	exactToJulianDay: number,
+	meanDate: ScaledMeanMotion,
+	arguments_: readonly { motion: ScaledMeanMotion; factor: number; name: string }[],
+): void {
+	// Why the factors need this at all: the argument numerator is the evaluated numerator of its
+	// mean motion times a factor of at most 28 (anomaly) or 12 (solar anomaly), and the
+	// multiplication is what they introduce. The bound is derived from the config and computed in
+	// `BigInt` so the check cannot overflow itself. The largest lunar day count `l` in the exact
+	// range satisfies `l · perDay/den ≤ exactToJulianDay + |m₀|`, so
+	// `l ≤ (exactToJulianDay · den + |atEpoch|)/perDay + 31`, and the month count is at most
+	// `l/30 + 2`. The mean motion's numerator `n · perMonth + d · perDay + atEpoch`, with `d ≤ 30`,
+	// is then at most `|atEpoch| + (l/30 + 2) · |perMonth| + 30 · |perDay|`, and the argument's is
+	// that times the factor. Against 9 · 10¹⁵ the larger of the two bounds is about 1.2 · 10⁹ for
+	// `PHUGPA` and `BHUTAN` and about 2.0 · 10⁹ and 2.1 · 10⁹ for the Henning pair.
+	const abs = (n: bigint) => (n < 0n ? -n : n);
+	const reach = BigInt(exactToJulianDay) * BigInt(meanDate.den) + abs(BigInt(meanDate.atEpoch));
+	// exact: BigInt division truncates, which under-counts by less than one day; the `+ 31` absorbs it.
+	const days = reach / BigInt(meanDate.perDay) + 31n;
+	for (const { motion, factor, name } of arguments_) {
+		// exact: truncation under-counts the month count by less than one; the `+ 2` absorbs it.
+		const months = days / 30n + 2n;
+		const numerator =
+			abs(BigInt(motion.atEpoch)) +
+			months * abs(BigInt(motion.perMonth)) +
+			30n * abs(BigInt(motion.perDay));
+		if (numerator * BigInt(factor) > BigInt(Number.MAX_SAFE_INTEGER)) {
+			throw invalid(
+				tradition,
+				`${name}'s coefficients are so large over their common denominator that its ` +
+					"correction-table argument could leave the exactly representable integers within the " +
+					"supported date range. Write them over a smaller denominator",
+			);
+		}
+	}
+}

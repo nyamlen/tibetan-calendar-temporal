@@ -19,7 +19,6 @@
  * @packageDocumentation
  */
 
-import { rangeError } from "../errors.js";
 import type { MeanMotion, Rational, TraditionConfig } from "../traditions/types.js";
 // A value-import cycle: `traditions/validate.ts` imports this file back. It is safe only while every reference
 // across it sits inside a function body; a module-level use of either side's exports would hit a
@@ -27,8 +26,10 @@ import type { MeanMotion, Rational, TraditionConfig } from "../traditions/types.
 // runs `deriveScaling` so a config cannot pass one export and fail another, and `scalingFor` needs
 // the validated copy.
 import {
+	assertArgumentsFit,
 	assertCommonDenominatorExact,
 	assertDerivable,
+	assertMeanMotionExact,
 	validatedTradition,
 } from "../traditions/validate.js";
 import { ceilDiv, gcd, lcm, scaleTo } from "./arithmetic.js";
@@ -89,6 +90,19 @@ export interface ScaledTradition {
 	 * multiplied to be the `sun_tab` argument's numerator. 1 for all four shipped configs.
 	 */
 	sunTabArgFactor: number;
+
+	/**
+	 * Denominator of the moon equation, {@link ScaledTradition.moonTabArgDen} times 60: the equation
+	 * is in sixtieths of a day. One of the three denominators {@link ScaledTradition.commonDenominator}
+	 * is the `lcm` of.
+	 */
+	moonEquationDen: number;
+
+	/**
+	 * Denominator of the sun equation, {@link ScaledTradition.sunTabArgDen} times 60. One of the
+	 * three denominators {@link ScaledTradition.commonDenominator} is the `lcm` of.
+	 */
+	sunEquationDen: number;
 
 	/**
 	 * Numerator of `1/4` over the mean-sun denominator, used to form the solar anomaly.
@@ -188,10 +202,10 @@ const TEMPORAL_JULIAN_DAY_BOUND = 97_559_412;
  * `TypeError`. {@link scalingFor} validates first.
  *
  * @param tradition - A config that has passed validation.
- * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG` if a denominator is not positive,
- * if the common denominator is not a safe integer, if the correction tables imply a search window
- * wider than the engine accepts (30 lunar days), or if a table argument could leave the exactly
- * representable integers within the exact range.
+ * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG` if a mean motion cannot be put over
+ * one safe-integer denominator, if the common denominator is not a safe integer, if the correction
+ * tables imply a search window wider than the engine accepts (30 lunar days), or if a table argument
+ * could leave the exactly representable integers within the exact range.
  *
  * @example
  * ```ts
@@ -200,11 +214,17 @@ const TEMPORAL_JULIAN_DAY_BOUND = 97_559_412;
  * ```
  */
 export function deriveScaling(tradition: TraditionConfig): ScaledTradition {
-	const meanDate = scaleMeanMotion(tradition.meanDate);
-	// The solar anomaly is mean_sun − 1/4, so the denominator carries a factor of 4 and
+	// The factor each motion's denominator must carry is written once, here, and the same value goes
+	// to the exactness check and to the scaling, so the two cannot certify different lcms. The solar
+	// anomaly is mean_sun − 1/4, so the mean sun's denominator carries a factor of 4 and
 	// `quarterCircle` is exact for any coefficients.
-	const meanSun = scaleMeanMotion(tradition.meanSun, 4);
-	const lunarAnomaly = scaleMeanMotion(tradition.lunarAnomaly);
+	const scaled = (name: "meanDate" | "meanSun" | "lunarAnomaly", alsoDivides: number) => {
+		assertMeanMotionExact(tradition, name, alsoDivides);
+		return scaleMeanMotion(tradition[name], alsoDivides);
+	};
+	const meanDate = scaled("meanDate", 1);
+	const meanSun = scaled("meanSun", 4);
+	const lunarAnomaly = scaled("lunarAnomaly", 1);
 
 	// moon_tab takes 28 · anomaly_moon. Writing 28 · x/den as (28/g · x)/(den/g) with g = gcd(28, den)
 	// gives the argument over `den/g` whatever `den` is, so two configs holding the same rationals
@@ -225,9 +245,13 @@ export function deriveScaling(tradition: TraditionConfig): ScaledTradition {
 	// exact: as above.
 	const sunTabArgFactor = 12 / sunGcd;
 
-	// true_date = mean_date + moon_equ/60 − sun_equ/60, so D must absorb all three.
-	assertCommonDenominatorExact(tradition, [meanDate.den, moonTabArgDen * 60, sunTabArgDen * 60]);
-	const commonDenominator = [meanDate.den, moonTabArgDen * 60, sunTabArgDen * 60].reduce(lcm);
+	// true_date = mean_date + moon_equ/60 − sun_equ/60, so D must absorb all three. One list, given to
+	// the check and to the lcm alike, so the check guards the D actually used.
+	const moonEquationDen = moonTabArgDen * 60;
+	const sunEquationDen = sunTabArgDen * 60;
+	const parts = [meanDate.den, moonEquationDen, sunEquationDen];
+	assertCommonDenominatorExact(tradition, parts);
+	const commonDenominator = parts.reduce(lcm);
 
 	// The correction bound, in lunar days, from this tradition's own tables. The bound is a function
 	// of the injected correction tables, so writing `3` at the search loop would hardcode a Phugpa
@@ -275,59 +299,13 @@ export function deriveScaling(tradition: TraditionConfig): ScaledTradition {
 		moonTabArgFactor,
 		sunTabArgDen,
 		sunTabArgFactor,
+		moonEquationDen,
+		sunEquationDen,
 		quarterCircle: scaleTo(1, 4, meanSun.den),
 		commonDenominator,
 		exactToJulianDay,
 		searchHalfWidth,
 	};
-}
-
-/**
- * Refuses a config whose table-argument numerators could leave the safe-integer range.
- *
- * @remarks
- * Checks the lunar anomaly's and the mean sun's argument numerators over the exact range of
- * Julian days, `exactToJulianDay` either side of zero.
- *
- * @throws RangeError with code `TCT_INVALID_TRADITION_CONFIG`, naming the coefficient set.
- */
-function assertArgumentsFit(
-	tradition: TraditionConfig,
-	exactToJulianDay: number,
-	meanDate: ScaledMeanMotion,
-	arguments_: readonly { motion: ScaledMeanMotion; factor: number; name: string }[],
-): void {
-	// Why the factors need this at all: the argument numerator is the evaluated numerator of its
-	// mean motion times a factor of at most 28 (anomaly) or 12 (solar anomaly), and the
-	// multiplication is what they introduce. The bound is derived from the config and computed in
-	// `BigInt` so the check cannot overflow itself. The largest lunar day count `l` in the exact
-	// range satisfies `l · perDay/den ≤ exactToJulianDay + |m₀|`, so
-	// `l ≤ (exactToJulianDay · den + |atEpoch|)/perDay + 31`, and the month count is at most
-	// `l/30 + 2`. The mean motion's numerator `n · perMonth + d · perDay + atEpoch`, with `d ≤ 30`,
-	// is then at most `|atEpoch| + (l/30 + 2) · |perMonth| + 30 · |perDay|`, and the argument's is
-	// that times the factor. Against 9 · 10¹⁵ the larger of the two bounds is about 1.2 · 10⁹ for
-	// `PHUGPA` and `BHUTAN` and about 2.0 · 10⁹ and 2.1 · 10⁹ for the Henning pair.
-	const abs = (n: bigint) => (n < 0n ? -n : n);
-	const reach = BigInt(exactToJulianDay) * BigInt(meanDate.den) + abs(BigInt(meanDate.atEpoch));
-	// exact: BigInt division truncates, which under-counts by less than one day; the `+ 31` absorbs it.
-	const days = reach / BigInt(meanDate.perDay) + 31n;
-	for (const { motion, factor, name } of arguments_) {
-		// exact: truncation under-counts the month count by less than one; the `+ 2` absorbs it.
-		const months = days / 30n + 2n;
-		const numerator =
-			abs(BigInt(motion.atEpoch)) +
-			months * abs(BigInt(motion.perMonth)) +
-			30n * abs(BigInt(motion.perDay));
-		if (numerator * BigInt(factor) > BigInt(Number.MAX_SAFE_INTEGER)) {
-			throw rangeError(
-				"TCT_INVALID_TRADITION_CONFIG",
-				`TraditionConfig "${tradition.id}" is malformed: ${name}'s coefficients are so large over ` +
-					"their common denominator that its correction-table argument could leave the exactly " +
-					"representable integers within the supported date range. Write them over a smaller " +
-					"denominator",
-			);
-		}
-	}
 }
 
 /** Memoised scaling, so repeated conversions do not redo the gcd work. */

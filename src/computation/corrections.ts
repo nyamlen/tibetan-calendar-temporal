@@ -168,12 +168,12 @@ export function trueDate(scaled: ScaledTradition, day: number, monthCount: numbe
 	);
 	const moon = scaleTo(
 		moonEquation(scaled, day, monthCount),
-		scaled.moonTabArgDen * 60,
+		scaled.moonEquationDen,
 		scaled.commonDenominator,
 	);
 	const sun = scaleTo(
 		sunEquation(scaled, day, monthCount),
-		scaled.sunTabArgDen * 60,
+		scaled.sunEquationDen,
 		scaled.commonDenominator,
 	);
 	return d + moon - sun;

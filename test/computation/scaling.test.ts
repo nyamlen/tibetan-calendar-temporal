@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { lcm } from "../../src/computation/arithmetic.js";
 import { trueSunDenominator } from "../../src/computation/corrections.js";
 import { deriveScaling } from "../../src/computation/scaling.js";
 import { BHUTAN, BHUTAN_HENNING } from "../../src/traditions/bhutan.js";
@@ -138,4 +139,19 @@ describe("the exact range never passes Temporal's", () => {
 			.map((s) => s.tradition.id);
 		expect(moved).toEqual([]);
 	});
+});
+
+describe("the equation denominators", () => {
+	// M1.1: the list making up D was written twice in deriveScaling and re-derived in trueDate.
+	it.each([PHUGPA, PHUGPA_HENNING, BHUTAN, BHUTAN_HENNING])(
+		"are the table-argument denominators times 60, and D is their lcm with the mean date's ($id)",
+		(tradition) => {
+			const scaled = deriveScaling(tradition);
+			expect(scaled.moonEquationDen).toBe(scaled.moonTabArgDen * 60);
+			expect(scaled.sunEquationDen).toBe(scaled.sunTabArgDen * 60);
+			expect(scaled.commonDenominator).toBe(
+				[scaled.meanDate.den, scaled.moonEquationDen, scaled.sunEquationDen].reduce(lcm),
+			);
+		},
+	);
 });
