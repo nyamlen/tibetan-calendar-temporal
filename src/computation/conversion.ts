@@ -513,7 +513,7 @@ export function tibetanToIso(
 	input: TibetanDateFields,
 	tradition: TraditionConfig = PHUGPA,
 ): Temporal.PlainDate {
-	const fields = assertTibetanShape("tibetanToIso", input, "date");
+	const fields = assertTibetanShape("tibetanToIso", input, "date", "swap");
 	// The tradition between the shape and the range, the order tibetanDateExists depends on.
 	tradition = scalingFor(tradition).tradition;
 	const subject = assertTibetanRanges("tibetanToIso", fields, "date");
@@ -663,7 +663,7 @@ export function tibetanDateExists(
 	// are checked outside the `try`, so a Temporal instance or a broken config throws rather than
 	// answering `false`; the range is checked inside it, and only after the tradition — checked
 	// first, a range error would be swallowed and a broken config reported as a missing date.
-	const fields = assertTibetanShape("tibetanDateExists", input, "date");
+	const fields = assertTibetanShape("tibetanDateExists", input, "date", "swap");
 	tradition = scalingFor(tradition).tradition;
 	try {
 		julianDayOfFields(assertTibetanRanges("tibetanDateExists", fields, "date"), tradition, fields);

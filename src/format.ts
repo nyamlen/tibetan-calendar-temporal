@@ -87,7 +87,7 @@ export function formatTibetanDate(date: TibetanDateFields): string {
 	// Both guards exist because a plausible-but-wrong string is the failure worth preventing:
 	// without them `{}` gives "undefined-undefined-undefined", and `{ isLeapMonth: 1, isLeapDay: "x" }`
 	// a confident " (leap)" suffix from a truthy string.
-	const fields = assertTibetanShape("formatTibetanDate", date, "date");
+	const fields = assertTibetanShape("formatTibetanDate", date, "date", "convert");
 	assertTibetanRanges("formatTibetanDate", fields, "date", {
 		hint: "Pass a value returned by isoToTibetan, losarFor or parseTibetanDate",
 	});
@@ -126,7 +126,7 @@ export function formatTibetanDate(date: TibetanDateFields): string {
  * ```
  */
 export function formatTibetanMonth(month: TibetanMonthFields): string {
-	const fields = assertTibetanShape("formatTibetanMonth", month, "month");
+	const fields = assertTibetanShape("formatTibetanMonth", month, "month", "convert");
 	assertTibetanRanges("formatTibetanMonth", fields, "month", {
 		hint: "Pass a value returned by monthsFor or resolveMonth",
 	});

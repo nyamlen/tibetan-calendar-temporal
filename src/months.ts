@@ -111,9 +111,22 @@ export function boundedMonth(
 	first: number;
 	last: number;
 } {
-	const fields = assertTibetanShape(functionName, month, shape);
-	const scaled = scalingFor(tradition);
-	const subject = assertTibetanRanges(functionName, fields, shape);
+	// Branched on `shape` so each guard is called with a literal and the overloads can tell a month
+	// snapshot from a date's; each branch keeps the order shape, then tradition, then range.
+	let fields: TibetanMonthSnapshot | TibetanDateSnapshot;
+	let scaled: ScaledTradition;
+	let subject: () => string;
+	if (shape === "month") {
+		const snapshot = assertTibetanShape(functionName, month, "month", "convert");
+		scaled = scalingFor(tradition);
+		subject = assertTibetanRanges(functionName, snapshot, "month");
+		fields = snapshot;
+	} else {
+		const snapshot = assertTibetanShape(functionName, month, "date", "convert");
+		scaled = scalingFor(tradition);
+		subject = assertTibetanRanges(functionName, snapshot, "date");
+		fields = snapshot;
+	}
 	const monthCount = monthCountFor(subject, scaled.tradition, fields);
 	const first = firstDayOfMonth(scaled, monthCount);
 	const last = lastDayOfMonth(scaled, monthCount);
