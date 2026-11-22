@@ -11,7 +11,7 @@
  * wrong with it in one run.
  */
 
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -139,13 +139,35 @@ check(
 // the manifest is deliberately not in the `exports` map, so asking for it by subpath throws
 // ERR_PACKAGE_PATH_NOT_EXPORTED. That is the map behaving correctly.
 const root = dirname(dirname(entry));
-for (const declaration of [
-	"dist/index.d.ts",
-	"dist/observances/index.d.ts",
-	"dist/astrology/index.d.ts",
-]) {
-	check(existsSync(join(root, declaration)), `${declaration} is missing from the tarball`);
+
+// Every subpath the installed `exports` map declares, not a list kept here: each is imported, and
+// each condition's target must exist. A subpath whose file exists but throws on import fails here,
+// which `publint` cannot see. The value assertions above cover three subpaths by name; a fourth
+// declared in the map without assertions of its own is refused, so "every subpath" stays true.
+const ASSERTED = [".", "./observances", "./astrology"];
+const manifest = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
+const declared = Object.keys(manifest.exports ?? {});
+for (const subpath of declared) {
+	for (const [condition, target] of Object.entries(manifest.exports[subpath])) {
+		check(
+			typeof target === "string" && existsSync(join(root, target)),
+			`exports["${subpath}"].${condition} points at ${target}, which is not in the tarball`,
+		);
+	}
+	const specifier =
+		subpath === "." ? "tibetan-calendar-temporal" : `tibetan-calendar-temporal/${subpath.slice(2)}`;
+	try {
+		await import(specifier);
+	} catch (error) {
+		check(false, `${specifier} throws on import: ${error.message}`);
+	}
 }
+const unasserted = declared.filter((subpath) => !ASSERTED.includes(subpath));
+const missing = ASSERTED.filter((subpath) => !declared.includes(subpath));
+check(
+	unasserted.length === 0 && missing.length === 0,
+	`exports declares [${declared.join(", ")}] but this consumer asserts values for [${ASSERTED.join(", ")}]: add assertions for ${unasserted.join(", ") || "none"}, or drop ${missing.join(", ") || "none"}`,
+);
 
 if (problems.length > 0) {
 	for (const problem of problems) console.error(`  x ${problem}`);
@@ -153,4 +175,4 @@ if (problems.length > 0) {
 	process.exit(1);
 }
 
-console.log("  ok  all three subpaths import, compute and carry error codes");
+console.log(`  ok  all ${declared.length} subpaths import, compute and carry error codes`);

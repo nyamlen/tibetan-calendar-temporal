@@ -972,8 +972,8 @@ that its first step is still open.
       [decisions/2026-08-23-readme-is-the-landing-page.md](decisions/2026-08-23-readme-is-the-landing-page.md).
 
       **Adding `docs/astrology.md` to `package.json#files` would fail `test:pack` today**, and it is
-      four changes rather than one: add it to `files`; add it to `scripts/check-pack.mjs`, which
-      hardcodes its own `shippedDocs` list; convert its repo-only relative links to absolute URLs —
+      three changes rather than one (`scripts/check-pack.mjs` takes its list from `files` since the
+      maintainability fixes): add it to `files`; convert its repo-only relative links to absolute URLs —
       **six of its seven**, since only [how-it-is-calculated.md](how-it-is-calculated.md) is in the
       tarball; and delete the "Repo-only" banner the document currently carries. `check-pack` throws
       on a shipped doc that links outside the tarball, which is what makes this a hard failure rather
