@@ -501,7 +501,7 @@ that its first step is still open.
   *yongdzin* by the nasal policy, and *lo-ngen*, which is no nasal-rule case but a reading ruling.
   *senchang*, *nyönden*, *kündzin*, *künden* and the season months stand as THL gives them, and
   *dongngen* is a plain join left as THL gives it.
-- [x] **Small findings parked by the pre-1.0.0 reviews — one list, each with a decision.**
+- [ ] **Small findings parked by the pre-1.0.0 reviews — one list, each with a decision.**
   The code review (2026-11-15), the phonetics-by-word reviews (2026-11-15) and the docblock audit
   (2026-11-17) each found small defects they did not fix on their own branch.
   Every one is here, marked **fix** (done in one cleanup batch after the navigator build and before
@@ -640,6 +640,20 @@ that its first step is still open.
     are validated "as Phugpa's". True by construction (only `lunarAnomaly` differs), but untested on the
     export; add it to the export test in `test/validation/cross-version-leap.test.ts`.
     **Done in `6e67c56`**, for `BHUTAN_HENNING` as well, which had the same gap under the same record.
+
+  *From the maintainability-fixes branch's whole-branch review* (Opus, 2026-11-22). Each decision below
+  is **proposed by the session and awaits Andreas' ruling**, which is why this item is unticked:
+  - **Fix** — a consumer `TraditionConfig` whose common denominator `D` exceeds about 3.3 · 10¹⁴, so that
+    `D · 27` passes 2⁵³, passes validation and then gets `TCT_INTERNAL` from `lunarMansionFor` and
+    `attributesFor`, through `mansionNumber`'s own guard. Pre-existing (the same on `eac11ed`), but it
+    contradicts the rule the maintainability fixes applied to `scaleTo`: an internal code must not be
+    reachable from a validated config. Refuse such a config in validation, beside the other derived
+    checks, or refuse the mansion with `TCT_ATTRIBUTE_NOT_SOURCED`-style coding; no shipped config is
+    near the bound.
+  - **Accepted** — `scripts/check-pack-consumer.mjs` assumes every `exports` entry is a flat
+    `{ condition: "path" }` object: a string-valued entry is iterated character by character and a
+    nested condition object is reported as `[object Object]`. It fails loudly and never passes wrongly,
+    and the map is flat; revisit if the map ever gains nested conditions.
 - [x] **Composable/additive `ObservanceConfig`s — decide before 1.0.0, not after.** Today, a
       consumer combining several institutions' rule sets (e.g. `DEFAULT_OBSERVANCES` plus a `TEACHERS` and a
       `TANTRA` config) hand-rolls

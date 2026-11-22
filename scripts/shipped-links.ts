@@ -19,18 +19,25 @@ export function shippedDocsOf(files: readonly string[]): string[] {
 /** Every link target in `text` outside fenced code: inline, reference definitions, HTML src/href. */
 function targetsOf(text: string): string[] {
 	const prose: string[] = [];
-	let fenced = false;
+	// A fence closes only on a run of the same character at least as long as the one that opened
+	// it, so a ```` fence can hold a ``` example (CommonMark).
+	let fence: string | null = null;
 	for (const line of text.split(/\r?\n/)) {
-		if (/^\s*(```|~~~)/.test(line)) {
-			fenced = !fenced;
-			continue;
+		const marker = /^\s{0,3}(`{3,}|~{3,})/.exec(line)?.[1];
+		if (fence === null) {
+			if (marker === undefined) prose.push(line);
+			else fence = marker;
+		} else if (marker !== undefined && marker[0] === fence[0] && marker.length >= fence.length) {
+			fence = null;
 		}
-		if (!fenced) prose.push(line);
 	}
 	const body = prose.join("\n");
+	// A title may be "…", '…' or (…); a footnote definition `[^1]: …` is prose, not a link.
 	return [
-		...[...body.matchAll(/\]\(\s*<?([^)\s>]+)>?(?:\s+"[^"]*")?\s*\)/g)].map((m) => m[1] ?? ""),
-		...[...body.matchAll(/^\s{0,3}\[[^\]]+\]:\s*<?([^\s>]+)>?/gm)].map((m) => m[1] ?? ""),
+		...[...body.matchAll(/\]\(\s*<?([^)\s>]+)>?(?:\s+(?:"[^"]*"|'[^']*'|\([^)]*\)))?\s*\)/g)].map(
+			(m) => m[1] ?? "",
+		),
+		...[...body.matchAll(/^\s{0,3}\[(?!\^)[^\]]+\]:\s*<?([^\s>]+)>?/gm)].map((m) => m[1] ?? ""),
 		...[...body.matchAll(/\b(?:src|href)\s*=\s*"([^"]*)"/g)].map((m) => m[1] ?? ""),
 	];
 }

@@ -602,6 +602,13 @@ export function thrownDetail(error: unknown): string {
 }
 
 /**
+ * The suffix a royal-era year refusal carries, so a caller who passed a Gregorian year is told which
+ * numbering the export expects.
+ */
+export const ROYAL_ERA_HINT =
+	". Years here are the royal era, matching TibetanDate.year — 2153, not 2026.";
+
+/**
  * Rejects a year that is not a safe integer.
  *
  * @remarks
@@ -620,13 +627,6 @@ export function thrownDetail(error: unknown): string {
  *
  * @throws A `RangeError` with `code` if `year` is not a safe integer.
  */
-/**
- * The suffix a royal-era year refusal carries, so a caller who passed a Gregorian year is told which
- * numbering the export expects.
- */
-export const ROYAL_ERA_HINT =
-	". Years here are the royal era, matching TibetanDate.year — 2153, not 2026.";
-
 // No guard can catch the royal-era confusion: 2026 is a perfectly valid royal-era year
 // (1899 CE), so the conversion returns a well-formed date 127 years away; that is a documentation
 // problem, handled in the README. One copy lives here because the two copies that once existed had

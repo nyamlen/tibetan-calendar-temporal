@@ -38,6 +38,26 @@ describe("linkProblems", () => {
 		expect(linkProblems("README.md", text, exists, BLOB, ships)).toEqual([]);
 	});
 
+	// Final review: a dead link with a single-quoted or parenthesised title passed silently, a
+	// footnote definition was read as a link, and a longer fence holding a ``` example ended early.
+	it("reports a dead link whatever form its title takes", () => {
+		const text = [
+			"[a](docs/gone.md 'title')",
+			"[b](docs/gone.md (title))",
+			'[c](docs/gone.md "t")',
+		].join("\n");
+		expect(linkProblems("README.md", text, exists, BLOB, ships)).toHaveLength(3);
+	});
+
+	it("reads a footnote definition as prose, not a link", () => {
+		expect(linkProblems("README.md", "[^1]: Janson, section 5.", exists, BLOB, ships)).toEqual([]);
+	});
+
+	it("keeps a longer fence open across a shorter one inside it", () => {
+		const text = ["````md", "```", "[x](missing.md)", "```", "````"].join("\n");
+		expect(linkProblems("README.md", text, exists, BLOB, ships)).toEqual([]);
+	});
+
 	it("refuses an absolute link to a file that ships", () => {
 		const text = `[guide](${BLOB}docs/guide.md)`;
 		expect(linkProblems("README.md", text, exists, BLOB, ships)).toHaveLength(1);
