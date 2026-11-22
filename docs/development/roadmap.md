@@ -226,7 +226,7 @@ That holds although `src/` changed after the docblock audit (`2d0dbbf`) and the 
 | 4 | Docblock audit | **Done** 2026-11-17 (`2d0dbbf`) | None: accepted as it stands (Andreas, 2026-11-22), although about 480 docblock lines in `src/` changed since |
 | 5 | Client build from a fresh tarball | **Done**: the navigator, 2026-11-17, against `61847df` | None: accepted as sufficient (Andreas, 2026-11-22); see Release Status |
 | 6 | Adversarial review | **Done** 2026-11-18 to 2026-11-19; merged `5bd5d1e`; maintainability pass merged `e79731e` | None |
-| 7 | `docs/` restructure | **Done** 2026-11-22, on branch `docs-restructure` | None |
+| 7 | `docs/` restructure | **Done** 2026-11-22; merged `0b5e062` | None |
 
 The release is next.
 
