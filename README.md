@@ -4,6 +4,12 @@ Compute Tibetan calendar dates in JavaScript — leap months, doubled and skippe
 year names and observances — for almanac applications, practice calendars, and anything that has to
 show a Tibetan date and be right about it.
 
+It computes two calendars: **Phugpa**, the Men-Tsee-Khang standard and the basis of the almanacs most
+practitioners use, which is the default; and the **Bhutanese** calendar of the Royal Government of Bhutan.
+The **Tsurphu** (Karma Kagyu) and **Mongolian** calendars are **not included**: the engine can express
+them as configuration, but neither has been checked against an almanac of its own — see
+[Traditions](#traditions).
+
 ```sh
 npm install tibetan-calendar-temporal
 ```
@@ -57,7 +63,7 @@ see [why you can trust these dates](docs/why-trust-these-dates.md).
 | **Names in three renderings** | Tibetan script, Wylie, and THL Simplified phonetics (with eleven recorded corrections) for every weekday, element, gender, animal and rabjung year — each checked by machine against independent sources before it shipped |
 | **Observances** | The great holy days and the monthly cycle, as configurable rules. Each result says *how* it landed on its day, so a display can show the almanac's footnote instead of presenting a moved date as an exact one |
 | **Astrological attributes** | What kind of day it is, not just which day: the year's five elements, the month's and lunar day's labels, the calendar day's own, and the elemental yoga — which needs the moon's real position, not a cycle. A separate subpath, sourced piece by piece |
-| **Four traditions** | Phugpa and Bhutanese, each in two parameterisations. Constants and rules are injected as data, so a further tradition is a config object rather than a code change |
+| **Two calendars, four configs** | Phugpa and Bhutanese, each in two parameterisations. Constants and rules are injected as data, so a further tradition is a config object rather than a code change; Tsurphu and Mongolian are expressible that way but not shipped, because no almanac has checked them |
 | **Date arithmetic** | Add days or months, count between two dates, find the next true full or new moon, and reduce a month to one sortable integer for a database key |
 | **Fast, and computed rather than looked up** | No date tables, no network, nothing asynchronous: every answer is integer arithmetic done on the spot, identical on every platform. On a 2026 laptop a conversion takes about 7 µs, a month grid about 0.14 ms and a year of observances in 2–3 ms, so it can run in a render path — [measured, with the machine](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/bench/RESULTS.md#re-recorded-2026-11-18) |
 
@@ -412,10 +418,12 @@ back-projection is worse than the headline rate suggests. All three counts are r
 engine and asserted in `test/computation/conversion.test.ts`. The evidence for the default is in
 [docs/decisions/2026-08-12-lunar-anomaly-a2-default.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/decisions/2026-08-12-lunar-anomaly-a2-default.md).
 
-**The other real tradition is Tsurphu** (*mtshur phu*), the Karma Kagyu system, and it is **not
-shipped**. It is not shipped because nothing here has been validated against a Tsurphu almanac,
-and an unvalidated calendar published with this library's authority is exactly the failure this
-project exists to avoid — not because the algorithm cannot express it.
+**Two other versions are not shipped: Tsurphu** (*mtshur phu*), the Karma Kagyu system, **and the
+Mongolian** calendar, used in Mongolia and by the Buryats and Tuvinians. Neither ships because nothing
+here has been validated against an almanac of its own, and an unvalidated calendar published with
+this library's authority is exactly the failure this project exists to avoid — not because the
+algorithm cannot express them. For a Mongolian date today, `@hnw/date-tibetan` is the shortest
+route; see [when to use which](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/other-implementations.md).
 
 It can. Every astronomical constant is injected through a `TraditionConfig` rather than hardcoded,
 including the scaling denominator, which is *derived* from the constants rather than fixed — Phugpa
