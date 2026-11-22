@@ -162,7 +162,7 @@ Before explaining a residual by a formula, check whether the source uses the sam
   `src/errors.ts`; `assertTibetanShape`, `assertTibetanRanges` and `assertTibetanWeekday` in
   `src/types.ts`; `weekdayOffsetOf` in `src/names.ts`;
   `asWesternDay`, `monthCountFor` and `julianDayOfFields` in `src/computation/conversion.ts`;
-  `boundedMonth` in `src/months.ts`. Rule 14 catches copy-paste, not re-implementation, so at review
+  `boundedMonth` and `boundedMonthDays` in `src/months.ts`. Rule 14 catches copy-paste, not re-implementation, so at review
   ask: **which boundary helpers did you write, and did one already exist?**
 - **`assertTibetanShape` reads each field of the caller's date or month once** and returns a frozen,
   branded snapshot; everything after it takes the snapshot. A getter can answer differently the

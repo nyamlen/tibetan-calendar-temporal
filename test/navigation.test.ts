@@ -685,6 +685,24 @@ describe("addMonthsToDate", () => {
 		expect(thrown).toBeInstanceOf(SkippedDayError);
 	});
 
+	// M4.4: the candidate is resolved through the internal path, not the public resolveDate; the
+	// error's `requested` must still be the candidate, frozen, as SkippedDayError promises.
+	it("reports the skipped candidate, frozen, as the error's requested fields", () => {
+		const thrown = thrownBy(() =>
+			addMonthsToDate({ year: 2153, month: 2, day: 5 }, 1, { overflow: "reject" }),
+		);
+		expect(thrown).toBeInstanceOf(SkippedDayError);
+		const requested = (thrown as SkippedDayError).requested;
+		expect(requested).toEqual({
+			year: 2153,
+			month: 3,
+			day: 5,
+			isLeapMonth: false,
+			isLeapDay: false,
+		});
+		expect(Object.isFrozen(requested)).toBe(true);
+	});
+
 	it("lands on day 2 when the target month's day 1 is skipped (2154 M08)", () => {
 		expect(datesFor({ year: 2154, month: 8 })[0]?.day).toBe(2);
 		const stepped = addMonthsToDate({ year: 2154, month: 7, day: 1 }, 1);
