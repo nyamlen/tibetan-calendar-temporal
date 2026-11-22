@@ -310,6 +310,13 @@ describe("a date the engine made is not copied again", () => {
 		);
 		expect(year).toBe(month);
 	});
+
+	// M5.3: observancesOn re-entered getObservances, so its one day was copied three times.
+	it("observancesOn copies its one day once, one fewer than getObservances copies a one-day range", () => {
+		const day = Temporal.PlainDate.from("2026-03-01");
+		const range = copiesDuring(() => getObservances(day, day, EXAMPLE_OBSERVANCES));
+		expect(copiesDuring(() => observancesOn(day, EXAMPLE_OBSERVANCES))).toBe(range - 1);
+	});
 });
 
 describe("a native subclass is read from its slots", () => {
