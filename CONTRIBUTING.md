@@ -207,6 +207,16 @@ preference.
 | GitHub org URL | `github.com/nyamlen` |
 | Domains | `nyamlen.app`, `nyamlen.com` |
 
+## Releasing
+
+A release is published by [`.github/workflows/release.yml`](.github/workflows/release.yml), never from a laptop, so that npm's provenance ties the version to the commit that built it.
+
+1. On `main`, set `package.json#version` and add the version's entry to the changelog, in one commit, and push it.
+2. Tag that commit `v<version>` and push the tag.
+   Check the commit before pushing: the tag ruleset forbids moving or deleting a `v*` tag, so a wrong tag can be fixed only by disabling the ruleset.
+3. The workflow runs the full CI matrix on the tagged commit, refuses a tag that does not match `package.json#version` or a commit not on `main`, and then waits for approval in the `npm` environment.
+4. Approve the deployment; the job publishes through npm's trusted publishing, with no stored token.
+
 ## Licence
 
 Contributions are accepted under the MIT licence — see [LICENSE](LICENSE). By opening a

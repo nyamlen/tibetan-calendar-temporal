@@ -5,6 +5,8 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  # release.yml runs this whole workflow on the tagged commit before it publishes.
+  workflow_call:
 
 permissions:
   contents: read

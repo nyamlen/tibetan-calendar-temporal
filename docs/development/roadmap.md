@@ -256,8 +256,9 @@ The release is next.
       provenance automatically only for a public repository and package. Done 2026-11-22 by Andreas,
       with private vulnerability reporting switched on and Issues left on, so `package.json#bugs` resolves
 
-- [ ] **Add a `SECURITY.md`** (Andreas, 2026-11-22) saying that vulnerabilities are reported through
-      GitHub's private vulnerability reporting, which is switched on, and which versions receive fixes
+- [x] **Add a `SECURITY.md`** (Andreas, 2026-11-22) saying that vulnerabilities are reported through
+      GitHub's private vulnerability reporting, which is switched on, and which versions receive fixes.
+      Done 2026-11-22: fixes go to the latest release only; a wrong date is an issue, not a vulnerability
 
 - [ ] **Keep a `CHANGELOG.md` from 1.0.0.** Andreas, 2026-11-21: the first entry is 1.0.0 itself, and
       nothing that changed before it is recorded, because no released version behaved otherwise. From
@@ -270,8 +271,9 @@ The release is next.
 - [ ] Publish from **GitHub Actions with npm provenance**, not locally — provenance ties each
       released version to the commit that built it, which reinforces the clean-room record
 
-- [ ] **Configure npm trusted publishing** for this package on npmjs.com, naming this repository
-      and `release.yml`. It publishes over OIDC with **no stored token**, and generates provenance
+- [ ] **Configure npm trusted publishing** for this package on npmjs.com, naming this repository,
+      `release.yml` and the environment `npm`; npm does not check the entry when it is saved, and
+      an entry expires unless its first publish succeeds within two days, so create it just before tagging. It publishes over OIDC with **no stored token**, and generates provenance
       automatically — but only for a **public** repository and package, so the repository goes
       public before the first publish (see Repository below). It needs npm ≥ 11.5.1 and Node ≥ 22.14.
       Decided 2026-11-15, replacing a stored granular token: the security review found that item
@@ -285,10 +287,14 @@ The release is next.
 - [ ] `.github/workflows/release.yml` publishing on tag through trusted publishing, with
       `permissions: id-token: write` and no token; set up `actions/setup-node` as the workflow
       example on npm's trusted-publishers page does. Three safeguards from the security review:
-      **pin every action by commit SHA**, with the tag in a trailing comment (CI's own two actions
-      are pinned by tag today); **no `cache: npm`** in the job that publishes; and a **protected
-      environment or protected tags**, because with trusted publishing anyone who can push a release
-      tag can publish
+      **pin every action by commit SHA**, with the tag in a trailing comment; **no `cache: npm`** in
+      the job that publishes; and a **protected environment or protected tags**, because with trusted
+      publishing anyone who can push a release tag can publish.
+      Written 2026-11-22: it runs `ci.yml` on the tagged commit, refuses a tag that does not match
+      `package.json#version` or a commit not on `main`, and publishes from the environment `npm`.
+      **Open until that environment exists** (Settings → Environments → `npm`: Andreas as required
+      reviewer, deployment tags `v*` only) and the trusted-publisher entry names it. The procedure is
+      in CONTRIBUTING.md, "Releasing"
 
 - [ ] Confirm `repository.url` still matches the building repo. Provenance attestation fails if
       they disagree — currently correct, but it would have broken had the repo not been
@@ -336,8 +342,8 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
       does not — see
       [2026-08-16-package-name-and-tradition-scope.md](../decisions/2026-08-16-package-name-and-tradition-scope.md)
 
-- [ ] A **branch ruleset** on `main` (Settings → Rules → Rulesets): *Restrict deletions* and *Block
-      force pushes*, no bypass. Force-push protection matters here specifically — the commit history
+- [x] A **branch ruleset** on `main` (Settings → Rules → Rulesets): *Restrict deletions* and *Block
+      force pushes*, no bypass. Created by Andreas, 2026-11-22. Force-push protection matters here specifically — the commit history
       is the clean-room evidence of independent derivation, and a rewrite would undermine it. Leave
       *Require linear history* off (branches merge with `--no-ff`) and *Require signed commits* off
 
@@ -347,9 +353,9 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
       (Andreas, 2026-11-22). Not before: a required check rejects a direct push to `main`, so it
       forces every change through a pull request, which protects nothing while one person pushes
 
-- [ ] A **tag ruleset** for `v*` before the first release tag: *Restrict updates*, *Restrict
-      deletions* and *Block force pushes*, no bypass; *Restrict creations* off, or the release
-      workflow cannot tag. npm never republishes a version, and provenance records the commit that
+- [x] A **tag ruleset** for `v*` before the first release tag: *Restrict updates*, *Restrict
+      deletions* and *Block force pushes*, no bypass; *Restrict creations* off, or no release tag
+      can be pushed. Created by Andreas, 2026-11-22. npm never republishes a version, and provenance records the commit that
       built it, so a moved or recreated release tag would contradict the published record (and could
       re-run the release workflow). A mistaken tag is then fixed only by disabling the ruleset, so
       the release procedure tags the commit being published and checks it before pushing
