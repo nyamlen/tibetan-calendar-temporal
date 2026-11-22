@@ -145,7 +145,7 @@ covered:
 
 | Risk | Retired by |
 |------|-----------|
-| Does the published artifact work — installs, resolves through `exports`, all three subpaths import? | Largely `scripts/check-pack.mjs`, in CI |
+| Does the published artifact work — installs, resolves through `exports`, every exported subpath imports? | Largely `scripts/check-pack.mjs`, in CI |
 | **Is the API shape right?** | Nothing yet. Only code that has to *make decisions* surfaces it |
 
 The second is the one 1.0.0 freezes permanently, and no test in this repository can see it: every
@@ -1696,7 +1696,7 @@ nothing and reports success.
       `/security-review` is **diff-shaped**, so run it on that range
       (`git diff 34b8ab4..<fixes-branch tip> -- src/`), with the scope above stated first or the pass
       will invent findings: zero runtime dependencies, no I/O, no network, no filesystem access.
-- [ ] **Full adversarial review.** Not a code review with a harsher tone: the subject is the
+- [x] **Full adversarial review.** Not a code review with a harsher tone: the subject is the
       **claims**, not the code. Every load-bearing assertion this repository makes about itself —
       the validation windows and what they actually cover, "exported means validated", the
       zero-dependency claim through the lockfile and the published `.d.ts`, the clean-room evidence,
@@ -1716,11 +1716,17 @@ nothing and reports success.
       ignored in non-strict code; a `PlainDateTime` or `ZonedDateTime` subclass is read from its slots;
       six-season month names list `part` second). They need no release note: they landed before 1.0.0,
       so no released version behaved otherwise.
-      **Merged to `main` 2026-11-21 as `5bd5d1e`.** Not ticked: the maintainability shards M1–M6
-      (Opus) and P1 (`scripts/check-pack.mjs`, `scripts/check-pack-consumer.mjs`, Sonnet) are part of
-      this review's coverage and have not run; they review the merged `main` on a branch of their own.
-      The seven findings the fixes branch's reviews parked are in the "Small findings parked by the
-      pre-1.0.0 reviews" item above.
+      **Merged to `main` 2026-11-21 as `5bd5d1e`.** The seven findings the fixes branch's reviews parked
+      are in the "Small findings parked by the pre-1.0.0 reviews" item above, all fixed (merged as
+      `eac11ed`).
+      **The maintainability pass ran 2026-11-21 to 2026-11-22** over the merged `main` (`eac11ed`): six
+      Opus shards M1–M6 over every file of `src/`, and one Sonnet agent, P1, over
+      `scripts/check-pack.mjs` and `scripts/check-pack-consumer.mjs`. Their 37 distinct findings —
+      second copies of a rule, lists not tied to their types, defaulted parameters that hid a
+      forgotten argument, stale comments, and release gates that passed on a broken package — were
+      all ruled fix by Andreas and fixed on the `maintainability-fixes` branch, with no change to the
+      public surface or to any computed date. The findings and the plan are in the plans directory
+      (`adversarial-review-2026-11/`, `maintainability-fixes.md`).
 
 **Publishing**
 
@@ -1767,7 +1773,7 @@ nothing and reports success.
 
 - [x] **Packaging is verified in CI.** `check:publish` runs `publint` and `attw --pack . --profile
       esm-only`; `test:pack` packs the tarball, installs it into a scratch directory outside the
-      repository, and imports all three subpaths as a consumer would. The gap they close is structural
+      repository, and imports every subpath its `exports` map declares as a consumer would. The gap they close is structural
       rather than incidental: every other test imports from `src/`, so nothing else in the suite
       can see a broken `exports` map, a file missing from `files`, or a `dist/` layout that does
       not match what `exports` points at. Those fail only for a consumer, after publishing.
