@@ -347,7 +347,7 @@ describe("a native subclass is read from its slots", () => {
 
 	it("hands the engine a plain Temporal.PlainDate, never the caller's subclass", () => {
 		// Compared as a boolean: Vitest's diff of two prototypes calls a Temporal method on one.
-		const prototype = Object.getPrototypeOf(asPlainDate(new LyingSince(2024, 7, 9)));
+		const prototype = Object.getPrototypeOf(asPlainDate(new LyingSince(2024, 7, 9), "test"));
 		expect(prototype === Temporal.PlainDate.prototype).toBe(true);
 	});
 
