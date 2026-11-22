@@ -7,7 +7,7 @@ import { getObservancesChunked } from "../support/observances-chunked.js";
 // The sojong schedule inferred from Rabten Choeling's calendar, held against Rabten's own days.
 // The rule is a fit to one source and is not sourced from it: Rabten states no method. Agreement is
 // stated over Rabten's day-level range, 2000-02-19 (its first sojong) to its last date in the
-// fixture, and the window is recorded in docs/testing.md.
+// fixture, and the window is recorded in docs/development/testing.md.
 
 const SOJONG: ObservanceConfig = {
 	id: "rabten-sojong",

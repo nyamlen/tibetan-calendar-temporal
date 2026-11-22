@@ -1202,7 +1202,7 @@ in a minor release, so an unknown value is a label to fall back on and not an er
 ---
 
 Contributor-facing documentation lives in the repository rather than in the published package:
-[architecture](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/architecture.md),
-[testing strategy](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/testing.md) and
-[traditions](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/traditions.md).
+[architecture](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/development/architecture.md),
+[testing strategy](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/development/testing.md) and
+[traditions](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/sources/traditions.md).
 `how-it-is-calculated.md` is not one of them — it ships, and is linked relatively above.

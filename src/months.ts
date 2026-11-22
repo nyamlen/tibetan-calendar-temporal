@@ -329,7 +329,7 @@ export function monthsFor(year: number, tradition: TraditionConfig = PHUGPA): Ti
  * building the year: one `true_date` pair against the ~26 the whole list costs.
  *
  * **Not named `monthFor`.** That differs from {@link monthsFor} by one letter, takes the same
- * first argument and returns a month-shaped thing — the collision [`docs/coding-standards.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/coding-standards.md)
+ * first argument and returns a month-shaped thing — the collision [`docs/development/coding-standards.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/development/coding-standards.md)
  * records as compiling silently and recursing.
  *
  * @param month - The month to resolve. `isLeapMonth` defaults to `false`, the regular month.
@@ -444,7 +444,7 @@ export function hasLeapMonth(year: number, tradition: TraditionConfig = PHUGPA):
  * Where the leap month *sits* relative to its twin is `TraditionConfig.leapMonthPosition`.
  * Phugpa, Tsurphu and the Mongolian version place it **before** the regular month
  * sharing the number; Bhutan numbers from the **preceding** month, so its leap month follows —
- * `monthsFor(2151, BHUTAN)` runs `... M08 M08L ...`. See [traditions.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/traditions.md).
+ * `monthsFor(2151, BHUTAN)` runs `... M08 M08L ...`. See [traditions.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/sources/traditions.md).
  *
  * @throws RangeError with code `TCT_FIELD_OUT_OF_RANGE` if `year` is not a safe integer, a value
  * that is not a number included; `TCT_OUTSIDE_EXACT_RANGE` if it falls beyond the tradition's

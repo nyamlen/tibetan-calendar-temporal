@@ -275,7 +275,7 @@ const crossVersionLeap = [];
 // These validate the astrological attribute layer, and they are the only external check it has:
 // Janson computes these tables from the formulas, but he computed them independently of *our*
 // implementation of those formulas, so agreement catches a transcription error or a misread
-// formula. It does not catch a shared misreading of the paper, and docs/testing.md says so.
+// formula. It does not catch a shared misreading of the paper, and docs/development/testing.md says so.
 //
 // T60e is the one that matters most. It prints all five of a year's elements against the sixty-year
 // cycle, so a single table pins power, life, body, fortune and spirit at every cycle position.
@@ -607,7 +607,7 @@ ${crossVersionLeap
 writeFileSync(
 	join(fixtures, "janson-attributes.ts"),
 	`${header(
-		"Janson's Appendix E attribute tables: the five elements a year carries, the animal and gender\n * of each month, and the life and spirit elements by animal.\n *\n * These check the astrological layer against tables Janson computed independently of our\n * implementation of his formulas. That catches a transcription error or a misread formula; it\n * cannot catch a shared misreading of the paper, so it is not external corroboration. See\n * docs/testing.md.",
+		"Janson's Appendix E attribute tables: the five elements a year carries, the animal and gender\n * of each month, and the life and spirit elements by animal.\n *\n * These check the astrological layer against tables Janson computed independently of our\n * implementation of his formulas. That catches a transcription error or a misread formula; it\n * cannot catch a shared misreading of the paper, so it is not external corroboration. See\n * docs/development/testing.md.",
 	)}
 export interface JansonYearElementsRow {
 	/** Position in the Chinese 60-year cycle, 1-60. */

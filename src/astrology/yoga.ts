@@ -14,7 +14,7 @@
  * *tshig mdzod chen mo*, a Tibetan dictionary outside Henning's lineage, states the same ten element
  * pairs as Henning and grades the ten into four groups, which is `auspiciousness`. See
  * [`docs/astrology.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/astrology.md) for the reader-facing account and
- * [`docs/almanac-sources.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/almanac-sources.md) for the sourcing.
+ * [`docs/sources/almanac-sources.md`](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/sources/almanac-sources.md) for the sourcing.
  *
  * **The elements are the Indian four, not the Chinese five** — earth, fire, water and wind. `wood`
  * and `iron` never appear, which is why this uses {@link TibetanWeekdayElement} rather than

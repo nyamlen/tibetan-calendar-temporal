@@ -79,7 +79,7 @@ describe("eszthoff/tibetan-date-calculator, 2023-2027", () => {
 
 // christian-steinert agrees with the engine and with Lotsawa House on the a2 fork, but uses a
 // different rule for which number a skipped date consumes. The disagreements are catalogued
-// rather than asserted away -- see docs/testing.md, "Where christian-steinert differs".
+// rather than asserted away -- see docs/development/testing.md, "Where christian-steinert differs".
 describe("christian-steinert, 2024-2027", () => {
 	const mismatches = mismatchesIn(STEINERT_DATES);
 

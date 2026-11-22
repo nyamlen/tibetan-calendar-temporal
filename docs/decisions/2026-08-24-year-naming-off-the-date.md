@@ -83,4 +83,4 @@ table rather than two objects on every date of every year.
 This removes two fields from the primary return type, so it breaks any consumer reading
 `date.yearName` or `date.rabjung`. The package is pre-v1.0.0 and unpublished beyond a placeholder,
 which is why it happens now rather than never. Recorded on the pre-v1.0.0 checklist in
-`docs/roadmap.md`.
+`docs/development/roadmap.md`.

@@ -6,7 +6,7 @@ vocabulary. This one is the record of the *hunt*: every source tried for these s
 could and could not answer, and why the ones that were rejected were rejected.
 
 It exists for one reason. The work spanned six sessions and several sources were tried, exhausted and
-abandoned; without a record the next person re-walks them. [validation-sources.md](../validation-sources.md)
+abandoned; without a record the next person re-walks them. [validation-sources.md](../sources/validation-sources.md)
 makes that case for calendar dates and states the rule this file follows: **agreement is only evidence
 if the source did not reach its answer the way we did**.
 

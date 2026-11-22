@@ -6,36 +6,38 @@ dependencies, built on Temporal.
 This file states each rule and why it exists, with at most one example.
 The incident behind a rule belongs in its commit message or decision record, not here.
 
-- Every rule, and **what fails when you break it**: [docs/coding-standards.md](docs/coding-standards.md) —
+- **Every document, grouped by reader**: [docs/README.md](docs/README.md) — consumer documents at the
+  top of `docs/`, contributor documents in `docs/development/`, provenance in `docs/sources/`
+- Every rule, and **what fails when you break it**: [docs/development/coding-standards.md](docs/development/coding-standards.md) —
   the enforcement map. This file says *why* a rule exists; that one says whether a machine catches it
 - **How the calendar works**: [docs/how-it-is-calculated.md](docs/how-it-is-calculated.md) — read it
   before touching the arithmetic or arguing about a divergent date
-- Architecture, API design, core types: [docs/architecture.md](docs/architecture.md)
+- Architecture, API design, core types: [docs/development/architecture.md](docs/development/architecture.md)
 - **Consumer guide**: [docs/guide.md](docs/guide.md) — ships to npm; its examples are contract,
   asserted by `test/guide.test.ts`
 - **What is validated, over which years**: [docs/why-trust-these-dates.md](docs/why-trust-these-dates.md)
-  — ships to npm. **It and `docs/testing.md` are the only documents that may quote a validation
+  — ships to npm. **It and `docs/development/testing.md` are the only documents that may quote a validation
   window**; everything else links to them
-- **FPMT's calendar**: [docs/fpmt-calendar.md](docs/fpmt-calendar.md) — not shipped; FPMT-specific
+- **FPMT's calendar**: [docs/sources/fpmt-calendar.md](docs/sources/fpmt-calendar.md) — not shipped; FPMT-specific
   validation reports its window there, not in `why-trust-these-dates.md`
 - **Observances**: [docs/observances.md](docs/observances.md) — not shipped. Levels are declared by
   the config, there is no `kind`; its practice knowledge is marked as Andreas' and unsourced — keep it marked
 - Other implementations: [docs/other-implementations.md](docs/other-implementations.md) — public
   metadata only, **no competitor source is ever read**
-- Testing strategy and every validation window: [docs/testing.md](docs/testing.md)
-- **Every source checked against, and its lineage**: [docs/validation-sources.md](docs/validation-sources.md)
+- Testing strategy and every validation window: [docs/development/testing.md](docs/development/testing.md)
+- **Every source checked against, and its lineage**: [docs/sources/validation-sources.md](docs/sources/validation-sources.md)
   — read **before** treating a new source as corroboration. Two sources in one lineage agreeing tells
   you nothing; it also lists rejected sources so dead ends are not re-walked
-- What differs between traditions, and two source traps: [docs/traditions.md](docs/traditions.md)
+- What differs between traditions, and two source traps: [docs/sources/traditions.md](docs/sources/traditions.md)
 - Provenance of every name string: [docs/names/](docs/names/) — `vocabulary.md`, `rabjung.md`, and a
   sourcing record per verifier (`rabjung-sourcing.md`, `month-and-yoga-sourcing.md`, whose status
   header says which decisions the code enforces, `mansion-and-trigram-sourcing.md`,
   `observance-sourcing.md`). Read the relevant one before treating a new source as corroboration for a name
 - **How the name verifiers work**: [docs/names/verifiers.md](docs/names/verifiers.md)
 - **How to prove a check, harness, probe or document suite measures anything**:
-  [docs/verification-craft.md](docs/verification-craft.md) — read it before touching
+  [docs/development/verification-craft.md](docs/development/verification-craft.md) — read it before touching
   `scripts/check-conventions.mjs`, a generator, a validation predicate or a document suite
-- Phases and the **pre-v1.0.0 checklist**: [docs/roadmap.md](docs/roadmap.md) — check before any release
+- Phases and the **pre-v1.0.0 checklist**: [docs/development/roadmap.md](docs/development/roadmap.md) — check before any release
 - Contributor rules, dev setup: [CONTRIBUTING.md](CONTRIBUTING.md)
 - Decision records: [docs/decisions/](docs/decisions/)
 
@@ -92,7 +94,7 @@ Janson table is not sufficient: the name verifiers require independent checks, a
 lineage decides whether it is one (his sixty-year table is Henning's, so the two are one witness).
 Corrections live in the verifiers as self-invalidating data; never patch a name by editing
 `src/names.ts`. Two notation traps, the semicolon-versus-comma mixed radix and the epoch table one
-mean lunar month off a `TraditionConfig`'s, are in [docs/traditions.md](docs/traditions.md).
+mean lunar month off a `TraditionConfig`'s, are in [docs/sources/traditions.md](docs/sources/traditions.md).
 
 ### Fixtures are generated, not transcribed
 
@@ -125,7 +127,7 @@ Simplified) governs a shipped or tabulated data column**, because house style ca
 
 ### Quote the right window
 
-Validation windows live in `docs/testing.md`; cite the window whenever citing an agreement, and
+Validation windows live in `docs/development/testing.md`; cite the window whenever citing an agreement, and
 never quote one from this file. Three windows must not be confused:
 
 - **Dates** — the union of the external sources.
@@ -208,12 +210,12 @@ Before explaining a residual by a formula, check whether the source uses the sam
   whether that was intended. `test/docblock-examples.test.ts` asserts every valued `@example`, **is
   maintained by hand and nothing checks it is complete**: add the `expect` in the same commit as the example.
 - **Types and signatures are invisible to those suites.** Rules 13 and 16 hold the barrels against
-  the README's lists ([docs/coding-standards.md](docs/coding-standards.md)), but **a type declared in a
+  the README's lists ([docs/development/coding-standards.md](docs/development/coding-standards.md)), but **a type declared in a
   barrel's body is invisible to them**, so declare types in a module and re-export them
   (`DayAttributes` lives in `src/astrology/types.ts`). Prose describing a type's fields is unguarded:
-  removing or renaming a type needs a hand sweep of `docs/architecture.md`, `docs/guide.md` and
-  docblocks (re-count the shapes with `grep -c '^interface ' docs/architecture.md`).
-  **`docs/architecture.md`'s shapes are complete — every field**; adding a field to an exported type
+  removing or renaming a type needs a hand sweep of `docs/development/architecture.md`, `docs/guide.md` and
+  docblocks (re-count the shapes with `grep -c '^interface ' docs/development/architecture.md`).
+  **`docs/development/architecture.md`'s shapes are complete — every field**; adding a field to an exported type
   includes its shape there.
 - **Before changing a signature, count the call sites that actually break and put the number in the
   commit message.** The compiler finds them only after you have decided the change was small.
@@ -226,7 +228,7 @@ Before explaining a residual by a formula, check whether the source uses the sam
 - **A `TraditionConfig` is exported only once its dates are checked against an external calendar**,
   and its docblock says what that check was (a day-by-day tiling vs a sample). A suite in
   `test/validation/` must **import** it (rule 10; its reach is in
-  [docs/coding-standards.md](docs/coding-standards.md)). Expressing a tradition, validating its leap months and
+  [docs/development/coding-standards.md](docs/development/coding-standards.md)). Expressing a tradition, validating its leap months and
   validating its dates are three claims: Tsurphu and Mongolian stay unexported. Self-consistency is not
   a substitute.
   [docs/decisions/2026-08-16-exported-means-validated.md](docs/decisions/2026-08-16-exported-means-validated.md).
@@ -299,7 +301,7 @@ The published package declares `engines: ">=26"` **and** guards at import time (
 **Testing under a polyfill needs `installImplementation()`** from `temporal-polyfill/shim` (or
 `temporal-polyfill/implementation` for a genuinely second class): `/global` and the main export are
 no-ops beside a native `Temporal`. Resolve them from a scratch directory outside the repo. Playwright's
-WebKit has a native `Temporal` and shipping Safari does not. Evidence: `docs/testing.md`, *Under a polyfill*.
+WebKit has a native `Temporal` and shipping Safari does not. Evidence: `docs/development/testing.md`, *Under a polyfill*.
 
 **Temporal has no user-defined calendars**; do not attempt a calendar adapter —
 [docs/decisions/2026-08-11-temporal-custom-calendars.md](docs/decisions/2026-08-11-temporal-custom-calendars.md).
@@ -322,7 +324,7 @@ Node's erase-only type stripping (`erasableSyntaxOnly` catches violations at typ
 `build`, `test`, `check:publish`, `test:pack` — CI runs all ten in that order.
 
 - **`check:conventions`** enforces the rules lint, typecheck and the suite cannot see; what each rule
-  covers is in [docs/coding-standards.md](docs/coding-standards.md). When you add a rule here, check
+  covers is in [docs/development/coding-standards.md](docs/development/coding-standards.md). When you add a rule here, check
   whether the script can hold it, and write the failing case first. **Judge it by its exit code**:
   its last line can be blank on failure. Rule 14 reads each overload signature as a function, so
   overloads sharing one implementation trip it — write one generic function instead.
@@ -335,11 +337,12 @@ Node's erase-only type stripping (`erasableSyntaxOnly` catches violations at typ
 - **`check:publish` and `test:pack` are the only checks that see the published package.** `test:pack`
   packs without building (proving `prepack`), installs outside the repo and asserts values through all
   three subpaths. `attw` runs `--profile esm-only`: do not add `main` to green a row.
-- **`check:links`** validates relative links and fragments; fix inbound links in the same commit.
+- **`check:links`** validates relative links and fragments, and this repository's own `blob/main` URLs
+  offline; fix inbound links in the same commit.
   **Never put an em dash in a heading you link to** — this checker's slug and GitHub's differ for it.
 
 **Seven release-time commands are outside CI**: `coverage`, `bench`, and the five `verify:*` name
-verifiers ([docs/coding-standards.md](docs/coding-standards.md) lists them). The verifiers' committed
+verifiers ([docs/development/coding-standards.md](docs/development/coding-standards.md) lists them). The verifiers' committed
 fixtures are what gate a push. **Run them one at a time** (THL answers parallel runs with 503s), **run Biome on their output after every run**, and
 restore a fixture that differs only by its date stamp. Details: [docs/names/verifiers.md](docs/names/verifiers.md).
 

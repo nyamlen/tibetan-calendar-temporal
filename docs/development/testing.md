@@ -162,10 +162,10 @@ A window of days gives the Tibetan years holding its first and last day; a windo
 | **lscalendars/tibcalendar** | <https://github.com/lscalendars/tibcalendar> | C library, reference implementation for Tibetan calendrical calculations | **Deferred.** A fourth implementation of the same paper, needing a C toolchain, adding no independent tradition line |
 
 > **Clean-room note.** Running these to compare *outputs* is permitted — dates are facts, not
-> copyrightable expression. Reading their source is not. See [CONTRIBUTING.md](../CONTRIBUTING.md).
+> copyrightable expression. Reading their source is not. See [CONTRIBUTING.md](../../CONTRIBUTING.md).
 
 > **The `a₂` fork is settled — these sources do not straddle it.** Resolved 2026-08-12; see
-> [decisions/2026-08-12-lunar-anomaly-a2-default.md](decisions/2026-08-12-lunar-anomaly-a2-default.md).
+> [decisions/2026-08-12-lunar-anomaly-a2-default.md](../decisions/2026-08-12-lunar-anomaly-a2-default.md).
 >
 > Janson §7 records two values for the lunar anomaly's daily increment `a₂`: almanacs use
 > `1/28`, while Henning uses the exact `3781/105840`. They disagree on roughly one day in 4,100 days
@@ -218,7 +218,7 @@ Bhutanese rule identifies the regular month *followed by* a leap month, and the 
 that number — so the number this engine reports is already the Bhutanese one. What remains
 unmodelled is the leap month's **position**: in Bhutan it falls after the regular month sharing its
 number, everywhere else before. That shifts day-level dates and the true month count. See
-[traditions.md](traditions.md).
+[traditions.md](../sources/traditions.md).
 
 ### Results
 
@@ -277,7 +277,7 @@ the engine's own lineage, so it proves the implementation rather than the calend
 locate the difference. Measured 2026-09-14 for 2022–2025 CE (Tibetan 2148–2152) and 2026-11-08 for 2026 CE (Tibetan 2152–2153), where Henning's
 file spells one mansion *gro zhin* and the engine *gro bzhin*: the same mansion.
 Re-measured over all five years on 2026-11-19 by the harness in
-[`scripts/evidence/henning-mansions/`](../scripts/evidence/henning-mansions/README.md), which reruns
+[`scripts/evidence/henning-mansions/`](../../scripts/evidence/henning-mansions/README.md), which reruns
 the comparison from Henning's pages and exits non-zero if either figure moves.
 
 **And the 37 are one-sided.** 28 sit in the last 15% of the moon's mansion, and on 27 of those FPMT's
@@ -285,7 +285,7 @@ element is the *next* mansion's; one sits at the start of a mansion; eight are m
 moon runs slightly ahead, and not by a constant amount: 2022, 2023 and 2024 have 6, 2 and 5
 disagreements, 2025 has 22, and 2026 has 2. No cause is established. Ruled out — the karaṇa moon longitude, a
 constant offset, a later time of day, the other `a₂` — with the measurements in
-[validation-sources.md](validation-sources.md).
+[validation-sources.md](../sources/validation-sources.md).
 **One candidate is outstanding rather than ruled out**, and it is not arithmetic: FPMT was asked on
 2026-09-19 whether anything changed in how the calendar was prepared in 2025. The question is worth
 recording because a second, independent residual clusters in the same year — the engine's `FD-`/`UD-`
@@ -399,7 +399,7 @@ The rule is **inferred, not sourced**: Rabten states no method, and its lineage 
 with it says nothing about whether the rule is the tradition's.
 FPMT's calendar departs from the rule for one run, 2022-04-30 to 2022-12-22 (17 of its 124 sojongs in
 2022–2026 CE, Tibetan 2148–2153), which the form does not express; see
-[validation-sources.md](validation-sources.md#rabten-choelings-calendar-hennings-lunar-anomaly-value-method-unstated).
+[validation-sources.md](../sources/validation-sources.md#rabten-choelings-calendar-hennings-lunar-anomaly-value-method-unstated).
 The "Sojong 14" label is not reported on results, and is not compared here.
 
 **The exclusion's two readings agree on every real year, and only a synthetic parameter tells them apart.**
@@ -423,7 +423,7 @@ choice that no real schedule tests.
 calendars print a Tibetan day number for every Gregorian day, and are prepared from the
 Men-Tsee-Khang calendar. That makes it the one fixture capable of carrying information about the
 `a₂` fork, which needs a grid showing *which* number is doubled — see
-[decisions/2026-08-12-lunar-anomaly-a2-default.md](decisions/2026-08-12-lunar-anomaly-a2-default.md),
+[decisions/2026-08-12-lunar-anomaly-a2-default.md](../decisions/2026-08-12-lunar-anomaly-a2-default.md),
 written when no such source was to hand.
 
 **It decides for the shipped default.** Against 1,826 days, `PHUGPA` (`a₂ = 1/28`) diverges on
@@ -469,7 +469,7 @@ cause were something other than a one-off difference in which number a date cons
 The same pages print a full- or new-moon icon in the day's cell. They are the first external check
 of the `isFullMoon` and `isNewMoon` fields, and through them of `nextFullMoon` and `nextNewMoon`.
 Where the icons come from is not known —
-[validation-sources.md](validation-sources.md#fpmts-moon-icons-lineage-unknown) — so this is
+[validation-sources.md](../sources/validation-sources.md#fpmts-moon-icons-lineage-unknown) — so this is
 agreement with FPMT's icons, not with the almanac.
 
 **The unit is the moon, not the icon.** Over 1 January 2022 to 31 December 2026 (Tibetan 2148–2153) the engine computes
@@ -613,7 +613,7 @@ Not a tier and not in CI: two runs by hand, recorded here with their dates and c
 the engine gives the same answers whichever `Temporal` it runs on. Whether those answers are right is
 the rest of this document.
 
-Both runs used the probe in the nyamlen repository, `spikes/polyfill-probe/`. The probe exercises
+Both runs used a probe kept in a private repository. The probe exercises
 every export over Tibetan month 2151-M06L, the leap month 6 of 2151, from 6 July to 4 August 2024:
 its grid, its days' attributes and observances, the date numbers it lacks, and the argument
 handling. Its output is one JSON dump per configuration, compared by hash.

@@ -2,7 +2,7 @@
 
 **Status: checked.**
 The record was written ahead of the code and has been checked against it: `scripts/verify-observance-names.mjs` re-checks every claim below on each run, and its output is `test/fixtures/observance-names.ts`.
-It follows [month-and-yoga-sourcing.md](month-and-yoga-sourcing.md), and the rule it inherits from [validation-sources.md](../validation-sources.md): **agreement is only evidence if the source did not reach its answer the way we did.**
+It follows [month-and-yoga-sourcing.md](month-and-yoga-sourcing.md), and the rule it inherits from [validation-sources.md](../sources/validation-sources.md): **agreement is only evidence if the source did not reach its answer the way we did.**
 
 The Tibetan spellings in the tables were proposals from the author's own knowledge and **were never evidence**; each ships only because the checks below found it attested.
 A spelling that fails a check does not ship, whatever this page says.

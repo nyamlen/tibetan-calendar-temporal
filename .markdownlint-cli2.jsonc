@@ -4,7 +4,7 @@
 //
 // What this check does NOT do: **semantic line breaks**. Markdownlint has no rule for them,
 // and MD013 — the closest thing, a hard column limit — is switched off precisely because it
-// fights the convention. Semantic line breaks are review-only, and docs/coding-standards.md
+// fights the convention. Semantic line breaks are review-only, and docs/development/coding-standards.md
 // says so rather than implying this command covers them.
 {
 	// Respects .gitignore, so node_modules, dist/ and the untracked working files stay out

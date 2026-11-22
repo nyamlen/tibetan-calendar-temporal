@@ -220,7 +220,7 @@ describe("moon phases", () => {
 	}, 30_000);
 });
 
-// The Tier 1 property docs/testing.md has promised since Phase 0. It constrains the *output*:
+// The Tier 1 property docs/development/testing.md has promised since Phase 0. It constrains the *output*:
 // every observance must name a day that exists. Both skipped-day conventions satisfy it --
 // "omit" by emitting nothing, "preceding" by moving to a day that does exist -- so this does not
 // smuggle in a policy, which is easy to misread it as doing.

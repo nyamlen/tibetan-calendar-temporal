@@ -180,7 +180,7 @@ reimplementation.
 They were deleted from `cycles.ts` too, not merely unexported, and that was a separate call:
 **nothing in `src/` called them.** `epoch.ts` builds `TibetanYearName` from `names.ts` directly, so
 the wrappers had no internal user, and `requireName` — which existed only to serve them — went with
-them. Keeping them would have been dead code carrying a live hazard: `docs/coding-standards.md`
+them. Keeping them would have been dead code carrying a live hazard: `docs/development/coding-standards.md`
 records `*For`/`*Of` being one character apart as a trap that **compiles** and recurses infinitely,
 and this removes three of its four instances. Restoring one is three lines if a real consumer ever
 appears.
@@ -225,7 +225,7 @@ contract.
 | `nextFullMoon` / `nextNewMoon` also accept `TibetanDateFields` | second test — purely additive; navigation is Tibetan-in throughout |
 | `leapMonthOfYear` → `leapMonthNumberFor` | the `*For`/`*Of` hazard, last public instance. It stays a **number**: returning a `TibetanMonth` would evaluate `true_date` and shrink the domain, and that wider domain is why 2026-08-13 exported the scalars at all |
 | An absent required field throws `TCT_INVALID_ARGUMENT` | not an API-shape question but a **behaviour** change, recorded here because it is breaking |
-| Two naming rules, no code change | see [coding-standards.md](../coding-standards.md) |
+| Two naming rules, no code change | see [coding-standards.md](../development/coding-standards.md) |
 
 **One recommendation was withdrawn on examination**, and that matters as much as the nine taken:
 the two conversion-naming families were suspected of contradicting each other and do not. Recorded

@@ -14,7 +14,7 @@
  * - **Validated:** which month number is the leap month, and in which years, for all four versions
  *   over 2000-2030.
  * - **Not validated:** any day-level date for anything but Phugpa. That needs `m₀`, `s₀`, `a₀`, and
- *   `docs/traditions.md` records why those are not yet safe to transcribe.
+ *   `docs/sources/traditions.md` records why those are not yet safe to transcribe.
  *
  * The configs come from `test/support/versions.ts` — `PHUGPA` with three fields replaced, which is
  * legitimate precisely because nothing else participates. `leapMonthPosition` is the third and does

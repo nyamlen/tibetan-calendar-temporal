@@ -2,7 +2,7 @@
 
 FPMT publishes a monthly Tibetan calendar at `fpmt.org/resources/calendar/YYYY/Month.php`.
 This document records facts about that calendar that are specific to FPMT and that this package does not ship: how FPMT dates eclipses, which anniversaries it prints on which dates, and where its sojong departs from the counted schedule.
-It is not shipped, and its figures are not validation claims about the package — those are in [why-trust-these-dates.md](why-trust-these-dates.md).
+It is not shipped, and its figures are not validation claims about the package — those are in [why-trust-these-dates.md](../why-trust-these-dates.md).
 
 Every Western date below is a Western (Gregorian) date, and every "month" and "day" is Tibetan, Phugpa tradition.
 The observations cover FPMT's calendars from January 2022 to December 2026, all in `test/fixtures/fpmt-observances.ts`. The 2026 pages were first read by hand on 2026-09-19, January to October, and generated into the fixture on 2026-11-08, once December had been published.
@@ -47,7 +47,7 @@ Henning says as much: the Tibetan methods lack the theory solar eclipses need, a
 
 So the package does not compute eclipses.
 A front end that shows them sources them from an astronomical ephemeris.
-A Tibetan eclipse computation would belong beside Janson's Appendix D, in a subpath of its own beyond v1 (`./astronomy` is proposed, not decided); the full measurement is recorded in [roadmap.md](roadmap.md#beyond-v1).
+A Tibetan eclipse computation would belong beside Janson's Appendix D, in a subpath of its own beyond v1 (`./astronomy` is proposed, not decided); the full measurement is recorded in [roadmap.md](../development/roadmap.md#beyond-v1).
 
 ## Anniversaries
 
@@ -147,7 +147,7 @@ Read as practice knowledge, which Andreas stated on 2026-11-10 and no published 
 A tsok is always offered within a sādhana, and the Yamāntaka practice — a protector practice — carries a tsok commitment, so a day labelled "Protector puja" can be a tsok day too.
 An open calendar printing "Tsog" tells an initiate the day and tells someone uninitiated nothing about what to do.
 **So neither label identifies a practice, and neither says who the day is for.**
-What this means for a configuration, and the levels that replaced the tiers, is in [observances.md](observances.md#who-a-practice-is-for).
+What this means for a configuration, and the levels that replaced the tiers, is in [observances.md](../observances.md#who-a-practice-is-for).
 
 ## FPMT's prose guidance against the nineteen rules
 
@@ -195,7 +195,7 @@ Where the calendars, not the prose, state these six anniversaries, the section "
 ### The dakini days: the day numbers agree and the naming differs
 
 FPMT calls both the 10th and the 25th dakini days.
-The example names the 25th "Ḍākinī Day" and the 10th "Heruka Day", both authored names composed from dedications Cornu gives ([observances.md](observances.md#the-basis-of-each-english-name-in-the-example)).
+The example names the 25th "Ḍākinī Day" and the 10th "Heruka Day", both authored names composed from dedications Cornu gives ([observances.md](../observances.md#the-basis-of-each-english-name-in-the-example)).
 The names are kept by decision, and no FPMT page fetched uses "Heruka Day".
 
 ### Doubled and skipped days

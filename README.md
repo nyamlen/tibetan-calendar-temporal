@@ -368,7 +368,7 @@ a serialised year cost.
 `yearNameFor` gives the element–animal name practitioners recognise. `rabjungFor` gives the Indian
 60-year cycle, which is a *numbering* rather than a name — and it indexes the year differently, so
 the two are kept apart deliberately. See
-[docs/architecture.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/architecture.md#why-rabjung-is-separate-from-yearname).
+[docs/development/architecture.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/development/architecture.md#why-rabjung-is-separate-from-yearname).
 
 ### Errors and validation
 
@@ -442,9 +442,9 @@ Configs are validated when first used, so a partial or mistyped one is rejected 
 field named rather than failing somewhere inside the arithmetic. Every field is documented where your
 editor shows it, on the `TraditionConfig` type in the package's own declarations; the design behind
 them is in
-[docs/architecture.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/architecture.md#core-types). Note that validation checks **shape, not
+[docs/development/architecture.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/development/architecture.md#core-types). Note that validation checks **shape, not
 astronomy** — plausible constants that are wrong will produce a plausible calendar that is wrong,
-which is what [docs/testing.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/testing.md) exists to catch.
+which is what [docs/development/testing.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/development/testing.md) exists to catch.
 
 ### Observances
 
@@ -737,7 +737,7 @@ Type-only exports: `Observance`, `ObservanceConfig`, `ObservanceRule`, `Observan
 Note that `SkippedDayError` is exported from the **root** only. Nothing in this layer throws it —
 a skipped day is handled by the `skippedDay` convention instead.
 
-Full detail: [docs/architecture.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/architecture.md).
+Full detail: [docs/development/architecture.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/development/architecture.md).
 
 ### `tibetan-calendar-temporal/astrology`
 
@@ -834,11 +834,12 @@ install.
 | [docs/how-it-is-calculated.md](docs/how-it-is-calculated.md) | **Start here if the calendar is new to you.** What a lunisolar calendar has to solve, leap months, why days are doubled and skipped, and what `a₂` is |
 | [docs/guide.md](docs/guide.md) | The long-form companion to this file: the calendar's hard cases, where a day begins, working with the two configs, and running it outside Node 26 |
 | [docs/why-trust-these-dates.md](docs/why-trust-these-dates.md) | What has been validated, against what, and over which years — and what has not. Written for a non-programmer |
+| [docs/README.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/README.md) | Every document, grouped by who reads it |
 | [docs/other-implementations.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/other-implementations.md) | The other software that computes Tibetan dates, and when to use it instead |
-| [docs/architecture.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/architecture.md) | Layered model, API design, package structure, core types, tooling |
-| [docs/testing.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/testing.md) | Three-tier testing strategy and validation sources |
-| [docs/validation-sources.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/validation-sources.md) | Every source checked against, its **lineage**, what it settles, and what has been tried and rejected |
-| [docs/roadmap.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/roadmap.md) | Implementation phases and release status |
+| [docs/development/architecture.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/development/architecture.md) | Layered model, API design, package structure, core types, tooling |
+| [docs/development/testing.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/development/testing.md) | Three-tier testing strategy and validation sources |
+| [docs/sources/validation-sources.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/sources/validation-sources.md) | Every source checked against, its **lineage**, what it settles, and what has been tried and rejected |
+| [docs/development/roadmap.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/development/roadmap.md) | Implementation phases and release status |
 | [docs/names/rabjung.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/rabjung.md) | The 60 rabjung year names, with the provenance of every column |
 | [docs/decisions/](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/decisions/) | Decision records |
 | [CONTRIBUTING.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/CONTRIBUTING.md) | Clean-room constraint, dev setup, how to add validation data |

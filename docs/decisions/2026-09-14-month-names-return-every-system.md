@@ -12,7 +12,7 @@ status: accepted
 Two rules in this repository read, out of context, as calling for a selector, and both would be misapplied here.
 
 - `CLAUDE.md`'s "two defensible answers means it belongs in injected config" applies when a function must return **one** answer. This one returns all of them, so it chooses nothing, and there is nothing for config to decide.
-- `docs/roadmap.md` once promised a "seasonal-system selector" on the tradition. That model was wrong: Janson's month-names section enumerates the systems as independent rules, says almanacs "often give two or several different versions", and prints two of them side by side in his own Phugpa table. A tradition does not have *a* seasonal system.
+- `docs/development/roadmap.md` once promised a "seasonal-system selector" on the tradition. That model was wrong: Janson's month-names section enumerates the systems as independent rules, says almanacs "often give two or several different versions", and prints two of them side by side in his own Phugpa table. A tradition does not have *a* seasonal system.
 
 ## Why no default either
 

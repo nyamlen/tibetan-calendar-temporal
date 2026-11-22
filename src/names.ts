@@ -137,7 +137,7 @@ export function weekdayOffsetOf(tradition: TraditionConfig): number {
 // Named for what it does, not `weekdayNameOf`, and the asymmetry with its three siblings below is
 // deliberate: they are pure table access and take no offset, and this one shifts the index, which is
 // the whole Bhutan difference. The old name sat one character from the public `weekdayNameFor` that
-// calls it, a hazard `docs/coding-standards.md` records, because writing the public name where this
+// calls it, a hazard `docs/development/coding-standards.md` records, because writing the public name where this
 // one belongs compiles and recurses infinitely.
 export function weekdayNameWithOffset(weekday: number, offset: number): TibetanWeekdayName {
 	const index = mod(weekday + offset, 7);

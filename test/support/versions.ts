@@ -8,7 +8,7 @@
  * **These are not runnable calendars, and must not be copied into `src/` as though they were.**
  * Each is `PHUGPA` with three fields replaced — the epoch's intercalation index, the leap-index
  * threshold, and the leap month's position. Everything astronomical is still Phugpa's, because
- * `docs/traditions.md` records why the other versions' `m₀`, `s₀` and `a₀` are not yet safe to
+ * `docs/sources/traditions.md` records why the other versions' `m₀`, `s₀` and `a₀` are not yet safe to
  * transcribe.
  *
  * That substitution is legitimate for exactly the questions these configs are used to ask.

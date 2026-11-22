@@ -51,7 +51,7 @@ TypeScript 7's npm package does not expose the classic compiler API. Anything bu
 TypeDoc, API Extractor, ts-morph — cannot run until individually ported. Vitest and Biome are
 unaffected (esbuild transform and a Rust parser respectively; neither depends on `typescript`),
 so Phases 0–3 are clear. **TypeDoc in Phase 4 is the live problem**, tracked in
-[roadmap.md](../roadmap.md) with a fallback: a docs-only `typescript@5.9` plus `temporal-spec`
+[roadmap.md](../development/roadmap.md) with a fallback: a docs-only `typescript@5.9` plus `temporal-spec`
 for the TypeDoc pass, leaving build and tests on TS 7.
 
 The `ESNext.Temporal` lib also sits under `esnext`, which TypeScript may change in any minor

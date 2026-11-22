@@ -294,4 +294,4 @@ wrongly is worse than none — the same reasoning that leaves the validation-sui
 `npm run bench` sits with `npm run coverage`, `verify:names`, `verify:rabjung-names`,
 `verify:month-and-yoga-names`, `verify:mansion-and-trigram-names` and `verify:observance-names`: release-time
 checks that gate nothing and are listed in
-[docs/roadmap.md](../docs/roadmap.md).
+[docs/development/roadmap.md](../docs/development/roadmap.md).
