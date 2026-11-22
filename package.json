@@ -1,6 +1,6 @@
 {
   "name": "tibetan-calendar-temporal",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Tibetan calendar computation engine built on Temporal — the Phugpa and Bhutanese traditions, with the Tsurphu and Mongolian variants addable as config.",
   "type": "module",
   "license": "MIT",

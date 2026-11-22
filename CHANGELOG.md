@@ -3,6 +3,12 @@
 Every release states each change a consumer can see.
 A change in behaviour that raises no error is marked **Silent change**, because nothing in your code will tell you about it.
 
+## 1.0.1 — 2026-11-22
+
+Documentation only; no code changed.
+
+- The README now says at the top which calendars the package computes, Phugpa (the default) and Bhutanese, and that the Tsurphu and Mongolian calendars are not included.
+
 ## 1.0.0 — 2026-11-22
 
 The first release.
