@@ -123,7 +123,8 @@ question of a Tibetan calendar had no correct public answer.
 | Version | State |
 |---------|-------|
 | 0.0.1 | Published placeholder, 2026-08-11 — reserved the npm name, exports nothing. Superseded by 1.0.0 |
-| 1.0.0 | **Published 2026-11-22** from `release.yml`: tag `v1.0.0` on `2467846`, staged by the workflow, approved on npm by Andreas, with an SLSA provenance attestation. Holds `latest` |
+| 1.0.0 | **Published 2026-11-22** from `release.yml`: tag `v1.0.0` on `2467846`, staged by the workflow, approved on npm by Andreas, with an SLSA provenance attestation |
+| 1.0.1 | **Published 2026-11-22**, documentation only: the README states which calendars ship. Tag `v1.0.1` on `a406178`, same route and attestation. Holds `latest` |
 
 The repository went public on 2026-11-22, before the 1.0.0 publish, because npm generates provenance only for a public repository.
 
