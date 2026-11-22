@@ -185,8 +185,8 @@ What belongs in the public repo:
 - `LICENSE`, `CLAUDE.md`
 - `docs/` — grouped by reader, and indexed in [docs/README.md](docs/README.md): consumer documents at
   the top, contributor documents (architecture, coding standards, testing, roadmap) in
-  `docs/development/`, sources and provenance in `docs/sources/`, `docs/names/` and the decision records
-  in `docs/decisions/`
+  `docs/development/` beside the decision records in `docs/decisions/`, and sources and provenance in
+  `docs/sources/` and `docs/names/`
 - `src/`, `test/`
 - `scripts/` — the fixture generators, and the link checker CI runs. Each generator is committed
   with the fixture it produces; that pairing is the provenance record

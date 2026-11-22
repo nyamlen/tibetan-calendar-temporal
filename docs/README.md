@@ -24,6 +24,7 @@ How to contribute, including the clean-room constraint, is in [CONTRIBUTING.md](
 - [development/verification-craft.md](development/verification-craft.md) — how to prove a check, harness, probe or document suite measures what it claims
 - [development/api-shape-comparison.md](development/api-shape-comparison.md) — how this package's API compared with other calendar libraries in the pre-1.0.0 surface review
 - [development/roadmap.md](development/roadmap.md) — phases, release status and what is still open
+- [decisions/](decisions/) — decision records: constraints a contributor would otherwise break
 
 ## Sources and provenance
 
@@ -32,4 +33,3 @@ How to contribute, including the clean-room constraint, is in [CONTRIBUTING.md](
 - [sources/almanac-sources.md](sources/almanac-sources.md) — where the observance and day-attribute data comes from
 - [sources/fpmt-calendar.md](sources/fpmt-calendar.md) — what FPMT's calendar prints, and how it is dated
 - [names/](names/) — the provenance of every name string, and how the name verifiers work
-- [decisions/](decisions/) — decision records: constraints a contributor would otherwise break

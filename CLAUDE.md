@@ -361,6 +361,13 @@ restore a fixture that differs only by its date stamp. Details: [docs/names/veri
 
 - **The README is a landing page**; new consumer prose goes in `docs/guide.md`.
   [docs/decisions/2026-08-23-readme-is-the-landing-page.md](docs/decisions/2026-08-23-readme-is-the-landing-page.md).
+- **A document goes where its reader is**: a consumer document at the top of `docs/`, shipped or
+  not; a contributor document in `docs/development/`; source and provenance records in
+  `docs/sources/`. Decide by the reader its opening names, not by whether it ships. Every one gets
+  a line in `docs/README.md`, which `test/docs-index.test.ts` enforces. **Moving one is costly after
+  1.0.0**: every published tarball freezes the absolute URLs pointing at it.
+- **A path rewrite leaves history alone**: `git show <sha>:docs/x.md` names the path as it was at
+  that commit, and rewriting it to the new path makes the command fail. `check:links` cannot see it.
 - `package.json#files` ships `docs/guide.md`, `docs/why-trust-these-dates.md` and
   `docs/how-it-is-calculated.md`, so **their examples are contract**. Each has its own suite reading
   only its own document; a document joining `files` gets its suite in the same commit. A suite reads

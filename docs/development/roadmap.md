@@ -336,18 +336,29 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
       does not — see
       [2026-08-16-package-name-and-tradition-scope.md](../decisions/2026-08-16-package-name-and-tradition-scope.md)
 
-- [ ] Enable **branch protection** on `main`: require CI to pass, and block force-pushes.
-      Force-push protection matters here specifically — the commit history is the clean-room
-      evidence of independent derivation, and a rewrite would undermine it
+- [ ] A **branch ruleset** on `main` (Settings → Rules → Rulesets): *Restrict deletions* and *Block
+      force pushes*, no bypass. Force-push protection matters here specifically — the commit history
+      is the clean-room evidence of independent derivation, and a rewrite would undermine it. Leave
+      *Require linear history* off (branches merge with `--no-ff`) and *Require signed commits* off
 
-- [ ] Enable **tag protection** for release tags
+- [ ] **Require the three `verify` checks on `main`** in that ruleset — `verify (ubuntu-latest)`,
+      `verify (windows-latest)`, `verify (macos-latest)` — **when the first outside pull request
+      arrives, or when work moves to pull requests**, with the maintainer on the bypass list
+      (Andreas, 2026-11-22). Not before: a required check rejects a direct push to `main`, so it
+      forces every change through a pull request, which protects nothing while one person pushes
+
+- [ ] A **tag ruleset** for `v*` before the first release tag: *Restrict updates*, *Restrict
+      deletions* and *Block force pushes*, no bypass; *Restrict creations* off, or the release
+      workflow cannot tag. npm never republishes a version, and provenance records the commit that
+      built it, so a moved or recreated release tag would contradict the published record (and could
+      re-run the release workflow). A mistaken tag is then fixed only by disabling the ruleset, so
+      the release procedure tags the commit being published and checks it before pushing
 
 - [ ] Convert the remaining items here into GitHub issues under a v1.0.0 milestone. A checklist
       in a file is fine for a solo private repo; once there are contributors, issues are better
 
-> Branch, tag and draft-PR features are unavailable on GitHub Free for **private** org repos.
-> All of them return at no cost the moment the repository goes public, so the two items above
-> are sequenced together deliberately.
+> Rulesets and draft pull requests are unavailable on GitHub Free for **private** org repos; the
+> repository went public on 2026-11-22, so all of them are available now.
 
 **Does not gate a release**
 
