@@ -373,6 +373,8 @@ The procedure is in [CONTRIBUTING.md](CONTRIBUTING.md), "Releasing".
 - **npmjs.com renders the README of the version holding `latest`**, so a README change reaches npm
   only in a release; GitHub shows it on push.
 - **A `v*` tag cannot be moved or deleted** (tag ruleset): check the commit before pushing the tag.
+- **Verify a publish with `npm view`, not the npmjs.com page**, which serves a cached copy for a
+  while after a publish: it showed 1.0.1 as `latest` minutes after the registry served 1.0.2.
 
 ## Documents
 
@@ -398,6 +400,14 @@ The procedure is in [CONTRIBUTING.md](CONTRIBUTING.md), "Releasing".
 - **A year here is Tibetan unless it says otherwise**; state any measured window in both eras.
 - **A shipped instruction is contract like an example** — print a runnable config and run it in a clean
   consumer; this repo's own tsconfig masks the defect.
+- **A shipped document describes the package as it is, never how the repository got there.** Every
+  version freezes it on npm, and no consumer saw the pre-1.0.0 API, so "the key was `config` until…"
+  is noise to them; that history belongs in commit messages. For the same reason it states a
+  condition ("exported once checked against an almanac"), not work in progress ("we are looking for
+  a source").
+- **Where a sentence sets Tibet beside Bhutan, name the people — "most Tibetans use" — not
+  "practitioners"**, which reads as ranking one country's users against the other's; both are
+  attached to their own calendar (Andreas). "Practitioners" stays where no other country is in view.
 
 ## Conventions
 
