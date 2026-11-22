@@ -1697,7 +1697,7 @@ nothing and reports success.
       reviewer, the whole branch by a final hostile-input pass, then by the cloud ultrareview, whose
       six findings were fixed before the merge. Parked findings are in the item "Small findings
       parked by the pre-1.0.0 code review".
-- [ ] **Security review.** **Run 2026-11-15 at `34b8ab4`:** no high findings. Two medium — the
+- [x] **Security review.** **Run 2026-11-15 at `34b8ab4`:** no high findings. Two medium — the
       `monthsFor` cache grows without bound on the shipped configs, and the CI-token item was stale
       (rewritten under Publishing) — and one low, action pinning by tag. The cache cap goes on the
       code-review fixes branch.
@@ -1714,6 +1714,14 @@ nothing and reports success.
       `/security-review` is **diff-shaped**, so run it on that range
       (`git diff 34b8ab4..<fixes-branch tip> -- src/`), with the scope above stated first or the pass
       will invent findings: zero runtime dependencies, no I/O, no network, no filesystem access.
+      **Second pass run 2026-11-22 over `34b8ab4..55b8e70 -- src/`**, the fixes branches having merged:
+      one finding, fixed. A typed array with the expected keys assigned onto it, given where a
+      `TraditionConfig` holds a rational or a mean motion, passed the first validation, and freezing
+      its private copy escaped as an uncoded `TypeError` from every export taking a tradition;
+      `validatedPrivateCopy` now freezes inside the guarded read and refuses it with the config code,
+      pinned in `test/hostile-inputs.test.ts`. An observance config already refused the same input.
+      `npm audit` unchanged: the accepted KaTeX residual under the development-tool item, and 0 with
+      `--omit=dev`.
 - [x] **Full adversarial review.** Not a code review with a harsher tone: the subject is the
       **claims**, not the code. Every load-bearing assertion this repository makes about itself —
       the validation windows and what they actually cover, "exported means validated", the
