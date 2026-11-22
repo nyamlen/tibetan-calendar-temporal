@@ -796,11 +796,6 @@ const CLAIMS: readonly Claim[] = [
 		notAssertable: "a historical fact",
 	},
 	{
-		what: "when the astrology layer landed",
-		pattern: /until 2026-09-12, when the `\.\/astrology` subpath landed/,
-		notAssertable: "a date in the project's history",
-	},
-	{
 		what: "the year's five elements",
 		pattern: /the year's five elements/,
 		notAssertable:

@@ -189,9 +189,7 @@ Stating this is the point of the page.
 - **The calendar is usable from 1447**, when the Phugpa system was introduced. Earlier dates are
   computed, and they are a back-projection: the system did not exist, and the year numbering is a
   modern convention applied backwards.
-- **The astrological attributes are computed but corroborated much less than the dates.** This said
-  "no astrological information is computed" until 2026-09-12, when the `./astrology` subpath landed,
-  and the honest version is longer. The cycles — the year's five elements, the month's and lunar
+- **The astrological attributes are computed but corroborated much less than the dates.** The cycles — the year's five elements, the month's and lunar
   day's labels, the calendar day's — are closed forms checked against Janson's own printed tables,
   which catches a transcription or formula error and is **not** external corroboration. The **lunar
   mansion** needs real astronomy and agrees, for Phugpa, with FPMT's published codes on **98.0%** of the 1,821 days

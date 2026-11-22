@@ -5,10 +5,10 @@ year names and observances — for almanac applications, practice calendars, and
 show a Tibetan date and be right about it.
 
 It computes two calendars: **Phugpa**, the Men-Tsee-Khang standard and the basis of the almanacs most
-practitioners use, which is the default; and the **Bhutanese** calendar of the Royal Government of Bhutan.
-The **Tsurphu** (Karma Kagyu) and **Mongolian** calendars are **not included**: the engine can express
-them as configuration, but neither has been checked against an almanac of its own — see
-[Traditions](#traditions).
+Tibetans use, which is the default; and the **Bhutanese** calendar of the Royal Government of Bhutan.
+The **Tsurphu** (Karma Kagyu) and **Mongolian** calendars are **not included yet**: the engine can
+express them as configuration, and each will be exported once its dates have been checked against an
+almanac of its own — see [Traditions](#traditions).
 
 ```sh
 npm install tibetan-calendar-temporal
@@ -392,7 +392,7 @@ worked `switch` over every code is in [the guide](docs/guide.md#handling-errors)
 ### Traditions
 
 **v1 ships two calendars in four configurations.** Phugpa (*phug pa*) is the Men-Tsee-Khang
-standard and the basis of the almanacs most practitioners use; Bhutanese is the calendar of the
+standard and the basis of the almanacs most Tibetans use; Bhutanese is the calendar of the
 Royal Government of Bhutan. Each ships twice, because each has two defensible parameterisations:
 
 ```js
@@ -578,7 +578,7 @@ from; in coordinate space a leap month is simply the next lunation.
 | `addDays` | `(date: TibetanDateFields, days: number, tradition?) => TibetanDate` | **Solar** days, the unit elapsed-time reckonings use. Total — it can never land on a skipped date, because stepping real days never reaches a label no day carries |
 | `daysBetween` | `(from: TibetanDateFields, to: TibetanDateFields, tradition?) => number` | Signed. If both dates came from this package, `a.isoDate.until(b.isoDate)` is the better route; this is for dates you built yourself |
 | `addMonths` | `(month: TibetanMonthFields & { day?: never }, months: number, tradition?) => TibetanMonth` | Month in, month out, so **total**. `+1` from a leap month is its twin. A `TibetanDate` does **not** compile — it would discard the day silently; use `addMonthsToDate` |
-| `addMonthsToDate` | `(date: TibetanDateFields, months: number, options?) => TibetanDate` | "The same day next month". `options` is `{ overflow?, tradition? }` — the key was `config` until 2026-09-24, and any other key is refused; `overflow` is `"constrain"` (default — fall to the nearest **lower** existing day, or day 2 when day 1 is skipped) or `"reject"`. A doubled day keeps the start's half, leap or regular, and an ordinary start lands on the regular half |
+| `addMonthsToDate` | `(date: TibetanDateFields, months: number, options?) => TibetanDate` | "The same day next month". `options` is `{ overflow?, tradition? }`, and any other key is refused; `overflow` is `"constrain"` (default — fall to the nearest **lower** existing day, or day 2 when day 1 is skipped) or `"reject"`. A doubled day keeps the start's half, leap or regular, and an ordinary start lands on the regular half |
 | `monthsBetween` | `(from: TibetanMonthFields, to: TibetanMonthFields, tradition?) => number` | Signed, counted in **lunations** — month 5 to month 7 is three in a year that doubles month 6, two otherwise |
 | `lunationFromMonth` | `(month: TibetanMonthFields, tradition?) => number` | The month as one sortable integer, for a database or cache key. No consumer-side route: it needs the intercalation index |
 | `monthFromLunation` | `(lunation: number, tradition?) => TibetanMonth` | The inverse, for a stored coordinate with no year in hand. Narrower domain than its inverse — it returns boundaries, so it evaluates the calendar |

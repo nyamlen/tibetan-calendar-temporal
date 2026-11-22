@@ -245,9 +245,8 @@ nextObservance(from, ruleId, observanceConfig, traditionConfig);
 Both are positional. The observance config is **required**: no config is the default, because which
 days a practice keeps is a convention and the package does not choose one for you, so a call
 without one throws `TCT_INVALID_OBSERVANCE_CONFIG`. The tradition is last and optional, defaulting
-to `PHUGPA`. Until 2026-11-11 both travelled in one options bag; passing that bag, or a
-`TraditionConfig`, where the config belongs throws the same code, and the message names the function
-you called and its own signature.
+to `PHUGPA`. Passing an options bag, or a `TraditionConfig`, where the config belongs throws the
+same code, and the message names the function you called and its own signature.
 
 | | `TraditionConfig` | `ObservanceConfig` |
 |---|---|---|
@@ -909,9 +908,8 @@ isoToTibetan(Temporal.PlainDate.from('2003-06-01')).year;   // 2130, after it
 **A year of dates, serialised, is about 126 KB** (354 days, ordinary year 2153) or **137 KB** for a
 thirteen-month leap year like 2151 — measured, not assumed, in `test/serialisation.test.ts`.
 
-Those figures used to be 293 KB and 324 KB. **Year-level naming is no longer a field on a date**: the
-element–animal name and the rabjung position describe the *year*, so on a date they were one value
-repeated across all 354 days, and together they were more than half of a serialised year. Reach them
+**Year-level naming is not a field on a date**: the element–animal name and the rabjung position
+describe the *year*, so on a date they would be one value repeated across all 354 days. Reach them
 with `yearNameFor(date.year)` and `rabjungFor(date.year)`, which are closed forms and touch no lunar
 arithmetic. `TibetanMonth` still carries `yearName`, so the `monthsFor` → `datesFor` path keeps it
 one hop away.
