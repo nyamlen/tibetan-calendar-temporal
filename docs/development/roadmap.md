@@ -263,8 +263,9 @@ The release is next.
 - [ ] **Keep a `CHANGELOG.md` from 1.0.0.** Andreas, 2026-11-21: the first entry is 1.0.0 itself, and
       nothing that changed before it is recorded, because no released version behaved otherwise. From
       1.0.0 on, an entry for every release states each change a consumer can see, with a behaviour
-      change that raises no error flagged as such. Decide where it ships (`package.json#files`) and
-      whether `check-pack` asserts it, in the same commit that adds it.
+      change that raises no error flagged as such. It does **not** ship (Andreas, 2026-11-22): it
+      stays out of `package.json#files`, which npm does not extend to a changelog on its own, and
+      `check-pack` does not assert it; its readers find it on GitHub.
 
 **Release machinery** — all of it needs the repository public first
 
