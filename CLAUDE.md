@@ -357,6 +357,23 @@ restore a fixture that differs only by its date stamp. Details: [docs/names/veri
   single before/after/before still reads it as a cost. No regression threshold, not in CI. `package.json#files` excludes `bench/`; `tsconfig.json` and
   `biome.json` include it deliberately.
 
+## Releasing
+
+Published since 1.0.0 (2026-11-22), so SemVer binds: a change that breaks a consumer needs a major version.
+The procedure is in [CONTRIBUTING.md](CONTRIBUTING.md), "Releasing".
+
+- **Publish only through `release.yml`, never `npm publish` from a machine.** Provenance ties a
+  version to the commit that built it, and the trusted publisher allows only `npm stage publish`:
+  a version goes public when Andreas approves the `npm` environment and then `npm stage approve`s
+  it with his passkey.
+- **`ci.yml` is also a reusable workflow** (`workflow_call`): `release.yml` runs it on the tagged
+  commit, because required checks are not enforced on `main`. Keep the trigger.
+- **Every release adds a `CHANGELOG.md` entry** stating each change a consumer can see, a behaviour
+  change that raises no error marked as silent. The changelog does not ship.
+- **npmjs.com renders the README of the version holding `latest`**, so a README change reaches npm
+  only in a release; GitHub shows it on push.
+- **A `v*` tag cannot be moved or deleted** (tag ruleset): check the commit before pushing the tag.
+
 ## Documents
 
 - **The README is a landing page**; new consumer prose goes in `docs/guide.md`.
