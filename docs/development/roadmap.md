@@ -122,20 +122,12 @@ question of a Tibetan calendar had no correct public answer.
 
 | Version | State |
 |---------|-------|
-| 0.0.1 | Published placeholder — reserves the npm name, exports nothing. **Stays `latest` deliberately**; see below |
-| 1.0.0 | Target: full Phugpa implementation, published from CI with npm provenance. **Publishes once the `docs/` restructure is done**; see below |
+| 0.0.1 | Published placeholder, 2026-08-11 — reserved the npm name, exports nothing. Superseded by 1.0.0 |
+| 1.0.0 | **Published 2026-11-22** from `release.yml`: tag `v1.0.0` on `2467846`, staged by the workflow, approved on npm by Andreas, with an SLSA provenance attestation. Holds `latest` |
 
-The repository stays private under the `nyamlen` org until v1.0.0, then goes public.
+The repository went public on 2026-11-22, before the 1.0.0 publish, because npm generates provenance only for a public repository.
 
-**The next publish is 1.0.0. There is no intermediate `0.x`**, so `0.0.1` remains what npm serves
-until then, and its metadata is frozen at what was published on 2026-08-11 — `engines: ">=22"` and
-`exports: "./index.js"`, both long since wrong.
-That is harmless only because the version exports nothing executable, and its README banner errs in
-the conservative direction by telling readers to stay away.
-Do not treat the stale page as neglect, and do not try to correct it in isolation: npmjs.com renders
-the README of whichever version holds the `latest` dist-tag, so **the banner can only change in a
-release that moves `latest`** — a prerelease published on a `next` tag would leave the page exactly
-as it is.
+There was no intermediate `0.x`: 0.0.1 held `latest` until 1.0.0, so npmjs.com showed its frozen metadata and its warning banner until then.
 
 ### 1.0.0 publishes once the `docs/` restructure is done
 
@@ -166,7 +158,8 @@ Surfaces no client reached are frozen on lighter evidence, and that is a choice 
 **After 1.0.0, the next client is the `nyamlen` website**, built against the published package.
 Its findings land as later releases: a fix or an addition as a 1.x, and an API change that breaks a consumer only in a major version.
 
-**Pending rows in the verdict ledger:** the README banner and the package description change in the release commit (the item *Remove the placeholder banner from `README.md`*), and one row in the private client repository's own instructions is due before its next blind run.
+**Pending rows in the verdict ledger:** one row in the private client repository's own instructions is due before its next blind run.
+The README banner and package description rows were discharged by the release commit `2467846`.
 
 **Writing a brief for a blind client: a coverage list destroys discoverability testing for everything on it.**
 Naming the exports a client must reach stops a thin run declaring success after touching eight, but you then cannot learn whether a consumer *finds* a name, because you handed it over.
@@ -240,7 +233,7 @@ The release is next.
       Nothing that ships moved. `check:links` now also resolves this repository's absolute
       `blob/main` URLs, which every published tarball freezes
 
-- [ ] Remove the placeholder banner from `README.md`, **in the same release that publishes 1.0.0**,
+- [x] Remove the placeholder banner from `README.md`, **in the same release that publishes 1.0.0**,
       not as tidy-up beforehand. This is a file edit with a publishing precondition: npmjs.com serves
       the README from the tarball of whichever version holds the `latest` dist-tag, so editing the
       file alone changes nothing a consumer sees. Until that publish the banner is *accurate* — the
@@ -250,7 +243,8 @@ The release is next.
       does the sentence in [other-implementations.md](../other-implementations.md) calling this package
       "at the time of writing, unreleased".
       That commit discharges the navigator's friction 2, two rows of the private verdict ledger,
-      which Andreas ruled on 2026-11-18 land here rather than earlier
+      which Andreas ruled on 2026-11-18 land here rather than earlier.
+      Done in `2467846`, the commit tagged `v1.0.0` and published on 2026-11-22
 
 - [x] Make the repository **public** — **before the first 1.0.0 publish**, since npm generates
       provenance automatically only for a public repository and package. Done 2026-11-22 by Andreas,
@@ -269,10 +263,11 @@ The release is next.
 
 **Release machinery** — all of it needs the repository public first
 
-- [ ] Publish from **GitHub Actions with npm provenance**, not locally — provenance ties each
-      released version to the commit that built it, which reinforces the clean-room record
+- [x] Publish from **GitHub Actions with npm provenance**, not locally — provenance ties each
+      released version to the commit that built it, which reinforces the clean-room record.
+      Done 2026-11-22: `npm view` reports an SLSA provenance attestation on 1.0.0
 
-- [ ] **Configure npm trusted publishing** for this package on npmjs.com, naming this repository,
+- [x] **Configure npm trusted publishing** for this package on npmjs.com, naming this repository,
       `release.yml` and the environment `npm`; npm does not check the entry when it is saved, and
       an entry expires unless its first publish succeeds within two days, so create it just before tagging.
       **Leave "Allow npm publish" and "Allow npm dist-tag" unticked**, as npm recommends: the
@@ -286,9 +281,10 @@ The release is next.
       tokens at 90 days and has revoked classic tokens. Verified against
       [npm's trusted-publishers page](https://docs.npmjs.com/trusted-publishers) and GitHub's
       changelogs of [2025-11-05](https://github.blog/changelog/2025-11-05-npm-security-update-classic-token-creation-disabled-and-granular-token-changes/)
-      and [2025-12-09](https://github.blog/changelog/2025-12-09-npm-classic-tokens-revoked-session-based-auth-and-cli-token-management-now-available/)
+      and [2025-12-09](https://github.blog/changelog/2025-12-09-npm-classic-tokens-revoked-session-based-auth-and-cli-token-management-now-available/).
+      Configured by Andreas 2026-11-22, staged publishing only; the 1.0.0 publish went through it
 
-- [ ] `.github/workflows/release.yml` publishing on tag through trusted publishing, with
+- [x] `.github/workflows/release.yml` publishing on tag through trusted publishing, with
       `permissions: id-token: write` and no token; set up `actions/setup-node` as the workflow
       example on npm's trusted-publishers page does. Three safeguards from the security review:
       **pin every action by commit SHA**, with the tag in a trailing comment; **no `cache: npm`** in
@@ -298,11 +294,12 @@ The release is next.
       `package.json#version` or a commit not on `main`, and stages the version from the environment
       `npm` with `npm stage publish`. The environment exists (created by Andreas 2026-11-22, read back
       through the API: Andreas as required reviewer, administrator bypass off, deployment tags `v*`
-      only). **Open until its first publish succeeds.** The procedure is in CONTRIBUTING.md, "Releasing"
+      only). Its first run, on `v1.0.0`, staged 1.0.0, which Andreas approved on npm on 2026-11-22.
+      The procedure is in CONTRIBUTING.md, "Releasing"
 
-- [ ] Confirm `repository.url` still matches the building repo. Provenance attestation fails if
+- [x] Confirm `repository.url` still matches the building repo. Provenance attestation fails if
       they disagree — currently correct, but it would have broken had the repo not been
-      transferred to the org before v1
+      transferred to the org before v1. Confirmed by the 1.0.0 publish, whose attestation succeeded
 
 - [ ] **TypeDoc will not run under TypeScript 7.** TS 7's npm package does not expose the
       classic compiler API — its main export is a version object, the real API sits behind
@@ -323,9 +320,10 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
 
 **After 1.0.0 ships**
 
-- [ ] **After the first trusted publish**, set the package's publishing access to "Require
+- [x] **After the first trusted publish**, set the package's publishing access to "Require
       two-factor authentication and disallow tokens", which npm's page strongly recommends; trusted
-      publishing keeps working, since it does not use a token
+      publishing keeps working, since it does not use a token. Done by Andreas on 2026-11-22, just
+      before the first publish, which went through regardless
 
 - [ ] **After 1.0.0 ships**, `npm deprecate tibetan-calendar-temporal@0.0.1 "placeholder; use
       1.0.0"`. One command, and it puts a warning in front of anyone who pinned the placeholder.
