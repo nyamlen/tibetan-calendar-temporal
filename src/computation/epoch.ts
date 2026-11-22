@@ -5,9 +5,10 @@
  * Three independent systems name the same Tibetan year, and this module keeps them apart:
  *
  * 1. **Janson's *Y*** — the Gregorian year the Tibetan year begins in. Every formula in the
- *    paper and every function under `computation/` is written in terms of *Y*.
- * 2. **The royal era** — *Y* + 127, the number almanacs print. Applied only at the public
- *    boundary; see {@link royalEraFromYear}.
+ *    paper is written in terms of *Y*, and so is every function under `computation/` except this
+ *    module's `…FromRoyalEra` functions, which take the royal era and are named for it.
+ * 2. **The royal era** — *Y* + 127, the number almanacs print. Applied at the public boundary;
+ *    see {@link royalEraFromYear}.
  * 3. **The two 60-year cycles** — the Indian rabjung, which is a *numbering*
  *    ({@link rabjungFromYear}), and the Chinese element–animal, which is a *name*
  *    ({@link yearNameFromYear}). They assign a year different positions, three apart.
@@ -180,7 +181,8 @@ export function rabjungFromRoyalEra(royalEraYear: number): Rabjung {
 }
 
 /**
- * The royal-era year reduced modulo the period of every cycle `yearAttributes` reads.
+ * Janson's *Y* of the royal-era year reduced modulo 180, the period of every cycle `yearAttributes`
+ * reads. Takes the royal era; returns *Y*, which is what `yearAttributes` takes.
  *
  * @remarks
  * `yearAttributes` reads 60 (the Chinese cycle position), 10 (the power element), 12, 4 and 6
@@ -188,7 +190,7 @@ export function rabjungFromRoyalEra(royalEraYear: number): Rabjung {
  * least common multiple is 180. `test/astrology/index.test.ts` checks 180 is a period over the
  * royal-era years 1900 to 2399 (CE 1773 to 2272) and that no proper divisor of 180 is one.
  */
-export function attributesYearFromRoyalEra(royalEraYear: number): number {
+export function reducedYFromRoyalEra(royalEraYear: number): number {
 	return yearFromRoyalEra(mod(royalEraYear, ATTRIBUTES_PERIOD));
 }
 

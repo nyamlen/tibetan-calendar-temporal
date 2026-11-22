@@ -58,6 +58,18 @@ describe("one home for each guard and table", () => {
 	it("writes the one-based accessor once", () => {
 		expect(filesContaining(/oneBased: number, what: string/)).toEqual(["cycle-tables.ts"]);
 	});
+
+	// M3.5: a date's weekday name and weekdayNameFor's must read the offset by one rule.
+	it("reads a tradition's weekday offset in src/names.ts only", () => {
+		expect(filesContaining(/naming\?\.weekdayOffset/)).toEqual(["names.ts"]);
+	});
+
+	// M3.6: the hint was copied word for word into a second module.
+	it("writes the royal-era hint in src/errors.ts only", () => {
+		expect(filesContaining(/Years here are the royal era, matching TibetanDate\.year/)).toEqual([
+			"errors.ts",
+		]);
+	});
 });
 
 describe("each year-taking export names itself and the royal era", () => {

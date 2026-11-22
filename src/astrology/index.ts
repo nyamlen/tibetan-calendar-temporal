@@ -53,12 +53,12 @@ import {
 	isoToTibetan,
 	julianDayFromIsoUnchecked,
 } from "../computation/conversion.js";
-import { attributesYearFromRoyalEra, yearFromRoyalEra } from "../computation/epoch.js";
+import { reducedYFromRoyalEra, yearFromRoyalEra } from "../computation/epoch.js";
 import { scalingFor } from "../computation/scaling.js";
-import { assertSafeYear, rangeError } from "../errors.js";
+import { assertSafeYear, ROYAL_ERA_HINT, rangeError } from "../errors.js";
 import { deepFreeze } from "../freeze.js";
 import { boundedMonth } from "../months.js";
-import { weekdayNameWithOffset } from "../names.js";
+import { weekdayNameWithOffset, weekdayOffsetOf } from "../names.js";
 import { PHUGPA } from "../traditions/phugpa.js";
 import type { TraditionConfig } from "../traditions/types.js";
 import type {
@@ -136,12 +136,8 @@ export const LUNAR_MANSIONS: readonly LunarMansion[] = deepFreeze(
  * ```
  */
 export function yearAttributesFor(year: number): YearAttributes {
-	assertSafeYear(
-		"yearAttributesFor",
-		year,
-		". Years here are the royal era, matching TibetanDate.year — 2153, not 2026.",
-	);
-	return yearAttributes(attributesYearFromRoyalEra(year));
+	assertSafeYear("yearAttributesFor", year, ROYAL_ERA_HINT);
+	return yearAttributes(reducedYFromRoyalEra(year));
 }
 
 /**
@@ -412,7 +408,7 @@ export function attributesFor(
  * moves the weekday, and no source says what the yoga pairs with then.
  */
 function yogaIsSourced(tradition: TraditionConfig): boolean {
-	return (tradition.naming?.weekdayOffset ?? 0) === 0;
+	return weekdayOffsetOf(tradition) === 0;
 }
 
 /** The yoga of an already-resolved date, shared by the primitive; refuses where unsourced. */
@@ -421,7 +417,7 @@ function yogaOf(resolved: TibetanDate, tradition: TraditionConfig): ElementalYog
 		throw rangeError(
 			"TCT_ATTRIBUTE_NOT_SOURCED",
 			`${tradition.name} has no sourced elemental yoga: it shifts the weekday by ` +
-				`${tradition.naming?.weekdayOffset} and no source says what the yoga's weekday element is ` +
+				`${weekdayOffsetOf(tradition)} and no source says what the yoga's weekday element is ` +
 				"then. Nothing about the date you asked about is wrong — the attribute simply has no " +
 				"source. The lunar mansion, and the year and calendar-day attributes, still answer",
 		);

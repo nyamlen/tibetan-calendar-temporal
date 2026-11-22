@@ -158,9 +158,9 @@ Before explaining a residual by a formula, check whether the source uses the sam
   (shipping messages that misdescribe their own function) or are borrowed (an export reporting errors
   under another's name, pinned by `test/error-subjects.test.ts`). The homes: `assertSafeYear`,
   `assertSafeIntegerArgument`, `assertNonEmptyString`, `isRecord`, `assertQueryOptions`,
-  `assertKnownKeys`, `readingCallersObject`, `validatedPrivateCopy` and `describe` in
+  `assertKnownKeys`, `readingCallersObject`, `validatedPrivateCopy`, `describe` and `ROYAL_ERA_HINT` in
   `src/errors.ts`; `assertTibetanShape`, `assertTibetanRanges` and `assertTibetanWeekday` in
-  `src/types.ts`;
+  `src/types.ts`; `weekdayOffsetOf` in `src/names.ts`;
   `asWesternDay`, `monthCountFor` and `julianDayOfFields` in `src/computation/conversion.ts`;
   `boundedMonth` in `src/months.ts`. Rule 14 catches copy-paste, not re-implementation, so at review
   ask: **which boundary helpers did you write, and did one already exist?**

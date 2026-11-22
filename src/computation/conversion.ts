@@ -22,7 +22,7 @@ import {
 	thrownDetail,
 } from "../errors.js";
 import { monthCodeOf } from "../format.js";
-import { weekdayNameWithOffset } from "../names.js";
+import { weekdayNameWithOffset, weekdayOffsetOf } from "../names.js";
 import {
 	assertIsoCalendar,
 	assertTemporalPresent,
@@ -473,7 +473,7 @@ function buildDate(
 		// tradition — Bhutan names its weekdays one planet ahead — and this is where the config is.
 		weekdayName: weekdayNameWithOffset(
 			tibetanWeekdayUnchecked(julianDay),
-			scaled.tradition.naming?.weekdayOffset ?? 0,
+			weekdayOffsetOf(scaled.tradition),
 		),
 		// The month count this date was located by, carried out rather than made rediscoverable.
 		lunation: monthCount,

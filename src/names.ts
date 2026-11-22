@@ -16,6 +16,7 @@
 import { mod } from "./computation/arithmetic.js";
 import { assertInternal } from "./errors.js";
 import { deepFreeze } from "./freeze.js";
+import type { TraditionConfig } from "./traditions/types.js";
 import type {
 	TibetanAnimal,
 	TibetanElement,
@@ -90,13 +91,26 @@ const ANIMALS: Readonly<Record<TibetanAnimal, TibetanName>> = freeze({
 export const NAME_TABLES = freeze({ WEEKDAYS, ELEMENTS, GENDERS, ANIMALS });
 
 /**
+ * A tradition's weekday offset: `naming.weekdayOffset`, or 0 when the config sets none.
+ *
+ * @remarks
+ * The one place the absent-means-zero rule is written, so a date's `weekdayName`,
+ * `weekdayNameFor` and the elemental yoga's refusal read the offset alike.
+ */
+export function weekdayOffsetOf(tradition: TraditionConfig): number {
+	return tradition.naming?.weekdayOffset ?? 0;
+}
+
+/**
  * Returns the Tibetan name of a weekday, after shifting it by a tradition's planet offset.
  *
  * @remarks
  * The **whole weekday** moves: name, `planet` and `element` are all the shifted weekday's row, so
  * with an offset of 1 weekday 0 is *nyi ma*, the sun, fire, where offset 0 gives *spen pa*, Saturn,
- * earth. Takes a resolved offset rather than a `TraditionConfig`: `weekdayNameFor` is the public entry
- * point and reads `tradition.naming?.weekdayOffset ?? 0` before calling here.
+ * earth. Takes a resolved offset rather than a `TraditionConfig`. Of its three callers,
+ * `weekdayNameFor` (`cycles.ts`) and the `weekdayName` of every `TibetanDate`
+ * (`computation/conversion.ts`) resolve it with {@link weekdayOffsetOf}; the elemental yoga's weekday
+ * element (`astrology/index.ts`) passes 0, the yoga being refused under any other offset.
  *
  * Nothing is validated: `weekday + offset` wraps modulo seven, so any integer is accepted
  * (`weekdayNameWithOffset(7, 0)` is weekday 0). A non-integer sum is an internal fault.
