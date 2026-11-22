@@ -214,7 +214,7 @@ Their full text as it stood before the cleanup of 2026-11-22 is `git show 7e7247
 
 ### The pre-release gate
 
-Seven passes were set for 1.0.0, and only the `docs/` restructure is left.
+Seven passes were set for 1.0.0, and all seven are done.
 **Ruled by Andreas on 2026-11-22: the passes as run are sufficient.** No further review runs, the docblock audit is accepted as it stands, and the navigator is accepted as the client build.
 That holds although `src/` changed after the docblock audit (`2d0dbbf`) and the navigator's tarball (`61847df`): 38 files and about 1,500 lines, the adversarial and maintainability fixes.
 
@@ -226,31 +226,19 @@ That holds although `src/` changed after the docblock audit (`2d0dbbf`) and the 
 | 4 | Docblock audit | **Done** 2026-11-17 (`2d0dbbf`) | None: accepted as it stands (Andreas, 2026-11-22), although about 480 docblock lines in `src/` changed since |
 | 5 | Client build from a fresh tarball | **Done**: the navigator, 2026-11-17, against `61847df` | None: accepted as sufficient (Andreas, 2026-11-22); see Release Status |
 | 6 | Adversarial review | **Done** 2026-11-18 to 2026-11-19; merged `5bd5d1e`; maintainability pass merged `e79731e` | None |
-| 7 | `docs/` restructure | **Open** | The last step before the release, so the move is one link-fixing commit |
+| 7 | `docs/` restructure | **Done** 2026-11-22, on branch `docs-restructure` | None |
 
-The release follows the restructure.
+The release is next.
 
 ### Open, grouped by what it blocks
 
 **Blocks the release**
 
-- [ ] **Analyse `docs/` for a folder structure, and do it before 1.0.0 fixes the links.** The folder
-      is flat and mixes three audiences: the two consumer documents that ship to npm
-      ([guide.md](../guide.md), [why-trust-these-dates.md](../why-trust-these-dates.md)), contributor
-      documents ([coding-standards.md](coding-standards.md), [testing.md](testing.md)), and
-      source-and-provenance documents ([validation-sources.md](../sources/validation-sources.md),
-      [traditions.md](../sources/traditions.md), [other-implementations.md](../sources/other-implementations.md),
-      [names/](../names/), [decisions/](../decisions/)). Open questions to settle, not assume: where
-      [how-it-is-calculated.md](../how-it-is-calculated.md) goes — it is read by consumers *and* by
-      anyone touching the arithmetic, which is the argument for leaving it at the top level rather
-      than filing it under either audience; and whether a `docs/contributing/` folder earns itself
-      when `CONTRIBUTING.md` stays at the repo root and would then point sideways into it.
-      Three things make the move cheap now and expensive later: `package.json#files` names the two
-      shipped documents **by path**, so a move is a tarball-layout change; npm's rewriting of the
-      README's relative links is still unconfirmed (item above); and `scripts/check-conventions.mjs`
-      hardcodes `docs/development/coding-standards.md` and `docs/decisions/*.md`, while rule 12's template
-      pattern is deliberately path-shaped — a move must keep `check:links` and `check:conventions`
-      green **in the same commit**, and CLAUDE.md's own links must move with it
+- [x] **Analyse `docs/` for a folder structure, and do it before 1.0.0 fixes the links.** Done
+      2026-11-22: consumer documents stay at the top of `docs/`, contributor documents moved to
+      `docs/development/` and provenance to `docs/sources/`, indexed in [docs/README.md](../README.md).
+      Nothing that ships moved. `check:links` now also resolves this repository's absolute
+      `blob/main` URLs, which every published tarball freezes
 
 - [ ] Remove the placeholder banner from `README.md`, **in the same release that publishes 1.0.0**,
       not as tidy-up beforehand. This is a file edit with a publishing precondition: npmjs.com serves
