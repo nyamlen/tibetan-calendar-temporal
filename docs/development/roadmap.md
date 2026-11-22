@@ -246,12 +246,18 @@ The release is next.
       file alone changes nothing a consumer sees. Until that publish the banner is *accurate* — the
       published version really does export nothing — so removing it early would make the repository
       state the false half of the pair. The `description` in `package.json`, which still reads
-      "Pre-release placeholder — implementation in development", changes in the same commit.
+      "Pre-release placeholder — implementation in development", changes in the same commit, and so
+      does the sentence in [other-implementations.md](../other-implementations.md) calling this package
+      "at the time of writing, unreleased".
       That commit discharges the navigator's friction 2, two rows of the private verdict ledger,
       which Andreas ruled on 2026-11-18 land here rather than earlier
 
-- [ ] Make the repository **public** — **before the first 1.0.0 publish**, since npm generates
-      provenance automatically only for a public repository and package
+- [x] Make the repository **public** — **before the first 1.0.0 publish**, since npm generates
+      provenance automatically only for a public repository and package. Done 2026-11-22 by Andreas,
+      with private vulnerability reporting switched on and Issues left on, so `package.json#bugs` resolves
+
+- [ ] **Add a `SECURITY.md`** (Andreas, 2026-11-22) saying that vulnerabilities are reported through
+      GitHub's private vulnerability reporting, which is switched on, and which versions receive fixes
 
 - [ ] **Keep a `CHANGELOG.md` from 1.0.0.** Andreas, 2026-11-21: the first entry is 1.0.0 itself, and
       nothing that changed before it is recorded, because no released version behaved otherwise. From

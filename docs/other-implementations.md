@@ -10,26 +10,31 @@ That is partly the same evidence discipline
 this project works under: it is a clean-room implementation of Janson's paper, and reading a
 competing implementation would compromise that.
 
-All figures accessed **2026-08-23**, except the API-shape comparison below, which was gathered
-**2026-08-26**, the Zurkhai entry, gathered **2026-09-10** and **2026-09-24**, and the Rabten Choeling
-entry, gathered **2026-09-24**; all three carry their own dates.
+Figures accessed **2026-08-23**, except the npm versions and download counts, re-measured
+**2026-11-22**, the Zurkhai entry, gathered **2026-09-10** and **2026-09-24**, and the Rabten Choeling
+entry, gathered **2026-09-24**; each carries its own date.
 Download counts are the npm registry's last-30-day figures.
+How this package's API compares with these and with general-purpose calendar libraries is recorded for
+contributors in [api-shape-comparison.md](development/api-shape-comparison.md).
 
 ## The field is small, and that is worth saying first
 
-The two Tibetan calendar packages on npm serve, between them, under 400 downloads a month.
+There are two other Tibetan calendar packages on npm, and their download counts are no measure of
+their users: in the 30 days to 2026-11-22 one recorded 708 and the other 543,230, up from 146 in
+August. A rise of that size cannot be a Tibetan-calendar audience, and its cause is not investigated
+here.
 This is not a market with a winner. It is a small field of people solving a hard problem for a
 community that needs the answer to be right, and the useful question is not "which is best" but
 "which one answers the question you actually have".
 
 ## `tibetan-date-calculator`
 
-- npm `tibetan-date-calculator`, latest **1.2.3**, published 2025-08-25
+- npm `tibetan-date-calculator`, latest **1.2.3**, published 2025-08-25 (still latest on 2026-11-22)
 - MIT, declared in `package.json` on every version since 1.0.0 in June 2019. There is no `LICENSE`
   file in the repository or the tarball, but the manifest field is a licence grant
 - Zero runtime dependencies; repository now at
   [gitlab.com/TibetanCalendar/TibetanDateCalcualtor](https://gitlab.com/TibetanCalendar/TibetanDateCalcualtor)
-- ~228 downloads a month
+- 708 downloads in the 30 days to 2026-11-22 (~228 a month in August)
 
 **Its strengths.** It is the established Tibetan calendar library for JavaScript, it has been
 available for seven years, and it too is built on Janson's paper. Its API is a small, immediately
@@ -52,10 +57,10 @@ legitimate while reading the code is not.
 
 ## `@hnw/date-tibetan`
 
-- npm `@hnw/date-tibetan`, latest **1.0.2**, published 2025-05-17
+- npm `@hnw/date-tibetan`, latest **1.0.2**, published 2025-05-17 (still latest on 2026-11-22)
 - MIT, with a `LICENSE` file
 - One runtime dependency: `astronomia`
-- ~146 downloads a month, 4 stars
+- 543,230 downloads in the 30 days to 2026-11-22, against ~146 a month in August (see above); 4 stars on 2026-08-23
 
 **Its strengths.** It is the only other library covering more than one tradition: Tibetan (Phugpa),
 Mongolian and Bhutanese, as three classes. It converts to and from Gregorian dates and Julian Day
@@ -146,7 +151,7 @@ that verification. That is honest about the problem and says little about the an
 fewer features, and a stated window for every one of them.
 
 Its attribute layer is recorded in [almanac-sources.md](sources/almanac-sources.md) as a comparison target
-for the deferred `./astrology` work. It is deliberately **not** in
+for the `./astrology` attributes. It is deliberately **not** in
 [validation-sources.md](sources/validation-sources.md): the almanacs named in its App Store listing are what
 it was checked *against*, not how it computes, so there is still no way to tell whether it descends
 from Henning, and agreement from within a lineage already represented is not evidence.
@@ -175,81 +180,6 @@ It computes with Henning's `a₂`, so on eight days between 2001 and 2099 its Ti
 measurement, and why it is not corroboration, is in
 [validation-sources.md](sources/validation-sources.md#rabten-choelings-calendar-hennings-lunar-anomaly-value-method-unstated).
 
-## API shape, compared — added 2026-08-26
-
-Gathered during the pre-1.0.0 API surface review, because the rule governing what earns a public
-slot asks whether "a calendar library of this kind normally provides" a name — and every decision
-in that review leaned on that test while nothing here evidenced its premise.
-
-**Sources: published documentation and READMEs only, accessed 2026-08-26**, under the same rule as
-the rest of this file. `Temporal` was additionally introspected on Node v26.7.0, and this package's
-figures come from its own `dist/`; those two are exact. The hebcal figures are read off its
-documentation pages and are **approximate** — see the caveat below.
-
-Two general-purpose libraries are included alongside the Tibetan ones because the question is what
-a calendar library normally provides, and the two Tibetan packages are far smaller in scope.
-
-| | fields → date | month step from a date | month object | overflow documented? |
-|---|---|---|---|---|
-| `Temporal` | `PlainDate.from({y,m,d})` | `.add({months:1})` | `PlainYearMonth` | **yes** — `constrain` default, `reject` opt-in |
-| `@hebcal/core` | `new HDate(d, m, y)` | `.add(n, 'month')` | — | **no** — absent from its `HDate` page |
-| `tibetan-date-calculator` | constructor from `{year, month, isLeapMonth, day, isLeapDay}` | none documented | `TibetanMonth`, instantiable | n/a |
-| `@hnw/date-tibetan` | `CalendarTibetan(cycle, year, month, leapMonth, day, leapDay)` | none documented | none | n/a |
-| **this package** | `resolveDate(fields)` | `addMonthsToDate(date, n, { overflow })` | `TibetanMonth`, via `resolveMonth` | **yes** — `constrain` default, `reject` opt-in |
-
-**The last row is what the review changed.** Before 2026-08-26 this package was the only one of the
-five where reaching a date from its identifying fields had **no name of its own**: two indirect
-routes existed — `addDays(x, 0)` and `isoToTibetan(tibetanToIso(x))` — and a consumer spike found
-neither, hand-rolling around the gap instead. All four comparators make fields → date first-class,
-so that gap was the package being the outlier. A peer *Tibetan* library already shipped an
-instantiable month object, which settled the month half the same way.
-
-Month arithmetic cut the other way and is worth recording honestly: **neither Tibetan library ships
-it at all**, so "normally provided" fails for that category among the closest peers. What decided it
-was that both general-purpose libraries ship it, and that `@hebcal/core` — the closest lunisolar
-peer, with variable month lengths and leap months of its own — ships it **without stating what
-happens when the day number does not exist in the target month**. That is the specific gap this
-package set out not to reproduce, which is why its overflow is an explicit option rather than a
-silent clamp.
-
-### Surface size, counted two ways
-
-Two units, because this package is flat functions and the peers are classes: counting only
-top-level names flatters them, and counting only members flatters this package.
-
-| Unit A — runtime exports | | | Unit B — total members met | |
-|---|---|---|---|---|
-| this package | **40** | | `Temporal` | **209** |
-| `@hebcal/core` | ~23 | | this package | **78** |
-| `Temporal` | **9** | | `@hebcal/core`, `HDate` alone | ~37 |
-| `tibetan-date-calculator` | ~3 | | | |
-| `@hnw/date-tibetan` | ~3 | | | |
-
-Unit A counts **runtime exports only, on both sides**. An earlier draft compared this package's
-runtime names *plus* its types against `Temporal`'s runtime namespaces alone — counting our types
-and not theirs, which inflated us against the very comparator the conclusion rests on. `Temporal`
-declares `PlainDateLike`, `DurationLike`, `ArithmeticOptions` and more; runtime-only is the
-like-for-like unit, and the point survives it.
-
-**The surface only looks large because it is flat.** `Temporal` has roughly four times fewer
-top-level names and about 2.7 times the total members: it has namespace objects, and this package is
-a bare ESM barrel where every name lands in a consumer's import scope. On the one directly
-comparable component this package is **level with** its closest peer — `HDate` carries about 37
-members against 31 for `TibetanDate`'s 15 fields plus the 9 navigation and 7 conversion functions.
-Unit B for this package counts the 40 runtime exports plus the fields of the five public object
-shapes, introspected from `dist/` rather than read off a document. And the two
-Tibetan packages are an order of magnitude smaller in Unit A while doing considerably less: no
-observances, month grids, navigation tier or name lookups, and one or three traditions rather than
-four.
-
-**Caveat on the hebcal figures, and why they are given as "~".** Its documentation index states it
-is not a complete enumeration, and the numbers moved between two readings three days apart: on
-2026-08-23 the `HDate` page was read as claiming 19 instance methods while listing 22, and on
-2026-08-26 it listed 23 with no count claimed at all. Both readings are recorded rather than the
-later one silently replacing the earlier, because the disagreement is the reason these are
-approximate. A figure here is sourced to a page and a date exactly as every other claim in this
-file is; prefer "at least N" to a false precision.
-
 ## When to use which
 
 | If you need | Use |
@@ -264,7 +194,7 @@ file is; prefer "at least N" to a false precision.
 
 ## What this package does not claim
 
-It is the newest of the four and, at the time of writing, unreleased — so it has no track record,
+It is the newest of the implementations here and, at the time of writing, unreleased — so it has no track record,
 no users, and none of the incidental robustness that comes from years of people finding edge cases
 in public. It requires Node 26 or a polyfill, which none of the others do. And its astrological layer
 is a fraction of Henning's: attributes, the mansion and the yoga, with no planets and no eclipses.

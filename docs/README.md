@@ -22,6 +22,7 @@ How to contribute, including the clean-room constraint, is in [CONTRIBUTING.md](
 - [development/coding-standards.md](development/coding-standards.md) — every rule the project holds, and what fails when you break it
 - [development/testing.md](development/testing.md) — the testing strategy and every validation window
 - [development/verification-craft.md](development/verification-craft.md) — how to prove a check, harness, probe or document suite measures what it claims
+- [development/api-shape-comparison.md](development/api-shape-comparison.md) — how this package's API compared with other calendar libraries in the pre-1.0.0 surface review
 - [development/roadmap.md](development/roadmap.md) — phases, release status and what is still open
 
 ## Sources and provenance
