@@ -302,15 +302,6 @@ The release is next.
       they disagree — currently correct, but it would have broken had the repo not been
       transferred to the org before v1. Confirmed by the 1.0.0 publish, whose attestation succeeded
 
-- [ ] **TypeDoc will not run under TypeScript 7.** TS 7's npm package does not expose the
-      classic compiler API — its main export is a version object, the real API sits behind
-      `./unstable/sync`. Every tool built on that API (TypeDoc, API Extractor, ts-morph) is
-      incompatible until individually ported. `typedoc@0.28.20` peer-caps at `5.0.x–6.0.x`;
-      only unreleased `1.0.0-dev.*` builds loosen it. Check for a stable TypeDoc with TS 7
-      support first. If there is none, the fallback is a **docs-only `typescript@5.9` devDep
-      plus `temporal-spec`** for the TypeDoc pass, leaving build and tests on TS 7 — the two
-      are independent. Do **not** pin `typedoc@1.0.0-dev.*`; it is a prerelease on no dist-tag
-
 **npm auth note.** This account uses a **passkey**, not TOTP, so there is no 6-digit code and
 `--otp` is not usable. npm falls back to a browser flow: it prints an auth URL and waits at
 `Press ENTER to open in the browser…`. The command does nothing until you press ENTER,
@@ -365,13 +356,26 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
       re-run the release workflow). A mistaken tag is then fixed only by disabling the ruleset, so
       the release procedure tags the commit being published and checks it before pushing
 
-- [ ] Convert the remaining items here into GitHub issues under a v1.0.0 milestone. A checklist
-      in a file is fine for a solo private repo; once there are contributors, issues are better
+- [ ] **Move open work into GitHub Issues once there are contributors.** A checklist in this file
+      serves one maintainer; a contributor needs an issue to claim, discuss and link a pull request
+      to. When the first outside contributor or pull request arrives, open an issue for each open
+      item a contributor could take, and leave decisions and provenance here. Until then the roadmap
+      stays the one list, so the two cannot drift apart
 
 > Rulesets and draft pull requests are unavailable on GitHub Free for **private** org repos; the
 > repository went public on 2026-11-22, so all of them are available now.
 
 **Does not gate a release**
+
+- [ ] **TypeDoc will not run under TypeScript 7.** TS 7's npm package does not expose the
+      classic compiler API — its main export is a version object, the real API sits behind
+      `./unstable/sync`. Every tool built on that API (TypeDoc, API Extractor, ts-morph) is
+      incompatible until individually ported. **Re-checked 2026-11-22:** `typedoc@0.28.20`, its
+      `latest`, still peer-caps at `5.0.x–6.0.x`, and no newer beta exists. If a generated API
+      reference is wanted before a stable TypeDoc supports TS 7, the fallback is a **docs-only
+      `typescript@5.9` devDep plus `temporal-spec`** for the TypeDoc pass, leaving build and tests
+      on TS 7 — the two are independent. Do **not** pin `typedoc@1.0.0-dev.*`; it is a prerelease
+      on no dist-tag
 
 - [ ] **Establish Zurkhai's calculation lineage, or record that it cannot be established.** Its
       public pages state "the Phugpa school" and name no scholar, almanac edition or repository, so
