@@ -3,6 +3,13 @@
 Every release states each change a consumer can see.
 A change in behaviour that raises no error is marked **Silent change**, because nothing in your code will tell you about it.
 
+## 1.0.4 — 2026-11-23
+
+Package metadata only; no code changed.
+
+- The package description now says it is for JavaScript and names the observances, the lunar mansion and elemental yoga, the names in Tibetan script with phonetics, that dates are checked against independent published calendars, and that it has zero dependencies.
+- Removed keywords: `mongolian` and `tsurphu`. Neither calendar is included yet; each keyword returns in the release that exports its calendar.
+
 ## 1.0.3 — 2026-11-23
 
 Documentation only; no code changed.
