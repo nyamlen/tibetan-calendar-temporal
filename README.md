@@ -795,8 +795,10 @@ Implemented from Svante Janson, *Tibetan Calendar Mathematics*
 with any existing implementation — see [CONTRIBUTING.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/CONTRIBUTING.md) for the rules that
 keep it that way.
 
-**How it was built.** I, Andreas Bothner, am a software architect, and I built this package with
-Claude Code, Anthropic's AI coding assistant: it wrote the code, tests and documentation under my
+**How it was built.** I, Andreas Bothner, am a software architect with over 25 years in software
+development, a practising Buddhist for over a decade who has lived for fifteen months at a monastic
+centre, and a student of Sanskrit and Tibetan, so this project is a personal one.
+I built it with Claude Code, Anthropic's AI coding assistant: it wrote the code, tests and documentation under my
 direction and review, and the design decisions are mine. That changes where trust has to come from,
 not how much is needed. The calendar arithmetic is taken from Janson's paper alone, and the dates are
 checked against independent published calendars over stated ranges of years — see
