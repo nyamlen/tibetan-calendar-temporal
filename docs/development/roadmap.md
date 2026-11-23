@@ -334,11 +334,16 @@ default. This sentence read "tokens bypass 2FA entirely" until 2026-11-15.
 
 - [x] Set **repository topics** to match `package.json#keywords` — `tibetan`, `calendar`,
       `temporal`, `phugpa`, `buddhist`, `lunisolar`, `lunisolar-calendar`, `tibetan-calendar`, `losar`, `bhutanese`,
-      `dzongkha`, `mongolian`, `tsurphu`, `kalacakra`, `rabjung`. Topics drive GitHub search and the topic
+      `dzongkha`, `kalacakra`, `rabjung`. Topics drive GitHub search and the topic
       pages, a discovery channel entirely separate from npm, and cost one settings change. The
-      keyword list carries the Bhutanese and Mongolian scope that the package *name* deliberately
+      keyword list carries the Bhutanese scope that the package *name* deliberately
       does not — see
-      [2026-08-16-package-name-and-tradition-scope.md](../decisions/2026-08-16-package-name-and-tradition-scope.md)
+      [2026-08-16-package-name-and-tradition-scope.md](../decisions/2026-08-16-package-name-and-tradition-scope.md).
+      `mongolian` and `tsurphu` were removed after 1.0.3, with the Tsurphu and Mongolian sentence of
+      the description (Andreas, 2026-11-23), so the package does not invite users it cannot yet serve;
+      each comes back in the release that exports its config — see the *Tsurphu tradition* and
+      *Mongolian tradition* entries. `package.json#description` and the GitHub About carry the same
+      text: change both together
 
 - [x] A **branch ruleset** on `main` (Settings → Rules → Rulesets): *Restrict deletions* and *Block
       force pushes*, no bypass. Created by Andreas, 2026-11-22. Force-push protection matters here specifically — the commit history
@@ -1004,6 +1009,11 @@ nothing and reports success.
   too long. The generator has a fifth check for it, and the fixture now ends the day before (its
   extent is in `docs/development/testing.md`); asking the generator for a later end refuses to write.
 
+  **Discovery, in the release that exports the config** (Andreas, 2026-11-23), not before, so the
+  package does not invite the users it cannot yet serve:
+  - restore the keyword `tsurphu` to `package.json#keywords` and to the GitHub topics;
+  - name Tsurphu in `package.json#description` and in the GitHub About, which carry the same text.
+
 - **Mongolian tradition** (New Genden) via its own `TraditionConfig`. Added as its own entry on
   2026-09-24, at Andreas' request; its route was first scoped inside the Tsurphu entry above, which
   still carries that paragraph. Janson, citing Berzin, gives it as the version of **Mongolia, and of
@@ -1045,7 +1055,11 @@ nothing and reports success.
        are found, Tibetan-script ones return unrelated packages). *Zurkhai* is also the name of the app
        cited in 3, which the keyword will match as well;
      - restore `tsagaan-sar` to the keywords and to the GitHub topics, removed for 1.0.0 because the
-       package cannot yet date Tsagaan Sar by the Mongolian rules.
+       package cannot yet date Tsagaan Sar by the Mongolian rules;
+     - restore `mongolian` to the keywords and to the GitHub topics, removed after 1.0.3 for the same
+       reason;
+     - name the Mongolian calendar in `package.json#description` and in the GitHub About, which carry
+       the same text.
 
   **Measured 2026-09-24:** between 2020 and 2033 the two versions give a day a different month label
   on 1,122 of 5,114 days, in five stretches of about seven months — the next from 9 March to 29
