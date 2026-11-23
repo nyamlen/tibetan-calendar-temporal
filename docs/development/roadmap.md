@@ -126,7 +126,8 @@ question of a Tibetan calendar had no correct public answer.
 | 1.0.0 | **Published 2026-11-22** from `release.yml`: tag `v1.0.0` on `2467846`, staged by the workflow, approved on npm by Andreas, with an SLSA provenance attestation |
 | 1.0.1 | **Published 2026-11-22**, documentation only: the README states which calendars ship. Tag `v1.0.1` on `a406178`, same route and attestation |
 | 1.0.2 | **Published 2026-11-22**, documentation and metadata only: README wording, the provenance paragraph on how it was built, history removed from the shipped documents, the `lunisolar-calendar` keyword. Tag `v1.0.2` on `2d512bc`, same route and attestation |
-| 1.0.3 | **Published 2026-11-23**, documentation only: the README's provenance paragraph gains the author's background, the build period and the test-suite size. Tag `v1.0.3` on `818eeea`, same route and attestation. Holds `latest` |
+| 1.0.3 | **Published 2026-11-23**, documentation only: the README's provenance paragraph gains the author's background, the build period and the test-suite size. Tag `v1.0.3` on `818eeea`, same route and attestation |
+| 1.0.4 | **Published 2026-11-23**, metadata only: the description now matches the GitHub About, and the keywords `mongolian` and `tsurphu` are removed until those calendars ship. The registry cut the description at 255 characters (see "Shorten the package description" under Outstanding). Tag `v1.0.4` on `5d72ef5`, same route and attestation. Holds `latest` |
 
 The repository went public on 2026-11-22, before the 1.0.0 publish, because npm generates provenance only for a public repository.
 
