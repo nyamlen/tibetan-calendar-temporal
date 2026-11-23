@@ -375,6 +375,9 @@ The procedure is in [CONTRIBUTING.md](CONTRIBUTING.md), "Releasing".
 - **A `v*` tag cannot be moved or deleted** (tag ruleset): check the commit before pushing the tag.
 - **Verify a publish with `npm view`, not the npmjs.com page**, which serves a cached copy for a
   while after a publish: it showed 1.0.1 as `latest` minutes after the registry served 1.0.2.
+- **`package.json#description` and the GitHub About carry the same text; change both together.**
+  They are the two places search shows the package, and they drift apart otherwise. npm shows the
+  new text only after a release, GitHub at once.
 
 ## Documents
 
