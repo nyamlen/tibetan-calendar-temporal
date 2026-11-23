@@ -798,11 +798,13 @@ keep it that way.
 **How it was built.** I, Andreas Bothner, am a software architect with over 25 years in software
 development, a practising Buddhist for over a decade who has lived for fifteen months at a monastic
 centre, and a student of Sanskrit and Tibetan, so this project is a personal one.
-I built it with Claude Code, Anthropic's AI coding assistant: it wrote the code, tests and documentation under my
-direction and review, and the design decisions are mine. That changes where trust has to come from,
-not how much is needed. The calendar arithmetic is taken from Janson's paper alone, and the dates are
-checked against independent published calendars over stated ranges of years — see
-[why you can trust these dates](docs/why-trust-these-dates.md). Before 1.0.0 the code went through a
+I built it over three months, from August to November 2026, with Claude Code, Anthropic's AI coding
+assistant: it wrote the code, tests and documentation under my direction and review, and the design
+decisions are mine. That changes where trust has to come from, not how much is needed. The calendar
+arithmetic is taken from Janson's paper alone, and the dates are checked against independent
+published calendars over stated ranges of years — see
+[why you can trust these dates](docs/why-trust-these-dates.md). The test suite holds over 2,400
+tests. Before 1.0.0 the code went through a
 source code review, two security reviews, an adversarial review, a maintainability review and an
 audit of every documentation comment, each by sessions that had not written the code under review,
 and through blind builds by clients working from a packed tarball alone. The clean-room rule binds
