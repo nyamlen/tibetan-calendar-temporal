@@ -199,6 +199,20 @@ Setup work, all done. The two app-launch items (the `www` CNAME and the extra do
       `markdownlint-cli2` instead. **Residual accepted by Andreas, 2026-11-14:** low severity,
       development-only, reachable only if KaTeX renders hostile input, where markdownlint parses
       this repository's own docs. Revisit when `micromark-extension-math` widens its `katex` range.
+- [ ] **Shorten the package description to fit npm's 255 characters, and test the limit.** 1.0.4
+      published a 267-character description, and the registry keeps 255: `npm view
+      tibetan-calendar-temporal description` and the search API both end "… Zero d". Chosen text
+      (Andreas, 2026-11-23), 251 characters:
+
+      > Tibetan calendar engine for JavaScript, built on Temporal: Phugpa and Bhutanese calendars,
+      > observances, lunar mansion and elemental yoga, names in Tibetan script with phonetics; dates
+      > checked against independent published calendars. Zero dependencies.
+
+      Put it in `package.json#description` and the GitHub About in the same change. Add the test to
+      `scripts/check-pack.mjs` (`test:pack`), which already reads `package.json`: refuse a
+      description longer than 255 characters, naming its length, and write the failing case first.
+      Add the check to [coding-standards.md](coding-standards.md)'s enforcement map. Not urgent:
+      ships in the next release, whenever that is.
 
 ## Pre-v1.0.0 checklist
 
