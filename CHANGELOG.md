@@ -3,6 +3,12 @@
 Every release states each change a consumer can see.
 A change in behaviour that raises no error is marked **Silent change**, because nothing in your code will tell you about it.
 
+## 1.0.3 — 2026-11-23
+
+Documentation only; no code changed.
+
+- The README's Provenance section says who built the package and over what period, and how many tests its suite holds.
+
 ## 1.0.2 — 2026-11-22
 
 Documentation and package metadata only; no code changed.
