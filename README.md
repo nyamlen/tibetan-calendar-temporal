@@ -103,7 +103,7 @@ differs from a published almanac and why, and which questions no available sourc
 | | `tibetan-date-calculator` | `@hnw/date-tibetan` | Henning's software | this package |
 |---|---|---|---|---|
 | Date type | legacy `Date` | `Date` + Julian day | writes text files | `Temporal.PlainDate` |
-| Traditions | Phugpa | 3, as fixed classes | Phugpa, Tsurphu, Zhonnu Pal | 4 configs, more addable as data |
+| Traditions | Phugpa | Phugpa, Bhutanese, Mongolian, as fixed classes | Phugpa, Tsurphu, Zhonnu Pal | 4 configs, more addable as data |
 | What a date carries | a `TibetanDate` class instance | a 6-element tuple | text columns | 15 fields, names in three scripts |
 | Observances | — | — | hardcoded columns | configurable, with resolutions |
 | Astrological data | — | — | **planets, lunar mansions, eclipses** | attributes and the yoga; no planets or eclipses |
@@ -764,22 +764,15 @@ Implemented from Svante Janson, *Tibetan Calendar Mathematics*
 with any existing implementation — see [CONTRIBUTING.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/CONTRIBUTING.md) for the rules that
 keep it that way.
 
-**How it was built.** I, Andreas Bothner, am a software architect with over 25 years in software
-development, a practising Buddhist for over a decade who has lived for fifteen months at a monastic
-centre, and a student of Sanskrit and Tibetan, so this project is a personal one.
-I built it over three months, from August to November 2026, with Claude Code, Anthropic's AI coding
-assistant: it wrote the code, tests and documentation under my direction and review, and the design
-decisions are mine. That changes where trust has to come from, not how much is needed. The calendar
-arithmetic is taken from Janson's paper alone, and the dates are checked against independent
-published calendars over stated ranges of years — see
-[why you can trust these dates](docs/why-trust-these-dates.md). The test suite holds over 2,400
-tests. Before 1.0.0 the code went through a
-source code review, two security reviews, an adversarial review, a maintainability review and an
-audit of every documentation comment, each by sessions that had not written the code under review,
-and through blind builds by clients working from a packed tarball alone. The clean-room rule binds
-the assistant as it binds any contributor: no session read another implementation's source. What a
-model saw in training cannot be ruled out, so the evidence of independent derivation is the commit
-history itself, where the arithmetic is built up step by step from the paper's sections.
+**How it was built.** I, Andreas Bothner, am a software architect with over 25 years in software development, a practising Buddhist for over a decade who has lived for fifteen months at a monastic centre, and a student of Sanskrit and Tibetan, so this project is a personal one.
+I built it over three months, from August to November 2026, with Claude Code, Anthropic's AI coding assistant:
+it wrote the code, tests and documentation under my direction and review, and the design decisions are mine.
+That changes where trust has to come from, not how much is needed.
+The calendar arithmetic is taken from Janson's paper alone, and the dates are checked against independent published calendars over stated ranges of years — see [why you can trust these dates](docs/why-trust-these-dates.md).
+The test suite holds over 2,400 tests.
+Before 1.0.0 the code went through a source code review, two security reviews, an adversarial review, a maintainability review and an audit of every documentation comment, each by sessions that had not written the code under review, and through blind builds by clients working from a packed tarball alone.
+The clean-room rule binds the assistant as it binds any contributor: no session read another implementation's source.
+What a model saw in training cannot be ruled out, so the evidence of independent derivation is the commit history itself, where the arithmetic is built up step by step from the paper's sections.
 
 <details>
 <summary><strong>Why the name says "Tibetan" when Bhutan and Mongolia have their own calendars</strong></summary>
