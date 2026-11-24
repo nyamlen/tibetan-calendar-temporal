@@ -11,7 +11,8 @@ this project works under: it is a clean-room implementation of Janson's paper, a
 competing implementation would compromise that.
 
 Figures accessed **2026-08-23**, except the npm versions and download counts, re-measured
-**2026-11-22**, the Zurkhai entry, gathered **2026-09-10** and **2026-09-24**, and the Rabten Choeling
+**2026-11-22**, the languages and module formats, read from the npm manifests and tarball file
+listings on **2026-11-24**, the Zurkhai entry, gathered **2026-09-10** and **2026-09-24**, and the Rabten Choeling
 entry, gathered **2026-09-24**; each carries its own date.
 Download counts are the npm registry's last-30-day figures.
 How this package's API compares with these and with general-purpose calendar libraries is recorded for
@@ -32,6 +33,8 @@ community that needs the answer to be right, and the useful question is not "whi
 - npm `tibetan-date-calculator`, latest **1.2.3**, published 2025-08-25 (still latest on 2026-11-22)
 - MIT, declared in `package.json` on every version since 1.0.0 in June 2019. There is no `LICENSE`
   file in the repository or the tarball, but the manifest field is a licence grant
+- Written in TypeScript (the tarball ships `src/*.ts`) and ships type declarations
+  (`"types": "dist/dts/index.d.ts"`); published as CommonJS (`main`), ESM (`module`) and a UMD bundle
 - Zero runtime dependencies; repository now at
   [gitlab.com/TibetanCalendar/TibetanDateCalcualtor](https://gitlab.com/TibetanCalendar/TibetanDateCalcualtor)
 - 708 downloads in the 30 days to 2026-11-22 (~228 a month in August)
@@ -59,6 +62,8 @@ legitimate while reading the code is not.
 
 - npm `@hnw/date-tibetan`, latest **1.0.2**, published 2025-05-17 (still latest on 2026-11-22)
 - MIT, with a `LICENSE` file
+- Written in JavaScript (the tarball ships `src/*.js`); `"type": "module"`, with a CommonJS build in
+  `lib/*.cjs`
 - One runtime dependency: `astronomia`
 - 543,230 downloads in the 30 days to 2026-11-22, against ~146 a month in August (see above); 4 stars on 2026-08-23
 

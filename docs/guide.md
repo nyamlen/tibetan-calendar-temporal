@@ -1055,6 +1055,17 @@ import 'tibetan-calendar-temporal';
 That message is a guard the package raises deliberately. Without it you would get a bare
 `ReferenceError: Temporal is not defined` naming neither the requirement nor the fix.
 
+### From CommonJS
+
+The package is ESM only, and a CommonJS module can still load it on Node 26 with `require()`:
+
+```js
+const { isoToTibetan } = require('tibetan-calendar-temporal');
+```
+
+Node loads an ES module synchronously through `require()` when the module has no top-level `await`, and this package has none.
+`require()` and `import` hand back the same module rather than two copies, so `PHUGPA` from one is the same object as `PHUGPA` from the other.
+
 ### Using a polyfill
 
 Install [`temporal-polyfill`](https://www.npmjs.com/package/temporal-polyfill) and import it once,

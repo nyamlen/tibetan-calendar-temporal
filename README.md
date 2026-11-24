@@ -95,6 +95,8 @@ It also states what is *not* established — which traditions are expressible bu
 
 | | `tibetan-date-calculator` | `@hnw/date-tibetan` | Henning's software | this package |
 |---|---|---|---|---|
+| Language | TypeScript, types shipped | JavaScript | C, plus a Win32 program | TypeScript, types shipped |
+| Module format | CommonJS, ESM and UMD | ESM, plus a CommonJS build | not a library | ESM; `require()` also works on Node 26 |
 | Date type | legacy `Date` | `Date` + Julian day | writes text files | `Temporal.PlainDate` |
 | Traditions | Phugpa | Phugpa, Bhutanese, Mongolian, as fixed classes | Phugpa, Tsurphu, Zhönnu Pal | 4 configs, more addable as data |
 | What a date carries | a `TibetanDate` class instance | a 6-element tuple | text columns | 15 fields, names in three scripts |

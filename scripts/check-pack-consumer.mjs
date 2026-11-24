@@ -12,9 +12,11 @@
  */
 
 import { existsSync, readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
+const consumerRequire = createRequire(import.meta.url);
 const problems = [];
 const check = (condition, message) => {
 	if (!condition) problems.push(message);
@@ -171,10 +173,25 @@ for (const subpath of declared) {
 	}
 	const specifier =
 		subpath === "." ? "tibetan-calendar-temporal" : `tibetan-calendar-temporal/${subpath.slice(2)}`;
+	let imported;
 	try {
-		await import(specifier);
+		imported = await import(specifier);
 	} catch (error) {
 		check(false, `${specifier} throws on import: ${error.message}`);
+	}
+	// The guide's "From CommonJS" promises `require()` works and returns the same module as `import`,
+	// not a second copy: a second copy would split the per-config caches and make `=== PHUGPA` false.
+	// A top-level `await` anywhere in `dist/` would break it, as would an `exports` condition that
+	// `require` does not match.
+	try {
+		const required = consumerRequire(specifier);
+		const keys = Object.keys(imported ?? {});
+		check(
+			keys.length > 0 && keys.every((key) => required[key] === imported[key]),
+			`${specifier} through require() is not the module import() returns`,
+		);
+	} catch (error) {
+		check(false, `${specifier} throws on require(): ${error.message}`);
 	}
 }
 const unasserted = declared.filter((subpath) => !ASSERTED.includes(subpath));
