@@ -8,7 +8,7 @@
 | 1 | Core computation: Layers 0-3 (Janson §2-9) — **done** | 20h |
 | 2 | Validation: FPMT fixtures, cross-check against reference implementations — **done** | 12h |
 | 3 | Observances: config-driven rules, an example config — **done**; rebuilt in November 2026, see the checklist | 8h |
-| 4 | TypeDoc + release workflow + publish v1.0.0 (docblock audit split out — see Phase 4a) | 6h |
+| 4 | Release workflow + publish v1.0.0 (docblock audit split out — see Phase 4a) — **done** (1.0.0 published 2026-11-22); TypeDoc did not ship and is an open item under "Does not gate a release", blocked on TypeScript 7 | 6h |
 | 4a | Code review: 629 docblocks (counted 2026-11-16) verified against behaviour, plus convention and derivation conformance across all of `src/` — **done** (code review merged 2026-11-16, docblock audit 2026-11-17); see the [Pre-v1.0.0 checklist](#pre-v100-checklist) | 14h |
 
 **Safe timeline: 3 weeks** (accounts for debugging edge cases in doubled/skipped day logic —

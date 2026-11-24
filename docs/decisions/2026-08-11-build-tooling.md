@@ -50,7 +50,7 @@ the Vitest smoke test pass.
 TypeScript 7's npm package does not expose the classic compiler API. Anything built on it —
 TypeDoc, API Extractor, ts-morph — cannot run until individually ported. Vitest and Biome are
 unaffected (esbuild transform and a Rust parser respectively; neither depends on `typescript`),
-so Phases 0–3 are clear. **TypeDoc in Phase 4 is the live problem**, tracked in
+so Phases 0–3 were clear. **TypeDoc is the live problem** — 1.0.0 shipped without it — tracked in
 [roadmap.md](../development/roadmap.md) with a fallback: a docs-only `typescript@5.9` plus `temporal-spec`
 for the TypeDoc pass, leaving build and tests on TS 7.
 
@@ -89,5 +89,6 @@ back; architecture.md currently rules both out.
   precisely the failure this project cannot afford.
 - **`.gitattributes` normalises to LF.** Biome formats to LF, and with `core.autocrlf=true` a
   Windows checkout would fail `npm run lint` locally while passing in CI.
-- **Changesets and TypeDoc are deferred to Phase 4**, where the roadmap already places release
-  work.
+- **Changesets and TypeDoc were deferred to Phase 4**, where the roadmap placed release work.
+  Neither shipped with 1.0.0: changesets was not adopted (`CHANGELOG.md` is written by hand), and
+  TypeDoc remains blocked on TypeScript 7.

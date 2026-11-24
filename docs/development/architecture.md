@@ -764,9 +764,11 @@ daybreak and practice is not uniform. See
 | Vitest | Test runner |
 | fast-check | Property-based testing |
 | Biome | Lint + format |
-| changesets | Version management + changelog (Phase 4) |
-| TypeDoc | API documentation (Phase 4) |
 | GitHub Actions | CI/CD with npm provenance |
+
+`CHANGELOG.md` is written by hand for each release; changesets was not adopted. There is no
+generated API reference: TypeDoc cannot run under TypeScript 7, tracked in
+[roadmap.md](roadmap.md).
 
 There is no bundler. `tsc` alone emits the ESM output and declarations, which keeps `dist/`
 mirroring `src/` — the structure the `./observances` subpath export depends on. Reasoning:
