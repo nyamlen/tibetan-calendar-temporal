@@ -103,11 +103,14 @@ differs from a published almanac and why, and which questions no available sourc
 | | `tibetan-date-calculator` | `@hnw/date-tibetan` | Henning's software | this package |
 |---|---|---|---|---|
 | Date type | legacy `Date` | `Date` + Julian day | writes text files | `Temporal.PlainDate` |
-| Traditions | Phugpa | Phugpa, Bhutanese, Mongolian, as fixed classes | Phugpa, Tsurphu, Zhonnu Pal | 4 configs, more addable as data |
+| Traditions | Phugpa | Phugpa, Bhutanese, Mongolian, as fixed classes | Phugpa, Tsurphu, Zhönnu Pal | 4 configs, more addable as data |
 | What a date carries | a `TibetanDate` class instance | a 6-element tuple | text columns | 15 fields, names in three scripts |
 | Observances | — | — | hardcoded columns | configurable, with resolutions |
 | Astrological data | — | — | **planets, lunar mansions, eclipses** | attributes and the yoga; no planets or eclipses |
 | Stated validated range | — | — | — | every claim carries its window |
+
+Zhönnu Pal (གཞོན་ནུ་དཔལ, *zhönnu pal*) is the version of the calendar proposed in 1443 by the scholar of that name, which Henning calls the "error correction" system.
+Janson describes it as proposed but never adopted, so no almanac follows it.
 
 Henning's software computes a full astrological almanac — planets and eclipses included — which this
 package does not attempt, and

@@ -92,7 +92,7 @@ for every year checked, so it is a faithful implementation of the same paper.
 - C source plus a Win32 command-line program, at
   [kalacakra.org](http://www.kalacakra.org/calendar/os_cal.htm)
 - MIT, stated on the download page
-- Covers Phugpa, Tsurphu and the "Error Correction" system of Zhonnu Pal, plus a separate
+- Covers Phugpa, Tsurphu and the "Error Correction" system of Zhönnu Pal, plus a separate
   Kālacakra कालचक्र *karaṇa* calendar
 - Version 1.20. Edward Henning died in 2016; the software is unmaintained by necessity
 
