@@ -127,7 +127,7 @@ question of a Tibetan calendar had no correct public answer.
 | 1.0.1 | **Published 2026-11-22**, documentation only: the README states which calendars ship. Tag `v1.0.1` on `a406178`, same route and attestation |
 | 1.0.2 | **Published 2026-11-22**, documentation and metadata only: README wording, the provenance paragraph on how it was built, history removed from the shipped documents, the `lunisolar-calendar` keyword. Tag `v1.0.2` on `2d512bc`, same route and attestation |
 | 1.0.3 | **Published 2026-11-23**, documentation only: the README's provenance paragraph gains the author's background, the build period and the test-suite size. Tag `v1.0.3` on `818eeea`, same route and attestation |
-| 1.0.4 | **Published 2026-11-23**, metadata only: the description now matches the GitHub About, and the keywords `mongolian` and `tsurphu` are removed until those calendars ship. The registry cut the description at 255 characters (see "Shorten the package description" under Outstanding). Tag `v1.0.4` on `5d72ef5`, same route and attestation. Holds `latest` |
+| 1.0.4 | **Published 2026-11-23**, metadata only: the description now matches the GitHub About, and the keywords `mongolian` and `tsurphu` are removed until those calendars ship. The registry cut the description at 255 characters (see "Package description shortened" under Outstanding). Tag `v1.0.4` on `5d72ef5`, same route and attestation. Holds `latest` |
 
 The repository went public on 2026-11-22, before the 1.0.0 publish, because npm generates provenance only for a public repository.
 
@@ -200,20 +200,11 @@ Setup work, all done. The two app-launch items (the `www` CNAME and the extra do
       `markdownlint-cli2` instead. **Residual accepted by Andreas, 2026-11-14:** low severity,
       development-only, reachable only if KaTeX renders hostile input, where markdownlint parses
       this repository's own docs. Revisit when `micromark-extension-math` widens its `katex` range.
-- [ ] **Shorten the package description to fit npm's 255 characters, and test the limit.** 1.0.4
-      published a 267-character description, and the registry keeps 255: `npm view
-      tibetan-calendar-temporal description` and the search API both end "… Zero d". Chosen text
-      (Andreas, 2026-11-23), 251 characters:
-
-      > Tibetan calendar engine for JavaScript, built on Temporal: Phugpa and Bhutanese calendars,
-      > observances, lunar mansion and elemental yoga, names in Tibetan script with phonetics; dates
-      > checked against independent published calendars. Zero dependencies.
-
-      Put it in `package.json#description` and the GitHub About in the same change. Add the test to
-      `scripts/check-pack.mjs` (`test:pack`), which already reads `package.json`: refuse a
-      description longer than 255 characters, naming its length, and write the failing case first.
-      Add the check to [coding-standards.md](coding-standards.md)'s enforcement map. Not urgent:
-      ships in the next release, whenever that is.
+- [x] **Package description shortened to fit npm's 255 characters, with a test** — done
+      2026-11-24. 1.0.4 published 267 characters and the registry kept 255 ("… Zero d"). The
+      chosen text (Andreas, 2026-11-23), 251 characters, is in `package.json#description` and the
+      GitHub About; `test:pack` refuses a description over 255, naming its length, and failed on
+      the old text before the new one went in. Reaches npm in the next release.
 
 ## Pre-v1.0.0 checklist
 
@@ -1023,6 +1014,22 @@ nothing and reports success.
   month Janson does not list**, at 2030-04-03, because the upstream leaves its leap flag set a month
   too long. The generator has a fifth check for it, and the fixture now ends the day before (its
   extent is in `docs/development/testing.md`); asking the generator for a later end refuses to write.
+
+  **The route to a Tsurphu export, scoped 2026-11-24, takes Bhutan's shape.**
+  `BHUTAN_HENNING` is exported on a day-by-day sweep of Henning's data, and `BHUTAN` on a sample
+  of independently published days. The Bhutan sweep's data came from a WordPress plugin carrying
+  the output of Henning's software; for Tsurphu, Henning publishes daily calendars himself, beside
+  his Phugpa and Bhutanese ones (`http://www.kalacakra.org/calendar/tdata/ts_YYYY.txt`), and
+  nothing here has fetched them yet.
+  1. A `fetch-*` generator turns those files into a fixture, with the continuity and leap-month
+     checks `fetch-bhutan-fixtures.mjs` makes. Holding the engine to it day by day is the sweep, and it
+     settles empirically the `m₀`, `s₀` and `a₀` reconciliation the epoch table needs.
+  2. The independent sample is the Nitartha calendar, which prints the Tsurphu month and day in
+     every cell and whose publisher says it is computed by hand, not with Henning's software. Check
+     that lineage before counting it; see the Tsurphu section of
+     [validation-sources.md](../sources/validation-sources.md).
+  3. The calendar-day nine number, which Tsurphu calendars restart from the solstices, stays
+     unmodelled. It limits `./astrology`, not the dates.
 
   **Discovery, in the release that exports the config** (Andreas, 2026-11-23), not before, so the
   package does not invite the users it cannot yet serve:

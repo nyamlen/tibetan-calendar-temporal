@@ -1,7 +1,7 @@
 {
   "name": "tibetan-calendar-temporal",
   "version": "1.0.4",
-  "description": "Tibetan calendar engine for JavaScript, built on Temporal. The Phugpa and Bhutanese calendars with observances, the lunar mansion and elemental yoga, and names in Tibetan script with phonetics; dates checked against independent published calendars. Zero dependencies.",
+  "description": "Tibetan calendar engine for JavaScript, built on Temporal: Phugpa and Bhutanese calendars, observances, lunar mansion and elemental yoga, names in Tibetan script with phonetics; dates checked against independent published calendars. Zero dependencies.",
   "type": "module",
   "license": "MIT",
   "author": "Andreas Bothner <contact@nyamlen.app>",

@@ -438,6 +438,12 @@ above all). Do not re-wrap prose for a linter, and do not remove those exclusion
 semantic-line-break check (fires thousands of times; no document is clean enough to ratchet from) and
 a path-liveness check over this file (it drifts in counts and rule descriptions, not paths).
 
+**A formatting-only sweep is its own commit, changes no word, and goes in `.git-blame-ignore-revs`
+in the next commit**; otherwise it takes over blame for every line it touches. Prove "no word
+changed" mechanically — the README's line-break sweep compared markdown-it's rendered HTML before
+and after — not by reading the diff. Only the README has been swept; the other documents are still
+hard-wrapped.
+
 **A docblock is written for the caller; reasoning goes in a `//` comment.** `tsc` ships `/** */` and
 drops `//`. Move proofs and traps to `//`, never delete them; dates go in commit messages.
 [docs/decisions/2026-11-15-docblocks-are-for-callers.md](docs/decisions/2026-11-15-docblocks-are-for-callers.md).

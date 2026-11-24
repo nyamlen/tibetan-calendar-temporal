@@ -108,6 +108,21 @@ try {
 		);
 	}
 
+	// The registry keeps 255 characters of `description` and drops the rest without a warning:
+	// 1.0.4 published 267, and npm search showed it ending "… Zero d". Read from the installed copy,
+	// which is the manifest the registry receives.
+	const { description } = JSON.parse(
+		readFileSync(
+			join(scratch, "node_modules", "tibetan-calendar-temporal", "package.json"),
+			"utf8",
+		),
+	);
+	if (typeof description !== "string" || description.length > 255) {
+		throw new Error(
+			`package.json#description is ${typeof description === "string" ? `${description.length} characters` : "missing"}; the registry keeps 255 and cuts the rest`,
+		);
+	}
+
 	// The consumer documents `package.json#files` ships. They are what makes the README's
 	// condensation safe: the long-form material moved to `docs/guide.md` rather than out of the
 	// package, so an npm consumer loses nothing to the split. Nothing else in this repository sees

@@ -27,6 +27,13 @@ cut, which is never the one that should go. `docs/development/roadmap.md` record
 Temporal polyfill material into the README precisely because the README was the only file reaching
 npm — a total-length rule would put that back at risk, while a first-screen rule does not touch it.
 
+**The pitch includes the one-line summary of the three entry points; the table of contents comes
+after the example.** Which entry points exist is part of what the package is, and a visitor needs
+it before installing, so the summary is pitch and not a breach. The table of contents is for a
+reader who has already decided to read on, so it does not spend the first screen. The summary
+stays one line per entry point; where each one's claims come from belongs under "Why you can trust
+the dates", not here.
+
 `docs/guide.md` carries three sections — understanding the calendar, working with the library,
 running it anywhere — and a fourth becoming tempting is the signal that the guide is turning into a
 second README.
