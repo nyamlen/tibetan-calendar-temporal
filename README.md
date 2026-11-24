@@ -37,8 +37,7 @@ rabjungFor(day.year);            // { cycle: 17, year: 40, … }
 ```
 
 Zero runtime dependencies, MIT licensed, built on [Temporal](https://tc39.es/proposal-temporal/docs/).
-Every claim of agreement with an almanac states the range of years it was checked over —
-see [why you can trust these dates](docs/why-trust-these-dates.md).
+Every claim of agreement with an almanac states the range of years it was checked over — see [why you can trust these dates](docs/why-trust-these-dates.md).
 
 ## Contents
 
@@ -90,9 +89,9 @@ every claim it makes about agreement comes with the range of years over which th
 checked. Agreement quoted without its window is not evidence.
 
 The three entry points make different kinds of claim.
-The root's arithmetic comes from Janson alone, and its dates are checked against published almanacs.
+The root's arithmetic comes from Janson alone, and its dates are checked against published calendars.
 `./astrology` computes its cycles and the lunar mansion from Janson, with the mansion's element table from Henning, whom Janson cites; the yoga's `favorable` flag is FPMT's convention, and its `auspiciousness` grading a Tibetan dictionary's.
-`./observances` makes no falsifiable claim at all: which days are kept is convention, and published sources disagree, so its rules are data you supply.
+`./observances` makes no claim about which days should be kept: that is convention, and published sources disagree, so its rules are data you supply.
 
 It also states what is *not* established — which traditions are expressible but unshipped, where it
 differs from a published almanac and why, and which questions no available source can settle.
@@ -148,17 +147,15 @@ The same applies in a browser: `Temporal` ships in Chrome, Edge and Firefox but 
 Use a polyfill rather than Node 24's `--harmony-temporal` flag, which nothing here has been run against.
 [Running it anywhere](docs/guide.md#running-it-anywhere) in the guide covers testing under the polyfill, the flag, and `engines`, which npm treats as advisory.
 
-**TypeScript 7 or later, if you type-check.** This is a *separate* requirement from the runtime one,
-and meeting that one does not meet this:
-the `Temporal` namespace type ships in TypeScript's own lib files only from 7.0, so on 5.x every
-declaration here fails with `TS2503: Cannot find namespace 'Temporal'`.
+**TypeScript 7 or later, if you type-check.** This is a *separate* requirement from the runtime one, and meeting that one does not meet this:
+the `Temporal` namespace type ships in TypeScript's own lib files only from 7.0,
+so on 5.x every declaration here fails with `TS2503: Cannot find namespace 'Temporal'`.
 
 ```sh
 npm i -D typescript@^7
 ```
 
-No `"lib"` setting is needed **if your `target` is `ESNext`**; otherwise add
-`"lib": ["ES2024", "ESNext.Temporal"]`.
+No `"lib"` setting is needed **if your `target` is `ESNext`**; otherwise add `"lib": ["ES2024", "ESNext.Temporal"]`.
 Do **not** install `temporal-polyfill`, `temporal-spec` or any other typings package to fix it.
 [The guide's tsconfig](docs/guide.md#type-checking-needs-typescript-7-which-the-runtime-requirement-does-not-imply)
 is a working example.
@@ -268,7 +265,7 @@ month.firstDay.toString();       // "2026-02-18" — Losar
 month.lastDay.toString();        // "2026-03-18"
 ```
 
-`lunation` is also on every `TibetanDate`, carrying the month that date falls in — so a date has a
+Every `TibetanMonth` carries a `lunation`, and so does every `TibetanDate`, naming the month that date falls in — so a date has a
 direct route back to its own month rather than needing a two-key search that is easy to get wrong
 across a leap pair.
 
@@ -653,26 +650,23 @@ Two traditions, Phugpa and Bhutanese, each in two parameterisations. See
 
 #### Errors
 
-`SkippedDayError` is the only exported error class, and carries a frozen copy of the offending date
-fields as `.requested`.
-Every failure about your **input** is a `RangeError`; the two that are not about your input —
-`TCT_INTERNAL` and `TCT_MISSING_TEMPORAL` — are plain `Error`s, as the at-a-glance signal that the
-fault is not yours.
+`SkippedDayError` is the only exported error class, and carries a frozen copy of the offending date fields as `.requested`.
+Every failure about your **input** is a `RangeError`;
+the two that are not about your input — `TCT_INTERNAL` and `TCT_MISSING_TEMPORAL` — are plain `Error`s, as the at-a-glance signal that the fault is not yours.
 Every one carries a `code`, which is what to branch on rather than the type.
-`tibetanDateExists` answers `false` for exactly three of them — `SkippedDayError`,
-`TCT_FIELD_OUT_OF_RANGE` and `TCT_NO_SUCH_LEAP_MONTH` — and rethrows everything else.
+`tibetanDateExists` answers `false` for a `SkippedDayError` and for the codes `TCT_FIELD_OUT_OF_RANGE` and `TCT_NO_SUCH_LEAP_MONTH`, and rethrows everything else.
 
 | `error.code` | Thrown by | Meaning |
 |---|---|---|
 | `TCT_SKIPPED_DAY` | `tibetanToIso`, `resolveDate`, `addDays`, `daysBetween`, `addMonthsToDate` | The date is well-formed but no calendar day carries its number. Not a bug in your code — see [Errors and validation](#errors-and-validation) |
-| `TCT_FIELD_OUT_OF_RANGE` | every function taking a date, a year or a Julian day | A number is wrong: not an integer, or outside 1–12 / 1–30. The one to surface to a user |
+| `TCT_FIELD_OUT_OF_RANGE` | every function taking a date, a year or a Julian day | A number is wrong: not an integer, or outside 1–12 / 1–30 — or a bare-number argument is not a number at all. The one to surface to a user |
 | `TCT_INVALID_ARGUMENT` | the same functions, plus `parseTibetanDate`, and `nextObservance` for a `ruleId` that is not a string or names no rule | The argument is the wrong *kind* of thing — a `Temporal.PlainDate` where a Tibetan date belongs, `null`, an unknown options key. A bug in the calling code rather than bad data |
 | `TCT_NO_SUCH_LEAP_MONTH` | every function taking a Tibetan month's or date's **fields**, except `tibetanDateExists`, which answers `false`, and the two formatters | `isLeapMonth: true` for a month with no leap twin that year |
-| `TCT_OUTSIDE_EXACT_RANGE` | any conversion, `getObservances`, `observancesOn` and `nextObservance` near the end of the range, and the closed-form year functions `hasLeapMonth`, `leapMonthNumberFor`, `monthsInYear` | Beyond where this tradition's integer arithmetic stays exact. For a conversion, `PHUGPA` and `BHUTAN` are exact from about ISO year −245,737 to 236,312; `PHUGPA_HENNING` and `BHUTAN_HENNING` from about −20,781 to 11,356. The three year functions have a bound of their own, far wider: `hasLeapMonth(300000)` answers |
+| `TCT_OUTSIDE_EXACT_RANGE` | any conversion, `getObservances` and `observancesOn` for a range reaching past the end, `nextObservance` for a `from` past it, and the closed-form year functions `hasLeapMonth`, `leapMonthNumberFor`, `monthsInYear` | Beyond where this tradition's integer arithmetic stays exact. For a conversion, `PHUGPA` and `BHUTAN` are exact from about ISO year −245,737 to 236,312; `PHUGPA_HENNING` and `BHUTAN_HENNING` from about −20,781 to 11,356. Both ranges end inside Temporal's own. The three year functions have a bound of their own, far wider: `hasLeapMonth(300000)` answers |
 | `TCT_INVALID_TRADITION_CONFIG` | any function taking a tradition | The `TraditionConfig` is malformed or is not one at all. The message names the field or the key |
 | `TCT_INVALID_OBSERVANCE_CONFIG` | `getObservances`, `observancesOn`, `nextObservance`, `composeObservances` | The `ObservanceConfig`, one of its rules, or a `composeObservances` layer is malformed. The message names the field or id |
 | `TCT_SPAN_TOO_WIDE` | `getObservances` | `to.year - from.year` is more than 10. Chunk it; the function is pure, so concatenating is correct |
-| `TCT_ATTRIBUTE_NOT_SOURCED` | `monthAttributesFor`, `lunarDayAttributesFor`, `elementalYogaFor` | Your input is fine; no source gives this attribute for this tradition — the Bhutanese configs. `attributesFor` reports the same gap as `null` instead |
+| `TCT_ATTRIBUTE_NOT_SOURCED` | `monthAttributesFor`, `lunarDayAttributesFor`, `elementalYogaFor` | Your input is fine; no source gives this attribute for this tradition: `monthAttributesFor` and `lunarDayAttributesFor` under a tradition with no `naming.monthAnimals`, `elementalYogaFor` under a nonzero `naming.weekdayOffset`. Both shipped Bhutanese configs meet both conditions. `attributesFor` reports the same gap as `null` instead |
 | `TCT_MISSING_TEMPORAL` | the `import` itself, and any date entry point if the global `Temporal` is deleted afterwards | No `Temporal` in this runtime — see [Requirements](#requirements) |
 | `TCT_INTERNAL` | `isoToTibetan`, and the arithmetic primitives beneath it | An invariant the engine proves for itself did not hold. A bug here rather than in your input; please [report it](https://github.com/nyamlen/tibetan-calendar-temporal/issues) |
 

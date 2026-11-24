@@ -1002,48 +1002,35 @@ tibetanDateExists({ year: 2153, month: 13, day: 1 });    // false — no such mo
 
 It deliberately still throws on a malformed `TraditionConfig`, because that is a bug in your
 program rather than a statement about a date, and answering `false` would hide it.
-What decides this is an allowlist — `SkippedDayError` by class, plus `TCT_FIELD_OUT_OF_RANGE` and
-`TCT_NO_SUCH_LEAP_MONTH` — not the error type, so `TCT_INTERNAL` and `TCT_MISSING_TEMPORAL` are
-rethrown as well.
+What decides this is an allowlist — `SkippedDayError` by class, plus `TCT_FIELD_OUT_OF_RANGE` and `TCT_NO_SUCH_LEAP_MONTH` — not the error type,
+so `TCT_INTERNAL` and `TCT_MISSING_TEMPORAL` are rethrown as well.
 
 The full code list is in the README's [API section](../README.md#errors).
 
 #### What each code covers
 
-The README's table gives each code one line. The boundaries are here.
+The README's table gives each code one line.
+The boundaries are here.
 
-- **`TCT_FIELD_OUT_OF_RANGE` and `TCT_INVALID_ARGUMENT`.** A year, month, day or Julian day that is a
-  number but not an integer, or is outside 1–12 / 1–30, is out of range. So is a bare-number argument,
-  such as `yearNameFor`'s, that is not a number at all. A field of a date or month *object* that is
-  absent or not a number is an invalid argument instead.
-- **`TCT_INVALID_ARGUMENT`** also covers a bare `{ year, month, day }` where a Western date is
-  expected, a non-boolean `isLeapMonth` or `isLeapDay`, a string outside `parseTibetanDate`'s grammar,
-  an options bag that is not an object, cannot be read, or carries a key it does not have, and an
-  element passed to `elementalYoga` that is not one of the four.
-- **`TCT_OUTSIDE_EXACT_RANGE` from the observance functions.** `getObservances` and `observancesOn`
-  refuse a range reaching past the end, and also a day inside a `period` whose span ends past it,
-  because a `period` result carries the bounds of its whole span. Only the last weeks before the end
-  are affected. `nextObservance` refuses a `from` past the end, and answers `null` in those last weeks.
-- **`TCT_INVALID_TRADITION_CONFIG`** includes `null`, a `{ tradition }` bag passed where the config
-  itself belongs, a key the config does not have (a misspelt one included), and a value that cannot be
-  copied — a `Proxy`, even one with no traps.
-- **`TCT_INVALID_OBSERVANCE_CONFIG`** includes an unknown key, a setting the rule's form does not use,
-  a rule naming a level the config does not declare, a layer naming an id the base does not have, and
-  a value that cannot be copied, such as a `Proxy`.
-- **`TCT_SPAN_TOO_WIDE`** is counted on calendar years, so 2020-01-01 to 2030-12-31 is admitted and
-  2020-12-31 to 2031-01-01 is not.
-- **`TCT_ATTRIBUTE_NOT_SOURCED`** is thrown by `monthAttributesFor` and `lunarDayAttributesFor` under a
-  tradition whose month animals Janson does not tabulate, and by `elementalYogaFor` under any config
-  with a nonzero `naming.weekdayOffset`, since a shifted weekday leaves the yoga's weekday element
-  unsourced. Both shipped Bhutanese configs meet both conditions.
+- **`TCT_FIELD_OUT_OF_RANGE` and `TCT_INVALID_ARGUMENT`.**
+  A year, month, day or Julian day that is a number but not an integer, or is outside 1–12 / 1–30, is out of range.
+  So is a bare-number argument, such as `yearNameFor`'s, that is not a number at all.
+  A field of a date or month *object* that is absent or not a number is an invalid argument instead.
+- **`TCT_INVALID_ARGUMENT`** also covers `null` and `undefined`, a bare `{ year, month, day }` where a Western date is expected, a non-boolean `isLeapMonth` or `isLeapDay`, a string outside `parseTibetanDate`'s grammar, an options bag that is not an object, cannot be read, or carries a key it does not have, and an element passed to `elementalYoga` that is not one of the four.
+- **`TCT_OUTSIDE_EXACT_RANGE` from the observance functions.**
+  `getObservances` and `observancesOn` refuse a range reaching past the end, and also a day inside a `period` whose span ends past it, because a `period` result carries the bounds of its whole span.
+  Only the last weeks before the end are affected.
+  `nextObservance` refuses a `from` past the end, and answers `null` in those last weeks.
+- **`TCT_INVALID_TRADITION_CONFIG`** includes `null`, a `{ tradition }` bag passed where the config itself belongs, a key the config does not have (a misspelt one included), and a value that cannot be copied — a `Proxy`, even one with no traps.
+- **`TCT_INVALID_OBSERVANCE_CONFIG`** includes an unknown key, a setting the rule's form does not use, a malformed level or `when` form, a rule naming a level the config does not declare, a layer naming an id the base does not have, and a value that cannot be copied, such as a `Proxy`.
+- **`TCT_SPAN_TOO_WIDE`** is counted on calendar years, so 2020-01-01 to 2030-12-31 is admitted and 2020-12-31 to 2031-01-01 is not.
+- **`TCT_ATTRIBUTE_NOT_SOURCED`** is thrown by `monthAttributesFor` and `lunarDayAttributesFor` under a tradition with no `naming.monthAnimals`, and by `elementalYogaFor` under any config with a nonzero `naming.weekdayOffset`, since a shifted weekday leaves the yoga's weekday element unsourced.
+  Both shipped Bhutanese configs meet both conditions.
 
-**When your own code throws while the engine reads your argument** — a getter, a `Proxy` trap, a
-method of a value you pass — the error is refused with a code and yours is kept as its `cause`:
-`TCT_INVALID_ARGUMENT` for a date, month, options bag or Temporal-like value, and the config's own
-code for a `TraditionConfig` or an `ObservanceConfig`. Each field of a Tibetan date is read once, so a
-getter that answers differently the second time cannot change what is computed.
-`SkippedDayError.requested` is a frozen copy of the fields that were read, not your object, so extra
-keys on what you passed are dropped.
+**When your own code throws while the engine reads your argument** — a getter, a `Proxy` trap, a method of a value you pass — the error is refused with a code and yours is kept as its `cause`:
+`TCT_INVALID_ARGUMENT` for a date, month, options bag or Temporal-like value, and the config's own code for a `TraditionConfig` or an `ObservanceConfig`.
+Each field of a Tibetan date is read once, so a getter that answers differently the second time cannot change what is computed.
+`SkippedDayError.requested` is a frozen copy of the fields that were read, not your object, so extra keys on what you passed are dropped.
 
 ## Running it anywhere
 
@@ -1223,10 +1210,9 @@ date.weekdayName.phonetic;   // spoken form
 ```
 
 **If your users will see Tibetan script, ship a font with it.**
-Windows (Microsoft Himalaya) and Apple's systems (Kailasa) have a Tibetan font built in, but a Linux
-machine may not, depending on which font packages it has, and there the script shows as empty boxes.
-A web application should load a Tibetan web font, such as Noto Serif Tibetan or Jomolhari, both
-under the SIL Open Font License, rather than rely on the reader's system.
+Windows (Microsoft Himalaya) and Apple's systems (Kailasa) have a Tibetan font built in,
+but a Linux machine may not, depending on which font packages it has, and there the script shows as empty boxes.
+A web application should load a Tibetan web font, such as Noto Serif Tibetan or Jomolhari, both under the SIL Open Font License, rather than rely on the reader's system.
 The phonetic rendering needs no special font, so it is a fallback wherever you cannot ship one.
 
 `weekdayNameFor` takes a tradition because Bhutan names its weekdays one planet ahead of Tibet.
