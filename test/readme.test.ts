@@ -50,8 +50,8 @@ describe("README usage examples", () => {
 		expect(yearNameFor(day.year).element).toBe("fire");
 		expect(rabjungFor(day.year).cycle).toBe(17);
 		expect(rabjungFor(day.year).year).toBe(40);
+		expect(day.weekdayName.tibetan).toBe("ཉི་མ");
 		expect(day.weekdayName.phonetic).toBe("nyima");
-		expect(day.isFullMoon).toBe(false);
 	});
 
 	it("converts a Western date", () => {
