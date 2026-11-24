@@ -1,0 +1,5 @@
+# Formatting-only commits, hidden from blame.
+# GitHub reads this file automatically; locally: git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# README: semantic line breaks throughout
+1544bf9fc24895e4474c6a8f5d3f0431f2b49718
