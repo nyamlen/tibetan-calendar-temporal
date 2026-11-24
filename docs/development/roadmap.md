@@ -127,7 +127,8 @@ question of a Tibetan calendar had no correct public answer.
 | 1.0.1 | **Published 2026-11-22**, documentation only: the README states which calendars ship. Tag `v1.0.1` on `a406178`, same route and attestation |
 | 1.0.2 | **Published 2026-11-22**, documentation and metadata only: README wording, the provenance paragraph on how it was built, history removed from the shipped documents, the `lunisolar-calendar` keyword. Tag `v1.0.2` on `2d512bc`, same route and attestation |
 | 1.0.3 | **Published 2026-11-23**, documentation only: the README's provenance paragraph gains the author's background, the build period and the test-suite size. Tag `v1.0.3` on `818eeea`, same route and attestation |
-| 1.0.4 | **Published 2026-11-23**, metadata only: the description now matches the GitHub About, and the keywords `mongolian` and `tsurphu` are removed until those calendars ship. The registry cut the description at 255 characters (see "Package description shortened" under Outstanding). Tag `v1.0.4` on `5d72ef5`, same route and attestation. Holds `latest` |
+| 1.0.4 | **Published 2026-11-23**, metadata only: the description now matches the GitHub About, and the keywords `mongolian` and `tsurphu` are removed until those calendars ship. The registry cut the description at 255 characters (see "Package description shortened" under Outstanding). Tag `v1.0.4` on `5d72ef5`, same route and attestation |
+| 1.0.5 | **Published 2026-11-24**, documentation and metadata only: the description shortened to 251 characters, the README restructured (one-line summary of each entry point, a Quick start, a shorter body), and the guide gains "What each code covers" and a note on shipping a Tibetan font. Tag `v1.0.5` on `499a0b1`, same route and attestation. Holds `latest` |
 
 The repository went public on 2026-11-22, before the 1.0.0 publish, because npm generates provenance only for a public repository.
 
@@ -204,7 +205,8 @@ Setup work, all done. The two app-launch items (the `www` CNAME and the extra do
       2026-11-24. 1.0.4 published 267 characters and the registry kept 255 ("… Zero d"). The
       chosen text (Andreas, 2026-11-23), 251 characters, is in `package.json#description` and the
       GitHub About; `test:pack` refuses a description over 255, naming its length, and failed on
-      the old text before the new one went in. Reaches npm in the next release.
+      the old text before the new one went in. Reached npm in 1.0.5, published 2026-11-24, where
+      `npm view` shows the 251-character text.
 
 ## Pre-v1.0.0 checklist
 

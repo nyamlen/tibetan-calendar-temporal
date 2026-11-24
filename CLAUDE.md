@@ -378,7 +378,8 @@ The procedure is in [CONTRIBUTING.md](CONTRIBUTING.md), "Releasing".
 - **`package.json#description` and the GitHub About carry the same text; change both together.**
   They are the two places search shows the package, and they drift apart otherwise. npm shows the
   new text only after a release, GitHub at once. **Keep it to 255 characters**: the registry cuts
-  the description there (1.0.4 published "… Zero d"), and GitHub's About allows 350.
+  the description there (1.0.4 published "… Zero d"), and GitHub's About allows 350. `test:pack`
+  refuses a description over 255; 1.0.5 is the first release carrying a compliant one.
 
 ## Documents
 
