@@ -1,14 +1,9 @@
 # tibetan-calendar-temporal
 
-Compute Tibetan calendar dates in JavaScript — leap months, doubled and skipped days, moon phases,
-year names and observances — for almanac applications, practice calendars, and anything that has to
-show a Tibetan date and be right about it.
+Compute Tibetan calendar dates in JavaScript — leap months, doubled and skipped days, moon phases, year names and observances — for almanac applications, practice calendars, and anything that has to show a Tibetan date and be right about it.
 
-It computes two calendars: **Phugpa**, the Men-Tsee-Khang standard and the basis of the almanacs most
-Tibetans use, which is the default; and the **Bhutanese** calendar of the Royal Government of Bhutan.
-The **Tsurphu** (Karma Kagyu) and **Mongolian** calendars are **not included yet**: the engine can
-express them as configuration, and each will be exported once its dates have been checked against an
-almanac of its own — see [Traditions](#traditions).
+It computes two calendars: **Phugpa**, the Men-Tsee-Khang standard and the basis of the almanacs most Tibetans use, which is the default; and the **Bhutanese** calendar of the Royal Government of Bhutan.
+The **Tsurphu** (Karma Kagyu) and **Mongolian** calendars are **not included yet**: the engine can express them as configuration, and each will be exported once its dates have been checked against an almanac of its own — see [Traditions](#traditions).
 
 It has three entry points:
 
@@ -84,17 +79,15 @@ Everything is a pure function over plain objects. No classes, no instances, no h
 
 ## Why you can trust the dates
 
-The engine is a clean-room implementation of Svante Janson's *Tibetan Calendar Mathematics*, and
-every claim it makes about agreement comes with the range of years over which that agreement was
-checked. Agreement quoted without its window is not evidence.
+The engine is a clean-room implementation of Svante Janson's *Tibetan Calendar Mathematics*, and every claim it makes about agreement comes with the range of years over which that agreement was checked.
+Agreement quoted without its window is not evidence.
 
 The three entry points make different kinds of claim.
 The root's arithmetic comes from Janson alone, and its dates are checked against published calendars.
 `./astrology` computes its cycles and the lunar mansion from Janson, with the mansion's element table from Henning, whom Janson cites; the yoga's `favorable` flag is FPMT's convention, and its `auspiciousness` grading a Tibetan dictionary's.
 `./observances` makes no claim about which days should be kept: that is convention, and published sources disagree, so its rules are data you supply.
 
-It also states what is *not* established — which traditions are expressible but unshipped, where it
-differs from a published almanac and why, and which questions no available source can settle.
+It also states what is *not* established — which traditions are expressible but unshipped, where it differs from a published almanac and why, and which questions no available source can settle.
 
 **[Read the full account →](docs/why-trust-these-dates.md)**
 
@@ -112,20 +105,16 @@ differs from a published almanac and why, and which questions no available sourc
 Zhönnu Pal (གཞོན་ནུ་དཔལ, *zhönnu pal*) is the version of the calendar proposed in 1443 by the scholar of that name, which Henning calls the "error correction" system.
 Janson describes it as proposed but never adopted, so no almanac follows it.
 
-Henning's software computes a full astrological almanac — planets and eclipses included — which this
-package does not attempt, and
-`@hnw/date-tibetan` is the shortest route to a Mongolian date. **[When to use which
-→](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/other-implementations.md)**
+Henning's software computes a full astrological almanac — planets and eclipses included — which this package does not attempt, and `@hnw/date-tibetan` is the shortest route to a Mongolian date.
+**[When to use which →](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/other-implementations.md)**
 
 ## Requirements
 
-**Node 26 or later**, where `Temporal` is enabled by default. The package does not bundle a
-polyfill — that is what keeps it at zero runtime dependencies — so on any older runtime, and in a
-browser, you supply one.
+**Node 26 or later**, where `Temporal` is enabled by default.
+The package does not bundle a polyfill — that is what keeps it at zero runtime dependencies — so on any older runtime, and in a browser, you supply one.
 
-The failure mode if you do not is **not** a helpful `TypeError` at the call that needed a date. The
-engine touches `Temporal` while the module is evaluating, so a runtime without it fails on
-`import`, before your code has called anything:
+The failure mode if you do not is **not** a helpful `TypeError` at the call that needed a date.
+The engine touches `Temporal` while the module is evaluating, so a runtime without it fails on `import`, before your code has called anything:
 
 ```js
 import 'tibetan-calendar-temporal';
@@ -135,8 +124,8 @@ import 'tibetan-calendar-temporal';
 // `import "temporal-polyfill/global";`
 ```
 
-That message is a guard the package raises deliberately. Without it you would get a bare
-`ReferenceError: Temporal is not defined` naming neither the requirement nor the fix.
+That message is a guard the package raises deliberately.
+Without it you would get a bare `ReferenceError: Temporal is not defined` naming neither the requirement nor the fix.
 
 **Using a polyfill.** Install [`temporal-polyfill`](https://www.npmjs.com/package/temporal-polyfill)
 and import it once, before this package, in your app's entry module:
@@ -150,9 +139,8 @@ The same applies in a browser: `Temporal` ships in Chrome, Edge and Firefox but 
 Use a polyfill rather than Node 24's `--harmony-temporal` flag, which nothing here has been run against.
 [Running it anywhere](docs/guide.md#running-it-anywhere) in the guide covers testing under the polyfill, the flag, and `engines`, which npm treats as advisory.
 
-**TypeScript 7 or later, if you type-check.** This is a *separate* requirement from the runtime one, and meeting that one does not meet this:
-the `Temporal` namespace type ships in TypeScript's own lib files only from 7.0,
-so on 5.x every declaration here fails with `TS2503: Cannot find namespace 'Temporal'`.
+**TypeScript 7 or later, if you type-check.**
+This is a *separate* requirement from the runtime one, and meeting that one does not meet this: the `Temporal` namespace type ships in TypeScript's own lib files only from 7.0, so on 5.x every declaration here fails with `TS2503: Cannot find namespace 'Temporal'`.
 
 ```sh
 npm i -D typescript@^7
@@ -208,13 +196,13 @@ import { tibetanToIso } from 'tibetan-calendar-temporal';
 tibetanToIso({ year: 2153, month: 6, day: 30 }).toString();   // "2026-08-12"
 ```
 
-`year` is the **royal-era** number an almanac prints (2153), not the Gregorian year the Tibetan
-year began in (2026, exposed as `yearStartsIn`). The two differ by 127.
+`year` is the **royal-era** number an almanac prints (2153), not the Gregorian year the Tibetan year began in (2026, exposed as `yearStartsIn`).
+The two differ by 127.
 
-> **This is the one mistake the library cannot catch for you.** Passing Gregorian 2026 where
-> royal-era 2153 is meant returns a well-formed date in **1899** — because 2026 *is* a valid
-> royal-era year. No guard can tell the two apart, so nothing throws. If your years come from user
-> input or another system, convert explicitly and sanity-check the result:
+> **This is the one mistake the library cannot catch for you.**
+> Passing Gregorian 2026 where royal-era 2153 is meant returns a well-formed date in **1899** — because 2026 *is* a valid royal-era year.
+> No guard can tell the two apart, so nothing throws.
+> If your years come from user input or another system, convert explicitly and sanity-check the result:
 >
 > ```js
 > const tibetanYear = gregorianYear + 127;
@@ -225,24 +213,20 @@ year began in (2026, exposed as `yearStartsIn`). The two differ by 127.
 
 ### Building a month grid
 
-`monthsFor` gives a year's months in calendar order, and where a leap month sits depends on the
-tradition: under `PHUGPA` — the default, and the example below — it sits immediately **before** the
-regular month it shares a number with, while `BHUTAN` numbers from the preceding month, so its leap
-month **follows** its twin. Reconstructing that ordering yourself is the part most easily got wrong,
-which is why `monthsFor` and `datesFor` exist; prefer them to a hand-rolled walk.
+`monthsFor` gives a year's months in calendar order, and where a leap month sits depends on the tradition: under `PHUGPA` — the default, and the example below — it sits immediately **before** the regular month it shares a number with, while `BHUTAN` numbers from the preceding month, so its leap month **follows** its twin.
+Reconstructing that ordering yourself is the part most easily got wrong, which is why `monthsFor` and `datesFor` exist; prefer them to a hand-rolled walk.
 
-**A tradition's months are not the other's renumbered, and the leap pair is not even in the same
-place.** Switching config does not just flip the pair around; it changes which lunation is doubled
-and renumbers everything after it. For 2151 the thirteen lunations are the same thirteen, but:
+**A tradition's months are not the other's renumbered, and the leap pair is not even in the same place.**
+Switching config does not just flip the pair around; it changes which lunation is doubled and renumbers everything after it.
+For 2151 the thirteen lunations are the same thirteen, but:
 
 ```text
 PHUGPA  M01 M02 M03 M04 M05 M06L M06 M07 M08  M09  M10 M11 M12
 BHUTAN  M01 M02 M03 M04 M05 M06  M07 M08 M08L M09  M10 M11 M12
 ```
 
-`leapMonthNumberFor(2151)` is **6** under `PHUGPA` and **8** under `BHUTAN`, and Phugpa's `M06L` is
-Bhutan's `M06`. So a month identified as `(year, month, isLeapMonth)` under one tradition names a
-different month under the other — always pair a stored month with the config it came from.
+`leapMonthNumberFor(2151)` is **6** under `PHUGPA` and **8** under `BHUTAN`, and Phugpa's `M06L` is Bhutan's `M06`.
+So a month identified as `(year, month, isLeapMonth)` under one tradition names a different month under the other — always pair a stored month with the config it came from.
 
 ```js
 import { monthsFor, hasLeapMonth, leapMonthNumberFor } from 'tibetan-calendar-temporal';
@@ -268,9 +252,7 @@ month.firstDay.toString();       // "2026-02-18" — Losar
 month.lastDay.toString();        // "2026-03-18"
 ```
 
-Every `TibetanMonth` carries a `lunation`, and so does every `TibetanDate`, naming the month that date falls in — so a date has a
-direct route back to its own month rather than needing a two-key search that is easy to get wrong
-across a leap pair.
+Every `TibetanMonth` carries a `lunation`, and so does every `TibetanDate`, naming the month that date falls in — so a date has a direct route back to its own month rather than needing a two-key search that is easy to get wrong across a leap pair.
 
 A month identifies itself, so it can be passed on without the year travelling separately:
 
@@ -281,12 +263,12 @@ daysInMonth(month);                       // 29 — a TibetanMonth is accepted d
 tibetanDateExists({ ...month, day: 8 });  // true
 ```
 
-> **`days` counts calendar days, not date numbers.** Date numbers always run 1–30; the span is 29 or
-> 30, because some numbers are skipped and some are carried by two days. So `for (d = 1; d <= days;
-> d++)` builds a **wrong** grid.
+> **`days` counts calendar days, not date numbers.**
+> Date numbers always run 1–30; the span is 29 or 30, because some numbers are skipped and some are carried by two days.
+> So `for (d = 1; d <= days; d++)` builds a **wrong** grid.
 >
-> **Use `datesFor`.** It walks the month and hands back one `TibetanDate` per calendar day, each
-> carrying both the number to print and the ISO date it falls on, so there is no walk to get wrong:
+> **Use `datesFor`.**
+> It walks the month and hands back one `TibetanDate` per calendar day, each carrying both the number to print and the ISO date it falls on, so there is no walk to get wrong:
 >
 > ```js
 > for (const date of datesFor(month)) {
@@ -294,11 +276,9 @@ tibetanDateExists({ ...month, day: 8 });  // true
 > }
 > ```
 
-A grid usually needs cells on either side of the month — the days that finish the previous month and
-start the next, so the first row can begin on the right weekday. Those are not this month's days, so
-`datesFor` does not produce them: step **ISO** days and convert each one. `isoToTibetan` is total, so
-the walk never has to know where the neighbouring month began or whether it was a leap month, and
-each result carries the month it belongs to.
+A grid usually needs cells on either side of the month — the days that finish the previous month and start the next, so the first row can begin on the right weekday.
+Those are not this month's days, so `datesFor` does not produce them: step **ISO** days and convert each one.
+`isoToTibetan` is total, so the walk never has to know where the neighbouring month began or whether it was a leap month, and each result carries the month it belongs to.
 
 ```js
 let day = month.firstDay.subtract({ days: 3 });
@@ -309,24 +289,18 @@ for (let i = 0; i < 3; i++, day = day.add({ days: 1 })) {
 }
 ```
 
-Use it only for the cells outside the month: inside it, `datesFor` is what keeps a doubled or
-skipped date number right.
+Use it only for the cells outside the month: inside it, `datesFor` is what keeps a doubled or skipped date number right.
 
-`hasLeapMonth`, `leapMonthNumberFor` and `monthsInYear` are closed forms over the year and never touch
-lunar arithmetic, so reach for them rather than for `monthsFor(y).length` when the months themselves
-are not wanted.
+`hasLeapMonth`, `leapMonthNumberFor` and `monthsInYear` are closed forms over the year and never touch lunar arithmetic, so reach for them rather than for `monthsFor(y).length` when the months themselves are not wanted.
 
 `datesFor` lays out one month's calendar days; combine it with `monthsFor` to build a whole year —
 `monthsFor(2153).flatMap((month) => datesFor(month))` gives 354 entries.
 [The guide](docs/guide.md#the-cost-of-a-year) records what a year costs to serialise.
 
 **Wrap the callback; do not pass one of these functions to `map` or `flatMap` point-free.**
-`flatMap` calls back with `(value, index, array)`, and the second parameter of every function here
-that takes a `TraditionConfig` is that config — so the array index lands in the config slot and the
-call throws `TCT_INVALID_TRADITION_CONFIG`. TypeScript refuses it outright; JavaScript gets a throw
-rather than a wrong calendar. A function whose signature ends at its first parameter survives
-point-free use, `yearNameFor` and `rabjungFor` among them; wrapping costs nothing and is never wrong,
-so wrap.
+`flatMap` calls back with `(value, index, array)`, and the second parameter of every function here that takes a `TraditionConfig` is that config — so the array index lands in the config slot and the call throws `TCT_INVALID_TRADITION_CONFIG`.
+TypeScript refuses it outright; JavaScript gets a throw rather than a wrong calendar.
+A function whose signature ends at its first parameter survives point-free use, `yearNameFor` and `rabjungFor` among them; wrapping costs nothing and is never wrong, so wrap.
 
 ### Naming a year
 
@@ -338,28 +312,24 @@ yearNameFor(losar.year);         // { element: 'fire', animal: 'horse', gender: 
 rabjungFor(losar.year);          // { cycle: 17, year: 40, tibetanName: { … } }
 ```
 
-**Year naming is a lookup, not a field on the date.** Both are closed forms over the year alone —
-three modulos, no lunar arithmetic — so they take a year number and never a date. Putting them on
-every date would repeat one value across all 354 days of the year, which would more than double what
-a serialised year costs.
+**Year naming is a lookup, not a field on the date.**
+Both are closed forms over the year alone — three modulos, no lunar arithmetic — so they take a year number and never a date.
+Putting them on every date would repeat one value across all 354 days of the year, which would more than double what a serialised year costs.
 
-`yearNameFor` gives the element–animal name practitioners recognise. `rabjungFor` gives the Indian
-60-year cycle, which is a *numbering* rather than a name — and it indexes the year differently, so
-the two are kept apart deliberately. See
-[docs/development/architecture.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/development/architecture.md#why-rabjung-is-separate-from-yearname).
+`yearNameFor` gives the element–animal name practitioners recognise.
+`rabjungFor` gives the Indian 60-year cycle, which is a *numbering* rather than a name — and it indexes the year differently, so the two are kept apart deliberately.
+See [docs/development/architecture.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/development/architecture.md#why-rabjung-is-separate-from-yearname).
 
 ### Errors and validation
 
 Two kinds of failure concern your input, and telling them apart matters because they call for different responses.
 
-**A skipped date is not an error in your code.** It is a fact about the calendar, and the right
-response is usually to show the user something rather than to log a bug. It arrives as
-`SkippedDayError`, the only error class this package exports.
+**A skipped date is not an error in your code.**
+It is a fact about the calendar, and the right response is usually to show the user something rather than to log a bug.
+It arrives as `SkippedDayError`, the only error class this package exports.
 
-**Every other failure about your input is a `RangeError`** carrying a machine-readable `code`; the
-two that are not about your input are plain `Error`s, listed in the [API section](#errors). Branch on `error.code`,
-never on the message text — codes are part of the API and never change; wording is not and may
-improve in any release.
+**Every other failure about your input is a `RangeError`** carrying a machine-readable `code`; the two that are not about your input are plain `Error`s, listed in the [API section](#errors).
+Branch on `error.code`, never on the message text — codes are part of the API and never change; wording is not and may improve in any release.
 
 ```js
 tibetanDateExists({ year: 2150, month: 12, day: 29 });   // false — skipped
@@ -367,15 +337,14 @@ tibetanDateExists({ year: 2153, month: 13, day: 1 });    // false — no such mo
 ```
 
 `tibetanDateExists` is `false` exactly where `tibetanToIso` throws for a reason about the *date*.
-It deliberately still throws on a malformed `TraditionConfig`, because that is a bug in your program
-rather than a statement about a date. The full code list is in the [API section](#errors); the
-worked `switch` over every code is in [the guide](docs/guide.md#handling-errors).
+It deliberately still throws on a malformed `TraditionConfig`, because that is a bug in your program rather than a statement about a date.
+The full code list is in the [API section](#errors); the worked `switch` over every code is in [the guide](docs/guide.md#handling-errors).
 
 ### Traditions
 
-**The package ships two calendars in four configurations.** Phugpa (*phug pa*) is the Men-Tsee-Khang
-standard and the basis of the almanacs most Tibetans use; Bhutanese is the calendar of the
-Royal Government of Bhutan. Each ships twice, because each has two defensible parameterisations:
+**The package ships two calendars in four configurations.**
+Phugpa (*phug pa*) is the Men-Tsee-Khang standard and the basis of the almanacs most Tibetans use; Bhutanese is the calendar of the Royal Government of Bhutan.
+Each ships twice, because each has two defensible parameterisations:
 
 ```js
 import { PHUGPA, PHUGPA_HENNING, BHUTAN, BHUTAN_HENNING } from 'tibetan-calendar-temporal';
@@ -386,30 +355,24 @@ formatTibetanDate(isoToTibetan(day));                   // "2152-M09-30 (leap)"
 formatTibetanDate(isoToTibetan(day, PHUGPA_HENNING));   // "2152-M09-29"
 ```
 
-The two differ in exactly one constant, the lunar anomaly increment `a₂`, and are otherwise
-identical — a test asserts that. `PHUGPA` uses `a₂ = 1/28`, the value almanacs use, and is the
-right default for nearly everyone. `PHUGPA_HENNING` uses Henning's exact `3781/105840`.
-`BHUTAN` and `BHUTAN_HENNING` split the same way. Bhutan also places its leap month *after* the
-regular month sharing its number, where every other version places it before, and names its weekdays
-one planet ahead of Tibet — both are configuration, not special cases in the arithmetic.
+The two differ in exactly one constant, the lunar anomaly increment `a₂`, and are otherwise identical — a test asserts that.
+`PHUGPA` uses `a₂ = 1/28`, the value almanacs use, and is the right default for nearly everyone.
+`PHUGPA_HENNING` uses Henning's exact `3781/105840`.
+`BHUTAN` and `BHUTAN_HENNING` split the same way.
+Bhutan also places its leap month *after* the regular month sharing its number, where every other version places it before, and names its weekdays one planet ahead of Tibet — both are configuration, not special cases in the arithmetic.
 
-They disagree on about **one day in 4,100 days** — nine days in the twentieth century and eight in
-the twenty-first, `2025-11-19` above being one of them. That is a long-run average rather than a
-schedule, and the divergences cluster: Janson counts sixteen in the 65 years from 1027, so
-back-projection is worse than the headline rate suggests. All three counts are reproduced by the
-engine and asserted in `test/computation/conversion.test.ts`. The evidence for the default is in
-[docs/decisions/2026-08-12-lunar-anomaly-a2-default.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/decisions/2026-08-12-lunar-anomaly-a2-default.md).
+They disagree on about **one day in 4,100 days** — nine days in the twentieth century and eight in the twenty-first, `2025-11-19` above being one of them.
+That is a long-run average rather than a schedule, and the divergences cluster: Janson counts sixteen in the 65 years from 1027, so back-projection is worse than the headline rate suggests.
+All three counts are reproduced by the engine and asserted in `test/computation/conversion.test.ts`.
+The evidence for the default is in [docs/decisions/2026-08-12-lunar-anomaly-a2-default.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/decisions/2026-08-12-lunar-anomaly-a2-default.md).
 
-**Two other versions are not shipped: Tsurphu** (*mtshur phu*), the Karma Kagyu system, **and the
-Mongolian** calendar, used in Mongolia and by the Buryats and Tuvinians. Neither ships because nothing
-here has been validated against an almanac of its own, and an unvalidated calendar published with
-this library's authority is exactly the failure this project exists to avoid. For a Mongolian date
-today, `@hnw/date-tibetan` is the shortest route; see [when to use which](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/other-implementations.md).
+**Two other versions are not shipped: Tsurphu** (*mtshur phu*), the Karma Kagyu system, **and the Mongolian** calendar, used in Mongolia and by the Buryats and Tuvinians.
+Neither ships because nothing here has been validated against an almanac of its own, and an unvalidated calendar published with this library's authority is exactly the failure this project exists to avoid.
+For a Mongolian date today, `@hnw/date-tibetan` is the shortest route; see [when to use which](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/other-implementations.md).
 
-The engine can express both. Every astronomical constant is injected through a `TraditionConfig` rather than hardcoded,
-including the scaling denominator, which is *derived* from the constants rather than fixed — Phugpa
-gives 102,317,040 and Tsurphu gives 1,534,755,600. So adding Tsurphu is a new config object, from
-Janson's Appendix A.2, and no change to any computation module:
+The engine can express both.
+Every astronomical constant is injected through a `TraditionConfig` rather than hardcoded, including the scaling denominator, which is *derived* from the constants rather than fixed — Phugpa gives 102,317,040 and Tsurphu gives 1,534,755,600.
+So adding Tsurphu is a new config object, from Janson's Appendix A.2, and no change to any computation module:
 
 ```js
 const TSURPHU = { ...PHUGPA, id: 'tsurphu', name: 'Tsurphu', /* …Janson App. A.2 constants… */ };
@@ -417,18 +380,13 @@ const TSURPHU = { ...PHUGPA, id: 'tsurphu', name: 'Tsurphu', /* …Janson App. A
 isoToTibetan(Temporal.PlainDate.from('2026-08-12'), TSURPHU);
 ```
 
-Configs are validated when first used, so a partial or mistyped one is rejected with the offending
-field named rather than failing somewhere inside the arithmetic. Every field is documented where your
-editor shows it, on the `TraditionConfig` type in the package's own declarations; the design behind
-them is in
-[docs/development/architecture.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/development/architecture.md#core-types). Note that validation checks **shape, not
-astronomy** — plausible constants that are wrong will produce a plausible calendar that is wrong,
-which is what [docs/development/testing.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/development/testing.md) exists to catch.
+Configs are validated when first used, so a partial or mistyped one is rejected with the offending field named rather than failing somewhere inside the arithmetic.
+Every field is documented where your editor shows it, on the `TraditionConfig` type in the package's own declarations; the design behind them is in [docs/development/architecture.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/development/architecture.md#core-types).
+Note that validation checks **shape, not astronomy** — plausible constants that are wrong will produce a plausible calendar that is wrong, which is what [docs/development/testing.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/development/testing.md) exists to catch.
 
 ### Observances
 
-Which days an institution marks — the great holy days and the monthly cycle — ship behind a
-separate subpath:
+Which days an institution marks — the great holy days and the monthly cycle — ship behind a separate subpath:
 
 ```js
 import { getObservances, observancesOn, EXAMPLE_OBSERVANCES } from 'tibetan-calendar-temporal/observances';
@@ -446,36 +404,24 @@ duchen.map((o) => `${o.rule.englishName}: ${o.date.isoDate}`);
 //   "Lord Buddha's descent from God Realm of Thirty Three: 2026-11-01" ]
 ```
 
-Each `Observance` has three fields that are always there — `date`, the `TibetanDate` it falls on and
-always a real calendar day; `rule`, the rule that produced it, carrying `id`, `englishName`, and the
-`level` and `tags` the config gave it; and `resolution`, how it landed there — and two that appear only
-where they apply: `age`, the years since a rule's `ageFromYear`, and `period`, the first and last
-calendar days of the whole span a `period` rule's day belongs to. The `rule` is the engine's own deeply frozen copy, made when the config was first used, and never the object you
-passed: changing your config afterwards changes neither this nor any later answer, and a fresh object is checked and copied again.
+Each `Observance` has three fields that are always there — `date`, the `TibetanDate` it falls on and always a real calendar day; `rule`, the rule that produced it, carrying `id`, `englishName`, and the `level` and `tags` the config gave it; and `resolution`, how it landed there — and two that appear only where they apply: `age`, the years since a rule's `ageFromYear`, and `period`, the first and last calendar days of the whole span a `period` rule's day belongs to.
+The `rule` is the engine's own deeply frozen copy, made when the config was first used, and never the object you passed: changing your config afterwards changes neither this nor any later answer, and a fresh object is checked and copied again.
 
-**`EXAMPLE_OBSERVANCES` ships nineteen rules**, as an example of how to populate a config and not as any
-institution's calendar: the four great days (tagged `duchen`), seven persons' days (tagged `anniversary`),
-the whole of Saga Dawa, sojong, the fire puja, and the monthly Medicine Buddha, Tara, Heruka, Ḍākinī and
-Dharma Protector days. Each rule names a `level` the config declares, so a front end can group what is for
-everyone apart from what needs an empowerment, and fourteen carry a verified Tibetan name.
-Sojong is a **counted schedule** — each Tibetan year's count starts on the full moon of month 1, and a fortnight
-is 14 or 15 days — inferred from one published calendar that states no method; the fire puja is a formula
-over the day number and the weekday. Neither is the tradition's own statement of a rule, and
-[what each is checked against](docs/why-trust-these-dates.md)
-is stated there, with its window.
+**`EXAMPLE_OBSERVANCES` ships nineteen rules**, as an example of how to populate a config and not as any institution's calendar: the four great days (tagged `duchen`), seven persons' days (tagged `anniversary`), the whole of Saga Dawa, sojong, the fire puja, and the monthly Medicine Buddha, Tara, Heruka, Ḍākinī and Dharma Protector days.
+Each rule names a `level` the config declares, so a front end can group what is for everyone apart from what needs an empowerment, and fourteen carry a verified Tibetan name.
+Sojong is a **counted schedule** — each Tibetan year's count starts on the full moon of month 1, and a fortnight is 14 or 15 days — inferred from one published calendar that states no method; the fire puja is a formula over the day number and the weekday.
+Neither is the tradition's own statement of a rule, and [what each is checked against](docs/why-trust-these-dates.md) is stated there, with its window.
 
-It is a separate import for a reason. Everything on the root export makes a **falsifiable** claim:
-a constant checks against Janson, a date against an almanac, and a disagreement is a bug. Nothing
-here does. Which half of a doubled day an observance falls on, and whether it is kept in a leap
-month at all, are **conventions**, and the published sources disagree — Janson, following Berzin,
-says the first of a doubled pair; FPMT says the second. So the conventions are injected data,
-cited in its docblocks and docs, never logic, and a consumer who only wants date conversion never
-inherits anyone's.
+It is a separate import for a reason.
+Everything on the root export makes a **falsifiable** claim: a constant checks against Janson, a date against an almanac, and a disagreement is a bug.
+Nothing here does.
+Which half of a doubled day an observance falls on, and whether it is kept in a leap month at all, are **conventions**, and the published sources disagree — Janson, following Berzin, says the first of a doubled pair; FPMT says the second.
+So the conventions are injected data, cited in its docblocks and docs, never logic, and a consumer who only wants date conversion never inherits anyone's.
 
 ### Astrological attributes
 
-*What kind of day is this?* — the question an almanac view asks after it has the date. A separate
-subpath, so a consumer who only converts dates never loads it.
+*What kind of day is this?* — the question an almanac view asks after it has the date.
+A separate subpath, so a consumer who only converts dates never loads it.
 
 ```ts
 import { attributesFor } from "tibetan-calendar-temporal/astrology";
@@ -490,32 +436,24 @@ day.yoga?.englishName;   // "death" — the least auspicious of the ten
 day.yoga?.favorable;     // false
 ```
 
-**A day carries two sets of labels that disagree, and almanacs print both.** The lunar day is the
-thirtieth of a lunation; the calendar day runs sunrise to sunrise. On a doubled date the two halves
-share `year`, `month` and `lunarDay` and differ in `calendarDay`, and can differ in `yoga` and
-`lunarMansion` — that is the calendar, not a bug.
+**A day carries two sets of labels that disagree, and almanacs print both.**
+The lunar day is the thirtieth of a lunation; the calendar day runs sunrise to sunrise.
+On a doubled date the two halves share `year`, `month` and `lunarDay` and differ in `calendarDay`, and can differ in `yoga` and `lunarMansion` — that is the calendar, not a bug.
 
-**`month`, `lunarDay` and `yoga` are `null` for the Bhutanese traditions.** Janson tabulates no
-month-animal list for that version, and Bhutan shifts the weekday by one day, which no source carries
-through to the yoga's weekday element, so the package refuses rather than handing over Phugpa's
-answers; the primitives throw `TCT_ATTRIBUTE_NOT_SOURCED` where the composition reports `null`.
+**`month`, `lunarDay` and `yoga` are `null` for the Bhutanese traditions.**
+Janson tabulates no month-animal list for that version, and Bhutan shifts the weekday by one day, which no source carries through to the yoga's weekday element, so the package refuses rather than handing over Phugpa's answers; the primitives throw `TCT_ATTRIBUTE_NOT_SOURCED` where the composition reports `null`.
 
-The yoga's `favorable` flag is FPMT's convention and is in neither Janson nor Henning; `auspiciousness` is a Tibetan
-dictionary's four-way grading of the same ten yogas, with its groups read from the order it lists them in. What is validated, over which
-years, and against what, is in
-[docs/why-trust-these-dates.md](docs/why-trust-these-dates.md).
+The yoga's `favorable` flag is FPMT's convention and is in neither Janson nor Henning; `auspiciousness` is a Tibetan dictionary's four-way grading of the same ten yogas, with its groups read from the order it lists them in.
+What is validated, over which years, and against what, is in [docs/why-trust-these-dates.md](docs/why-trust-these-dates.md).
 
 ## API
 
-The complete surface, across all three entry points. Everything is a pure function over plain objects —
-same input, same output, no side effects. Wherever a `tradition?` parameter appears below it is a
-`TraditionConfig` defaulting to `PHUGPA`, passed last and positionally; a function with a second
-choice takes both in an `options?` bag instead, whose tradition key is also `tradition`.
-A signature below with neither `tradition?` nor `options?` takes no tradition at all: what it
-computes is the same in every shipped tradition.
+The complete surface, across all three entry points.
+Everything is a pure function over plain objects — same input, same output, no side effects.
+Wherever a `tradition?` parameter appears below it is a `TraditionConfig` defaulting to `PHUGPA`, passed last and positionally; a function with a second choice takes both in an `options?` bag instead, whose tradition key is also `tradition`.
+A signature below with neither `tradition?` nor `options?` takes no tradition at all: what it computes is the same in every shipped tradition.
 
-The type declarations under `dist/` also describe internal modules; the `exports` map refuses a deep
-import of them, so what is listed here is the whole of what can be imported.
+The type declarations under `dist/` also describe internal modules; the `exports` map refuses a deep import of them, so what is listed here is the whole of what can be imported.
 
 ### `tibetan-calendar-temporal`
 
@@ -532,9 +470,8 @@ import of them, so what is listed here is the whole of what can be imported.
 
 `year` here is the royal era, matching `TibetanDate.year` — 2153, not 2026.
 
-The first two compute month boundaries, so they evaluate the calendar and are bounded by the
-tradition's exact range. The last three are closed forms over the year alone: no lunar arithmetic,
-a handful of integer operations, and exact for any year — including ones where `monthsFor` refuses.
+The first two compute month boundaries, so they evaluate the calendar and are bounded by the tradition's exact range.
+The last three are closed forms over the year alone: no lunar arithmetic, a handful of integer operations, and exact for any year — including ones where `monthsFor` refuses.
 
 | Export | Signature | Notes |
 |---|---|---|
@@ -549,10 +486,8 @@ a handful of integer operations, and exact for any year — including ones where
 
 #### Navigation
 
-Arithmetic happens on the calendar's two **integer coordinate lines** — the Julian day for solar
-days, the lunation for months — never on the labels. Labels are partial (a skipped date names no
-day) and non-injective (a leap year has two months numbered 6), which is where ambiguity comes
-from; in coordinate space a leap month is simply the next lunation.
+Arithmetic happens on the calendar's two **integer coordinate lines** — the Julian day for solar days, the lunation for months — never on the labels.
+Labels are partial (a skipped date names no day) and non-injective (a leap year has two months numbered 6), which is where ambiguity comes from; in coordinate space a leap month is simply the next lunation.
 
 | Export | Signature | Notes |
 |---|---|---|
@@ -573,16 +508,13 @@ let moon = nextFullMoon(Temporal.PlainDate.from('2026-01-01'));
 moon = nextFullMoon(moon);   // the one after that — no .isoDate needed
 ```
 
-This is the only parameter in the package spanning two calendars, so it takes only shapes that say
-which one they mean — a `Temporal` instance, or a resolved `TibetanDate`. A bare
-`{ year, month, day }` is a genuine value of both this package's Tibetan shape and Temporal's own,
-so it names neither and is refused rather than guessed at. Pass `resolveDate({ … })` for a Tibetan
-date, or `Temporal.PlainDate.from({ … })` for a Western one.
+This is the only parameter in the package spanning two calendars, so it takes only shapes that say which one they mean — a `Temporal` instance, or a resolved `TibetanDate`.
+A bare `{ year, month, day }` is a genuine value of both this package's Tibetan shape and Temporal's own, so it names neither and is refused rather than guessed at.
+Pass `resolveDate({ … })` for a Tibetan date, or `Temporal.PlainDate.from({ … })` for a Western one.
 
 #### Year names
 
-Closed forms over the year alone — no lunar arithmetic, no config, and exact for any safe integer
-year, including ones where `losarFor` must refuse.
+Closed forms over the year alone — no lunar arithmetic, no config, and exact for any safe integer year, including ones where `losarFor` must refuse.
 
 | Export | Signature | Notes |
 |---|---|---|
@@ -591,8 +523,7 @@ year, including ones where `losarFor` must refuse.
 | `weekdayNameFor` | `(weekday: TibetanWeekday, tradition?) => TibetanWeekdayName` | Tibetan name of a weekday. Takes the **Tibetan** numbering, 0 = Saturday. Takes a tradition because Bhutan names its days one planet ahead. `monthNamesFor` takes one too; `yearNameFor` and `rabjungFor` take none |
 | `asTibetanWeekday` | `(value: number) => TibetanWeekday` | Validates 0–6 and brands. The way in for a number this package did not produce — parsed JSON, a form field. `weekdayNameFor(date.dayOfWeek)` is a **compile error**: ISO runs 1–7 from Monday, Tibetan 0–6 from Saturday |
 
-A year picker is a loop over these plus `hasLeapMonth`; there is no range function, because building
-the list is the consumer's business and nothing about it can go wrong.
+A year picker is a loop over these plus `hasLeapMonth`; there is no range function, because building the list is the consumer's business and nothing about it can go wrong.
 
 ```js
 const years = [];
@@ -609,8 +540,8 @@ for (let y = 2140; y <= 2160; y++) {
 
 #### Formatting
 
-The two are exact inverses: `formatTibetanDate(parseTibetanDate(s)) === s`. Neither takes a config,
-because naming a date needs no calendar.
+The two are exact inverses: `formatTibetanDate(parseTibetanDate(s)) === s`.
+Neither takes a config, because naming a date needs no calendar.
 
 | Export | Signature | Notes |
 |---|---|---|
@@ -621,17 +552,15 @@ because naming a date needs no calendar.
 
 #### Interoperability
 
-The Julian day number is the interchange representation of calendrical computing — it is how you
-convert between any two calendars, and how Janson's paper is written. These are the extension
-point, not internals that leaked.
+The Julian day number is the interchange representation of calendrical computing — it is how you convert between any two calendars, and how Janson's paper is written.
+These are the extension point, not internals that leaked.
 
-**These are Julian day *numbers*, not Julian *dates*.** The distinction bites when wiring this to
-an astronomy library. A Julian Date (JD) is a real number whose integer values fall at **noon UT**,
-so JD 2440588.0 is 1970-01-01 12:00. A Julian Day Number (JDN) is the integer naming a whole day.
-This package uses JDN only — integers throughout, no fractions, which is the same no-floating-point
-rule that makes every result identical across platforms. Passing a fractional JD throws
-`TCT_FIELD_OUT_OF_RANGE` rather than silently truncating; floor it, and mind the half-day offset in
-whichever direction you are converting.
+**These are Julian day *numbers*, not Julian *dates*.**
+The distinction bites when wiring this to an astronomy library.
+A Julian Date (JD) is a real number whose integer values fall at **noon UT**, so JD 2440588.0 is 1970-01-01 12:00.
+A Julian Day Number (JDN) is the integer naming a whole day.
+This package uses JDN only — integers throughout, no fractions, which is the same no-floating-point rule that makes every result identical across platforms.
+Passing a fractional JD throws `TCT_FIELD_OUT_OF_RANGE` rather than silently truncating; floor it, and mind the half-day offset in whichever direction you are converting.
 
 | Export | Signature | Notes |
 |---|---|---|
@@ -641,8 +570,8 @@ whichever direction you are converting.
 
 #### Tradition configs
 
-Two traditions, Phugpa and Bhutanese, each in two parameterisations. See
-[Traditions](#traditions) above.
+Two traditions, Phugpa and Bhutanese, each in two parameterisations.
+See [Traditions](#traditions) above.
 
 | Export | Notes |
 |---|---|
@@ -678,19 +607,12 @@ The edge cases of each code are in [the guide](docs/guide.md#what-each-code-cove
 
 #### Types
 
-Type-only exports, erased at runtime: `TibetanDate`, `TibetanDateFields`, `TibetanMonth`,
-`TibetanMonthFields`, `TibetanYearName`, `Rabjung`, `TibetanName`, `SanskritName`,
-`TibetanWeekdayName`, `TibetanWeekdayElement`, `TibetanWeekday`, `TibetanPlanet`, `TibetanElement`,
-`TibetanAnimal`,
-`TibetanGender`, `TraditionConfig`, `TraditionNaming`, `TraditionMonthAnimals`, `TraditionNineNumbers`, `MeanMotion`, `Rational`,
-`TibetanCalendarErrorCode`, `MonthOverflow`, `AddMonthsToDateOptions`, `MonthNames`,
-`FourSeasonMonthName`, `SixSeasonMonthName`.
+Type-only exports, erased at runtime: `TibetanDate`, `TibetanDateFields`, `TibetanMonth`, `TibetanMonthFields`, `TibetanYearName`, `Rabjung`, `TibetanName`, `SanskritName`, `TibetanWeekdayName`, `TibetanWeekdayElement`, `TibetanWeekday`, `TibetanPlanet`, `TibetanElement`, `TibetanAnimal`, `TibetanGender`, `TraditionConfig`, `TraditionNaming`, `TraditionMonthAnimals`, `TraditionNineNumbers`, `MeanMotion`, `Rational`, `TibetanCalendarErrorCode`, `MonthOverflow`, `AddMonthsToDateOptions`, `MonthNames`, `FourSeasonMonthName`, `SixSeasonMonthName`.
 
 ### `tibetan-calendar-temporal/observances`
 
-A separate subpath, so a consumer who only converts dates never loads it. `config` here is a required
-`ObservanceConfig`, and `tradition` is the `TraditionConfig`, defaulting to `PHUGPA`; both are
-positional, config first — see [Two kinds of config](docs/guide.md#two-kinds-of-config).
+A separate subpath, so a consumer who only converts dates never loads it.
+`config` here is a required `ObservanceConfig`, and `tradition` is the `TraditionConfig`, defaulting to `PHUGPA`; both are positional, config first — see [Two kinds of config](docs/guide.md#two-kinds-of-config).
 
 | Export | Signature | Notes |
 |---|---|---|
@@ -700,9 +622,7 @@ positional, config first — see [Two kinds of config](docs/guide.md#two-kinds-o
 | `composeObservances` | `(base: ObservanceConfig, layer: ObservanceLayer) => ObservanceConfig` | A base and a layer of differences give a new validated, frozen configuration; the inputs are never changed |
 | `EXAMPLE_OBSERVANCES` | | An example config. Its practice days follow FPMT's published calendars, which [what is validated](docs/why-trust-these-dates.md) says how far; its sojong is inferred from Rabten Choeling's schedule, and its Heruka, Ḍākinī and Dharma Protector day names are authored from Cornu's dedications. It claims no lineage |
 
-Type-only exports: `Observance`, `ObservanceConfig`, `ObservanceRule`, `ObservanceWhen`,
-`ObservanceLayer`, `ObservanceLevel`, `TibetanMonthDay`, `FormulaName`, `ObservanceResolution`, `DoubledDayChoice`,
-`SkippedDayChoice`, `LeapMonthChoice`.
+Type-only exports: `Observance`, `ObservanceConfig`, `ObservanceRule`, `ObservanceWhen`, `ObservanceLayer`, `ObservanceLevel`, `TibetanMonthDay`, `FormulaName`, `ObservanceResolution`, `DoubledDayChoice`, `SkippedDayChoice`, `LeapMonthChoice`.
 
 Note that `SkippedDayError` is exported from the **root** only. Nothing in this layer throws it —
 a skipped day is handled by the `skippedDay` convention instead.
@@ -711,8 +631,8 @@ Full detail: [docs/development/architecture.md](https://github.com/nyamlen/tibet
 
 ### `tibetan-calendar-temporal/astrology`
 
-A separate subpath, like `./observances`. `tradition?` is a `TraditionConfig`, defaulting to `PHUGPA`,
-passed last and positionally as on the root: `attributesFor(date, BHUTAN)`.
+A separate subpath, like `./observances`.
+`tradition?` is a `TraditionConfig`, defaulting to `PHUGPA`, passed last and positionally as on the root: `attributesFor(date, BHUTAN)`.
 
 | Export | Signature | Notes |
 |---|---|---|
@@ -727,45 +647,30 @@ passed last and positionally as on the root: `attributesFor(date, BHUTAN)`.
 | `ELEMENTAL_YOGAS` | | The ten, frozen: Henning's names, FPMT's favorability, and the *tshig mdzod chen mo*'s four-way grading as `auspiciousness` |
 | `LUNAR_MANSIONS` | | All 27, frozen, in index order — the table `lunarMansionFor` looks a day up in |
 
-Type-only exports: `DayAttributes`, `YearAttributes`, `MonthAttributes`, `LunarDayAttributes`,
-`CalendarDayAttributes`, `ElementalYoga`, `YogaAuspiciousness`, `TibetanTrigram`, `LunarMansion`.
+Type-only exports: `DayAttributes`, `YearAttributes`, `MonthAttributes`, `LunarDayAttributes`, `CalendarDayAttributes`, `ElementalYoga`, `YogaAuspiciousness`, `TibetanTrigram`, `LunarMansion`.
 
-A date argument is a `Temporal.PlainDate` or a resolved `TibetanDate` — never loose
-`{ year, month, day }`, which is a value of both calendars and would make the ambiguity silent.
-`monthAttributesFor` and `lunarDayAttributesFor` are the exceptions, and the reason is that their
-argument is Tibetan-only: there is nothing to disambiguate, and fields are what lets a skipped lunar
-day be named at all.
+A date argument is a `Temporal.PlainDate` or a resolved `TibetanDate` — never loose `{ year, month, day }`, which is a value of both calendars and would make the ambiguity silent.
+`monthAttributesFor` and `lunarDayAttributesFor` are the exceptions, and the reason is that their argument is Tibetan-only: there is nothing to disambiguate, and fields are what lets a skipped lunar day be named at all.
 
 ## Internationalisation
 
-**What ships:** the *Tibetan* name of a thing — Tibetan script, Wylie, and THL Simplified Phonetic
-Transcription (with eleven recorded corrections) — on `weekdayName`, and on `elementName` / `genderName` / `animalName` under the
-`TibetanYearName` that `yearNameFor` returns; and on every member of `monthNamesFor`'s result
-except `indianMonth`, which is the Indian month's Sanskrit name and has no Tibetan of its own.
+**What ships:** the *Tibetan* name of a thing — Tibetan script, Wylie, and THL Simplified Phonetic Transcription (with eleven recorded corrections) — on `weekdayName`, and on `elementName` / `genderName` / `animalName` under the `TibetanYearName` that `yearNameFor` returns; and on every member of `monthNamesFor`'s result except `indianMonth`, which is the Indian month's Sanskrit name and has no Tibetan of its own.
 
-**What deliberately does not ship:** translations into any other language. What ships instead is a
-stable key your own i18n layer maps from — `TibetanElement`, `TibetanGender`, `TibetanAnimal` and
-`TibetanPlanet` are lowercase identifiers and are **contract**, twenty-six in total.
+**What deliberately does not ship:** translations into any other language.
+What ships instead is a stable key your own i18n layer maps from — `TibetanElement`, `TibetanGender`, `TibetanAnimal` and `TibetanPlanet` are lowercase identifiers and are **contract**, twenty-six in total.
 
-Western weekday names need nothing from this package: the Tibetan week is the same seven-day cycle,
-so `date.isoDate.toLocaleString('fr', { weekday: 'long' })` covers every locale CLDR carries.
+Western weekday names need nothing from this package: the Tibetan week is the same seven-day cycle, so `date.isoDate.toLocaleString('fr', { weekday: 'long' })` covers every locale CLDR carries.
 
-Every Tibetan string was verified before it was written down: two independent EWTS implementations
-must agree on the script, it must read back as the same Wylie, and a dictionary must carry it —
-Wiktionary at exactly that title for the weekday, element, gender and animal names, other
-dictionaries for the rest (see the sourcing records). That check earns its keep: Janson gives Saturday as `spen ma` in his
-day-of-week table and `spen pa` in his Bhutan appendix, and this package ships `spen pa`. See
-[docs/names/vocabulary.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/vocabulary.md).
+Every Tibetan string was verified before it was written down: two independent EWTS implementations must agree on the script, it must read back as the same Wylie, and a dictionary must carry it — Wiktionary at exactly that title for the weekday, element, gender and animal names, other dictionaries for the rest (see the sourcing records).
+That check earns its keep: Janson gives Saturday as `spen ma` in his day-of-week table and `spen pa` in his Bhutan appendix, and this package ships `spen pa`.
+See [docs/names/vocabulary.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/docs/names/vocabulary.md).
 
-[The guide](docs/guide.md#displaying-tibetan-names) covers the Bhutanese weekday shift, the CLDR
-curiosities, and localising observance labels.
+[The guide](docs/guide.md#displaying-tibetan-names) covers the Bhutanese weekday shift, the CLDR curiosities, and localising observance labels.
 
 ## Provenance
 
-Implemented from Svante Janson, *Tibetan Calendar Mathematics*
-([arXiv:1401.6285](https://arxiv.org/abs/1401.6285)) as a clean-room build. It shares no code
-with any existing implementation — see [CONTRIBUTING.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/CONTRIBUTING.md) for the rules that
-keep it that way.
+Implemented from Svante Janson, *Tibetan Calendar Mathematics* ([arXiv:1401.6285](https://arxiv.org/abs/1401.6285)) as a clean-room build.
+It shares no code with any existing implementation — see [CONTRIBUTING.md](https://github.com/nyamlen/tibetan-calendar-temporal/blob/main/CONTRIBUTING.md) for the rules that keep it that way.
 
 **How it was built.** I, Andreas Bothner, am a software architect with over 25 years in software development, a practising Buddhist for over a decade who has lived for fifteen months at a monastic centre, and a student of Sanskrit and Tibetan, so this project is a personal one.
 I built it over three months, from August to November 2026, with Claude Code, Anthropic's AI coding assistant:
@@ -780,20 +685,14 @@ What a model saw in training cannot be ruled out, so the evidence of independent
 <details>
 <summary><strong>Why the name says "Tibetan" when Bhutan and Mongolia have their own calendars</strong></summary>
 
-Because that is how the field describes the family, not because their calendars are treated as
-lesser. Svante Janson — whose *Tibetan Calendar Mathematics* this engine is derived from — writes
-that "Bhutan and Mongolia also use versions of the Tibetan calendar", opens his Bhutan appendix
-"Bhutan uses a version of the Tibetan calendar as an official calendar", and opens his Mongolia
-appendix "The Mongolian calendar is a version of the Tibetan."
+Because that is how the field describes the family, not because their calendars are treated as lesser.
+Svante Janson — whose *Tibetan Calendar Mathematics* this engine is derived from — writes that "Bhutan and Mongolia also use versions of the Tibetan calendar", opens his Bhutan appendix "Bhutan uses a version of the Tibetan calendar as an official calendar", and opens his Mongolia appendix "The Mongolian calendar is a version of the Tibetan."
 
-All of them descend from the Kālacakra कालचक्र system, which is the honest name for the family;
-"Tibetan calendar" is the name people search for. Bhutan's is an official state calendar in
-Dzongkha with its own eighteenth-century description and its own leap-month and weekday
-conventions; Mongolia's carries two national holidays and dates its constitution by the sixty-year
-cycle. Neither is a dialect of the other.
+All of them descend from the Kālacakra कालचक्र system, which is the honest name for the family; "Tibetan calendar" is the name people search for.
+Bhutan's is an official state calendar in Dzongkha with its own eighteenth-century description and its own leap-month and weekday conventions; Mongolia's carries two national holidays and dates its constitution by the sixty-year cycle.
+Neither is a dialect of the other.
 
-Traditions here are **data, not packages** — a variant is a `TraditionConfig`, never a separate
-install.
+Traditions here are **data, not packages** — a variant is a `TraditionConfig`, never a separate install.
 
 </details>
 
