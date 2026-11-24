@@ -148,7 +148,10 @@ Before explaining a residual by a formula, check whether the source uses the sam
 - **Integer arithmetic only.** Integer division with fixed denominators; no floating point anywhere —
   it is what makes results deterministic across platforms.
 - **Zero runtime dependencies.** Temporal is a built-in; the engine depends on nothing.
-- **ESM only.** `"type": "module"`. No dual CJS build.
+- **ESM only.** `"type": "module"`. No dual CJS build and no UMD: `require()` already loads the
+  package on Node 26, and a second build is a second module instance, splitting the per-config
+  caches and making `=== PHUGPA` false. So **never add a top-level `await`** — it breaks every
+  CommonJS consumer, a major-version change; `test:pack` requires each subpath and catches it.
 - **Boundary and guard code has one named home; a new subsystem must not write its own.** Copies drift
   (shipping messages that misdescribe their own function) or are borrowed (an export reporting errors
   under another's name, pinned by `test/error-subjects.test.ts`). The homes: `assertSafeYear`,
