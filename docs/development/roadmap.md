@@ -1035,7 +1035,9 @@ nothing and reports success.
 
   **Discovery, in the release that exports the config** (Andreas, 2026-11-23), not before, so the
   package does not invite the users it cannot yet serve:
-  - restore the keyword `tsurphu` to `package.json#keywords` and to the GitHub topics;
+  - restore the keyword `tsurphu` to `package.json#keywords` and to the GitHub topics, beside
+    `tsurluk` (*mtshur lugs*, "the Tsurphu system", the Nitartha calendar's own name for it) and
+    `karma-kagyu`, since users search by system name and by lineage;
   - name Tsurphu in `package.json#description` and in the GitHub About, which carry the same text.
 
 - **Mongolian tradition** (New Genden) via its own `TraditionConfig`. Added as its own entry on
